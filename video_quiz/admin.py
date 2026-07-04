@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import TeacherVideoIncome, VideoQuiz, VideoQuizAttempt
+from .models import TeacherVideoIncome, VideoQuiz, VideoQuizAttempt, VideoTranscript
 
 
 @admin.register(VideoQuiz)
@@ -27,6 +27,18 @@ class TeacherVideoIncomeAdmin(admin.ModelAdmin):
     list_filter = ('created_at',)
     search_fields = ('teacher__username', 'note')
     list_select_related = ('teacher',)
+
+
+@admin.register(VideoTranscript)
+class VideoTranscriptAdmin(admin.ModelAdmin):
+    list_display = ('id', 'video', 'language', 'text_length', 'fetched_at')
+    search_fields = ('video__lesson__title',)
+    list_select_related = ('video__lesson',)
+    readonly_fields = ('fetched_at',)
+
+    @admin.display(description="Matn uzunligi")
+    def text_length(self, obj):
+        return len(obj.text)
 
 
 # Bu fayl: Django admin panelida video-quiz modellarini boshqarish.

@@ -161,23 +161,40 @@ def _parse_body(request):
     return request.POST
 
 
-def _validate_quiz_input(video, data, exclude_pk=None, lock_rewards=False):
+def _video_duration_seconds(video):
+    """Videoning eng ishonchli davomiyligi (soniya).
+
+    Transkript keshi bo'lsa — oxirgi snippet tugashi (haqiqiy uzunlik),
+    aks holda DB'dagi `duration` (daqiqa, ustoz kiritgan) ishlatiladi.
+    """
+    db_seconds = max(0, int(video.duration or 0)) * 60
+    cache = getattr(video, 'transcript_cache', None)
+    try:
+        real = cache.duration_seconds if cache else 0
+    except Exception:
+        real = 0
+    return max(db_seconds, real)
+
+
+def _validate_quiz_input(video, data, exclude_pk=None, lock_rewards=False,
+                         max_seconds=None):
     """Test maydonlarini tekshiradi. (cleaned_dict, error) qaytaradi.
 
     `lock_rewards=True` bo'lsa (ustoz), mukofot/jarima/ustoz mukofoti qiymatlari
     mijozdan olinmaydi — doim qat'iy standart qiymatlar ishlatiladi.
+    `max_seconds` berilsa DB davomiyligi o'rniga shu chegara ishlatiladi.
     """
     try:
         trigger = int(data.get('trigger_second', -1))
     except (TypeError, ValueError):
         return None, "Vaqt noto'g'ri formatda."
 
-    duration_seconds = max(0, int(video.duration or 0)) * 60
+    duration_seconds = max_seconds if max_seconds else max(0, int(video.duration or 0)) * 60
     if trigger < 5:
         return None, "Vaqt kamida 5-soniya bo'lishi kerak."
     if duration_seconds and trigger >= duration_seconds:
         return None, (
-            f"Vaqt video davomiyligidan ({video.duration} daqiqa) katta bo'lishi mumkin emas."
+            "Vaqt video davomiyligidan katta bo'lishi mumkin emas."
         )
 
     clash = VideoQuiz.objects.filter(video=video, trigger_second=trigger)
@@ -366,7 +383,7 @@ def teacher_manager(request, video_id):
 
     return render(request, 'video_quiz/teacher_manager.html', {
         'video': video,
-        'duration_seconds': max(60, int(video.duration or 0) * 60),
+        'duration_seconds': max(60, _video_duration_seconds(video)),
         'quizzes_json': json.dumps(
             [_quiz_payload(q, stats.get(q.pk)) for q in quizzes]
         ),
@@ -410,7 +427,8 @@ def api_quiz_create(request, video_id):
 
     data = _parse_body(request)
     cleaned, error = _validate_quiz_input(
-        video, data, lock_rewards=(request.user.role == 'teacher')
+        video, data, lock_rewards=(request.user.role == 'teacher'),
+        max_seconds=_video_duration_seconds(video),
     )
     if error:
         return JsonResponse({'error': error}, status=400)
@@ -428,38 +446,44 @@ def api_quiz_create(request, video_id):
     return JsonResponse({'ok': True, 'quiz': _quiz_payload(quiz)})
 
 
-@login_required
-@require_POST
-def api_quiz_ai_generate(request, video_id):
-    """Video transkriptidan AI orqali bir nechta VideoQuiz yaratadi.
-
-    - youtube-transcript-api orqali transkript olinadi;
-    - AI `count` ta savol (A/B/C/D) tuzadi;
-    - savollar timeline bo'ylab bo'sh soniyalarga taqsimlanadi va saqlanadi;
-    - yaratilgan testlar oddiy testlar kabi tahrirlash/o'chirishga ochiq bo'ladi.
-    """
-    video = get_object_or_404(
-        VideoLesson.objects.select_related('lesson__profession'), pk=video_id
-    )
+def _check_ai_access(request, video):
+    """AI generatsiya uchun umumiy ruxsat tekshiruvlari. None yoki JsonResponse."""
     if not _can_manage_video(request.user, video):
         return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
-
-    # AI bloklangan ustozlar uchun taqiq (quiz moduli bilan bir xil qoida)
     user = request.user
     if user.role == 'teacher' and not user.is_admin:
         if not getattr(user, 'ai_access_enabled', True):
             return JsonResponse(
                 {'error': "AI funksiyasi sizga admin tomonidan bloklangan."}, status=403
             )
-
     if not video.is_youtube:
         return JsonResponse(
             {'error': "Transkriptdan test faqat YouTube videolari uchun ishlaydi."},
             status=400,
         )
+    return None
+
+
+@login_required
+@require_POST
+def api_quiz_ai_generate(request, video_id):
+    """Video transkriptidan AI orqali savollar tuzadi — PREVIEW rejimi.
+
+    DB'ga HECH NARSA yozilmaydi. Oqim:
+      1) transkript keshdan olinadi (bo'lmasa YouTube'dan olib keshlanadi);
+      2) AI vaqt belgili transkript asosida savollar + `at_second` tuzadi;
+      3) har savolga bo'sh trigger soniya taklif qilinadi;
+      4) ustoz preview'da tahrirlab, tanlab `ai-save` bilan saqlaydi.
+    """
+    video = get_object_or_404(
+        VideoLesson.objects.select_related('lesson__profession'), pk=video_id
+    )
+    denied = _check_ai_access(request, video)
+    if denied:
+        return denied
 
     from .ai_quiz import generate_video_quizzes, is_ai_configured
-    from .transcript import fetch_transcript_text
+    from .transcript import get_or_fetch_transcript
 
     if not is_ai_configured():
         return JsonResponse(
@@ -473,60 +497,121 @@ def api_quiz_ai_generate(request, video_id):
         count = 5
     count = max(1, min(count, 20))
     difficulty = (data.get('difficulty') or 'medium').strip()
+    force_refresh = bool(data.get('refresh_transcript'))
 
-    transcript, terr, snips = fetch_transcript_text(video)
+    transcript, terr, snips = get_or_fetch_transcript(
+        video, force_refresh=force_refresh
+    )
     if terr:
         return JsonResponse({'error': terr}, status=400)
 
     questions, gerr = generate_video_quizzes(
-        transcript, count=count, difficulty=difficulty
+        transcript, count=count, difficulty=difficulty, snippets=snips,
     )
     if gerr:
         return JsonResponse({'error': gerr}, status=400)
 
-    # ── Timeline bo'ylab bo'sh soniyalarga taqsimlash ──
-    # Videoning HAQIQIY davomiyligini transkript snippetlaridan olamiz —
-    # oxirgi snippet'ning tugash vaqti (start + duration) videoning uzunligiga
-    # eng yaqin ko'rsatkich. DB'dagi `video.duration` (daqiqa) ustoz tomonidan
-    # noto'g'ri kiritilishi mumkin, shuning uchun u faqat fallback sifatida
-    # ishlatiladi (transkript bo'sh chiqqan hollar uchun).
+    # Haqiqiy davomiylik: transkript oxiri, bo'lmasa DB (daqiqa)
     real_seconds = 0
     if snips:
         last = snips[-1]
-        real_seconds = int(last.get('start', 0) + last.get('duration', 0))
-    fallback_seconds = int(video.duration or 0) * 60
-    duration_seconds = max(60, real_seconds or fallback_seconds)
+        real_seconds = int(
+            float(last.get('start', 0) or 0) + float(last.get('duration', 0) or 0)
+        )
+    duration_seconds = max(60, real_seconds or int(video.duration or 0) * 60)
+
     taken = set(video.mid_quizzes.values_list('trigger_second', flat=True))
-    n = len(questions)
-    slots = _distribute_slots(n, duration_seconds, taken)
+    _assign_trigger_seconds(questions, duration_seconds, taken)
+
+    preview = []
+    for q in questions:
+        sec = q.get('trigger_second')
+        if sec is None:
+            continue
+        m, s = divmod(int(sec), 60)
+        preview.append({
+            'question': q['question'],
+            'option_a': q['option_a'],
+            'option_b': q['option_b'],
+            'option_c': q['option_c'],
+            'option_d': q['option_d'],
+            'correct_option': q['correct_option'],
+            'explanation': q.get('explanation', ''),
+            'trigger_second': sec,
+            'trigger_label': f"{m:02d}:{s:02d}",
+            'ai_placed': q.get('at_second') is not None,
+        })
+
+    if not preview:
+        return JsonResponse(
+            {'error': "Savollarni joylashtirish uchun bo'sh vaqt topilmadi."}, status=400
+        )
+
+    return JsonResponse({
+        'ok': True,
+        'preview': preview,
+        'duration_seconds': duration_seconds,
+        'transcript_chars': len(transcript),
+    })
+
+
+@login_required
+@require_POST
+def api_quiz_ai_bulk_save(request, video_id):
+    """Preview'da tasdiqlangan AI savollarini birdaniga saqlaydi.
+
+    Body: {"questions": [{trigger_second, question, option_a..d,
+    correct_option, explanation}, ...]} — har biri validatsiyadan o'tadi,
+    hammasi bitta tranzaksiyada yoziladi. Bittasi xato bo'lsa, xato qaysi
+    savolda ekani ko'rsatiladi va hech narsa saqlanmaydi.
+    """
+    video = get_object_or_404(
+        VideoLesson.objects.select_related('lesson__profession'), pk=video_id
+    )
+    denied = _check_ai_access(request, video)
+    if denied:
+        return denied
+
+    data = _parse_body(request)
+    items = data.get('questions')
+    if not isinstance(items, list) or not items:
+        return JsonResponse({'error': "Savollar ro'yxati bo'sh."}, status=400)
+    if len(items) > 20:
+        return JsonResponse({'error': "Bir safarda ko'pi bilan 20 ta savol."}, status=400)
+
+    max_seconds = _video_duration_seconds(video)
+    lock = request.user.role == 'teacher'
+
+    cleaned_list = []
+    batch_seconds = set()
+    for idx, item in enumerate(items, start=1):
+        if not isinstance(item, dict):
+            return JsonResponse({'error': f"{idx}-savol formati noto'g'ri."}, status=400)
+        cleaned, error = _validate_quiz_input(
+            video, item, lock_rewards=lock, max_seconds=max_seconds
+        )
+        if error:
+            return JsonResponse({'error': f"{idx}-savol: {error}", 'index': idx}, status=400)
+        if cleaned['trigger_second'] in batch_seconds:
+            return JsonResponse(
+                {'error': f"{idx}-savol: bu vaqt to'plam ichida takrorlangan.", 'index': idx},
+                status=400,
+            )
+        batch_seconds.add(cleaned['trigger_second'])
+        cleaned_list.append(cleaned)
 
     created = []
-    with transaction.atomic():
-        for q, second in zip(questions, slots):
-            if second is None:
-                continue  # bo'sh vaqt topilmadi — o'tkazib yuboramiz
-            try:
-                quiz = VideoQuiz.objects.create(
-                    video=video,
-                    created_by=request.user,
-                    trigger_second=second,
-                    question=q['question'],
-                    option_a=q['option_a'],
-                    option_b=q['option_b'],
-                    option_c=q['option_c'],
-                    option_d=q['option_d'],
-                    correct_option=q['correct_option'],
-                    explanation=q.get('explanation', ''),
-                )
-            except IntegrityError:
-                continue
-            created.append(quiz)
-        # 💰 Video bo'yicha bir martalik daromad — AI to'plamidan keyin bir marta
-        _maybe_award_video_income(request.user, video)
-
-    if not created:
+    try:
+        with transaction.atomic():
+            for cleaned in cleaned_list:
+                created.append(VideoQuiz.objects.create(
+                    video=video, created_by=request.user, **cleaned
+                ))
+            # 💰 Video bo'yicha bir martalik daromad
+            _maybe_award_video_income(request.user, video)
+    except IntegrityError:
         return JsonResponse(
-            {'error': "Testlarni joylashtirish uchun bo'sh vaqt topilmadi."}, status=400
+            {'error': "Vaqt to'qnashuvi yuz berdi. Qayta urinib ko'ring."}, status=400
         )
 
     return JsonResponse({
@@ -534,6 +619,54 @@ def api_quiz_ai_generate(request, video_id):
         'created': len(created),
         'quizzes': [_quiz_payload(q) for q in created],
     })
+
+
+def _assign_trigger_seconds(questions, duration_seconds, taken):
+    """Har savolga bo'sh trigger soniya belgilaydi (joyida, in-place).
+
+    AI `at_second` bergan savollar o'sha nuqtaga eng yaqin bo'sh soniyaga
+    qo'yiladi (mazmun aytilgan joydan keyin chiqishi uchun); qolganlari
+    timeline bo'ylab teng taqsimlanadi. Minimal oraliq 15s — savollar
+    ketma-ket "yopishib" qolmasligi uchun.
+    """
+    MIN_GAP = 15
+    lo, hi = 5, max(6, duration_seconds - 2)
+    used = set(taken)
+
+    def is_free(sec):
+        return all(abs(sec - u) >= 1 for u in used)
+
+    def nearest_free(target):
+        target = min(hi, max(lo, int(target)))
+        for delta in range(0, hi - lo + 1):
+            for cand in (target + delta, target - delta):
+                if lo <= cand <= hi and is_free(cand):
+                    return cand
+        return None
+
+    # 1) AI joylashtirgan savollar (tartibda, MIN_GAP bilan)
+    placed_secs = []
+    for q in questions:
+        at = q.get('at_second')
+        if at is None:
+            continue
+        target = at
+        if placed_secs and target < placed_secs[-1] + MIN_GAP:
+            target = placed_secs[-1] + MIN_GAP
+        sec = nearest_free(target)
+        q['trigger_second'] = sec
+        if sec is not None:
+            used.add(sec)
+            placed_secs.append(sec)
+
+    # 2) at_second'siz savollar — teng taqsimlash fallback'i
+    rest = [q for q in questions if q.get('at_second') is None]
+    if rest:
+        slots = _distribute_slots(len(rest), duration_seconds, used)
+        for q, sec in zip(rest, slots):
+            q['trigger_second'] = sec
+            if sec is not None:
+                used.add(sec)
 
 
 def _distribute_slots(n, duration_seconds, taken):
@@ -574,6 +707,7 @@ def api_quiz_update(request, pk):
     cleaned, error = _validate_quiz_input(
         quiz.video, data, exclude_pk=quiz.pk,
         lock_rewards=(request.user.role == 'teacher'),
+        max_seconds=_video_duration_seconds(quiz.video),
     )
     if error:
         return JsonResponse({'error': error}, status=400)

@@ -14,13 +14,27 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
 }
 .vqp-overlay.open { display: flex; }
 .vqp-box {
-    width: 100%; max-width: 560px; border-radius: 24px; overflow: hidden;
-    background: linear-gradient(165deg, #101828, #0b1120);
-    border: 1px solid rgba(129,140,248,.25);
-    box-shadow: 0 40px 100px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.04);
+    width: 100%; max-width: 560px; border-radius: 26px; overflow: hidden;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(99,102,241,.14), transparent 45%),
+        linear-gradient(165deg, #101828, #0b1120);
+    border: 1px solid rgba(129,140,248,.28);
+    box-shadow: 0 40px 100px -30px rgba(0,0,0,.9), 0 0 0 1px rgba(255,255,255,.04),
+                0 0 80px -30px rgba(99,102,241,.5);
     color: #e2e8f0; position: relative;
     animation: vqpIn .45s cubic-bezier(.2,.9,.3,1.12) both;
 }
+.vqp-counter {
+    font-size: .66rem; font-weight: 800; color: #a5b4fc;
+    background: rgba(129,140,248,.13); border: 1px solid rgba(129,140,248,.22);
+    padding: .18rem .55rem; border-radius: 999px; letter-spacing: .03em;
+}
+.vqp-kbd-hint { font-size: .66rem; color: rgba(148,163,184,.6); text-align: center; margin-top: .55rem; }
+.vqp-kbd-hint kbd {
+    background: rgba(129,140,248,.14); color: #a5b4fc; border: 1px solid rgba(129,140,248,.25);
+    border-radius: 5px; padding: 1px 5px; font-size: .62rem; font-family: inherit; font-weight: 800;
+}
+@media (max-width: 576px) { .vqp-kbd-hint { display: none; } }
 @keyframes vqpIn { from { transform: translateY(44px) scale(.94); opacity: 0; } to { transform: none; opacity: 1; } }
 .vqp-box.shake { animation: vqpShake .55s cubic-bezier(.36,.07,.19,.97); }
 @keyframes vqpShake {
@@ -140,7 +154,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         <div class="vqp-top">
             <div class="vqp-top-ic"><i class="bi bi-lightning-charge-fill"></i></div>
             <div>
-                <b>Video savol!</b>
+                <b>Video savol! <span class="vqp-counter" id="vqpCounter"></span></b>
                 <small>Davom etish uchun javob bering</small>
             </div>
             <div class="vqp-coins">
@@ -160,6 +174,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             <button type="button" class="vqp-submit" id="vqpSubmit" disabled>
                 <i class="bi bi-send"></i> Javobni yuborish
             </button>
+            <div class="vqp-kbd-hint">Klaviatura: <kbd>A</kbd>–<kbd>D</kbd> yoki <kbd>1</kbd>–<kbd>4</kbd> tanlash, <kbd>Enter</kbd> yuborish</div>
             <div class="vqp-result" id="vqpResult">
                 <div class="big" id="vqpResIcon"></div>
                 <h4 id="vqpResTitle"></h4>
@@ -387,6 +402,9 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         _fsElement = document.fullscreenElement || document.webkitFullscreenElement ||
                      document.mozFullScreenElement || document.msFullscreenElement || null;
         if (_wasFullscreen) exitFullscreen();
+        // Savol hisoblagichi: nechanchi savol / jami
+        const answeredCount = quizzes.filter(function(x){ return x.answered; }).length;
+        document.getElementById('vqpCounter').textContent = (answeredCount + 1) + ' / ' + quizzes.length;
         document.getElementById('vqpQ').textContent = q.question;
         const d = document.getElementById('vqpDesc');
         d.textContent = q.description || ''; d.style.display = q.description ? '' : 'none';
@@ -496,9 +514,27 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
     document.getElementById('vqpSubmit').addEventListener('click', submit);
     document.getElementById('vqpContinue').addEventListener('click', finishQuiz);
 
-    // ESC va tashqi bosish bilan YOPILMAYDI
+    // ESC va tashqi bosish bilan YOPILMAYDI + klaviatura boshqaruvi
     document.addEventListener('keydown', function(e) {
-        if (modalOpen && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); }
+        if (!modalOpen) return;
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return; }
+        const resultShown = document.getElementById('vqpResult').style.display === 'block';
+        if (resultShown) {
+            if (e.key === 'Enter') { e.preventDefault(); finishQuiz(); }
+            return;
+        }
+        // A-D yoki 1-4 bilan variant tanlash
+        const keyMap = {'a':'A','b':'B','c':'C','d':'D','1':'A','2':'B','3':'C','4':'D'};
+        const letter = keyMap[e.key.toLowerCase()];
+        if (letter) {
+            const btn = document.querySelector('.vqp-opt[data-letter="' + letter + '"]');
+            if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+            return;
+        }
+        if (e.key === 'Enter' && selected) {
+            e.preventDefault();
+            if (!document.getElementById('vqpSubmit').disabled) submit();
+        }
     }, true);
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) { box.classList.add('shake'); setTimeout(function(){ box.classList.remove('shake'); }, 600); }

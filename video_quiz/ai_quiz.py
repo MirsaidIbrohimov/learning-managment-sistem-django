@@ -21,6 +21,7 @@ from django.conf import settings
 DEFAULT_MODEL = 'gpt-4o-mini'
 MAX_QUESTIONS = 20
 MIN_QUESTION_LEN = 5
+TIMED_MAX_CHARS = 18000  # vaqt belgili transkript uchun yuqori chegara
 
 
 def is_ai_configured() -> bool:
@@ -35,14 +36,20 @@ def generate_video_quizzes(
     difficulty: str = 'medium',
     context: Optional[str] = None,
     language: str = 'uz',
+    snippets: Optional[List[dict]] = None,
 ) -> Tuple[List[Dict[str, Any]], Optional[str]]:
     """Transkript matnidan `count` ta video test savoli yaratadi.
 
     (questions, error) qaytaradi. `questions` — har biri
-    {question, option_a..d, correct_option, explanation} lug'ati.
+    {question, option_a..d, correct_option, explanation, at_second} lug'ati.
+
+    `snippets` berilsa ({'text','start','duration'} ro'yxati) transkript
+    vaqt belgilari bilan yuboriladi va AI har bir savol uchun `at_second`
+    (savol mazmuni videoda TUGAGAN soniya) qaytaradi — savol aynan o'sha
+    mavzu tushuntirilganidan keyin chiqadi.
     """
     transcript = (transcript or '').strip()
-    if not transcript:
+    if not transcript and not snippets:
         return [], "Transkript bo'sh."
 
     count = max(1, min(int(count or 5), MAX_QUESTIONS))
@@ -58,8 +65,13 @@ def generate_video_quizzes(
     except ImportError:
         return [], "`openai` paket o'rnatilmagan."
 
+    timed = bool(snippets)
+    if timed:
+        # Vaqt belgilari matnni biroz uzaytiradi — cap'ga ozgina zaxira qo'shamiz
+        transcript = _format_timed_transcript(snippets, max_chars=TIMED_MAX_CHARS)
+
     client = OpenAI(api_key=api_key.strip(), timeout=120)
-    messages = _build_prompt(transcript, count, difficulty, context)
+    messages = _build_prompt(transcript, count, difficulty, context, timed=timed)
 
     text, err = _call_openai(client, messages)
     if err:
@@ -114,28 +126,80 @@ def _shuffle_options(q: Dict[str, Any]) -> None:
     q['correct_option'] = letters[new_values.index(correct_val)]
 
 
+# ── Vaqt belgili transkript ──────────────────────────────────────────────────
+
+def _format_timed_transcript(snippets: List[dict], *, max_chars: int = 16000) -> str:
+    """Snippetlarni ~30 soniyalik bo'laklarga birlashtirib [mm:ss] belgilaydi.
+
+    Har snippetga alohida belgi qo'yish token isrofi — 30s guruhlash
+    aniqlikni saqlagan holda promptni ixcham qiladi.
+    """
+    CHUNK_SEC = 30
+    lines: List[str] = []
+    bucket_start = None
+    bucket_texts: List[str] = []
+
+    def flush():
+        if bucket_start is None or not bucket_texts:
+            return
+        m, s = divmod(int(bucket_start), 60)
+        lines.append(f"[{m:02d}:{s:02d}] " + ' '.join(bucket_texts))
+
+    for sn in snippets:
+        try:
+            start = float(sn.get('start', 0) or 0)
+        except (TypeError, ValueError):
+            start = 0.0
+        text = (sn.get('text') or '').strip()
+        if not text:
+            continue
+        if bucket_start is None:
+            bucket_start = start
+        if start - bucket_start >= CHUNK_SEC:
+            flush()
+            bucket_start = start
+            bucket_texts = []
+        bucket_texts.append(text)
+    flush()
+
+    result = '\n'.join(lines)
+    return result[:max_chars] if len(result) > max_chars else result
+
+
 # ── Prompt ──────────────────────────────────────────────────────────────────
 
-def _build_prompt(transcript, count, difficulty, context) -> List[Dict[str, str]]:
+def _build_prompt(transcript, count, difficulty, context, *, timed=False) -> List[Dict[str, str]]:
     difficulty_hint = {
         'easy': "boshlang'ich — sodda, to'g'ridan-to'g'ri faktlar",
         'medium': "o'rtacha — tushuncha + amaliy misol",
         'hard': "qiyin — chuqur tahlil, chalg'ituvchi variantlar",
     }[difficulty]
 
-    schema = {
-        "questions": [
-            {
-                "question": "Savol matni",
-                "option_a": "A variant",
-                "option_b": "B variant",
-                "option_c": "C variant",
-                "option_d": "D variant",
-                "correct_option": "A",
-                "explanation": "Nega bu javob to'g'ri (1-2 gap)",
-            }
-        ]
+    schema_q = {
+        "question": "Savol matni",
+        "option_a": "A variant",
+        "option_b": "B variant",
+        "option_c": "C variant",
+        "option_d": "D variant",
+        "correct_option": "A",
+        "explanation": "Nega bu javob to'g'ri (1-2 gap)",
     }
+    if timed:
+        schema_q["at_second"] = 185
+    schema = {"questions": [schema_q]}
+
+    timed_rules = ""
+    if timed:
+        timed_rules = (
+            "- Transkript [mm:ss] vaqt belgilari bilan berilgan.\n"
+            "- Har bir savolga `at_second` (butun son, soniya) qo'sh: bu savol "
+            "mazmuni videoda TO'LIQ tushuntirib bo'lingan vaqt. Savol faqat "
+            "`at_second` dan OLDINGI mazmunga asoslansin — o'quvchi hali "
+            "ko'rmagan qismdan so'rama.\n"
+            "- `at_second` qiymatlari o'sib borsin va savollar video bo'ylab "
+            "taqsimlansin (hammasi bir joyga to'planmasin).\n"
+            "- Birinchi savol kamida 60-soniyadan keyin bo'lsin.\n"
+        )
 
     system = (
         "Sen video dars asosida test tuzuvchi tajribali ustozsan. "
@@ -151,6 +215,7 @@ def _build_prompt(transcript, count, difficulty, context) -> List[Dict[str, str]
         f"- Variantlar bir-biridan farqli, takror matn yo'q.\n"
         f"- 'yuqoridagilarning barchasi' kabi tanbal variantlardan foydalanma.\n"
         f"- Savollar transkript mazmuniga asoslansin.\n"
+        f"{timed_rules}"
         f"- Qiyinlik: {difficulty_hint}.\n"
         f"- Har bir savol uchun qisqa izoh (explanation) ber.\n\n"
         "JSON sxemasi:\n" + json.dumps(schema, ensure_ascii=False, indent=2) + "\n\n"
@@ -237,6 +302,16 @@ def _normalise(raw: Any) -> Optional[Dict[str, Any]]:
     if correct not in ('A', 'B', 'C', 'D'):
         return None
 
+    # AI bergan vaqt belgisi (ixtiyoriy) — noto'g'ri bo'lsa None qoladi,
+    # view uni teng-taqsimlash fallback'iga o'tkazadi.
+    at_second = None
+    try:
+        raw_at = raw.get('at_second')
+        if raw_at is not None:
+            at_second = max(0, int(float(raw_at)))
+    except (TypeError, ValueError):
+        at_second = None
+
     return {
         'question': question[:2000],
         'option_a': options['a'],
@@ -245,6 +320,7 @@ def _normalise(raw: Any) -> Optional[Dict[str, Any]]:
         'option_d': options['d'],
         'correct_option': correct,
         'explanation': str(raw.get('explanation') or '').strip()[:2000],
+        'at_second': at_second,
     }
 
 

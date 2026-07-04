@@ -20,6 +20,40 @@ from typing import List, Optional, Tuple
 PREFERRED_LANGS = ['uz', 'en', 'ru']
 
 
+def get_or_fetch_transcript(
+    video, *, max_chars: int = 16000, force_refresh: bool = False,
+) -> Tuple[str, Optional[str], List[dict]]:
+    """Transkriptni DB keshidan oladi, bo'lmasa YouTube'dan olib keshlaydi.
+
+    (text, error, snippets) qaytaradi — fetch_transcript_text bilan bir xil
+    imzo, shuning uchun chaqiruvchi kod o'zgarmaydi.
+    """
+    from .models import VideoTranscript
+
+    if not video:
+        return '', "Video topilmadi.", []
+
+    if not force_refresh:
+        cached = VideoTranscript.objects.filter(video=video).first()
+        if cached and cached.text:
+            text = cached.text
+            if len(text) > max_chars:
+                text = text[:max_chars]
+            return text, None, list(cached.snippets or [])
+
+    text, error, snippets = fetch_transcript_text(video, max_chars=max_chars)
+    if error:
+        return '', error, []
+
+    # Muvaffaqiyatli natijani keshlaymiz (xatolik keshlanmaydi —
+    # vaqtinchalik IP-blok keyinroq o'tib ketishi mumkin)
+    VideoTranscript.objects.update_or_create(
+        video=video,
+        defaults={'text': text, 'snippets': snippets},
+    )
+    return text, None, snippets
+
+
 def fetch_transcript_text(video, *, max_chars: int = 16000) -> Tuple[str, Optional[str], List[dict]]:
     """VideoLesson uchun transkript oladi.
 

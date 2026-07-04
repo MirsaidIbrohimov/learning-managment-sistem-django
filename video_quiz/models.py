@@ -171,6 +171,50 @@ class TeacherVideoIncome(models.Model):
         return f"{self.teacher_id}: +{self.amount} so'm"
 
 
+class VideoTranscript(models.Model):
+    """YouTube transkriptining DB keshi.
+
+    Bir marta muvaffaqiyatli olingan transkript shu yerda saqlanadi —
+    keyingi AI generatsiyalar YouTube'ga qayta so'rov yubormaydi
+    (tezlik + IP-blok xavfining oldini olish).
+    """
+
+    video = models.OneToOneField(
+        'accounts.VideoLesson',
+        on_delete=models.CASCADE,
+        related_name='transcript_cache',
+        verbose_name="Video dars",
+    )
+    text = models.TextField(verbose_name="To'liq matn")
+    snippets = models.JSONField(
+        default=list, blank=True,
+        verbose_name="Snippetlar",
+        help_text="[{'text','start','duration'}] — vaqt belgilari bilan bo'laklar",
+    )
+    language = models.CharField(
+        max_length=10, blank=True, default='', verbose_name="Til kodi"
+    )
+    fetched_at = models.DateTimeField(auto_now=True, verbose_name="Olingan vaqt")
+
+    class Meta:
+        verbose_name = "Video transkript keshi"
+        verbose_name_plural = "Video transkript keshlari"
+
+    def __str__(self):
+        return f"Transkript: video#{self.video_id} ({len(self.text)} belgi)"
+
+    @property
+    def duration_seconds(self) -> int:
+        """Oxirgi snippet tugashi — videoning haqiqiy davomiyligiga eng yaqin baho."""
+        if not self.snippets:
+            return 0
+        last = self.snippets[-1]
+        try:
+            return int(float(last.get('start', 0)) + float(last.get('duration', 0)))
+        except (TypeError, ValueError):
+            return 0
+
+
 # Bu fayl: video ichidagi testlar, urinishlar va ustoz daromadi modellari.
 # UniqueConstraint'lar bir vaqtga ikki test / bir savolga ikki javob / bir
 # videoga ikki daromadni DB darajasida taqiqlaydi (race-condition'dan himoya).

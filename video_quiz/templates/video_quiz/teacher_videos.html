@@ -35,7 +35,8 @@
     background: linear-gradient(135deg, #0d9488, #10b981);
     display: flex; align-items: center; justify-content: center;
 }
-.vq-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.vq-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+.vq-card:hover .vq-thumb img { transform: scale(1.06); }
 .vq-thumb .ph { font-size: 2.6rem; color: rgba(255,255,255,.85); }
 .vq-thumb .dur {
     position: absolute; right: 10px; bottom: 10px;
@@ -66,6 +67,22 @@
 .vq-empty { text-align: center; padding: 4rem 1rem; color: var(--bs-secondary-color); }
 .vq-empty i { font-size: 3rem; opacity: .35; display: block; margin-bottom: .8rem; }
 @media (max-width: 576px) { .vq-grid { grid-template-columns: 1fr; } }
+/* Qidiruv paneli */
+.vq-search {
+    position: relative; margin-bottom: 1.2rem; max-width: 420px;
+}
+.vq-search i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: #0d9488; font-size: .9rem; pointer-events: none;
+}
+.vq-search input {
+    width: 100%; padding: .7rem 1rem .7rem 2.5rem; border-radius: 13px;
+    border: 1.5px solid var(--border-color, #e5e7eb); background: var(--card-bg, #fff);
+    color: inherit; font-size: .87rem; font-weight: 600; outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+.vq-search input:focus { border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13,148,136,.13); }
+.vq-noresult { display: none; }
 /* Kurs kartasi (bosiladigan) + orqaga havolasi */
 .vq-card.vq-course-card { text-decoration: none; color: inherit; cursor: pointer; }
 .vq-course-card .vq-thumb { background: linear-gradient(135deg, #0d9488, #14b8a6); }
@@ -132,9 +149,13 @@
 </div>
 
 {% if cards %}
-<div class="vq-grid">
+<div class="vq-search">
+    <i class="bi bi-search"></i>
+    <input type="text" id="vqSearch" placeholder="Video nomi bo'yicha qidirish..." autocomplete="off">
+</div>
+<div class="vq-grid" id="vqGrid">
     {% for c in cards %}
-    <div class="vq-card">
+    <div class="vq-card" data-title="{{ c.video.lesson.title|lower }}">
         <div class="vq-thumb">
             {% if c.thumb %}<img src="{{ c.thumb }}" alt="" loading="lazy">
             {% else %}<i class="bi bi-camera-video ph"></i>{% endif %}
@@ -158,6 +179,29 @@
     </div>
     {% endfor %}
 </div>
+<div class="vq-empty vq-noresult" id="vqNoResult">
+    <i class="bi bi-search"></i>
+    <h5 style="font-weight:800;">Hech narsa topilmadi</h5>
+    <p>Qidiruv so'zini o'zgartirib ko'ring.</p>
+</div>
+<script>
+(function() {
+    var inp = document.getElementById('vqSearch');
+    if (!inp) return;
+    var cards = document.querySelectorAll('#vqGrid .vq-card');
+    var empty = document.getElementById('vqNoResult');
+    inp.addEventListener('input', function() {
+        var q = inp.value.trim().toLowerCase();
+        var visible = 0;
+        cards.forEach(function(c) {
+            var show = !q || (c.dataset.title || '').indexOf(q) !== -1;
+            c.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        empty.style.display = visible ? 'none' : 'block';
+    });
+})();
+</script>
 {% else %}
 <div class="vq-empty">
     <i class="bi bi-camera-video-off"></i>

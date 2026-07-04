@@ -164,8 +164,10 @@
     max-width: 560px;
     padding: 0;
     overflow: hidden;
+    position: relative; /* loader overlay uchun */
     border: 1px solid rgba(124,58,237,.22);
     box-shadow: 0 30px 80px -30px rgba(124,58,237,.55);
+    transition: max-width .3s ease;
 }
 .vm-ai-hero {
     position: relative;
@@ -343,9 +345,83 @@
     100% { margin-left: 100%; }
 }
 
+/* ================= AI PREVIEW (2-bosqich) ================= */
+.vm-ai-box.wide { max-width: 760px; }
+.vm-ai-summary {
+    display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.vm-ai-summary span {
+    font-size: .72rem; font-weight: 700; padding: .35rem .75rem; border-radius: 999px;
+    background: rgba(124,58,237,.08); color: #7c3aed; border: 1px solid rgba(124,58,237,.2);
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.vm-ai-preview-list {
+    display: grid; gap: .8rem; max-height: 52vh; overflow-y: auto;
+    padding: 2px 4px 2px 2px; margin: 0 -2px;
+}
+.vm-ai-preview-list::-webkit-scrollbar { width: 6px; }
+.vm-ai-preview-list::-webkit-scrollbar-thumb { background: rgba(124,58,237,.3); border-radius: 3px; }
+.vm-ai-qcard {
+    border: 1.5px solid var(--border-color, #e5e7eb); border-radius: 16px;
+    padding: .9rem 1rem; transition: border-color .2s, opacity .2s;
+    background: var(--card-bg, #fff);
+}
+.vm-ai-qcard.on { border-color: rgba(124,58,237,.45); box-shadow: 0 4px 18px -10px rgba(124,58,237,.4); }
+.vm-ai-qcard.skip { opacity: .45; }
+.vm-ai-qhead { display: flex; align-items: center; gap: .6rem; margin-bottom: .6rem; flex-wrap: wrap; }
+.vm-ai-qcheck {
+    width: 22px; height: 22px; accent-color: #7c3aed; cursor: pointer; flex-shrink: 0;
+}
+.vm-ai-qtime {
+    width: 76px; text-align: center; font-family: monospace; font-weight: 800; font-size: .85rem;
+    padding: .35rem .4rem; border-radius: 9px;
+    border: 1.5px solid var(--border-color, #d1d5db); background: rgba(124,58,237,.06);
+    color: #7c3aed; outline: none; transition: border-color .2s;
+}
+.vm-ai-qtime:focus { border-color: #7c3aed; }
+.vm-ai-qtime.bad { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,.07); }
+.vm-ai-qplaced {
+    font-size: .64rem; font-weight: 800; padding: .22rem .55rem; border-radius: 999px;
+    background: rgba(16,185,129,.1); color: #059669; border: 1px solid rgba(16,185,129,.25);
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.vm-ai-qnum { font-size: .72rem; font-weight: 800; color: var(--bs-secondary-color); margin-left: auto; }
+.vm-ai-qdel {
+    width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border-color, #e5e7eb);
+    background: transparent; cursor: pointer; color: var(--bs-secondary-color);
+    display: flex; align-items: center; justify-content: center; font-size: .8rem; transition: all .15s;
+}
+.vm-ai-qdel:hover { color: #ef4444; border-color: rgba(239,68,68,.4); background: rgba(239,68,68,.07); }
+.vm-ai-qcard textarea.vm-ai-qq {
+    width: 100%; border: 1.5px solid transparent; background: transparent; color: inherit;
+    font-weight: 700; font-size: .88rem; line-height: 1.4; resize: none;
+    border-radius: 9px; padding: .3rem .45rem; outline: none; transition: border-color .2s, background .2s;
+}
+.vm-ai-qcard textarea.vm-ai-qq:hover { background: rgba(124,58,237,.04); }
+.vm-ai-qcard textarea.vm-ai-qq:focus { border-color: rgba(124,58,237,.4); background: rgba(124,58,237,.04); }
+.vm-ai-qopts { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; margin-top: .5rem; }
+.vm-ai-qopt {
+    display: flex; align-items: center; gap: .5rem;
+    border: 1.5px solid var(--border-color, #e5e7eb); border-radius: 10px; padding: .3rem .55rem;
+    transition: border-color .2s, background .2s;
+}
+.vm-ai-qopt.correct { border-color: rgba(16,185,129,.55); background: rgba(16,185,129,.07); }
+.vm-ai-qopt input[type="radio"] { accent-color: #10b981; cursor: pointer; flex-shrink: 0; }
+.vm-ai-qopt input[type="text"] {
+    flex: 1; border: none; background: transparent; color: inherit; outline: none;
+    font-size: .8rem; font-weight: 600; min-width: 0;
+}
+.vm-ai-qexp {
+    margin-top: .5rem; width: 100%;
+    border: 1px dashed var(--border-color, #d1d5db); border-radius: 9px;
+    background: transparent; color: var(--bs-secondary-color);
+    font-size: .74rem; padding: .35rem .55rem; outline: none;
+}
+.vm-ai-qexp:focus { border-color: rgba(124,58,237,.4); border-style: solid; color: inherit; }
 @media (max-width: 576px) {
     .vm-ai-diff { grid-template-columns: 1fr; }
     .vm-ai-quick { width: 100%; margin-left: 0; }
+    .vm-ai-qopts { grid-template-columns: 1fr; }
 }
 
 /* ---------- TOAST ---------- */
@@ -482,13 +558,13 @@
                 <div class="vm-ai-hero-icon"><i class="bi bi-stars"></i></div>
                 <div>
                     <h3>Transkriptdan test tuzish</h3>
-                    <p>YouTube subtitrlari asosida AI savollar tuzadi va ularni timeline bo'ylab avtomatik joylashtiradi.</p>
+                    <p>AI savollarni mavzu tushuntirilgan joyga moslab tuzadi — siz ularni ko'rib chiqib, tahrirlab, tanlab saqlaysiz.</p>
                 </div>
             </div>
         </div>
 
-        <!-- BODY -->
-        <div class="vm-ai-body">
+        <!-- ===== 1-BOSQICH: SOZLAMALAR ===== -->
+        <div class="vm-ai-body" id="vqAiStep1">
             <div class="vm-err" id="vqAiErr"></div>
 
             <!-- Test soni -->
@@ -539,28 +615,44 @@
             <div class="vm-ai-steps">
                 <b><i class="bi bi-info-circle"></i> Jarayon</b>
                 <ol>
-                    <li>Video transkripti o'qiladi</li>
-                    <li>AI 4 variantli test savollarini tuzadi</li>
-                    <li>Har bir savol tegishli vaqt belgisiga qo'yiladi</li>
+                    <li>Video transkripti o'qiladi (kesh bo'lsa — bir zumda)</li>
+                    <li>AI savolni mavzu tushuntirilgan JOYGA moslab tuzadi</li>
+                    <li>Siz har bir savolni ko'rib, tahrirlab, tanlab saqlaysiz</li>
                 </ol>
-            </div>
-
-            <!-- LOADER OVERLAY -->
-            <div class="vm-ai-loader" id="vqAiLoader">
-                <div class="vm-ai-spinner"></div>
-                <div style="text-align:center;">
-                    <p>AI test tuzmoqda…</p>
-                    <small>Bu 10–40 soniya davom etishi mumkin</small>
-                </div>
-                <div class="vm-ai-progress"><i></i></div>
             </div>
         </div>
 
-        <!-- ACTIONS -->
-        <div class="vm-ai-actions">
+        <!-- ===== 2-BOSQICH: PREVIEW ===== -->
+        <div class="vm-ai-body" id="vqAiStep2" style="display:none;">
+            <div class="vm-err" id="vqAiErr2"></div>
+            <div class="vm-ai-summary" id="vqAiSummary"></div>
+            <div class="vm-ai-preview-list" id="vqAiPreview"></div>
+        </div>
+
+        <!-- LOADER OVERLAY -->
+        <div class="vm-ai-loader" id="vqAiLoader">
+            <div class="vm-ai-spinner"></div>
+            <div style="text-align:center;">
+                <p id="vqAiLoaderText">AI test tuzmoqda…</p>
+                <small>Bu 10–40 soniya davom etishi mumkin</small>
+            </div>
+            <div class="vm-ai-progress"><i></i></div>
+        </div>
+
+        <!-- ACTIONS: 1-bosqich -->
+        <div class="vm-ai-actions" id="vqAiActions1">
             <button type="button" class="vm-ai-cancel" onclick="vqCloseAi()">Bekor qilish</button>
             <button type="button" class="vm-ai-run" id="vqAiBtn" onclick="vqRunAi()">
-                <i class="bi bi-magic"></i> <span>Yaratish</span>
+                <i class="bi bi-magic"></i> <span>Savollarni tuzish</span>
+            </button>
+        </div>
+        <!-- ACTIONS: 2-bosqich -->
+        <div class="vm-ai-actions" id="vqAiActions2" style="display:none;">
+            <button type="button" class="vm-ai-cancel" onclick="vqAiBack()">
+                <i class="bi bi-arrow-left"></i> Orqaga
+            </button>
+            <button type="button" class="vm-ai-run" id="vqAiSaveBtn" onclick="vqAiSave()">
+                <i class="bi bi-check2-all"></i> <span id="vqAiSaveLabel">Saqlash</span>
             </button>
         </div>
     </div>
@@ -579,6 +671,7 @@ const VQ = {
     urls: {
         create: "{% url 'video_quiz:api_quiz_create' video.pk %}",
         aiGenerate: "{% url 'video_quiz:api_quiz_ai_generate' video.pk %}",
+        aiSave: "{% url 'video_quiz:api_quiz_ai_bulk_save' video.pk %}",
         update: (id) => "{% url 'video_quiz:api_quiz_update' 0 %}".replace('/0/', '/' + id + '/'),
         del:    (id) => "{% url 'video_quiz:api_quiz_delete' 0 %}".replace('/0/', '/' + id + '/'),
         toggle: (id) => "{% url 'video_quiz:api_quiz_toggle' 0 %}".replace('/0/', '/' + id + '/'),
@@ -636,7 +729,8 @@ function renderTimeline() {
         mk.className = 'vm-marker' + (q.is_active ? '' : ' off');
         mk.style.left = Math.min(99, (q.trigger_second / VQ.duration * 100)) + '%';
         mk.style.animationDelay = (idx * 0.07) + 's';
-        mk.innerHTML = '<i class="bi bi-question-lg"></i><span class="tip">🔵 ' + q.trigger_label + ' — bosib tahrirlang</span>';
+        const snippet = q.question.length > 46 ? q.question.slice(0, 46) + '…' : q.question;
+        mk.innerHTML = '<i class="bi bi-question-lg"></i><span class="tip">' + q.trigger_label + ' · ' + escapeHtml(snippet) + '</span>';
         mk.onclick = () => vqOpenEdit(q.id);
         tl.appendChild(mk);
     });
@@ -776,15 +870,30 @@ async function vqDuplicate(id) {
     toast('Nusxa yaratildi 📋 (o\'chiq holatda)'); rerender();
 }
 
-/* ---------- AI: TRANSKRIPTDAN TEST ---------- */
+/* ---------- AI: TRANSKRIPTDAN TEST (2 bosqich: sozlash -> preview) ---------- */
+let aiBusy = false;
+
 function vqOpenAi() {
     document.getElementById('vqAiErr').style.display = 'none';
     document.getElementById('vqAiLoader').classList.remove('show');
+    vqAiShowStep(1);
     document.getElementById('vqAiModal').classList.add('open');
 }
 function vqCloseAi() {
-    if (document.getElementById('vqAiBtn').disabled) return; // Yaratilayotgan paytda yopilmasin
+    if (aiBusy) return; // Yaratilayotgan/saqlanayotgan paytda yopilmasin
     document.getElementById('vqAiModal').classList.remove('open');
+}
+function vqAiShowStep(n) {
+    const box = document.querySelector('#vqAiModal .vm-ai-box');
+    document.getElementById('vqAiStep1').style.display = n === 1 ? '' : 'none';
+    document.getElementById('vqAiStep2').style.display = n === 2 ? '' : 'none';
+    document.getElementById('vqAiActions1').style.display = n === 1 ? '' : 'none';
+    document.getElementById('vqAiActions2').style.display = n === 2 ? '' : 'none';
+    box.classList.toggle('wide', n === 2);
+}
+function vqAiBack() {
+    if (aiBusy) return;
+    vqAiShowStep(1);
 }
 const _vqAiModal = document.getElementById('vqAiModal');
 if (_vqAiModal) {
@@ -839,8 +948,10 @@ async function vqRunAi() {
     err.style.display = 'none';
     const count = parseInt(document.getElementById('fAiCount').value, 10) || 5;
     const difficulty = document.getElementById('fAiDifficulty').value;
+    aiBusy = true;
     btn.disabled = true;
-    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Yaratilmoqda…</span>';
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> <span>Tuzilmoqda…</span>';
+    document.getElementById('vqAiLoaderText').textContent = 'AI test tuzmoqda…';
     loader.classList.add('show');
     try {
         const data = await api(VQ.urls.aiGenerate, { count, difficulty });
@@ -849,19 +960,171 @@ async function vqRunAi() {
             err.style.display = 'block';
             return;
         }
-        (data.quizzes || []).forEach(q => VQ.quizzes.push(q));
-        btn.disabled = false;      // vqCloseAi ichidagi guard uchun
-        loader.classList.remove('show');
-        vqCloseAi();
-        rerender();
-        toast((data.created || 0) + ' ta test AI orqali yaratildi 🎉');
-        return;
+        if (data.duration_seconds && data.duration_seconds > VQ.duration) {
+            VQ.duration = data.duration_seconds; // transkriptdan aniqlangan haqiqiy uzunlik
+            document.getElementById('vqMaxLabel').textContent = fmt(VQ.duration);
+        }
+        vqAiRenderPreview(data.preview || [], data.transcript_chars || 0);
+        vqAiShowStep(2);
     } catch (e) {
         err.textContent = "Xatolik yuz berdi. Qayta urinib ko'ring.";
         err.style.display = 'block';
     } finally {
+        aiBusy = false;
         btn.disabled = false;
-        btn.innerHTML = '<i class="bi bi-magic"></i> <span>Yaratish</span>';
+        btn.innerHTML = '<i class="bi bi-magic"></i> <span>Savollarni tuzish</span>';
+        loader.classList.remove('show');
+    }
+}
+
+/* ---------- Preview render ---------- */
+function vqAiRenderPreview(preview, chars) {
+    const list = document.getElementById('vqAiPreview');
+    const summary = document.getElementById('vqAiSummary');
+    document.getElementById('vqAiErr2').style.display = 'none';
+    const placed = preview.filter(q => q.ai_placed).length;
+    summary.innerHTML =
+        '<span><i class="bi bi-patch-question"></i> ' + preview.length + ' ta savol</span>' +
+        '<span><i class="bi bi-geo-alt"></i> ' + placed + ' tasi mazmunga mos joylashtirildi</span>' +
+        (chars ? '<span><i class="bi bi-file-text"></i> Transkript: ' + chars + ' belgi</span>' : '');
+    list.innerHTML = '';
+    preview.forEach((q, i) => {
+        const card = document.createElement('div');
+        card.className = 'vm-ai-qcard on';
+        card.dataset.idx = i;
+        const opts = ['A','B','C','D'].map(L => `
+            <label class="vm-ai-qopt${q.correct_option === L ? ' correct' : ''}">
+                <input type="radio" name="aiq_${i}" value="${L}"${q.correct_option === L ? ' checked' : ''}>
+                <input type="text" data-opt="${L}" value="${escapeAttr(q['option_' + L.toLowerCase()])}" maxlength="300">
+            </label>`).join('');
+        card.innerHTML = `
+            <div class="vm-ai-qhead">
+                <input type="checkbox" class="vm-ai-qcheck" checked title="Saqlashga qo'shish">
+                <input type="text" class="vm-ai-qtime" value="${q.trigger_label}" title="Chiqish vaqti (mm:ss)">
+                ${q.ai_placed ? '<span class="vm-ai-qplaced"><i class="bi bi-geo-alt-fill"></i> mazmunga mos</span>' : ''}
+                <span class="vm-ai-qnum">#${i + 1}</span>
+                <button type="button" class="vm-ai-qdel" title="Olib tashlash"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <textarea class="vm-ai-qq" rows="2" maxlength="2000">${escapeHtml(q.question)}</textarea>
+            <div class="vm-ai-qopts">${opts}</div>
+            <input type="text" class="vm-ai-qexp" placeholder="Tushuntirish (ixtiyoriy)..." value="${escapeAttr(q.explanation || '')}" maxlength="2000">`;
+        // Hodisalar
+        card.querySelector('.vm-ai-qcheck').addEventListener('change', e => {
+            card.classList.toggle('skip', !e.target.checked);
+            card.classList.toggle('on', e.target.checked);
+            vqAiUpdateSaveLabel();
+        });
+        card.querySelector('.vm-ai-qdel').addEventListener('click', () => {
+            card.remove();
+            vqAiUpdateSaveLabel();
+        });
+        card.querySelectorAll('input[type="radio"]').forEach(r => {
+            r.addEventListener('change', () => {
+                card.querySelectorAll('.vm-ai-qopt').forEach(o => o.classList.remove('correct'));
+                r.closest('.vm-ai-qopt').classList.add('correct');
+            });
+        });
+        card.querySelector('.vm-ai-qtime').addEventListener('input', e => {
+            const sec = parseTime(e.target.value);
+            e.target.classList.toggle('bad', isNaN(sec) || sec < 5 || sec >= VQ.duration);
+        });
+        list.appendChild(card);
+    });
+    vqAiUpdateSaveLabel();
+}
+function escapeAttr(s) {
+    return String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+}
+function vqAiUpdateSaveLabel() {
+    const n = document.querySelectorAll('#vqAiPreview .vm-ai-qcard .vm-ai-qcheck:checked').length;
+    document.getElementById('vqAiSaveLabel').textContent = n + ' ta savolni saqlash';
+    document.getElementById('vqAiSaveBtn').disabled = n === 0;
+}
+
+/* ---------- Preview'dan saqlash ---------- */
+function vqAiCollect() {
+    const err2 = document.getElementById('vqAiErr2');
+    const cards = [...document.querySelectorAll('#vqAiPreview .vm-ai-qcard')]
+        .filter(c => c.querySelector('.vm-ai-qcheck').checked);
+    const takenExisting = new Set(VQ.quizzes.map(q => q.trigger_second));
+    const seen = new Set();
+    const out = [];
+    for (const card of cards) {
+        const num = card.querySelector('.vm-ai-qnum').textContent;
+        const timeInp = card.querySelector('.vm-ai-qtime');
+        const sec = parseTime(timeInp.value);
+        if (isNaN(sec) || sec < 5 || sec >= VQ.duration) {
+            timeInp.classList.add('bad');
+            err2.textContent = num + '-savol: vaqt noto\'g\'ri (5s dan ' + fmt(VQ.duration) + ' gacha).';
+            err2.style.display = 'block';
+            return null;
+        }
+        if (seen.has(sec) || takenExisting.has(sec)) {
+            timeInp.classList.add('bad');
+            err2.textContent = num + '-savol: bu vaqt band. Boshqa vaqt tanlang.';
+            err2.style.display = 'block';
+            return null;
+        }
+        seen.add(sec);
+        const question = card.querySelector('.vm-ai-qq').value.trim();
+        if (question.length < 5) {
+            err2.textContent = num + '-savol: savol matni juda qisqa.';
+            err2.style.display = 'block';
+            return null;
+        }
+        const item = { trigger_second: sec, question: question, explanation: card.querySelector('.vm-ai-qexp').value.trim() };
+        let ok = true;
+        card.querySelectorAll('.vm-ai-qopt input[type="text"]').forEach(inp => {
+            const v = inp.value.trim();
+            if (!v) ok = false;
+            item['option_' + inp.dataset.opt.toLowerCase()] = v;
+        });
+        if (!ok) {
+            err2.textContent = num + '-savol: barcha variantlar to\'ldirilishi shart.';
+            err2.style.display = 'block';
+            return null;
+        }
+        const checked = card.querySelector('input[type="radio"]:checked');
+        item.correct_option = checked ? checked.value : '';
+        out.push(item);
+    }
+    return out;
+}
+async function vqAiSave() {
+    const err2 = document.getElementById('vqAiErr2');
+    const btn = document.getElementById('vqAiSaveBtn');
+    const loader = document.getElementById('vqAiLoader');
+    err2.style.display = 'none';
+    const questions = vqAiCollect();
+    if (questions === null) return;
+    if (!questions.length) {
+        err2.textContent = 'Kamida bitta savol tanlang.';
+        err2.style.display = 'block';
+        return;
+    }
+    aiBusy = true;
+    btn.disabled = true;
+    document.getElementById('vqAiLoaderText').textContent = 'Saqlanmoqda…';
+    loader.classList.add('show');
+    try {
+        const data = await api(VQ.urls.aiSave, { questions });
+        if (data.error) {
+            err2.textContent = data.error;
+            err2.style.display = 'block';
+            return;
+        }
+        (data.quizzes || []).forEach(q => VQ.quizzes.push(q));
+        aiBusy = false;
+        loader.classList.remove('show');
+        vqCloseAi();
+        rerender();
+        toast((data.created || 0) + ' ta test saqlandi 🎉');
+    } catch (e) {
+        err2.textContent = "Xatolik yuz berdi. Qayta urinib ko'ring.";
+        err2.style.display = 'block';
+    } finally {
+        aiBusy = false;
+        btn.disabled = false;
         loader.classList.remove('show');
     }
 }
