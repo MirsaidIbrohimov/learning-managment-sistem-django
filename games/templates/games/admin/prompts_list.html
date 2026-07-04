@@ -12,12 +12,68 @@
     from { opacity: 0; transform: translateY(-20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-@keyframes slideInRow {
-    from { opacity: 0; transform: translateX(-15px); }
-    to { opacity: 1; transform: translateX(0); }
-}
 
 .admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.pstat-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.1rem; animation: fadeInUp 0.5s ease-out both; }
+.pstat {
+    flex: 1;
+    min-width: 130px;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+[data-bs-theme="dark"] .pstat { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+.pstat .ic {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+}
+.pstat .num { font-size: 1.3rem; font-weight: 800; line-height: 1.1; }
+.pstat .lbl { font-size: 0.72rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.pstat.total .ic { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+.pstat.practice .ic { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.pstat.competition .ic { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.pstat.active .ic { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+
+.filter-bar {
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.07);
+    border-radius: 16px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 1.1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+    animation: fadeInUp 0.5s ease-out 0.05s both;
+}
+[data-bs-theme="dark"] .filter-bar { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+
+.usage-tabs { display: flex; gap: 4px; background: rgba(99, 102, 241, 0.08); border-radius: 11px; padding: 4px; }
+.usage-tab {
+    border: none;
+    background: transparent;
+    padding: 0.42rem 0.9rem;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: #64748b;
+    text-decoration: none;
+    transition: all 0.25s;
+    white-space: nowrap;
+}
+.usage-tab.active { background: #6366f1; color: #fff; }
+.usage-tab:hover:not(.active) { color: #6366f1; }
+
+.filter-bar .form-select, .filter-bar .form-control { border-radius: 11px; font-size: 0.85rem; }
 
 .admin-card {
     border: none;
@@ -26,40 +82,18 @@
     overflow: hidden;
     animation: fadeInUp 0.6s ease-out 0.1s both;
 }
-
-[data-bs-theme="dark"] .admin-card {
-    background: #1e1e2e;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-}
+[data-bs-theme="dark"] .admin-card { background: #1e1e2e; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3); }
 
 .admin-card .table th {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
     letter-spacing: 0.3px;
-    font-weight: 650;
-    padding: 0.9rem 1rem;
+    font-weight: 700;
+    padding: 0.85rem 1rem;
     white-space: nowrap;
 }
-
-.admin-card .table td {
-    padding: 0.85rem 1rem;
-    vertical-align: middle;
-}
-
-.admin-card .table tbody tr {
-    transition: all 0.3s ease;
-    animation: slideInRow 0.4s ease-out both;
-}
-
-.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
-.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
-.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
-.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
-.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
-
-.admin-card .table tbody tr:hover {
-    background: rgba(99, 102, 241, 0.04);
-}
+.admin-card .table td { padding: 0.8rem 1rem; vertical-align: middle; }
+.admin-card .table tbody tr:hover { background: rgba(99, 102, 241, 0.04); }
 
 .btn-add {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -70,100 +104,151 @@
     padding: 0.55rem 1.3rem;
     transition: all 0.3s;
 }
+.btn-add:hover { color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3); }
 
-.btn-add:hover {
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
-}
-
-.btn-back {
+.btn-xlsx {
     border-radius: 12px;
     font-weight: 600;
+    padding: 0.55rem 1.1rem;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #059669;
+    background: rgba(16, 185, 129, 0.06);
     transition: all 0.3s;
 }
+.btn-xlsx:hover { background: #10b981; border-color: #10b981; color: #fff; transform: translateY(-2px); }
 
+.btn-back { border-radius: 12px; font-weight: 600; transition: all 0.3s; }
 .btn-back:hover { transform: translateX(-3px); }
 
-.action-btn {
-    border-radius: 10px;
-    padding: 0.35rem 0.65rem;
-    transition: all 0.25s;
-}
-
+.action-btn { border-radius: 10px; padding: 0.35rem 0.65rem; transition: all 0.25s; }
 .action-btn:hover { transform: scale(1.1); }
+
+.usage-badge { border-radius: 8px; font-size: 0.72rem; font-weight: 700; padding: 0.3rem 0.6rem; }
+.usage-badge.practice { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.usage-badge.competition { background: rgba(245, 158, 11, 0.14); color: #b45309; }
+.usage-badge.both { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
+[data-bs-theme="dark"] .usage-badge.practice { color: #34d399; }
+[data-bs-theme="dark"] .usage-badge.competition { color: #fbbf24; }
+[data-bs-theme="dark"] .usage-badge.both { color: #a5b4fc; }
+
+.word-chip { font-size: 0.72rem; color: #64748b; font-weight: 600; white-space: nowrap; }
+
+/* Import modal */
+.import-drop {
+    border: 2px dashed rgba(99, 102, 241, 0.35);
+    border-radius: 14px;
+    padding: 1.4rem;
+    text-align: center;
+    background: rgba(99, 102, 241, 0.04);
+    transition: all 0.3s;
+    cursor: pointer;
+}
+.import-drop:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.08); }
+.import-drop input { display: none; }
+.import-file-name { font-weight: 700; color: #6366f1; }
 
 /* Mobile cards */
 .mobile-prompt-cards { display: none; }
-
 .prompt-card-m {
-    background: var(--card-bg, #fff);
+    background: #fff;
     border: 1px solid rgba(0,0,0,0.06);
     border-radius: 16px;
-    padding: 1.2rem;
+    padding: 1.1rem;
     margin-bottom: 0.75rem;
     box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-    transition: all 0.3s;
     animation: fadeInUp 0.4s ease-out both;
 }
-
-[data-bs-theme="dark"] .prompt-card-m {
-    background: #1e1e2e;
-    border-color: rgba(255,255,255,0.07);
-}
-
-.prompt-card-m:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-}
-
-.prompt-card-m .text-preview {
-    font-size: 0.9rem;
-    color: var(--text-color, #1e293b);
-    margin-bottom: 0.75rem;
-    line-height: 1.5;
-}
-
-.prompt-card-m .card-footer-m {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+[data-bs-theme="dark"] .prompt-card-m { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+.prompt-card-m .text-preview { font-size: 0.88rem; margin-bottom: 0.7rem; line-height: 1.5; }
 
 @media (max-width: 768px) {
     .desktop-table { display: none; }
     .mobile-prompt-cards { display: block; }
-    .admin-header h2 { font-size: 1.2rem; }
+    .admin-header h2 { font-size: 1.15rem; }
     .admin-header { flex-direction: column; gap: 0.75rem; align-items: flex-start !important; }
+    .pstat { min-width: calc(50% - 0.4rem); flex: none; }
 }
 </style>
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
         <div>
-            <h2 class="fw-bold mb-0"><i class="bi bi-card-text text-primary"></i> Topshiriqlar</h2>
+            <h2 class="fw-bold mb-0"><i class="bi bi-card-text text-primary"></i> Topshiriq matnlari</h2>
             <p class="text-muted mb-0 small">{{ game.title }}</p>
         </div>
         <div class="d-flex gap-2 flex-wrap">
             <a href="{% url 'games:admin_games' %}" class="btn btn-outline-secondary btn-back">
                 <i class="bi bi-arrow-left"></i> O'yinlar
             </a>
+            <button type="button" class="btn btn-xlsx" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-file-earmark-excel"></i> Excel import
+            </button>
+            <a href="{% url 'games:admin_prompts_export' game.pk %}" class="btn btn-xlsx">
+                <i class="bi bi-download"></i> Export
+            </a>
             <a href="{% url 'games:admin_prompt_add' game.pk %}" class="btn btn-add">
-                <i class="bi bi-plus-lg"></i> Yangi topshiriq
+                <i class="bi bi-plus-lg"></i> Yangi matn
             </a>
         </div>
     </div>
 
-    <!-- Desktop Table -->
+    <!-- Statistika -->
+    <div class="pstat-row">
+        <div class="pstat total">
+            <span class="ic"><i class="bi bi-collection"></i></span>
+            <span><span class="num">{{ stats.total }}</span><div class="lbl">Jami matn</div></span>
+        </div>
+        <div class="pstat practice">
+            <span class="ic"><i class="bi bi-joystick"></i></span>
+            <span><span class="num">{{ stats.practice }}</span><div class="lbl">Mashqda chiqadi</div></span>
+        </div>
+        <div class="pstat competition">
+            <span class="ic"><i class="bi bi-trophy"></i></span>
+            <span><span class="num">{{ stats.competition }}</span><div class="lbl">Musobaqada chiqadi</div></span>
+        </div>
+        <div class="pstat active">
+            <span class="ic"><i class="bi bi-check-circle"></i></span>
+            <span><span class="num">{{ stats.active }}</span><div class="lbl">Faol</div></span>
+        </div>
+    </div>
+
+    <!-- Filtrlar -->
+    <form method="get" class="filter-bar">
+        <div class="usage-tabs">
+            <a href="?{% if current_difficulty %}difficulty={{ current_difficulty }}&{% endif %}{% if search_query %}q={{ search_query|urlencode }}{% endif %}"
+               class="usage-tab {% if not current_usage %}active{% endif %}">Hammasi</a>
+            <a href="?usage=practice{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
+               class="usage-tab {% if current_usage == 'practice' %}active{% endif %}">Mashq</a>
+            <a href="?usage=competition{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
+               class="usage-tab {% if current_usage == 'competition' %}active{% endif %}">Musobaqa</a>
+            <a href="?usage=both{% if current_difficulty %}&difficulty={{ current_difficulty }}{% endif %}{% if search_query %}&q={{ search_query|urlencode }}{% endif %}"
+               class="usage-tab {% if current_usage == 'both' %}active{% endif %}">Ikkalasi</a>
+        </div>
+        {% if current_usage %}<input type="hidden" name="usage" value="{{ current_usage }}">{% endif %}
+        <select name="difficulty" class="form-select" style="width: auto;" onchange="this.form.submit()">
+            <option value="">Qiyinlik: hammasi</option>
+            <option value="easy" {% if current_difficulty == 'easy' %}selected{% endif %}>Oson</option>
+            <option value="medium" {% if current_difficulty == 'medium' %}selected{% endif %}>O'rta</option>
+            <option value="hard" {% if current_difficulty == 'hard' %}selected{% endif %}>Qiyin</option>
+        </select>
+        <div class="d-flex gap-2 flex-grow-1" style="min-width: 200px;">
+            <input type="text" name="q" class="form-control" placeholder="Matn bo'yicha qidirish…" value="{{ search_query }}">
+            <button type="submit" class="btn btn-outline-primary" style="border-radius: 11px;"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+
+    <!-- Desktop jadval -->
     <div class="admin-card card desktop-table">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead>
                         <tr>
-                            <th>Tartib</th>
+                            <th>#</th>
                             <th>Matn</th>
+                            <th>So'zlar</th>
                             <th>Qiyinlik</th>
+                            <th>Rejim</th>
                             <th>Holat</th>
                             <th>Amallar</th>
                         </tr>
@@ -171,8 +256,9 @@
                     <tbody>
                         {% for prompt in prompts %}
                         <tr>
-                            <td>{{ prompt.order }}</td>
-                            <td>{{ prompt.text|truncatewords:15 }}</td>
+                            <td class="text-muted">{{ prompt.order }}</td>
+                            <td title="{{ prompt.text }}">{{ prompt.text|truncatewords:12 }}</td>
+                            <td><span class="word-chip">{{ prompt.word_count }} so'z</span></td>
                             <td>
                                 {% if prompt.difficulty == 'easy' %}
                                 <span class="badge bg-success" style="border-radius: 8px;">Oson</span>
@@ -180,6 +266,15 @@
                                 <span class="badge bg-warning text-dark" style="border-radius: 8px;">O'rta</span>
                                 {% else %}
                                 <span class="badge bg-danger" style="border-radius: 8px;">Qiyin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if prompt.usage == 'practice' %}
+                                <span class="usage-badge practice"><i class="bi bi-joystick"></i> Mashq</span>
+                                {% elif prompt.usage == 'competition' %}
+                                <span class="usage-badge competition"><i class="bi bi-trophy"></i> Musobaqa</span>
+                                {% else %}
+                                <span class="usage-badge both"><i class="bi bi-intersect"></i> Ikkalasi</span>
                                 {% endif %}
                             </td>
                             <td>
@@ -200,9 +295,10 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 <i class="bi bi-card-text" style="font-size: 2rem; opacity: 0.4;"></i>
-                                <p class="mt-2 mb-0">Topshiriqlar mavjud emas</p>
+                                <p class="mt-2 mb-1">Matnlar topilmadi</p>
+                                <small>Excel import orqali bir vaqtda ko'plab matn qo'shishingiz mumkin</small>
                             </td>
                         </tr>
                         {% endfor %}
@@ -212,13 +308,20 @@
         </div>
     </div>
 
-    <!-- Mobile Cards -->
+    <!-- Mobile kartalar -->
     <div class="mobile-prompt-cards">
         {% for prompt in prompts %}
         <div class="prompt-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="text-muted small">#{{ prompt.order }}</span>
-                <div class="d-flex gap-1">
+            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
+                <span class="text-muted small">#{{ prompt.order }} · {{ prompt.word_count }} so'z</span>
+                <div class="d-flex gap-1 flex-wrap">
+                    {% if prompt.usage == 'practice' %}
+                    <span class="usage-badge practice">Mashq</span>
+                    {% elif prompt.usage == 'competition' %}
+                    <span class="usage-badge competition">Musobaqa</span>
+                    {% else %}
+                    <span class="usage-badge both">Ikkalasi</span>
+                    {% endif %}
                     {% if prompt.difficulty == 'easy' %}
                     <span class="badge bg-success" style="border-radius: 8px; font-size: 0.7rem;">Oson</span>
                     {% elif prompt.difficulty == 'medium' %}
@@ -226,32 +329,73 @@
                     {% else %}
                     <span class="badge bg-danger" style="border-radius: 8px; font-size: 0.7rem;">Qiyin</span>
                     {% endif %}
-                    {% if prompt.is_active %}
-                    <span class="badge bg-success" style="border-radius: 8px; font-size: 0.7rem;">Faol</span>
-                    {% else %}
+                    {% if not prompt.is_active %}
                     <span class="badge bg-secondary" style="border-radius: 8px; font-size: 0.7rem;">Nofaol</span>
                     {% endif %}
                 </div>
             </div>
             <div class="text-preview">{{ prompt.text|truncatewords:20 }}</div>
-            <div class="card-footer-m">
-                <span></span>
-                <div class="d-flex gap-1">
-                    <a href="{% url 'games:admin_prompt_edit' prompt.pk %}" class="btn btn-sm btn-outline-warning action-btn">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <a href="{% url 'games:admin_prompt_delete' prompt.pk %}" class="btn btn-sm btn-outline-danger action-btn">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
+            <div class="d-flex justify-content-end gap-1">
+                <a href="{% url 'games:admin_prompt_edit' prompt.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'games:admin_prompt_delete' prompt.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                    <i class="bi bi-trash"></i>
+                </a>
             </div>
         </div>
         {% empty %}
         <div class="text-center py-4 text-muted">
             <i class="bi bi-card-text" style="font-size: 2rem; opacity: 0.4;"></i>
-            <p class="mt-2 mb-0">Topshiriqlar mavjud emas</p>
+            <p class="mt-2 mb-0">Matnlar topilmadi</p>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<!-- Import modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 18px; border: none;">
+            <form method="post" action="{% url 'games:admin_prompts_import' game.pk %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-excel text-success"></i> Excel'dan import</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Ustunlar: <strong>Matn</strong> (majburiy) · Qiyinlik (Oson/O'rta/Qiyin) ·
+                        Rejim (Mashq/Musobaqa/Ikkalasi) · Faol (Ha/Yo'q) · Tartib.
+                        <a href="{% url 'games:admin_prompts_template' game.pk %}">Tayyor shablonni yuklab oling</a>.
+                    </p>
+                    <label class="import-drop d-block mb-3" id="importDrop">
+                        <input type="file" name="file" id="importFile" accept=".xlsx" required>
+                        <i class="bi bi-cloud-arrow-up" style="font-size: 1.8rem; color: #6366f1;"></i>
+                        <div class="mt-1 import-file-name" id="importFileName">.xlsx faylni tanlang</div>
+                        <small class="text-muted">Maksimal 5 MB · 2000 tagacha matn</small>
+                    </label>
+                    <div class="form-check">
+                        <input type="checkbox" name="replace_all" class="form-check-input" id="replaceAll">
+                        <label class="form-check-label small" for="replaceAll">
+                            Eski matnlarni o'chirib, faqat fayldan import qilish
+                            <span class="text-danger">(ehtiyot bo'ling!)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 11px;" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-add"><i class="bi bi-upload"></i> Import qilish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('importFile').addEventListener('change', function() {
+    var name = this.files && this.files[0] ? this.files[0].name : '.xlsx faylni tanlang';
+    document.getElementById('importFileName').textContent = name;
+});
+</script>
 {% endblock %}

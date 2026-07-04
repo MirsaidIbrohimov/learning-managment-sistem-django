@@ -12,6 +12,7 @@
     --g-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
     --g-shadow-hover: 0 18px 50px rgba(0, 0, 0, 0.14);
     --g-radius: 22px;
+    --g-bg-soft: #f8fafc;
 }
 
 [data-bs-theme="dark"] {
@@ -21,48 +22,210 @@
     --g-text-muted: #94a3b8;
     --g-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
     --g-shadow-hover: 0 18px 50px rgba(0, 0, 0, 0.55);
+    --g-bg-soft: #16161f;
 }
 
 @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @keyframes shine { 0% { transform: translateX(-100%) skewX(-20deg); } 100% { transform: translateX(200%) skewX(-20deg); } }
+@keyframes pulse-live { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(1.4); } }
+@keyframes blobFloat { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(20px,-20px) scale(1.12); } }
+@keyframes trophyBob { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-6px) rotate(4deg); } }
+@keyframes ringSpin { to { transform: rotate(360deg); } }
 
 /* ===== Hero ===== */
 .games-hero {
     background: linear-gradient(135deg, #0f172a 0%, #312e81 45%, #6d28d9 100%);
     border-radius: var(--g-radius);
-    padding: 3rem 2rem;
+    padding: 2.6rem 2rem 2.2rem;
     color: white;
-    margin-bottom: 2.5rem;
-    text-align: center;
+    margin-bottom: 1.6rem;
     position: relative;
     overflow: hidden;
     animation: fadeInDown 0.7s ease-out;
 }
-.games-hero::after {
-    content: '';
+.games-hero .blob {
     position: absolute;
-    inset: 0;
-    background:
-        radial-gradient(circle at 20% 20%, rgba(99,102,241,0.25) 0%, transparent 40%),
-        radial-gradient(circle at 80% 70%, rgba(217,70,239,0.2)  0%, transparent 45%);
+    border-radius: 50%;
+    filter: blur(6px);
+    opacity: 0.5;
     pointer-events: none;
 }
+.games-hero .blob.b1 { width: 220px; height: 220px; background: radial-gradient(circle, rgba(99,102,241,.6), transparent 70%); top: -60px; left: -40px; animation: blobFloat 9s ease-in-out infinite; }
+.games-hero .blob.b2 { width: 260px; height: 260px; background: radial-gradient(circle, rgba(217,70,239,.5), transparent 70%); bottom: -90px; right: -50px; animation: blobFloat 11s ease-in-out infinite reverse; }
 .games-hero .hero-inner { position: relative; z-index: 1; }
+.games-hero .hero-top { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .games-hero .hero-icon-wrap {
-    width: 70px; height: 70px;
+    width: 66px; height: 66px;
     background: rgba(255,255,255,0.15);
-    border-radius: 22px;
+    border-radius: 20px;
     display: inline-flex; align-items: center; justify-content: center;
-    margin-bottom: 1rem; backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    flex-shrink: 0;
 }
-.games-hero .hero-icon-wrap i { font-size: 2.2rem; color: #fff; }
-.games-hero h1 { font-weight: 800; font-size: 2.2rem; margin-bottom: 0.6rem; }
-.games-hero p   { opacity: 0.85; font-size: 1.05rem; max-width: 560px; margin: 0 auto; }
+.games-hero .hero-icon-wrap i { font-size: 2rem; color: #fff; }
+.games-hero h1 { font-weight: 800; font-size: 2rem; margin: 0; }
+.games-hero p { opacity: 0.82; font-size: 1rem; max-width: 560px; margin: 0.4rem 0 0; }
+
+/* Hero stats + quick actions */
+.hero-bottom {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1rem; margin-top: 1.6rem;
+}
+.hero-stats { display: flex; gap: 0.7rem; flex-wrap: wrap; }
+.hero-stat {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    padding: 0.55rem 1rem;
+    backdrop-filter: blur(8px);
+    min-width: 84px;
+}
+.hero-stat .num { font-size: 1.35rem; font-weight: 800; line-height: 1; }
+.hero-stat .lbl { font-size: 0.72rem; opacity: 0.8; margin-top: 3px; }
+.hero-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.hero-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1.1rem; border-radius: 14px;
+    font-size: 0.88rem; font-weight: 700; text-decoration: none;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    color: #fff; background: rgba(255,255,255,0.1);
+    transition: 0.18s;
+}
+.hero-btn:hover { background: rgba(255,255,255,0.22); color: #fff; transform: translateY(-2px); }
+.hero-btn.live { border-color: rgba(239,68,68,.5); background: rgba(239,68,68,.2); }
+.hero-btn.live:hover { background: rgba(239,68,68,.32); }
+.hero-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff5a5a; animation: pulse-live 1.4s ease infinite; }
+
+/* ===== Competition zone ===== */
+.comp-zone { margin-bottom: 2rem; animation: fadeInUp 0.6s ease-out; }
+.comp-zone-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.comp-zone-head h2 {
+    font-weight: 800; font-size: 1.35rem; color: var(--g-text);
+    display: inline-flex; align-items: center; gap: 0.55rem; margin: 0;
+}
+.comp-zone-head h2 i { color: #f59e0b; animation: trophyBob 2.4s ease-in-out infinite; transform-origin: center; }
+.comp-count-badge {
+    background: rgba(245,158,11,0.15); color: #d97706;
+    font-weight: 700; font-size: 0.78rem;
+    padding: 0.28rem 0.75rem; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+[data-bs-theme="dark"] .comp-count-badge { color: #fbbf24; }
+
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1.1rem; }
+
+.comp-card {
+    position: relative;
+    border-radius: 20px;
+    padding: 1.4rem 1.5rem;
+    color: #fff;
+    overflow: hidden;
+    box-shadow: 0 12px 34px rgba(217,119,6,0.28);
+    display: flex; flex-direction: column;
+    isolation: isolate;
+}
+.comp-card.active   { background: linear-gradient(135deg, #b45309 0%, #d97706 45%, #f59e0b 100%); }
+.comp-card.upcoming { background: linear-gradient(135deg, #1e3a8a 0%, #4338ca 50%, #6366f1 100%); box-shadow: 0 12px 34px rgba(67,56,202,0.3); }
+.comp-card::before {
+    content: '';
+    position: absolute; inset: 0; z-index: -1;
+    background-image: radial-gradient(rgba(255,255,255,0.14) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+    opacity: 0.6;
+}
+.comp-card .glow-ring {
+    position: absolute; top: -50px; right: -50px; width: 160px; height: 160px;
+    border: 14px solid rgba(255,255,255,0.12); border-top-color: rgba(255,255,255,0.32);
+    border-radius: 50%; z-index: -1; animation: ringSpin 8s linear infinite;
+}
+.comp-status-tag {
+    position: absolute; top: 1.1rem; right: 1.1rem;
+    background: rgba(0,0,0,0.22); backdrop-filter: blur(6px);
+    padding: 0.3rem 0.75rem; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.comp-status-tag .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; animation: pulse-live 1.4s ease infinite; }
+.comp-status-tag.up .dot { background: #fde68a; }
+
+.comp-game-name {
+    font-size: 0.78rem; font-weight: 700; opacity: 0.9;
+    display: inline-flex; align-items: center; gap: 6px; margin-bottom: 0.35rem;
+}
+.comp-card h3 { font-weight: 800; font-size: 1.25rem; margin: 0 0 0.9rem; padding-right: 5.5rem; line-height: 1.25; }
+
+.comp-prizes { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.9rem; }
+.comp-prize {
+    background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.2);
+    padding: 0.3rem 0.7rem; border-radius: 12px;
+    font-size: 0.8rem; font-weight: 700;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+
+.comp-meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; font-size: 0.8rem; opacity: 0.92; margin-bottom: 0.5rem; }
+.comp-meta span { display: inline-flex; align-items: center; gap: 5px; }
+
+.comp-countdown {
+    background: rgba(0,0,0,0.2); border-radius: 12px;
+    padding: 0.5rem 0.85rem; margin-bottom: 1rem;
+    font-weight: 700; font-size: 0.9rem;
+    display: inline-flex; align-items: center; gap: 8px;
+    font-variant-numeric: tabular-nums;
+}
+.comp-countdown i { opacity: 0.85; }
+
+.comp-actions { display: flex; gap: 0.55rem; margin-top: auto; flex-wrap: wrap; }
+.comp-btn {
+    flex: 1; min-width: 130px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 0.65rem 1rem; border-radius: 13px;
+    font-weight: 800; font-size: 0.9rem; text-decoration: none;
+    border: none; transition: 0.2s; cursor: pointer;
+}
+.comp-btn.join { background: #fff; color: #b45309; }
+.comp-card.upcoming .comp-btn.join { color: #4338ca; }
+.comp-btn.join:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.28); }
+.comp-btn.ghost {
+    flex: 0 0 auto; min-width: auto;
+    background: rgba(255,255,255,0.16); color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+}
+.comp-btn.ghost:hover { background: rgba(255,255,255,0.28); color: #fff; }
+.comp-btn.disabled { background: rgba(255,255,255,0.16); color: rgba(255,255,255,0.7); pointer-events: none; }
+
+/* ===== Toolbar (search + category) ===== */
+.games-toolbar {
+    display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
+    margin-bottom: 1.4rem;
+}
+.gt-search { position: relative; flex: 1; min-width: 220px; max-width: 360px; }
+.gt-search i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: var(--g-text-muted); font-size: 1rem;
+}
+.gt-search input {
+    width: 100%; padding: 0.65rem 1rem 0.65rem 2.6rem;
+    border: 1px solid var(--g-border); border-radius: 14px;
+    background: var(--g-card); color: var(--g-text);
+    font-size: 0.92rem; outline: none; transition: 0.2s;
+    box-shadow: var(--g-shadow);
+}
+.gt-search input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+.gt-cats { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.gt-cat {
+    padding: 0.5rem 1rem; border-radius: 999px;
+    border: 1px solid var(--g-border); background: var(--g-card);
+    color: var(--g-text-muted); font-size: 0.84rem; font-weight: 700;
+    cursor: pointer; transition: 0.18s; white-space: nowrap;
+}
+.gt-cat:hover { border-color: #6366f1; color: var(--g-text); }
+.gt-cat.active { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border-color: transparent; }
 
 /* ===== Cards ===== */
 .game-card-wrapper { animation: fadeInUp 0.6s ease-out both; }
+.game-card-wrapper.hidden { display: none !important; }
 
 .game-card {
     background: var(--g-card);
@@ -81,7 +244,6 @@
     box-shadow: var(--g-shadow-hover);
 }
 
-/* "Cover" area at top of each card — themed gradient + decorative SVG */
 .game-cover {
     position: relative;
     height: 180px;
@@ -189,6 +351,17 @@
 }
 .btn-details:hover { background: rgba(99,102,241,0.08); color: var(--g-text); }
 
+/* Card competition ribbon (o'yin kartasida faol musobaqa belgisi) */
+.game-card .comp-ribbon {
+    position: absolute; top: 14px; left: 14px; z-index: 3;
+    background: linear-gradient(135deg,#f59e0b,#d97706);
+    color: #fff; font-size: 0.7rem; font-weight: 800;
+    padding: 0.28rem 0.7rem; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 5px;
+    box-shadow: 0 4px 12px rgba(217,119,6,0.5);
+}
+.game-card .comp-ribbon i { animation: pulse-live 1.4s ease infinite; }
+
 /* ===== Per-game themed covers ===== */
 .cover-shashka { background: linear-gradient(135deg, #92400e 0%, #b45309 50%, #d97706 100%); }
 .cover-shaxmat { background: linear-gradient(135deg, #1f2937 0%, #374151 50%, #4b5563 100%); }
@@ -200,7 +373,6 @@
 .cover-quiz   { background: linear-gradient(135deg, #be123c 0%, #e11d48 50%, #f43f5e 100%); }
 .cover-default { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%); }
 
-/* Pattern overlays for each cover (subtle) */
 .game-cover.pattern-grid::before {
     content: '';
     position: absolute;
@@ -220,26 +392,28 @@
     pointer-events: none;
 }
 
-/* ===== Empty state ===== */
-.empty-state {
-    text-align: center; padding: 4rem 2rem;
+/* ===== Empty / no-match state ===== */
+.empty-state, .no-match {
+    text-align: center; padding: 3.5rem 2rem;
     color: var(--g-text-muted);
-    animation: fadeInUp 0.7s ease-out;
+    animation: fadeInUp 0.5s ease-out;
+    grid-column: 1 / -1;
 }
-.empty-state i { font-size: 4rem; margin-bottom: 1rem; opacity: 0.4; }
-.empty-state h5 { font-weight: 700; color: var(--g-text); margin-bottom: 0.5rem; }
+.empty-state i, .no-match i { font-size: 3.6rem; margin-bottom: 1rem; opacity: 0.4; display: block; }
+.empty-state h5, .no-match h5 { font-weight: 700; color: var(--g-text); margin-bottom: 0.5rem; }
 
 /* ===== Responsive ===== */
-/* 4-up at lg (992-1199px) gives noticeably narrower cards than the old 3-up layout —
-   trim the cover art slightly so it stays proportional instead of looking oversized. */
 @media (min-width: 992px) and (max-width: 1199.98px) {
     .game-cover { height: 150px; }
     .game-cover .cover-art { width: 88px; height: 88px; }
 }
 @media (max-width: 768px) {
-    .games-hero { padding: 2rem 1.2rem; border-radius: 16px; margin-bottom: 1.5rem; }
+    .games-hero { padding: 1.8rem 1.2rem; border-radius: 16px; margin-bottom: 1.3rem; }
     .games-hero h1 { font-size: 1.5rem; }
-    .games-hero p  { font-size: 0.92rem; }
+    .games-hero p  { font-size: 0.9rem; }
+    .hero-stat .num { font-size: 1.15rem; }
+    .comp-grid { grid-template-columns: 1fr; }
+    .comp-card h3 { font-size: 1.12rem; }
     .game-cover { height: 150px; }
     .game-cover .cover-art { width: 90px; height: 90px; }
     .game-body h3 { font-size: 1.1rem; }
@@ -249,28 +423,130 @@
 {% endblock %}
 
 {% block content %}
-<div class="container py-4">
+<div class="container py-4 games-page">
 
+    <!-- ===== HERO ===== -->
     <div class="games-hero">
+        <span class="blob b1"></span>
+        <span class="blob b2"></span>
         <div class="hero-inner">
-            <div class="hero-icon-wrap"><i class="bi bi-joystick"></i></div>
-            <h1>O'yinlar</h1>
-            <p>Bilimlaringizni qiziqarli o'yinlar orqali sinab ko'ring va o'rtoqlaringiz bilan musobaqalashing!</p>
+            <div class="hero-top">
+                <div class="hero-icon-wrap"><i class="bi bi-joystick"></i></div>
+                <div>
+                    <h1>O'yinlar markazi</h1>
+                    <p>Bilimlaringizni qiziqarli o'yinlar orqali sinang, musobaqalarda qatnashing va coin yutib oling!</p>
+                </div>
+            </div>
+            <div class="hero-bottom">
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <div class="num">{{ games|length }}</div>
+                        <div class="lbl">O'yinlar</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="num">{{ active_comp_count }}</div>
+                        <div class="lbl">Faol musobaqa</div>
+                    </div>
+                    <div class="hero-stat">
+                        <div class="num">{{ active_competitions|length }}</div>
+                        <div class="lbl">Musobaqalar</div>
+                    </div>
+                </div>
+                <div class="hero-actions">
+                    <a href="{% url 'games:live_games' %}" class="hero-btn live">
+                        <span class="dot"></span> Jonli o'yinlar
+                    </a>
+                    <a href="{% url 'games:my_results' %}" class="hero-btn">
+                        <i class="bi bi-clock-history"></i> Natijalarim
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div style="display:flex;justify-content:flex-end;margin-bottom:1.25rem;">
-        <a href="{% url 'games:live_games' %}" style="display:inline-flex;align-items:center;gap:.5rem;background:rgba(239,68,68,.12);color:#ef4444;border:1.5px solid rgba(239,68,68,.3);border-radius:20px;padding:.45rem 1.2rem;font-size:.88rem;font-weight:700;text-decoration:none;transition:.15s;" onmouseover="this.style.background='rgba(239,68,68,.22)'" onmouseout="this.style.background='rgba(239,68,68,.12)'">
-            <span style="width:8px;height:8px;border-radius:50%;background:#ef4444;animation:pulse-live 1.4s ease infinite;"></span>
-            Jonli o'yinlar
-        </a>
-    </div>
-    <style>@keyframes pulse-live{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}</style>
+    <!-- ===== FAOL MUSOBAQALAR ===== -->
+    {% if active_competitions %}
+    <section class="comp-zone">
+        <div class="comp-zone-head">
+            <h2><i class="bi bi-trophy-fill"></i> Musobaqalar</h2>
+            <span class="comp-count-badge"><i class="bi bi-lightning-charge-fill"></i> {{ active_comp_count }} ta hozir faol</span>
+        </div>
+        <div class="comp-grid">
+            {% for comp in active_competitions %}
+            <article class="comp-card {{ comp.status }}">
+                <span class="glow-ring"></span>
+                {% if comp.status == 'active' %}
+                <span class="comp-status-tag"><span class="dot"></span> FAOL</span>
+                {% else %}
+                <span class="comp-status-tag up"><span class="dot"></span> TEZ ORADA</span>
+                {% endif %}
 
+                <div class="comp-game-name"><i class="bi bi-controller"></i> {{ comp.game.title }}</div>
+                <h3>{{ comp.title }}</h3>
+
+                {% if comp.coin_1st or comp.coin_2nd or comp.coin_3rd %}
+                <div class="comp-prizes">
+                    {% if comp.coin_1st %}<span class="comp-prize">&#129351; {{ comp.coin_1st }}</span>{% endif %}
+                    {% if comp.coin_2nd %}<span class="comp-prize">&#129352; {{ comp.coin_2nd }}</span>{% endif %}
+                    {% if comp.coin_3rd %}<span class="comp-prize">&#129353; {{ comp.coin_3rd }}</span>{% endif %}
+                    <span class="comp-prize"><i class="bi bi-coin"></i> coin</span>
+                </div>
+                {% endif %}
+
+                <div class="comp-meta">
+                    <span><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m H:i" }} &ndash; {{ comp.end_time|date:"d.m H:i" }}</span>
+                    <span><i class="bi bi-arrow-repeat"></i> Urinish: {{ comp.used_attempts }}/{{ comp.max_attempts }}</span>
+                </div>
+
+                {% if comp.status == 'active' %}
+                <div class="comp-countdown" data-target="{{ comp.end_time|date:'U' }}" data-prefix="&#9203; Tugashiga:">
+                    <i class="bi bi-hourglass-split"></i> hisoblanmoqda...
+                </div>
+                {% else %}
+                <div class="comp-countdown" data-target="{{ comp.start_time|date:'U' }}" data-prefix="&#128337; Boshlanishiga:">
+                    <i class="bi bi-hourglass-top"></i> hisoblanmoqda...
+                </div>
+                {% endif %}
+
+                <div class="comp-actions">
+                    {% if comp.status == 'active' %}
+                        {% if comp.can_play %}
+                        <a href="{{ comp.play_url }}" class="comp-btn join">
+                            <i class="bi bi-flag-fill"></i> Musobaqada qatnashish
+                        </a>
+                        {% else %}
+                        <span class="comp-btn disabled"><i class="bi bi-check2-circle"></i> Urinishlar tugadi</span>
+                        {% endif %}
+                    {% else %}
+                        <a href="{{ comp.detail_url }}" class="comp-btn join">
+                            <i class="bi bi-info-circle-fill"></i> Batafsil
+                        </a>
+                    {% endif %}
+                    <a href="{{ comp.leaderboard_url }}" class="comp-btn ghost" title="Reyting">
+                        <i class="bi bi-bar-chart-fill"></i>
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ===== TOOLBAR: qidiruv + kategoriya ===== -->
     {% if games %}
-    <div class="row g-4">
+    <div class="games-toolbar">
+        <div class="gt-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="gameSearch" placeholder="O'yin qidirish..." autocomplete="off">
+        </div>
+        <div class="gt-cats" id="catFilters">
+            <button class="gt-cat active" data-cat="all">Barchasi</button>
+        </div>
+    </div>
+
+    <!-- ===== O'YINLAR ===== -->
+    <div class="row g-4" id="gamesGrid">
         {% for game in games %}
-        {# Per-game theming #}
         {% if game.slug == 'shashka' %}
             {% with theme="cover-shashka" pattern="pattern-grid" type_label="Taxta o'yini" type_icon="bi-grid-3x3" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
         {% elif game.slug == 'shaxmat' %}
@@ -291,13 +567,111 @@
             {% with theme="cover-default" pattern="pattern-dots" type_label=game.get_game_type_display type_icon="bi-controller" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
         {% endif %}
         {% endfor %}
+
+        <div class="no-match" id="noMatch" style="display:none;">
+            <i class="bi bi-search"></i>
+            <h5>Hech narsa topilmadi</h5>
+            <p>Qidiruv yoki kategoriyani o'zgartirib ko'ring.</p>
+        </div>
     </div>
     {% else %}
     <div class="empty-state">
-        <i class="bi bi-controller d-block"></i>
+        <i class="bi bi-controller"></i>
         <h5>Hozircha o'yinlar mavjud emas</h5>
         <p>Tez orada yangi o'yinlar qo'shiladi!</p>
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    // ===== Jonli countdown taymerlar (musobaqalar) =====
+    var timers = document.querySelectorAll('.comp-countdown[data-target]');
+
+    function fmt(sec) {
+        if (sec <= 0) return null;
+        var d = Math.floor(sec / 86400);
+        var h = Math.floor((sec % 86400) / 3600);
+        var m = Math.floor((sec % 3600) / 60);
+        var s = sec % 60;
+        if (d > 0) return d + ' kun ' + h + ' soat';
+        if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+        return m + ':' + String(s).padStart(2, '0');
+    }
+
+    function tick() {
+        var now = Math.floor(Date.now() / 1000);
+        var needReload = false;
+        timers.forEach(function (el) {
+            var target = parseInt(el.dataset.target, 10);
+            var text = fmt(target - now);
+            if (text === null) {
+                if (!el.dataset.done) { el.dataset.done = '1'; needReload = true; }
+            } else {
+                el.innerHTML = el.dataset.prefix + ' ' + text;
+            }
+        });
+        if (needReload) { setTimeout(function () { location.reload(); }, 1500); }
+    }
+    if (timers.length) { tick(); setInterval(tick, 1000); }
+
+    // ===== Qidiruv + kategoriya filtri =====
+    var grid = document.getElementById('gamesGrid');
+    if (!grid) return;
+
+    var cards = Array.prototype.slice.call(grid.querySelectorAll('.game-card-wrapper'));
+    var searchInput = document.getElementById('gameSearch');
+    var catBox = document.getElementById('catFilters');
+    var noMatch = document.getElementById('noMatch');
+
+    // Kategoriyalarni avtomatik yig'ish
+    var cats = [];
+    cards.forEach(function (c) {
+        var cat = (c.dataset.category || '').trim();
+        if (cat && cats.indexOf(cat) === -1) cats.push(cat);
+    });
+    cats.sort();
+    cats.forEach(function (cat) {
+        var btn = document.createElement('button');
+        btn.className = 'gt-cat';
+        btn.dataset.cat = cat;
+        btn.textContent = cat;
+        catBox.appendChild(btn);
+    });
+
+    var activeCat = 'all';
+    var query = '';
+
+    function applyFilter() {
+        var visible = 0;
+        cards.forEach(function (c) {
+            var name = c.dataset.name || '';
+            var cat = c.dataset.category || '';
+            var okCat = (activeCat === 'all') || (cat === activeCat);
+            var okQuery = !query || name.indexOf(query) !== -1;
+            if (okCat && okQuery) { c.classList.remove('hidden'); visible++; }
+            else { c.classList.add('hidden'); }
+        });
+        if (noMatch) noMatch.style.display = visible === 0 ? '' : 'none';
+    }
+
+    catBox.addEventListener('click', function (e) {
+        var btn = e.target.closest('.gt-cat');
+        if (!btn) return;
+        catBox.querySelectorAll('.gt-cat').forEach(function (b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        activeCat = btn.dataset.cat;
+        applyFilter();
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            query = this.value.trim().toLowerCase();
+            applyFilter();
+        });
+    }
+})();
+</script>
 {% endblock %}

@@ -5,7 +5,7 @@ from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameA
 class PromptInline(admin.TabularInline):
     model = Prompt
     extra = 1
-    fields = ['text', 'difficulty', 'order', 'is_active']
+    fields = ['text', 'difficulty', 'usage', 'order', 'is_active']
 
 
 class WordRoundInline(admin.TabularInline):
@@ -26,8 +26,8 @@ class GameAdmin(admin.ModelAdmin):
 
 @admin.register(Prompt)
 class PromptAdmin(admin.ModelAdmin):
-    list_display = ['game', 'text_short', 'difficulty', 'order', 'is_active']
-    list_filter = ['game', 'difficulty', 'is_active']
+    list_display = ['game', 'text_short', 'difficulty', 'usage', 'order', 'is_active']
+    list_filter = ['game', 'difficulty', 'usage', 'is_active']
     search_fields = ['text']
     list_editable = ['is_active', 'order']
 
@@ -42,6 +42,7 @@ class CompetitionAdmin(admin.ModelAdmin):
     list_filter = ['game', 'is_active']
     search_fields = ['title']
     list_editable = ['is_active']
+    filter_horizontal = ['prompts']
 
 
 @admin.register(GameAttempt)

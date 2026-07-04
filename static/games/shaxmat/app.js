@@ -569,41 +569,66 @@ function startTimer() {
 const PIECE_NAMES = { p: 'piyoda', n: 'ot', b: 'fil', r: 'ladya', q: 'vazir', k: 'shoh' };
 function renderBoard() {
     const el = $('board');
-    el.innerHTML = '';
-    // Find king-in-check cell for highlight
     const checkCell = isInCheck(board, currentTurn) ? findKing(board, currentTurn) : null;
-    for (let dr = 0; dr < 8; dr++) {
-        for (let dc = 0; dc < 8; dc++) {
-            // displayed row/col -> real
-            const r = PLAYER_COLOR === 'white' ? dr : (7 - dr);
-            const c = PLAYER_COLOR === 'white' ? dc : (7 - dc);
-            const cell = document.createElement('div');
-            cell.className = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
-            cell.dataset.r = r; cell.dataset.c = c;
-            if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
-            if (possibleMoves.some(m => m.to.r === r && m.to.c === c)) cell.classList.add('hint');
-            const last = moveHistory[moveHistory.length - 1];
-            if (last && ((last.from.r===r && last.from.c===c) || (last.to.r===r && last.to.c===c))) cell.classList.add('last-move');
-            if (checkCell && checkCell.r === r && checkCell.c === c) cell.classList.add('in-check');
-            const pc = board[r][c];
+    const last = moveHistory[moveHistory.length - 1];
+    const orient = PLAYER_COLOR === 'white' ? 'w' : 'b';
+
+    // Build 64 cells once (or rebuild only when orientation changes)
+    if (el.dataset.orient !== orient || el.children.length !== 64) {
+        el.innerHTML = '';
+        el.dataset.orient = orient;
+        for (let dr = 0; dr < 8; dr++) {
+            for (let dc = 0; dc < 8; dc++) {
+                const r = PLAYER_COLOR === 'white' ? dr : (7 - dr);
+                const c = PLAYER_COLOR === 'white' ? dc : (7 - dc);
+                const cell = document.createElement('div');
+                cell.className = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+                cell.dataset.r = r; cell.dataset.c = c;
+                cell.dataset.piece = '';
+                cell.tabIndex = 0;
+                cell.setAttribute('role', 'gridcell');
+                cell.onclick = () => onCellClick(r, c);
+                cell.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellClick(r, c); }
+                });
+                el.appendChild(cell);
+            }
+        }
+    }
+
+    // Update each cell in place — no wipe, no flash
+    for (const cell of el.children) {
+        const r = +cell.dataset.r;
+        const c = +cell.dataset.c;
+
+        // Compute target classes
+        let cls = 'cell ' + ((r + c) % 2 === 0 ? 'light' : 'dark');
+        if (selected && selected.r === r && selected.c === c) cls += ' selected';
+        if (possibleMoves.some(m => m.to.r === r && m.to.c === c)) cls += ' hint';
+        if (last && ((last.from.r === r && last.from.c === c) || (last.to.r === r && last.to.c === c))) cls += ' last-move';
+        if (checkCell && checkCell.r === r && checkCell.c === c) cls += ' in-check';
+        if (cell.className !== cls) cell.className = cls;
+
+        // Update piece only when it actually changed
+        const pc = board[r][c];
+        const pieceCode = pc ? (pc.color[0] + pc.type) : '';
+        if (cell.dataset.piece !== pieceCode) {
+            cell.dataset.piece = pieceCode;
             const square = 'abcdefgh'[c] + (8 - r);
             if (pc) {
-                const span = document.createElement('span');
+                let span = cell.firstElementChild;
+                if (!span) {
+                    span = document.createElement('span');
+                    cell.appendChild(span);
+                }
                 span.className = 'piece-wrap ' + pc.color;
                 span.textContent = GLYPH[pc.color][pc.type];
-                cell.appendChild(span);
                 const colorLabel = pc.color === 'white' ? 'oq' : 'qora';
                 cell.setAttribute('aria-label', `${square}, ${colorLabel} ${PIECE_NAMES[pc.type]}`);
             } else {
+                if (cell.firstElementChild) cell.removeChild(cell.firstElementChild);
                 cell.setAttribute('aria-label', `${square}, bo'sh`);
             }
-            cell.tabIndex = 0;
-            cell.setAttribute('role', 'gridcell');
-            cell.onclick = () => onCellClick(r, c);
-            cell.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onCellClick(r, c); }
-            });
-            el.appendChild(cell);
         }
     }
 }

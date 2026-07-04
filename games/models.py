@@ -31,6 +31,14 @@ class Game(models.Model):
     def active_prompts(self):
         return self.prompts.filter(is_active=True)
 
+    def practice_prompts(self):
+        """Mashq rejimida chiqadigan faol matnlar."""
+        return self.prompts.filter(is_active=True, usage__in=['practice', 'both'])
+
+    def competition_prompts(self):
+        """Musobaqa uchun umumiy pool (maxsus tanlanmagan holatda)."""
+        return self.prompts.filter(is_active=True, usage__in=['competition', 'both'])
+
     def active_competitions(self):
         return self.competitions.filter(is_active=True)
 
@@ -42,9 +50,16 @@ class Prompt(models.Model):
         ('hard', 'Qiyin'),
     )
 
+    USAGE_CHOICES = (
+        ('practice', 'Mashq'),
+        ('competition', 'Musobaqa'),
+        ('both', 'Ikkalasi'),
+    )
+
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='prompts', verbose_name="O'yin")
     text = models.TextField(verbose_name="Matn")
     difficulty = models.CharField(max_length=10, choices=DIFFICULTY_CHOICES, default='medium', verbose_name="Qiyinlik")
+    usage = models.CharField(max_length=15, choices=USAGE_CHOICES, default='both', verbose_name="Qayerda ishlatiladi")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
     order = models.IntegerField(default=0, verbose_name="Tartib")
     created_at = models.DateTimeField(auto_now_add=True)
@@ -57,10 +72,19 @@ class Prompt(models.Model):
     def __str__(self):
         return f"{self.game.title} - {self.text[:50]}"
 
+    @property
+    def word_count(self):
+        return len(self.text.split())
+
 
 class Competition(models.Model):
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='competitions', verbose_name="O'yin")
     title = models.CharField(max_length=200, verbose_name="Musobaqa nomi")
+    prompts = models.ManyToManyField(
+        'Prompt', blank=True, related_name='competitions',
+        verbose_name="Maxsus topshiriqlar",
+        help_text="Tanlansa, musobaqada faqat shu matnlar chiqadi. Bo'sh qolsa — 'Musobaqa' rejimidagi matnlar ishlatiladi.",
+    )
     start_time = models.DateTimeField(verbose_name="Boshlanish vaqti")
     end_time = models.DateTimeField(verbose_name="Tugash vaqti")
     is_active = models.BooleanField(default=True, verbose_name="Faol")
@@ -114,6 +138,25 @@ class Competition(models.Model):
         if count >= self.max_attempts and not self.allow_retry:
             return False
         return True
+
+    def get_prompt_pool(self):
+        """Musobaqada chiqadigan matnlar pooli.
+
+        1) Musobaqaga maxsus tanlangan faol matnlar (ustuvor)
+        2) Aks holda — o'yinning 'Musobaqa' yoki 'Ikkalasi' rejimidagi faol matnlari
+        """
+        selected = self.prompts.filter(is_active=True)
+        if selected.exists():
+            return selected
+        return self.game.competition_prompts()
+
+    @property
+    def seconds_to_start(self):
+        return max(0, int((self.start_time - timezone.now()).total_seconds()))
+
+    @property
+    def seconds_to_end(self):
+        return max(0, int((self.end_time - timezone.now()).total_seconds()))
 
     def award_competition_coins(self):
         """Musobaqa tugagandan keyin g'oliblarga coin berish va xabar yuborish"""

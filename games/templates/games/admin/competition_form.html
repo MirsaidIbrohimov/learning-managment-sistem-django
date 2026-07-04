@@ -21,23 +21,32 @@
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
     animation: fadeInUp 0.6s ease-out 0.1s both;
 }
-
-[data-bs-theme="dark"] .form-card {
-    background: #1e1e2e;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
-}
+[data-bs-theme="dark"] .form-card { background: #1e1e2e; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3); }
 
 .form-card .form-control,
 .form-card .form-select {
     border-radius: 12px;
     transition: all 0.3s;
 }
-
 .form-card .form-control:focus,
 .form-card .form-select:focus {
     border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
 }
+
+.quick-times { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.qt-btn {
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: rgba(99, 102, 241, 0.05);
+    color: #6366f1;
+    border-radius: 9px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+.qt-btn:hover { background: #6366f1; color: #fff; }
 
 .coin-section {
     background: rgba(245, 158, 11, 0.05);
@@ -46,11 +55,96 @@
     border: 1px solid rgba(245, 158, 11, 0.15);
     margin-top: 0.5rem;
 }
+[data-bs-theme="dark"] .coin-section { background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.2); }
 
-[data-bs-theme="dark"] .coin-section {
-    background: rgba(245, 158, 11, 0.08);
-    border-color: rgba(245, 158, 11, 0.2);
+/* ===== Matn tanlash paneli ===== */
+.prompt-section {
+    background: rgba(99, 102, 241, 0.04);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    border-radius: 14px;
+    padding: 1.2rem;
+    margin-top: 0.5rem;
 }
+[data-bs-theme="dark"] .prompt-section { background: rgba(99, 102, 241, 0.07); }
+
+.prompt-toolbar {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+.prompt-toolbar .form-control { max-width: 260px; font-size: 0.85rem; }
+
+.prompt-counter {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #6366f1;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 99px;
+    padding: 0.3rem 0.9rem;
+}
+
+.mini-btn {
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: transparent;
+    color: #6366f1;
+    border-radius: 9px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.7rem;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+.mini-btn:hover { background: #6366f1; color: #fff; }
+
+.prompt-list {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-right: 4px;
+}
+
+.prompt-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    padding: 0.65rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+[data-bs-theme="dark"] .prompt-item { background: #16161f; border-color: rgba(255,255,255,0.08); }
+.prompt-item:hover { border-color: #6366f1; }
+.prompt-item.checked { border-color: #6366f1; background: rgba(99, 102, 241, 0.06); }
+.prompt-item input { margin-top: 3px; }
+.prompt-item .p-text { font-size: 0.84rem; line-height: 1.45; }
+.prompt-item .p-meta { font-size: 0.7rem; color: #64748b; font-weight: 600; margin-top: 2px; }
+.prompt-item .p-meta .tag {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 6px;
+    margin-right: 4px;
+}
+.prompt-item .p-meta .tag.comp { background: rgba(245, 158, 11, 0.14); color: #b45309; }
+.prompt-item .p-meta .tag.practice { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.prompt-item .p-meta .tag.both { background: rgba(99, 102, 241, 0.12); color: #4f46e5; }
+
+.prompt-empty { text-align: center; color: #64748b; padding: 1.2rem 0; font-size: 0.88rem; }
+
+.pool-hint {
+    font-size: 0.8rem;
+    color: #64748b;
+    background: rgba(15, 23, 42, 0.03);
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    margin-top: 0.8rem;
+}
+[data-bs-theme="dark"] .pool-hint { background: rgba(255,255,255,0.04); }
 
 .btn-save {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
@@ -61,25 +155,16 @@
     padding: 0.6rem 1.8rem;
     transition: all 0.3s;
 }
+.btn-save:hover { color: white; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3); }
 
-.btn-save:hover {
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
-}
-
-.btn-back {
-    border-radius: 12px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
+.btn-back { border-radius: 12px; font-weight: 600; transition: all 0.3s; }
 .btn-back:hover { transform: translateX(-3px); }
 
 @media (max-width: 768px) {
     .form-header h2 { font-size: 1.2rem; }
     .form-header { flex-direction: column; gap: 0.75rem; align-items: flex-start !important; }
-    .coin-section { padding: 1rem; }
+    .coin-section, .prompt-section { padding: 1rem; }
+    .prompt-toolbar .form-control { max-width: 100%; }
 }
 </style>
 
@@ -98,7 +183,7 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">O'yin *</label>
-                        <select name="game" class="form-select" required>
+                        <select name="game" id="gameSelect" class="form-select" required>
                             <option value="">-- Tanlang --</option>
                             {% for g in games %}
                             <option value="{{ g.pk }}" {% if competition.game_id == g.pk %}selected{% endif %}>{{ g.title }}</option>
@@ -111,13 +196,27 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Boshlanish vaqti *</label>
-                        <input type="datetime-local" name="start_time" class="form-control" 
+                        <input type="datetime-local" name="start_time" id="startTime" class="form-control"
                             value="{{ competition.start_time|date:'Y-m-d\TH:i'|default:'' }}" required>
+                        <div class="quick-times">
+                            <button type="button" class="qt-btn" data-start="now"><i class="bi bi-lightning-fill"></i> Hozir</button>
+                            <button type="button" class="qt-btn" data-start="+30">30 daqiqadan keyin</button>
+                            <button type="button" class="qt-btn" data-start="+60">1 soatdan keyin</button>
+                            <button type="button" class="qt-btn" data-start="tomorrow">Ertaga 09:00</button>
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">Tugash vaqti *</label>
-                        <input type="datetime-local" name="end_time" class="form-control" 
+                        <input type="datetime-local" name="end_time" id="endTime" class="form-control"
                             value="{{ competition.end_time|date:'Y-m-d\TH:i'|default:'' }}" required>
+                        <div class="quick-times">
+                            <span class="small text-muted me-1" style="align-self:center;">Davomiylik:</span>
+                            <button type="button" class="qt-btn" data-dur="30">30 daq</button>
+                            <button type="button" class="qt-btn" data-dur="60">1 soat</button>
+                            <button type="button" class="qt-btn" data-dur="120">2 soat</button>
+                            <button type="button" class="qt-btn" data-dur="1440">1 kun</button>
+                            <button type="button" class="qt-btn" data-dur="10080">1 hafta</button>
+                        </div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">Maksimal urinishlar</label>
@@ -135,6 +234,30 @@
                             <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
                                 {% if competition.is_active or not competition %}checked{% endif %}>
                             <label class="form-check-label fw-bold" for="isActive">Faol</label>
+                        </div>
+                    </div>
+
+                    <!-- Musobaqa matnlari -->
+                    <div class="col-12">
+                        <div class="prompt-section">
+                            <h5 class="fw-bold mb-1"><i class="bi bi-card-text text-primary"></i> Musobaqa matnlari</h5>
+                            <p class="text-muted small mb-3">
+                                Musobaqada aynan qaysi matnlar chiqishini tanlang. Har bir ishtirokchiga tanlanganlar ichidan tasodifiy matn beriladi.
+                            </p>
+                            <div class="prompt-toolbar">
+                                <span class="prompt-counter"><span id="selCount">0</span> ta tanlangan</span>
+                                <button type="button" class="mini-btn" id="selectAllBtn">Hammasini tanlash</button>
+                                <button type="button" class="mini-btn" id="clearAllBtn">Tozalash</button>
+                                <input type="text" class="form-control" id="promptSearch" placeholder="Matn qidirish…">
+                            </div>
+                            <div class="prompt-list" id="promptList">
+                                <div class="prompt-empty" id="promptEmpty">Avval o'yinni tanlang</div>
+                            </div>
+                            <div class="pool-hint">
+                                <i class="bi bi-info-circle"></i>
+                                Hech narsa tanlanmasa — o'yinning <strong>"Musobaqa"</strong> yoki <strong>"Ikkalasi"</strong>
+                                rejimidagi barcha faol matnlari ishlatiladi.
+                            </div>
                         </div>
                     </div>
 
@@ -167,4 +290,145 @@
         </div>
     </div>
 </div>
+
+{{ prompts_data|json_script:"promptsData" }}
+{{ selected_prompt_ids|json_script:"selectedPromptIds" }}
+
+<script>
+(function() {
+    'use strict';
+
+    var promptsData = JSON.parse(document.getElementById('promptsData').textContent || '{}');
+    var selectedIds = new Set(JSON.parse(document.getElementById('selectedPromptIds').textContent || '[]'));
+
+    var gameSelect = document.getElementById('gameSelect');
+    var listEl = document.getElementById('promptList');
+    var searchEl = document.getElementById('promptSearch');
+    var selCountEl = document.getElementById('selCount');
+
+    function usageTagClass(code) {
+        if (code === 'competition') return 'comp';
+        if (code === 'practice') return 'practice';
+        return 'both';
+    }
+
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function updateCount() {
+        selCountEl.textContent = selectedIds.size;
+    }
+
+    function renderList() {
+        var gameId = gameSelect.value;
+        var q = (searchEl.value || '').toLowerCase().trim();
+        listEl.innerHTML = '';
+
+        if (!gameId || !promptsData[gameId]) {
+            listEl.innerHTML = '<div class="prompt-empty">Avval o\'yinni tanlang</div>';
+            return;
+        }
+
+        var items = promptsData[gameId];
+        if (!items.length) {
+            listEl.innerHTML = '<div class="prompt-empty">Bu o\'yinda faol matnlar yo\'q. Avval matn qo\'shing.</div>';
+            return;
+        }
+
+        var shown = 0;
+        items.forEach(function(p) {
+            if (q && p.text.toLowerCase().indexOf(q) === -1) return;
+            shown++;
+
+            var label = document.createElement('label');
+            label.className = 'prompt-item' + (selectedIds.has(p.id) ? ' checked' : '');
+            label.innerHTML =
+                '<input type="checkbox" name="prompt_ids" value="' + p.id + '"' + (selectedIds.has(p.id) ? ' checked' : '') + '>' +
+                '<span><span class="p-text">' + escHtml(p.text) + '</span>' +
+                '<span class="p-meta d-block">' +
+                    '<span class="tag ' + usageTagClass(p.usage_code) + '">' + escHtml(p.usage) + '</span>' +
+                    escHtml(p.difficulty) + ' · ' + p.words + ' so\'z' +
+                '</span></span>';
+
+            var cb = label.querySelector('input');
+            cb.addEventListener('change', function() {
+                if (this.checked) { selectedIds.add(p.id); label.classList.add('checked'); }
+                else { selectedIds.delete(p.id); label.classList.remove('checked'); }
+                updateCount();
+            });
+
+            listEl.appendChild(label);
+        });
+
+        if (!shown) {
+            listEl.innerHTML = '<div class="prompt-empty">Qidiruv bo\'yicha matn topilmadi</div>';
+        }
+    }
+
+    gameSelect.addEventListener('change', function() {
+        // O'yin o'zgarsa — eski tanlovlar boshqa o'yinga tegishli bo'lgani uchun tozalanadi
+        selectedIds.clear();
+        updateCount();
+        renderList();
+    });
+
+    searchEl.addEventListener('input', renderList);
+
+    document.getElementById('selectAllBtn').addEventListener('click', function() {
+        var gameId = gameSelect.value;
+        if (!gameId || !promptsData[gameId]) return;
+        var q = (searchEl.value || '').toLowerCase().trim();
+        promptsData[gameId].forEach(function(p) {
+            if (q && p.text.toLowerCase().indexOf(q) === -1) return;
+            selectedIds.add(p.id);
+        });
+        updateCount();
+        renderList();
+    });
+
+    document.getElementById('clearAllBtn').addEventListener('click', function() {
+        selectedIds.clear();
+        updateCount();
+        renderList();
+    });
+
+    // ===== Tezkor vaqt tugmalari =====
+    var startEl = document.getElementById('startTime');
+    var endEl = document.getElementById('endTime');
+
+    function toLocalInput(d) {
+        var pad = function(n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) +
+               'T' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+    }
+
+    document.querySelectorAll('.qt-btn[data-start]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var mode = this.dataset.start;
+            var d = new Date();
+            if (mode === '+30') d = new Date(Date.now() + 30 * 60000);
+            else if (mode === '+60') d = new Date(Date.now() + 60 * 60000);
+            else if (mode === 'tomorrow') {
+                d = new Date(Date.now() + 86400000);
+                d.setHours(9, 0, 0, 0);
+            }
+            startEl.value = toLocalInput(d);
+        });
+    });
+
+    document.querySelectorAll('.qt-btn[data-dur]').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var base = startEl.value ? new Date(startEl.value) : new Date();
+            if (isNaN(base.getTime())) base = new Date();
+            var mins = parseInt(this.dataset.dur, 10);
+            endEl.value = toLocalInput(new Date(base.getTime() + mins * 60000));
+        });
+    });
+
+    // Init
+    updateCount();
+    renderList();
+})();
+</script>
 {% endblock %}

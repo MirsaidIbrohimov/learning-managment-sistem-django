@@ -31,8 +31,44 @@ from . import external_api
 
 @login_required
 def games_list(request):
+    from django.urls import reverse
+
     games = Game.objects.filter(is_active=True)
-    return render(request, 'games/student/games_list.html', {'games': games})
+    now = timezone.now()
+
+    # Tugagan, ammo coin berilmagan musobaqalarga coin berish
+    for comp in Competition.objects.filter(is_active=True, coins_awarded=False,
+                                           end_time__lt=now, game__is_active=True):
+        comp.award_competition_coins()
+
+    # Faol yoki tez orada boshlanadigan musobaqalar â€” sahifaning tepasida chiqadi
+    comps = (Competition.objects
+             .filter(is_active=True, end_time__gte=now, game__is_active=True)
+             .select_related('game')
+             .order_by('start_time'))
+
+    active_competitions = []
+    for comp in comps:
+        comp.can_play = comp.can_user_play(request.user)
+        comp.used_attempts = comp.user_attempts_count(request.user)
+        comp.remaining_attempts = max(0, comp.max_attempts - comp.used_attempts)
+        if comp.game.game_type == 'word_builder':
+            comp.play_url = reverse('games:word_game_play_competition', args=[comp.game.slug, comp.pk])
+            comp.leaderboard_url = reverse('games:word_game_leaderboard', args=[comp.pk])
+        elif comp.game.game_type == 'external':
+            comp.play_url = reverse('games:game_launch', args=[comp.game.slug])
+            comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
+        else:
+            comp.play_url = reverse('games:game_play_competition', args=[comp.game.slug, comp.pk])
+            comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
+        comp.detail_url = reverse('games:game_detail', args=[comp.game.slug])
+        active_competitions.append(comp)
+
+    return render(request, 'games/student/games_list.html', {
+        'games': games,
+        'active_competitions': active_competitions,
+        'active_comp_count': sum(1 for c in active_competitions if c.status == 'active'),
+    })
 
 
 @login_required
@@ -274,9 +310,18 @@ def game_play(request, slug, competition_id=None):
                 messages.info(request, "Urinishlaringiz tugadi!")
             return redirect('games:game_detail', slug=slug)
 
-    prompts = list(game.active_prompts())
+    # Matn pooli: musobaqa — maxsus tanlangan yoki "Musobaqa" rejimidagi matnlar;
+    # mashq — faqat "Mashq" yoki "Ikkalasi" rejimidagi matnlar.
+    if competition:
+        prompts = list(competition.get_prompt_pool())
+    else:
+        prompts = list(game.practice_prompts())
+
     if not prompts:
-        messages.error(request, "Bu o'yin uchun topshiriqlar mavjud emas!")
+        if competition:
+            messages.error(request, "Bu musobaqa uchun matnlar belgilanmagan. Administratorga murojaat qiling.")
+        else:
+            messages.error(request, "Bu o'yin uchun mashq matnlari mavjud emas!")
         return redirect('games:game_detail', slug=slug)
 
     prompt = random.choice(prompts)
@@ -662,6 +707,10 @@ def admin_game_delete(request, pk):
 
 # ---- Prompts ----
 
+VALID_PROMPT_USAGES = {'practice', 'competition', 'both'}
+VALID_PROMPT_DIFFICULTIES = {'easy', 'medium', 'hard'}
+
+
 @login_required
 def admin_prompts(request, game_pk):
     if not request.user.is_admin:
@@ -669,7 +718,34 @@ def admin_prompts(request, game_pk):
 
     game = get_object_or_404(Game, pk=game_pk)
     prompts = game.prompts.all()
-    return render(request, 'games/admin/prompts_list.html', {'game': game, 'prompts': prompts})
+
+    # Filtrlar
+    usage = request.GET.get('usage', '')
+    difficulty = request.GET.get('difficulty', '')
+    q = request.GET.get('q', '').strip()
+
+    if usage in VALID_PROMPT_USAGES:
+        prompts = prompts.filter(usage=usage)
+    if difficulty in VALID_PROMPT_DIFFICULTIES:
+        prompts = prompts.filter(difficulty=difficulty)
+    if q:
+        prompts = prompts.filter(text__icontains=q)
+
+    stats = {
+        'total': game.prompts.count(),
+        'practice': game.prompts.filter(usage__in=['practice', 'both']).count(),
+        'competition': game.prompts.filter(usage__in=['competition', 'both']).count(),
+        'active': game.prompts.filter(is_active=True).count(),
+    }
+
+    return render(request, 'games/admin/prompts_list.html', {
+        'game': game,
+        'prompts': prompts,
+        'stats': stats,
+        'current_usage': usage,
+        'current_difficulty': difficulty,
+        'search_query': q,
+    })
 
 
 @login_required
@@ -680,15 +756,25 @@ def admin_prompt_add(request, game_pk):
     game = get_object_or_404(Game, pk=game_pk)
 
     if request.method == 'POST':
-        text = request.POST.get('text')
+        text = request.POST.get('text', '').strip()
         difficulty = request.POST.get('difficulty', 'medium')
+        usage = request.POST.get('usage', 'practice')
         order = request.POST.get('order', 0)
         is_active = 'is_active' in request.POST
 
+        if usage not in VALID_PROMPT_USAGES:
+            usage = 'practice'
+        if difficulty not in VALID_PROMPT_DIFFICULTIES:
+            difficulty = 'medium'
+
         if text:
+            try:
+                order = int(order)
+            except (TypeError, ValueError):
+                order = 0
             Prompt.objects.create(
                 game=game, text=text, difficulty=difficulty,
-                order=int(order), is_active=is_active,
+                usage=usage, order=order, is_active=is_active,
             )
             messages.success(request, "Topshiriq qo'shildi!")
             return redirect('games:admin_prompts', game_pk=game.pk)
@@ -706,9 +792,15 @@ def admin_prompt_edit(request, pk):
     prompt = get_object_or_404(Prompt, pk=pk)
 
     if request.method == 'POST':
-        prompt.text = request.POST.get('text', prompt.text)
-        prompt.difficulty = request.POST.get('difficulty', 'medium')
-        prompt.order = int(request.POST.get('order', 0))
+        prompt.text = request.POST.get('text', prompt.text).strip() or prompt.text
+        difficulty = request.POST.get('difficulty', 'medium')
+        usage = request.POST.get('usage', prompt.usage)
+        prompt.difficulty = difficulty if difficulty in VALID_PROMPT_DIFFICULTIES else 'medium'
+        prompt.usage = usage if usage in VALID_PROMPT_USAGES else prompt.usage
+        try:
+            prompt.order = int(request.POST.get('order', 0))
+        except (TypeError, ValueError):
+            prompt.order = 0
         prompt.is_active = 'is_active' in request.POST
         prompt.save()
         messages.success(request, "Topshiriq yangilandi!")
@@ -717,6 +809,209 @@ def admin_prompt_edit(request, pk):
     return render(request, 'games/admin/prompt_form.html', {
         'game': prompt.game, 'prompt': prompt, 'title_page': "Topshiriqni tahrirlash"
     })
+
+
+# ---- Prompts: Excel import / export ----
+
+PROMPT_XLSX_HEADERS = ['Matn', 'Qiyinlik', 'Rejim', 'Faol', 'Tartib']
+PROMPT_DIFFICULTY_MAP = {'oson': 'easy', "o'rta": 'medium', 'orta': 'medium', "o`rta": 'medium', 'qiyin': 'hard'}
+PROMPT_USAGE_MAP = {'mashq': 'practice', 'musobaqa': 'competition', 'ikkalasi': 'both'}
+PROMPT_DIFFICULTY_LABELS = {'easy': 'Oson', 'medium': "O'rta", 'hard': 'Qiyin'}
+PROMPT_USAGE_LABELS = {'practice': 'Mashq', 'competition': 'Musobaqa', 'both': 'Ikkalasi'}
+
+
+def _prompt_xlsx_workbook(title):
+    """Sarlavha va ustun stillari bilan yangi workbook."""
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment
+    from openpyxl.utils import get_column_letter
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = title[:31] if title else 'Matnlar'
+
+    header_fill = PatternFill(start_color='6366F1', end_color='6366F1', fill_type='solid')
+    header_font = Font(color='FFFFFF', bold=True, size=11)
+
+    for col, header in enumerate(PROMPT_XLSX_HEADERS, start=1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center', vertical='center')
+
+    widths = [80, 14, 14, 10, 10]
+    for i, w in enumerate(widths, start=1):
+        ws.column_dimensions[get_column_letter(i)].width = w
+    ws.freeze_panes = 'A2'
+    return wb, ws
+
+
+def _add_prompt_sheet_validation(ws, max_row=1000):
+    """Qiyinlik / Rejim / Faol ustunlariga dropdown validatsiya."""
+    from openpyxl.worksheet.datavalidation import DataValidation
+
+    dv_diff = DataValidation(type='list', formula1='"Oson,O\'rta,Qiyin"', allow_blank=True, showDropDown=False)
+    dv_usage = DataValidation(type='list', formula1='"Mashq,Musobaqa,Ikkalasi"', allow_blank=True, showDropDown=False)
+    dv_active = DataValidation(type='list', formula1='"Ha,Yo\'q"', allow_blank=True, showDropDown=False)
+    ws.add_data_validation(dv_diff)
+    ws.add_data_validation(dv_usage)
+    ws.add_data_validation(dv_active)
+    dv_diff.add(f'B2:B{max_row}')
+    dv_usage.add(f'C2:C{max_row}')
+    dv_active.add(f'D2:D{max_row}')
+
+
+def _xlsx_response(wb, filename):
+    from io import BytesIO
+    buf = BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    response = HttpResponse(
+        buf.getvalue(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    )
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    return response
+
+
+@login_required
+def admin_prompts_export(request, game_pk):
+    """O'yin matnlarini Excel (.xlsx) faylga eksport qilish."""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+    wb, ws = _prompt_xlsx_workbook(game.title)
+
+    for row, p in enumerate(game.prompts.all(), start=2):
+        ws.cell(row=row, column=1, value=p.text)
+        ws.cell(row=row, column=2, value=PROMPT_DIFFICULTY_LABELS.get(p.difficulty, "O'rta"))
+        ws.cell(row=row, column=3, value=PROMPT_USAGE_LABELS.get(p.usage, 'Ikkalasi'))
+        ws.cell(row=row, column=4, value='Ha' if p.is_active else "Yo'q")
+        ws.cell(row=row, column=5, value=p.order)
+
+    _add_prompt_sheet_validation(ws, max_row=max(1000, game.prompts.count() + 100))
+    return _xlsx_response(wb, f'matnlar_{game.slug}.xlsx')
+
+
+@login_required
+def admin_prompts_template(request, game_pk):
+    """Bo'sh import shabloni (.xlsx) — namunaviy qatorlar bilan."""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+    wb, ws = _prompt_xlsx_workbook('Shablon')
+
+    samples = [
+        ("Bu yerga yoziladigan matn kiritiladi. Har bir qator — bitta topshiriq.", 'Oson', 'Mashq', 'Ha', 1),
+        ("Musobaqa uchun mo'ljallangan matnlar Rejim ustunida Musobaqa deb belgilanadi.", "O'rta", 'Musobaqa', 'Ha', 2),
+        ("Ikkalasi rejimidagi matn ham mashqda, ham musobaqada chiqadi.", 'Qiyin', 'Ikkalasi', 'Ha', 3),
+    ]
+    from openpyxl.styles import Font
+    for row, sample in enumerate(samples, start=2):
+        for col, value in enumerate(sample, start=1):
+            cell = ws.cell(row=row, column=col, value=value)
+            cell.font = Font(italic=True, color='94A3B8')
+
+    _add_prompt_sheet_validation(ws)
+    return _xlsx_response(wb, f'matnlar_shablon_{game.slug}.xlsx')
+
+
+@login_required
+@require_POST
+def admin_prompts_import(request, game_pk):
+    """Excel (.xlsx) fayldan matnlarni import qilish.
+
+    Ustunlar: Matn | Qiyinlik (Oson/O'rta/Qiyin) | Rejim (Mashq/Musobaqa/Ikkalasi) | Faol (Ha/Yo'q) | Tartib
+    Faqat 'Matn' majburiy — qolganlari bo'sh bo'lsa standart qiymat olinadi.
+    """
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=game_pk)
+    file = request.FILES.get('file')
+    replace_all = 'replace_all' in request.POST
+
+    if not file:
+        messages.error(request, "Fayl tanlanmadi!")
+        return redirect('games:admin_prompts', game_pk=game.pk)
+
+    if not file.name.lower().endswith('.xlsx'):
+        messages.error(request, "Faqat .xlsx formatdagi fayl qabul qilinadi!")
+        return redirect('games:admin_prompts', game_pk=game.pk)
+
+    if file.size > 5 * 1024 * 1024:
+        messages.error(request, "Fayl hajmi 5 MB dan oshmasligi kerak!")
+        return redirect('games:admin_prompts', game_pk=game.pk)
+
+    import openpyxl
+    try:
+        wb = openpyxl.load_workbook(file, read_only=True, data_only=True)
+        ws = wb.active
+    except Exception:
+        messages.error(request, "Faylni o'qib bo'lmadi. To'g'ri .xlsx fayl ekanligiga ishonch hosil qiling.")
+        return redirect('games:admin_prompts', game_pk=game.pk)
+
+    def _norm(value):
+        return str(value).strip() if value is not None else ''
+
+    new_prompts = []
+    errors = []
+    existing_texts = set(
+        game.prompts.values_list('text', flat=True)
+    ) if not replace_all else set()
+    seen_in_file = set()
+
+    for i, row in enumerate(ws.iter_rows(min_row=2, max_col=5, values_only=True), start=2):
+        text = _norm(row[0] if len(row) > 0 else '')
+        if not text:
+            continue  # bo'sh qator — o'tkazib yuboriladi
+
+        if len(text) > 5000:
+            errors.append(f"{i}-qator: matn juda uzun (maks. 5000 belgi)")
+            continue
+
+        if text in seen_in_file or text in existing_texts:
+            errors.append(f"{i}-qator: takroriy matn — o'tkazib yuborildi")
+            continue
+        seen_in_file.add(text)
+
+        difficulty = PROMPT_DIFFICULTY_MAP.get(_norm(row[1] if len(row) > 1 else '').lower(), 'medium')
+        usage = PROMPT_USAGE_MAP.get(_norm(row[2] if len(row) > 2 else '').lower(), 'both')
+        active_raw = _norm(row[3] if len(row) > 3 else '').lower()
+        is_active = active_raw not in ("yo'q", 'yoq', 'no', '0', 'false')
+        try:
+            order = int(float(_norm(row[4] if len(row) > 4 else '') or 0))
+        except (TypeError, ValueError):
+            order = 0
+
+        new_prompts.append(Prompt(
+            game=game, text=text, difficulty=difficulty,
+            usage=usage, is_active=is_active, order=order,
+        ))
+
+        if len(new_prompts) >= 2000:
+            errors.append("Limit: bir importda maksimal 2000 ta matn qabul qilinadi")
+            break
+
+    wb.close()
+
+    if not new_prompts:
+        messages.warning(request, "Faylda import qilinadigan yangi matn topilmadi. " + (errors[0] if errors else ''))
+        return redirect('games:admin_prompts', game_pk=game.pk)
+
+    if replace_all:
+        game.prompts.all().delete()
+    Prompt.objects.bulk_create(new_prompts)
+
+    msg = f"{len(new_prompts)} ta matn import qilindi!"
+    if replace_all:
+        msg += " (eski matnlar o'chirildi)"
+    if errors:
+        msg += f" Ogohlantirishlar: {len(errors)} ta qator o'tkazib yuborildi."
+    messages.success(request, msg)
+    return redirect('games:admin_prompts', game_pk=game.pk)
 
 
 @login_required
@@ -736,12 +1031,52 @@ def admin_prompt_delete(request, pk):
 
 # ---- Competitions ----
 
+def _int_or(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _competition_prompts_data(games):
+    """Musobaqa formasidagi matn tanlash paneli uchun ma'lumot.
+
+    {game_id: [{id, text, difficulty, usage, words}, ...]}
+    Template'da json_script orqali xavfsiz embed qilinadi.
+    """
+    data = {}
+    for g in games:
+        data[str(g.pk)] = [
+            {
+                'id': p.pk,
+                'text': (p.text[:120] + '…') if len(p.text) > 120 else p.text,
+                'difficulty': p.get_difficulty_display(),
+                'usage': p.get_usage_display(),
+                'usage_code': p.usage,
+                'words': p.word_count,
+            }
+            for p in g.prompts.filter(is_active=True)
+        ]
+    return data
+
+
+def _save_competition_prompts(competition, request):
+    """Formdan tanlangan matnlarni (faqat o'z o'yiniga tegishlilarini) saqlash."""
+    prompt_ids = [pid for pid in request.POST.getlist('prompt_ids') if pid.isdigit()]
+    valid_prompts = Prompt.objects.filter(pk__in=prompt_ids, game=competition.game)
+    competition.prompts.set(valid_prompts)
+
+
 @login_required
 def admin_competitions(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    competitions = Competition.objects.all().select_related('game')
+    competitions = Competition.objects.all().select_related('game').annotate(
+        selected_prompts_count=Count('prompts', distinct=True),
+        typing_participants=Count('attempts__user', distinct=True),
+        word_participants=Count('word_attempts__user', distinct=True),
+    )
     return render(request, 'games/admin/competitions_list.html', {'competitions': competitions})
 
 
@@ -750,12 +1085,14 @@ def admin_competition_add(request):
     if not request.user.is_admin:
         return redirect('home')
 
+    games = Game.objects.filter(is_active=True).prefetch_related('prompts')
+
     if request.method == 'POST':
         game_id = request.POST.get('game')
-        title = request.POST.get('title')
+        title = request.POST.get('title', '').strip()
         start_time = request.POST.get('start_time')
         end_time = request.POST.get('end_time')
-        max_attempts = request.POST.get('max_attempts', 1)
+        max_attempts = _int_or(request.POST.get('max_attempts'), 1)
         allow_retry = 'allow_retry' in request.POST
         is_active = 'is_active' in request.POST
 
@@ -763,12 +1100,13 @@ def admin_competition_add(request):
             game = get_object_or_404(Game, pk=game_id)
             comp = Competition.objects.create(
                 game=game, title=title, start_time=start_time,
-                end_time=end_time, max_attempts=int(max_attempts),
+                end_time=end_time, max_attempts=max(1, max_attempts),
                 allow_retry=allow_retry, is_active=is_active,
-                coin_1st=int(request.POST.get('coin_1st', 0)),
-                coin_2nd=int(request.POST.get('coin_2nd', 0)),
-                coin_3rd=int(request.POST.get('coin_3rd', 0)),
+                coin_1st=_int_or(request.POST.get('coin_1st')),
+                coin_2nd=_int_or(request.POST.get('coin_2nd')),
+                coin_3rd=_int_or(request.POST.get('coin_3rd')),
             )
+            _save_competition_prompts(comp, request)
             # Telegram guruhga xabar yuborish
             if is_active:
                 from telegram_bot.utils import notify_competition_started
@@ -778,9 +1116,11 @@ def admin_competition_add(request):
         else:
             messages.error(request, "Barcha maydonlarni to'ldiring!")
 
-    games = Game.objects.filter(is_active=True)
     return render(request, 'games/admin/competition_form.html', {
-        'title_page': "Musobaqa qo'shish", 'games': games
+        'title_page': "Musobaqa qo'shish",
+        'games': games,
+        'prompts_data': _competition_prompts_data(games),
+        'selected_prompt_ids': [],
     })
 
 
@@ -790,25 +1130,30 @@ def admin_competition_edit(request, pk):
         return redirect('home')
 
     competition = get_object_or_404(Competition, pk=pk)
+    games = Game.objects.filter(is_active=True).prefetch_related('prompts')
 
     if request.method == 'POST':
         competition.game = get_object_or_404(Game, pk=request.POST.get('game'))
-        competition.title = request.POST.get('title', competition.title)
+        competition.title = request.POST.get('title', competition.title).strip() or competition.title
         competition.start_time = request.POST.get('start_time')
         competition.end_time = request.POST.get('end_time')
-        competition.max_attempts = int(request.POST.get('max_attempts', 1))
+        competition.max_attempts = max(1, _int_or(request.POST.get('max_attempts'), 1))
         competition.allow_retry = 'allow_retry' in request.POST
         competition.is_active = 'is_active' in request.POST
-        competition.coin_1st = int(request.POST.get('coin_1st', 0))
-        competition.coin_2nd = int(request.POST.get('coin_2nd', 0))
-        competition.coin_3rd = int(request.POST.get('coin_3rd', 0))
+        competition.coin_1st = _int_or(request.POST.get('coin_1st'))
+        competition.coin_2nd = _int_or(request.POST.get('coin_2nd'))
+        competition.coin_3rd = _int_or(request.POST.get('coin_3rd'))
         competition.save()
+        _save_competition_prompts(competition, request)
         messages.success(request, "Musobaqa yangilandi!")
         return redirect('games:admin_competitions')
 
-    games = Game.objects.filter(is_active=True)
     return render(request, 'games/admin/competition_form.html', {
-        'title_page': "Musobaqani tahrirlash", 'competition': competition, 'games': games
+        'title_page': "Musobaqani tahrirlash",
+        'competition': competition,
+        'games': games,
+        'prompts_data': _competition_prompts_data(games),
+        'selected_prompt_ids': list(competition.prompts.values_list('pk', flat=True)),
     })
 
 

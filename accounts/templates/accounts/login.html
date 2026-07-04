@@ -8,493 +8,223 @@
 <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+/* Tema — birinchi chizishdan oldin (FOUC oldini olish) */
+(function () {
+  var t;
+  try { t = localStorage.getItem('its-theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') {
+    t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#06091a;
-  --indigo:#6366f1;--indigo-l:#a5b4fc;--indigo-d:#4338ca;
-  --teal:#14b8a6;--teal-l:#2dd4bf;
-  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
-  --card:rgba(15,23,42,0.88);--card-border:rgba(99,102,241,0.18);
-  --input-bg:rgba(8,12,28,0.7);--input-border:rgba(99,102,241,0.2);
-  --green:#22c55e;--red:#ef4444;
-}
-html,body{height:100%;font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
-
-/* ──── BACKGROUND ──── */
-.lp-bg{position:fixed;inset:0;z-index:0;overflow:hidden;}
-.lp-bg::before{
-  content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 70% 60% at 15% 20%,rgba(99,102,241,.16) 0%,transparent 55%),
-    radial-gradient(ellipse 50% 45% at 85% 80%,rgba(20,184,166,.1) 0%,transparent 55%),
-    radial-gradient(ellipse 60% 50% at 50% 50%,rgba(99,102,241,.04) 0%,transparent 70%),
-    linear-gradient(160deg,#06091a 0%,#080d1f 60%,#060a1a 100%);
-}
-.lp-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:orbFloat 14s ease-in-out infinite;pointer-events:none;}
-.lp-orb:nth-child(1){width:500px;height:500px;background:rgba(99,102,241,.12);top:-10%;left:-8%;animation-delay:0s}
-.lp-orb:nth-child(2){width:400px;height:400px;background:rgba(20,184,166,.08);bottom:-10%;right:-8%;animation-delay:5s}
-.lp-orb:nth-child(3){width:300px;height:300px;background:rgba(168,85,247,.07);top:40%;right:20%;animation-delay:10s}
-@keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(25px,-20px) scale(1.05)}66%{transform:translate(-15px,25px) scale(.95)}}
-
-/* Grid lines */
-.lp-grid{
-  position:absolute;inset:0;
-  background-image:linear-gradient(rgba(99,102,241,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.04) 1px,transparent 1px);
-  background-size:60px 60px;
-}
-
-/* ──── LAYOUT ──── */
-.lp-wrap{position:relative;z-index:2;min-height:100vh;display:flex}
-
-/* ──── LEFT BRAND PANEL ──── */
-.lp-brand{
-  width:46%;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:3rem 2.5rem;position:relative;overflow:hidden;
-}
-@media(max-width:900px){.lp-brand{display:none}}
-
-/* Decorative rings */
-.lp-ring{
-  position:absolute;border-radius:50%;border:1px solid rgba(99,102,241,.08);
-  animation:ringPulse 6s ease-in-out infinite;
-}
-.lp-ring:nth-child(1){width:300px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:0s}
-.lp-ring:nth-child(2){width:480px;height:480px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:1.5s;border-color:rgba(99,102,241,.05)}
-.lp-ring:nth-child(3){width:660px;height:660px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:3s;border-color:rgba(99,102,241,.03)}
-@keyframes ringPulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-.lp-brand-content{position:relative;z-index:2;text-align:center;max-width:380px}
-.lp-logo-circle{
-  width:88px;height:88px;border-radius:24px;
-  background:linear-gradient(135deg,#6366f1,#4338ca);
-  display:flex;align-items:center;justify-content:center;
-  font-size:2.2rem;color:#fff;margin:0 auto 1.5rem;
-  box-shadow:0 8px 40px rgba(99,102,241,.4);
-  animation:logoBounce 4s ease-in-out infinite;
-}
-@keyframes logoBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.lp-brand-title{font-size:2.2rem;font-weight:900;line-height:1.15;margin-bottom:.75rem}
-.lp-brand-sub{font-size:1rem;color:var(--text2);margin-bottom:2.5rem;line-height:1.6}
-
-/* Stats */
-.lp-stats{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:2rem;width:100%}
-.lp-stat{
-  background:rgba(99,102,241,.07);border:1px solid rgba(99,102,241,.14);
-  border-radius:16px;padding:.9rem 1rem;text-align:center;
-}
-.lp-stat-num{font-size:1.5rem;font-weight:900;color:var(--indigo-l);line-height:1}
-.lp-stat-lbl{font-size:.72rem;color:var(--text2);margin-top:2px}
-
-/* Features */
-.lp-feats{display:flex;flex-direction:column;gap:.6rem;width:100%}
-.lp-feat{
-  display:flex;align-items:center;gap:.7rem;
-  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
-  border-radius:12px;padding:.65rem 1rem;
-  font-size:.85rem;color:var(--text2);
-}
-.lp-feat-ico{
-  width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;
-  font-size:.9rem;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(99,102,241,.25),rgba(99,102,241,.1));
-  color:var(--indigo-l);
-}
-
-/* ──── RIGHT FORM PANEL ──── */
-.lp-form-wrap{
-  flex:1;display:flex;align-items:center;justify-content:center;
-  padding:2rem 1.5rem;position:relative;
-}
-.lp-form-wrap::before{
-  content:'';position:absolute;left:0;top:10%;bottom:10%;width:1px;
-  background:linear-gradient(to bottom,transparent,rgba(99,102,241,.2) 30%,rgba(99,102,241,.2) 70%,transparent);
-}
-@media(max-width:900px){.lp-form-wrap::before{display:none}}
-
-/* Card */
-.lp-card{
-  width:100%;max-width:440px;
-  background:var(--card);
-  border:1px solid var(--card-border);
-  border-radius:24px;padding:2rem;
-  backdrop-filter:blur(24px);
-  box-shadow:0 24px 80px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.04);
-  animation:cardIn .5s cubic-bezier(.16,1,.3,1);
-}
-@keyframes cardIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-
-.lp-card-head{text-align:center;margin-bottom:1.5rem}
-.lp-card-logo{
-  width:56px;height:56px;border-radius:16px;
-  background:linear-gradient(135deg,#6366f1,#4338ca);
-  display:inline-flex;align-items:center;justify-content:center;
-  font-size:1.4rem;font-weight:900;color:#fff;
-  margin-bottom:1rem;letter-spacing:-1px;
-  box-shadow:0 4px 20px rgba(99,102,241,.4);
-}
-.lp-card-title{font-size:1.5rem;font-weight:800;margin-bottom:.3rem}
-.lp-card-sub{font-size:.84rem;color:var(--text2)}
-
-/* Tabs */
-.lp-tabs{
-  display:flex;gap:4px;background:rgba(0,0,0,.3);
-  border:1px solid var(--card-border);border-radius:14px;padding:4px;margin-bottom:1.5rem;
-}
-.lp-tab{
-  flex:1;padding:.5rem .25rem;border:none;background:transparent;
-  border-radius:10px;font-size:.82rem;font-weight:600;color:var(--text2);
-  cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px;
-}
-.lp-tab:hover{color:var(--text);background:rgba(255,255,255,.04)}
-.lp-tab.active{background:rgba(99,102,241,.85);color:#fff;box-shadow:0 2px 12px rgba(99,102,241,.35)}
-.lp-panel{display:none}.lp-panel.active{display:block;animation:panelIn .25s ease}
-@keyframes panelIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-
-/* Form fields */
-.lp-field{margin-bottom:1rem}
-.lp-label{font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.4rem;display:flex;align-items:center;gap:.4rem}
-.lp-input-wrap{position:relative}
-.lp-input-ico{position:absolute;left:.85rem;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.95rem;pointer-events:none}
-.lp-input-wrap input{
-  width:100%;padding:.7rem .85rem .7rem 2.4rem;
-  border:2px solid var(--input-border);border-radius:13px;
-  background:var(--input-bg);color:var(--text);
-  font-size:.9rem;font-family:inherit;transition:all .2s;outline:none;
-}
-.lp-input-wrap input:focus{border-color:var(--indigo);background:rgba(99,102,241,.05);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
-.lp-input-wrap input.is-invalid{border-color:var(--red)}
-.lp-input-wrap input::placeholder{color:var(--text3)}
-.lp-pw-eye{
-  position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
-  background:none;border:none;color:var(--text3);cursor:pointer;font-size:.95rem;padding:.25rem;
-  transition:color .2s;
-}
-.lp-pw-eye:hover{color:var(--indigo-l)}
-
-/* Phone group */
-.lp-phone-grp{display:flex;gap:0}
-.lp-phone-pre{
-  display:flex;align-items:center;gap:.4rem;
-  padding:.7rem .85rem;border:2px solid var(--input-border);border-right:none;
-  border-radius:13px 0 0 13px;background:rgba(0,0,0,.3);color:var(--text2);
-  font-size:.88rem;font-weight:600;white-space:nowrap;flex-shrink:0;
-}
-.lp-phone-grp input{
-  flex:1;padding:.7rem .85rem;
-  border:2px solid var(--input-border);border-left:none;
-  border-radius:0 13px 13px 0;background:var(--input-bg);
-  color:var(--text);font-size:.9rem;font-family:inherit;outline:none;transition:all .2s;
-}
-.lp-phone-grp input:focus{border-color:var(--indigo);background:rgba(99,102,241,.05)}
-
-/* Telegram steps */
-.tg-box{
-  background:rgba(0,136,204,.08);border:1px solid rgba(0,136,204,.2);
-  border-radius:14px;padding:1rem 1.1rem;margin-bottom:1rem;
-}
-.tg-steps{list-style:none;display:flex;flex-direction:column;gap:.55rem}
-.tg-steps li{display:flex;align-items:flex-start;gap:.65rem;font-size:.84rem;color:var(--text2)}
-.tg-num{
-  width:22px;height:22px;border-radius:50%;
-  background:rgba(0,136,204,.3);border:1px solid rgba(0,136,204,.4);
-  display:flex;align-items:center;justify-content:center;
-  font-size:.7rem;font-weight:800;color:#7dd3fc;flex-shrink:0;margin-top:1px;
-}
-.tg-code{
-  width:100%;padding:.7rem;text-align:center;letter-spacing:.5rem;
-  font-size:1.6rem;font-weight:800;
-  border:2px solid var(--input-border);border-radius:13px;
-  background:var(--input-bg);color:var(--indigo-l);font-family:inherit;
-  outline:none;transition:all .2s;
-}
-.tg-code:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(99,102,241,.12)}
-
-/* Submit buttons */
-.lp-btn{
-  width:100%;padding:.75rem;border-radius:13px;border:none;cursor:pointer;
-  font-size:.95rem;font-weight:700;font-family:inherit;
-  display:flex;align-items:center;justify-content:center;gap:.5rem;
-  transition:all .2s;position:relative;overflow:hidden;
-}
-.lp-btn-primary{
-  background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;
-  box-shadow:0 4px 20px rgba(99,102,241,.4);
-}
-.lp-btn-primary:hover{box-shadow:0 6px 30px rgba(99,102,241,.5);transform:translateY(-1px)}
-.lp-btn-telegram{
-  background:linear-gradient(135deg,#0088cc,#006aaa);color:#fff;
-  box-shadow:0 4px 20px rgba(0,136,204,.3);
-}
-.lp-btn-telegram:hover{box-shadow:0 6px 30px rgba(0,136,204,.4);transform:translateY(-1px)}
-.lp-btn.loading::after{
-  content:'';position:absolute;inset:0;background:rgba(0,0,0,.3);
-  display:flex;align-items:center;justify-content:center;
-}
-
-/* Links */
-.lp-links{margin-top:1.25rem;text-align:center}
-.lp-link{color:var(--indigo-l);text-decoration:none;font-size:.84rem;font-weight:500;transition:color .15s}
-.lp-link:hover{color:#c4b5fd}
-.lp-divider{border:none;border-top:1px solid rgba(255,255,255,.07);margin:.9rem 0}
-.lp-text-muted{color:var(--text3);font-size:.84rem}
-
-/* Honeypot */
-.hp{position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden}
-
-/* Toast */
-.lp-toast-box{position:fixed;top:1.25rem;right:1.25rem;z-index:9999;display:flex;flex-direction:column;gap:.5rem;max-width:340px}
-.lp-toast{
-  background:rgba(15,23,42,.95);border:1px solid rgba(255,255,255,.1);border-radius:13px;
-  padding:.7rem 1rem;font-size:.85rem;display:flex;align-items:center;gap:.6rem;
-  backdrop-filter:blur(12px);box-shadow:0 8px 30px rgba(0,0,0,.3);
-  animation:toastIn .3s ease;
-}
-@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
-
-/* Override form-control from Django */
-.lp-input-wrap .form-control, .lp-input-wrap input.form-control {
-  width:100%;padding:.7rem .85rem .7rem 2.4rem;
-  border:2px solid var(--input-border);border-radius:13px;
-  background:var(--input-bg);color:var(--text);
-  font-size:.9rem;font-family:inherit;transition:all .2s;outline:none;
-}
-.lp-input-wrap .form-control:focus, .lp-input-wrap input.form-control:focus {
-  border-color:var(--indigo);background:rgba(99,102,241,.05);box-shadow:0 0 0 3px rgba(99,102,241,.12);
-}
-.lp-input-wrap .form-control.is-invalid{border-color:var(--red)}
-.lp-input-wrap .form-control::placeholder{color:var(--text3)}
-
-/* Responsive */
-@media(max-width:480px){
-  .lp-card{padding:1.5rem 1.25rem;border-radius:18px}
-  .lp-card-title{font-size:1.3rem}
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="{% static 'js/auth-page.js' %}" defer></script>
 </head>
 <body>
 
-<div class="lp-bg">
-  <div class="lp-grid"></div>
-  <div class="lp-orb"></div>
-  <div class="lp-orb"></div>
-  <div class="lp-orb"></div>
+<!-- Fon qatlamlari -->
+<div class="bg-aura" aria-hidden="true">
+  <div class="blob"></div><div class="blob"></div><div class="blob"></div>
 </div>
+<canvas id="bg3d" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
 
-<div class="lp-toast-box" id="toastBox"></div>
+<div class="toast-box" id="toastBox"></div>
 
-<div class="lp-wrap">
+<!-- Yuqori panel -->
+<header class="hud">
+  <a class="hud-brand" href="{% url 'login' %}">
+    <span class="hud-logo">IT</span>
+    <span class="hud-name">IT Shaharcha Zomin</span>
+  </a>
+  <button type="button" class="tgl" id="themeToggle" aria-label="Tema almashtirish" aria-pressed="false">
+    <span class="tgl-knob"><i class="bi bi-moon-stars-fill"></i><i class="bi bi-sun-fill"></i></span>
+  </button>
+</header>
 
-  <!-- LEFT BRAND PANEL -->
-  <div class="lp-brand">
-    <div class="lp-ring"></div>
-    <div class="lp-ring"></div>
-    <div class="lp-ring"></div>
-    <div class="lp-brand-content">
-      <div class="lp-logo-circle"><i class="bi bi-mortarboard-fill"></i></div>
-      <div class="lp-brand-title">IT Shaharcha<br><span style="background:linear-gradient(90deg,#6366f1,#14b8a6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Zomin LMS</span></div>
-      <div class="lp-brand-sub">Dasturlash olamiga birinchi qadamni biz bilan boshlang</div>
-      <div class="lp-stats">
-        <div class="lp-stat"><div class="lp-stat-num">500+</div><div class="lp-stat-lbl">O'quvchilar</div></div>
-        <div class="lp-stat"><div class="lp-stat-num">50+</div><div class="lp-stat-lbl">Kurslar</div></div>
-        <div class="lp-stat"><div class="lp-stat-num">24/7</div><div class="lp-stat-lbl">Qo'llab-quvvatlash</div></div>
-        <div class="lp-stat"><div class="lp-stat-num">98%</div><div class="lp-stat-lbl">Muvaffaqiyat</div></div>
-      </div>
-      <div class="lp-feats">
-        <div class="lp-feat"><div class="lp-feat-ico"><i class="bi bi-shield-check"></i></div><span>Xavfsiz tizimga kirish</span></div>
-        <div class="lp-feat"><div class="lp-feat-ico"><i class="bi bi-lightning-charge"></i></div><span>Tezkor va qulay interfeys</span></div>
-        <div class="lp-feat"><div class="lp-feat-ico"><i class="bi bi-phone"></i></div><span>Mobil qurilmalarga moslashgan</span></div>
-      </div>
+<main class="stage">
+
+  <!-- Chap: 3D globus ustidagi brend matni -->
+  <section class="pane-scene" aria-hidden="true">
+    <span class="scene-eyebrow"><span class="dot"></span> Onlayn ta'lim platformasi</span>
+    <h1 class="scene-title">Kelajak shahriga<br><span class="grad">xush kelibsiz!</span></h1>
+    <p class="scene-sub">IT Shaharcha Zomin — dasturlash olamiga birinchi qadamni birga qo'yamiz. Bilim tarmog'iga ulaning.</p>
+    <div class="chips">
+      <span class="chip"><i class="bi bi-mortarboard-fill"></i> 500+ o'quvchi</span>
+      <span class="chip"><i class="bi bi-code-slash"></i> Amaliy darslar</span>
+      <span class="chip"><i class="bi bi-trophy-fill"></i> Sertifikatlar</span>
     </div>
-  </div>
+  </section>
 
-  <!-- RIGHT FORM PANEL -->
-  <div class="lp-form-wrap">
-    <div class="lp-card">
-      <div class="lp-card-head">
-        <div class="lp-card-logo">IT</div>
-        <div class="lp-card-title">Xush kelibsiz!</div>
-        <div class="lp-card-sub">IT Shaharcha Zomin platformasiga kiring</div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="lp-tabs">
-        <button type="button" class="lp-tab {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}" data-target="panelUsername">
-          <i class="bi bi-person-fill"></i> Username
-        </button>
-        <button type="button" class="lp-tab {% if login_mode == 'phone' %}active{% endif %}" data-target="panelPhone">
-          <i class="bi bi-phone-fill"></i> Telefon
-        </button>
-        <button type="button" class="lp-tab {% if login_mode == 'telegram' %}active{% endif %}" data-target="panelTelegram">
-          <i class="bi bi-telegram"></i> Telegram
-        </button>
-      </div>
-
-      <!-- USERNAME Panel -->
-      <div id="panelUsername" class="lp-panel {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}active{% endif %}">
-        <form method="POST" class="lp-login-form">
-          {% csrf_token %}
-          <input type="hidden" name="login_mode" value="username">
-          <input type="hidden" name="login_token" value="{{ login_token }}">
-          <div class="hp" aria-hidden="true" tabindex="-1"><label for="wu1">Website</label><input type="text" name="website_url" id="wu1" autocomplete="off" tabindex="-1"></div>
-          <div class="lp-field">
-            <label class="lp-label"><i class="bi bi-person"></i> Username</label>
-            <div class="lp-input-wrap">
-              <span class="lp-input-ico"><i class="bi bi-person"></i></span>
-              {{ form.username }}
-            </div>
-          </div>
-          <div class="lp-field">
-            <label class="lp-label"><i class="bi bi-lock"></i> Parol</label>
-            <div class="lp-input-wrap">
-              <span class="lp-input-ico"><i class="bi bi-lock"></i></span>
-              {{ form.password }}
-              <button type="button" class="lp-pw-eye" onclick="togglePw('{{ form.password.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
-            </div>
-          </div>
-          <button type="submit" class="lp-btn lp-btn-primary"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
-        </form>
-      </div>
-
-      <!-- PHONE Panel -->
-      <div id="panelPhone" class="lp-panel {% if login_mode == 'phone' %}active{% endif %}">
-        <form method="POST" id="phoneForm" class="lp-login-form">
-          {% csrf_token %}
-          <input type="hidden" name="login_mode" value="phone">
-          <input type="hidden" name="login_token" value="{{ login_token }}">
-          <div class="hp" aria-hidden="true" tabindex="-1"><label for="wu2">Website</label><input type="text" name="website_url" id="wu2" autocomplete="off" tabindex="-1"></div>
-          <div class="lp-field">
-            <label class="lp-label"><i class="bi bi-phone"></i> Telefon raqam</label>
-            <div class="lp-phone-grp">
-              <div class="lp-phone-pre">
-                <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="22" height="14" style="border-radius:3px;object-fit:cover">
-                +998
-              </div>
-              <input type="tel" name="phone" id="phoneInput" placeholder="90 123 45 67" maxlength="12" autocomplete="tel" value="{{ request.POST.phone }}">
-            </div>
-          </div>
-          <div class="lp-field">
-            <label class="lp-label"><i class="bi bi-lock"></i> Parol</label>
-            <div class="lp-input-wrap">
-              <span class="lp-input-ico"><i class="bi bi-lock"></i></span>
-              <input type="password" name="password" id="phonePw" placeholder="Parol">
-              <button type="button" class="lp-pw-eye" onclick="togglePw('phonePw',this)"><i class="bi bi-eye"></i></button>
-            </div>
-          </div>
-          <button type="submit" class="lp-btn lp-btn-primary"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
-        </form>
-      </div>
-
-      <!-- TELEGRAM Panel -->
-      <div id="panelTelegram" class="lp-panel {% if login_mode == 'telegram' %}active{% endif %}">
-        <form method="POST" class="lp-login-form">
-          {% csrf_token %}
-          <input type="hidden" name="login_mode" value="telegram">
-          <input type="hidden" name="login_token" value="{{ login_token }}">
-          <div class="hp" aria-hidden="true" tabindex="-1"><label for="wu3">Website</label><input type="text" name="website_url" id="wu3" autocomplete="off" tabindex="-1"></div>
-          <div class="tg-box">
-            <ul class="tg-steps">
-              <li><span class="tg-num">1</span><span>Telegram botni oching va <b style="color:var(--text)">/start</b> bosing</span></li>
-              <li><span class="tg-num">2</span><span>Bot sizga <b style="color:var(--text)">6 xonali kod</b> yuboradi</span></li>
-              <li><span class="tg-num">3</span><span>Kodni pastga kiriting va <b style="color:var(--text)">Kirish</b> bosing</span></li>
-            </ul>
-          </div>
-          <div class="lp-field">
-            <input type="text" name="telegram_code" class="tg-code" placeholder="000000" maxlength="6" autocomplete="off" inputmode="numeric" pattern="[0-9]{6}">
-          </div>
-          <button type="submit" class="lp-btn lp-btn-telegram"><i class="bi bi-telegram"></i><span>Telegram orqali kirish</span></button>
-        </form>
-      </div>
-
-      <!-- Links -->
-      <div class="lp-links">
-        <a href="{% url 'password_reset_request' %}" class="lp-link"><i class="bi bi-key me-1"></i>Parolni unutdingizmi?</a>
-        <hr class="lp-divider">
-        <span class="lp-text-muted">Akkauntingiz yo'qmi? </span>
-        <a href="{% url 'register' %}" class="lp-link" style="font-weight:700">Ro'yxatdan o'ting <i class="bi bi-arrow-right"></i></a>
-        <hr class="lp-divider">
-        <a href="{% url 'parent_login' %}" class="lp-link" style="color:var(--text2)"><i class="bi bi-people me-1"></i>Ota-ona sifatida kirish</a>
-      </div>
+  <!-- O'ng: kirish kartasi -->
+  <section class="card">
+    <div class="c-head">
+      <span class="c-logo">IT</span>
+      <h2 class="c-title">Tizimga kirish</h2>
+      <p class="c-sub">Akkauntingizga qulay usulda kiring</p>
     </div>
-  </div>
 
-</div>
+    <!-- Rejim tablari -->
+    <div class="seg" id="loginSeg">
+      <span class="seg-pill" aria-hidden="true"></span>
+      <button type="button" class="seg-btn {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}on{% endif %}" data-target="paneUsername">
+        <i class="bi bi-person-fill"></i> Username
+      </button>
+      <button type="button" class="seg-btn {% if login_mode == 'phone' %}on{% endif %}" data-target="panePhone">
+        <i class="bi bi-phone-fill"></i> Telefon
+      </button>
+      <button type="button" class="seg-btn {% if login_mode == 'telegram' %}on{% endif %}" data-target="paneTelegram">
+        <i class="bi bi-telegram"></i> Telegram
+      </button>
+    </div>
+
+    <!-- USERNAME -->
+    <div id="paneUsername" class="pane {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}on{% endif %}">
+      <form method="POST" class="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="login_mode" value="username">
+        <input type="hidden" name="login_token" value="{{ login_token }}">
+        <div class="hp" aria-hidden="true"><label for="wu1">Website</label><input type="text" name="website_url" id="wu1" autocomplete="off" tabindex="-1"></div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.username.id_for_label }}"><i class="bi bi-person"></i> Username</label>
+          <div class="iw">
+            <span class="fico"><i class="bi bi-person"></i></span>
+            {{ form.username }}
+          </div>
+        </div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.password.id_for_label }}"><i class="bi bi-lock"></i> Parol</label>
+          <div class="iw has-eye">
+            <span class="fico"><i class="bi bi-lock"></i></span>
+            {{ form.password }}
+            <button type="button" class="pw-eye" data-pw="{{ form.password.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
+      </form>
+    </div>
+
+    <!-- TELEFON -->
+    <div id="panePhone" class="pane {% if login_mode == 'phone' %}on{% endif %}">
+      <form method="POST" id="phoneForm" class="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="login_mode" value="phone">
+        <input type="hidden" name="login_token" value="{{ login_token }}">
+        <div class="hp" aria-hidden="true"><label for="wu2">Website</label><input type="text" name="website_url" id="wu2" autocomplete="off" tabindex="-1"></div>
+        <div class="f">
+          <label class="f-lab" for="phoneInput"><i class="bi bi-phone"></i> Telefon raqam</label>
+          <div class="ph">
+            <span class="ph-pre">
+              <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="22" height="14">
+              +998
+            </span>
+            <input type="tel" name="phone" id="phoneInput" placeholder="90 123 45 67" maxlength="12" autocomplete="tel" value="{{ request.POST.phone }}">
+          </div>
+        </div>
+        <div class="f">
+          <label class="f-lab" for="phonePw"><i class="bi bi-lock"></i> Parol</label>
+          <div class="iw has-eye">
+            <span class="fico"><i class="bi bi-lock"></i></span>
+            <input type="password" name="password" id="phonePw" placeholder="Parol" autocomplete="current-password">
+            <button type="button" class="pw-eye" data-pw="phonePw" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
+      </form>
+    </div>
+
+    <!-- TELEGRAM -->
+    <div id="paneTelegram" class="pane {% if login_mode == 'telegram' %}on{% endif %}">
+      <form method="POST" class="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="login_mode" value="telegram">
+        <input type="hidden" name="login_token" value="{{ login_token }}">
+        <div class="hp" aria-hidden="true"><label for="wu3">Website</label><input type="text" name="website_url" id="wu3" autocomplete="off" tabindex="-1"></div>
+        <div class="tg">
+          <ul>
+            <li><span class="tg-num">1</span><span>Telegram botni oching va <b>/start</b> bosing</span></li>
+            <li><span class="tg-num">2</span><span>Bot sizga <b>6 xonali kod</b> yuboradi</span></li>
+            <li><span class="tg-num">3</span><span>Kodni pastga kiriting va <b>Kirish</b> bosing</span></li>
+          </ul>
+        </div>
+        <div class="f">
+          <input type="text" name="telegram_code" class="tg-code" placeholder="000000" maxlength="6" autocomplete="one-time-code" inputmode="numeric" pattern="[0-9]{6}" aria-label="Telegram kodi">
+        </div>
+        <button type="submit" class="btn btn-tg"><i class="bi bi-telegram"></i><span>Telegram orqali kirish</span></button>
+      </form>
+    </div>
+
+    <!-- Havolalar -->
+    <div class="links">
+      <a href="{% url 'password_reset_request' %}" class="link"><i class="bi bi-key"></i> Parolni unutdingizmi?</a>
+      <hr class="divider">
+      <span class="muted">Akkauntingiz yo'qmi?</span>
+      <a href="{% url 'register' %}" class="link" style="font-weight:700">Ro'yxatdan o'ting <i class="bi bi-arrow-right"></i></a>
+      <hr class="divider">
+      <a href="{% url 'parent_login' %}" class="link" style="color:var(--tx2)"><i class="bi bi-people"></i> Ota-ona sifatida kirish</a>
+    </div>
+  </section>
+
+</main>
 
 <script>
-(function(){
-  // ──── TABS ────
-  document.querySelectorAll('.lp-tab').forEach(function(tab){
-    tab.addEventListener('click',function(){
-      document.querySelectorAll('.lp-tab').forEach(function(t){t.classList.remove('active')});
-      document.querySelectorAll('.lp-panel').forEach(function(p){p.classList.remove('active')});
-      tab.classList.add('active');
-      var panel=document.getElementById(tab.dataset.target);
-      if(panel){panel.classList.add('active');var fi=panel.querySelector('input:not([type="hidden"])');if(fi)setTimeout(function(){fi.focus()},200);}
-    });
+document.addEventListener('DOMContentLoaded', function () {
+  var A = window.ITSAuth;
+  if (!A) return;
+
+  /* 3D sahna (globus chap tomonda) + tema */
+  A.mountScene(document.getElementById('bg3d'), { side: 'left' });
+  A.initTheme(document.getElementById('themeToggle'));
+
+  /* Tablar */
+  A.initSegTabs(document.getElementById('loginSeg'));
+  window.addEventListener('load', function () { window.dispatchEvent(new Event('resize')); });
+
+  /* Parol ko'rsatish */
+  document.querySelectorAll('.pw-eye').forEach(function (btn) {
+    btn.addEventListener('click', function () { A.togglePw(btn.dataset.pw, btn); });
   });
 
-  // ──── PASSWORD TOGGLE ────
-  window.togglePw=function(id,btn){
-    var inp=document.getElementById(id);if(!inp)return;
-    var isPw=inp.type==='password';inp.type=isPw?'text':'password';
-    var ico=btn.querySelector('i');if(ico)ico.className=isPw?'bi bi-eye-slash':'bi bi-eye';
-  };
-
-  // ──── PHONE FORMAT ────
-  var phoneInp=document.getElementById('phoneInput');
-  if(phoneInp){
-    phoneInp.addEventListener('input',function(){
-      var val=this.value.replace(/\D/g,'');if(val.length>9)val=val.slice(0,9);
-      var f='';if(val.length>0)f=val.slice(0,2);if(val.length>2)f+=' '+val.slice(2,5);
-      if(val.length>5)f+=' '+val.slice(5,7);if(val.length>7)f+=' '+val.slice(7,9);
-      this.value=f;
+  /* Telefon formatlash va yuborishda +998 ga aylantirish */
+  var phoneInp = document.getElementById('phoneInput');
+  A.formatUzPhone(phoneInp, 'plain');
+  var phoneForm = document.getElementById('phoneForm');
+  if (phoneForm && phoneInp) {
+    phoneForm.addEventListener('submit', function () {
+      var raw = phoneInp.value.replace(/\D/g, '');
+      var hidden = document.createElement('input');
+      hidden.type = 'hidden'; hidden.name = 'phone'; hidden.value = '+998' + raw;
+      this.appendChild(hidden);
+      phoneInp.removeAttribute('name');
     });
   }
 
-  // ──── PHONE FORM SUBMIT ────
-  var phoneForm=document.getElementById('phoneForm');
-  if(phoneForm){
-    phoneForm.addEventListener('submit',function(){
-      var inp=document.getElementById('phoneInput');var raw=inp.value.replace(/\D/g,'');
-      var hidden=document.createElement('input');hidden.type='hidden';hidden.name='phone';hidden.value='+998'+raw;
-      this.appendChild(hidden);inp.removeAttribute('name');
+  /* Telegram kod — faqat raqam */
+  var tgCode = document.querySelector('.tg-code');
+  if (tgCode) {
+    tgCode.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 6);
     });
   }
 
-  // ──── TELEGRAM CODE ────
-  var tgCode=document.querySelector('.tg-code');
-  if(tgCode){tgCode.addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,6)});}
-
-
-  // ──── LOADING STATE ────
-  document.querySelectorAll('.lp-login-form').forEach(function(form){
-    form.addEventListener('submit',function(){
-      var btn=this.querySelector('.lp-btn');if(btn)btn.classList.add('loading');
+  /* Yuborishda loading holati */
+  document.querySelectorAll('.login-form').forEach(function (form) {
+    form.addEventListener('submit', function () {
+      var btn = this.querySelector('.btn');
+      if (btn) btn.classList.add('loading');
     });
   });
 
-  // ──── TOAST ────
-  function showToast(text,type){
-    var box=document.getElementById('toastBox');
-    var div=document.createElement('div');div.className='lp-toast';
-    div.style.borderLeftColor=type==='success'?'rgba(34,197,94,.4)':'rgba(239,68,68,.4)';
-    div.style.borderLeft='3px solid '+(type==='success'?'#22c55e':'#ef4444');
-    var ico=type==='success'?'<i class="bi bi-check-circle-fill" style="color:#22c55e;font-size:.95rem"></i>':'<i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;font-size:.95rem"></i>';
-    div.innerHTML=ico+' '+text;
-    box.appendChild(div);
-    setTimeout(function(){div.style.opacity='0';div.style.transform='translateX(20px)';div.style.transition='.3s';},4500);
-    setTimeout(function(){div.remove();},5000);
-  }
-  window.showToast=showToast;
-
-  document.addEventListener('DOMContentLoaded',function(){
-    {% if messages %}{% for message in messages %}showToast("{{ message|escapejs }}","{{ message.tags }}");{% endfor %}{% endif %}
-    {% if form.username.errors %}showToast("Username noto'g'ri yoki mavjud emas","error");{% endif %}
-    {% if form.password.errors %}showToast("Parol noto'g'ri kiritildi!","error");{% endif %}
-  });
-})();
+  /* Xabarlar */
+  {% if messages %}{% for message in messages %}A.toast("{{ message|escapejs }}", "{{ message.tags }}");{% endfor %}{% endif %}
+  {% if form.username.errors %}A.toast("Username noto'g'ri yoki mavjud emas", "error");{% endif %}
+  {% if form.password.errors %}A.toast("Parol noto'g'ri kiritildi!", "error");{% endif %}
+});
 </script>
 </body>
 </html>

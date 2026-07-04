@@ -83,10 +83,13 @@
                 {% csrf_token %}
                 <div class="row g-3">
                     <div class="col-12">
-                        <label class="form-label fw-bold">Matn *</label>
-                        <textarea name="text" class="form-control" rows="5" required>{{ prompt.text|default:'' }}</textarea>
+                        <label class="form-label fw-bold d-flex justify-content-between">
+                            <span>Matn *</span>
+                            <small class="text-muted fw-normal" id="textCounter">0 so'z · 0 belgi</small>
+                        </label>
+                        <textarea name="text" id="promptText" class="form-control" rows="5" required>{{ prompt.text|default:'' }}</textarea>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Qiyinlik</label>
                         <select name="difficulty" class="form-select">
                             <option value="easy" {% if prompt.difficulty == 'easy' %}selected{% endif %}>Oson</option>
@@ -94,11 +97,20 @@
                             <option value="hard" {% if prompt.difficulty == 'hard' %}selected{% endif %}>Qiyin</option>
                         </select>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold">Rejim</label>
+                        <select name="usage" class="form-select">
+                            <option value="practice" {% if prompt.usage == 'practice' or not prompt %}selected{% endif %}>Mashq</option>
+                            <option value="competition" {% if prompt.usage == 'competition' %}selected{% endif %}>Musobaqa</option>
+                            <option value="both" {% if prompt.usage == 'both' %}selected{% endif %}>Ikkalasi</option>
+                        </select>
+                        <small class="text-muted">Musobaqa matni mashqda chiqmaydi</small>
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label fw-bold">Tartib</label>
                         <input type="number" name="order" class="form-control" value="{{ prompt.order|default:0 }}">
                     </div>
-                    <div class="col-md-4 d-flex align-items-end">
+                    <div class="col-md-3 d-flex align-items-end">
                         <div class="form-check">
                             <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
                                 {% if prompt.is_active or not prompt %}checked{% endif %}>
@@ -115,4 +127,18 @@
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    var ta = document.getElementById('promptText');
+    var counter = document.getElementById('textCounter');
+    function update() {
+        var text = ta.value.trim();
+        var wordCount = text ? text.split(/\s+/).length : 0;
+        counter.textContent = wordCount + " so'z · " + ta.value.length + ' belgi';
+    }
+    ta.addEventListener('input', update);
+    update();
+})();
+</script>
 {% endblock %}

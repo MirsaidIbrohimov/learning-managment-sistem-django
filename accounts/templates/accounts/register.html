@@ -8,406 +8,305 @@
 <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script>
+/* Tema — birinchi chizishdan oldin (FOUC oldini olish) */
+(function () {
+  var t;
+  try { t = localStorage.getItem('its-theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') {
+    t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  }
+  document.documentElement.setAttribute('data-theme', t);
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --bg:#06091a;
-  --indigo:#6366f1;--indigo-l:#a5b4fc;--indigo-d:#4338ca;
-  --teal:#14b8a6;--teal-l:#2dd4bf;
-  --text:#f1f5f9;--text2:#94a3b8;--text3:#475569;
-  --card:rgba(15,23,42,0.88);--card-border:rgba(99,102,241,0.18);
-  --input-bg:rgba(8,12,28,0.7);--input-border:rgba(99,102,241,0.2);
-  --green:#22c55e;--red:#ef4444;
-}
-html,body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh}
-
-/* BG */
-.rg-bg{position:fixed;inset:0;z-index:0;overflow:hidden}
-.rg-bg::before{
-  content:'';position:absolute;inset:0;
-  background:
-    radial-gradient(ellipse 70% 60% at 85% 15%,rgba(99,102,241,.16) 0%,transparent 55%),
-    radial-gradient(ellipse 50% 45% at 15% 85%,rgba(20,184,166,.1) 0%,transparent 55%),
-    linear-gradient(160deg,#06091a 0%,#080d1f 60%,#060a1a 100%);
-}
-.rg-orb{position:absolute;border-radius:50%;filter:blur(80px);animation:orbF 14s ease-in-out infinite;pointer-events:none}
-.rg-orb:nth-child(1){width:500px;height:500px;background:rgba(99,102,241,.12);top:-10%;right:-8%;animation-delay:0s}
-.rg-orb:nth-child(2){width:400px;height:400px;background:rgba(20,184,166,.08);bottom:-10%;left:-8%;animation-delay:6s}
-@keyframes orbF{0%,100%{transform:translate(0,0)}50%{transform:translate(-20px,20px)}}
-.rg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(99,102,241,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.04) 1px,transparent 1px);background-size:60px 60px}
-
-/* Layout */
-.rg-page{position:relative;z-index:2;min-height:100vh;display:flex}
-
-/* Left brand */
-.rg-brand{width:42%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2.5rem;position:relative}
-@media(max-width:900px){.rg-brand{display:none}}
-.rg-ring{position:absolute;border-radius:50%;border:1px solid rgba(99,102,241,.07);animation:rPulse 6s ease-in-out infinite}
-.rg-ring:nth-child(1){width:280px;height:280px;top:50%;left:50%;transform:translate(-50%,-50%)}
-.rg-ring:nth-child(2){width:460px;height:460px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:2s}
-.rg-ring:nth-child(3){width:640px;height:640px;top:50%;left:50%;transform:translate(-50%,-50%);animation-delay:4s;border-color:rgba(99,102,241,.04)}
-@keyframes rPulse{0%,100%{opacity:1}50%{opacity:.3}}
-.rg-brand-content{position:relative;z-index:2;text-align:center;max-width:360px}
-.rg-logo{width:88px;height:88px;border-radius:24px;background:linear-gradient(135deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;margin:0 auto 1.5rem;box-shadow:0 8px 40px rgba(99,102,241,.4);animation:lgB 4s ease-in-out infinite}
-@keyframes lgB{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.rg-brand-title{font-size:2rem;font-weight:900;line-height:1.2;margin-bottom:.75rem}
-.rg-brand-sub{font-size:.95rem;color:var(--text2);margin-bottom:2rem;line-height:1.7}
-.rg-steps-visual{display:flex;flex-direction:column;gap:.6rem;width:100%}
-.rg-step-item{display:flex;align-items:center;gap:.75rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:.7rem 1rem}
-.rg-step-num{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4338ca);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;color:#fff;flex-shrink:0}
-.rg-step-txt{font-size:.85rem;color:var(--text2)}
-
-/* Right form */
-.rg-form-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1.5rem}
-.rg-form-wrap::before{content:'';position:absolute;left:42%;top:10%;bottom:10%;width:1px;background:linear-gradient(to bottom,transparent,rgba(99,102,241,.2) 30%,rgba(99,102,241,.2) 70%,transparent)}
-@media(max-width:900px){.rg-form-wrap::before{display:none}}
-
-/* Card */
-.rg-card{width:100%;max-width:460px;background:var(--card);border:1px solid var(--card-border);border-radius:24px;padding:2rem;backdrop-filter:blur(24px);box-shadow:0 24px 80px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.04);animation:cIn .5s cubic-bezier(.16,1,.3,1)}
-@keyframes cIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
-.rg-card-head{text-align:center;margin-bottom:1.5rem}
-.rg-card-logo{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,#6366f1,#4338ca);display:inline-flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;color:#fff;margin-bottom:.85rem;letter-spacing:-1px;box-shadow:0 4px 20px rgba(99,102,241,.4)}
-.rg-card-title{font-size:1.4rem;font-weight:800;margin-bottom:.3rem}
-.rg-card-sub{font-size:.83rem;color:var(--text2)}
-
-/* Progress indicator */
-.rg-progress{display:flex;align-items:center;gap:0;margin-bottom:1.5rem}
-.rg-prog-item{display:flex;align-items:center;gap:.4rem;flex:1}
-.rg-prog-dot{
-  width:30px;height:30px;border-radius:50%;border:2px solid var(--card-border);
-  display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:800;
-  color:var(--text3);background:rgba(0,0,0,.3);transition:all .3s;flex-shrink:0;
-}
-.rg-prog-dot.active{border-color:var(--indigo);background:rgba(99,102,241,.15);color:var(--indigo-l)}
-.rg-prog-dot.done{border-color:var(--green);background:rgba(34,197,94,.15);color:var(--green)}
-.rg-prog-lbl{font-size:.75rem;font-weight:600;color:var(--text3);transition:color .3s}
-.rg-prog-lbl.active{color:var(--indigo-l)}
-.rg-prog-lbl.done{color:var(--green)}
-.rg-prog-line{flex:1;height:2px;background:var(--card-border);transition:background .3s;margin:0 .5rem}
-.rg-prog-line.done{background:var(--green)}
-
-/* Panels */
-.rg-pnl{display:none}.rg-pnl.active{display:block;animation:pnlIn .25s ease}
-@keyframes pnlIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
-.rg-pnl-head{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:700;color:var(--indigo-l);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.5px}
-
-/* Form fields */
-.rg-fg{margin-bottom:.9rem}
-.rg-fr{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
-.rg-lbl{font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:.35rem;display:flex;align-items:center;gap:.4rem}
-.rg-fg input,.rg-fg select{
-  width:100%;padding:.65rem .85rem;
-  border:2px solid var(--input-border);border-radius:12px;
-  background:var(--input-bg);color:var(--text);
-  font-size:.88rem;font-family:inherit;transition:all .2s;outline:none;
-}
-.rg-fg input:focus,.rg-fg select:focus{border-color:var(--indigo);background:rgba(99,102,241,.05);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
-.rg-fg input.has-err{border-color:var(--red)}
-.rg-ferr{font-size:.76rem;color:#fca5a5;margin-top:.3rem;display:flex;align-items:center;gap:.3rem}
-
-/* Phone group */
-.rg-ph{display:flex;gap:0}
-.rg-ph-pre{display:flex;align-items:center;gap:.4rem;padding:.65rem .75rem;border:2px solid var(--input-border);border-right:none;border-radius:12px 0 0 12px;background:rgba(0,0,0,.3);color:var(--text2);font-size:.85rem;font-weight:600;white-space:nowrap;flex-shrink:0}
-.rg-ph input{border-radius:0 12px 12px 0;border-left:none;flex:1}
-
-/* Password wrap */
-.rg-pw{position:relative}
-.rg-pw input{width:100%;padding-right:2.5rem}
-.rg-pw-eye{position:absolute;right:.7rem;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--text3);cursor:pointer;font-size:.9rem;padding:.25rem;transition:color .2s}
-.rg-pw-eye:hover{color:var(--indigo-l)}
-
-/* Strength bar */
-.rg-str{margin-top:.5rem}
-.rg-str-bar{height:4px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-bottom:.3rem}
-.rg-str-fill{height:100%;border-radius:4px;background:var(--indigo);transition:all .3s;width:0}
-.rg-str-txt{font-size:.73rem;color:var(--text3)}
-
-/* Buttons */
-.rg-btns{display:flex;gap:.6rem;margin-top:1rem}
-.rg-btn{padding:.7rem 1.25rem;border-radius:12px;border:none;cursor:pointer;font-size:.9rem;font-weight:700;font-family:inherit;transition:all .2s;display:flex;align-items:center;gap:.4rem}
-.rg-btn-next{background:linear-gradient(135deg,#6366f1,#4338ca);color:#fff;width:100%;justify-content:center;box-shadow:0 4px 20px rgba(99,102,241,.35)}
-.rg-btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 25px rgba(99,102,241,.45)}
-.rg-btn-back{background:rgba(255,255,255,.06);border:1px solid var(--card-border);color:var(--text2)}
-.rg-btn-back:hover{background:rgba(255,255,255,.1)}
-.rg-btn-submit{flex:1;background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;justify-content:center;box-shadow:0 4px 20px rgba(34,197,94,.3)}
-.rg-btn-submit:hover{transform:translateY(-1px);box-shadow:0 6px 25px rgba(34,197,94,.4)}
-
-/* Footer */
-.rg-foot{margin-top:1.25rem;text-align:center;font-size:.84rem;color:var(--text3)}
-.rg-foot a{color:var(--indigo-l);text-decoration:none;font-weight:600}
-.rg-foot a:hover{color:#c4b5fd}
-
-/* Responsive */
-@media(max-width:480px){.rg-card{padding:1.5rem 1.25rem;border-radius:18px}.rg-fr{grid-template-columns:1fr}}
-</style>
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
+<script src="{% static 'js/auth-page.js' %}" defer></script>
 </head>
 <body>
 
-<div class="rg-bg">
-  <div class="rg-grid"></div>
-  <div class="rg-orb"></div>
-  <div class="rg-orb"></div>
+<!-- Fon qatlamlari -->
+<div class="bg-aura" aria-hidden="true">
+  <div class="blob"></div><div class="blob"></div><div class="blob"></div>
 </div>
+<canvas id="bg3d" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
 
-<div class="rg-page">
+<div class="toast-box" id="toastBox"></div>
 
-  <!-- LEFT BRAND -->
-  <div class="rg-brand">
-    <div class="rg-ring"></div>
-    <div class="rg-ring"></div>
-    <div class="rg-ring"></div>
-    <div class="rg-brand-content">
-      <div class="rg-logo"><i class="bi bi-person-plus-fill"></i></div>
-      <div class="rg-brand-title">IT Shaharcha<br><span style="background:linear-gradient(90deg,#6366f1,#14b8a6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Zomin LMS</span></div>
-      <div class="rg-brand-sub">Kelajakdagi dasturchi qadamini biz bilan boshlaydi. Ro'yxatdan o'ting va ta'lim olamiga kirting!</div>
-      <div class="rg-steps-visual">
-        <div class="rg-step-item"><div class="rg-step-num">1</div><div class="rg-step-txt">Shaxsiy ma'lumotlarni kiriting</div></div>
-        <div class="rg-step-item"><div class="rg-step-num">2</div><div class="rg-step-txt">Xavfsiz parol yarating</div></div>
-        <div class="rg-step-item"><div class="rg-step-num">3</div><div class="rg-step-txt">O'qishni boshlang! 🚀</div></div>
+<!-- Yuqori panel -->
+<header class="hud">
+  <a class="hud-brand" href="{% url 'login' %}">
+    <span class="hud-logo">IT</span>
+    <span class="hud-name">IT Shaharcha Zomin</span>
+  </a>
+  <button type="button" class="tgl" id="themeToggle" aria-label="Tema almashtirish" aria-pressed="false">
+    <span class="tgl-knob"><i class="bi bi-moon-stars-fill"></i><i class="bi bi-sun-fill"></i></span>
+  </button>
+</header>
+
+<main class="stage stage--rev">
+
+  <!-- Chap: ro'yxatdan o'tish kartasi -->
+  <section class="card">
+    <div class="c-head">
+      <span class="c-logo">IT</span>
+      <h2 class="c-title">Ro'yxatdan o'tish</h2>
+      <p class="c-sub">O'quvchi akkauntini yarating — 2 qadam kifoya</p>
+    </div>
+
+    <!-- Qadamlar -->
+    <div class="prog">
+      <div class="p-item">
+        <div class="p-dot" id="pDot1">1</div>
+        <div class="p-lab" id="pLab1">Ma'lumotlar</div>
+      </div>
+      <div class="p-line" id="pLine1"></div>
+      <div class="p-item">
+        <div class="p-dot" id="pDot2">2</div>
+        <div class="p-lab" id="pLab2">Parol</div>
       </div>
     </div>
-  </div>
 
-  <!-- RIGHT FORM -->
-  <div class="rg-form-wrap">
-    <div class="rg-card">
-      <div class="rg-card-head">
-        <div class="rg-card-logo">IT</div>
-        <div class="rg-card-title">Ro'yxatdan o'tish</div>
-        <div class="rg-card-sub">IT Shaharcha Zomin — O'quvchi akkauntini yarating</div>
+    <form method="POST" id="rgForm" novalidate>
+      {% csrf_token %}
+      {{ form.role }}
+
+      <!-- 1-qadam -->
+      <div class="pane" id="rgP1">
+        <div class="pnl-head"><i class="bi bi-person-circle"></i> Shaxsiy ma'lumotlar</div>
+        <div class="grid2">
+          <div class="f">
+            <label class="f-lab" for="{{ form.first_name.id_for_label }}"><i class="bi bi-person"></i> Ism</label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
+          </div>
+          <div class="f">
+            <label class="f-lab" for="{{ form.last_name.id_for_label }}"><i class="bi bi-person"></i> Familiya</label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.username.id_for_label }}"><i class="bi bi-at"></i> Username</label>
+          {{ form.username }}
+          {% if form.username.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.email.id_for_label }}"><i class="bi bi-envelope"></i> Email</label>
+          {{ form.email }}
+          {% if form.email.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="f">
+          <label class="f-lab" for="id_phone"><i class="bi bi-phone"></i> Telefon raqam</label>
+          <div class="ph">
+            <span class="ph-pre">
+              <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="22" height="14">
+              +998
+            </span>
+            {{ form.phone }}
+          </div>
+          {% if form.phone.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.birth_date.id_for_label }}"><i class="bi bi-calendar-event"></i> Tug'ilgan kun</label>
+          {{ form.birth_date }}
+          {% if form.birth_date.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
+        </div>
+        <button type="button" class="btn btn-main" id="btnNext">Davom etish <i class="bi bi-arrow-right"></i></button>
       </div>
 
-      <!-- Progress -->
-      <div class="rg-progress">
-        <div class="rg-prog-item" id="rsItem1">
-          <div class="rg-prog-dot" id="rsDot1">1</div>
-          <div class="rg-prog-lbl" id="rsLbl1">Ma'lumotlar</div>
+      <!-- 2-qadam -->
+      <div class="pane" id="rgP2">
+        <div class="pnl-head"><i class="bi bi-shield-lock"></i> Parol yaratish</div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.password1.id_for_label }}"><i class="bi bi-lock"></i> Parol</label>
+          <div class="iw has-eye">
+            {{ form.password1 }}
+            <button type="button" class="pw-eye" data-pw="{{ form.password1.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
+          </div>
+          {% if form.password1.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
+          <div class="str">
+            <div class="str-bar"><div class="str-fill" id="strFill"></div></div>
+            <span class="str-txt" id="strTxt">Parol kuchi: —</span>
+          </div>
         </div>
-        <div class="rg-prog-line" id="rsLine1"></div>
-        <div class="rg-prog-item" id="rsItem2">
-          <div class="rg-prog-dot" id="rsDot2">2</div>
-          <div class="rg-prog-lbl" id="rsLbl2">Parol</div>
+        <div class="f">
+          <label class="f-lab" for="{{ form.password2.id_for_label }}"><i class="bi bi-lock-fill"></i> Parolni tasdiqlang</label>
+          <div class="iw has-eye">
+            {{ form.password2 }}
+            <button type="button" class="pw-eye" data-pw="{{ form.password2.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
+          </div>
+          {% if form.password2.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-ghost" id="btnBack" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></button>
+          <button type="submit" class="btn btn-ok">Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
         </div>
       </div>
+    </form>
 
-      <form method="POST" id="rgForm" novalidate>
-        {% csrf_token %}
-        {{ form.role }}
-
-        <!-- Step 1 -->
-        <div class="rg-pnl" id="rgP1">
-          <div class="rg-pnl-head"><i class="bi bi-person-circle"></i> Shaxsiy ma'lumotlar</div>
-          <div class="rg-fr">
-            <div class="rg-fg">
-              <label class="rg-lbl" for="{{ form.first_name.id_for_label }}"><i class="bi bi-person"></i> Ism</label>
-              {{ form.first_name }}
-              {% if form.first_name.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
-            </div>
-            <div class="rg-fg">
-              <label class="rg-lbl" for="{{ form.last_name.id_for_label }}"><i class="bi bi-person"></i> Familiya</label>
-              {{ form.last_name }}
-              {% if form.last_name.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
-            </div>
-          </div>
-          <div class="rg-fg">
-            <label class="rg-lbl" for="{{ form.username.id_for_label }}"><i class="bi bi-at"></i> Username</label>
-            {{ form.username }}
-            {% if form.username.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="rg-fg">
-            <label class="rg-lbl" for="{{ form.email.id_for_label }}"><i class="bi bi-envelope"></i> Email</label>
-            {{ form.email }}
-            {% if form.email.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="rg-fg">
-            <label class="rg-lbl"><i class="bi bi-phone"></i> Telefon raqam</label>
-            <div class="rg-ph">
-              <div class="rg-ph-pre">
-                <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="22" height="14" style="border-radius:3px;object-fit:cover">
-                +998
-              </div>
-              {{ form.phone }}
-            </div>
-            {% if form.phone.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="rg-fg">
-            <label class="rg-lbl" for="{{ form.birth_date.id_for_label }}"><i class="bi bi-calendar-event"></i> Tug'ilgan kun</label>
-            {{ form.birth_date }}
-            {% if form.birth_date.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
-          </div>
-          <button type="button" class="rg-btn rg-btn-next" onclick="rgGo(2)">
-            Davom etish <i class="bi bi-arrow-right"></i>
-          </button>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="rg-pnl" id="rgP2">
-          <div class="rg-pnl-head"><i class="bi bi-shield-lock"></i> Parol yaratish</div>
-          <div class="rg-fg">
-            <label class="rg-lbl" for="{{ form.password1.id_for_label }}"><i class="bi bi-lock"></i> Parol</label>
-            <div class="rg-pw">
-              {{ form.password1 }}
-              <button type="button" class="rg-pw-eye" onclick="rgTogglePw('{{ form.password1.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
-            </div>
-            {% if form.password1.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
-            <div class="rg-str">
-              <div class="rg-str-bar"><div class="rg-str-fill" id="rgStrFill"></div></div>
-              <span class="rg-str-txt" id="rgStrTxt">Parol kuchi: —</span>
-            </div>
-          </div>
-          <div class="rg-fg">
-            <label class="rg-lbl" for="{{ form.password2.id_for_label }}"><i class="bi bi-lock-fill"></i> Parolni tasdiqlang</label>
-            <div class="rg-pw">
-              {{ form.password2 }}
-              <button type="button" class="rg-pw-eye" onclick="rgTogglePw('{{ form.password2.id_for_label }}',this)"><i class="bi bi-eye"></i></button>
-            </div>
-            {% if form.password2.errors %}<div class="rg-ferr"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="rg-btns">
-            <button type="button" class="rg-btn rg-btn-back" onclick="rgGo(1)"><i class="bi bi-arrow-left"></i></button>
-            <button type="submit" class="rg-btn rg-btn-submit">Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
-          </div>
-        </div>
-      </form>
-
-      <div class="rg-foot">
-        Akkauntingiz bormi?
-        <a href="{% url 'login' %}">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
-      </div>
+    <div class="links">
+      <span class="muted">Akkauntingiz bormi?</span>
+      <a href="{% url 'login' %}" class="link" style="font-weight:700">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
     </div>
-  </div>
-</div>
+  </section>
+
+  <!-- O'ng: 3D globus ustidagi brend matni -->
+  <section class="pane-scene" aria-hidden="true">
+    <span class="scene-eyebrow"><span class="dot"></span> Yangi a'zo bo'ling</span>
+    <h1 class="scene-title">Shaharchamizga<br><span class="grad">qo'shiling!</span></h1>
+    <p class="scene-sub">Kelajakdagi dasturchi yo'lini biz bilan boshlaydi. Ro'yxatdan o'ting va bilim tarmog'iga qo'shiling.</p>
+    <div class="chips">
+      <span class="chip"><i class="bi bi-1-circle-fill"></i> Ma'lumotlarni kiriting</span>
+      <span class="chip"><i class="bi bi-2-circle-fill"></i> Parol yarating</span>
+      <span class="chip"><i class="bi bi-rocket-takeoff-fill"></i> O'qishni boshlang!</span>
+    </div>
+  </section>
+
+</main>
 
 <script>
-(function(){
-  var INIT=1;
-  {% if form.password1.errors or form.password2.errors %}INIT=2;{% endif %}
+document.addEventListener('DOMContentLoaded', function () {
+  var A = window.ITSAuth;
+  if (!A) return;
 
-  document.querySelectorAll('.rg-pnl input:not([type="hidden"]),.rg-pnl select').forEach(function(el){
-    var g=el.closest('.rg-fg');
-    if(g&&g.querySelector('.rg-ferr'))el.classList.add('has-err');
+  /* 3D sahna (globus o'ng tomonda) + tema */
+  A.mountScene(document.getElementById('bg3d'), { side: 'right' });
+  A.initTheme(document.getElementById('themeToggle'));
+  window.addEventListener('load', function () { window.dispatchEvent(new Event('resize')); });
+
+  /* Server xatosi bo'lsa parol qadamidan boshlaymiz */
+  var INIT = 1;
+  {% if form.password1.errors or form.password2.errors %}INIT = 2;{% endif %}
+
+  /* Server xatolari bor maydonlarni belgilash */
+  document.querySelectorAll('.pane input:not([type="hidden"]), .pane select').forEach(function (el) {
+    var g = el.closest('.f');
+    if (g && g.querySelector('.f-err')) el.classList.add('has-err');
   });
 
-  function showStep(n){
-    document.querySelectorAll('.rg-pnl').forEach(function(p){p.classList.remove('active')});
-    var d1=document.getElementById('rsDot1'),d2=document.getElementById('rsDot2');
-    var l1=document.getElementById('rsLbl1'),l2=document.getElementById('rsLbl2');
-    var ln=document.getElementById('rsLine1');
-    [d1,d2].forEach(function(d){d.classList.remove('active','done')});
-    [l1,l2].forEach(function(l){l.classList.remove('active','done')});
+  /* Autocomplete atributlari */
+  var pw1 = document.getElementById('{{ form.password1.id_for_label }}');
+  var pw2 = document.getElementById('{{ form.password2.id_for_label }}');
+  if (pw1) pw1.setAttribute('autocomplete', 'new-password');
+  if (pw2) pw2.setAttribute('autocomplete', 'new-password');
+
+  /* ── Qadamlar ── */
+  function showStep(n) {
+    document.querySelectorAll('.pane').forEach(function (p) { p.classList.remove('on'); });
+    var d1 = document.getElementById('pDot1'), d2 = document.getElementById('pDot2');
+    var l1 = document.getElementById('pLab1'), l2 = document.getElementById('pLab2');
+    var ln = document.getElementById('pLine1');
+    [d1, d2].forEach(function (d) { d.classList.remove('on', 'done'); });
+    [l1, l2].forEach(function (l) { l.classList.remove('on', 'done'); });
     ln.classList.remove('done');
-    d1.innerHTML='1';d2.innerHTML='2';
-    if(n===1){d1.classList.add('active');l1.classList.add('active');}
-    else{
-      d1.classList.add('done');l1.classList.add('done');
-      d1.innerHTML='<i class="bi bi-check-lg" style="font-size:.8rem"></i>';
-      ln.classList.add('done');d2.classList.add('active');l2.classList.add('active');
+    d1.innerHTML = '1'; d2.innerHTML = '2';
+    if (n === 1) {
+      d1.classList.add('on'); l1.classList.add('on');
+    } else {
+      d1.classList.add('done'); l1.classList.add('done');
+      d1.innerHTML = '<i class="bi bi-check-lg" style="font-size:.8rem"></i>';
+      ln.classList.add('done');
+      d2.classList.add('on'); l2.classList.add('on');
     }
-    document.getElementById('rgP'+n).classList.add('active');
+    document.getElementById('rgP' + n).classList.add('on');
   }
 
-  /* ── Client-side validation ─────────────────────────
-     Multi-step form: step 1 hidden bo'lganida `required` bo'lgan email/username
-     inputiga brauzer fokus qila olmaydi va konsolga "not focusable" xatosi
-     tushadi. Shuning uchun step o'zgarishida va submit'dan oldin JS'da o'zimiz
-     tekshiramiz. */
-  function rgValidatePanel(panelId){
-    var pnl=document.getElementById(panelId);
-    if(!pnl) return true;
-    // Panel vaqtincha ko'rinadigan qilinadi — aks holda focus() ishlamaydi
-    var wasActive=pnl.classList.contains('active');
-    if(!wasActive) pnl.classList.add('active');
-    var inputs=pnl.querySelectorAll('input:not([type="hidden"]),select,textarea');
-    var firstInvalid=null;
-    inputs.forEach(function(el){
-      var g=el.closest('.rg-fg');
-      var errEl=g?g.querySelector('.rg-ferr'):null;
+  /* ── Panel validatsiyasi ─────────────────────────
+     Yashirin paneldagi `required` inputga brauzer fokus qila olmaydi
+     ("not focusable" xatosi). Shuning uchun panelni vaqtincha ko'rsatib,
+     o'zimiz tekshiramiz. */
+  function validatePanel(panelId) {
+    var pnl = document.getElementById(panelId);
+    if (!pnl) return true;
+    var wasOn = pnl.classList.contains('on');
+    if (!wasOn) pnl.classList.add('on');
+    var inputs = pnl.querySelectorAll('input:not([type="hidden"]), select, textarea');
+    var firstInvalid = null;
+    inputs.forEach(function (el) {
+      var g = el.closest('.f');
+      var errEl = g ? g.querySelector('.f-err') : null;
       el.classList.remove('has-err');
-      if(!el.checkValidity()){
-        if(!firstInvalid) firstInvalid=el;
+      if (!el.checkValidity()) {
+        if (!firstInvalid) firstInvalid = el;
         el.classList.add('has-err');
-        if(g&&!errEl){
-          var d=document.createElement('div');
-          d.className='rg-ferr rg-ferr-js';
-          d.innerHTML='<i class="bi bi-exclamation-circle"></i> '+(el.validationMessage||"Bu maydonni to'ldiring");
+        if (g && !errEl) {
+          var d = document.createElement('div');
+          d.className = 'f-err f-err-js';
+          d.innerHTML = '<i class="bi bi-exclamation-circle"></i> ';
+          d.appendChild(document.createTextNode(el.validationMessage || "Bu maydonni to'ldiring"));
           g.appendChild(d);
         }
-      }else if(g){
-        // Oldingi JS xatolarini tozalaymiz
-        g.querySelectorAll('.rg-ferr-js').forEach(function(x){x.remove()});
+      } else if (g) {
+        g.querySelectorAll('.f-err-js').forEach(function (x) { x.remove(); });
       }
     });
-    if(!wasActive&&!firstInvalid) pnl.classList.remove('active');
-    if(firstInvalid){
-      firstInvalid.focus({preventScroll:false});
+    if (!wasOn && !firstInvalid) pnl.classList.remove('on');
+    if (firstInvalid) {
+      firstInvalid.focus({ preventScroll: false });
       return false;
     }
     return true;
   }
 
-  window.rgGo=function(n){
-    // Oldinga (2 ga) o'tishda step 1 ni tekshiramiz
-    if(n>1 && !rgValidatePanel('rgP1')) return;
+  function go(n) {
+    if (n > 1 && !validatePanel('rgP1')) return;
     showStep(n);
-    window.scrollTo({top:0,behavior:'smooth'});
-  };
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  document.getElementById('btnNext').addEventListener('click', function () { go(2); });
+  document.getElementById('btnBack').addEventListener('click', function () { go(1); });
   showStep(INIT);
 
-  // Submit paytida — har ikkala panel tekshiriladi. Step 1 xato bo'lsa,
-  // avval step 1 ga qaytamiz va yuborishni to'xtatamiz.
-  var rgForm=document.getElementById('rgForm');
-  if(rgForm){
-    rgForm.addEventListener('submit',function(e){
-      if(!rgValidatePanel('rgP1')){ e.preventDefault(); showStep(1); return; }
-      if(!rgValidatePanel('rgP2')){ e.preventDefault(); showStep(2); return; }
-    });
-  }
+  /* Yuborishda ikkala panel tekshiriladi */
+  var rgForm = document.getElementById('rgForm');
+  rgForm.addEventListener('submit', function (e) {
+    if (!validatePanel('rgP1')) { e.preventDefault(); showStep(1); return; }
+    if (!validatePanel('rgP2')) { e.preventDefault(); showStep(2); return; }
+    var btn = rgForm.querySelector('.btn-ok');
+    if (btn) btn.classList.add('loading');
+  });
 
-  window.rgTogglePw=function(id,btn){
-    var inp=document.getElementById(id);if(!inp)return;
-    var isPw=inp.type==='password';inp.type=isPw?'text':'password';
-    var ico=btn.querySelector('i');if(ico)ico.className=isPw?'bi bi-eye-slash':'bi bi-eye';
-  };
+  /* Parol ko'rsatish */
+  document.querySelectorAll('.pw-eye').forEach(function (btn) {
+    btn.addEventListener('click', function () { A.togglePw(btn.dataset.pw, btn); });
+  });
 
-  // Phone format
-  var phoneInp=document.getElementById('id_phone');
-  if(phoneInp){
-    phoneInp.addEventListener('input',function(){
-      var v=this.value.replace(/\D/g,'');
-      if(v.length>9)v=v.substring(0,9);
-      var f='';
-      if(v.length>0)f='('+v.substring(0,2);
-      if(v.length>=2)f+=') ';
-      if(v.length>2)f+=v.substring(2,5);
-      if(v.length>5)f+=' '+v.substring(5,7);
-      if(v.length>7)f+=' '+v.substring(7,9);
-      this.value=f;
-    });
-  }
+  /* Telefon formatlash: (90) 123 45 67 */
+  A.formatUzPhone(document.getElementById('id_phone'), 'paren');
 
-  // Password strength
-  var pw=document.getElementById('{{ form.password1.id_for_label }}');
-  if(pw){
-    pw.addEventListener('input',function(){
-      var v=this.value,s=0;
-      if(v.length>=8)s++;if(v.length>=12)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;if(/[^A-Za-z0-9]/.test(v))s++;
-      var lvls=[
-        {t:'—',c:'rgba(148,163,184,.2)',w:'0%'},
-        {t:'Juda zaif',c:'#ef4444',w:'20%'},
-        {t:'Zaif',c:'#f97316',w:'40%'},
-        {t:"O'rtacha",c:'#eab308',w:'60%'},
-        {t:'Yaxshi',c:'#22c55e',w:'80%'},
-        {t:"A'lo",c:'#16a34a',w:'100%'}
+  /* Parol kuchi */
+  if (pw1) {
+    pw1.addEventListener('input', function () {
+      var v = this.value, s = 0;
+      if (v.length >= 8) s++;
+      if (v.length >= 12) s++;
+      if (/[A-Z]/.test(v)) s++;
+      if (/[0-9]/.test(v)) s++;
+      if (/[^A-Za-z0-9]/.test(v)) s++;
+      var lvls = [
+        { t: '—', c: 'rgba(148,163,184,.25)', w: '0%' },
+        { t: 'Juda zaif', c: '#fb7185', w: '20%' },
+        { t: 'Zaif', c: '#fb923c', w: '40%' },
+        { t: "O'rtacha", c: '#facc15', w: '60%' },
+        { t: 'Yaxshi', c: '#4ade80', w: '80%' },
+        { t: "A'lo", c: '#34d399', w: '100%' }
       ];
-      var l=lvls[Math.min(s,5)];
-      var fill=document.getElementById('rgStrFill'),txt=document.getElementById('rgStrTxt');
-      fill.style.width=l.w;fill.style.background=l.c;
-      txt.textContent='Parol kuchi: '+l.t;txt.style.color=l.c;
+      var l = lvls[Math.min(s, 5)];
+      var fill = document.getElementById('strFill'), txt = document.getElementById('strTxt');
+      fill.style.width = l.w;
+      fill.style.backgroundColor = l.c;
+      txt.textContent = 'Parol kuchi: ' + l.t;
+      txt.style.color = l.c;
     });
   }
-})();
+
+  /* Xabarlar */
+  {% if messages %}{% for message in messages %}A.toast("{{ message|escapejs }}", "{{ message.tags }}");{% endfor %}{% endif %}
+});
 </script>
 </body>
 </html>

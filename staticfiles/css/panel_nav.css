@@ -1,0 +1,442 @@
+/* ====================================================================
+   PANEL NAVIGATION — o'ziga xos sidebar + topbar dizayni
+   Qo'llanish: <body class="panel-admin"> yoki <body class="panel-teacher">
+   Light/Dark: [data-bs-theme] orqali avtomatik.
+   Har doim base_admin.css dan KEYIN ulanadi (kaskadda ustun turadi).
+   ==================================================================== */
+
+/* ------------------- ROL RANGLARI ------------------- */
+body.panel-admin {
+    --pn-accent: #7c3aed;
+    --pn-accent-2: #6366f1;
+    --pn-grad: linear-gradient(135deg, #7c3aed, #6366f1);
+    --pn-glow: rgba(124, 58, 237, 0.35);
+}
+
+body.panel-teacher {
+    --pn-accent: #0d9488;
+    --pn-accent-2: #10b981;
+    --pn-grad: linear-gradient(135deg, #0d9488, #10b981);
+    --pn-glow: rgba(13, 148, 136, 0.35);
+}
+
+/* ------------------- YUZALAR (light — default) ------------------- */
+body.panel-admin,
+body.panel-teacher {
+    --pn-side-bg: #ffffff;
+    --pn-side-bg-2: #f7f8fc;
+    --pn-side-border: rgba(15, 23, 42, 0.08);
+    --pn-text: #1e293b;
+    --pn-text-soft: #64748b;
+    --pn-text-faint: #94a3b8;
+    --pn-hover: rgba(15, 23, 42, 0.045);
+    --pn-chip-bg: rgba(15, 23, 42, 0.04);
+    --pn-chip-border: rgba(15, 23, 42, 0.07);
+    --pn-top-bg: rgba(255, 255, 255, 0.82);
+    --pn-active-text: #ffffff;
+}
+
+[data-bs-theme="dark"] body.panel-admin,
+[data-bs-theme="dark"] body.panel-teacher {
+    --pn-side-bg: #0d1220;
+    --pn-side-bg-2: #101728;
+    --pn-side-border: rgba(255, 255, 255, 0.07);
+    --pn-text: #e6eaf4;
+    --pn-text-soft: #9aa6bd;
+    --pn-text-faint: #64708a;
+    --pn-hover: rgba(255, 255, 255, 0.06);
+    --pn-chip-bg: rgba(255, 255, 255, 0.05);
+    --pn-chip-border: rgba(255, 255, 255, 0.08);
+    --pn-top-bg: rgba(13, 18, 32, 0.82);
+    --pn-active-text: #ffffff;
+}
+
+/* Dark rejimda accent biroz yorqinroq */
+[data-bs-theme="dark"] body.panel-admin {
+    --pn-accent: #a78bfa;
+    --pn-accent-2: #818cf8;
+    --pn-grad: linear-gradient(135deg, #8b5cf6, #6366f1);
+}
+
+[data-bs-theme="dark"] body.panel-teacher {
+    --pn-accent: #2dd4bf;
+    --pn-accent-2: #34d399;
+    --pn-grad: linear-gradient(135deg, #14b8a6, #10b981);
+}
+
+/* ==================== SIDEBAR ==================== */
+body.panel-admin .sidebar,
+body.panel-teacher .sidebar {
+    background:
+        radial-gradient(420px 260px at 0% 0%, color-mix(in srgb, var(--pn-accent) 9%, transparent), transparent 65%),
+        linear-gradient(180deg, var(--pn-side-bg) 0%, var(--pn-side-bg-2) 100%);
+    border-right: 1px solid var(--pn-side-border);
+    box-shadow: 4px 0 24px -18px rgba(15, 23, 42, 0.35);
+}
+
+body.panel-admin .sidebar::-webkit-scrollbar-thumb,
+body.panel-teacher .sidebar::-webkit-scrollbar-thumb {
+    background: color-mix(in srgb, var(--pn-accent) 40%, transparent);
+    border-radius: 3px;
+}
+
+/* ── Brand ── */
+body.panel-admin .sidebar-brand,
+body.panel-teacher .sidebar-brand {
+    border-bottom: 1px solid var(--pn-side-border);
+    padding: 20px 18px 16px;
+}
+
+body.panel-admin .sidebar-brand a,
+body.panel-teacher .sidebar-brand a {
+    color: var(--pn-text);
+}
+
+body.panel-admin .sidebar-brand img,
+body.panel-teacher .sidebar-brand img {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pn-accent) 45%, transparent),
+                0 4px 12px -4px var(--pn-glow);
+}
+
+body.panel-admin .sidebar-brand span,
+body.panel-teacher .sidebar-brand span {
+    background: var(--pn-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+/* ── User card ── */
+body.panel-admin .sidebar-user-card,
+body.panel-teacher .sidebar-user-card {
+    background: var(--pn-chip-bg);
+    border: 1px solid var(--pn-chip-border);
+    border-radius: 16px;
+    backdrop-filter: none;
+    transition: border-color 0.2s ease;
+}
+
+body.panel-admin .sidebar-user-card:hover,
+body.panel-teacher .sidebar-user-card:hover {
+    border-color: color-mix(in srgb, var(--pn-accent) 35%, transparent);
+}
+
+body.panel-admin .suc-avatar,
+body.panel-teacher .suc-avatar {
+    background: var(--pn-grad);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pn-accent) 30%, transparent),
+                0 4px 10px -3px var(--pn-glow);
+}
+
+body.panel-admin .suc-name,
+body.panel-teacher .suc-name {
+    color: var(--pn-text);
+}
+
+body.panel-admin .suc-role,
+body.panel-teacher .suc-role {
+    color: var(--pn-text-soft);
+}
+
+/* ── Guruh sarlavhalari ── */
+body.panel-admin .sidebar-group-label,
+body.panel-teacher .sidebar-group-label {
+    color: var(--pn-text-faint);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+body.panel-admin .sidebar-group-label::after,
+body.panel-teacher .sidebar-group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--pn-side-border), transparent);
+}
+
+/* ── Nav havolalar ── */
+body.panel-admin .sidebar-nav .nav-link,
+body.panel-teacher .sidebar-nav .nav-link {
+    color: var(--pn-text-soft);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    min-height: 42px;
+    transition: color 0.18s ease, background 0.18s ease, transform 0.18s ease;
+}
+
+body.panel-admin .sidebar-nav .nav-link:hover,
+body.panel-teacher .sidebar-nav .nav-link:hover {
+    background: var(--pn-hover);
+    color: var(--pn-text);
+    transform: translateX(3px);
+}
+
+body.panel-admin .sidebar-nav .nav-link:hover .nav-icon-wrap,
+body.panel-teacher .sidebar-nav .nav-link:hover .nav-icon-wrap {
+    background: color-mix(in srgb, var(--pn-accent) 14%, transparent);
+    border-color: color-mix(in srgb, var(--pn-accent) 25%, transparent);
+    color: var(--pn-accent);
+}
+
+body.panel-admin .sidebar-nav .nav-link.active,
+body.panel-teacher .sidebar-nav .nav-link.active {
+    background: var(--pn-grad);
+    border-color: transparent;
+    color: var(--pn-active-text);
+    box-shadow: 0 6px 18px -6px var(--pn-glow);
+    transform: none;
+}
+
+body.panel-admin .sidebar-nav .nav-link.active .nav-icon-wrap,
+body.panel-teacher .sidebar-nav .nav-link.active .nav-icon-wrap {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: none;
+    color: #fff;
+}
+
+body.panel-admin .sidebar-nav .nav-link.active::before,
+body.panel-teacher .sidebar-nav .nav-link.active::before {
+    background: #fff;
+    opacity: 0.9;
+    left: 6px;
+    top: 28%;
+    bottom: 28%;
+    width: 3px;
+    border-radius: 3px;
+}
+
+/* Icon chip */
+body.panel-admin .nav-icon-wrap,
+body.panel-teacher .nav-icon-wrap {
+    background: var(--pn-chip-bg);
+    border: 1px solid var(--pn-chip-border);
+    color: var(--pn-text-soft);
+    border-radius: 10px;
+    transition: all 0.18s ease;
+}
+
+/* Badge */
+body.panel-admin .sidebar-badge,
+body.panel-teacher .sidebar-badge {
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.35);
+    animation: pnBadgePulse 2.2s infinite;
+}
+
+@keyframes pnBadgePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+/* Yopish tugmasi (mobil) */
+body.panel-admin .sidebar-close,
+body.panel-teacher .sidebar-close {
+    background: var(--pn-chip-bg);
+    color: var(--pn-text);
+    border: 1px solid var(--pn-chip-border);
+}
+
+/* ==================== TOPBAR ==================== */
+body.panel-admin .admin-topbar,
+body.panel-teacher .admin-topbar {
+    background: var(--pn-top-bg);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--pn-side-border);
+    box-shadow: 0 1px 16px -8px rgba(15, 23, 42, 0.18);
+}
+
+/* Rol-rang pastki chiziq */
+body.panel-admin .admin-topbar::after,
+body.panel-teacher .admin-topbar::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        var(--pn-accent) 18%,
+        var(--pn-accent-2) 55%,
+        transparent 100%);
+    opacity: 0.85;
+}
+
+[data-bs-theme="dark"] body.panel-admin .admin-topbar,
+[data-bs-theme="dark"] body.panel-teacher .admin-topbar {
+    background: var(--pn-top-bg);
+    border-bottom: 1px solid var(--pn-side-border);
+    box-shadow: 0 2px 20px -10px rgba(0, 0, 0, 0.6);
+}
+
+body.panel-admin .topbar-title,
+body.panel-teacher .topbar-title {
+    color: var(--pn-text);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+/* Sidebar toggle */
+body.panel-admin .sidebar-toggle,
+body.panel-teacher .sidebar-toggle {
+    background: color-mix(in srgb, var(--pn-accent) 9%, transparent);
+    border: 1px solid color-mix(in srgb, var(--pn-accent) 22%, transparent);
+    color: var(--pn-accent);
+    border-radius: 12px;
+}
+
+body.panel-admin .sidebar-toggle:hover,
+body.panel-teacher .sidebar-toggle:hover {
+    background: color-mix(in srgb, var(--pn-accent) 16%, transparent);
+    border-color: color-mix(in srgb, var(--pn-accent) 40%, transparent);
+    color: var(--pn-accent);
+}
+
+/* Tema tugmasi */
+body.panel-admin .admin-theme-btn,
+body.panel-teacher .admin-theme-btn {
+    border: 1px solid var(--pn-side-border);
+    background: var(--pn-chip-bg);
+    color: var(--pn-text-soft);
+    border-radius: 12px;
+    transition: all 0.25s ease;
+}
+
+body.panel-admin .admin-theme-btn:hover,
+body.panel-teacher .admin-theme-btn:hover {
+    color: var(--pn-accent);
+    border-color: color-mix(in srgb, var(--pn-accent) 35%, transparent);
+    background: color-mix(in srgb, var(--pn-accent) 9%, transparent);
+}
+
+body.panel-admin .admin-theme-btn:hover i,
+body.panel-teacher .admin-theme-btn:hover i {
+    display: inline-block;
+    animation: pnSpinIcon 0.5s ease;
+}
+
+@keyframes pnSpinIcon {
+    from { transform: rotate(-40deg) scale(0.85); }
+    to { transform: rotate(0) scale(1); }
+}
+
+/* Profil tugmasi */
+body.panel-admin .topbar-profile-btn,
+body.panel-teacher .topbar-profile-btn {
+    border: 1px solid var(--pn-side-border);
+    background: var(--pn-chip-bg);
+    color: var(--pn-text);
+    border-radius: 50px;
+}
+
+body.panel-admin .topbar-profile-btn:hover,
+body.panel-teacher .topbar-profile-btn:hover {
+    border-color: color-mix(in srgb, var(--pn-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--pn-accent) 8%, transparent);
+}
+
+body.panel-admin .topbar-avatar,
+body.panel-teacher .topbar-avatar {
+    background: var(--pn-grad);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--pn-accent) 25%, transparent);
+}
+
+/* Collapsed rejimdagi tooltip */
+body.panel-admin.sidebar-collapsed .sidebar .nav-link:hover::after,
+body.panel-teacher.sidebar-collapsed .sidebar .nav-link:hover::after {
+    background: var(--pn-grad);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 6px 18px -6px var(--pn-glow);
+}
+
+/* ==================== COLLAPSED REJIM TUZATISHLARI ==================== */
+/* Faqat desktop (mobil drawer'ga tegmaydi) */
+@media (min-width: 993px) {
+
+    /* 1) User karta: yig'ilganda faqat avatar, markazda, panel ichida */
+    body.panel-admin.sidebar-collapsed .sidebar .sidebar-user-card,
+    body.panel-teacher.sidebar-collapsed .sidebar .sidebar-user-card {
+        justify-content: center;
+        padding: 8px 6px;
+        margin: 10px 12px;
+    }
+
+    body.panel-admin.sidebar-collapsed .sidebar .sidebar-user-card .suc-info,
+    body.panel-teacher.sidebar-collapsed .sidebar .sidebar-user-card .suc-info,
+    body.panel-admin.sidebar-collapsed .sidebar .sidebar-user-card .suc-dot,
+    body.panel-teacher.sidebar-collapsed .sidebar .sidebar-user-card .suc-dot {
+        display: none;
+    }
+
+    body.panel-admin.sidebar-collapsed .sidebar .suc-avatar,
+    body.panel-teacher.sidebar-collapsed .sidebar .suc-avatar {
+        width: 36px;
+        height: 36px;
+        font-size: 0.78rem;
+    }
+
+    /* 2) Badge: yig'ilganda ikonka ustiga kichik doira bo'lib o'tiradi */
+    body.panel-admin.sidebar-collapsed .sidebar .nav-link,
+    body.panel-teacher.sidebar-collapsed .sidebar .nav-link {
+        overflow: visible;
+    }
+
+    body.panel-admin.sidebar-collapsed .sidebar .nav-link .sidebar-badge,
+    body.panel-teacher.sidebar-collapsed .sidebar .nav-link .sidebar-badge {
+        position: absolute;
+        top: 3px;
+        right: 8px;
+        margin-left: 0;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        font-size: 0.6rem;
+        border: 2px solid var(--pn-side-bg);
+        animation: none;
+        z-index: 2;
+    }
+
+    /* 3) Brand: yig'ilganda logo markazda, gradient matn yashirin */
+    body.panel-admin.sidebar-collapsed .sidebar .sidebar-brand a,
+    body.panel-teacher.sidebar-collapsed .sidebar .sidebar-brand a {
+        justify-content: center;
+    }
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 992px) {
+    body.panel-admin .sidebar,
+    body.panel-teacher .sidebar {
+        box-shadow: 12px 0 40px -12px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Mobil drawer'da havolalar kattaroq (touch target) */
+    body.panel-admin .sidebar-nav .nav-link,
+    body.panel-teacher .sidebar-nav .nav-link {
+        min-height: 46px;
+    }
+}
+
+@media (max-width: 576px) {
+    body.panel-admin .sidebar-toggle,
+    body.panel-teacher .sidebar-toggle,
+    body.panel-admin .admin-theme-btn,
+    body.panel-teacher .admin-theme-btn {
+        width: 40px;
+        height: 40px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.panel-admin *,
+    body.panel-teacher * {
+        animation: none !important;
+        transition: none !important;
+    }
+}

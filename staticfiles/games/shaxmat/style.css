@@ -1,425 +1,188 @@
-/* Shaxmat — shashka style.css'ni qayta ishlatadi, faqat o'ziga xos qismlar */
+/* ═══════════════════════════════════════════════════════════════════
+ *  ROYAL CLUB — SHAXMAT overridelari (0 dan qayta yozilgan)
+ *  ../shashka/style.css (umumiy tizim) USTIDAN yuklanadi.
+ *
+ *  Bu yerda: 5 shaxmat temasi, figuralar (unicode), shox holati,
+ *  hint nuqtalari, yegan figuralar, promotion tanlovi.
+ * ═══════════════════════════════════════════════════════════════════ */
 
-/* =====================================================
- * SHAXMAT — 5 ta tanlash mumkin dizayn (tema)
- * Tema body[data-theme="X"] orqali belgilanadi
- * ===================================================== */
+/* ───────────────── 1. SHAXMAT TEMALARI (5) ───────────────────────── */
+/* Shashka'ning bazaviy tokenlari ustidan yoziladi                    */
 
-/* ---- 1. NAVY (Royal Navy & Ivory) — standart ---- */
 :root, body[data-theme="navy"] {
-    --bg-1: #0c0e1a;
-    --bg-2: #111427;
-    --bg-3: #080b18;
-    --accent: #818cf8;
-    --accent-2: #c084fc;
-    --accent-3: #f472b6;
-    --board-light: #f0ede0;
-    --board-dark: #3730a3;
-    --board-dark-hover: #4338ca;
-    --board-frame-1: #1e1b4b;
-    --board-frame-ring: #c9a227;
-    --selected-bg: linear-gradient(135deg,#c9a227,#f5cc4e);
-    --last-move-glow: rgba(201,162,39,0.8);
-    --hint-color: rgba(99,202,143,0.9);
-    --menu-glow-1: rgba(129,140,248,0.2);
-    --menu-glow-2: rgba(192,132,252,0.2);
+    --accent: #7286c9; --accent-2: #a3b3e8;
+    --felt: #232c4e;                     /* tungi ko'k baxmal */
+    --felt-edge: #171e38;
+    --sq-light: #e8e4d5;
+    --sq-dark: #4a5583;
+    --sq-dark-2: #57639a;
+    --frame-1: #2a2414;
+    --frame-2: #4d4222;
+    --pc-white-face: #f7f1de;            /* oq figura yuzi */
+    --pc-white-edge: #8a6527;            /* oq figura konturi */
+    --pc-black-face: #262133;            /* qora figura yuzi */
+    --pc-black-edge: #a3b3e8;            /* qora figura yaltirog'i */
+    --glow: rgba(114, 134, 201, 0.35);
 }
-
-/* ---- 2. CLASSIC (Klassik Yog'och) ---- */
 body[data-theme="classic"] {
-    --bg-1: #1a0e05;
-    --bg-2: #2d1a0a;
-    --bg-3: #120a02;
-    --accent: #d97706;
-    --accent-2: #f59e0b;
-    --accent-3: #fcd34d;
-    --board-light: #f0d9b5;
-    --board-dark: #b58863;
-    --board-dark-hover: #c9a076;
-    --board-frame-1: #5c3a1e;
-    --board-frame-ring: #c9a227;
-    --selected-bg: linear-gradient(135deg,#fbbf24,#f59e0b);
-    --last-move-glow: rgba(245,158,11,0.8);
-    --hint-color: rgba(132,204,22,0.9);
-    --menu-glow-1: rgba(217,119,6,0.2);
-    --menu-glow-2: rgba(180,83,9,0.2);
+    --accent: #b98036; --accent-2: #e0ab62;
+    --felt: #2e4e18; --felt-edge: #20380f;
+    --sq-light: #f0d9b5; --sq-dark: #b58863; --sq-dark-2: #c2966f;
+    --frame-1: #432a12; --frame-2: #6b4620;
+    --pc-white-face: #fff8e7; --pc-white-edge: #7c5a20;
+    --pc-black-face: #33180a; --pc-black-edge: #e0ab62;
+    --glow: rgba(185, 128, 54, 0.35);
 }
-
-/* ---- 3. EMERALD (Yashil Izza) ---- */
 body[data-theme="emerald"] {
-    --bg-1: #0d1f1a;
-    --bg-2: #0f2d24;
-    --bg-3: #071a14;
-    --accent: #10b981;
-    --accent-2: #34d399;
-    --accent-3: #6ee7b7;
-    --board-light: #d4f5e4;
-    --board-dark: #1a6641;
-    --board-dark-hover: #237a4e;
-    --board-frame-1: #0a3d26;
-    --board-frame-ring: #c9a227;
-    --selected-bg: linear-gradient(135deg,#c9a227,#f5cc4e);
-    --last-move-glow: rgba(16,185,129,0.8);
-    --hint-color: rgba(52,211,153,0.9);
-    --menu-glow-1: rgba(16,185,129,0.2);
-    --menu-glow-2: rgba(5,150,105,0.2);
+    --accent: #3fae7c; --accent-2: #7fd6ab;
+    --felt: #14532d; --felt-edge: #0b3d20;
+    --sq-light: #e5eeda; --sq-dark: #34754e; --sq-dark-2: #3f855b;
+    --frame-1: #2a1d0e; --frame-2: #4c351a;
+    --pc-white-face: #fbf7ea; --pc-white-edge: #6f7c4a;
+    --pc-black-face: #10241a; --pc-black-edge: #7fd6ab;
+    --glow: rgba(63, 174, 124, 0.35);
 }
-
-/* ---- 4. SLATE (Zamonaviy Kulrang) ---- */
 body[data-theme="slate"] {
-    --bg-1: #0f172a;
-    --bg-2: #1e293b;
-    --bg-3: #0a0f1e;
-    --accent: #64748b;
-    --accent-2: #94a3b8;
-    --accent-3: #cbd5e1;
-    --board-light: #f8fafc;
-    --board-dark: #334155;
-    --board-dark-hover: #475569;
-    --board-frame-1: #1e293b;
-    --board-frame-ring: #64748b;
-    --selected-bg: linear-gradient(135deg,#f59e0b,#d97706);
-    --last-move-glow: rgba(148,163,184,0.8);
-    --hint-color: rgba(52,211,153,0.9);
-    --menu-glow-1: rgba(100,116,139,0.2);
-    --menu-glow-2: rgba(71,85,105,0.2);
+    --accent: #8a97a8; --accent-2: #bcc6d4;
+    --felt: #333a45; --felt-edge: #242a33;
+    --sq-light: #e9eaec; --sq-dark: #5b6674; --sq-dark-2: #6a7686;
+    --frame-1: #26241f; --frame-2: #45413a;
+    --pc-white-face: #f6f5f0; --pc-white-edge: #6e6a5e;
+    --pc-black-face: #23262c; --pc-black-edge: #bcc6d4;
+    --glow: rgba(138, 151, 168, 0.35);
 }
-
-/* ---- 5. CRIMSON (Qirmizi Shoh) ---- */
 body[data-theme="crimson"] {
-    --bg-1: #1a0007;
-    --bg-2: #2d0010;
-    --bg-3: #0f0003;
-    --accent: #f43f5e;
-    --accent-2: #fb7185;
-    --accent-3: #fda4af;
-    --board-light: #fff1f2;
-    --board-dark: #9f1239;
-    --board-dark-hover: #be123c;
-    --board-frame-1: #500724;
-    --board-frame-ring: #f43f5e;
-    --selected-bg: linear-gradient(135deg,#f59e0b,#d97706);
-    --last-move-glow: rgba(244,63,94,0.8);
-    --hint-color: rgba(52,211,153,0.9);
-    --menu-glow-1: rgba(244,63,94,0.2);
-    --menu-glow-2: rgba(190,18,60,0.2);
+    --accent: #c65b64; --accent-2: #e59aa0;
+    --felt: #571f26; --felt-edge: #3e141a;
+    --sq-light: #f2e2d6; --sq-dark: #8e4a48; --sq-dark-2: #9f5755;
+    --frame-1: #38180e; --frame-2: #5e2c1a;
+    --pc-white-face: #fdf3e8; --pc-white-edge: #96562a;
+    --pc-black-face: #33121a; --pc-black-edge: #e59aa0;
+    --glow: rgba(198, 91, 100, 0.38);
 }
 
-/* ===== BOARD FRAME — CSS variable bilan ===== */
-#board {
-    transition: box-shadow 0.4s ease;
-    box-shadow:
-        0 0 0 6px var(--board-frame-1, #1e1b4b),
-        0 0 0 10px var(--board-frame-ring, #c9a227),
-        0 0 0 14px var(--board-frame-1, #1e1b4b),
-        0 35px 90px rgba(0,0,0,0.8);
-    border-radius: 6px;
-}
+/* Shaxmat swatch ranglari (shashka'nikini almashtiradi) */
+.theme-swatch[data-theme="navy"]    { background: linear-gradient(135deg, #232c4e, #7286c9); }
+.theme-swatch[data-theme="classic"] { background: linear-gradient(135deg, #6b4620, #f0d9b5); }
+.theme-swatch[data-theme="emerald"] { background: linear-gradient(135deg, #14532d, #3fae7c); }
+.theme-swatch[data-theme="slate"]   { background: linear-gradient(135deg, #333a45, #bcc6d4); }
+.theme-swatch[data-theme="crimson"] { background: linear-gradient(135deg, #571f26, #c65b64); }
 
-/* Chess board ranglari — variable bilan */
-#board .cell.light {
-    background: var(--board-light, #f0ede0);
-    transition: background 0.3s;
-}
-#board .cell.dark {
-    background: var(--board-dark, #3730a3);
-    transition: background 0.3s;
-}
-#board .cell.dark:hover:not(.selected):not(.in-check) {
-    background: var(--board-dark-hover, #4338ca);
-}
-
-/* Donachalar uchun maxsus wrapper */
+/* ───────────────── 2. FIGURALAR — unicode, 3D siyoh ──────────────── */
 #board .cell .piece-wrap {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    font-size: 3em;
+    align-items: center; justify-content: center;
+    width: 100%; height: 100%;
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans', serif;
+    font-size: clamp(1.7rem, 5.2vmin, 3.3rem);
+    font-weight: 400;
     line-height: 1;
     user-select: none;
     cursor: grab;
-    transition: transform 0.15s ease, filter 0.15s ease;
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans', serif;
-    font-weight: 400;
+    transition: transform 0.16s var(--ease-spring), filter 0.16s;
+    animation: pieceIn 0.28s var(--ease-spring) both;
 }
-#board .cell .piece-wrap:hover { transform: scale(1.08); }
+#board .cell .piece-wrap:hover {
+    transform: translateY(-2px) scale(1.09);
+}
 
-/* Oq donalar — oltin/ivory effekti */
+/* Oq figuralar — fil suyagi, brass kontur */
 #board .cell .piece-wrap.white {
-    color: #fdf8e1;
+    color: var(--pc-white-face);
     text-shadow:
-        0 0 1px #b8960c,
-        1px 2px 0 #8a6e00,
-        -1px -1px 0 #ffd700,
-        2px 3px 6px rgba(0,0,0,0.65),
-        0 0 12px rgba(255,220,50,0.3);
-    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.5));
+        0 0 1px var(--pc-white-edge),
+        1px 1px 0 var(--pc-white-edge),
+        -1px 1px 0 var(--pc-white-edge),
+        1px -1px 0 var(--pc-white-edge),
+        -1px -1px 0 var(--pc-white-edge),
+        0 4px 7px rgba(0, 0, 0, 0.55);
+    filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.45));
 }
-
-/* Qora donalar — midnight indigo effekti */
+/* Qora figuralar — qora lak, tema rangida yaltiroq gardish */
 #board .cell .piece-wrap.black {
-    color: #1e1b4b;
+    color: var(--pc-black-face);
     text-shadow:
-        0 0 1px #818cf8,
-        1px 2px 0 #4338ca,
-        -1px -1px 0 #2d2580,
-        2px 3px 6px rgba(255,255,255,0.2),
-        0 0 10px rgba(99,102,241,0.4);
-    filter: drop-shadow(0 3px 2px rgba(0,0,0,0.6));
+        0 0 1px var(--pc-black-edge),
+        0 1px 0 rgba(255, 255, 255, 0.22),
+        0 4px 7px rgba(0, 0, 0, 0.6);
+    filter: drop-shadow(0 4px 3px rgba(0, 0, 0, 0.55));
 }
 
-/* Classic temada qora donalar brown rang */
-body[data-theme="classic"] #board .cell .piece-wrap.black {
-    color: #1c0a00;
-    text-shadow:
-        0 0 1px #d97706,
-        1px 2px 0 #92400e,
-        2px 3px 5px rgba(0,0,0,0.7);
-}
+/* ───────────────── 3. SHAXMATGA XOS KATAK HOLATLARI ──────────────── */
 
-/* Emerald temada qora donalar yashil rang */
-body[data-theme="emerald"] #board .cell .piece-wrap.black {
-    color: #052e16;
-    text-shadow:
-        0 0 1px #10b981,
-        1px 2px 0 #065f46,
-        2px 3px 5px rgba(0,0,0,0.7);
-}
-
-/* Crimson temada qora donalar qizil rang */
-body[data-theme="crimson"] #board .cell .piece-wrap.black {
-    color: #4c0519;
-    text-shadow:
-        0 0 1px #f43f5e,
-        1px 2px 0 #9f1239,
-        2px 3px 5px rgba(0,0,0,0.7);
-}
-
-/* Hover/select effektlari */
-#board .cell.selected {
-    background: var(--selected-bg, linear-gradient(135deg,#c9a227,#f5cc4e)) !important;
-    box-shadow: inset 0 0 0 3px rgba(255,255,255,0.3), inset 0 0 15px rgba(255,255,255,0.1);
-}
+/* Yurish mumkin (hint) — bo'sh katakka oltin nuqta */
+#board .cell.hint { cursor: pointer; }
 #board .cell.hint::after {
     content: '';
     position: absolute;
-    width: 30%;
-    height: 30%;
+    width: 26%; height: 26%;
     border-radius: 50%;
-    background: radial-gradient(circle, var(--hint-color, rgba(99,202,143,0.9)) 0%, transparent 100%);
-    box-shadow: 0 0 14px var(--hint-color, rgba(52,211,153,0.8));
+    background: radial-gradient(circle at 34% 30%, var(--brass-2), var(--brass));
+    box-shadow: 0 0 14px var(--glow), 0 3px 6px rgba(0, 0, 0, 0.45);
+    animation: dotPulse 1.3s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+/* Figurali katakka hint — yeyish: qizil nishon halqa */
+#board .cell.hint:has(.piece-wrap)::after {
+    width: auto; height: auto;
+    inset: 8%;
+    background: transparent;
+    border-radius: 50%;
+    border: 3px solid var(--danger);
+    box-shadow: 0 0 16px rgba(217, 104, 82, 0.65), inset 0 0 10px rgba(217, 104, 82, 0.35);
+    animation: captureRing 0.9s ease-in-out infinite;
+}
+
+/* Shox (in-check) — qizil xavf katagi */
+#board .cell.in-check {
+    box-shadow:
+        inset 0 0 0 3px var(--danger),
+        inset 0 0 26px rgba(217, 104, 82, 0.55);
+    animation: checkPulse 1s ease-in-out infinite;
+    z-index: 2;
+}
+#board .cell.in-check::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(217, 104, 82, 0.4), transparent 72%);
     pointer-events: none;
 }
-#board .cell.hint.has-piece::after {
-    width: 95%;
-    height: 95%;
-    background: transparent;
-    border: 4px solid #f87171;
-    box-shadow: inset 0 0 10px rgba(239,68,68,0.3), 0 0 14px rgba(239,68,68,0.5);
+@keyframes checkPulse {
+    0%, 100% { box-shadow: inset 0 0 0 3px var(--danger), inset 0 0 18px rgba(217, 104, 82, 0.45); }
+    50%      { box-shadow: inset 0 0 0 5px var(--danger), inset 0 0 34px rgba(217, 104, 82, 0.75); }
 }
 
-/* SHOX cellini qizil bilan belgilash */
-#board .cell.in-check {
-    background: linear-gradient(135deg, #7f1d1d, #991b1b) !important;
-    box-shadow: inset 0 0 0 3px #ef4444, 0 0 20px rgba(239,68,68,0.6);
-    animation: pulse-red 1s infinite;
-}
-@keyframes pulse-red {
-    0%, 100% { box-shadow: inset 0 0 0 3px #ef4444, 0 0 18px rgba(239,68,68,0.5); }
-    50%      { box-shadow: inset 0 0 0 5px #f87171, 0 0 30px rgba(239,68,68,0.8); }
-}
-
-/* Last-move highlight */
-#board .cell.last-move {
-    box-shadow: inset 0 0 0 3px var(--last-move-glow, rgba(201,162,39,0.8)),
-                inset 0 0 12px rgba(255,255,255,0.05);
+/* ───────────────── 4. YEGAN FIGURALAR PANELI ─────────────────────── */
+.cap-pc {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    font-size: 1.35rem; line-height: 1;
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans', serif;
+    color: var(--ink);
+    background: var(--surface-2);
+    border: 1px solid var(--brass-line-soft);
+    border-radius: 8px;
+    text-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+    animation: capPop 0.4s var(--ease-spring) both;
 }
 
-/* Promotion modal */
-.promo-choices {
-    display: flex;
-    gap: 14px;
-    justify-content: center;
-    margin-top: 14px;
-}
+/* ───────────────── 5. PROMOTION TANLOVI ──────────────────────────── */
 .promo-choices button {
-    font-size: 2.4em;
-    background: linear-gradient(135deg, #1e1b4b, #312e81);
-    border: 2px solid #4338ca;
-    border-radius: 12px;
-    padding: 10px 18px;
-    cursor: pointer;
-    color: #fdf8e1;
-    transition: all 0.15s ease;
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
+    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', 'DejaVu Sans', serif;
+    color: var(--ink);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.45);
 }
 .promo-choices button:hover {
-    border-color: var(--board-frame-ring, #c9a227);
-    transform: scale(1.12);
-    box-shadow: 0 4px 20px rgba(201,162,39,0.45);
+    color: var(--brass-2);
+    text-shadow: 0 0 14px var(--glow), 0 2px 4px rgba(0, 0, 0, 0.45);
 }
 
-/* Captured pieces */
-.captured-display .cap-pc {
-    font-size: 1.4em;
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-    margin: 0 2px;
+/* ───────────────── 6. MOBIL MOSLASHUV ────────────────────────────── */
+@media (max-width: 640px) {
+    #board .cell .piece-wrap { font-size: clamp(1.35rem, 8.4vmin, 2.4rem); }
+    .cap-pc { width: 25px; height: 25px; font-size: 1.1rem; }
 }
 
-/* Logo animatsiyasi shaxmat figuralari uchun */
-.logo-animated .piece-anim {
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-}
-.logo-big {
-    font-family: 'Segoe UI Symbol', 'Arial Unicode MS', serif;
-}
-
-/* ===== TEMA TANLASH UI ===== */
-.theme-picker {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 20px;
-    padding: 14px 18px;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    backdrop-filter: blur(10px);
-}
-.theme-picker-label {
-    font-size: 0.78rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-    margin-right: 4px;
-    white-space: nowrap;
-}
-.theme-swatch {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    border: 3px solid transparent;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-.theme-swatch:hover { transform: scale(1.18); }
-.theme-swatch.active {
-    border-color: #fff;
-    box-shadow: 0 0 0 2px rgba(255,255,255,0.3), 0 4px 14px rgba(0,0,0,0.5);
-    transform: scale(1.15);
-}
-/* Shaxmat swatchlari */
-.theme-swatch[data-theme="navy"]    { background: linear-gradient(135deg, #818cf8, #3730a3); }
-.theme-swatch[data-theme="classic"] { background: linear-gradient(135deg, #d97706, #b58863); }
-.theme-swatch[data-theme="emerald"] { background: linear-gradient(135deg, #10b981, #1a6641); }
-.theme-swatch[data-theme="slate"]   { background: linear-gradient(135deg, #94a3b8, #334155); }
-.theme-swatch[data-theme="crimson"] { background: linear-gradient(135deg, #f43f5e, #9f1239); }
-.theme-swatch-tip {
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.85);
-    color: #f1f5f9;
-    font-size: 0.72rem;
-    white-space: nowrap;
-    padding: 4px 8px;
-    border-radius: 6px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.2s;
-    z-index: 50;
-}
-.theme-swatch:hover .theme-swatch-tip { opacity: 1; }
-
-/* ===== WAGER FEE INFO BOX ===== */
-.wager-fee-box {
-    background: rgba(99, 102, 241, 0.1);
-    border: 1px solid rgba(99, 102, 241, 0.3);
-    border-radius: 12px;
-    padding: 12px 16px;
-    margin-bottom: 14px;
-    animation: cardIn 0.3s;
-}
-.fee-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 5px 0;
-    font-size: 0.88rem;
-    color: #cbd5e1;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.fee-row:last-child { border-bottom: none; padding-bottom: 0; }
-.fee-row span:first-child { color: #94a3b8; }
-.fee-win { font-size: 0.95rem; margin-top: 4px; }
-.fee-net { font-size: 0.82rem; }
-
-/* ===================================================
- * SHAXMAT — Natija ekrani chess gold override
- * =================================================== */
-
-/* Win screen: chess uses gold (#c9a227) instead of amber */
-.result-bg.win {
-    background: radial-gradient(ellipse at 50% 0%, rgba(201,162,39,0.38) 0%, transparent 65%),
-                radial-gradient(ellipse at 80% 100%, rgba(245,204,78,0.22) 0%, transparent 60%),
-                linear-gradient(160deg, #0c0e00 0%, #1a1600 40%, #191400 100%);
-}
-.result-bg.win::before  { background: radial-gradient(circle, rgba(201,162,39,0.22) 0%, transparent 70%); }
-.result-bg.win::after   { background: radial-gradient(circle, rgba(245,204,78,0.16) 0%, transparent 70%); }
-
-.result-bg.win ~ .result-card::before {
-    background: linear-gradient(90deg, #c9a227, #f5cc4e, #ffffff80, #f5cc4e, #c9a227);
-    background-size: 200%;
-    animation: shimmer-bar 2s linear infinite;
-}
-.result-bg.win ~ .result-card #result-title {
-    background: linear-gradient(135deg, #c9a227 0%, #f5cc4e 45%, #ffffff 70%, #f5cc4e 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-}
-.result-bg.win ~ .result-card .result-emoji { color: #c9a227; }
-.result-bg.win ~ .result-card .result-stat-value,
-.result-bg.win ~ .result-card .result-stat .rs-value { color: #f5cc4e; }
-.result-bg.win ~ .result-card .result-stat .rs-icon   { color: #c9a227; }
-.result-bg.win ~ .result-card .result-actions .primary-btn {
-    background: linear-gradient(135deg, #c9a227, #f5cc4e);
-    box-shadow: 0 4px 20px rgba(201,162,39,0.4);
-    color: #0f0e00;
-}
-
-/* ╔══════════════════════════════════════════════════════╗
- * ║  SHAXMAT — Draw override (gold-silver mix)          ║
- * ╚══════════════════════════════════════════════════════╝ */
-
-/* Chess draw: gold+silver aurora */
-.result-bg.draw {
-    background:
-        radial-gradient(ellipse at 25% 15%, rgba(201,162,39,0.18) 0%, transparent 50%),
-        radial-gradient(ellipse at 75% 85%, rgba(148,163,184,0.20) 0%, transparent 50%),
-        radial-gradient(ellipse at 60% 30%, rgba(20,184,166,0.10) 0%, transparent 45%),
-        linear-gradient(160deg, #08090c 0%, #0f0e14 40%, #0a0c10 100%);
-}
-.result-bg.draw ~ .result-card::before {
-    background: linear-gradient(90deg, transparent, #c9a227, #e2e8f0, #94a3b8, #c9a227, transparent);
-    background-size: 200%;
-    animation: shimmer-bar 2.5s linear infinite;
-}
-.result-bg.draw ~ .result-card #result-title {
-    background: linear-gradient(135deg, #c9a227 0%, #e2e8f0 40%, #94a3b8 70%, #c9a227 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.result-bg.draw ~ .result-card .result-actions .primary-btn {
-    background: linear-gradient(135deg, #64748b, #94a3b8) !important;
-    color: #f8fafc !important;
-    box-shadow: 0 4px 18px rgba(148,163,184,0.35) !important;
-}
-
+/* Bu fayl: shaxmatning Royal Club qiyofasi — 5 tema, unicode figuralar,
+ * shox/hint/yeyish holatlari, yegan figuralar va promotion modali. */

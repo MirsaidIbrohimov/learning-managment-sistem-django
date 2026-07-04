@@ -4,490 +4,520 @@
 
 {% block extra_css %}
 <style>
+/* ============ FOKUS REJIM — dizayn tokenlari ============ */
 :root {
-    --g-card: #ffffff;
-    --g-border: rgba(0, 0, 0, 0.06);
-    --g-text: #1e293b;
-    --g-text-muted: #64748b;
-    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-    --g-radius: 22px;
-    --g-primary: #6366f1;
-    --g-success: #22c55e;
-    --g-danger: #ef4444;
+    --tg-card: #ffffff;
+    --tg-border: rgba(15, 23, 42, 0.08);
+    --tg-text: #0f172a;
+    --tg-sub: #9aa3b5;
+    --tg-dim: #64748b;
+    --tg-accent: #6366f1;
+    --tg-accent-soft: rgba(99, 102, 241, 0.1);
+    --tg-ok: #10b981;
+    --tg-bad: #ef4444;
+    --tg-warn: #f59e0b;
+    --tg-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+    --tg-radius: 20px;
+    --tg-mono: ui-monospace, 'Cascadia Code', 'SF Mono', 'JetBrains Mono', Consolas, 'Roboto Mono', monospace;
 }
 
 [data-bs-theme="dark"] {
-    --g-card: #1e1e2e;
-    --g-border: rgba(255, 255, 255, 0.07);
-    --g-text: #f1f5f9;
-    --g-text-muted: #94a3b8;
-    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --tg-card: #16161f;
+    --tg-border: rgba(255, 255, 255, 0.08);
+    --tg-text: #e7eaf0;
+    --tg-sub: #4b5266;
+    --tg-dim: #8b93a7;
+    --tg-accent: #818cf8;
+    --tg-accent-soft: rgba(129, 140, 248, 0.12);
+    --tg-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
+@keyframes tgFadeUp {
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes tgPop {
+    0% { transform: scale(0.4); opacity: 0; }
+    60% { transform: scale(1.12); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
 }
-
-@keyframes correctFlash {
-    0% { background: rgba(34, 197, 94, 0.3); transform: scale(1.15); }
-    100% { background: transparent; transform: scale(1); }
-}
-
-@keyframes shake {
+@keyframes tgShake {
     0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-5px); }
-    40% { transform: translateX(5px); }
-    60% { transform: translateX(-3px); }
-    80% { transform: translateX(3px); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
 }
-
-@keyframes resultIn {
-    from { opacity: 0; transform: scale(0.7) translateY(40px); }
+@keyframes tgCaret {
+    0%, 45% { opacity: 1; }
+    55%, 100% { opacity: 0; }
+}
+@keyframes tgPillIn {
+    from { opacity: 0; transform: translateY(-14px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes tgResultIn {
+    from { opacity: 0; transform: scale(0.92) translateY(24px); }
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-@keyframes timerPulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-@keyframes focusPulse {
-    0%, 100% { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
-    50% { box-shadow: 0 0 0 6px rgba(99, 102, 241, 0.2); }
-}
-
-@keyframes slideInWarning {
-    from { opacity: 0; transform: translateX(50px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes countUp {
-    from { opacity: 0; transform: scale(0.5); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-.play-container {
-    max-width: 900px;
+.tg-wrap {
+    max-width: 860px;
     margin: 0 auto;
+    animation: tgFadeUp 0.5s ease-out;
 }
 
-.play-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #a855f7 100%);
-    border-radius: var(--g-radius);
-    padding: 1.5rem 2rem;
-    color: white;
-    margin-bottom: 1.5rem;
+/* ============ Yuqori panel ============ */
+.tg-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.1rem;
+}
+
+.tg-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--tg-dim);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 0.4rem 0.85rem;
+    border-radius: 12px;
+    border: 1px solid var(--tg-border);
+    background: var(--tg-card);
+    transition: all 0.25s;
+}
+.tg-back:hover { color: var(--tg-accent); border-color: var(--tg-accent); transform: translateX(-2px); }
+
+.tg-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.42rem 1rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.2px;
+}
+.tg-mode.practice { background: rgba(16, 185, 129, 0.1); color: #059669; }
+.tg-mode.competition { background: rgba(245, 158, 11, 0.12); color: #d97706; }
+[data-bs-theme="dark"] .tg-mode.practice { color: #34d399; }
+[data-bs-theme="dark"] .tg-mode.competition { color: #fbbf24; }
+
+.tg-tools { display: flex; align-items: center; gap: 0.5rem; }
+
+.tg-icon-btn {
+    width: 40px; height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: 1px solid var(--tg-border);
+    background: var(--tg-card);
+    color: var(--tg-dim);
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: all 0.25s;
+}
+.tg-icon-btn:hover { color: var(--tg-accent); border-color: var(--tg-accent); }
+.tg-icon-btn.active { color: var(--tg-accent); background: var(--tg-accent-soft); border-color: transparent; }
+
+/* ============ Statistika paneli ============ */
+.tg-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+}
+
+.tg-stat {
+    background: var(--tg-card);
+    border: 1px solid var(--tg-border);
+    border-radius: 16px;
+    padding: 0.85rem 0.6rem;
+    text-align: center;
+    transition: border-color 0.3s;
+}
+
+.tg-stat .val {
+    font-family: var(--tg-mono);
+    font-size: 1.55rem;
+    font-weight: 700;
+    color: var(--tg-text);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+.tg-stat .val.accent { color: var(--tg-accent); }
+.tg-stat .lbl {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--tg-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* ============ Progress chiziq ============ */
+.tg-progress {
+    height: 6px;
+    background: var(--tg-border);
+    border-radius: 99px;
+    overflow: hidden;
+    margin-bottom: 1.1rem;
+}
+.tg-progress .fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--tg-accent), #a78bfa);
+    transition: width 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ============ Matn kartasi ============ */
+.tg-card {
+    background: var(--tg-card);
+    border: 1px solid var(--tg-border);
+    border-radius: var(--tg-radius);
+    box-shadow: var(--tg-shadow);
+    padding: 2rem 2.2rem;
+    cursor: text;
+}
+
+.tg-words {
+    font-family: var(--tg-mono);
+    font-size: 1.45rem;
+    line-height: 2.15;
+    letter-spacing: 0.3px;
+    color: var(--tg-sub);
+    min-height: 120px;
+    user-select: none;
+    -webkit-user-select: none;
+    word-break: break-word;
+}
+
+.tg-word { border-radius: 6px; padding: 1px 3px; margin-right: 2px; display: inline-block; transition: color 0.2s; }
+.tg-word.current {
+    background: var(--tg-accent-soft);
+    box-shadow: inset 0 -2px 0 var(--tg-accent);
+}
+.tg-word.correct { color: var(--tg-text); opacity: 0.85; }
+.tg-word.wrong { color: var(--tg-bad); text-decoration: underline wavy; animation: tgShake 0.35s ease; }
+
+/* Joriy so'z: harfma-harf */
+.ltr-ok   { color: var(--tg-ok); }
+.ltr-bad  { color: var(--tg-bad); background: rgba(239,68,68,0.14); border-radius: 3px; }
+.ltr-todo { color: var(--tg-dim); }
+.ltr-extra { color: var(--tg-bad); background: rgba(239,68,68,0.2); border-radius: 3px; text-decoration: line-through; }
+.ltr-caret {
+    display: inline-block;
+    width: 2px;
+    height: 1.25em;
+    background: var(--tg-accent);
+    vertical-align: text-bottom;
+    margin: 0 -1px;
+    animation: tgCaret 1s step-end infinite;
+}
+
+/* ============ Yozish maydoni ============ */
+.tg-input-row { margin-top: 1.4rem; position: relative; }
+
+.tg-input {
+    width: 100%;
+    font-family: var(--tg-mono);
+    font-size: 1.15rem;
+    padding: 0.9rem 3rem 0.9rem 1.1rem;
+    border-radius: 14px;
+    border: 2px solid var(--tg-border);
+    background: transparent;
+    color: var(--tg-text);
+    outline: none;
+    resize: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.tg-input:focus { border-color: var(--tg-accent); box-shadow: 0 0 0 4px var(--tg-accent-soft); }
+.tg-input:disabled { opacity: 0.55; }
+
+.tg-input-hint {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--tg-sub);
+    font-size: 1rem;
+    pointer-events: none;
+}
+
+.tg-under {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInDown 0.5s ease-out;
-}
-
-.play-header::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -10%;
-    width: 200px;
-    height: 200px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-    border-radius: 50%;
-}
-
-.play-header h3 {
-    font-weight: 700;
-    margin: 0;
-    font-size: 1.2rem;
-    position: relative;
-    z-index: 1;
-}
-
-.play-stats {
-    display: flex;
-    gap: 1.5rem;
-    position: relative;
-    z-index: 1;
-}
-
-.play-stat {
-    text-align: center;
-}
-
-.play-stat .value {
-    font-size: 1.5rem;
-    font-weight: 700;
-}
-
-.play-stat .label {
-    font-size: 0.72rem;
-    opacity: 0.8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.prompt-card {
-    background: var(--g-card);
-    border: 1px solid var(--g-border);
-    border-radius: var(--g-radius);
-    box-shadow: var(--g-shadow);
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    animation: fadeInUp 0.6s ease-out 0.15s both;
-    transition: all 0.3s;
-}
-
-.prompt-words {
-    display: flex;
+    gap: 0.75rem;
     flex-wrap: wrap;
-    gap: 8px;
-    font-size: 1.25rem;
-    line-height: 2;
-    margin-bottom: 1.5rem;
-    min-height: 80px;
+    margin-top: 1.2rem;
 }
 
-.prompt-word {
-    padding: 3px 7px;
-    border-radius: 8px;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    color: var(--g-text-muted);
-}
+.tg-word-counter { font-size: 0.85rem; color: var(--tg-dim); font-weight: 600; font-variant-numeric: tabular-nums; }
 
-.prompt-word.current {
-    background: rgba(99, 102, 241, 0.12);
-    color: var(--g-primary);
-    font-weight: 600;
-    transform: scale(1.08);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
-}
-
-.prompt-word.correct {
-    color: var(--g-success);
-    animation: correctFlash 0.4s ease;
-}
-
-.prompt-word.wrong {
-    color: var(--g-danger);
-    text-decoration: underline wavy;
-    animation: shake 0.5s ease;
-}
-
-.prompt-word.completed {
-    color: var(--g-text);
-    opacity: 0.4;
-}
-
-/* Joriy so'z uchun harfma-harf (live) aniqlik ko'rsatkichi */
-.ltr-ok   { color: var(--g-success); }
-.ltr-bad  { color: var(--g-danger); text-decoration: underline; background: rgba(239,68,68,0.12); border-radius: 3px; }
-.ltr-todo { color: var(--g-primary); opacity: 0.85; }
-.ltr-extra { color: var(--g-danger); background: rgba(239,68,68,0.22); border-radius: 3px; text-decoration: line-through; }
-
-.typing-area {
-    width: 100%;
-    min-height: 60px;
-    border: 2px solid var(--g-border);
-    border-radius: 16px;
-    padding: 1rem 1.2rem;
-    font-size: 1.1rem;
-    background: var(--g-card);
-    color: var(--g-text);
-    resize: none;
-    outline: none;
-    transition: all 0.35s ease;
-}
-
-.typing-area:focus {
-    border-color: var(--g-primary);
-    animation: focusPulse 2s infinite;
-}
-
-.progress-bar-container {
-    height: 8px;
-    background: var(--g-border);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-.progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6, #22c55e);
-    border-radius: 6px;
-    transition: width 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    width: 0%;
-    position: relative;
-}
-
-.progress-bar-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 20px;
-    height: 100%;
-    background: rgba(255,255,255,0.4);
-    border-radius: 6px;
-    filter: blur(4px);
-}
-
-.result-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 9999;
-    justify-content: center;
+.tg-btn {
+    border: none;
+    border-radius: 13px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.4rem;
+    display: inline-flex;
     align-items: center;
-    backdrop-filter: blur(10px);
+    gap: 7px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
 }
+.tg-btn.finish { background: var(--tg-bad); color: #fff; }
+.tg-btn.finish:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35); }
+.tg-btn.restart { background: var(--tg-card); color: var(--tg-dim); border: 1px solid var(--tg-border); }
+.tg-btn.restart:hover { color: var(--tg-accent); border-color: var(--tg-accent); }
+.tg-btn.primary { background: var(--tg-accent); color: #fff; }
+.tg-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px var(--tg-accent-soft); color: #fff; }
+.tg-btn.ghost { background: transparent; color: var(--tg-dim); border: 1px solid var(--tg-border); }
+.tg-btn.ghost:hover { color: var(--tg-accent); border-color: var(--tg-accent); }
 
-.result-overlay.show { display: flex; }
-
-.result-card {
-    background: var(--g-card);
-    border-radius: var(--g-radius);
-    padding: 2.5rem;
-    text-align: center;
-    max-width: 440px;
-    width: 90%;
-    animation: resultIn 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border: 1px solid var(--g-border);
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+/* ============ Ogohlantirish pillar ============ */
+.tg-pill {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 0.65rem 1.2rem;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    animation: tgPillIn 0.35s ease-out;
 }
+.tg-pill.show { display: inline-flex; }
+.tg-pill.caps { top: 18px; background: var(--tg-warn); color: #1f2937; }
+.tg-pill.tab { top: 70px; background: var(--tg-bad); color: #fff; }
+.tg-pill.toast { top: 18px; background: var(--tg-bad); color: #fff; }
 
-.result-emoji {
-    font-size: 3.5rem;
-    animation: countUp 0.5s ease-out 0.2s both;
+/* ============ Countdown overlay ============ */
+.tg-count-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background: rgba(10, 12, 22, 0.55);
+    backdrop-filter: blur(8px);
 }
-
-.result-score {
-    font-size: 3.2rem;
+.tg-count-overlay.hidden { display: none; }
+.tg-count-num {
+    font-family: var(--tg-mono);
+    font-size: 7rem;
     font-weight: 800;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);
+    color: #fff;
+    line-height: 1;
+    animation: tgPop 0.9s ease both;
+    text-shadow: 0 10px 40px rgba(99, 102, 241, 0.55);
+}
+.tg-count-label { color: rgba(255,255,255,0.85); font-weight: 600; letter-spacing: 0.5px; }
+
+/* ============ Natija overlay ============ */
+.tg-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 12, 22, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 1rem;
+}
+.tg-result-overlay.show { display: flex; }
+
+.tg-result {
+    background: var(--tg-card);
+    border: 1px solid var(--tg-border);
+    border-radius: 24px;
+    padding: 2.2rem 2.4rem;
+    width: 100%;
+    max-width: 480px;
+    text-align: center;
+    animation: tgResultIn 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+}
+
+.tg-result .emoji { font-size: 3rem; animation: tgPop 0.6s ease 0.15s both; }
+.tg-result .headline { font-weight: 800; font-size: 1.25rem; color: var(--tg-text); margin-top: 0.4rem; }
+.tg-result .score {
+    font-family: var(--tg-mono);
+    font-size: 3.4rem;
+    font-weight: 800;
+    line-height: 1.1;
+    background: linear-gradient(135deg, var(--tg-accent), #a78bfa);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    animation: countUp 0.5s ease-out 0.3s both;
 }
+.tg-result .score-lbl { color: var(--tg-dim); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
-.result-detail {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin: 1.5rem 0;
+.tg-result-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin: 1.3rem 0 1rem;
 }
+.tg-result-grid .cell { padding: 0.6rem 0.2rem; border-radius: 12px; background: var(--tg-accent-soft); }
+.tg-result-grid .v { font-family: var(--tg-mono); font-weight: 700; font-size: 1.15rem; color: var(--tg-text); }
+.tg-result-grid .k { font-size: 0.64rem; font-weight: 700; color: var(--tg-dim); text-transform: uppercase; letter-spacing: 0.6px; }
 
-.result-detail .item {
-    text-align: center;
-    animation: countUp 0.4s ease-out both;
-}
+.tg-chart-box { margin: 0.5rem 0 1rem; }
+.tg-chart-box canvas { width: 100%; height: 90px; }
+.tg-chart-lbl { font-size: 0.72rem; color: var(--tg-dim); font-weight: 600; }
 
-.result-detail .item:nth-child(1) { animation-delay: 0.4s; }
-.result-detail .item:nth-child(2) { animation-delay: 0.5s; }
-.result-detail .item:nth-child(3) { animation-delay: 0.6s; }
+.tg-result-actions { display: flex; gap: 0.6rem; justify-content: center; flex-wrap: wrap; }
 
-.result-detail .item .val {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--g-text);
-}
-
-.result-detail .item .lbl {
-    font-size: 0.78rem;
-    color: var(--g-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.tab-warning {
-    display: none;
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 16px;
-    z-index: 10000;
-    font-weight: 600;
-    animation: slideInWarning 0.4s ease-out;
-    box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
-}
-
-.tab-warning.show { display: block; }
-
-.timer-pulse {
-    animation: timerPulse 1s infinite;
-}
-
-.btn-finish {
-    border-radius: 14px;
-    font-weight: 600;
-    transition: all 0.3s;
-}
-
-.btn-finish:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
-}
-
-/* ===== Responsive ===== */
+/* ============ Responsive ============ */
 @media (max-width: 768px) {
-    .play-header {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
-        padding: 1.2rem 1rem;
-        border-radius: 16px;
-    }
-    .play-stats {
-        gap: 1rem;
-    }
-    .play-stat .value {
-        font-size: 1.2rem;
-    }
-    .prompt-card {
-        padding: 1.3rem;
-        border-radius: 16px;
-    }
-    .prompt-words {
-        font-size: 1.05rem;
-        gap: 6px;
-    }
-    .typing-area {
-        font-size: 1rem;
-    }
-    .result-card {
-        padding: 1.8rem 1.2rem;
-    }
-    .result-score {
-        font-size: 2.5rem;
-    }
-    .result-detail {
-        gap: 1.2rem;
-    }
-    .result-detail .item .val {
-        font-size: 1.3rem;
-    }
+    .tg-stats { grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+    .tg-stat .val { font-size: 1.15rem; }
+    .tg-card { padding: 1.3rem 1.1rem; border-radius: 16px; }
+    .tg-words { font-size: 1.12rem; line-height: 2; min-height: 90px; }
+    .tg-input { font-size: 16px; }
+    .tg-count-num { font-size: 5rem; }
+    .tg-result { padding: 1.6rem 1.2rem; }
+    .tg-result .score { font-size: 2.6rem; }
 }
 
-@media (max-width: 576px) {
-    .play-header h3 {
-        font-size: 1rem;
-    }
-    .play-stat .value {
-        font-size: 1rem;
-    }
-    .prompt-words {
-        font-size: 0.95rem;
-        line-height: 1.8;
-    }
-    .result-detail {
-        flex-direction: column;
-        gap: 0.8rem;
-    }
+@media (max-width: 420px) {
+    .tg-words { font-size: 1.02rem; }
+    .tg-result-grid { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container py-4">
-    <div class="play-container">
-        <!-- Tab Warning -->
-        <div class="tab-warning" id="tabWarning">
-            ⚠️ Ogohlantirish! Tab almashish aniqlandi (<span id="tabCount">0</span>/3)
-        </div>
+    <div class="tg-wrap">
 
-        <!-- Header -->
-        <div class="play-header">
-            <div>
-                <h3><i class="bi {{ game.icon }}"></i> {{ game.title }}</h3>
-                {% if competition %}
-                <small><i class="bi bi-trophy"></i> {{ competition.title }}</small>
-                {% else %}
-                <small><i class="bi bi-joystick"></i> Practice Mode</small>
-                {% endif %}
-            </div>
-            <div class="play-stats">
-                <div class="play-stat">
-                    <div class="value timer-pulse" id="timer">0:00</div>
-                    <div class="label">Vaqt</div>
-                </div>
-                <div class="play-stat">
-                    <div class="value" id="wpmDisplay">0</div>
-                    <div class="label">WPM</div>
-                </div>
-                <div class="play-stat">
-                    <div class="value" id="accuracyDisplay">100%</div>
-                    <div class="label">Aniqlik</div>
-                </div>
-            </div>
-        </div>
+        <!-- Ogohlantirishlar -->
+        <div class="tg-pill caps" id="capsPill"><i class="bi bi-capslock-fill"></i> Caps Lock yoqilgan!</div>
+        <div class="tg-pill tab" id="tabPill">⚠️ Tab almashish aniqlandi (<span id="tabCount">0</span>/3)</div>
+        <div class="tg-pill toast" id="errToast"></div>
 
-        <!-- Progress -->
-        <div class="progress-bar-container">
-            <div class="progress-bar-fill" id="progressBar"></div>
-        </div>
-
-        <!-- Prompt -->
-        <div class="prompt-card">
-            <div class="prompt-words" id="promptWords"></div>
-            <textarea class="typing-area" id="typingArea" placeholder="Bu yerga yozing..." autofocus autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-        </div>
-
-        <div class="d-flex justify-content-between">
-            <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-outline-secondary">
+        <!-- Yuqori panel -->
+        <div class="tg-topbar">
+            <a href="{% url 'games:game_detail' game.slug %}" class="tg-back" id="backLink">
                 <i class="bi bi-arrow-left"></i> Orqaga
             </a>
-            <button class="btn btn-danger" id="finishBtn" style="display:none;">
-                <i class="bi bi-check-circle"></i> Tugatish
-            </button>
+            {% if competition %}
+            <span class="tg-mode competition"><i class="bi bi-trophy-fill"></i> {{ competition.title }}</span>
+            {% else %}
+            <span class="tg-mode practice"><i class="bi bi-joystick"></i> Mashq rejimi</span>
+            {% endif %}
+            <div class="tg-tools">
+                <span class="tg-word-counter d-none d-sm-inline">
+                    {% if prompt.difficulty == 'easy' %}Oson{% elif prompt.difficulty == 'medium' %}O'rta{% else %}Qiyin{% endif %}
+                    · {{ prompt.word_count }} so'z
+                </span>
+                <button class="tg-icon-btn" id="soundBtn" type="button" title="Ovoz effektlari">
+                    <i class="bi bi-volume-up-fill" id="soundIcon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Statistika -->
+        <div class="tg-stats">
+            <div class="tg-stat">
+                <div class="val" id="timer">0:00</div>
+                <div class="lbl">Vaqt</div>
+            </div>
+            <div class="tg-stat">
+                <div class="val accent" id="wpmDisplay">0</div>
+                <div class="lbl">WPM</div>
+            </div>
+            <div class="tg-stat">
+                <div class="val" id="accuracyDisplay">100%</div>
+                <div class="lbl">Aniqlik</div>
+            </div>
+            <div class="tg-stat">
+                <div class="val" id="wordCounter">0/{{ prompt.word_count }}</div>
+                <div class="lbl">So'zlar</div>
+            </div>
+        </div>
+
+        <div class="tg-progress"><div class="fill" id="progressBar"></div></div>
+
+        <!-- Matn -->
+        <div class="tg-card" id="textCard">
+            <div class="tg-words" id="promptWords"></div>
+            <div class="tg-input-row">
+                <textarea class="tg-input" id="typingArea" rows="1" placeholder="Sanoq tugagach shu yerga yozing…"
+                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" disabled></textarea>
+                <span class="tg-input-hint"><i class="bi bi-keyboard"></i></span>
+            </div>
+        </div>
+
+        <div class="tg-under">
+            <span class="tg-word-counter"><i class="bi bi-info-circle"></i> Probel — so'zni tasdiqlaydi</span>
+            <div class="d-flex gap-2">
+                {% if not competition %}
+                <a href="{% url 'games:game_play' game.slug %}" class="tg-btn restart" id="restartBtn">
+                    <i class="bi bi-arrow-clockwise"></i> Yangi matn
+                </a>
+                {% endif %}
+                <button class="tg-btn finish" id="finishBtn" style="display:none;" type="button">
+                    <i class="bi bi-flag-fill"></i> Tugatish
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Result Overlay -->
-<div class="result-overlay" id="resultOverlay">
-    <div class="result-card">
-        <div class="mb-3">
-            <i class="bi bi-trophy" style="font-size: 3rem; color: #f59e0b;"></i>
+<!-- Countdown -->
+<div class="tg-count-overlay" id="countOverlay">
+    <div class="tg-count-num" id="countNum">3</div>
+    <div class="tg-count-label">Tayyor bo'ling…</div>
+</div>
+
+<!-- Natija -->
+<div class="tg-result-overlay" id="resultOverlay">
+    <div class="tg-result">
+        <div class="emoji" id="resultEmoji">🏆</div>
+        <div class="headline" id="resultHeadline">Natija</div>
+        <div class="score" id="resultScore">0</div>
+        <div class="score-lbl">ball</div>
+
+        <div class="tg-result-grid">
+            <div class="cell"><div class="v" id="resultWpm">0</div><div class="k">WPM</div></div>
+            <div class="cell"><div class="v" id="resultAccuracy">0%</div><div class="k">Aniqlik</div></div>
+            <div class="cell"><div class="v" id="resultTime">0s</div><div class="k">Vaqt</div></div>
+            <div class="cell"><div class="v" id="resultErrors">0</div><div class="k">Xato</div></div>
         </div>
-        <h3 class="fw-bold mb-1">Natija</h3>
-        <div class="result-score" id="resultScore">0</div>
-        <div class="text-muted mb-2">ball</div>
-        <div class="result-detail">
-            <div class="item">
-                <div class="val" id="resultWpm">0</div>
-                <div class="lbl">WPM</div>
-            </div>
-            <div class="item">
-                <div class="val" id="resultAccuracy">0%</div>
-                <div class="lbl">Aniqlik</div>
-            </div>
-            <div class="item">
-                <div class="val" id="resultTime">0s</div>
-                <div class="lbl">Vaqt</div>
-            </div>
+
+        <div class="tg-chart-box">
+            <canvas id="wpmChart" width="420" height="90"></canvas>
+            <div class="tg-chart-lbl">Tezlik dinamikasi (WPM)</div>
         </div>
-        <div class="d-flex gap-2 justify-content-center mt-3">
-            <a href="{% url 'games:game_detail' game.slug %}" class="btn btn-outline-primary">
-                <i class="bi bi-arrow-left"></i> O'yin sahifasi
+
+        <div class="tg-result-actions">
+            <a href="{% url 'games:game_detail' game.slug %}" class="tg-btn ghost">
+                <i class="bi bi-list-ul"></i> O'yin sahifasi
             </a>
             {% if not competition %}
-            <a href="{% url 'games:game_play' game.slug %}" class="btn btn-primary">
+            <a href="{% url 'games:game_play' game.slug %}" class="tg-btn primary">
                 <i class="bi bi-arrow-repeat"></i> Qayta o'ynash
+            </a>
+            {% else %}
+            <a href="{% url 'games:competition_leaderboard' competition.pk %}" class="tg-btn primary">
+                <i class="bi bi-bar-chart-fill"></i> Reyting
             </a>
             {% endif %}
         </div>
@@ -544,16 +574,21 @@
     const _pid = "{{ prompt.pk }}";
     const _gt = "{{ game_token }}";
     const _rawPromptText = "{{ prompt.text|escapejs }}";
-    const promptText = _rawPromptText.replace(/['\u2018\u2019\u02BC\u0027]/g, '`');
+    const promptText = _rawPromptText.replace(/['‘’ʼ]/g, '`');
     const isCompetition = {{ competition|yesno:"true,false" }};
     const words = promptText.split(/\s+/);
+
     const promptWordsEl = document.getElementById('promptWords');
     const typingArea = document.getElementById('typingArea');
     const timerEl = document.getElementById('timer');
     const wpmEl = document.getElementById('wpmDisplay');
     const accEl = document.getElementById('accuracyDisplay');
+    const wordCounterEl = document.getElementById('wordCounter');
     const progressBar = document.getElementById('progressBar');
     const finishBtn = document.getElementById('finishBtn');
+    const capsPill = document.getElementById('capsPill');
+    const errToast = document.getElementById('errToast');
+    const textCard = document.getElementById('textCard');
 
     let currentIndex = 0;
     let correctCount = 0;
@@ -562,44 +597,90 @@
     let timerInterval = null;
     let tabSwitchCount = 0;
     let finished = false;
+    let gameReady = false;   // countdown tugagach true
     let keystrokeCount = 0;
     let cheated = false;
     const typedWordsList = [];
+    const wpmSamples = [];   // jonli WPM grafigi uchun
+
+    // ===== OVOZ EFFEKTLARI (WebAudio — tashqi faylsiz) =====
+    let soundOn = true;
+    try { soundOn = localStorage.getItem('tgSoundOn') !== '0'; } catch(e) {}
+    let audioCtx = null;
+
+    function ensureAudio() {
+        if (!audioCtx) {
+            try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+        }
+        if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume().catch(function(){}); }
+    }
+
+    function beep(freq, duration, type, gain, when) {
+        if (!soundOn || !audioCtx) return;
+        try {
+            var t = audioCtx.currentTime + (when || 0);
+            var osc = audioCtx.createOscillator();
+            var g = audioCtx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.value = freq;
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(gain || 0.12, t + 0.012);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(t); osc.stop(t + duration + 0.05);
+        } catch(e) {}
+    }
+
+    const sfx = {
+        tick: function() { beep(660, 0.09, 'square', 0.06); },
+        go: function() { beep(880, 0.18, 'square', 0.09); },
+        ok: function() { beep(920, 0.07, 'sine', 0.07); },
+        bad: function() { beep(180, 0.16, 'sawtooth', 0.09); },
+        finish: function() { beep(523, 0.14, 'sine', 0.1); beep(659, 0.14, 'sine', 0.1, 0.13); beep(784, 0.22, 'sine', 0.11, 0.26); }
+    };
+
+    const soundBtn = document.getElementById('soundBtn');
+    const soundIcon = document.getElementById('soundIcon');
+    function renderSoundBtn() {
+        soundIcon.className = soundOn ? 'bi bi-volume-up-fill' : 'bi bi-volume-mute-fill';
+        soundBtn.classList.toggle('active', soundOn);
+    }
+    renderSoundBtn();
+    soundBtn.addEventListener('click', function() {
+        soundOn = !soundOn;
+        try { localStorage.setItem('tgSoundOn', soundOn ? '1' : '0'); } catch(e) {}
+        renderSoundBtn();
+        ensureAudio();
+        if (soundOn) sfx.ok();
+        typingArea.focus();
+    });
+
+    // ===== Xato toasti (alert o'rniga) =====
+    let toastTimer = null;
+    function showToast(msg) {
+        errToast.textContent = msg;
+        errToast.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function() { errToast.classList.remove('show'); }, 4000);
+    }
 
     // ===== ANTI-CHEAT: Trusted keystroke tracking =====
-    let _trustedKeys = 0;
-    let _lastTrustedLen = 0;
     let _untrustedInputs = 0;
     const _keyTimings = [];
 
-    // ===== ANTI-CHEAT: Server-side integrity hash =====
-    // Har bir so'z uchun hash yig'amiz - serverdagi matn bilan solishtirish uchun
-    const _wordHashes = [];
-
-    // ===== ANTI-CHEAT: Console overwrite himoyasi =====
-    // O'zgaruvchilar let/const bilan e'lon qilingan, window orqali kirish mumkin emas
-
-    // ===== ANTI-CHEAT: Cheat aniqlash =====
     function _onCheatDetected(reason) {
         if (cheated) return;
         cheated = true;
         keystrokeCount = 0;
-        const warning = document.getElementById('tabWarning');
-        document.getElementById('tabCount').textContent = '⚠️';
-        warning.innerHTML = '🚫 Noqonuniy harakat aniqlandi! O\'yin to\'xtatildi.';
-        warning.classList.add('show');
+        showToast('🚫 Noqonuniy harakat aniqlandi! O\'yin to\'xtatildi.');
         if (startTime && !finished) {
             finishGame();
         }
     }
 
     // ===== ANTI-CHEAT: Textarea value monitoring =====
-    let _expectedValue = '';
-    // Saqlangan native descriptor ishlatamiz
     const _origValueDesc = window._$d && window._$d.tv;
     const _origInputDesc = window._$d && window._$d.iv;
-
-    // _$d ni tozalash - boshqa skriptlar foydalana olmasligi uchun
     try { delete window._$d; } catch(e) {
         try { Object.defineProperty(window, '_$d', {value: undefined, writable: false, configurable: false}); } catch(e2) {}
     }
@@ -607,28 +688,39 @@
     if (_origValueDesc) {
         Object.defineProperty(typingArea, 'value', {
             get: function() { return _origValueDesc.get.call(this); },
-            set: function(v) {
-                _origValueDesc.set.call(this, v);
-            },
+            set: function(v) { _origValueDesc.set.call(this, v); },
             configurable: false
         });
     }
 
-    // ===== ANTI-CHEAT: Hidden input himoyasi =====
-    // Stack trace tekshiruv olib tashlandi - false positive keltirib chiqarardi
+    function setTA(v) {
+        if (_origValueDesc) { _origValueDesc.set.call(typingArea, v); }
+        else { typingArea.value = v; }
+    }
+    function getTA() {
+        return _origValueDesc ? _origValueDesc.get.call(typingArea) : typingArea.value;
+    }
+
+    // ===== Caps Lock ogohlantirishi =====
+    function checkCaps(e) {
+        if (!e.getModifierState) return;
+        var on = e.getModifierState('CapsLock');
+        capsPill.classList.toggle('show', !!on && !finished);
+    }
 
     // ===== ANTI-CHEAT: isTrusted keydown tracking =====
     typingArea.addEventListener('keydown', function(e) {
-        if (finished) { e.preventDefault(); return; }
+        if (finished || !gameReady) { e.preventDefault(); return; }
 
         if (!e.isTrusted) {
             _untrustedInputs++;
-            if (_untrustedInputs > 10) {
-                _onCheatDetected('fake_keydown');
-            }
+            if (_untrustedInputs > 10) { _onCheatDetected('fake_keydown'); }
             e.preventDefault();
             return;
         }
+
+        checkCaps(e);
+        ensureAudio();
 
         if (e.key === ' ' && this.value.trim() === '') {
             e.preventDefault();
@@ -636,62 +728,41 @@
         }
 
         keystrokeCount++;
-        _trustedKeys++;
         _keyTimings.push(Date.now());
 
-        // Oxirgi 15 ta tugma bosish vaqtini tekshirish (bot aniqlagich)
+        // Bot aniqlagich: oxirgi 15 ta bosish oralig'i
         if (_keyTimings.length >= 15) {
             var recent = _keyTimings.slice(-15);
             var intervals = [];
-            for (var i = 1; i < recent.length; i++) {
-                intervals.push(recent[i] - recent[i-1]);
-            }
+            for (var i = 1; i < recent.length; i++) intervals.push(recent[i] - recent[i-1]);
             var avg = intervals.reduce(function(a,b){return a+b;}, 0) / intervals.length;
             var variance = intervals.reduce(function(a,b){return a + Math.pow(b - avg, 2);}, 0) / intervals.length;
-            var stddev = Math.sqrt(variance);
-            // Robot: stddev < 3 va avg < 50ms (juda tez va bir xil tezlikda)
-            if (stddev < 3 && avg < 50) {
-                _onCheatDetected('bot_typing');
-            }
-            // Juda tez yozish: o'rtacha 20ms dan kam = insoniy emas
-            if (avg < 20 && recent.length >= 15) {
-                _onCheatDetected('superhuman_speed');
-            }
+            if (Math.sqrt(variance) < 3 && avg < 50) { _onCheatDetected('bot_typing'); }
+            if (avg < 20) { _onCheatDetected('superhuman_speed'); }
         }
     });
 
+    typingArea.addEventListener('keyup', checkCaps);
+
     // ===== ANTI-CHEAT: isTrusted input tracking =====
     typingArea.addEventListener('input', function(e) {
-        if (finished) return;
+        if (finished || !gameReady) return;
 
         if (!e.isTrusted) {
             _untrustedInputs++;
-            if (_untrustedInputs > 10) {
-                _onCheatDetected('fake_input');
-            }
-            if (_origValueDesc) { _origValueDesc.set.call(this, ''); }
-            else { this.value = ''; }
-            _expectedValue = '';
+            if (_untrustedInputs > 10) { _onCheatDetected('fake_input'); }
+            setTA('');
             return;
         }
 
-        var currentVal = _origValueDesc ? _origValueDesc.get.call(this) : this.value;
-
-        if (!startTime) {
-            startTimer();
-            finishBtn.style.display = 'inline-block';
-        }
-
-        _expectedValue = currentVal;
+        var currentVal = getTA();
 
         var inputWords = currentVal.trim().split(/\s+/);
         var lastChar = currentVal.slice(-1);
 
         if (lastChar === ' ' && inputWords.length > 0) {
-            var typedWord = inputWords[inputWords.length - 1];
-            checkWord(typedWord);
+            checkWord(inputWords[inputWords.length - 1]);
         } else {
-            // Jonli harfma-harf aniqlik (joriy so'z) + jonli statistika
             var inProgress = currentVal.replace(/^\s+/, '').split(/\s/).pop() || '';
             highlightCurrentWord(inProgress);
             updateStats();
@@ -704,20 +775,19 @@
     });
     document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
-    // ===== ANTI-CHEAT: Matnni tanlash bloklash =====
-    promptWordsEl.style.userSelect = 'none';
-    promptWordsEl.style.webkitUserSelect = 'none';
+    // Matn kartasi bosilganda inputga fokus
+    textCard.addEventListener('click', function() { if (gameReady && !finished) typingArea.focus(); });
 
-    // Render words
+    // ===== So'zlarni chizish =====
     words.forEach(function(w, i) {
         var span = document.createElement('span');
-        span.className = 'prompt-word' + (i === 0 ? ' current' : '');
+        span.className = 'tg-word' + (i === 0 ? ' current' : '');
         span.textContent = w;
         span.id = 'word-' + i;
         promptWordsEl.appendChild(span);
     });
 
-    // Timer
+    // ===== Timer =====
     function startTimer() {
         startTime = Date.now();
         timerInterval = setInterval(function() {
@@ -725,8 +795,11 @@
             var min = Math.floor(elapsed / 60);
             var sec = elapsed % 60;
             timerEl.textContent = min + ':' + (sec < 10 ? '0' : '') + sec;
-            // Live WPM — vaqt o'tishi bilan har soniyada yangilanadi (so'z kutmaydi)
             updateStats();
+            // WPM namunasi (grafik uchun)
+            var totalTyped = correctCount + wrongCount;
+            var minutes = getElapsedSeconds() / 60 || 0.01;
+            wpmSamples.push(Math.round(totalTyped / minutes));
         }, 1000);
     }
 
@@ -735,13 +808,13 @@
     }
 
     function normalizeApostrophes(str) {
-        return str.replace(/['\u2018\u2019\u02BC\u0027\u0060]/g, '`');
+        return str.replace(/['‘’ʼ'`]/g, '`');
     }
 
     function checkWord(typedWord) {
         if (currentIndex >= words.length || finished) return;
 
-        // Vaqt tekshiruvi: har bir so'z uchun kamida 200ms ketishi kerak
+        // Tezlik tekshiruvi
         var elapsed = getElapsedSeconds();
         var wordsPerSecond = (currentIndex + 1) / (elapsed || 0.1);
         if (wordsPerSecond > 8 && currentIndex > 5) {
@@ -753,39 +826,44 @@
         var originalWord = words[currentIndex];
         typedWordsList.push(typedWord);
 
-        // Harfma-harf span'larni tozalaymiz (so'z yakunlandi)
         wordEl.textContent = originalWord;
 
         if (normalizeApostrophes(typedWord) === normalizeApostrophes(originalWord)) {
-            wordEl.className = 'prompt-word correct';
+            wordEl.className = 'tg-word correct';
             correctCount++;
+            sfx.ok();
         } else {
-            wordEl.className = 'prompt-word wrong';
+            wordEl.className = 'tg-word wrong';
             wrongCount++;
+            sfx.bad();
         }
 
         currentIndex++;
         progressBar.style.width = (currentIndex / words.length * 100) + '%';
+        wordCounterEl.textContent = currentIndex + '/' + words.length;
         updateStats();
 
         if (currentIndex < words.length) {
-            document.getElementById('word-' + currentIndex).className = 'prompt-word current';
+            var nextEl = document.getElementById('word-' + currentIndex);
+            nextEl.className = 'tg-word current';
+            // Uzun matnlarda joriy so'z ko'rinib turishi uchun
+            if (nextEl.scrollIntoView) {
+                nextEl.scrollIntoView({block: 'nearest', behavior: 'smooth'});
+            }
         }
 
         if (currentIndex >= words.length) {
             finishGame();
         }
 
-        _expectedValue = '';
-        if (_origValueDesc) { _origValueDesc.set.call(typingArea, ''); }
-        else { typingArea.value = ''; }
+        setTA('');
     }
 
     function _escHtml(s) {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    // Joriy so'zni harfma-harf yashil/qizil qilib jonli ko'rsatadi
+    // Joriy so'z: harfma-harf jonli ko'rsatish + caret
     function highlightCurrentWord(typed) {
         if (finished || currentIndex >= words.length) return;
         var wordEl = document.getElementById('word-' + currentIndex);
@@ -795,6 +873,7 @@
         var nTarget = normalizeApostrophes(target);
         var html = '';
         for (var i = 0; i < target.length; i++) {
+            if (i === nT.length) html += '<span class="ltr-caret"></span>';
             var cls;
             if (i < nT.length) cls = (nT[i] === nTarget[i]) ? 'ltr-ok' : 'ltr-bad';
             else cls = 'ltr-todo';
@@ -802,9 +881,11 @@
         }
         if (typed.length > target.length) {
             html += '<span class="ltr-extra">' + _escHtml(typed.slice(target.length)) + '</span>';
+        } else if (nT.length >= target.length) {
+            html += '<span class="ltr-caret"></span>';
         }
         wordEl.innerHTML = html;
-        wordEl.className = 'prompt-word current';
+        wordEl.className = 'tg-word current';
     }
 
     function updateStats() {
@@ -817,11 +898,49 @@
         accEl.textContent = accuracy + '%';
     }
 
+    // ===== WPM grafigi (canvas sparkline) =====
+    function drawWpmChart() {
+        var canvas = document.getElementById('wpmChart');
+        if (!canvas || !canvas.getContext || wpmSamples.length < 2) {
+            if (canvas) canvas.parentElement.style.display = 'none';
+            return;
+        }
+        var ctx = canvas.getContext('2d');
+        var W = canvas.width, H = canvas.height, pad = 8;
+        var maxV = Math.max.apply(null, wpmSamples) || 1;
+        var styles = getComputedStyle(document.documentElement);
+        var accent = (styles.getPropertyValue('--tg-accent') || '#6366f1').trim();
+
+        ctx.clearRect(0, 0, W, H);
+        ctx.beginPath();
+        wpmSamples.forEach(function(v, i) {
+            var x = pad + (i / (wpmSamples.length - 1)) * (W - pad * 2);
+            var y = H - pad - (v / maxV) * (H - pad * 2);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = accent;
+        ctx.lineWidth = 2.5;
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // Gradient to'ldirish
+        ctx.lineTo(W - pad, H - pad);
+        ctx.lineTo(pad, H - pad);
+        ctx.closePath();
+        var grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, accent + '55');
+        grad.addColorStop(1, accent + '00');
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+
     async function finishGame() {
         if (finished) return;
         finished = true;
         clearInterval(timerInterval);
         typingArea.disabled = true;
+        capsPill.classList.remove('show');
+        sfx.finish();
 
         var elapsed = getElapsedSeconds();
         var totalTyped = correctCount + wrongCount;
@@ -833,14 +952,10 @@
         var form = document.getElementById('submitForm');
         var typedText = typedWordsList.join(' ');
 
-        // Native setter orqali hidden inputlarni to'ldirish
         var setInput = function(id, val) {
             var el = document.getElementById(id);
-            if (el && _origInputDesc) {
-                _origInputDesc.set.call(el, val);
-            } else if (el) {
-                el.setAttribute('value', val);
-            }
+            if (el && _origInputDesc) { _origInputDesc.set.call(el, val); }
+            else if (el) { el.setAttribute('value', val); }
         };
         setInput('hiddenTypedText', typedText);
         setInput('hiddenKeystrokeCount', cheated ? '0' : String(keystrokeCount));
@@ -855,6 +970,23 @@
 
         var formData = new FormData(form);
 
+        function showResult(s, w, a, t) {
+            var emoji, headline;
+            if (s >= 100) { emoji = '🚀'; headline = 'Ajoyib natija!'; }
+            else if (s >= 70) { emoji = '🔥'; headline = 'Zo\'r natija!'; }
+            else if (s >= 40) { emoji = '👍'; headline = 'Yaxshi natija!'; }
+            else { emoji = '🌱'; headline = 'Davom eting!'; }
+            document.getElementById('resultEmoji').textContent = emoji;
+            document.getElementById('resultHeadline').textContent = headline;
+            document.getElementById('resultScore').textContent = s;
+            document.getElementById('resultWpm').textContent = w;
+            document.getElementById('resultAccuracy').textContent = a + '%';
+            document.getElementById('resultTime').textContent = Math.round(t) + 's';
+            document.getElementById('resultErrors').textContent = wrongCount;
+            document.getElementById('resultOverlay').classList.add('show');
+            drawWpmChart();
+        }
+
         fetch(form.action, {
             method: 'POST',
             body: formData,
@@ -862,32 +994,60 @@
         })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-            if (data.error) { alert(data.error); return; }
-            document.getElementById('resultScore').textContent = data.score;
-            document.getElementById('resultWpm').textContent = data.wpm;
-            document.getElementById('resultAccuracy').textContent = data.accuracy + '%';
-            document.getElementById('resultTime').textContent = Math.round(data.time_spent) + 's';
-            document.getElementById('resultOverlay').classList.add('show');
+            if (data.error) { showToast(data.error); return; }
+            showResult(data.score, data.wpm, Math.round(data.accuracy), data.time_spent);
         })
         .catch(function() {
-            document.getElementById('resultScore').textContent = score;
-            document.getElementById('resultWpm').textContent = wpm;
-            document.getElementById('resultAccuracy').textContent = accuracy + '%';
-            document.getElementById('resultTime').textContent = Math.round(elapsed) + 's';
-            document.getElementById('resultOverlay').classList.add('show');
+            showResult(score, wpm, accuracy, elapsed);
         });
     }
 
     finishBtn.addEventListener('click', finishGame);
+
+    // ===== 3-2-1 COUNTDOWN =====
+    (function runCountdown() {
+        var overlay = document.getElementById('countOverlay');
+        var numEl = document.getElementById('countNum');
+        var n = 3;
+
+        function step() {
+            if (n > 0) {
+                numEl.textContent = n;
+                numEl.style.animation = 'none';
+                void numEl.offsetWidth; // reflow — animatsiyani qayta boshlash
+                numEl.style.animation = 'tgPop 0.9s ease both';
+                sfx.tick();
+                n--;
+                setTimeout(step, 1000);
+            } else {
+                numEl.textContent = 'GO!';
+                numEl.style.animation = 'none';
+                void numEl.offsetWidth;
+                numEl.style.animation = 'tgPop 0.5s ease both';
+                sfx.go();
+                setTimeout(function() {
+                    overlay.classList.add('hidden');
+                    gameReady = true;
+                    typingArea.disabled = false;
+                    typingArea.focus();
+                    startTimer();
+                    finishBtn.style.display = 'inline-flex';
+                }, 450);
+            }
+        }
+        // Birinchi bosishda audio kontekstni uyg'otish uchun
+        document.addEventListener('pointerdown', ensureAudio, {once: true});
+        step();
+    })();
 
     // ===== ANTI-CHEAT: Tab/Window almashish =====
     document.addEventListener('visibilitychange', function() {
         if (document.hidden && startTime && !finished) {
             tabSwitchCount++;
             document.getElementById('tabCount').textContent = tabSwitchCount;
-            var warning = document.getElementById('tabWarning');
-            warning.classList.add('show');
-            setTimeout(function() { warning.classList.remove('show'); }, 3000);
+            var pill = document.getElementById('tabPill');
+            pill.classList.add('show');
+            setTimeout(function() { pill.classList.remove('show'); }, 3000);
             if (isCompetition && tabSwitchCount >= 3) {
                 finishGame();
             }
@@ -901,10 +1061,6 @@
         if (e.ctrlKey && /^[uUsSpP]$/.test(e.key)) { e.preventDefault(); return; }
     });
 
-    // ===== ANTI-CHEAT: Form manipulation himoyasi =====
-    // Form observer olib tashlandi - finishGame() hidden inputlarni yangilaganda
-    // form_tamper false positive hosil qilardi
-
     // ===== ANTI-CHEAT: DevTools aniqlash =====
     var _dtOpen = false;
     (function _dtCheck() {
@@ -917,21 +1073,20 @@
         if (!finished) setTimeout(_dtCheck, 2000);
     })();
 
-    // ===== ANTI-CHEAT: Console API himoyasi =====
-    // Console interceptni olib tashladik - brauzerning ichki console chaqiruvlari
-    // false positive hosil qilar edi
-
-    // ===== ANTI-CHEAT: eval/Function himoyasi =====
-    // eval intercept olib tashlandi - brauzer kengaytmalari false positive hosil qilardi
-
     // ===== ANTI-CHEAT: Textarea DOM o'zgarishini kuzatish =====
-    var taObserver = new MutationObserver(function() {
-        if (!finished) {
-            _untrustedInputs++;
-            if (_untrustedInputs > 15) _onCheatDetected('dom_mutate');
-        }
+    var taObserver = new MutationObserver(function(mutations) {
+        if (finished || !gameReady) return;
+        // O'yin davomida disabled/readonly'ni tashqi o'zgartirish — shubhali
+        _untrustedInputs++;
+        if (_untrustedInputs > 15) _onCheatDetected('dom_mutate');
     });
-    taObserver.observe(typingArea, {attributes: true, attributeFilter: ['disabled','readonly']});
+    // Countdown o'zi disabled'ni olib tashlaydi — observer'ni gameReady'dan keyin ulaymiz
+    var _obsTimer = setInterval(function() {
+        if (gameReady) {
+            taObserver.observe(typingArea, {attributes: true, attributeFilter: ['disabled','readonly']});
+            clearInterval(_obsTimer);
+        }
+    }, 300);
 
     // ===== ANTI-CHEAT: Yangi script injection aniqlash =====
     var bodyObserver = new MutationObserver(function(mutations) {
@@ -946,16 +1101,10 @@
     });
     bodyObserver.observe(document.body || document.documentElement, {childList: true, subtree: true});
 
-    // ===== ANTI-CHEAT: setInterval/setTimeout himoyasi =====
-    // Olib tashlandi - boshqa kutubxonalar bilan konflikt hosil qilardi
-
     // ===== ANTI-CHEAT: iframe ichida ochilishni bloklash =====
     if (window.self !== window.top) {
-        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">\u26d4 Iframe aniqlandi. O\'yin bloklandi.</div>';
+        document.body.innerHTML = '<div style="text-align:center;padding:100px;font-size:1.5rem;color:#ef4444;">⛔ Iframe aniqlandi. O\'yin bloklandi.</div>';
     }
-
-    // ===== ANTI-CHEAT: window.open bloklash =====
-    // Olib tashlandi - brauzer kengaytmalari window.open ishlatishi mumkin
 
     // ===== ANTI-CHEAT: alert/confirm/prompt bloklash =====
     (function() {
@@ -970,14 +1119,12 @@
         });
     })();
 
-    // ===== ANTI-CHEAT: Butun sahifada matn tanlashni bloklash =====
+    // ===== ANTI-CHEAT: Matn tanlash / drag-drop bloklash =====
+    promptWordsEl.style.userSelect = 'none';
+    promptWordsEl.style.webkitUserSelect = 'none';
     document.addEventListener('selectstart', function(e) {
-        if (startTime && !finished && e.target !== typingArea) {
-            e.preventDefault();
-        }
+        if (startTime && !finished && e.target !== typingArea) { e.preventDefault(); }
     });
-
-    // ===== ANTI-CHEAT: Butun sahifada drag/drop bloklash =====
     document.addEventListener('dragstart', function(e) { e.preventDefault(); });
     document.addEventListener('drop', function(e) { e.preventDefault(); });
 
@@ -986,24 +1133,14 @@
     window.addEventListener('blur', function() {
         if (startTime && !finished) {
             _focusLostCount++;
-            if (_focusLostCount > 10) {
-                _onCheatDetected('focus_abuse');
-            }
+            if (_focusLostCount > 10) { _onCheatDetected('focus_abuse'); }
         }
     });
-
-    // ===== ANTI-CHEAT: Sichqoncha harakati monitoring (bot aniqlash) =====
-    var _mouseMovements = 0;
-    document.addEventListener('mousemove', function() { _mouseMovements++; });
-
-    // ===== ANTI-CHEAT: Bookmarklet himoyasi =====
-    // location override olib tashlandi - sahifa navigatsiyasini buzishi mumkin
 
     // ===== ANTI-CHEAT: Clipboard API himoyasi =====
     (function() {
         try {
             if (navigator.clipboard) {
-                var _origRead = navigator.clipboard.readText;
                 Object.defineProperty(navigator.clipboard, 'readText', {
                     value: function() {
                         if (startTime && !finished) { _onCheatDetected('clipboard_read'); }
@@ -1020,13 +1157,10 @@
     (function() {
         try {
             var _origDispatch = HTMLTextAreaElement.prototype.dispatchEvent;
-            // typingArea uchun dispatchEvent ni kuzatish
             typingArea.dispatchEvent = function(event) {
                 if (event && (event.type === 'input' || event.type === 'keydown' || event.type === 'keypress') && !event.isTrusted) {
                     _untrustedInputs += 2;
-                    if (_untrustedInputs > 10) {
-                        _onCheatDetected('fake_dispatch');
-                    }
+                    if (_untrustedInputs > 10) { _onCheatDetected('fake_dispatch'); }
                     return false;
                 }
                 return _origDispatch.call(this, event);

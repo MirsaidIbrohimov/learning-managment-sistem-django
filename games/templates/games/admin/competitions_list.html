@@ -173,8 +173,9 @@
                             <th>Boshlanish</th>
                             <th>Tugash</th>
                             <th>Holat</th>
+                            <th>Matnlar</th>
+                            <th>Ishtirokchi</th>
                             <th>Urinishlar</th>
-                            <th>Qayta urinish</th>
                             <th>Faol</th>
                             <th>Amallar</th>
                         </tr>
@@ -195,14 +196,21 @@
                                 <span class="badge bg-secondary" style="border-radius: 8px;">Tugagan</span>
                                 {% endif %}
                             </td>
-                            <td>{{ comp.max_attempts }}</td>
                             <td>
-                                {% if comp.allow_retry %}
-                                <span class="badge bg-info" style="border-radius: 8px;">Ha</span>
+                                {% if comp.selected_prompts_count %}
+                                <span class="badge bg-primary" style="border-radius: 8px;" title="Maxsus tanlangan matnlar">
+                                    <i class="bi bi-card-text"></i> {{ comp.selected_prompts_count }} ta
+                                </span>
                                 {% else %}
-                                <span class="badge bg-secondary" style="border-radius: 8px;">Yo'q</span>
+                                <span class="badge bg-light text-dark" style="border-radius: 8px;" title="Umumiy 'Musobaqa' poolidan">Umumiy pool</span>
                                 {% endif %}
                             </td>
+                            <td>
+                                <span class="badge bg-info text-dark" style="border-radius: 8px;">
+                                    <i class="bi bi-people"></i> {{ comp.typing_participants|add:comp.word_participants }}
+                                </span>
+                            </td>
+                            <td>{{ comp.max_attempts }}{% if comp.allow_retry %} <small class="text-muted">(qayta ✓)</small>{% endif %}</td>
                             <td>
                                 {% if comp.is_active %}
                                 <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
@@ -219,6 +227,9 @@
                                     </button>
                                 </form>
                                 {% endif %}
+                                <a href="{% url 'games:competition_leaderboard' comp.pk %}" class="btn btn-sm btn-outline-primary action-btn" title="Reyting">
+                                    <i class="bi bi-bar-chart"></i>
+                                </a>
                                 <a href="{% url 'games:admin_competition_edit' comp.pk %}" class="btn btn-sm btn-outline-warning action-btn">
                                     <i class="bi bi-pencil"></i>
                                 </a>
@@ -229,7 +240,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">
+                            <td colspan="10" class="text-center py-4 text-muted">
                                 <i class="bi bi-trophy" style="font-size: 2rem; opacity: 0.4;"></i>
                                 <p class="mt-2 mb-0">Musobaqalar mavjud emas</p>
                             </td>
@@ -259,6 +270,11 @@
                 <div><i class="bi bi-controller"></i> {{ comp.game.title }}</div>
                 <div><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}</div>
                 <div><i class="bi bi-arrow-repeat"></i> {{ comp.max_attempts }} urinish {% if comp.allow_retry %} · Qayta urinish: Ha{% endif %}</div>
+                <div>
+                    <i class="bi bi-card-text"></i>
+                    {% if comp.selected_prompts_count %}{{ comp.selected_prompts_count }} ta maxsus matn{% else %}Umumiy pool{% endif %}
+                    · <i class="bi bi-people"></i> {{ comp.typing_participants|add:comp.word_participants }} ishtirokchi
+                </div>
             </div>
             <div class="card-footer-m">
                 <div class="card-badges">

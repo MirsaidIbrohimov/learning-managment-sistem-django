@@ -89,8 +89,9 @@
         border-radius: 10px; border: none; background: rgba(255,255,255,0.1); color: #fff;
         font-size: 1.2rem; cursor: pointer;
     }
+    /* ══ Tablet & below (≤992px) ══ */
     @media (max-width: 992px) {
-        .sidebar { width: 280px !important; transform: translateX(-100%);
+        .sidebar { width: min(300px, 86vw) !important; transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); z-index: 1050; }
         .sidebar.open { transform: translateX(0); }
         .sidebar-close { display: flex; align-items: center; justify-content: center; }
@@ -98,13 +99,95 @@
         .sidebar-user-card .suc-info, .sidebar-user-card .suc-dot { display: block !important; }
         .sidebar-nav .nav-link { justify-content: flex-start !important; padding: 12px 15px !important; }
         .sidebar-nav .nav-link i:first-child { margin-right: 10px !important; }
-        .admin-topbar { left: 0 !important; }
-        .main-content { margin-left: 0 !important; }
+        .admin-topbar { left: 0 !important; padding: 0 18px; }
+        .main-content { margin-left: 0 !important; padding: 84px 20px 24px; }
     }
+
+    /* ══ Mid-mobile / large phones (≤768px) ══ */
+    @media (max-width: 768px) {
+        .admin-topbar { height: 58px; padding: 0 14px; }
+        .admin-topbar-left { gap: 10px; min-width: 0; flex: 1; }
+        .admin-topbar-right { gap: 8px; }
+        .topbar-title { font-size: 0.98rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .main-content { padding: 74px 16px 24px; }
+        .sidebar-toggle, .admin-theme-btn { width: 40px; height: 40px; font-size: 1.15rem; border-radius: 11px; }
+        .topbar-profile-btn { padding: 4px 12px 4px 4px; }
+        .topbar-avatar { width: 30px; height: 30px; font-size: 0.75rem; }
+        .topbar-name { font-size: 0.85rem; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .alert { padding: 12px 14px; font-size: 0.9rem; border-radius: 12px; }
+    }
+
+    /* ══ Small phones (≤576px) ══ */
     @media (max-width: 576px) {
-        .admin-topbar { padding: 0 14px; }
+        .admin-topbar { height: 56px; padding: 0 12px; }
+        .admin-topbar-left { gap: 8px; }
+        .admin-topbar-right { gap: 6px; }
+        .topbar-title { font-size: 0.9rem; max-width: 44vw; }
         .topbar-name { display: none; }
-        .main-content { padding: 78px 14px 20px; }
+        .main-content { padding: 68px 12px 20px; }
+        .sidebar-toggle, .admin-theme-btn { width: 38px; height: 38px; font-size: 1.05rem; border-radius: 10px; }
+        .topbar-profile-btn { padding: 3px 8px 3px 3px; border-radius: 40px; gap: 6px; }
+        .topbar-profile-btn > .bi-chevron-down { display: none; }
+        .topbar-avatar { width: 30px; height: 30px; font-size: 0.72rem; }
+        .dropdown-menu { max-width: calc(100vw - 20px); }
+        .alert { padding: 10px 12px; font-size: 0.85rem; border-radius: 10px; margin-bottom: 12px; }
+        .sidebar-brand { padding: 16px 16px 12px; }
+        .sidebar-user-card { margin: 10px 12px; padding: 10px 12px; }
+    }
+
+    /* ══ Tiny phones (≤380px) ══ */
+    @media (max-width: 380px) {
+        .admin-topbar { padding: 0 10px; height: 54px; }
+        .admin-topbar-left { gap: 6px; }
+        .admin-topbar-right { gap: 4px; }
+        .topbar-title { font-size: 0.85rem; max-width: 40vw; }
+        .main-content { padding: 66px 10px 18px; }
+        .sidebar-toggle, .admin-theme-btn { width: 36px; height: 36px; font-size: 1rem; }
+        .topbar-avatar { width: 28px; height: 28px; font-size: 0.68rem; }
+        .sidebar { width: 90vw !important; }
+    }
+
+    /* ══ Prevent horizontal overflow on mobile ══ */
+    @media (max-width: 992px) {
+        html, body { overflow-x: hidden; max-width: 100%; }
+    }
+
+    /* ══ iPhone notch / safe-area support ══ */
+    @supports (padding: env(safe-area-inset-top)) {
+        .admin-topbar {
+            padding-top: env(safe-area-inset-top);
+            padding-left: max(24px, env(safe-area-inset-left));
+            padding-right: max(24px, env(safe-area-inset-right));
+            height: calc(64px + env(safe-area-inset-top));
+        }
+        .main-content {
+            padding-top: calc(88px + env(safe-area-inset-top));
+            padding-bottom: calc(30px + env(safe-area-inset-bottom));
+        }
+        .sidebar { padding-top: env(safe-area-inset-top); }
+        @media (max-width: 768px) {
+            .admin-topbar {
+                height: calc(58px + env(safe-area-inset-top));
+                padding-left: max(14px, env(safe-area-inset-left));
+                padding-right: max(14px, env(safe-area-inset-right));
+            }
+            .main-content { padding-top: calc(74px + env(safe-area-inset-top)); }
+        }
+        @media (max-width: 576px) {
+            .admin-topbar {
+                height: calc(56px + env(safe-area-inset-top));
+                padding-left: max(12px, env(safe-area-inset-left));
+                padding-right: max(12px, env(safe-area-inset-right));
+            }
+            .main-content { padding-top: calc(68px + env(safe-area-inset-top)); }
+        }
+    }
+
+    /* ══ Landscape phones — extra compact topbar ══ */
+    @media (max-width: 900px) and (orientation: landscape) and (max-height: 500px) {
+        .admin-topbar { height: 50px; }
+        .main-content { padding-top: 62px; }
+        .sidebar-user-card { padding: 8px 10px; }
     }
     </style>
 
@@ -192,7 +275,7 @@
     <div class="admin-topbar">
         <div class="admin-topbar-left">
             <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menyu"><i class="bi bi-list" id="sidebarToggleIcon"></i></button>
-            <span class="topbar-title d-none d-md-inline">{% block topbar_title %}O'qituvchi paneli{% endblock %}</span>
+            <span class="topbar-title">{% block topbar_title %}O'qituvchi paneli{% endblock %}</span>
         </div>
         <div class="admin-topbar-right">
             <button class="admin-theme-btn" id="themeToggle" title="Tema"><i class="bi bi-moon-fill" id="themeIcon"></i></button>
@@ -202,7 +285,7 @@
                     <span class="topbar-name">{{ user.first_name }}</span>
                     <i class="bi bi-chevron-down" style="font-size:0.7rem;opacity:0.5;"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius:14px;min-width:200px;padding:8px;">
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="border-radius:14px;min-width:200px;max-width:calc(100vw - 20px);padding:8px;">
                     <li class="px-3 py-2">
                         <div class="fw-bold">{{ user.first_name }} {{ user.last_name }}</div>
                         <small class="text-muted">O'qituvchi</small>
@@ -276,6 +359,23 @@
         overlay.addEventListener('click', closeSidebar);
         sidebar.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', () => { if (window.innerWidth <= 992) closeSidebar(); });
+        });
+        // Handle resize: don't let desktop-only sidebar-collapsed state leak into mobile
+        let _resizeT;
+        window.addEventListener('resize', () => {
+            clearTimeout(_resizeT);
+            _resizeT = setTimeout(() => {
+                if (window.innerWidth <= 992) {
+                    document.body.classList.remove('sidebar-collapsed');
+                } else {
+                    // Coming back to desktop — close any open mobile drawer
+                    closeSidebar();
+                    if (localStorage.getItem('sidebarCollapsed') === 'true') {
+                        document.body.classList.add('sidebar-collapsed');
+                    }
+                }
+                updateSidebarIcon();
+            }, 120);
         });
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
