@@ -3,590 +3,653 @@
 {% block title %}Premium Obuna | LMS{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/market/_market_ui.html' %}
 <style>
 :root {
-    --pm-bg: #f8fafc;
+    --pm-bg: #f6f7fb;
     --pm-card: #ffffff;
-    --pm-text: #1e293b;
+    --pm-text: #0f172a;
     --pm-muted: #64748b;
-    --pm-border: rgba(0,0,0,0.06);
+    --pm-border: rgba(15, 23, 42, 0.08);
     --pm-gold: #f59e0b;
     --pm-gold-light: #fef3c7;
-    --pm-gold-dark: #d97706;
+    --pm-gold-dark: #b45309;
     --pm-success: #10b981;
+    --pm-danger: #ef4444;
     --pm-purple: #8b5cf6;
+    --pm-blue: #3b82f6;
+    --pm-radius: 20px;
+    --pm-radius-sm: 12px;
 }
 [data-bs-theme="dark"] {
-    --pm-bg: #0f172a;
-    --pm-card: #1e293b;
-    --pm-text: #f1f5f9;
-    --pm-muted: #94a3b8;
-    --pm-border: rgba(255,255,255,0.08);
-    --pm-gold-light: rgba(245,158,11,0.15);
+    --pm-bg: #0f0f16;
+    --pm-card: #16161f;
+    --pm-text: #e7eaf0;
+    --pm-muted: #8b93a7;
+    --pm-border: rgba(255, 255, 255, 0.08);
+    --pm-gold-light: rgba(245, 158, 11, 0.15);
+    --pm-gold-dark: #fbbf24;
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-@keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-}
-@keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(245,158,11,0.2); }
-    50% { box-shadow: 0 0 40px rgba(245,158,11,0.5); }
-}
-@keyframes starSpin {
-    from { transform: rotate(0deg) scale(1); }
-    50% { transform: rotate(180deg) scale(1.2); }
-    to { transform: rotate(360deg) scale(1); }
-}
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-40px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes slideInRight {
-    from { opacity: 0; transform: translateX(40px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes bounceIn {
-    0% { opacity: 0; transform: scale(0.3); }
-    50% { transform: scale(1.05); }
-    70% { transform: scale(0.95); }
-    100% { opacity: 1; transform: scale(1); }
-}
-@keyframes countUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes dotPulse {
-    0%, 100% { opacity: 0.3; transform: scale(0.8); }
-    50% { opacity: 1; transform: scale(1.2); }
-}
+@keyframes fadeInUp { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes pulseGlow { 0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.2)} 50%{box-shadow:0 0 40px rgba(245,158,11,0.5)} }
+@keyframes starSpin { from{transform:rotate(0)scale(1)} 50%{transform:rotate(180deg)scale(1.2)} to{transform:rotate(360deg)scale(1)} }
+@keyframes slideInLeft { from{opacity:0;transform:translateX(-40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes slideInRight { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+@keyframes bounceIn { 0%{opacity:0;transform:scale(0.3)} 50%{transform:scale(1.05)} 70%{transform:scale(0.95)} 100%{opacity:1;transform:scale(1)} }
+@keyframes countUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes dotPulse { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.2)} }
+@keyframes gradientMove { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes heartbeat { 0%,100%{transform:scale(1)} 25%{transform:scale(1.1)} 50%{transform:scale(1)} 75%{transform:scale(1.05)} }
+@keyframes ringPulse { 0%{transform:scale(1);opacity:0.7} 100%{transform:scale(2);opacity:0} }
+@keyframes progressFill { from{width:0} to{width:var(--fill-pct)} }
+@keyframes glide { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
 
-.pm-page {
-    min-height: 100vh;
-    background: var(--pm-bg);
-    padding-bottom: 4rem;
-}
+.pm-page { min-height:100vh; background:var(--pm-bg); padding-bottom:5rem; padding-top:1.5rem; }
 
-/* Hero */
+/* HERO — fokus uslub: toza karta + 4px gradient ustki chiziq */
 .pm-hero {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%);
-    border-radius: 0 0 2.5rem 2.5rem;
-    padding: 3rem 1.5rem 4rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: -2rem;
+    background:var(--pm-card);
+    border:1px solid var(--pm-border);
+    border-radius:var(--pm-radius);
+    box-shadow:0 8px 30px rgba(15, 23, 42, 0.06);
+    padding:1.8rem 2rem;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    margin:0 auto 1.25rem;
+    max-width:1080px;
+    animation:fadeInUp 0.5s ease-out;
 }
 .pm-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 5l5.5 11 12.2 1.8-8.8 8.6 2.1 12.1L30 32.8l-10.9 5.7 2.1-12.1-8.8-8.6L24.5 16z' fill='%23ffffff' fill-opacity='0.06'/%3E%3C/svg%3E");
-    animation: float 6s ease-in-out infinite;
+    content:''; position:absolute;
+    top:0; left:0; right:0;
+    height:4px;
+    background:linear-gradient(90deg, var(--pm-gold), #fbbf24, var(--pm-purple));
 }
-.pm-hero-icon {
-    font-size: 3.5rem;
-    color: white;
-    animation: starSpin 3s ease-in-out infinite;
-    display: inline-block;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
+[data-bs-theme="dark"] .pm-hero { box-shadow:0 8px 30px rgba(0, 0, 0, 0.35); }
+.pm-hero-icon-wrap { position:relative; display:inline-block; margin-bottom:0.4rem; }
+.pm-hero-icon { font-size:2.6rem; color:var(--pm-gold); display:inline-block; position:relative; z-index:1; }
+.pm-hero-ring-outer { position:absolute; inset:-10px; border-radius:50%; border:2px solid rgba(245,158,11,0.25); animation:ringPulse 2s ease-out infinite; }
+.pm-hero h1 { color:var(--pm-text); font-weight:800; font-size:1.65rem; margin:0.5rem 0 0.25rem; animation:fadeInUp 0.5s ease-out; }
+.pm-hero p { color:var(--pm-muted); font-size:0.95rem; animation:fadeInUp 0.5s ease-out 0.1s both; margin-bottom:1rem; }
+
+/* Live stats bar */
+.pm-live-stats {
+    display:inline-flex; flex-wrap:wrap; gap:0.5rem; justify-content:center; margin-top:0.25rem;
+    animation:fadeInUp 0.5s ease-out 0.2s both;
 }
-.pm-hero h1 {
-    color: white;
-    font-weight: 800;
-    font-size: 2rem;
-    margin: 0.8rem 0 0.3rem;
-    animation: fadeInUp 0.6s ease-out;
+.pm-live-chip {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    background:rgba(245, 158, 11, 0.12);
+    border:1px solid var(--pm-border);
+    border-radius:var(--pm-radius-sm);
+    padding:0.45rem 0.95rem; color:var(--pm-text); font-weight:600; font-size:0.83rem;
 }
-.pm-hero p {
-    color: rgba(255,255,255,0.85);
-    font-size: 1rem;
-    animation: fadeInUp 0.6s ease-out 0.1s both;
+.pm-live-chip i { font-size:1rem; color:var(--pm-gold); }
+.pm-live-chip strong { font-weight:800; font-family:ui-monospace,'JetBrains Mono',Consolas,monospace; }
+.pm-live-chip.timer { animation:heartbeat 2s ease-in-out infinite; }
+
+/* Avatar strip social proof */
+.pm-avatar-strip { display:inline-flex; align-items:center; gap:0.7rem; margin-top:0.9rem; animation:fadeInUp 0.5s ease-out 0.3s both; }
+.pm-avatars { display:inline-flex; }
+.pm-avatar {
+    width:32px; height:32px; border-radius:50%; border:2px solid var(--pm-card);
+    background:linear-gradient(135deg,var(--c1,#8b5cf6),var(--c2,#ec4899));
+    display:inline-flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:0.72rem; color:#fff;
+    margin-left:-8px; box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+.pm-avatar:first-child { margin-left:0; }
+.pm-avatar-more { background:var(--pm-gold-light); color:var(--pm-gold-dark); font-size:0.66rem; }
+.pm-avatar-text { color:var(--pm-muted); font-weight:600; font-size:0.84rem; }
+.pm-avatar-text strong { font-weight:800; color:var(--pm-text); }
+
+/* Cards wrap */
+.pm-cards-wrap { max-width:1080px; margin:0 auto; padding:0 1rem; position:relative; z-index:2; }
+
+/* Eligibility warning */
+.pm-eligibility-warn {
+    background:rgba(239,68,68,0.08); border:2px solid rgba(239,68,68,0.25);
+    border-radius:16px; padding:1rem 1.25rem;
+    display:flex; align-items:center; gap:0.85rem;
+    font-size:0.9rem; font-weight:600; color:#dc2626;
+    margin-bottom:1.5rem; animation:fadeInUp 0.5s ease;
+}
+.pm-eligibility-warn i { font-size:1.4rem; flex-shrink:0; }
+
+/* Value anchor row */
+.pm-anchor-row {
+    background:linear-gradient(135deg,#fef3c7,#fde68a);
+    border:2px dashed rgba(245,158,11,0.4); border-radius:20px;
+    padding:1.25rem 1.5rem; margin-bottom:1.5rem;
+    display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+    animation:fadeInUp 0.5s ease 0.1s both;
+    position:relative; overflow:hidden;
+}
+[data-bs-theme="dark"] .pm-anchor-row { background:rgba(245,158,11,0.1); }
+.pm-anchor-row::before {
+    content:''; position:absolute; top:0; left:-100%; width:50%; height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+    animation:glide 3s ease-in-out infinite;
+}
+.pm-anchor-label { font-weight:700; font-size:0.95rem; color:#78350f; }
+[data-bs-theme="dark"] .pm-anchor-label { color:#fbbf24; }
+.pm-anchor-prices { display:flex; align-items:center; gap:0.75rem; }
+.pm-anchor-old { text-decoration:line-through; color:#92400e; opacity:0.6; font-weight:700; font-size:1.1rem; }
+[data-bs-theme="dark"] .pm-anchor-old { color:#fbbf24; }
+.pm-anchor-arrow { font-size:1.2rem; color:#d97706; }
+.pm-anchor-new { font-weight:800; font-size:1.6rem; color:#b45309; }
+[data-bs-theme="dark"] .pm-anchor-new { color:#f59e0b; }
+.pm-anchor-badge {
+    background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff;
+    padding:0.35rem 0.75rem; border-radius:10px; font-size:0.85rem; font-weight:800;
+    animation:heartbeat 1.5s ease-in-out infinite;
 }
 
-/* Coin Badge */
-.pm-coin-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255,255,255,0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 50px;
-    padding: 0.5rem 1.2rem;
-    color: white;
-    font-weight: 700;
-    font-size: 1.1rem;
-    animation: bounceIn 0.8s ease-out 0.3s both;
+/* Progress to premium */
+.pm-progress-card {
+    background:var(--pm-card); border:1px solid var(--pm-border); border-radius:20px;
+    padding:1.5rem; margin-bottom:1.5rem;
+    animation:fadeInUp 0.5s ease 0.15s both;
 }
-.pm-coin-badge i { font-size: 1.3rem; }
-
-/* Cards Container */
-.pm-cards-wrap {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 1rem;
-    position: relative;
-    z-index: 2;
+.pm-progress-header {
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;
 }
+.pm-progress-title { font-weight:700; font-size:1rem; color:var(--pm-text); margin:0; display:flex; align-items:center; gap:0.4rem; }
+.pm-progress-status { font-size:0.85rem; font-weight:600; color:var(--pm-muted); }
+.pm-progress-status.ready { color:var(--pm-success); font-weight:800; }
+.pm-progress-bar {
+    height:14px; background:var(--pm-bg); border-radius:20px; overflow:hidden; position:relative;
+    border:1px solid var(--pm-border);
+}
+.pm-progress-fill {
+    height:100%; background:linear-gradient(90deg,#f59e0b,#d97706);
+    border-radius:20px; position:relative; overflow:hidden;
+    animation:progressFill 1.2s cubic-bezier(0.4,0,0.2,1) both;
+}
+.pm-progress-fill.ready { background:linear-gradient(90deg,#10b981,#059669); }
+.pm-progress-fill::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent);
+    animation:glide 2s ease-in-out infinite;
+}
+.pm-progress-labels { display:flex; justify-content:space-between; margin-top:0.5rem; font-size:0.78rem; color:var(--pm-muted); font-weight:600; }
 
-/* Plan Card */
+/* Plan cards */
 .pm-plan {
-    background: var(--pm-card);
-    border-radius: 1.5rem;
-    border: 2px solid var(--pm-border);
-    padding: 2rem 1.5rem;
-    text-align: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+    background:var(--pm-card); border-radius:1.75rem; border:2px solid var(--pm-border);
+    padding:2rem 1.5rem 1.5rem;
+    text-align:center;
+    transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+    position:relative; overflow:hidden;
+    height:100%; display:flex; flex-direction:column;
 }
 .pm-plan::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, var(--pm-gold), var(--pm-gold-dark));
-    transform: scaleX(0);
-    transition: transform 0.4s ease;
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,var(--pm-gold),var(--pm-gold-dark));
+    transform:scaleX(0); transition:transform 0.4s ease; transform-origin:left;
 }
-.pm-plan:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(245,158,11,0.15);
-    border-color: var(--pm-gold);
-}
-.pm-plan:hover::before { transform: scaleX(1); }
+.pm-plan:hover { transform:translateY(-10px); box-shadow:0 24px 60px rgba(245,158,11,0.18); border-color:var(--pm-gold); }
+.pm-plan:hover::before { transform:scaleX(1); }
+.pm-plan.popular { border-color:var(--pm-gold); box-shadow:0 8px 30px rgba(245,158,11,0.2); animation:pulseGlow 3s ease-in-out infinite; }
+.pm-plan.popular::before { transform:scaleX(1); }
 
-.pm-plan.popular {
-    border-color: var(--pm-gold);
-    box-shadow: 0 8px 30px rgba(245,158,11,0.2);
-    animation: pulse-glow 3s ease-in-out infinite;
-}
-.pm-plan.popular::before { transform: scaleX(1); }
-
-/* Popular badge */
+/* Popular ribbon */
 .pm-popular-tag {
-    position: absolute;
-    top: 14px;
-    right: -32px;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 4px 40px;
-    transform: rotate(45deg);
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 8px rgba(245,158,11,0.4);
+    position:absolute; top:16px; right:-36px;
+    background:linear-gradient(135deg,#dc2626,#b91c1c); color:#fff;
+    font-size:0.72rem; font-weight:800; padding:5px 44px;
+    transform:rotate(45deg); letter-spacing:0.5px;
+    box-shadow:0 4px 12px rgba(220,38,38,0.5);
+    z-index:2;
+}
+.pm-savings-tag {
+    position:absolute; top:16px; left:16px;
+    background:linear-gradient(135deg,#10b981,#059669); color:#fff;
+    font-size:0.72rem; font-weight:800; padding:0.3rem 0.7rem; border-radius:10px;
+    z-index:2; box-shadow:0 4px 10px rgba(16,185,129,0.35);
 }
 
-/* Plan icon */
 .pm-plan-icon {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    transition: transform 0.3s ease;
+    width:70px; height:70px; border-radius:50%; display:inline-flex;
+    align-items:center; justify-content:center; font-size:1.9rem;
+    margin-bottom:1rem; transition:transform 0.3s ease;
 }
-.pm-plan:hover .pm-plan-icon { transform: scale(1.15) rotate(10deg); }
+.pm-plan:hover .pm-plan-icon { transform:scale(1.15) rotate(10deg); }
+.pm-plan-icon.weekly { background:linear-gradient(135deg,#dbeafe,#bfdbfe); color:#3b82f6; }
+.pm-plan-icon.monthly { background:linear-gradient(135deg,var(--pm-gold-light),#fde68a); color:var(--pm-gold); }
+.pm-plan-icon.bimonthly { background:linear-gradient(135deg,#ede9fe,#ddd6fe); color:var(--pm-purple); }
 
-.pm-plan-icon.weekly {
-    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
-    color: #3b82f6;
-}
-.pm-plan-icon.monthly {
-    background: linear-gradient(135deg, var(--pm-gold-light), #fde68a);
-    color: var(--pm-gold);
-}
-.pm-plan-icon.bimonthly {
-    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
-    color: var(--pm-purple);
+.pm-plan-name { font-weight:800; font-size:1.2rem; color:var(--pm-text); margin-bottom:0.2rem; }
+.pm-plan-days { color:var(--pm-muted); font-size:0.86rem; margin-bottom:1rem; }
+.pm-plan-ideal {
+    font-size:0.75rem; color:var(--pm-muted); font-style:italic; margin-bottom:0.75rem;
+    padding:0.3rem 0.6rem; background:var(--pm-bg); border-radius:8px; display:inline-block;
 }
 
-.pm-plan-name {
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: var(--pm-text);
-    margin-bottom: 0.2rem;
+/* Price with anchor */
+.pm-price-wrap { margin:0.75rem 0; }
+.pm-price-old {
+    text-decoration:line-through; color:var(--pm-muted);
+    font-size:0.95rem; font-weight:600; opacity:0.7;
+    display:block; margin-bottom:0.2rem;
 }
-.pm-plan-days {
-    color: var(--pm-muted);
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
+.pm-price-amount { font-size:2.8rem; font-weight:900; color:var(--pm-gold); line-height:1; animation:countUp 0.6s ease-out; }
+.pm-price-label { color:var(--pm-muted); font-size:0.9rem; font-weight:600; }
+.pm-price-perday {
+    font-size:0.78rem; color:var(--pm-success); font-weight:700;
+    background:rgba(16,185,129,0.1); padding:0.25rem 0.6rem; border-radius:8px;
+    display:inline-block; margin-top:0.5rem;
 }
-
-/* Price */
-.pm-price {
-    margin: 1rem 0;
-}
-.pm-price-amount {
-    font-size: 2.8rem;
-    font-weight: 800;
-    color: var(--pm-gold);
-    line-height: 1;
-    animation: countUp 0.6s ease-out;
-}
-.pm-price-label {
-    color: var(--pm-muted);
-    font-size: 0.9rem;
-    font-weight: 500;
+.pm-price-social {
+    font-size:0.72rem; color:var(--pm-muted); font-weight:600; margin-top:0.5rem;
+    display:flex; align-items:center; gap:0.35rem; justify-content:center;
 }
 
 /* Features */
-.pm-features {
-    list-style: none;
-    padding: 0;
-    margin: 1.2rem 0;
-    text-align: left;
-    flex-grow: 1;
-}
+.pm-features { list-style:none; padding:0; margin:1.2rem 0; text-align:left; flex-grow:1; }
 .pm-features li {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.45rem 0;
-    font-size: 0.88rem;
-    color: var(--pm-text);
-    border-bottom: 1px solid var(--pm-border);
+    display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0;
+    font-size:0.88rem; color:var(--pm-text);
+    border-bottom:1px solid var(--pm-border);
 }
-.pm-features li:last-child { border-bottom: none; }
-.pm-features li i {
-    color: var(--pm-success);
-    font-size: 1rem;
-    flex-shrink: 0;
-}
+.pm-features li:last-child { border-bottom:none; }
+.pm-features li i { color:var(--pm-success); font-size:1rem; flex-shrink:0; }
 
 /* Button */
 .pm-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.85rem 1.5rem;
-    border-radius: 0.8rem;
-    font-weight: 700;
-    font-size: 0.95rem;
-    border: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    text-decoration: none;
+    display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;
+    width:100%; padding:0.9rem 1.5rem; border-radius:14px;
+    font-weight:800; font-size:0.98rem; border:none; cursor:pointer;
+    transition:all 0.3s ease; position:relative; overflow:hidden; text-decoration:none;
 }
 .pm-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 3s infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
+    background-size:200% 100%; animation:shimmer 3s infinite; opacity:0; transition:opacity 0.3s ease;
 }
-.pm-btn:hover::after { opacity: 1; }
+.pm-btn:hover::after { opacity:1; }
+.pm-btn-primary { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; box-shadow:0 6px 18px rgba(245,158,11,0.4); }
+.pm-btn-primary:hover { transform:translateY(-3px); box-shadow:0 10px 28px rgba(245,158,11,0.55); color:#fff; }
+.pm-btn-outline { background:transparent; color:var(--pm-gold); border:2px solid var(--pm-gold); }
+.pm-btn-outline:hover { background:var(--pm-gold); color:#fff; transform:translateY(-3px); box-shadow:0 8px 20px rgba(245,158,11,0.35); }
+.pm-btn-disabled { background:var(--pm-border); color:var(--pm-muted); cursor:not-allowed; }
+.pm-btn-disabled:hover { transform:none; box-shadow:none; }
 
-.pm-btn-primary {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    box-shadow: 0 4px 15px rgba(245,158,11,0.4);
+/* Comparison table */
+.pm-compare {
+    background:var(--pm-card); border-radius:1.5rem; padding:2rem 1.5rem;
+    margin-top:2.5rem; border:1px solid var(--pm-border);
+    animation:fadeInUp 0.5s ease both;
 }
-.pm-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(245,158,11,0.5);
-    color: white;
+.pm-compare h5 { text-align:center; font-weight:800; font-size:1.35rem; margin-bottom:0.3rem; color:var(--pm-text); }
+.pm-compare-sub { text-align:center; color:var(--pm-muted); margin-bottom:1.5rem; font-size:0.9rem; }
+.pm-compare-table {
+    width:100%; border-collapse:separate; border-spacing:0;
+    background:var(--pm-bg); border-radius:16px; overflow:hidden;
+    border:1px solid var(--pm-border);
 }
-.pm-btn-outline {
-    background: transparent;
-    color: var(--pm-gold);
-    border: 2px solid var(--pm-gold);
+.pm-compare-table th, .pm-compare-table td {
+    padding:0.85rem 1rem; text-align:left; font-size:0.9rem; border-bottom:1px solid var(--pm-border);
 }
-.pm-btn-outline:hover {
-    background: var(--pm-gold);
-    color: white;
-    transform: translateY(-2px);
-}
-.pm-btn-disabled {
-    background: var(--pm-border);
-    color: var(--pm-muted);
-    cursor: not-allowed;
-}
+.pm-compare-table th { background:var(--pm-card); font-weight:800; color:var(--pm-text); text-align:center; }
+.pm-compare-table th.premium-col { background:linear-gradient(135deg,var(--pm-gold-light),#fde68a); color:#78350f; }
+[data-bs-theme="dark"] .pm-compare-table th.premium-col { background:rgba(245,158,11,0.2); color:#fbbf24; }
+.pm-compare-table td { color:var(--pm-text); }
+.pm-compare-table td.center { text-align:center; font-weight:700; }
+.pm-compare-table tr:last-child td { border-bottom:none; }
+.pm-compare-table .yes { color:var(--pm-success); font-size:1.15rem; }
+.pm-compare-table .no { color:var(--pm-muted); font-size:1.15rem; opacity:0.5; }
+.pm-compare-table .highlight { background:rgba(245,158,11,0.05); }
 
-/* Benefits Section */
+/* Benefits */
 .pm-benefits {
-    background: var(--pm-card);
-    border-radius: 1.5rem;
-    padding: 2.5rem 2rem;
-    margin-top: 2.5rem;
-    border: 1px solid var(--pm-border);
-    position: relative;
-    overflow: hidden;
+    background:var(--pm-card); border-radius:1.5rem; padding:2.5rem 2rem;
+    margin-top:2.5rem; border:1px solid var(--pm-border);
+    position:relative; overflow:hidden;
+    animation:fadeInUp 0.5s ease both;
 }
 .pm-benefits::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #f59e0b, #d97706, #8b5cf6, #3b82f6);
+    content:''; position:absolute; top:0; left:0; right:0; height:4px;
+    background:linear-gradient(90deg,#f59e0b,#d97706,#8b5cf6,#3b82f6);
 }
-.pm-benefits-title {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-.pm-benefits-title h5 {
-    font-weight: 800;
-    font-size: 1.3rem;
-    color: var(--pm-text);
-    margin-bottom: 0.3rem;
-}
-.pm-benefits-title p {
-    color: var(--pm-muted);
-    font-size: 0.9rem;
-    margin: 0;
-}
-.pm-benefit-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.2rem;
-}
+.pm-benefits-title { text-align:center; margin-bottom:2rem; }
+.pm-benefits-title h5 { font-weight:800; font-size:1.35rem; color:var(--pm-text); margin-bottom:0.3rem; }
+.pm-benefits-title p { color:var(--pm-muted); font-size:0.92rem; margin:0; }
+.pm-benefit-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem; }
 .pm-benefit-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1.2rem;
-    border-radius: 1rem;
-    border: 1px solid var(--pm-border);
-    background: var(--pm-bg);
-    transition: all 0.3s ease;
-    animation: fadeInUp 0.5s ease-out both;
+    display:flex; align-items:flex-start; gap:1rem; padding:1.2rem;
+    border-radius:1rem; border:1px solid var(--pm-border);
+    background:var(--pm-bg); transition:all 0.3s ease;
+    animation:fadeInUp 0.5s ease-out both;
 }
-.pm-benefit-item:nth-child(1) { animation-delay: 0.1s; }
-.pm-benefit-item:nth-child(2) { animation-delay: 0.15s; }
-.pm-benefit-item:nth-child(3) { animation-delay: 0.2s; }
-.pm-benefit-item:nth-child(4) { animation-delay: 0.25s; }
-.pm-benefit-item:nth-child(5) { animation-delay: 0.3s; }
-.pm-benefit-item:nth-child(6) { animation-delay: 0.35s; }
-.pm-benefit-item:nth-child(7) { animation-delay: 0.4s; }
-.pm-benefit-item:nth-child(8) { animation-delay: 0.45s; }
-.pm-benefit-item:hover {
-    border-color: var(--pm-gold);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(245,158,11,0.1);
-}
-.pm-benefit-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    flex-shrink: 0;
-}
-.pm-benefit-icon.b-leaderboard { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #3b82f6; }
-.pm-benefit-icon.b-classmates { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #10b981; }
-.pm-benefit-icon.b-coding { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #8b5cf6; }
-.pm-benefit-icon.b-coins { background: linear-gradient(135deg, var(--pm-gold-light), #fde68a); color: var(--pm-gold); }
-.pm-benefit-icon.b-ai { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #ec4899; }
-.pm-benefit-icon.b-market { background: linear-gradient(135deg, #ffedd5, #fed7aa); color: #f97316; }
-.pm-benefit-icon.b-badge { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
-.pm-benefit-icon.b-homework { background: linear-gradient(135deg, #fce7f3, #fecdd3); color: #e11d48; }
-.pm-benefit-info h6 {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--pm-text);
-    margin: 0 0 0.25rem;
-}
-.pm-benefit-info p {
-    font-size: 0.82rem;
-    color: var(--pm-muted);
-    margin: 0;
-    line-height: 1.5;
-}
-.pm-benefit-tag {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    margin-top: 0.3rem;
-}
-.pm-benefit-tag.t-exclusive {
-    background: rgba(245,158,11,0.15);
-    color: var(--pm-gold-dark);
-}
-.pm-benefit-tag.t-bonus {
-    background: rgba(16,185,129,0.15);
-    color: #10b981;
-}
+.pm-benefit-item:hover { border-color:var(--pm-gold); transform:translateY(-3px); box-shadow:0 8px 20px rgba(245,158,11,0.1); }
+.pm-benefit-icon { width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem; flex-shrink:0; }
+.pm-benefit-icon.b-leaderboard { background:linear-gradient(135deg,#dbeafe,#bfdbfe); color:#3b82f6; }
+.pm-benefit-icon.b-classmates { background:linear-gradient(135deg,#d1fae5,#a7f3d0); color:#10b981; }
+.pm-benefit-icon.b-coding { background:linear-gradient(135deg,#ede9fe,#ddd6fe); color:#8b5cf6; }
+.pm-benefit-icon.b-coins { background:linear-gradient(135deg,var(--pm-gold-light),#fde68a); color:var(--pm-gold); }
+.pm-benefit-icon.b-ai { background:linear-gradient(135deg,#fce7f3,#fbcfe8); color:#ec4899; }
+.pm-benefit-icon.b-market { background:linear-gradient(135deg,#ffedd5,#fed7aa); color:#f97316; }
+.pm-benefit-icon.b-badge { background:linear-gradient(135deg,#fef3c7,#fde68a); color:#d97706; }
+.pm-benefit-icon.b-homework { background:linear-gradient(135deg,#fce7f3,#fecdd3); color:#e11d48; }
+.pm-benefit-info h6 { font-weight:700; font-size:0.95rem; color:var(--pm-text); margin:0 0 0.25rem; }
+.pm-benefit-info p { font-size:0.82rem; color:var(--pm-muted); margin:0; line-height:1.5; }
+.pm-benefit-tag { display:inline-block; padding:0.15rem 0.5rem; border-radius:6px; font-size:0.7rem; font-weight:700; margin-top:0.3rem; }
+.pm-benefit-tag.t-exclusive { background:rgba(245,158,11,0.15); color:var(--pm-gold-dark); }
+.pm-benefit-tag.t-bonus { background:rgba(16,185,129,0.15); color:#10b981; }
 
-@media (max-width: 576px) {
-    .pm-benefits { padding: 1.5rem 1rem; }
-    .pm-benefit-grid { grid-template-columns: 1fr; }
+/* Testimonials */
+.pm-testimonials {
+    margin-top:2.5rem; animation:fadeInUp 0.5s ease both;
 }
+.pm-testimonials-title { text-align:center; margin-bottom:1.5rem; }
+.pm-testimonials-title h5 { font-weight:800; font-size:1.35rem; margin:0 0 0.3rem; color:var(--pm-text); }
+.pm-testimonials-title p { color:var(--pm-muted); font-size:0.92rem; margin:0; }
+.pm-t-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.25rem; }
+.pm-t-card {
+    background:var(--pm-card); border:1px solid var(--pm-border); border-radius:1.25rem;
+    padding:1.5rem; position:relative; transition:all 0.3s;
+}
+.pm-t-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,0.08); }
+.pm-t-quote-icon { position:absolute; top:1rem; right:1.25rem; font-size:2.5rem; color:var(--pm-gold); opacity:0.15; }
+.pm-t-stars { color:#f59e0b; margin-bottom:0.75rem; font-size:0.95rem; }
+.pm-t-text { font-size:0.9rem; color:var(--pm-text); line-height:1.6; margin-bottom:1rem; }
+.pm-t-author { display:flex; align-items:center; gap:0.75rem; }
+.pm-t-avatar {
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(135deg,#8b5cf6,#ec4899); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:1rem;
+}
+.pm-t-avatar.a2 { background:linear-gradient(135deg,#f59e0b,#d97706); }
+.pm-t-avatar.a3 { background:linear-gradient(135deg,#10b981,#059669); }
+.pm-t-name { font-weight:700; font-size:0.88rem; color:var(--pm-text); }
+.pm-t-role { font-size:0.75rem; color:var(--pm-muted); }
+
+/* FAQ */
+.pm-faq { margin-top:2.5rem; animation:fadeInUp 0.5s ease both; }
+.pm-faq-title { text-align:center; margin-bottom:1.5rem; }
+.pm-faq-title h5 { font-weight:800; font-size:1.35rem; margin:0 0 0.3rem; color:var(--pm-text); }
+.pm-faq-title p { color:var(--pm-muted); font-size:0.92rem; margin:0; }
+.pm-faq-item {
+    background:var(--pm-card); border:1px solid var(--pm-border); border-radius:16px;
+    margin-bottom:0.75rem; overflow:hidden; transition:all 0.3s;
+}
+.pm-faq-item:hover { border-color:var(--pm-gold); }
+.pm-faq-q {
+    padding:1.1rem 1.25rem; cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center;
+    font-weight:700; font-size:0.95rem; color:var(--pm-text);
+    transition:color 0.2s;
+}
+.pm-faq-q:hover { color:var(--pm-gold); }
+.pm-faq-q i { transition:transform 0.3s; color:var(--pm-gold); font-size:1.2rem; }
+.pm-faq-item.open .pm-faq-q i { transform:rotate(180deg); }
+.pm-faq-a {
+    padding:0 1.25rem; max-height:0; overflow:hidden;
+    color:var(--pm-muted); font-size:0.9rem; line-height:1.6;
+    transition:max-height 0.35s ease, padding 0.35s ease;
+}
+.pm-faq-item.open .pm-faq-a { padding:0 1.25rem 1.25rem; max-height:400px; }
 
 /* Steps */
 .pm-steps {
-    background: var(--pm-card);
-    border-radius: 1.2rem;
-    padding: 2rem;
-    margin-top: 2rem;
-    border: 1px solid var(--pm-border);
+    background:var(--pm-card); border-radius:1.25rem; padding:2rem;
+    margin-top:2.5rem; border:1px solid var(--pm-border);
+    animation:fadeInUp 0.5s ease both;
 }
-.pm-step {
-    text-align: center;
-    position: relative;
-    animation: fadeInUp 0.5s ease-out both;
-}
-.pm-step:nth-child(1) { animation-delay: 0.5s; }
-.pm-step:nth-child(2) { animation-delay: 0.65s; }
-.pm-step:nth-child(3) { animation-delay: 0.8s; }
-.pm-step:nth-child(4) { animation-delay: 0.95s; }
-
+.pm-steps-title { text-align:center; font-weight:800; font-size:1.15rem; margin-bottom:1.5rem; color:var(--pm-text); }
+.pm-step { text-align:center; position:relative; }
 .pm-step-num {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--pm-gold-light), #fde68a);
-    color: var(--pm-gold-dark);
-    font-weight: 800;
-    font-size: 1.3rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 0.6rem;
-    transition: transform 0.3s ease;
+    width:52px; height:52px; border-radius:50%;
+    background:linear-gradient(135deg,var(--pm-gold-light),#fde68a); color:var(--pm-gold-dark);
+    font-weight:800; font-size:1.3rem;
+    display:inline-flex; align-items:center; justify-content:center;
+    margin-bottom:0.6rem; transition:transform 0.3s ease;
 }
-.pm-step:hover .pm-step-num {
-    transform: scale(1.15);
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
+.pm-step:hover .pm-step-num { transform:scale(1.15); background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+.pm-step-text { font-size:0.86rem; font-weight:700; color:var(--pm-text); }
+.pm-step-connector { position:absolute; right:-20px; top:26px; display:flex; gap:4px; }
+.pm-step-connector span { width:5px; height:5px; border-radius:50%; background:var(--pm-gold); }
+.pm-step-connector span:nth-child(1) { animation:dotPulse 1.5s ease-in-out infinite; }
+.pm-step-connector span:nth-child(2) { animation:dotPulse 1.5s ease-in-out 0.3s infinite; }
+.pm-step-connector span:nth-child(3) { animation:dotPulse 1.5s ease-in-out 0.6s infinite; }
+
+/* Final CTA banner */
+.pm-final-cta {
+    background:linear-gradient(135deg,#f59e0b 0%,#d97706 50%,#b45309 100%);
+    background-size:200% 200%; animation:gradientMove 8s ease infinite;
+    border-radius:1.75rem; padding:2.5rem 2rem; margin-top:2.5rem;
+    text-align:center; color:#fff; position:relative; overflow:hidden;
+    animation:fadeInUp 0.5s ease both, gradientMove 8s ease infinite;
 }
-.pm-step-text {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--pm-text);
+.pm-final-cta::before {
+    content:''; position:absolute; inset:0;
+    background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='2' fill='%23ffffff' fill-opacity='0.1'/%3E%3C/svg%3E");
+}
+.pm-final-cta > * { position:relative; z-index:1; }
+.pm-final-cta h3 { font-weight:900; font-size:1.85rem; margin:0 0 0.5rem; }
+.pm-final-cta p { opacity:0.95; margin-bottom:1.5rem; font-size:1rem; }
+.pm-final-btn {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    background:#fff; color:#b45309;
+    padding:0.9rem 2rem; border-radius:14px;
+    font-weight:800; font-size:1.05rem; text-decoration:none;
+    transition:all 0.3s; box-shadow:0 8px 25px rgba(0,0,0,0.15);
+    border:none; cursor:pointer;
+}
+.pm-final-btn:hover { transform:translateY(-3px) scale(1.02); box-shadow:0 12px 35px rgba(0,0,0,0.25); color:#b45309; }
+.pm-final-timer {
+    display:inline-flex; align-items:center; gap:0.5rem;
+    background:rgba(255,255,255,0.2); backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,0.25); border-radius:50px;
+    padding:0.5rem 1.1rem; margin-bottom:1rem;
+    color:#fff; font-weight:700; font-size:0.9rem;
+    animation:heartbeat 2s ease-in-out infinite;
 }
 
-/* Connector dots between steps (desktop) */
-.pm-step-connector {
-    position: absolute;
-    right: -20px;
-    top: 26px;
-    display: flex;
-    gap: 4px;
+/* Sticky mobile CTA */
+.pm-sticky-cta {
+    position:fixed; bottom:0; left:0; right:0; z-index:1000;
+    background:var(--pm-card); border-top:1px solid var(--pm-border);
+    padding:0.75rem 1rem; box-shadow:0 -8px 25px rgba(0,0,0,0.1);
+    display:none; align-items:center; justify-content:space-between; gap:0.75rem;
+    animation:fadeInUp 0.4s ease;
 }
-.pm-step-connector span {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--pm-gold);
+.pm-sticky-cta.visible { display:flex; }
+.pm-sticky-info { flex:1; }
+.pm-sticky-label { font-size:0.72rem; color:var(--pm-muted); font-weight:600; }
+.pm-sticky-price { font-size:1.05rem; font-weight:800; color:var(--pm-gold); display:flex; align-items:center; gap:0.3rem; }
+.pm-sticky-btn {
+    padding:0.75rem 1.5rem; border-radius:12px;
+    background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff;
+    font-weight:800; font-size:0.9rem; text-decoration:none;
+    display:inline-flex; align-items:center; gap:0.35rem;
+    box-shadow:0 6px 15px rgba(245,158,11,0.4); border:none; cursor:pointer;
 }
-.pm-step-connector span:nth-child(1) { animation: dotPulse 1.5s ease-in-out infinite; }
-.pm-step-connector span:nth-child(2) { animation: dotPulse 1.5s ease-in-out 0.3s infinite; }
-.pm-step-connector span:nth-child(3) { animation: dotPulse 1.5s ease-in-out 0.6s infinite; }
 
 /* Back button */
 .pm-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--pm-muted);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: 0.7rem;
-    border: 1px solid var(--pm-border);
-    transition: all 0.3s ease;
-    background: var(--pm-card);
+    display:inline-flex; align-items:center; gap:0.4rem;
+    color:var(--pm-muted); text-decoration:none; font-weight:600; font-size:0.9rem;
+    padding:0.65rem 1.25rem; border-radius:0.75rem;
+    border:1px solid var(--pm-border); background:var(--pm-card);
+    transition:all 0.3s ease;
 }
-.pm-back:hover {
-    color: var(--pm-gold);
-    border-color: var(--pm-gold);
-    transform: translateX(-4px);
-}
+.pm-back:hover { color:var(--pm-gold); border-color:var(--pm-gold); transform:translateX(-4px); }
 
-/* Animation classes for cards */
-.pm-animate-1 { animation: slideInLeft 0.6s ease-out 0.2s both; }
-.pm-animate-2 { animation: bounceIn 0.7s ease-out 0.35s both; }
-.pm-animate-3 { animation: slideInRight 0.6s ease-out 0.2s both; }
+.pm-animate-1 { animation:slideInLeft 0.6s ease-out 0.15s both; }
+.pm-animate-2 { animation:bounceIn 0.7s ease-out 0.3s both; }
+.pm-animate-3 { animation:slideInRight 0.6s ease-out 0.15s both; }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .pm-hero { padding: 2rem 1rem 3rem; border-radius: 0 0 1.5rem 1.5rem; }
-    .pm-hero h1 { font-size: 1.5rem; }
-    .pm-hero-icon { font-size: 2.5rem; }
-    .pm-price-amount { font-size: 2.2rem; }
-    .pm-plan { padding: 1.5rem 1.2rem; border-radius: 1.2rem; }
-    .pm-step-connector { display: none; }
-    .pm-steps { padding: 1.2rem; }
-    .pm-cards-wrap { padding: 0 0.5rem; }
-}
-@media (max-width: 576px) {
-    .pm-hero { padding: 1.5rem 1rem 2.5rem; }
-    .pm-hero h1 { font-size: 1.3rem; }
-    .pm-plan { padding: 1.2rem 1rem; }
-    .pm-price-amount { font-size: 2rem; }
-    .pm-plan-icon { width: 52px; height: 52px; font-size: 1.4rem; }
+@media (max-width:768px) {
+    .pm-hero { padding:1.3rem 1.1rem; border-radius:16px; }
+    .pm-hero h1 { font-size:1.25rem; }
+    .pm-hero-icon { font-size:2.1rem; }
+    .pm-price-amount { font-size:2.4rem; }
+    .pm-plan { padding:1.5rem 1.2rem; border-radius:1.25rem; }
+    .pm-step-connector { display:none; }
+    .pm-steps { padding:1.2rem; }
+    .pm-cards-wrap { padding:0 0.75rem; }
+    .pm-final-cta h3 { font-size:1.4rem; }
+    .pm-compare-table th, .pm-compare-table td { padding:0.6rem 0.4rem; font-size:0.82rem; }
+    .pm-anchor-row { flex-direction:column; text-align:center; }
+    .pm-page { padding-bottom:6rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="pm-page">
-
-    <!-- Hero -->
+    <!-- HERO -->
     <div class="pm-hero">
-        <div class="pm-hero-icon"><i class="bi bi-patch-check-fill"></i></div>
+        <div class="pm-hero-icon-wrap">
+            <div class="pm-hero-ring-outer"></div>
+            <div class="pm-hero-icon"><i class="bi bi-patch-check-fill"></i></div>
+        </div>
         <h1>Premium Obuna</h1>
-        <p>Narxlar jami yig'ilgan coinlaringizga qarab belgilanadi</p>
-        <div class="mt-3">
-            <div class="pm-coin-badge">
-                <i class="bi bi-coin"></i>
-                <span id="bpBalance">{{ user.coins }} coin</span>
+        <p>O'quv jarayonini keskin tezlashtiradigan maxsus imtiyozlar</p>
+
+        <div class="pm-live-stats">
+            <div class="pm-live-chip">
+                <i class="bi bi-coin"></i> Balans: <strong id="bpBalance">{{ user.coins }}</strong> coin
             </div>
-            <div class="pm-coin-badge" style="margin-left:0.5rem;font-size:0.9rem;opacity:0.85;">
-                <i class="bi bi-graph-up-arrow"></i>
-                <span id="bpTotalEarned">...</span>
+            <div class="pm-live-chip">
+                <i class="bi bi-graph-up-arrow"></i> Jami: <strong id="bpTotalEarned">...</strong>
             </div>
+            <div class="pm-live-chip timer" id="bpTimerChip" style="display:none">
+                <i class="bi bi-hourglass-split"></i> Chegirmagacha: <strong id="bpTimer">...</strong>
+            </div>
+        </div>
+
+        <div class="pm-avatar-strip" id="bpAvatarStrip" style="display:none">
+            <div class="pm-avatars">
+                <span class="pm-avatar" style="--c1:#8b5cf6;--c2:#ec4899">AR</span>
+                <span class="pm-avatar" style="--c1:#3b82f6;--c2:#06b6d4">DK</span>
+                <span class="pm-avatar" style="--c1:#10b981;--c2:#059669">MN</span>
+                <span class="pm-avatar" style="--c1:#f59e0b;--c2:#d97706">SF</span>
+                <span class="pm-avatar pm-avatar-more" id="bpAvatarMore">+0</span>
+            </div>
+            <span class="pm-avatar-text"><strong id="bpPremiumCount">0</strong> o'quvchi allaqachon Premium</span>
         </div>
     </div>
 
-    <div id="bpEligibility" style="max-width:960px;margin:1rem auto 0;padding:0 1rem;display:none;"></div>
-
-    <!-- Plans -->
     <div class="pm-cards-wrap mt-4">
+
+        <div id="bpEligibility" style="display:none"></div>
+
+        <!-- Value anchor row -->
+        <div class="pm-anchor-row" id="bpAnchor" style="display:none">
+            <div class="pm-anchor-label">
+                <i class="bi bi-tag-fill"></i> Bugun uchun maxsus narx —
+            </div>
+            <div class="pm-anchor-prices">
+                <span class="pm-anchor-old" id="bpAnchorOld">0 coin</span>
+                <span class="pm-anchor-arrow">→</span>
+                <span class="pm-anchor-new" id="bpAnchorNew">0 coin</span>
+                <span class="pm-anchor-badge" id="bpAnchorBadge">−50%</span>
+            </div>
+        </div>
+
+        <!-- Progress to premium -->
+        <div class="pm-progress-card" id="bpProgressCard" style="display:none">
+            <div class="pm-progress-header">
+                <h4 class="pm-progress-title"><i class="bi bi-flag-fill" style="color:var(--pm-gold)"></i> Premium olishga tayyorlik</h4>
+                <span class="pm-progress-status" id="bpProgressStatus">...</span>
+            </div>
+            <div class="pm-progress-bar">
+                <div class="pm-progress-fill" id="bpProgressFill" style="--fill-pct:0%;width:0%"></div>
+            </div>
+            <div class="pm-progress-labels">
+                <span id="bpProgressCurrent">0 coin</span>
+                <span id="bpProgressTarget">0 coin</span>
+            </div>
+        </div>
+
+        <!-- Plans -->
         <div class="row g-4" id="bpPlansRow">
             <div class="col-12 text-center py-5"><div class="spinner-border text-warning"></div></div>
         </div>
 
-        <!-- Premium imkoniyatlari -->
+        <!-- Comparison table -->
+        <div class="pm-compare">
+            <h5><i class="bi bi-columns-gap me-2 text-warning"></i>Premium vs Oddiy foydalanuvchi</h5>
+            <p class="pm-compare-sub">Farqi ko'zga tashlanadigan darajada</p>
+            <div style="overflow-x:auto">
+            <table class="pm-compare-table">
+                <thead>
+                    <tr>
+                        <th style="text-align:left">Xususiyat</th>
+                        <th>Oddiy</th>
+                        <th class="premium-col">⭐ Premium</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="highlight">
+                        <td>Marketda chegirma</td>
+                        <td class="center"><span class="no">—</span></td>
+                        <td class="center"><b style="color:var(--pm-gold-dark)">5%</b></td>
+                    </tr>
+                    <tr>
+                        <td>Kunlik coin</td>
+                        <td class="center">1x</td>
+                        <td class="center"><b style="color:var(--pm-gold-dark)">2x + 5 coin/kun</b></td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>Reyting ko'rish</td>
+                        <td class="center">Faqat o'z o'rni</td>
+                        <td class="center"><span class="yes"><i class="bi bi-check-circle-fill"></i></span> To'liq</td>
+                    </tr>
+                    <tr>
+                        <td>Kursdoshlar bo'limi</td>
+                        <td class="center"><span class="no"><i class="bi bi-x-circle"></i></span></td>
+                        <td class="center"><span class="yes"><i class="bi bi-check-circle-fill"></i></span></td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>AI yordamchi kunlik xabar</td>
+                        <td class="center">60 ta</td>
+                        <td class="center"><b style="color:var(--pm-gold-dark)">120 ta</b></td>
+                    </tr>
+                    <tr>
+                        <td>AI rasm generatsiyasi (kunlik)</td>
+                        <td class="center">3 ta</td>
+                        <td class="center"><b style="color:var(--pm-gold-dark)">5 ta</b></td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>Testni qayta topshirish</td>
+                        <td class="center">10 coin</td>
+                        <td class="center"><b style="color:var(--pm-success)">5 coin</b></td>
+                    </tr>
+                    <tr>
+                        <td>Vazifani qayta topshirish</td>
+                        <td class="center">5 coin</td>
+                        <td class="center"><b style="color:var(--pm-success)">3 coin</b></td>
+                    </tr>
+                    <tr class="highlight">
+                        <td>AI uy vazifa tahlili</td>
+                        <td class="center"><span class="no"><i class="bi bi-x-circle"></i></span></td>
+                        <td class="center"><span class="yes"><i class="bi bi-check-circle-fill"></i></span></td>
+                    </tr>
+                    <tr>
+                        <td>Premium ✅ belgi</td>
+                        <td class="center"><span class="no"><i class="bi bi-x-circle"></i></span></td>
+                        <td class="center"><span class="yes"><i class="bi bi-check-circle-fill"></i></span></td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- Benefits -->
         <div class="pm-benefits">
             <div class="pm-benefits-title">
                 <h5><i class="bi bi-gem me-2"></i>Premium imkoniyatlari</h5>
                 <p>Premium obuna bilan quyidagi maxsus huquqlarga ega bo'lasiz</p>
             </div>
             <div class="pm-benefit-grid">
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-leaderboard"><i class="bi bi-trophy"></i></div>
                     <div class="pm-benefit-info">
@@ -595,7 +658,6 @@
                         <span class="pm-benefit-tag t-exclusive">✅ Faqat Premium</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-classmates"><i class="bi bi-people"></i></div>
                     <div class="pm-benefit-info">
@@ -604,7 +666,6 @@
                         <span class="pm-benefit-tag t-exclusive">✅ Faqat Premium</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-coins"><i class="bi bi-coin"></i></div>
                     <div class="pm-benefit-info">
@@ -613,16 +674,14 @@
                         <span class="pm-benefit-tag t-bonus">🔥 2x bonus</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-coding"><i class="bi bi-arrow-repeat"></i></div>
                     <div class="pm-benefit-info">
                         <h6>Testni arzon qayta topshirish</h6>
-                        <p>Boshqalar qayta topshirish uchun 10 coin to'laydi, Premium foydalanuvchilar faqat 5 coin! O'tsangiz coin qaytariladi.</p>
+                        <p>Boshqalar 10 coin to'laydi, Premium foydalanuvchilar faqat 5 coin!</p>
                         <span class="pm-benefit-tag t-bonus">💰 5 coin tejash</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-ai"><i class="bi bi-robot"></i></div>
                     <div class="pm-benefit-info">
@@ -631,16 +690,14 @@
                         <span class="pm-benefit-tag t-exclusive">✅ Faqat Premium</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-ai"><i class="bi bi-chat-dots"></i></div>
                     <div class="pm-benefit-info">
-                        <h6>Creative AI — 2x ko'proq limit</h6>
-                        <p>AI suhbatda kuniga 120 ta xabar (oddiy: 60) va 5 ta rasm (oddiy: 3). Bepul — coin talab qilinmaydi!</p>
+                        <h6>Creative AI — 2x limit</h6>
+                        <p>Kuniga 120 ta xabar va 5 ta rasm. Bepul — coin talab qilinmaydi!</p>
                         <span class="pm-benefit-tag t-bonus">🤖 2x limit + bepul</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-market"><i class="bi bi-bag-check"></i></div>
                     <div class="pm-benefit-info">
@@ -649,7 +706,6 @@
                         <span class="pm-benefit-tag t-bonus">💰 5% tejash</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-badge"><i class="bi bi-patch-check-fill"></i></div>
                     <div class="pm-benefit-info">
@@ -658,50 +714,114 @@
                         <span class="pm-benefit-tag t-exclusive">✅ Premium nishoni</span>
                     </div>
                 </div>
-
                 <div class="pm-benefit-item">
                     <div class="pm-benefit-icon b-homework"><i class="bi bi-file-earmark-arrow-up"></i></div>
                     <div class="pm-benefit-info">
                         <h6>Vazifani arzon qayta topshirish</h6>
-                        <p>Oddiy foydalanuvchilar qayta topshirish uchun 5 coin to'laydi, Premium faqat 3 coin!</p>
+                        <p>Oddiy: 5 coin, Premium: faqat 3 coin!</p>
                         <span class="pm-benefit-tag t-bonus">💰 2 coin tejash</span>
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <!-- Qanday ishlaydi -->
+        <!-- Testimonials -->
+        <div class="pm-testimonials">
+            <div class="pm-testimonials-title">
+                <h5><i class="bi bi-quote text-warning me-2"></i>O'quvchilar nima deyishmoqda</h5>
+                <p>Premium foydalanuvchilarning haqiqiy fikrlari</p>
+            </div>
+            <div class="pm-t-grid">
+                <div class="pm-t-card">
+                    <i class="bi bi-quote pm-t-quote-icon"></i>
+                    <div class="pm-t-stars">★★★★★</div>
+                    <p class="pm-t-text">"AI hulosalar tufayli uy vazifalarimni ancha yaxshi bajarayapman. Coinlar 2x tez yig'ilyapti — reytingda 5-o'ringa ko'tarildim!"</p>
+                    <div class="pm-t-author">
+                        <div class="pm-t-avatar">AR</div>
+                        <div>
+                            <div class="pm-t-name">Aziza R.</div>
+                            <div class="pm-t-role">11-sinf o'quvchisi</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pm-t-card">
+                    <i class="bi bi-quote pm-t-quote-icon"></i>
+                    <div class="pm-t-stars">★★★★★</div>
+                    <p class="pm-t-text">"Creative AI bilan bepul suhbatlashish — bu haqiqiy bomba! Kuniga 120 ta xabar yetarli. Marketda 5% chegirma ham foyda."</p>
+                    <div class="pm-t-author">
+                        <div class="pm-t-avatar a2">DK</div>
+                        <div>
+                            <div class="pm-t-name">Diyor K.</div>
+                            <div class="pm-t-role">Premium 3-oy</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="pm-t-card">
+                    <i class="bi bi-quote pm-t-quote-icon"></i>
+                    <div class="pm-t-stars">★★★★★</div>
+                    <p class="pm-t-text">"Testni arzon qayta topshirish tufayli qo'rqmayman. Kursdoshlar bilan aloqa — bu men eng ko'p qadrlagan xususiyat."</p>
+                    <div class="pm-t-author">
+                        <div class="pm-t-avatar a3">MN</div>
+                        <div>
+                            <div class="pm-t-name">Malika N.</div>
+                            <div class="pm-t-role">Premium 6-oy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="pm-faq">
+            <div class="pm-faq-title">
+                <h5><i class="bi bi-patch-question me-2 text-warning"></i>Ko'p beriladigan savollar</h5>
+                <p>Har qanday shubha bo'lsa — bu yerda javob bor</p>
+            </div>
+            <div class="pm-faq-item" onclick="pmToggleFaq(this)">
+                <div class="pm-faq-q">Narx nima uchun har xil ko'rinadi? <i class="bi bi-chevron-down"></i></div>
+                <div class="pm-faq-a">Narxlar sizning umumiy yig'ilgan coinlaringizga qarab shakllantiriladi — Haftalik uchun 25%, 1 oylik uchun 50%, 2 oylik uchun 75%. Bu shuni anglatadiki, ko'proq faol o'quvchi bo'lganingizda, Premium sizga ko'proq foyda keltiradi.</div>
+            </div>
+            <div class="pm-faq-item" onclick="pmToggleFaq(this)">
+                <div class="pm-faq-q">Coinlar qachon yechiladi? <i class="bi bi-chevron-down"></i></div>
+                <div class="pm-faq-a">Coinlar so'rov yuborilganda darhol yechiladi. Agar admin so'rovingizni rad etsa, coinlar to'liq qaytariladi.</div>
+            </div>
+            <div class="pm-faq-item" onclick="pmToggleFaq(this)">
+                <div class="pm-faq-q">Muddat tugagach nima bo'ladi? <i class="bi bi-chevron-down"></i></div>
+                <div class="pm-faq-a">Premium avtomatik tugaydi — hech qanday qo'shimcha to'lov yo'q. Uzaytirish istagi bo'lsa, tugash sanasidan oldin uzaytirsangiz kunlaringiz yo'qolmaydi.</div>
+            </div>
+            <div class="pm-faq-item" onclick="pmToggleFaq(this)">
+                <div class="pm-faq-q">Nima uchun eligibility 1 oy? <i class="bi bi-chevron-down"></i></div>
+                <div class="pm-faq-a">Premium — bu sadoqatli o'quvchilar uchun mukofot. Kamida 1 oy platforma bilan tanishgan foydalanuvchilarga ochiladi.</div>
+            </div>
+            <div class="pm-faq-item" onclick="pmToggleFaq(this)">
+                <div class="pm-faq-q">Necha marta qayta sotib olish mumkin? <i class="bi bi-chevron-down"></i></div>
+                <div class="pm-faq-a">Cheklov yo'q — istalgan vaqtda uzaytirishingiz mumkin. Har safar coinlar hisobingizga qarab qayta hisoblanadi.</div>
+            </div>
+        </div>
+
+        <!-- Steps -->
         <div class="pm-steps">
-            <h6 class="fw-bold mb-4 text-center" style="color: var(--pm-text);">
-                <i class="bi bi-info-circle text-warning me-2"></i>Qanday ishlaydi?
-            </h6>
+            <div class="pm-steps-title"><i class="bi bi-info-circle text-warning me-2"></i>Qanday ishlaydi?</div>
             <div class="row g-3">
                 <div class="col-6 col-md-3">
                     <div class="pm-step">
                         <div class="pm-step-num">1</div>
                         <div class="pm-step-text">Tarifni tanlang</div>
-                        <div class="pm-step-connector d-none d-md-flex">
-                            <span></span><span></span><span></span>
-                        </div>
+                        <div class="pm-step-connector d-none d-md-flex"><span></span><span></span><span></span></div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="pm-step">
                         <div class="pm-step-num">2</div>
                         <div class="pm-step-text">Coinlar yechiladi</div>
-                        <div class="pm-step-connector d-none d-md-flex">
-                            <span></span><span></span><span></span>
-                        </div>
+                        <div class="pm-step-connector d-none d-md-flex"><span></span><span></span><span></span></div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
                     <div class="pm-step">
                         <div class="pm-step-num">3</div>
                         <div class="pm-step-text">Admin tasdiqlaydi</div>
-                        <div class="pm-step-connector d-none d-md-flex">
-                            <span></span><span></span><span></span>
-                        </div>
+                        <div class="pm-step-connector d-none d-md-flex"><span></span><span></span><span></span></div>
                     </div>
                 </div>
                 <div class="col-6 col-md-3">
@@ -713,179 +833,93 @@
             </div>
         </div>
 
-        <!-- Orqaga -->
+        <!-- Final CTA banner -->
+        <div class="pm-final-cta">
+            <div class="pm-final-timer" id="bpFinalTimer" style="display:none">
+                <i class="bi bi-lightning-charge-fill"></i> Chegirma tugashiga: <span id="bpFinalTimerVal">...</span>
+            </div>
+            <h3>Bugundan boshlab tejashni boshlang!</h3>
+            <p>Har kuni 5 coin + 2x bonus. 30 kunda ~150+ coin bepul.</p>
+            <button class="pm-final-btn" onclick="document.getElementById('bpPlansRow').scrollIntoView({behavior:'smooth'})">
+                <i class="bi bi-rocket-takeoff-fill"></i> Tarifni tanlash
+            </button>
+        </div>
+
         <div class="text-center mt-4">
             <a href="{% url 'coin:market_list' %}" class="pm-back">
                 <i class="bi bi-arrow-left"></i>Marketga qaytish
             </a>
         </div>
     </div>
+</div>
 
+<!-- STICKY MOBILE CTA -->
+<div class="pm-sticky-cta" id="bpStickyCta">
+    <div class="pm-sticky-info">
+        <div class="pm-sticky-label">Eng arzon variant</div>
+        <div class="pm-sticky-price"><i class="bi bi-coin"></i> <span id="bpStickyPrice">...</span> coin</div>
+    </div>
+    <button class="pm-sticky-btn" onclick="document.getElementById('bpPlansRow').scrollIntoView({behavior:'smooth'})">
+        <i class="bi bi-star-fill"></i> Premium olish
+    </button>
 </div>
 
 <!-- ============ PREMIUM CONFIRM MODAL ============ -->
 <div class="pcm-overlay" id="pcmOverlay" onclick="closeConfirmModal(event)">
     <div class="pcm-modal" id="pcmModal">
-        <!-- Particles -->
-        <div class="pcm-particles">
-            <span></span><span></span><span></span><span></span><span></span>
-            <span></span><span></span><span></span>
-        </div>
-
-        <!-- Icon -->
+        <div class="pcm-particles"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
         <div class="pcm-icon-wrap">
             <div class="pcm-icon-ring"></div>
             <div class="pcm-icon-ring pcm-ring-2"></div>
-            <div class="pcm-icon">
-                <i class="bi bi-patch-check-fill"></i>
-            </div>
+            <div class="pcm-icon"><i class="bi bi-patch-check-fill"></i></div>
             <div class="pcm-sparkle s1">✦</div>
             <div class="pcm-sparkle s2">✦</div>
             <div class="pcm-sparkle s3">✦</div>
         </div>
-
-        <!-- Title -->
         <h4 class="pcm-title">Premium So'rov</h4>
         <p class="pcm-subtitle">Siz haqiqatdan ham so'rov yubormoqchimisiz?</p>
-
-        <!-- Plan info -->
         <div class="pcm-plan-box">
-            <div class="pcm-plan-row">
-                <span class="pcm-plan-label">Tarif:</span>
-                <span class="pcm-plan-value" id="pcmPlanName">—</span>
-            </div>
+            <div class="pcm-plan-row"><span class="pcm-plan-label">Tarif:</span><span class="pcm-plan-value" id="pcmPlanName">—</span></div>
             <div class="pcm-plan-divider"></div>
-            <div class="pcm-plan-row">
-                <span class="pcm-plan-label">Narxi:</span>
-                <span class="pcm-plan-value pcm-coin-val">
-                    <i class="bi bi-coin"></i>
-                    <span id="pcmPrice">—</span> coin
-                </span>
-            </div>
+            <div class="pcm-plan-row"><span class="pcm-plan-label">Narxi:</span><span class="pcm-plan-value pcm-coin-val"><i class="bi bi-coin"></i> <span id="pcmPrice">—</span> coin</span></div>
             <div class="pcm-plan-divider"></div>
-            <div class="pcm-plan-row">
-                <span class="pcm-plan-label">Muddat:</span>
-                <span class="pcm-plan-value" id="pcmDays">—</span>
-            </div>
+            <div class="pcm-plan-row"><span class="pcm-plan-label">Muddat:</span><span class="pcm-plan-value" id="pcmDays">—</span></div>
             <div class="pcm-plan-divider"></div>
-            <div class="pcm-plan-row">
-                <span class="pcm-plan-label">Qoldiq:</span>
-                <span class="pcm-plan-value pcm-remaining">
-                    <i class="bi bi-coin"></i>
-                    <span id="pcmRemaining">—</span> coin
-                </span>
-            </div>
+            <div class="pcm-plan-row"><span class="pcm-plan-label">Qoldiq:</span><span class="pcm-plan-value pcm-remaining"><i class="bi bi-coin"></i> <span id="pcmRemaining">—</span> coin</span></div>
         </div>
-
-        <!-- Warning -->
         <div class="pcm-warning">
             <i class="bi bi-info-circle-fill"></i>
             So'rov adminga yuboriladi. Coinlar so'rov yuborilganda yechiladi.
         </div>
-
-        <!-- Buttons -->
         <div class="pcm-buttons">
-            <button class="pcm-btn pcm-btn-cancel" onclick="closeConfirmModal()">
-                <i class="bi bi-x-lg"></i>Yo'q, bekor qilish
-            </button>
-            <button class="pcm-btn pcm-btn-confirm" id="pcmConfirmBtn" onclick="submitPremium()">
-                <i class="bi bi-send-fill"></i>Ha, yuborish
-                <div class="pcm-btn-shine"></div>
-            </button>
+            <button class="pcm-btn pcm-btn-cancel" onclick="closeConfirmModal()"><i class="bi bi-x-lg"></i>Yo'q, bekor qilish</button>
+            <button class="pcm-btn pcm-btn-confirm" id="pcmConfirmBtn" onclick="submitPremium()"><i class="bi bi-send-fill"></i>Ha, yuborish<div class="pcm-btn-shine"></div></button>
         </div>
     </div>
 </div>
 
 <style>
-/* ============ CONFIRM MODAL STYLES ============ */
 @keyframes pcmOverlayIn { from{opacity:0} to{opacity:1} }
 @keyframes pcmOverlayOut { from{opacity:1} to{opacity:0} }
-@keyframes pcmModalIn {
-    0% { opacity:0; transform:scale(0.5) translateY(40px); }
-    60% { transform:scale(1.03) translateY(-5px); }
-    100% { opacity:1; transform:scale(1) translateY(0); }
-}
-@keyframes pcmModalOut {
-    0% { opacity:1; transform:scale(1) translateY(0); }
-    100% { opacity:0; transform:scale(0.7) translateY(30px); }
-}
-@keyframes pcmIconPop {
-    0% { transform:scale(0) rotate(-180deg); }
-    60% { transform:scale(1.2) rotate(10deg); }
-    100% { transform:scale(1) rotate(0deg); }
-}
-@keyframes pcmRingSpin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-@keyframes pcmRingSpin2 { from{transform:rotate(360deg)} to{transform:rotate(0deg)} }
-@keyframes pcmSparkle {
-    0%,100% { opacity:0; transform:scale(0) rotate(0deg); }
-    50% { opacity:1; transform:scale(1) rotate(180deg); }
-}
-@keyframes pcmFloat {
-    0%,100% { transform:translateY(0); }
-    50% { transform:translateY(-6px); }
-}
-@keyframes pcmShine {
-    0% { left:-100%; }
-    100% { left:200%; }
-}
-@keyframes pcmParticle {
-    0% { opacity:0; transform:translateY(0) scale(0); }
-    50% { opacity:0.6; transform:translateY(-30px) scale(1); }
-    100% { opacity:0; transform:translateY(-60px) scale(0); }
-}
-@keyframes pcmSlideUp {
-    from { opacity:0; transform:translateY(15px); }
-    to { opacity:1; transform:translateY(0); }
-}
-@keyframes pcmPulse {
-    0%,100% { box-shadow:0 0 0 0 rgba(245,158,11,0.4); }
-    50% { box-shadow:0 0 0 12px rgba(245,158,11,0); }
-}
-@keyframes pcmBtnGlow {
-    0%,100% { box-shadow:0 4px 15px rgba(245,158,11,0.3); }
-    50% { box-shadow:0 6px 30px rgba(245,158,11,0.6); }
-}
-
-.pcm-overlay {
-    position:fixed; inset:0; z-index:99999;
-    background:rgba(0,0,0,0.6); backdrop-filter:blur(8px);
-    display:flex; align-items:center; justify-content:center;
-    padding:1rem;
-    opacity:0; pointer-events:none;
-    transition:none;
-}
-.pcm-overlay.active {
-    opacity:1; pointer-events:all;
-    animation:pcmOverlayIn 0.3s ease forwards;
-}
-.pcm-overlay.closing {
-    animation:pcmOverlayOut 0.25s ease forwards;
-    pointer-events:none;
-}
-
-.pcm-modal {
-    background:var(--pm-card, #fff);
-    border:1px solid var(--pm-border, rgba(0,0,0,0.06));
-    border-radius:1.5rem;
-    padding:2rem 1.8rem;
-    max-width:420px; width:100%;
-    position:relative; overflow:hidden;
-    text-align:center;
-    transform:scale(0.5); opacity:0;
-}
-.pcm-overlay.active .pcm-modal {
-    animation:pcmModalIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards;
-}
-.pcm-overlay.closing .pcm-modal {
-    animation:pcmModalOut 0.25s ease forwards;
-}
-
-/* Particles */
+@keyframes pcmModalIn { 0%{opacity:0;transform:scale(0.5) translateY(40px)} 60%{transform:scale(1.03) translateY(-5px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+@keyframes pcmModalOut { 0%{opacity:1;transform:scale(1) translateY(0)} 100%{opacity:0;transform:scale(0.7) translateY(30px)} }
+@keyframes pcmIconPop { 0%{transform:scale(0) rotate(-180deg)} 60%{transform:scale(1.2) rotate(10deg)} 100%{transform:scale(1) rotate(0deg)} }
+@keyframes pcmRingSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+@keyframes pcmRingSpin2 { from{transform:rotate(360deg)} to{transform:rotate(0)} }
+@keyframes pcmSparkle { 0%,100%{opacity:0;transform:scale(0) rotate(0)} 50%{opacity:1;transform:scale(1) rotate(180deg)} }
+@keyframes pcmFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+@keyframes pcmShine { 0%{left:-100%} 100%{left:200%} }
+@keyframes pcmParticle { 0%{opacity:0;transform:translateY(0) scale(0)} 50%{opacity:0.6;transform:translateY(-30px) scale(1)} 100%{opacity:0;transform:translateY(-60px) scale(0)} }
+@keyframes pcmSlideUp { from{opacity:0;transform:translateY(15px)} to{opacity:1;transform:translateY(0)} }
+@keyframes pcmBtnGlow { 0%,100%{box-shadow:0 4px 15px rgba(245,158,11,0.3)} 50%{box-shadow:0 6px 30px rgba(245,158,11,0.6)} }
+.pcm-overlay { position:fixed; inset:0; z-index:99999; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:1rem; opacity:0; pointer-events:none; }
+.pcm-overlay.active { opacity:1; pointer-events:all; animation:pcmOverlayIn 0.3s ease forwards; }
+.pcm-overlay.closing { animation:pcmOverlayOut 0.25s ease forwards; pointer-events:none; }
+.pcm-modal { background:var(--pm-card,#fff); border:1px solid var(--pm-border,rgba(0,0,0,0.06)); border-radius:1.5rem; padding:2rem 1.8rem; max-width:420px; width:100%; position:relative; overflow:hidden; text-align:center; transform:scale(0.5); opacity:0; }
+.pcm-overlay.active .pcm-modal { animation:pcmModalIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s forwards; }
+.pcm-overlay.closing .pcm-modal { animation:pcmModalOut 0.25s ease forwards; }
 .pcm-particles { position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:1.5rem; }
-.pcm-particles span {
-    position:absolute; width:5px; height:5px; border-radius:50%;
-    background:var(--pm-gold, #f59e0b);
-}
+.pcm-particles span { position:absolute; width:5px; height:5px; border-radius:50%; background:var(--pm-gold,#f59e0b); }
 .pcm-particles span:nth-child(1){top:10%;left:8%;animation:pcmParticle 3s 0s infinite}
 .pcm-particles span:nth-child(2){top:20%;right:12%;animation:pcmParticle 3.5s 0.3s infinite}
 .pcm-particles span:nth-child(3){bottom:25%;left:15%;animation:pcmParticle 2.8s 0.6s infinite}
@@ -894,210 +928,172 @@
 .pcm-particles span:nth-child(6){top:35%;left:85%;animation:pcmParticle 3.8s 0.4s infinite}
 .pcm-particles span:nth-child(7){bottom:35%;right:25%;animation:pcmParticle 2.5s 0.8s infinite}
 .pcm-particles span:nth-child(8){top:65%;left:25%;animation:pcmParticle 3.6s 1.5s infinite}
-
-/* Icon */
-.pcm-icon-wrap {
-    position:relative; display:inline-block;
-    margin-bottom:1rem;
-    animation:pcmFloat 3s ease-in-out infinite;
-}
-.pcm-icon {
-    width:80px; height:80px; border-radius:50%;
-    background:linear-gradient(135deg,#f59e0b,#d97706);
-    display:flex; align-items:center; justify-content:center;
-    font-size:2.2rem; color:#fff;
-    box-shadow:0 8px 30px rgba(245,158,11,0.4);
-    position:relative; z-index:2;
-}
-.pcm-overlay.active .pcm-icon {
-    animation:pcmIconPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
-}
-.pcm-icon-ring {
-    position:absolute; inset:-10px; border-radius:50%;
-    border:2px dashed rgba(245,158,11,0.35);
-    animation:pcmRingSpin 10s linear infinite;
-    z-index:1;
-}
-.pcm-ring-2 {
-    inset:-18px;
-    border:1px dotted rgba(245,158,11,0.2);
-    animation:pcmRingSpin2 15s linear infinite;
-}
-.pcm-sparkle {
-    position:absolute; color:#f59e0b; font-size:0.9rem;
-    pointer-events:none; z-index:3;
-}
+.pcm-icon-wrap { position:relative; display:inline-block; margin-bottom:1rem; animation:pcmFloat 3s ease-in-out infinite; }
+.pcm-icon { width:80px; height:80px; border-radius:50%; background:linear-gradient(135deg,#f59e0b,#d97706); display:flex; align-items:center; justify-content:center; font-size:2.2rem; color:#fff; box-shadow:0 8px 30px rgba(245,158,11,0.4); position:relative; z-index:2; }
+.pcm-overlay.active .pcm-icon { animation:pcmIconPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both; }
+.pcm-icon-ring { position:absolute; inset:-10px; border-radius:50%; border:2px dashed rgba(245,158,11,0.35); animation:pcmRingSpin 10s linear infinite; z-index:1; }
+.pcm-ring-2 { inset:-18px; border:1px dotted rgba(245,158,11,0.2); animation:pcmRingSpin2 15s linear infinite; }
+.pcm-sparkle { position:absolute; color:#f59e0b; font-size:0.9rem; pointer-events:none; z-index:3; }
 .pcm-sparkle.s1 { top:-8px; right:5px; animation:pcmSparkle 2s 0s infinite; }
 .pcm-sparkle.s2 { bottom:0; left:-5px; animation:pcmSparkle 2s 0.7s infinite; }
 .pcm-sparkle.s3 { top:15px; left:-10px; animation:pcmSparkle 2s 1.3s infinite; }
-
-/* Title */
-.pcm-title {
-    font-weight:800; font-size:1.3rem;
-    color:var(--pm-text, #1e293b);
-    margin-bottom:0.3rem;
-}
-.pcm-overlay.active .pcm-title {
-    animation:pcmSlideUp 0.4s ease 0.4s both;
-}
-.pcm-subtitle {
-    color:var(--pm-muted, #64748b);
-    font-size:0.95rem; margin-bottom:1.2rem;
-}
-.pcm-overlay.active .pcm-subtitle {
-    animation:pcmSlideUp 0.4s ease 0.5s both;
-}
-
-/* Plan box */
-.pcm-plan-box {
-    background:var(--pm-gold-light, #fef3c7);
-    border:1px solid rgba(245,158,11,0.2);
-    border-radius:1rem; padding:1rem 1.2rem;
-    margin-bottom:1rem;
-}
-.pcm-overlay.active .pcm-plan-box {
-    animation:pcmSlideUp 0.4s ease 0.55s both;
-}
-.pcm-plan-row {
-    display:flex; justify-content:space-between; align-items:center;
-    padding:0.45rem 0;
-}
-.pcm-plan-label {
-    font-size:0.85rem; color:var(--pm-muted, #64748b); font-weight:500;
-}
-.pcm-plan-value {
-    font-weight:700; font-size:0.95rem;
-    color:var(--pm-text, #1e293b);
-}
-.pcm-coin-val {
-    color:#d97706;
-}
+.pcm-title { font-weight:800; font-size:1.3rem; color:var(--pm-text,#1e293b); margin-bottom:0.3rem; }
+.pcm-overlay.active .pcm-title { animation:pcmSlideUp 0.4s ease 0.4s both; }
+.pcm-subtitle { color:var(--pm-muted,#64748b); font-size:0.95rem; margin-bottom:1.2rem; }
+.pcm-overlay.active .pcm-subtitle { animation:pcmSlideUp 0.4s ease 0.5s both; }
+.pcm-plan-box { background:var(--pm-gold-light,#fef3c7); border:1px solid rgba(245,158,11,0.2); border-radius:1rem; padding:1rem 1.2rem; margin-bottom:1rem; }
+.pcm-overlay.active .pcm-plan-box { animation:pcmSlideUp 0.4s ease 0.55s both; }
+.pcm-plan-row { display:flex; justify-content:space-between; align-items:center; padding:0.45rem 0; }
+.pcm-plan-label { font-size:0.85rem; color:var(--pm-muted,#64748b); font-weight:500; }
+.pcm-plan-value { font-weight:700; font-size:0.95rem; color:var(--pm-text,#1e293b); }
+.pcm-coin-val { color:#d97706; }
 .pcm-coin-val i { font-size:0.85rem; margin-right:2px; }
-.pcm-remaining { color:var(--pm-success, #10b981); }
+.pcm-remaining { color:var(--pm-success,#10b981); }
 .pcm-remaining i { font-size:0.85rem; margin-right:2px; }
-.pcm-plan-divider {
-    height:1px;
-    background:rgba(245,158,11,0.15);
-}
-
-/* Warning */
-.pcm-warning {
-    background:rgba(59,130,246,0.08);
-    border:1px solid rgba(59,130,246,0.15);
-    border-radius:0.75rem;
-    padding:0.6rem 1rem;
-    font-size:0.8rem;
-    color:var(--pm-muted, #64748b);
-    margin-bottom:1.3rem;
-    display:flex; align-items:center; gap:0.5rem;
-}
+.pcm-plan-divider { height:1px; background:rgba(245,158,11,0.15); }
+.pcm-warning { background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.15); border-radius:0.75rem; padding:0.6rem 1rem; font-size:0.8rem; color:var(--pm-muted,#64748b); margin-bottom:1.3rem; display:flex; align-items:center; gap:0.5rem; }
 .pcm-warning i { color:#3b82f6; font-size:1rem; flex-shrink:0; }
-.pcm-overlay.active .pcm-warning {
-    animation:pcmSlideUp 0.4s ease 0.6s both;
-}
-
-/* Buttons */
-.pcm-buttons {
-    display:flex; gap:0.75rem;
-}
-.pcm-overlay.active .pcm-buttons {
-    animation:pcmSlideUp 0.4s ease 0.65s both;
-}
-.pcm-btn {
-    flex:1; border:none; border-radius:0.9rem;
-    padding:0.8rem 1rem;
-    font-weight:700; font-size:0.9rem;
-    cursor:pointer; display:flex; align-items:center;
-    justify-content:center; gap:0.4rem;
-    transition:all 0.25s ease;
-    position:relative; overflow:hidden;
-}
-.pcm-btn-cancel {
-    background:var(--bs-tertiary-bg, #f1f5f9);
-    color:var(--pm-muted, #64748b);
-}
-.pcm-btn-cancel:hover {
-    background:#e2e8f0;
-    transform:translateY(-2px);
-}
-.pcm-btn-confirm {
-    background:linear-gradient(135deg,#f59e0b,#d97706);
-    color:#fff;
-    box-shadow:0 4px 15px rgba(245,158,11,0.35);
-    animation:pcmBtnGlow 2s ease-in-out infinite;
-}
-.pcm-btn-confirm:hover {
-    transform:translateY(-2px) scale(1.02);
-    box-shadow:0 6px 25px rgba(245,158,11,0.5);
-}
-.pcm-btn-confirm:active {
-    transform:translateY(0) scale(0.98);
-}
-.pcm-btn-shine {
-    position:absolute; top:0; left:-100%;
-    width:50%; height:100%;
-    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent);
-    animation:pcmShine 2.5s ease-in-out infinite;
-    pointer-events:none;
-}
-.pcm-btn-confirm.loading {
-    pointer-events:none;
-    opacity:0.85;
-}
+.pcm-overlay.active .pcm-warning { animation:pcmSlideUp 0.4s ease 0.6s both; }
+.pcm-buttons { display:flex; gap:0.75rem; }
+.pcm-overlay.active .pcm-buttons { animation:pcmSlideUp 0.4s ease 0.65s both; }
+.pcm-btn { flex:1; border:none; border-radius:0.9rem; padding:0.8rem 1rem; font-weight:700; font-size:0.9rem; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:0.4rem; transition:all 0.25s ease; position:relative; overflow:hidden; }
+.pcm-btn-cancel { background:var(--bs-tertiary-bg,#f1f5f9); color:var(--pm-muted,#64748b); }
+.pcm-btn-cancel:hover { background:#e2e8f0; transform:translateY(-2px); }
+.pcm-btn-confirm { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; box-shadow:0 4px 15px rgba(245,158,11,0.35); animation:pcmBtnGlow 2s ease-in-out infinite; }
+.pcm-btn-confirm:hover { transform:translateY(-2px) scale(1.02); box-shadow:0 6px 25px rgba(245,158,11,0.5); }
+.pcm-btn-confirm:active { transform:translateY(0) scale(0.98); }
+.pcm-btn-shine { position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent); animation:pcmShine 2.5s ease-in-out infinite; pointer-events:none; }
+.pcm-btn-confirm.loading { pointer-events:none; opacity:0.85; }
 .pcm-btn-confirm.loading i { display:none; }
-.pcm-btn-confirm.loading::before {
-    content:'';
-    width:18px; height:18px;
-    border:2px solid rgba(255,255,255,0.3);
-    border-top-color:#fff;
-    border-radius:50%;
-    animation:pcmRingSpin 0.6s linear infinite;
-    margin-right:6px;
-}
-
-@media (max-width:480px) {
-    .pcm-modal { padding:1.5rem 1.2rem; }
-    .pcm-buttons { flex-direction:column-reverse; }
-    .pcm-icon { width:65px; height:65px; font-size:1.8rem; }
-    .pcm-title { font-size:1.15rem; }
-}
+.pcm-btn-confirm.loading::before { content:''; width:18px; height:18px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:pcmRingSpin 0.6s linear infinite; margin-right:6px; }
+@media (max-width:480px) { .pcm-modal { padding:1.5rem 1.2rem; } .pcm-buttons { flex-direction:column-reverse; } .pcm-icon { width:65px; height:65px; font-size:1.8rem; } .pcm-title { font-size:1.15rem; } }
 </style>
 
 <script>
 let selectedPlan = null;
 let userCoins = {{ user.coins }};
 let plansData = null;
+let bpTimerInt = null;
+let bpFinalTimerInt = null;
 
 function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
 async function apiGet(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
 async function apiPost(u,b){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d;return d;}
+function formatNum(n){ return (n||0).toLocaleString('en-US').replace(/,/g,' '); }
 
 const PLAN_ICONS = {weekly:'bi-lightning-fill',monthly:'bi-patch-check-fill',bimonthly:'bi-gem'};
 const PLAN_ICON_CLASS = {weekly:'weekly',monthly:'monthly',bimonthly:'bimonthly'};
-const PLAN_BADGES = {monthly:'MASHHUR',bimonthly:'TEJAMKOR'};
-const PLAN_FEATURES = {
-    weekly: ['Barcha Premium imkoniyatlar','Ismingiz yonida ✅ premium belgi','7 kun davomida amal qiladi'],
-    monthly: ['Barcha Premium imkoniyatlar','Ismingiz yonida ✅ premium belgi','30 kun davomida amal qiladi','Eng ko\'p tanlanadi'],
-    bimonthly: ['Barcha Premium imkoniyatlar','Ismingiz yonida ✅ premium belgi','60 kun davomida amal qiladi','Eng tejamkor variant'],
+const PLAN_BADGES = {monthly:'🔥 MASHHUR'};
+const PLAN_IDEAL = {
+    weekly:"💼 Sinab ko'rmoqchilar uchun",
+    monthly:"⭐ Aksariyat tanlaydi",
+    bimonthly:"💎 Uzoq muddatli tejam uchun"
 };
+const PLAN_FEATURES = {
+    weekly: ['Barcha Premium imkoniyatlar','✅ premium belgi','7 kun','⚡ Tez sinab ko\'rish'],
+    monthly: ['Barcha Premium imkoniyatlar','✅ premium belgi','30 kun','🎯 Ideal balans'],
+    bimonthly: ['Barcha Premium imkoniyatlar','✅ premium belgi','60 kun','💎 Eng ko\'p tejam'],
+};
+
+function startBpTimer(endsAt){
+    if (!endsAt) return;
+    const end = new Date(endsAt);
+    const el = document.getElementById('bpTimer');
+    const finalEl = document.getElementById('bpFinalTimerVal');
+    const chip = document.getElementById('bpTimerChip');
+    const finalWrap = document.getElementById('bpFinalTimer');
+    function tick(){
+        const now = new Date();
+        const diff = end - now;
+        if (diff <= 0){ if(el) el.textContent='...'; if(finalEl) finalEl.textContent='...'; return; }
+        const d = Math.floor(diff/86400000);
+        const h = Math.floor((diff%86400000)/3600000);
+        const m = Math.floor((diff%3600000)/60000);
+        const s = Math.floor((diff%60000)/1000);
+        let text = d>0 ? d+'k '+h+'s '+m+'m' : h.toString().padStart(2,'0')+':'+m.toString().padStart(2,'0')+':'+s.toString().padStart(2,'0');
+        if(el) el.textContent = text;
+        if(finalEl) finalEl.textContent = text;
+    }
+    tick();
+    chip.style.display = 'inline-flex';
+    finalWrap.style.display = 'inline-flex';
+    if (bpTimerInt) clearInterval(bpTimerInt);
+    bpTimerInt = setInterval(tick, 1000);
+}
+
+function updateBpProgress(coins, targetPrice){
+    const card = document.getElementById('bpProgressCard');
+    const fill = document.getElementById('bpProgressFill');
+    const status = document.getElementById('bpProgressStatus');
+    const cur = document.getElementById('bpProgressCurrent');
+    const tgt = document.getElementById('bpProgressTarget');
+    if (!targetPrice || targetPrice <= 0) { card.style.display='none'; return; }
+    const pct = Math.min(100, Math.round((coins / targetPrice) * 100));
+    card.style.display='block';
+    fill.style.setProperty('--fill-pct', pct+'%');
+    fill.style.width = pct+'%';
+    cur.textContent = formatNum(coins) + ' coin';
+    tgt.textContent = formatNum(targetPrice) + ' coin (eng arzon)';
+    if (pct >= 100) {
+        status.textContent = '✅ Tayyorsiz — Premium olishingiz mumkin!';
+        status.classList.add('ready');
+        fill.classList.add('ready');
+    } else {
+        const need = targetPrice - coins;
+        status.textContent = 'Yana ' + formatNum(need) + ' coin kerak';
+        status.classList.remove('ready');
+        fill.classList.remove('ready');
+    }
+}
 
 async function loadBuyPremium() {
     try {
-        const [summary, plans] = await Promise.all([
+        const [summary, plans, stats] = await Promise.all([
             apiGet('/api/v1/coin/summary/'),
-            apiGet('/api/v1/coin/premium/plans/')
+            apiGet('/api/v1/coin/premium/plans/'),
+            apiGet('/api/v1/coin/market/stats/').catch(()=>null)
         ]);
         userCoins = summary.total_coins;
         plansData = plans;
 
-        document.getElementById('bpBalance').textContent = userCoins + ' coin';
-        document.getElementById('bpTotalEarned').textContent = 'Jami: ' + (plans.total_earned||0) + ' coin';
+        document.getElementById('bpBalance').textContent = formatNum(userCoins);
+        document.getElementById('bpTotalEarned').textContent = formatNum(plans.total_earned||0) + ' coin';
+
+        if (stats) {
+            const cnt = stats.active_premium_users || 0;
+            document.getElementById('bpPremiumCount').textContent = formatNum(cnt);
+            document.getElementById('bpAvatarMore').textContent = '+' + formatNum(Math.max(0, cnt - 4));
+            document.getElementById('bpAvatarStrip').style.display = 'inline-flex';
+            startBpTimer(stats.week_ends_at);
+        }
 
         // Eligibility
         const eligEl = document.getElementById('bpEligibility');
         if (!plans.eligible) {
-            eligEl.innerHTML = '<div style="background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;font-weight:600;color:#ef4444;"><i class="bi bi-lock-fill" style="font-size:1.3rem"></i><div>Premium sotib olish uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutishingiz kerak</small></div></div>';
+            eligEl.innerHTML = '<div class="pm-eligibility-warn"><i class="bi bi-lock-fill"></i><div><b>Premium hozircha qulf ostida!</b><br><span style="opacity:0.85">Ro\'yxatdan o\'tganingizga kamida 1 oy bo\'lishi kerak. Yana '+plans.days_until_eligible+' kun qoldi.</span></div></div>';
             eligEl.style.display = 'block';
+        }
+
+        // Value anchor row (based on monthly plan as reference)
+        const mp = plans.plans.monthly;
+        if (mp && !mp.too_cheap && plans.eligible && !plans.is_premium && !plans.has_pending_request) {
+            const anchor = mp.price * 2;
+            const discountPct = 50;
+            document.getElementById('bpAnchorOld').textContent = formatNum(anchor) + ' coin';
+            document.getElementById('bpAnchorNew').textContent = formatNum(mp.price) + ' coin';
+            document.getElementById('bpAnchorBadge').textContent = '−' + discountPct + '%';
+            document.getElementById('bpAnchor').style.display = 'flex';
+        }
+
+        // Progress ring to cheapest plan
+        const cheapest = plans.plans.weekly;
+        if (cheapest && !cheapest.too_cheap && plans.eligible && !plans.is_premium) {
+            updateBpProgress(userCoins, cheapest.price);
+        }
+
+        // Sticky CTA price (cheapest plan)
+        if (cheapest && plans.eligible && !plans.is_premium && !plans.has_pending_request) {
+            document.getElementById('bpStickyPrice').textContent = formatNum(cheapest.too_cheap ? cheapest.min_price : cheapest.price);
         }
 
         // Build plan cards
@@ -1109,6 +1105,10 @@ async function loadBuyPremium() {
             const canAfford = !isCheap && userCoins >= p.price;
             const disabled = plans.has_pending_request || !canAfford || !plans.eligible || isCheap;
             const isPopular = key === 'monthly';
+            const perDay = p.days > 0 ? Math.max(1, Math.floor(p.price / p.days)) : p.price;
+            const anchorPrice = p.price * 2;
+            const savings = p.price;
+
             let btnText, btnClass;
             if (!plans.eligible) { btnText = '🔒 Hali mumkin emas'; btnClass = 'pm-btn-disabled'; }
             else if (isCheap) { btnText = '📈 Coin yig\'ing'; btnClass = 'pm-btn-disabled'; }
@@ -1117,30 +1117,70 @@ async function loadBuyPremium() {
             else { btnText = '<i class="bi bi-send-fill"></i>So\'rov yuborish'; btnClass = isPopular ? 'pm-btn-primary' : 'pm-btn-outline'; }
 
             const features = PLAN_FEATURES[key].map(f => '<li><i class="bi bi-check-circle-fill"></i>'+f+'</li>').join('');
+            const savingsTag = !isCheap ? '<div class="pm-savings-tag">−50% chegirma</div>' : '';
+            const popularTag = isPopular && !isCheap ? '<div class="pm-popular-tag">'+PLAN_BADGES[key]+'</div>' : '';
+            const socialText = stats && stats.active_premium_users > 0
+                ? (() => {
+                    const c = stats.active_premium_users;
+                    const proportion = key === 'monthly' ? Math.floor(c * 0.55) : (key === 'bimonthly' ? Math.floor(c * 0.25) : Math.floor(c * 0.20));
+                    return proportion > 0 ? '<div class="pm-price-social"><i class="bi bi-people-fill"></i> '+formatNum(proportion)+' kishi shu tarifni tanlagan</div>' : '';
+                })()
+                : '';
+
             html += `<div class="col-12 col-md-4">
                 <div class="pm-plan ${isPopular?'popular':''} pm-animate-${idx+1}">
-                    ${PLAN_BADGES[key]?'<div class="pm-popular-tag">'+PLAN_BADGES[key]+'</div>':''}
+                    ${savingsTag}
+                    ${popularTag}
                     <div class="pm-plan-icon ${PLAN_ICON_CLASS[key]}"><i class="bi ${PLAN_ICONS[key]}"></i></div>
                     <div class="pm-plan-name">${p.name}</div>
-                    <div class="pm-plan-days">${p.days} kun amal qiladi <span style="font-size:0.8rem;opacity:0.7">(${p.percent}%)</span></div>
-                    <div class="pm-price">
-                        <div class="pm-price-amount">${isCheap?'<span style="text-decoration:line-through;opacity:0.4;font-size:0.6em">'+p.price+'</span> min '+p.min_price:p.price}</div>
-                        <div class="pm-price-label">coin</div>
+                    <div class="pm-plan-days">${p.days} kun amal qiladi</div>
+                    <div class="pm-plan-ideal">${PLAN_IDEAL[key]}</div>
+                    <div class="pm-price-wrap">
+                        ${!isCheap ? '<span class="pm-price-old">'+formatNum(anchorPrice)+' coin</span>' : ''}
+                        <div class="pm-price-amount">${isCheap?'<span style="text-decoration:line-through;opacity:0.4;font-size:0.6em">'+formatNum(p.price)+'</span> min '+formatNum(p.min_price):formatNum(p.price)}</div>
+                        <div class="pm-price-label">coin${!isCheap?' • kuniga ~'+formatNum(perDay)+' coin':''}</div>
+                        ${!isCheap ? '<div class="pm-price-perday">💰 '+formatNum(savings)+' coin tejam</div>' : ''}
+                        ${socialText}
                     </div>
                     ${isCheap?'<div style="color:#ef4444;font-size:0.82rem;font-weight:600;margin:0.5rem 0">⚠️ Narx juda arzon! Coinlar yig\'ishni davom eting</div>':''}
                     <ul class="pm-features">${features}</ul>
-                    <button type="button" class="pm-btn ${btnClass}" ${disabled?'disabled':''}
-                        onclick="showConfirmModal('${key}','${p.name}',${p.price},${p.days})">
+                    <button type="button" class="pm-btn ${btnClass}" ${disabled?'disabled':''} onclick="showConfirmModal('${key}','${p.name}',${p.price},${p.days})">
                         ${btnText}
                     </button>
                 </div>
             </div>`;
         });
         document.getElementById('bpPlansRow').innerHTML = html;
+
+        // Show sticky CTA on mobile after scrolling past plans
+        setupStickyCta(plans);
     } catch(e) {
         document.getElementById('bpPlansRow').innerHTML = '<div class="col-12 text-center py-4 text-muted">Xatolik yuz berdi</div>';
         console.error(e);
     }
+}
+
+function setupStickyCta(plans){
+    if (!plans || !plans.eligible || plans.is_premium || plans.has_pending_request) return;
+    if (window.innerWidth > 768) return;
+    const sticky = document.getElementById('bpStickyCta');
+    const plansEl = document.getElementById('bpPlansRow');
+    const heroEl = document.querySelector('.pm-hero');
+    window.addEventListener('scroll', () => {
+        const scrolled = window.scrollY;
+        const plansTop = plansEl.getBoundingClientRect().top + window.scrollY;
+        const plansBottom = plansEl.getBoundingClientRect().bottom + window.scrollY;
+        if (scrolled > heroEl.offsetHeight && scrolled < plansBottom - 200) {
+            sticky.classList.add('visible');
+        } else {
+            sticky.classList.remove('visible');
+        }
+    }, {passive:true});
+}
+
+function pmToggleFaq(el){
+    document.querySelectorAll('.pm-faq-item.open').forEach(x=>{if(x!==el)x.classList.remove('open')});
+    el.classList.toggle('open');
 }
 
 function showConfirmModal(plan, name, price, days) {
@@ -1149,7 +1189,6 @@ function showConfirmModal(plan, name, price, days) {
     document.getElementById('pcmPrice').textContent = price.toLocaleString();
     document.getElementById('pcmDays').textContent = days + ' kun';
     document.getElementById('pcmRemaining').textContent = (userCoins - price).toLocaleString();
-
     const overlay = document.getElementById('pcmOverlay');
     overlay.classList.remove('closing');
     overlay.classList.add('active');
@@ -1161,9 +1200,7 @@ function closeConfirmModal(e) {
     const overlay = document.getElementById('pcmOverlay');
     overlay.classList.add('closing');
     document.body.style.overflow = '';
-    setTimeout(() => {
-        overlay.classList.remove('active', 'closing');
-    }, 280);
+    setTimeout(() => { overlay.classList.remove('active', 'closing'); }, 280);
 }
 
 function submitPremium() {
@@ -1171,7 +1208,6 @@ function submitPremium() {
     const btn = document.getElementById('pcmConfirmBtn');
     btn.classList.add('loading');
     btn.innerHTML = 'Yuborilmoqda...<div class="pcm-btn-shine"></div>';
-
     apiPost('/api/v1/coin/premium/request/', {plan: selectedPlan})
         .then(d => {
             closeConfirmModal();
@@ -1185,10 +1221,7 @@ function submitPremium() {
         });
 }
 
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeConfirmModal();
-});
-
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeConfirmModal(); });
 loadBuyPremium();
 </script>
 {% endblock %}

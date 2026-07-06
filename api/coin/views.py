@@ -156,6 +156,48 @@ def coin_summary(request):
     return Response(serializer.data)
 
 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsNotBlocked])
+def market_stats(request):
+    """Marketing UI uchun umumiy statistika: social proof, urgency taymer, trending mahsulotlar."""
+    from django.db.models import Count
+
+    now = timezone.now()
+    today = now.date()
+
+    weekday = now.weekday()
+    days_ahead = (6 - weekday) % 7
+    if days_ahead == 0 and now.hour >= 20:
+        days_ahead = 7
+    week_ends_at = (now + timedelta(days=days_ahead)).replace(
+        hour=23, minute=59, second=59, microsecond=0
+    )
+
+    top_product_ids = list(
+        ProductPurchase.objects.filter(status__in=['pending', 'delivered'])
+        .values('product_id')
+        .annotate(c=Count('id'))
+        .order_by('-c')[:3]
+        .values_list('product_id', flat=True)
+    )
+
+    return Response({
+        'active_premium_users': CustomUser.objects.filter(
+            is_premium=True, premium_expires_at__gt=now
+        ).count(),
+        'total_purchases': ProductPurchase.objects.filter(
+            status__in=['pending', 'delivered']
+        ).count(),
+        'purchases_today': ProductPurchase.objects.filter(
+            status__in=['pending', 'delivered'], purchased_at__date=today
+        ).count(),
+        'total_users': CustomUser.objects.filter(is_active=True).count(),
+        'top_product_ids': top_product_ids,
+        'week_ends_at': week_ends_at.isoformat(),
+        'server_now': now.isoformat(),
+    })
+
+
 # ============== WRITE ENDPOINTS ==============
 
 

@@ -5,6 +5,9 @@ urlpatterns = [
     # Coin summary
     path('summary/', views.coin_summary, name='coin_summary'),
 
+    # Marketing stats (social proof, urgency, trending)
+    path('market/stats/', views.market_stats, name='coin_market_stats'),
+
     # Products
     path('products/', views.ProductListView.as_view(), name='coin_products'),
     path('products/<int:pk>/', views.ProductDetailView.as_view(), name='coin_product_detail'),

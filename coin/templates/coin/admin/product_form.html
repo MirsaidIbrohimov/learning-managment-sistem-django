@@ -1,157 +1,233 @@
-{% extends 'accounts/base.html' %}
-{% load widget_tweaks %}
+{% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}
-{% if product %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %} - Admin | IT Creative
-{% endblock %}
+{% block title %}{% if product %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %} | Admin{% endblock %}
 
-{% block extra_css %}
+{% block admin_content %}
 <style>
-:root{
-    --card-bg: rgba(255,255,255,.8);
-    --card-border: rgba(0,0,0,.08);
-    --text-main: #111;
-    --soft-bg: rgba(0,0,0,.05);
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-[data-bs-theme="dark"]{
-    --card-bg: rgba(18,18,18,.85);
-    --card-border: rgba(255,255,255,.08);
-    --text-main: #f1f1f1;
-    --soft-bg: rgba(255,255,255,.06);
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* ===== IOS CARD ===== */
-.ios-card{
-    background:var(--card-bg);
-    backdrop-filter:blur(14px);
-    border:1px solid var(--card-border);
-    border-radius:24px;
-    box-shadow:0 14px 40px rgba(0,0,0,.2);
+.admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.form-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    padding: 2rem 2rem 1.75rem;
+    animation: fadeInUp 0.5s ease-out 0.1s both;
+    position: relative;
+    overflow: hidden;
+}
+.form-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7);
+}
+[data-bs-theme="dark"] .form-card {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
 }
 
-/* ===== INPUTS ===== */
-.form-control, .form-select{
-    border-radius:14px;
+.form-card h4 {
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    display: flex; align-items: center; gap: 8px;
 }
-.form-check-input{
-    border-radius:6px;
+.form-card h4 i { color: #6366f1; }
+
+.form-label {
+    font-weight: 650;
+    font-size: 0.88rem;
+    color: var(--bs-body-color);
+    margin-bottom: 0.4rem;
 }
 
-/* ===== IMAGE ===== */
-.preview-img{
-    max-height:150px;
-    border-radius:14px;
-    object-fit:cover;
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 0.65rem 0.9rem;
+    font-size: 0.92rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background: #16161f;
+    border-color: rgba(255,255,255,0.08);
+    color: #e7eaf0;
 }
 
-/* ===== BUTTONS ===== */
-.ios-btn{
-    border-radius:14px;
-    font-weight:600;
+.form-check-input { border-radius: 6px; }
+.form-check-input:checked {
+    background-color: #6366f1;
+    border-color: #6366f1;
+}
+
+.preview-wrap {
+    display: flex; align-items: center; gap: 1rem;
+    background: rgba(99,102,241,0.05);
+    border: 1px dashed rgba(99,102,241,0.25);
+    border-radius: 14px;
+    padding: 0.85rem;
+    margin-bottom: 0.75rem;
+}
+.preview-img {
+    width: 90px; height: 90px;
+    border-radius: 12px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.preview-note {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 600;
+}
+[data-bs-theme="dark"] .preview-wrap { background: rgba(99,102,241,0.08); }
+
+.btn-add {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 0.65rem 1.4rem;
+    transition: all 0.3s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-add:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid rgba(0,0,0,0.1);
+    color: #64748b;
+    border-radius: 12px;
+    font-weight: 650;
+    padding: 0.65rem 1.4rem;
+    transition: all 0.25s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-cancel:hover {
+    color: #6366f1;
+    border-color: #6366f1;
+    transform: translateX(-2px);
+}
+[data-bs-theme="dark"] .btn-cancel {
+    border-color: rgba(255,255,255,0.12);
+    color: #8b93a7;
+}
+
+.field-hint {
+    font-size: 0.76rem;
+    color: #94a3b8;
+    margin-top: 0.3rem;
+}
+
+@media (max-width: 768px) {
+    .form-card { padding: 1.4rem 1.1rem; border-radius: 14px; }
+    .admin-header h2 { font-size: 1.15rem; }
 }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container my-4 my-md-5">
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0">
+            <i class="bi bi-{% if product %}pencil-square{% else %}plus-circle{% endif %} text-primary"></i>
+            {% if product %}Mahsulotni tahrirlash{% else %}Yangi mahsulot{% endif %}
+        </h2>
+        <a href="{% url 'coin:admin_products' %}" class="btn btn-cancel">
+            <i class="bi bi-arrow-left"></i> Ortga
+        </a>
+    </div>
 
-<div class="row justify-content-center">
-<div class="col-lg-8">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <h4>
+                    <i class="bi bi-box-seam"></i>
+                    {% if product %}{{ product.name }}{% else %}Mahsulot ma'lumotlari{% endif %}
+                </h4>
 
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
 
+                    <div class="mb-3">
+                        <label class="form-label">Mahsulot nomi <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control"
+                               value="{% if product %}{{ product.name }}{% endif %}"
+                               placeholder="Masalan: LMS futbolka" required>
+                    </div>
 
-<div class="ios-card p-4 p-md-5">
+                    <div class="mb-3">
+                        <label class="form-label">Tavsif <span class="text-danger">*</span></label>
+                        <textarea name="description" rows="5" class="form-control"
+                                  placeholder="Mahsulot haqida qisqacha ma'lumot" required>{% if product %}{{ product.description }}{% endif %}</textarea>
+                    </div>
 
-<h4 class="fw-bold mb-4">
-<i class="bi bi-{% if product %}pencil{% else %}plus-circle{% endif %} me-2"></i>
-{% if product %}Mahsulotni tahrirlash{% else %}Yangi mahsulot qo'shish{% endif %}
-</h4>
+                    <div class="mb-3">
+                        <label class="form-label">Rasm{% if not product %} <span class="text-danger">*</span>{% endif %}</label>
+                        {% if product.image %}
+                        <div class="preview-wrap">
+                            <img src="{{ product.image.url }}" class="preview-img" alt="{{ product.name }}">
+                            <div class="preview-note">
+                                <i class="bi bi-info-circle"></i> Joriy rasm — yangi tanlamasangiz shu qoladi.
+                            </div>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="image" class="form-control" accept="image/*"
+                               {% if not product %}required{% endif %}>
+                    </div>
 
-<form method="post" enctype="multipart/form-data">
-{% csrf_token %}
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="bi bi-coin text-warning"></i> Narxi (coin) <span class="text-danger">*</span></label>
+                            <input type="number" name="coin_price" min="1" class="form-control"
+                                   value="{% if product %}{{ product.coin_price }}{% endif %}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label"><i class="bi bi-archive"></i> Zaxira</label>
+                            <input type="number" name="stock" min="0" class="form-control"
+                                   value="{% if product %}{{ product.stock }}{% else %}0{% endif %}">
+                            <div class="field-hint">Bo'sh yoki 0 — mahsulot tugagan deb belgilanadi.</div>
+                        </div>
+                    </div>
 
-<!-- NAME -->
-<div class="mb-4">
-<label class="form-label fw-semibold">Mahsulot nomi</label>
-<input type="text" name="name"
-       class="form-control"
-       value="{% if product %}{{ product.name }}{% endif %}"
-       placeholder="Mahsulot nomi" required>
-</div>
+                    <div class="mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="isActiveChk"
+                                   {% if product.is_active or not product %}checked{% endif %}>
+                            <label class="form-check-label fw-semibold" for="isActiveChk">
+                                <i class="bi bi-eye"></i> Faol (marketda ko'rinadi)
+                            </label>
+                        </div>
+                    </div>
 
-<!-- DESCRIPTION -->
-<div class="mb-4">
-<label class="form-label fw-semibold">Tavsif</label>
-<textarea name="description" rows="5"
-          class="form-control"
-          placeholder="Mahsulot tavsifi" required>{% if product %}{{ product.description }}{% endif %}</textarea>
-</div>
-
-<!-- IMAGE -->
-<div class="mb-4">
-<label class="form-label fw-semibold">Rasm</label>
-
-{% if product.image %}
-<div class="mb-2">
-<img src="{{ product.image.url }}" class="preview-img">
-<small class="text-muted d-block mt-1">Joriy rasm</small>
-</div>
-{% endif %}
-
-<input type="file" name="image" class="form-control" accept="image/*" {% if not product %}required{% endif %}>
-</div>
-
-<!-- PRICE & STOCK -->
-<div class="row mb-4">
-
-<div class="col-md-6 mb-3 mb-md-0">
-<label class="form-label fw-semibold">Narxi (coin)</label>
-<input type="number" name="coin_price" min="1"
-       class="form-control"
-       value="{% if product %}{{ product.coin_price }}{% endif %}" required>
-</div>
-
-<div class="col-md-6">
-<label class="form-label fw-semibold">Zaxira</label>
-<input type="number" name="stock" min="0"
-       class="form-control"
-       value="{% if product %}{{ product.stock }}{% else %}0{% endif %}">
-</div>
-
-</div>
-
-<!-- ACTIVE -->
-<div class="mb-4">
-<div class="form-check">
-<input class="form-check-input" type="checkbox" name="is_active"
-       {% if product.is_active or not product %}checked{% endif %}>
-<label class="form-check-label fw-semibold">
-Faol (marketda ko'rinadi)
-</label>
-</div>
-</div>
-
-<!-- BUTTONS -->
-<div class="d-flex gap-3 flex-wrap">
-
-<a href="{% url 'coin:admin_products' %}"
-   class="btn btn-outline-secondary ios-btn px-4">
-<i class="bi bi-arrow-left me-2"></i>Bekor
-</a>
-
-<button type="submit" class="btn btn-primary ios-btn px-4 flex-grow-1">
-<i class="bi bi-check-lg me-2"></i>
-{% if product %}Saqlash{% else %}Qo'shish{% endif %}
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-</div>
-
+                    <div class="d-flex gap-3 flex-wrap">
+                        <a href="{% url 'coin:admin_products' %}" class="btn btn-cancel">
+                            <i class="bi bi-x-lg"></i> Bekor qilish
+                        </a>
+                        <button type="submit" class="btn btn-add flex-grow-1">
+                            <i class="bi bi-check-lg"></i>
+                            {% if product %}Saqlash{% else %}Mahsulot qo'shish{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

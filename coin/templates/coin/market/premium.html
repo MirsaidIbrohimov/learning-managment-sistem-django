@@ -3,146 +3,301 @@
 {% block title %}Premium | LMS{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/market/_market_ui.html' %}
 <style>
-@keyframes pmFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-@keyframes pmGlow { 0%,100%{box-shadow:0 0 20px rgba(245,158,11,0.15)} 50%{box-shadow:0 0 40px rgba(245,158,11,0.3)} }
-@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
-
-.pm-container { max-width:900px; margin:0 auto; padding:1.5rem 1rem 3rem; }
-
-.pm-hero {
-    background:linear-gradient(135deg,#f59e0b 0%,#d97706 50%,#b45309 100%);
-    border-radius:20px; padding:2rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem;
-    animation:pmFadeUp 0.5s ease; text-align:center;
+/* ============ PREMIUM SAHIFA — fokus uslub (gold aksent) ============ */
+/* JS generatsiya qilgan HTML var(--ps-*) ishlatadi — aliaslar: */
+:root {
+    --ps-card: var(--mkt-card);
+    --ps-bg: var(--mkt-accent-soft);
+    --ps-text: var(--mkt-text);
+    --ps-muted: var(--mkt-dim);
+    --ps-border: var(--mkt-border);
+    --ps-gold: var(--mkt-gold);
+    --ps-gold-light: var(--mkt-gold-soft);
+    --ps-gold-dark: var(--mkt-gold-dark);
+    --ps-success: var(--mkt-ok);
+    --ps-danger: var(--mkt-bad);
 }
-.pm-hero::before { content:''; position:absolute; top:-50%; right:-10%; width:300px; height:300px; background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%); pointer-events:none; }
-.pm-hero-title { font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; position:relative; z-index:1; }
-.pm-hero-sub { opacity:0.9; font-size:0.9rem; margin:0; position:relative; z-index:1; }
-.pm-balance { margin-top:0.75rem; font-size:0.95rem; font-weight:700; opacity:0.9; position:relative; z-index:1; }
 
-.pm-status-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:1.25rem; margin-bottom:1.5rem; text-align:center; animation:pmFadeUp 0.5s ease 0.1s both; }
-.pm-status-card.premium { border-color:rgba(245,158,11,0.3); animation:pmGlow 3s ease infinite; }
-.pm-status-card i { font-size:2rem; margin-bottom:0.5rem; }
-.pm-status-card h4 { font-weight:700; margin:0 0 0.25rem; }
-.pm-status-card p { color:var(--text-muted); font-size:0.88rem; margin:0; }
+@keyframes psFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
 
-.pm-pending-alert { background:rgba(245,158,11,0.1); border:2px solid rgba(245,158,11,0.3); border-radius:14px; padding:1rem 1.25rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem; font-size:0.9rem; font-weight:600; color:#d97706; animation:pmFadeUp 0.5s ease 0.15s both; }
+.ps-hero-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap; }
+.ps-hero-chips { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-top: 1rem; }
 
-.pm-benefits { display:grid; grid-template-columns:repeat(2,1fr); gap:1rem; margin-bottom:2rem; animation:pmFadeUp 0.5s ease 0.2s both; }
-.pm-benefit { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:1rem 1.25rem; display:flex; align-items:flex-start; gap:0.75rem; }
-.pm-benefit-icon { width:40px; height:40px; min-width:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.1rem; background:rgba(245,158,11,0.1); color:#f59e0b; }
-.pm-benefit-title { font-weight:700; font-size:0.9rem; margin:0 0 0.15rem; }
-.pm-benefit-desc { font-size:0.8rem; color:var(--text-muted); margin:0; }
-
-.pm-plans { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-bottom:1.5rem; animation:pmFadeUp 0.5s ease 0.3s both; }
-.pm-plan {
-    background:var(--card); border:2px solid var(--border); border-radius:18px; padding:1.5rem; text-align:center;
-    position:relative; transition:all 0.3s ease; cursor:pointer;
+/* Kutish ogohlantirishi */
+.ps-pending-alert {
+    background: var(--mkt-gold-soft);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 16px;
+    padding: 1rem 1.25rem; margin-bottom: 1.25rem;
+    display: flex; align-items: center; gap: 0.75rem;
+    font-size: 0.9rem; font-weight: 600; color: var(--mkt-gold-dark);
+    animation: psFadeUp 0.5s ease both;
 }
-.pm-plan:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.1); }
-.pm-plan.popular { border-color:#f59e0b; }
-.pm-plan-badge { position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; font-size:0.7rem; font-weight:800; padding:0.2rem 0.8rem; border-radius:8px; text-transform:uppercase; }
-.pm-plan-name { font-size:1.1rem; font-weight:800; margin:0.5rem 0; }
-.pm-plan-price { font-size:2rem; font-weight:800; color:#f59e0b; margin:0.25rem 0; }
-.pm-plan-price small { font-size:0.8rem; font-weight:600; color:var(--text-muted); }
-.pm-plan-days { font-size:0.85rem; color:var(--text-muted); margin:0 0 1rem; }
-.pm-plan-btn {
-    width:100%; height:44px; border:none; border-radius:12px; font-weight:700; font-size:0.9rem;
-    background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; cursor:pointer; transition:all 0.2s;
+.ps-pending-alert i { font-size: 1.4rem; flex-shrink: 0; }
+
+/* Premium status kartasi */
+.ps-crown-card {
+    background: var(--mkt-card);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.8rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    animation: psFadeUp 0.5s ease 0.05s both;
 }
-.pm-plan-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(245,158,11,0.35); }
-.pm-plan-btn:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; transform:none; box-shadow:none; }
+.ps-crown-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--mkt-gold), #fbbf24);
+}
+.ps-crown-inner { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.ps-crown-badge-wrap { position: relative; width: 90px; height: 90px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.ps-crown-rays { display: none; }
+.ps-crown-badge {
+    width: 84px; height: 84px; border-radius: 22px;
+    background: var(--mkt-gold-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem;
+}
+.ps-crown-sparkle { display: none; }
+.ps-crown-info { flex: 1; min-width: 220px; }
+.ps-crown-title { font-size: 1.25rem; font-weight: 800; margin: 0 0 0.25rem; color: var(--mkt-text); display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.ps-vip-tag {
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
+    padding: 0.15rem 0.6rem; border-radius: 8px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.5px;
+}
+.ps-crown-desc { color: var(--mkt-dim); margin: 0 0 0.8rem; font-size: 0.9rem; }
+.ps-crown-expires { font-weight: 700; color: var(--mkt-gold-dark); font-size: 0.92rem; margin: 0; }
+.ps-crown-expires b { color: var(--mkt-gold-dark); }
 
-/* Modal */
-.pm-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:9998; display:none; align-items:center; justify-content:center; }
-.pm-modal-overlay.show { display:flex; }
-.pm-modal { background:var(--card); border-radius:20px; padding:2rem; max-width:420px; width:90%; animation:pmFadeUp 0.3s ease; }
-.pm-modal h3 { font-size:1.15rem; font-weight:700; margin:0 0 1rem; text-align:center; }
-.pm-modal-info { background:var(--bg); border-radius:12px; padding:1rem; margin-bottom:1.25rem; }
-.pm-modal-info div { display:flex; justify-content:space-between; padding:0.3rem 0; font-size:0.9rem; }
-.pm-modal-info .total { font-weight:700; border-top:1px solid var(--border); margin-top:0.5rem; padding-top:0.5rem; }
-.pm-modal-actions { display:flex; gap:0.5rem; }
-.pm-modal-actions button { flex:1; height:44px; border:none; border-radius:12px; font-weight:700; cursor:pointer; }
-.pm-modal-cancel { background:var(--bg); color:var(--text-muted); border:2px solid var(--border)!important; }
-.pm-modal-confirm { background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff; }
+/* Muddat halqasi */
+.ps-duration {
+    background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.5rem; margin-bottom: 1.25rem;
+    animation: psFadeUp 0.5s ease 0.1s both;
+    display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+}
+.ps-duration-ring-wrap { position: relative; width: 116px; height: 116px; flex-shrink: 0; }
+.ps-duration-ring { transform: rotate(-90deg); }
+.ps-duration-ring circle { fill: none; stroke-width: 10; }
+.ps-duration-ring .track { stroke: var(--mkt-border); }
+.ps-duration-ring .fill { stroke: url(#psGrad); stroke-linecap: round; transition: stroke-dashoffset 1.5s cubic-bezier(0.4, 0, 0.2, 1); }
+.ps-duration-ring-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.ps-duration-num { font-family: var(--mkt-mono); font-size: 1.7rem; font-weight: 800; color: var(--mkt-gold-dark); line-height: 1; }
+.ps-duration-lbl { font-size: 0.68rem; font-weight: 700; color: var(--mkt-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+.ps-duration-info { flex: 1; min-width: 200px; }
+.ps-duration-title { font-weight: 750; font-size: 1rem; margin: 0 0 0.3rem; color: var(--mkt-text); }
+.ps-duration-desc { color: var(--mkt-dim); font-size: 0.86rem; margin: 0 0 0.75rem; }
+.ps-duration-stats { display: flex; gap: 1.25rem; flex-wrap: wrap; font-size: 0.82rem; color: var(--mkt-dim); font-weight: 600; }
+.ps-duration-stats b { color: var(--mkt-text); font-family: var(--mkt-mono); }
 
-.pm-toast { position:fixed; top:20px; right:20px; padding:0.85rem 1.5rem; border-radius:14px; font-weight:600; font-size:0.9rem; z-index:9999; animation:pmFadeUp 0.3s ease; display:flex; align-items:center; gap:0.5rem; }
-.pm-toast.success { background:#10b981; color:#fff; }
-.pm-toast.error { background:#ef4444; color:#fff; }
+/* Yutuqlar (achievements) */
+.ps-achievements {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.9rem;
+    margin-bottom: 1.25rem;
+    animation: psFadeUp 0.5s ease 0.15s both;
+}
+.ps-achievement {
+    background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: 16px;
+    padding: 1.15rem; text-align: center;
+    transition: all 0.3s;
+    position: relative; overflow: hidden;
+}
+.ps-achievement:hover { transform: translateY(-4px); box-shadow: var(--mkt-shadow); }
+.ps-achievement::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--c1, var(--mkt-gold)), var(--c2, var(--mkt-gold)));
+}
+.ps-achievement-icon { font-size: 1.8rem; margin-bottom: 0.35rem; display: inline-block; }
+.ps-achievement-num { font-family: var(--mkt-mono); font-size: 1.55rem; font-weight: 800; color: var(--mkt-text); line-height: 1; }
+.ps-achievement-lbl { font-size: 0.75rem; color: var(--mkt-dim); font-weight: 700; margin-top: 0.35rem; }
 
-.pm-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:14px; }
+/* CTA qatori */
+.ps-cta-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; animation: psFadeUp 0.5s ease 0.2s both; }
+.ps-cta-btn {
+    flex: 1; min-width: 200px; padding: 0.85rem 1.5rem; border-radius: 14px;
+    font-weight: 800; font-size: 0.95rem; text-decoration: none;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+    transition: all 0.25s; border: none; cursor: pointer;
+}
+.ps-cta-extend { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.ps-cta-extend:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(245, 158, 11, 0.35); color: #fff; }
+.ps-cta-market { background: var(--mkt-card); color: var(--mkt-dim); border: 1px solid var(--mkt-border); }
+.ps-cta-market:hover { border-color: var(--mkt-accent); color: var(--mkt-accent); transform: translateY(-2px); }
 
-.pm-history { background:var(--card); border:1px solid var(--border); border-radius:16px; overflow:hidden; }
-.pm-history-title { font-weight:700; font-size:0.95rem; padding:1rem 1.25rem 0.5rem; }
-.pm-history-item { display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1.25rem; border-top:1px solid var(--border); }
-.pm-history-item:first-of-type { border-top:none; }
-.pm-history-left { display:flex; flex-direction:column; gap:0.15rem; }
-.pm-history-plan { font-weight:600; font-size:0.9rem; }
-.pm-history-date { font-size:0.78rem; color:var(--text-muted); }
-.pm-history-badge { font-size:0.75rem; font-weight:700; padding:0.2rem 0.65rem; border-radius:8px; }
-.pm-history-badge.pending { background:rgba(245,158,11,0.12); color:#d97706; }
-.pm-history-badge.approved { background:rgba(16,185,129,0.12); color:#10b981; }
-.pm-history-badge.rejected { background:rgba(239,68,68,0.12); color:#ef4444; }
+/* Imtiyozlar paneli */
+.ps-benefits {
+    background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.6rem; margin-bottom: 1.25rem;
+    animation: psFadeUp 0.5s ease 0.25s both;
+}
+.ps-benefits h5 { text-align: center; font-weight: 800; font-size: 1.1rem; margin-bottom: 1.2rem; color: var(--mkt-text); }
+.ps-benefits-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.7rem; }
+.ps-benefit {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.75rem 1rem; background: var(--mkt-accent-soft); border-radius: 12px;
+}
+.ps-benefit-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0;
+    background: var(--mkt-gold-soft); color: var(--mkt-gold);
+}
+.ps-benefit-title { font-weight: 700; font-size: 0.86rem; margin: 0; color: var(--mkt-text); }
+.ps-benefit-desc { font-size: 0.75rem; color: var(--mkt-dim); margin: 0; }
 
-.pm-expires-info { background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:14px; padding:0.85rem 1.25rem; margin-bottom:1rem; display:flex; align-items:center; gap:0.75rem; font-size:0.9rem; }
-.pm-expires-info i { font-size:1.2rem; color:#f59e0b; }
+/* Guest (premium bo'lmaganlar) kartasi */
+.ps-guest-card {
+    background: var(--mkt-card);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 2.4rem 2rem; margin-bottom: 1.25rem; text-align: center;
+    animation: psFadeUp 0.5s ease 0.1s both;
+    position: relative; overflow: hidden;
+}
+.ps-guest-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--mkt-gold), #fbbf24);
+}
+.ps-guest-icon {
+    width: 72px; height: 72px; border-radius: 20px;
+    background: var(--mkt-gold-soft);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 2.2rem; margin-bottom: 0.8rem;
+}
+.ps-guest-title { font-size: 1.35rem; font-weight: 800; margin: 0 0 0.5rem; color: var(--mkt-text); }
+.ps-guest-desc { color: var(--mkt-dim); margin: 0 0 1.4rem; font-size: 0.92rem; }
+.ps-guest-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
+    padding: 0.85rem 2rem; border-radius: 14px;
+    font-weight: 800; font-size: 1rem; text-decoration: none;
+    transition: all 0.25s;
+}
+.ps-guest-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(245, 158, 11, 0.35); color: #fff; }
 
-@media(max-width:768px) { .pm-plans{grid-template-columns:1fr} .pm-benefits{grid-template-columns:1fr} }
+/* So'rovlar tarixi */
+.ps-history {
+    background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: 16px;
+    overflow: hidden; margin-bottom: 1.25rem;
+    animation: psFadeUp 0.5s ease 0.3s both;
+}
+.ps-history-title { font-weight: 750; font-size: 0.95rem; padding: 1rem 1.25rem 0.5rem; color: var(--mkt-text); }
+.ps-history-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem; border-top: 1px solid var(--mkt-border); gap: 0.5rem; }
+.ps-history-item:first-of-type { border-top: none; }
+.ps-history-left { display: flex; flex-direction: column; gap: 0.15rem; }
+.ps-history-plan { font-weight: 650; font-size: 0.9rem; color: var(--mkt-text); }
+.ps-history-date { font-size: 0.78rem; color: var(--mkt-dim); }
+.ps-history-badge { font-size: 0.73rem; font-weight: 800; padding: 0.22rem 0.65rem; border-radius: 99px; white-space: nowrap; }
+.ps-history-badge.pending { background: var(--mkt-gold-soft); color: var(--mkt-gold-dark); }
+.ps-history-badge.approved { background: var(--mkt-ok-soft); color: #059669; }
+.ps-history-badge.rejected { background: var(--mkt-bad-soft); color: #dc2626; }
+[data-bs-theme="dark"] .ps-history-badge.approved { color: #34d399; }
+[data-bs-theme="dark"] .ps-history-badge.rejected { color: #f87171; }
+
+.ps-skeleton { background: linear-gradient(90deg, var(--mkt-border) 25%, var(--mkt-card) 50%, var(--mkt-border) 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 14px; }
+
+@media (max-width: 768px) {
+    .ps-benefits-grid { grid-template-columns: 1fr; }
+    .ps-achievements { grid-template-columns: repeat(2, 1fr); }
+    .ps-crown-inner { justify-content: center; text-align: center; }
+    .ps-crown-info { text-align: center; }
+    .ps-cta-btn { flex: 1 1 100%; }
+    .ps-hero-top { flex-direction: column; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="pm-container">
-    <div class="pm-hero">
-        <h1 class="pm-hero-title">⭐ Premium</h1>
-        <p class="pm-hero-sub">Maxsus imkoniyatlardan foydalaning</p>
-        <div class="pm-balance" id="pmBalance"><i class="bi bi-coin"></i> Balans: ...</div>
-        <div class="pm-balance" id="pmTotalEarned" style="opacity:0.8;font-size:0.85rem;margin-top:0.25rem"></div>
-    </div>
+<div class="mkt-wrap-narrow">
 
-    <div id="pmEligibility" style="display:none"></div>
-
-    <div id="pmStatus">
-        <div class="pm-skeleton" style="height:80px;margin-bottom:1rem"></div>
-    </div>
-
-    <div id="pmHistory" style="display:none;margin-bottom:1.5rem;animation:pmFadeUp 0.5s ease 0.25s both;"></div>
-
-    <div class="pm-benefits">
-        <div class="pm-benefit">
-            <div class="pm-benefit-icon"><i class="bi bi-percent"></i></div>
-            <div><p class="pm-benefit-title">5% chegirma</p><p class="pm-benefit-desc">Barcha mahsulotlarga chegirma</p></div>
+    <!-- HERO -->
+    <div class="mkt-hero gold">
+        <div class="ps-hero-top">
+            <div>
+                <h1><i class="bi bi-patch-check-fill"></i> Premium</h1>
+                <p class="sub">Sizning maxsus imkoniyatlaringiz shu yerda</p>
+            </div>
+            <a href="{% url 'coin:market_list' %}" class="mkt-back"><i class="bi bi-arrow-left"></i> Market</a>
         </div>
-        <div class="pm-benefit">
-            <div class="pm-benefit-icon"><i class="bi bi-coin"></i></div>
-            <div><p class="pm-benefit-title">2x coin</p><p class="pm-benefit-desc">Like va izoh uchun 2x coin</p></div>
-        </div>
-        <div class="pm-benefit">
-            <div class="pm-benefit-icon"><i class="bi bi-gem"></i></div>
-            <div><p class="pm-benefit-title">Premium badge</p><p class="pm-benefit-desc">Profilda maxsus nishon</p></div>
-        </div>
-        <div class="pm-benefit">
-            <div class="pm-benefit-icon"><i class="bi bi-star-fill"></i></div>
-            <div><p class="pm-benefit-title">Premium imkoniyatlar</p><p class="pm-benefit-desc">Kelajakda yangi funksiyalar</p></div>
+        <div class="ps-hero-chips">
+            <span class="mkt-chip gold"><i class="bi bi-coin"></i> Balans: <span class="num" id="psBalance">...</span> coin</span>
+            <span class="mkt-chip" id="psTotalEarned"></span>
         </div>
     </div>
 
-    <div class="pm-plans" id="pmPlans">
-        <div class="pm-skeleton" style="height:280px"></div>
-        <div class="pm-skeleton" style="height:280px"></div>
-        <div class="pm-skeleton" style="height:280px"></div>
-    </div>
-</div>
+    <div id="psEligibility" style="display:none"></div>
 
-<div class="pm-modal-overlay" id="premiumModal">
-    <div class="pm-modal">
-        <h3>⭐ Premium sotib olish</h3>
-        <div class="pm-modal-info" id="pmModalInfo"></div>
-        <div class="pm-modal-actions">
-            <button class="pm-modal-cancel" onclick="closePmModal()">Bekor qilish</button>
-            <button class="pm-modal-confirm" id="pmConfirmBtn" onclick="confirmPremium()"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
+    <!-- Dynamic status area -->
+    <div id="psStatus">
+        <div class="ps-skeleton" style="height:120px;margin-bottom:1rem"></div>
+    </div>
+
+    <!-- History -->
+    <div id="psHistory" style="display:none"></div>
+
+    <!-- Benefits panel (always visible) -->
+    <div class="ps-benefits">
+        <h5><i class="bi bi-gem text-warning me-2"></i>Premium imtiyozlari</h5>
+        <div class="ps-benefits-grid">
+            <div class="ps-benefit">
+                <div class="ps-benefit-icon"><i class="bi bi-percent"></i></div>
+                <div>
+                    <p class="ps-benefit-title">5% chegirma</p>
+                    <p class="ps-benefit-desc">Barcha mahsulotlarga</p>
+                </div>
+            </div>
+            <div class="ps-benefit">
+                <div class="ps-benefit-icon"><i class="bi bi-coin"></i></div>
+                <div>
+                    <p class="ps-benefit-title">2x coin</p>
+                    <p class="ps-benefit-desc">Like va izoh uchun</p>
+                </div>
+            </div>
+            <div class="ps-benefit">
+                <div class="ps-benefit-icon"><i class="bi bi-trophy"></i></div>
+                <div>
+                    <p class="ps-benefit-title">To'liq reyting</p>
+                    <p class="ps-benefit-desc">Barcha o'quvchilar orasida</p>
+                </div>
+            </div>
+            <div class="ps-benefit">
+                <div class="ps-benefit-icon"><i class="bi bi-robot"></i></div>
+                <div>
+                    <p class="ps-benefit-title">2x AI limit</p>
+                    <p class="ps-benefit-desc">120 xabar va 5 rasm</p>
+                </div>
+            </div>
+            <div class="ps-benefit">
+                <div class="ps-benefit-icon"><i class="bi bi-people"></i></div>
+                <div>
+                    <p class="ps-benefit-title">Kursdoshlar</p>
+                    <p class="ps-benefit-desc">Bo'lim ochiladi</p>
+                </div>
+            </div>
+            <div class="ps-benefit">
+                <div class="ps-benefit-icon"><i class="bi bi-patch-check-fill"></i></div>
+                <div>
+                    <p class="ps-benefit-title">✅ Premium belgi</p>
+                    <p class="ps-benefit-desc">Profilingizda ko'rinadi</p>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- SVG gradient defs used by ring -->
+    <svg width="0" height="0" style="position:absolute">
+        <defs>
+            <linearGradient id="psGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f59e0b"/>
+                <stop offset="100%" stop-color="#d97706"/>
+            </linearGradient>
+        </defs>
+    </svg>
 </div>
 {% endblock %}
 
@@ -150,132 +305,164 @@
 <script>
 (function(){
     const API = '/api/v1/coin';
-    let userCoins=0, selectedPlan=null, plansData=null;
 
     function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
     async function get(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
-    async function post(u,b){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d;return d;}
+    function formatNum(n){ return (n||0).toLocaleString('en-US').replace(/,/g,' '); }
 
-    function toast(msg,type){const t=document.createElement('div');t.className='pm-toast '+type;t.innerHTML='<i class="bi bi-'+(type==='success'?'check-circle':'x-circle')+'"></i> '+msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3500);}
+    function computePremiumStats(purchasedAt, expiresAt){
+        if (!purchasedAt || !expiresAt) return null;
+        const start = new Date(purchasedAt);
+        const end = new Date(expiresAt);
+        const now = new Date();
+        const totalMs = end - start;
+        const usedMs = Math.max(0, now - start);
+        const remainingMs = Math.max(0, end - now);
+        return {
+            totalDays: Math.max(1, Math.round(totalMs / 86400000)),
+            usedDays: Math.floor(usedMs / 86400000),
+            remainingDays: Math.ceil(remainingMs / 86400000),
+            pctRemaining: Math.max(0, Math.min(100, Math.round((remainingMs / totalMs) * 100)))
+        };
+    }
 
     async function loadAll(){
-        try{
+        try {
             const [summary, plans] = await Promise.all([get(API+'/summary/'), get(API+'/premium/plans/')]);
-            userCoins = summary.total_coins;
-            plansData = plans;
+            const totalCoins = summary.total_coins;
+            const totalEarned = plans.total_earned || 0;
 
-            document.getElementById('pmBalance').innerHTML = '<i class="bi bi-coin"></i> Balans: '+userCoins+' coin';
-            document.getElementById('pmTotalEarned').innerHTML = '<i class="bi bi-graph-up-arrow"></i> Jami yig\'ilgan: '+(plans.total_earned||0)+' coin';
+            document.getElementById('psBalance').textContent = formatNum(totalCoins);
+            document.getElementById('psTotalEarned').innerHTML = '<i class="bi bi-graph-up-arrow"></i> Jami yig\'ilgan: <span class="num">' + formatNum(totalEarned) + '</span> coin';
 
-            // Eligibility check
-            const eligEl = document.getElementById('pmEligibility');
-            if(!plans.eligible){
-                eligEl.innerHTML = '<div class="pm-pending-alert" style="border-color:rgba(239,68,68,0.3);color:#ef4444;background:rgba(239,68,68,0.1)"><i class="bi bi-lock-fill" style="font-size:1.3rem"></i> <div>Premium sotib olish uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutishingiz kerak</small></div></div>';
+            const eligEl = document.getElementById('psEligibility');
+            if (!plans.eligible && !plans.is_premium) {
+                eligEl.innerHTML = '<div class="ps-pending-alert" style="border-color:rgba(239,68,68,0.3);color:#ef4444;background:var(--mkt-bad-soft)"><i class="bi bi-lock-fill"></i><div>Premium sotib olish uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun kutishingiz kerak</small></div></div>';
                 eligEl.style.display = 'block';
             }
 
-            // Status
-            let statusH = '';
-            if(plans.has_pending_request){
+            const statusEl = document.getElementById('psStatus');
+            let html = '';
+
+            if (plans.has_pending_request) {
                 const pr = plans.pending_request;
                 const prDate = new Date(pr.created_at).toLocaleDateString('uz-UZ');
-                statusH = '<div class="pm-pending-alert"><i class="bi bi-hourglass-split" style="font-size:1.3rem"></i> <div>Sizda kutilayotgan Premium so\'rov bor. Admin tasdiqlashini kuting.<br><small style="opacity:0.8">Tarif: '+pr.plan_display+' | Narxi: '+pr.price+' coin | Yuborilgan: '+prDate+'</small></div></div>';
-            } else if(plans.is_premium){
-                statusH = '<div class="pm-status-card premium"><i class="bi bi-gem" style="color:#f59e0b"></i><h4>Siz Premium foydalanuvchisiz! ⭐</h4><p>Muddatni uzaytirish uchun tarif tanlang</p></div>';
-                if(plans.premium_expires_at){
-                    const exp = new Date(plans.premium_expires_at);
-                    const now = new Date();
-                    const daysLeft = Math.max(0, Math.ceil((exp - now) / (1000*60*60*24)));
-                    statusH += '<div class="pm-expires-info"><i class="bi bi-calendar-check"></i> <div>Premium muddati: <b>'+exp.toLocaleDateString('uz-UZ')+'</b> gacha ('+daysLeft+' kun qoldi)</div></div>';
-                }
-            } else {
-                statusH = '<div class="pm-status-card"><i class="bi bi-gem" style="color:var(--text-muted)"></i><h4>Premium afzalliklaridan foydalaning</h4><p>Narxlar sizning umumiy yig\'ilgan coinlaringizga qarab belgilanadi</p></div>';
+                html = '<div class="ps-pending-alert"><i class="bi bi-hourglass-split"></i><div>Sizda kutilayotgan Premium so\'rov bor. Admin tasdiqlashini kuting.<br><small style="opacity:0.8">Tarif: '+pr.plan_display+' | Narxi: '+formatNum(pr.price)+' coin | Yuborilgan: '+prDate+'</small></div></div>';
             }
-            document.getElementById('pmStatus').innerHTML = statusH;
+
+            if (plans.is_premium) {
+                const stats = computePremiumStats(plans.premium_purchased_at, plans.premium_expires_at);
+                let expiresBlock = '';
+                let durationBlock = '';
+                if (plans.premium_expires_at) {
+                    const exp = new Date(plans.premium_expires_at);
+                    expiresBlock = '<p class="ps-crown-expires"><i class="bi bi-calendar-check"></i> Muddat: <b>' + exp.toLocaleDateString('uz-UZ') + '</b> gacha' + (stats ? ' (<b>' + stats.remainingDays + '</b> kun qoldi)' : '') + '</p>';
+                }
+                if (stats) {
+                    const circumference = 2 * Math.PI * 52;
+                    const offset = circumference * (1 - stats.pctRemaining / 100);
+                    durationBlock = `<div class="ps-duration">
+                        <div class="ps-duration-ring-wrap">
+                            <svg class="ps-duration-ring" width="116" height="116" viewBox="0 0 120 120">
+                                <circle class="track" cx="60" cy="60" r="52"></circle>
+                                <circle class="fill" cx="60" cy="60" r="52" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}" style="--offset:${offset}"></circle>
+                            </svg>
+                            <div class="ps-duration-ring-inner">
+                                <div class="ps-duration-num">${stats.pctRemaining}%</div>
+                                <div class="ps-duration-lbl">qoldi</div>
+                            </div>
+                        </div>
+                        <div class="ps-duration-info">
+                            <h4 class="ps-duration-title">Premium muddati progressi</h4>
+                            <p class="ps-duration-desc">Sizning obunangiz qanchalik davom etganini va qancha qolganini kuzatib boring.</p>
+                            <div class="ps-duration-stats">
+                                <span><b>${stats.totalDays}</b> jami kun</span>
+                                <span><b style="color:var(--ps-success)">${stats.usedDays}</b> foydalanilgan</span>
+                                <span><b style="color:var(--ps-gold-dark)">${stats.remainingDays}</b> qolgan</span>
+                            </div>
+                        </div>
+                    </div>`;
+                }
+
+                html += `<div class="ps-crown-card">
+                    <div class="ps-crown-inner">
+                        <div class="ps-crown-badge-wrap">
+                            <div class="ps-crown-rays"></div>
+                            <div class="ps-crown-rays r2"></div>
+                            <div class="ps-crown-badge">👑</div>
+                            <span class="ps-crown-sparkle s1">✦</span>
+                            <span class="ps-crown-sparkle s2">✦</span>
+                            <span class="ps-crown-sparkle s3">✦</span>
+                        </div>
+                        <div class="ps-crown-info">
+                            <h2 class="ps-crown-title">Siz Premium foydalanuvchisiz! <span class="ps-vip-tag">⭐ VIP</span></h2>
+                            <p class="ps-crown-desc">Barcha maxsus imtiyozlaringiz faol. Muddat tugashidan oldin uzaytirsangiz kunlaringiz yo'qolmaydi.</p>
+                            ${expiresBlock}
+                        </div>
+                    </div>
+                </div>${durationBlock}`;
+
+                // Achievements
+                const usedDays = stats ? stats.usedDays : 0;
+                const totalPurchases = summary.total_transactions || 0;
+                html += `<div class="ps-achievements">
+                    <div class="ps-achievement" style="--c1:#f59e0b;--c2:#d97706">
+                        <div class="ps-achievement-icon">👑</div>
+                        <div class="ps-achievement-num">${usedDays}</div>
+                        <div class="ps-achievement-lbl">Premium kunlari</div>
+                    </div>
+                    <div class="ps-achievement" style="--c1:#10b981;--c2:#059669">
+                        <div class="ps-achievement-icon">💰</div>
+                        <div class="ps-achievement-num">${formatNum(totalEarned)}</div>
+                        <div class="ps-achievement-lbl">Jami coin</div>
+                    </div>
+                    <div class="ps-achievement" style="--c1:#8b5cf6;--c2:#7c3aed">
+                        <div class="ps-achievement-icon">🛒</div>
+                        <div class="ps-achievement-num">${totalPurchases}</div>
+                        <div class="ps-achievement-lbl">Aktivlik</div>
+                    </div>
+                    <div class="ps-achievement" style="--c1:#3b82f6;--c2:#2563eb">
+                        <div class="ps-achievement-icon">⭐</div>
+                        <div class="ps-achievement-num">VIP</div>
+                        <div class="ps-achievement-lbl">Status</div>
+                    </div>
+                </div>`;
+
+                // CTA
+                html += `<div class="ps-cta-row">
+                    <a href="/market/extend-premium/" class="ps-cta-btn ps-cta-extend"><i class="bi bi-arrow-repeat"></i> Muddatni uzaytirish</a>
+                    <a href="/market/" class="ps-cta-btn ps-cta-market"><i class="bi bi-shop"></i> Marketga qaytish</a>
+                </div>`;
+            } else if (!plans.has_pending_request) {
+                html += `<div class="ps-guest-card">
+                    <div class="ps-guest-icon">👑</div>
+                    <h2 class="ps-guest-title">Premium bilan yaxshiroq o'qing</h2>
+                    <p class="ps-guest-desc">5% chegirma, 2x coin, to'liq reyting, kursdoshlar, AI imkoniyatlari — hammasi Premium bilan</p>
+                    <a href="/market/buy-premium/" class="ps-guest-btn">
+                        <i class="bi bi-rocket-takeoff-fill"></i> Premium olish
+                    </a>
+                </div>`;
+            }
+
+            statusEl.innerHTML = html;
 
             // Request history
-            const historyEl = document.getElementById('pmHistory');
-            if(plans.request_history && plans.request_history.length > 0){
-                let hH = '<div class="pm-history"><div class="pm-history-title">📋 So\'rovlar tarixi</div>';
+            const historyEl = document.getElementById('psHistory');
+            if (plans.request_history && plans.request_history.length > 0) {
+                let hH = '<div class="ps-history"><div class="ps-history-title">📋 So\'rovlar tarixi</div>';
                 plans.request_history.forEach(r => {
                     const d = new Date(r.created_at).toLocaleDateString('uz-UZ');
-                    hH += '<div class="pm-history-item"><div class="pm-history-left"><span class="pm-history-plan">'+r.plan_display+(r.is_extension?' (uzaytirish)':'')+'</span><span class="pm-history-date">'+d+' • '+r.price+' coin</span></div><span class="pm-history-badge '+r.status+'">'+r.status_display+'</span></div>';
+                    hH += '<div class="ps-history-item"><div class="ps-history-left"><span class="ps-history-plan">'+r.plan_display+(r.is_extension?' (uzaytirish)':'')+'</span><span class="ps-history-date">'+d+' • '+formatNum(r.price)+' coin</span></div><span class="ps-history-badge '+r.status+'">'+r.status_display+'</span></div>';
                 });
                 hH += '</div>';
                 historyEl.innerHTML = hH;
                 historyEl.style.display = 'block';
             }
-
-            // Plans
-            const planKeys = ['weekly','monthly','bimonthly'];
-            const badges = {monthly:'Mashhur', bimonthly:'Tejamkor'};
-            const notEligible = !plans.eligible;
-            document.getElementById('pmPlans').innerHTML = planKeys.map(key => {
-                const p = plans.plans[key];
-                const isCheap = p.too_cheap;
-                const canAfford = !isCheap && userCoins >= p.price;
-                const disabled = plans.has_pending_request || !canAfford || notEligible || isCheap;
-                let btnText = '';
-                if(notEligible) btnText = '🔒 Hali mumkin emas';
-                else if(isCheap) btnText = '📈 Coin yig\'ing';
-                else if(plans.has_pending_request) btnText = 'Kutilmoqda';
-                else if(!canAfford) btnText = 'Coin yetarli emas';
-                else if(plans.is_premium) btnText = '⏳ Uzaytirish';
-                else btnText = 'Tanlash';
-                return `<div class="pm-plan ${key==='monthly'?'popular':''}">
-                    ${badges[key]?'<div class="pm-plan-badge">'+badges[key]+'</div>':''}
-                    <div class="pm-plan-name">${p.name}</div>
-                    <div class="pm-plan-price">${isCheap?'<span style="text-decoration:line-through;opacity:0.5;font-size:0.7em">'+p.price+'</span> <small>min '+p.min_price+'</small>':p.price+' <small>coin</small>'}</div>
-                    <div class="pm-plan-days">${p.days} kun <span style="font-size:0.78rem;opacity:0.7">(${p.percent}%)</span></div>
-                    ${isCheap?'<div style="font-size:0.78rem;color:#ef4444;font-weight:600;margin-bottom:0.5rem">⚠️ Narx juda arzon! Coinlar yig\'ishni davom eting</div>':''}
-                    <button class="pm-plan-btn" ${disabled?'disabled':''} onclick="selectPlan('${key}')">
-                        ${btnText}
-                    </button>
-                </div>`;
-            }).join('');
-
-        }catch(e){
-            document.getElementById('pmStatus').innerHTML='<div class="pm-status-card"><p>Xatolik yuz berdi</p></div>';
+        } catch(e) {
+            document.getElementById('psStatus').innerHTML = '<div class="ps-pending-alert" style="border-color:rgba(239,68,68,0.3);color:#ef4444;background:var(--mkt-bad-soft)"><i class="bi bi-exclamation-triangle-fill"></i><div>Xatolik yuz berdi. Sahifani qayta yuklang.</div></div>';
             console.error(e);
         }
     }
-
-    window.selectPlan = function(key){
-        if(!plansData) return;
-        selectedPlan = key;
-        const p = plansData.plans[key];
-        const isExt = plansData.is_premium;
-        document.querySelector('#premiumModal .pm-modal h3').textContent = isExt ? '⏳ Premium uzaytirish' : '⭐ Premium sotib olish';
-        let info = `
-            <div><span>Tarif:</span><span><b>${p.name}</b></span></div>
-            <div><span>Muddat:</span><span>+${p.days} kun</span></div>
-            <div><span>Narxi:</span><span><b>${p.price} coin</b></span></div>
-            <div><span>Balansingiz:</span><span>${userCoins} coin</span></div>
-            <div class="total"><span>Qoldiq:</span><span>${userCoins-p.price} coin</span></div>`;
-        if(isExt && plansData.premium_expires_at){
-            const exp = new Date(plansData.premium_expires_at);
-            const newExp = new Date(exp.getTime() + p.days*24*60*60*1000);
-            info += `<div style="margin-top:0.5rem;font-size:0.82rem;color:var(--text-muted)">📅 Yangi tugash sanasi: <b>${newExp.toLocaleDateString('uz-UZ')}</b></div>`;
-        }
-        document.getElementById('pmModalInfo').innerHTML = info;
-        document.getElementById('pmConfirmBtn').innerHTML = isExt ? '<i class="bi bi-check-lg"></i> Uzaytirish' : '<i class="bi bi-check-lg"></i> Tasdiqlash';
-        document.getElementById('premiumModal').classList.add('show');
-    };
-    window.closePmModal = function(){ document.getElementById('premiumModal').classList.remove('show'); selectedPlan=null; };
-
-    window.confirmPremium = async function(){
-        if(!selectedPlan) return;
-        const btn=document.getElementById('pmConfirmBtn');
-        btn.disabled=true; btn.textContent='Kutiling...';
-        try{
-            const d = await post(API+'/premium/request/',{plan:selectedPlan});
-            closePmModal();
-            toast(d.message||"So'rov yuborildi!",'success');
-            loadAll();
-        }catch(e){
-            toast(e.error||'Xatolik yuz berdi','error');
-        }finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-check-lg"></i> Tasdiqlash';}
-    };
 
     loadAll();
 })();

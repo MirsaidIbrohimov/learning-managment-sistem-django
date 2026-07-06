@@ -3,98 +3,157 @@
 {% block title %}Mahsulot | LMS{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/market/_market_ui.html' %}
 <style>
-@keyframes dtFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-@keyframes dtPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
-@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+/* ============ MAHSULOT SAHIFASI — fokus uslub ============ */
+.dt-main { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem; animation: mktFadeUp 0.5s ease; }
 
-.dt-container { max-width:1000px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+.dt-img-wrap {
+    border-radius: var(--mkt-radius);
+    overflow: hidden;
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    box-shadow: var(--mkt-shadow);
+}
+.dt-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; }
 
-.dt-back { display:inline-flex; align-items:center; gap:0.4rem; color:var(--text-muted); font-weight:600; font-size:0.9rem; text-decoration:none; margin-bottom:1.25rem; transition:color 0.2s; }
-.dt-back:hover { color:var(--primary); }
+.dt-info {
+    display: flex; flex-direction: column; gap: 1rem;
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.5rem 1.6rem;
+}
+.dt-title { font-size: 1.45rem; font-weight: 800; color: var(--mkt-text); margin: 0; }
+.dt-desc { font-size: 0.9rem; color: var(--mkt-dim); line-height: 1.65; margin: 0; }
 
-.dt-main { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2rem; animation:dtFadeUp 0.5s ease; }
+.dt-meta { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.dt-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.45rem 0.95rem; border-radius: var(--mkt-radius-sm);
+    font-weight: 700; font-size: 0.86rem;
+    font-variant-numeric: tabular-nums;
+}
+.dt-badge.price { background: var(--mkt-gold-soft); color: var(--mkt-gold-dark); font-family: var(--mkt-mono); }
+.dt-badge.stock { background: var(--mkt-ok-soft); color: #059669; }
+.dt-badge.out { background: var(--mkt-bad-soft); color: #dc2626; }
+.dt-badge.balance { background: var(--mkt-info-soft); color: var(--mkt-info); font-family: var(--mkt-mono); }
+[data-bs-theme="dark"] .dt-badge.stock { color: #34d399; }
+[data-bs-theme="dark"] .dt-badge.out { color: #f87171; }
 
-.dt-img-wrap { border-radius:20px; overflow:hidden; background:var(--card); border:1px solid var(--border); }
-.dt-img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
+.dt-stats { display: flex; gap: 1.15rem; flex-wrap: wrap; }
+.dt-stat { display: flex; align-items: center; gap: 0.35rem; font-size: 0.86rem; color: var(--mkt-dim); font-weight: 600; }
 
-.dt-info { display:flex; flex-direction:column; gap:1rem; }
-.dt-title { font-size:1.6rem; font-weight:800; color:var(--text); margin:0; }
-.dt-desc { font-size:0.92rem; color:var(--text-muted); line-height:1.65; margin:0; }
-
-.dt-meta { display:flex; flex-wrap:wrap; gap:0.75rem; }
-.dt-badge { display:inline-flex; align-items:center; gap:0.35rem; padding:0.5rem 1rem; border-radius:12px; font-weight:700; font-size:0.88rem; }
-.dt-badge.price { background:rgba(245,158,11,0.1); color:#f59e0b; }
-.dt-badge.stock { background:rgba(16,185,129,0.1); color:#10b981; }
-.dt-badge.out { background:rgba(239,68,68,0.1); color:#ef4444; }
-.dt-badge.balance { background:rgba(59,130,246,0.1); color:#3b82f6; }
-
-.dt-stats { display:flex; gap:1.25rem; }
-.dt-stat { display:flex; align-items:center; gap:0.35rem; font-size:0.9rem; color:var(--text-muted); }
-
-.dt-actions { display:flex; gap:0.75rem; margin-top:auto; }
+.dt-actions { display: flex; gap: 0.6rem; margin-top: auto; }
 .dt-like-btn {
-    width:50px; height:50px; border:2px solid var(--border); border-radius:14px; background:var(--bg);
-    display:flex; align-items:center; justify-content:center; font-size:1.3rem; color:var(--text-muted);
-    cursor:pointer; transition:all 0.2s;
+    width: 48px; height: 48px;
+    border: 1px solid var(--mkt-border); border-radius: 13px; background: transparent;
+    display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--mkt-dim);
+    cursor: pointer; transition: all 0.2s;
 }
-.dt-like-btn.liked { color:#ef4444; border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.05); }
-.dt-like-btn:hover i { animation:dtPulse 0.4s ease; }
+.dt-like-btn.liked { color: var(--mkt-bad); border-color: rgba(239, 68, 68, 0.35); background: var(--mkt-bad-soft); }
+.dt-like-btn:hover { transform: scale(1.06); border-color: var(--mkt-bad); color: var(--mkt-bad); }
 .dt-purchase-btn {
-    flex:1; height:50px; border:none; border-radius:14px; font-weight:700; font-size:1rem;
-    background:linear-gradient(135deg,#10b981,#059669); color:#fff;
-    cursor:pointer; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:0.5rem;
+    flex: 1; height: 48px; border: none; border-radius: 13px; font-weight: 700; font-size: 0.95rem;
+    background: linear-gradient(135deg, #10b981, #059669); color: #fff;
+    cursor: pointer; transition: all 0.25s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
 }
-.dt-purchase-btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(16,185,129,0.3); }
-.dt-purchase-btn:disabled { background:var(--border); color:var(--text-muted); cursor:not-allowed; transform:none; box-shadow:none; }
+.dt-purchase-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(16, 185, 129, 0.3); }
+.dt-purchase-btn:disabled { background: var(--mkt-border); color: var(--mkt-dim); cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* Comments */
-.dt-comments { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:1.5rem; animation:dtFadeUp 0.5s ease 0.2s both; }
-.dt-comments-title { font-size:1.15rem; font-weight:700; margin:0 0 1rem; display:flex; align-items:center; gap:0.5rem; }
-.dt-comment-form { display:flex; gap:0.5rem; margin-bottom:1.25rem; }
-.dt-comment-input { flex:1; padding:0.75rem 1rem; border:2px solid var(--border); border-radius:12px; background:var(--bg); color:var(--text); font-size:0.88rem; resize:none; min-height:44px; font-family:inherit; }
-.dt-comment-input:focus { outline:none; border-color:var(--primary); }
-.dt-comment-submit { height:44px; padding:0 1.25rem; border:none; border-radius:12px; background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
-.dt-comment-submit:hover { transform:translateY(-1px); }
+/* Izohlar */
+.dt-comments {
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.5rem 1.6rem;
+    animation: mktFadeUp 0.5s ease 0.15s both;
+}
+.dt-comments-title { font-size: 1.05rem; font-weight: 750; color: var(--mkt-text); margin: 0 0 1rem; display: flex; align-items: center; gap: 0.5rem; }
+.dt-comment-form { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+.dt-comment-input {
+    flex: 1; padding: 0.7rem 1rem;
+    border: 1px solid var(--mkt-border); border-radius: 12px;
+    background: transparent; color: var(--mkt-text);
+    font-size: 0.88rem; resize: none; min-height: 44px; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.dt-comment-input:focus { outline: none; border-color: var(--mkt-accent); box-shadow: 0 0 0 4px var(--mkt-accent-soft); }
+.dt-comment-submit {
+    height: 44px; padding: 0 1.25rem; border: none; border-radius: 12px;
+    background: var(--mkt-accent); color: #fff;
+    font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.dt-comment-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99, 102, 241, 0.3); }
 
-.dt-comment-list { display:flex; flex-direction:column; gap:0.75rem; }
-.dt-comment { display:flex; gap:0.75rem; padding:0.75rem; background:var(--bg); border-radius:14px; }
-.dt-comment-avatar { width:36px; height:36px; min-width:36px; border-radius:10px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:700; font-size:0.8rem; display:flex; align-items:center; justify-content:center; }
-.dt-comment-body { flex:1; min-width:0; }
-.dt-comment-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.2rem; }
-.dt-comment-name { font-weight:700; font-size:0.85rem; color:var(--text); }
-.dt-comment-date { font-size:0.72rem; color:var(--text-muted); }
-.dt-comment-text { font-size:0.85rem; color:var(--text-muted); margin:0; line-height:1.5; }
+.dt-comment-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.dt-comment { display: flex; gap: 0.75rem; padding: 0.8rem; background: var(--mkt-accent-soft); border-radius: 14px; }
+.dt-comment-avatar {
+    width: 36px; height: 36px; min-width: 36px; border-radius: 10px;
+    background: var(--mkt-accent); color: #fff;
+    font-weight: 700; font-size: 0.8rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.dt-comment-body { flex: 1; min-width: 0; }
+.dt-comment-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.2rem; gap: 0.5rem; }
+.dt-comment-name { font-weight: 700; font-size: 0.85rem; color: var(--mkt-text); }
+.dt-comment-date { font-size: 0.72rem; color: var(--mkt-dim); white-space: nowrap; }
+.dt-comment-text { font-size: 0.85rem; color: var(--mkt-dim); margin: 0; line-height: 1.5; }
 
-.dt-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:14px; }
+.dt-skeleton { background: linear-gradient(90deg, var(--mkt-border) 25%, var(--mkt-card) 50%, var(--mkt-border) 75%); background-size: 200% 100%; animation: mktShimmer 1.5s infinite; border-radius: 14px; }
 
-.dt-toast { position:fixed; top:20px; right:20px; padding:0.85rem 1.5rem; border-radius:14px; font-weight:600; font-size:0.9rem; z-index:9999; animation:dtFadeUp 0.3s ease; display:flex; align-items:center; gap:0.5rem; }
-.dt-toast.success { background:#10b981; color:#fff; }
-.dt-toast.error { background:#ef4444; color:#fff; }
+/* Toast (JS dt-toast klassini ishlatadi) */
+.dt-toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+    padding: 0.75rem 1.4rem; border-radius: 99px;
+    font-weight: 700; font-size: 0.88rem; z-index: 99999;
+    animation: mktPillIn 0.35s ease-out;
+    display: flex; align-items: center; gap: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18); color: #fff;
+}
+.dt-toast.success { background: var(--mkt-ok); }
+.dt-toast.error { background: var(--mkt-bad); }
 
-/* Modal */
-.dt-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px); z-index:9998; display:none; align-items:center; justify-content:center; }
-.dt-modal-overlay.show { display:flex; }
-.dt-modal { background:var(--card); border-radius:20px; padding:2rem; max-width:420px; width:90%; animation:dtFadeUp 0.3s ease; }
-.dt-modal h3 { font-size:1.2rem; font-weight:700; margin:0 0 1rem; }
-.dt-modal-info { background:var(--bg); border-radius:12px; padding:1rem; margin-bottom:1.25rem; font-size:0.9rem; }
-.dt-modal-info div { display:flex; justify-content:space-between; padding:0.25rem 0; }
-.dt-modal-info .dt-modal-total { font-weight:700; border-top:1px solid var(--border); margin-top:0.5rem; padding-top:0.5rem; }
-.dt-modal-actions { display:flex; gap:0.5rem; }
-.dt-modal-actions button { flex:1; height:44px; border:none; border-radius:12px; font-weight:700; cursor:pointer; transition:all 0.2s; }
-.dt-modal-cancel { background:var(--bg); color:var(--text-muted); border:2px solid var(--border)!important; }
-.dt-modal-confirm { background:linear-gradient(135deg,#10b981,#059669); color:#fff; }
+/* Modal (JS klasslari saqlangan) */
+.dt-modal-overlay {
+    position: fixed; inset: 0; background: rgba(10, 12, 22, 0.6); backdrop-filter: blur(8px);
+    z-index: 9998; display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.dt-modal-overlay.show { display: flex; }
+.dt-modal {
+    background: var(--mkt-card); border: 1px solid var(--mkt-border);
+    border-radius: 22px; padding: 1.8rem 1.9rem; max-width: 420px; width: 100%;
+    animation: mktPop 0.35s ease-out; box-shadow: var(--mkt-shadow-lg);
+}
+.dt-modal h3 { font-size: 1.15rem; font-weight: 800; color: var(--mkt-text); margin: 0 0 1rem; }
+.dt-modal-info { background: var(--mkt-accent-soft); border-radius: 14px; padding: 0.9rem 1.1rem; margin-bottom: 1.1rem; font-size: 0.88rem; color: var(--mkt-text); }
+.dt-modal-info div { display: flex; justify-content: space-between; padding: 0.28rem 0; }
+.dt-modal-info .dt-modal-total { font-weight: 800; border-top: 1px solid var(--mkt-border); margin-top: 0.4rem; padding-top: 0.55rem; }
+.dt-modal-actions { display: flex; gap: 0.6rem; }
+.dt-modal-actions button {
+    flex: 1; height: 44px; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+}
+.dt-modal-cancel { background: transparent; color: var(--mkt-dim); border: 1px solid var(--mkt-border) !important; }
+.dt-modal-cancel:hover { color: var(--mkt-accent); border-color: var(--mkt-accent) !important; }
+.dt-modal-confirm { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.dt-modal-confirm:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16, 185, 129, 0.3); }
 
-@media(max-width:768px) {
-    .dt-main { grid-template-columns:1fr; }
-    .dt-title { font-size:1.3rem; }
+@media (max-width: 768px) {
+    .dt-main { grid-template-columns: 1fr; }
+    .dt-title { font-size: 1.25rem; }
+    .dt-info { padding: 1.15rem 1rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="dt-container">
-    <a href="/market/" class="dt-back"><i class="bi bi-arrow-left"></i> Market</a>
+<div class="mkt-wrap-narrow">
+    <div style="margin-bottom: 1.1rem;">
+        <a href="/market/" class="mkt-back"><i class="bi bi-arrow-left"></i> Market</a>
+    </div>
 
     <div class="dt-main">
         <div class="dt-img-wrap" id="dtImageWrap">
@@ -176,7 +235,7 @@
                     </button>
                 </div>`;
         } catch(e) {
-            document.getElementById('dtInfo').innerHTML = '<p style="color:var(--text-muted)">Mahsulot topilmadi</p>';
+            document.getElementById('dtInfo').innerHTML = '<p style="color:var(--mkt-dim)">Mahsulot topilmadi</p>';
         }
     }
 
@@ -191,7 +250,7 @@
                     <button class="dt-comment-submit" onclick="addComment()"><i class="bi bi-send"></i> Yuborish</button>
                 </div>
                 <div class="dt-comment-list" id="commentList">`;
-            if(!d.results.length) { h+='<p style="color:var(--text-muted);text-align:center;padding:1rem;">Hali izohlar yo\'q</p>'; }
+            if(!d.results.length) { h+='<p style="color:var(--mkt-dim);text-align:center;padding:1rem;">Hali izohlar yo\'q</p>'; }
             else {
                 h += d.results.map(c => `<div class="dt-comment">
                     <div class="dt-comment-avatar">${(c.full_name||c.username||'?')[0].toUpperCase()}</div>
@@ -206,15 +265,15 @@
             }
             h += '</div>';
             if(totalPages>1) {
-                h += '<div class="mk-pagination" style="margin-top:1rem">';
+                h += '<div class="mkt-pagination" style="margin-top:1rem">';
                 for(let n=1;n<=totalPages;n++) {
-                    h += n===commentPage ? `<span class="mk-pg-active">${n}</span>` : `<a onclick="loadCommentPage(${n})">${n}</a>`;
+                    h += n===commentPage ? `<span class="mkt-pg-active">${n}</span>` : `<a onclick="loadCommentPage(${n})">${n}</a>`;
                 }
                 h += '</div>';
             }
             document.getElementById('dtComments').innerHTML = h;
         } catch(e) {
-            document.getElementById('dtComments').innerHTML = '<p style="color:var(--text-muted)">Izohlarni yuklab bo\'lmadi</p>';
+            document.getElementById('dtComments').innerHTML = '<p style="color:var(--mkt-dim)">Izohlarni yuklab bo\'lmadi</p>';
         }
     }
 

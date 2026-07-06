@@ -1,270 +1,440 @@
-{% extends 'accounts/base.html' %}
+{% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Faoliyat jurnali - Admin | IT Creative{% endblock %}
+{% block title %}Faoliyat jurnali | Admin{% endblock %}
 
-{% block extra_css %}
+{% block admin_content %}
 <style>
-:root{
-    --card-bg: rgba(255,255,255,.75);
-    --card-border: rgba(0,0,0,.08);
-    --text-main: #111;
-    --soft-bg: rgba(0,0,0,.05);
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-[data-bs-theme="dark"]{
-    --card-bg: rgba(18,18,18,.8);
-    --card-border: rgba(255,255,255,.08);
-    --text-main: #f1f1f1;
-    --soft-bg: rgba(255,255,255,.06);
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
-
-/* ===== CARDS ===== */
-.ios-card{
-    background:var(--card-bg);
-    backdrop-filter:blur(14px);
-    border:1px solid var(--card-border);
-    border-radius:22px;
-    box-shadow:0 12px 35px rgba(0,0,0,.15);
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
 }
 
-/* ===== FILTER FORM ===== */
-.ios-input, .ios-select{
-    border-radius:14px;
+.admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.filter-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    padding: 1.25rem 1.4rem;
+    margin-bottom: 1.25rem;
+    animation: fadeInUp 0.5s ease-out 0.05s both;
+    position: relative;
+    overflow: hidden;
 }
-.filter-btn{
-    border-radius:14px;
+.filter-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+[data-bs-theme="dark"] .filter-card {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
-/* ===== TABLE ===== */
-.table{color:var(--text-main);}
-.table thead th{
-    border-bottom:1px solid var(--card-border);
-    font-weight:600;
-}
-.table tbody tr{transition:.2s;}
-.table tbody tr:hover{
-    background:var(--soft-bg);
+.filter-card .form-label {
+    font-weight: 700;
+    font-size: 0.74rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.35rem;
 }
 
-/* ===== USER AVATAR ===== */
-.avatar{
-    width:36px;height:36px;border-radius:50%;object-fit:cover;
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.1);
+    padding: 0.55rem 0.85rem;
+    font-size: 0.88rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99,102,241,0.12);
+}
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select {
+    background: #16161f;
+    border-color: rgba(255,255,255,0.08);
+    color: #e7eaf0;
 }
 
-/* ===== BADGES ===== */
-.badge{
-    border-radius:999px;
-    padding:.45em .75em;
-    font-weight:600;
+.filter-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 0.55rem 1rem;
+    transition: all 0.3s;
+    width: 100%;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.filter-btn:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
 }
 
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-    .table thead{display:none;}
-    .table tbody tr{
-        display:block;
-        border:1px solid var(--card-border);
-        border-radius:14px;
-        padding:12px;
-        margin-bottom:12px;
-        background:var(--soft-bg);
-    }
-    .table tbody td{
-        display:flex;
-        justify-content:space-between;
-        padding:6px 0;
-        border:none;
-    }
-    .table tbody td::before{
-        content:attr(data-label);
-        font-weight:600;
-        opacity:.7;
-    }
+.admin-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+[data-bs-theme="dark"] .admin-card {
+    background: #1e1e2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+.admin-card .table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 650;
+    padding: 0.9rem 1rem;
+    white-space: nowrap;
+}
+.admin-card .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+.admin-card .table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.08s; }
+.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.11s; }
+.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.14s; }
+.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.17s; }
+.admin-card .table tbody tr:hover { background: rgba(99, 102, 241, 0.04); }
+
+.user-cell {
+    display: flex; align-items: center; gap: 0.65rem;
+}
+.avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.avatar-fallback {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.act-badge {
+    border-radius: 8px;
+    padding: 0.32rem 0.7rem;
+    font-weight: 700;
+    font-size: 0.76rem;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.act-badge.info { background: rgba(59,130,246,0.14); color: #2563eb; }
+.act-badge.dim { background: rgba(100,116,139,0.14); color: #475569; }
+.act-badge.danger { background: rgba(239,68,68,0.14); color: #dc2626; }
+.act-badge.primary { background: rgba(99,102,241,0.14); color: #4f46e5; }
+.act-badge.ok { background: rgba(16,185,129,0.14); color: #059669; }
+.act-badge.warn { background: rgba(245,158,11,0.14); color: #b45309; }
+.act-badge.purple { background: rgba(139,92,246,0.14); color: #7c3aed; }
+[data-bs-theme="dark"] .act-badge.info { color: #60a5fa; }
+[data-bs-theme="dark"] .act-badge.danger { color: #f87171; }
+[data-bs-theme="dark"] .act-badge.primary { color: #a5b4fc; }
+[data-bs-theme="dark"] .act-badge.ok { color: #34d399; }
+[data-bs-theme="dark"] .act-badge.warn { color: #fbbf24; }
+[data-bs-theme="dark"] .act-badge.purple { color: #c4b5fd; }
+[data-bs-theme="dark"] .act-badge.dim { color: #94a3b8; }
+
+.desc-cell {
+    color: #64748b;
+    font-size: 0.85rem;
+    max-width: 320px;
+    overflow: hidden; text-overflow: ellipsis;
+}
+.date-cell {
+    color: #64748b;
+    font-size: 0.82rem;
+    font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace;
+    white-space: nowrap;
+}
+
+/* Pagination */
+.pagination { gap: 0.35rem; }
+.pagination .page-link {
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    color: #64748b;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.45rem 0.85rem;
+    transition: all 0.2s;
+}
+.pagination .page-link:hover {
+    background: rgba(99,102,241,0.08);
+    color: #6366f1;
+    border-color: #6366f1;
+    transform: translateY(-1px);
+}
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: #fff;
+}
+[data-bs-theme="dark"] .pagination .page-link {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.08);
+    color: #8b93a7;
+}
+
+/* Mobile cards */
+.mobile-act-cards { display: none; }
+.act-card-m {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 0.9rem;
+    margin-bottom: 0.6rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    animation: fadeInUp 0.4s ease-out both;
+}
+[data-bs-theme="dark"] .act-card-m {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+}
+.act-card-m .top-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+.act-card-m .user-cell { flex: 1; min-width: 0; }
+.act-card-m .user-cell strong {
+    font-size: 0.9rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.act-card-m .desc-cell {
+    font-size: 0.82rem;
+    max-width: none;
+    margin-bottom: 0.4rem;
+}
+.act-card-m .date-cell {
+    font-size: 0.75rem;
+    margin-top: 0.3rem;
+}
+
+@media (max-width: 768px) {
+    .desktop-table { display: none; }
+    .mobile-act-cards { display: block; }
+    .admin-header h2 { font-size: 1.15rem; }
+    .filter-card { padding: 1rem; }
 }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container my-4 my-md-5">
-
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <h3 class="m-0">
-        <i class="bi bi-activity me-2"></i>Faoliyat jurnali
-    </h3>
-</div>
-
-<!-- ===== FILTER ===== -->
-<div class="ios-card mb-4">
-<div class="p-4">
-
-<form method="get" class="row g-3 align-items-end">
-
-    <div class="col-md-3">
-        <label class="form-label small fw-semibold">Boshlanish</label>
-        <input type="date" name="date_from"
-               class="form-control ios-input"
-               value="{{ request.GET.date_from }}">
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0"><i class="bi bi-activity text-primary"></i> Faoliyat jurnali</h2>
     </div>
 
-    <div class="col-md-3">
-        <label class="form-label small fw-semibold">Tugash</label>
-        <input type="date" name="date_to"
-               class="form-control ios-input"
-               value="{{ request.GET.date_to }}">
+    <!-- Filter -->
+    <div class="filter-card">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label"><i class="bi bi-calendar-event"></i> Boshlanish</label>
+                <input type="date" name="date_from" class="form-control" value="{{ request.GET.date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label"><i class="bi bi-calendar-event"></i> Tugash</label>
+                <input type="date" name="date_to" class="form-control" value="{{ request.GET.date_to }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label"><i class="bi bi-funnel"></i> Amal turi</label>
+                <select name="action_type" class="form-select">
+                    <option value="">Barchasi</option>
+                    <option value="login" {% if request.GET.action_type == 'login' %}selected{% endif %}>Kirish</option>
+                    <option value="logout" {% if request.GET.action_type == 'logout' %}selected{% endif %}>Chiqish</option>
+                    <option value="like" {% if request.GET.action_type == 'like' %}selected{% endif %}>Like</option>
+                    <option value="comment" {% if request.GET.action_type == 'comment' %}selected{% endif %}>Izoh</option>
+                    <option value="purchase" {% if request.GET.action_type == 'purchase' %}selected{% endif %}>Xarid</option>
+                    <option value="coin_earned" {% if request.GET.action_type == 'coin_earned' %}selected{% endif %}>Coin olish</option>
+                    <option value="coin_spent" {% if request.GET.action_type == 'coin_spent' %}selected{% endif %}>Coin sarflash</option>
+                    <option value="lesson_complete" {% if request.GET.action_type == 'lesson_complete' %}selected{% endif %}>Dars</option>
+                    <option value="homework_submit" {% if request.GET.action_type == 'homework_submit' %}selected{% endif %}>Vazifa</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label"><i class="bi bi-person"></i> Foydalanuvchi</label>
+                <select name="user" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for u in users %}
+                    <option value="{{ u.pk }}" {% if request.GET.user == u.pk|stringformat:"i" %}selected{% endif %}>
+                        {{ u.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="filter-btn">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
     </div>
 
-    <div class="col-md-3">
-        <label class="form-label small fw-semibold">Amal turi</label>
-        <select name="action_type" class="form-select ios-select">
-            <option value="">Barchasi</option>
-            <option value="login" {% if request.GET.action_type == 'login' %}selected{% endif %}>Kirish</option>
-            <option value="logout" {% if request.GET.action_type == 'logout' %}selected{% endif %}>Chiqish</option>
-            <option value="like" {% if request.GET.action_type == 'like' %}selected{% endif %}>Like</option>
-            <option value="comment" {% if request.GET.action_type == 'comment' %}selected{% endif %}>Izoh</option>
-            <option value="purchase" {% if request.GET.action_type == 'purchase' %}selected{% endif %}>Xarid</option>
-            <option value="coin_earned" {% if request.GET.action_type == 'coin_earned' %}selected{% endif %}>Coin olish</option>
-            <option value="coin_spent" {% if request.GET.action_type == 'coin_spent' %}selected{% endif %}>Coin sarflash</option>
-            <option value="lesson_complete" {% if request.GET.action_type == 'lesson_complete' %}selected{% endif %}>Dars</option>
-            <option value="homework_submit" {% if request.GET.action_type == 'homework_submit' %}selected{% endif %}>Vazifa</option>
-        </select>
-    </div>
-
-    <div class="col-md-2">
-        <label class="form-label small fw-semibold">Foydalanuvchi</label>
-        <select name="user" class="form-select ios-select">
-            <option value="">Barchasi</option>
-            {% for u in users %}
-            <option value="{{ u.pk }}" {% if request.GET.user == u.pk|stringformat:"i" %}selected{% endif %}>
-                {{ u.full_name }}
-            </option>
-            {% endfor %}
-        </select>
-    </div>
-
-    <div class="col-md-1 d-grid">
-        <button class="btn btn-primary filter-btn">
-            <i class="bi bi-funnel"></i>
-        </button>
-    </div>
-
-</form>
-
-</div>
-</div>
-
-<!-- ===== TABLE ===== -->
-<div class="ios-card">
-
-<div class="p-3">
-
-<div class="table-responsive">
-<table class="table align-middle mb-0">
-
-<thead>
-<tr>
-    <th>Foydalanuvchi</th>
-    <th>Amal</th>
-    <th>Tavsif</th>
-    <th>Sana</th>
-</tr>
-</thead>
-
-<tbody>
-{% for activity in activities %}
-<tr>
-
-<td data-label="Foydalanuvchi">
-    <div class="d-flex align-items-center gap-2">
-        {% if activity.user.photo %}
-        <img src="{{ activity.user.photo.url }}" class="avatar">
-        {% else %}
-        <div class="avatar bg-secondary bg-opacity-25 d-flex align-items-center justify-content-center">
-            <i class="bi bi-person-fill text-muted"></i>
+    <!-- Desktop Table -->
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Foydalanuvchi</th>
+                            <th>Amal</th>
+                            <th>Tavsif</th>
+                            <th>Sana</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities %}
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    {% if activity.user.photo %}
+                                        <img src="{{ activity.user.photo.url }}" class="avatar" alt="{{ activity.user.full_name }}">
+                                    {% else %}
+                                        <div class="avatar-fallback">{{ activity.user.full_name|slice:":1"|upper }}</div>
+                                    {% endif %}
+                                    <strong>{{ activity.user.full_name }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                {% if activity.action_type == 'login' %}
+                                    <span class="act-badge info"><i class="bi bi-box-arrow-in-right"></i> Kirish</span>
+                                {% elif activity.action_type == 'logout' %}
+                                    <span class="act-badge dim"><i class="bi bi-box-arrow-right"></i> Chiqish</span>
+                                {% elif activity.action_type == 'like_product' or activity.action_type == 'like_post' %}
+                                    <span class="act-badge danger"><i class="bi bi-heart-fill"></i> Like</span>
+                                {% elif activity.action_type == 'comment_product' or activity.action_type == 'comment_post' %}
+                                    <span class="act-badge primary"><i class="bi bi-chat-fill"></i> Izoh</span>
+                                {% elif activity.action_type == 'purchase_product' %}
+                                    <span class="act-badge ok"><i class="bi bi-cart-fill"></i> Xarid</span>
+                                {% elif activity.action_type == 'earn_coins' %}
+                                    <span class="act-badge warn"><i class="bi bi-coin"></i> Coin</span>
+                                {% elif activity.action_type == 'watch_video' %}
+                                    <span class="act-badge ok"><i class="bi bi-check-circle"></i> Dars</span>
+                                {% elif activity.action_type == 'submit_homework' %}
+                                    <span class="act-badge purple"><i class="bi bi-file-earmark-check"></i> Vazifa</span>
+                                {% else %}
+                                    <span class="act-badge dim">{{ activity.action_type }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="desc-cell">{{ activity.description }}</td>
+                            <td class="date-cell">
+                                <i class="bi bi-clock"></i> {{ activity.created_at|date:"d.m.Y H:i" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-activity" style="font-size: 2.5rem; opacity: 0.4;"></i>
+                                <p class="mt-2 mb-0">Faoliyatlar topilmadi</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
-        {% endif %}
-        <strong>{{ activity.user.full_name }}</strong>
     </div>
-</td>
 
-<td data-label="Amal">
-{% if activity.action_type == 'login' %}
-<span class="badge bg-info"><i class="bi bi-box-arrow-in-right me-1"></i>Kirish</span>
-{% elif activity.action_type == 'logout' %}
-<span class="badge bg-secondary"><i class="bi bi-box-arrow-right me-1"></i>Chiqish</span>
-{% elif activity.action_type == 'like_product' or activity.action_type == 'like_post' %}
-<span class="badge bg-danger"><i class="bi bi-heart-fill me-1"></i>Like</span>
-{% elif activity.action_type == 'comment_product' or activity.action_type == 'comment_post' %}
-<span class="badge bg-primary"><i class="bi bi-chat-fill me-1"></i>Izoh</span>
-{% elif activity.action_type == 'purchase_product' %}
-<span class="badge bg-success"><i class="bi bi-cart-fill me-1"></i>Xarid</span>
-{% elif activity.action_type == 'earn_coins' %}
-<span class="badge bg-warning text-dark"><i class="bi bi-coin me-1"></i>Coin</span>
-{% elif activity.action_type == 'watch_video' %}
-<span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Dars</span>
-{% elif activity.action_type == 'submit_homework' %}
-<span class="badge bg-primary"><i class="bi bi-file-earmark-check me-1"></i>Vazifa</span>
-{% else %}
-<span class="badge bg-light text-dark">{{ activity.action_type }}</span>
-{% endif %}
-</td>
+    <!-- Mobile Cards -->
+    <div class="mobile-act-cards">
+        {% for activity in activities %}
+        <div class="act-card-m" style="animation-delay: {{ forloop.counter0 }}0ms;">
+            <div class="top-row">
+                <div class="user-cell">
+                    {% if activity.user.photo %}
+                        <img src="{{ activity.user.photo.url }}" class="avatar" alt="{{ activity.user.full_name }}">
+                    {% else %}
+                        <div class="avatar-fallback">{{ activity.user.full_name|slice:":1"|upper }}</div>
+                    {% endif %}
+                    <strong>{{ activity.user.full_name }}</strong>
+                </div>
+                {% if activity.action_type == 'login' %}
+                    <span class="act-badge info"><i class="bi bi-box-arrow-in-right"></i></span>
+                {% elif activity.action_type == 'logout' %}
+                    <span class="act-badge dim"><i class="bi bi-box-arrow-right"></i></span>
+                {% elif activity.action_type == 'like_product' or activity.action_type == 'like_post' %}
+                    <span class="act-badge danger"><i class="bi bi-heart-fill"></i></span>
+                {% elif activity.action_type == 'comment_product' or activity.action_type == 'comment_post' %}
+                    <span class="act-badge primary"><i class="bi bi-chat-fill"></i></span>
+                {% elif activity.action_type == 'purchase_product' %}
+                    <span class="act-badge ok"><i class="bi bi-cart-fill"></i></span>
+                {% elif activity.action_type == 'earn_coins' %}
+                    <span class="act-badge warn"><i class="bi bi-coin"></i></span>
+                {% elif activity.action_type == 'watch_video' %}
+                    <span class="act-badge ok"><i class="bi bi-check-circle"></i></span>
+                {% elif activity.action_type == 'submit_homework' %}
+                    <span class="act-badge purple"><i class="bi bi-file-earmark-check"></i></span>
+                {% else %}
+                    <span class="act-badge dim">{{ activity.action_type }}</span>
+                {% endif %}
+            </div>
+            {% if activity.description %}
+            <div class="desc-cell">{{ activity.description }}</div>
+            {% endif %}
+            <div class="date-cell"><i class="bi bi-clock"></i> {{ activity.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-activity" style="font-size: 2rem; opacity: 0.4;"></i>
+            <p class="mt-2 mb-0">Faoliyatlar topilmadi</p>
+        </div>
+        {% endfor %}
+    </div>
 
-<td data-label="Tavsif" class="text-muted small">
-    {{ activity.description }}
-</td>
-
-<td data-label="Sana">
-    <small class="text-muted">
-        <i class="bi bi-clock me-1"></i>{{ activity.created_at|date:"d.m.Y, H:i" }}
-    </small>
-</td>
-
-</tr>
-
-{% empty %}
-<tr>
-<td colspan="4" class="text-center py-5 text-muted">
-    <i class="bi bi-activity fs-1"></i>
-    <p class="mt-2 mb-0">Faoliyatlar topilmadi</p>
-</td>
-</tr>
-{% endfor %}
-</tbody>
-
-</table>
-</div>
-
-</div>
-</div>
-
-<!-- ===== PAGINATION ===== -->
-{% if activities.has_other_pages %}
-<nav class="mt-4">
-<ul class="pagination justify-content-center">
-
-{% if activities.has_previous %}
-<li class="page-item">
-<a class="page-link" href="?page={{ activities.previous_page_number }}&{{ request.GET.urlencode }}">‹</a>
-</li>
-{% endif %}
-
-{% for num in activities.paginator.page_range %}
-{% if activities.number == num %}
-<li class="page-item active"><span class="page-link">{{ num }}</span></li>
-{% elif num > activities.number|add:'-3' and num < activities.number|add:'3' %}
-<li class="page-item">
-<a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
-</li>
-{% endif %}
-{% endfor %}
-
-{% if activities.has_next %}
-<li class="page-item">
-<a class="page-link" href="?page={{ activities.next_page_number }}&{{ request.GET.urlencode }}">›</a>
-</li>
-{% endif %}
-
-</ul>
-</nav>
-{% endif %}
-
+    <!-- Pagination -->
+    {% if activities.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if activities.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ activities.previous_page_number }}&{{ request.GET.urlencode }}">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            {% for num in activities.paginator.page_range %}
+                {% if activities.number == num %}
+                <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > activities.number|add:'-3' and num < activities.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ num }}&{{ request.GET.urlencode }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+            {% if activities.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ activities.next_page_number }}&{{ request.GET.urlencode }}">
+                    <i class="bi bi-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
 </div>
 {% endblock %}

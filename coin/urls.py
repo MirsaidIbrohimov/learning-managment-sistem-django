@@ -9,6 +9,8 @@ urlpatterns = [
     path('coin-transfer/', views.coin_transfer, name='coin_transfer'),
     path('market/', views.market_list, name='market_list'),
     path('market/premium/', views.premium_page, name='buy_premium'),
+    path('market/buy-premium/', views.buy_premium_page, name='buy_premium_page'),
+    path('market/extend-premium/', views.extend_premium_page, name='extend_premium_page'),
     path('market/<int:pk>/', views.market_detail, name='market_detail'),
     path('market/my-purchases/', views.my_purchases, name='my_purchases'),
     

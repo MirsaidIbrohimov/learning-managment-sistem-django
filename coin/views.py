@@ -54,6 +54,18 @@ def premium_page(request):
     return render(request, 'coin/market/premium.html')
 
 
+@login_required
+def buy_premium_page(request):
+    """Premium xarid landing — marketing sahifasi"""
+    return render(request, 'coin/market/buy_premium.html')
+
+
+@login_required
+def extend_premium_page(request):
+    """Premium uzaytirish sahifasi"""
+    return render(request, 'coin/market/extend_premium.html')
+
+
 # ============== ADMIN: COIN MARKET ==============
 
 @login_required

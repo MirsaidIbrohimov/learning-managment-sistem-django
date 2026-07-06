@@ -1,216 +1,416 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Mahsulotlarni boshqarish - Admin{% endblock %}
-
-{% block extra_css %}
-<meta name="keywords" content="Suyunov Husan, IT Creative, Django iOS admin panel, dark light responsive UI">
-<style>
-
-/* ===== iOS COLORS ===== */
-:root{
-    --bg:#f2f2f7;
-    --card:rgba(255,255,255,.85);
-    --text:#111;
-    --muted:#6c757d;
-    --border:rgba(0,0,0,.08);
-    --primary:#0a84ff;
-}
-@media (prefers-color-scheme: dark){
-    :root{
-        --bg:#000;
-        --card:rgba(28,28,30,.9);
-        --text:#fff;
-        --muted:#9ca3af;
-        --border:rgba(255,255,255,.1);
-    }
-}
-
-/* ===== PAGE ===== */
-.admin-ios{
-    background:var(--bg);
-    min-height:100vh;
-    padding:1rem;
-    color:var(--text);
-}
-
-/* ===== TOP BAR ===== */
-.top-bar{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    margin-bottom:1rem;
-    gap:.5rem;
-}
-.page-title{
-    font-weight:700;
-    font-size:1.5rem;
-}
-.btn-primary{
-    background:var(--primary);
-    border:none;
-    border-radius:14px;
-    padding:.55rem .9rem;
-}
-
-/* ===== CARD ===== */
-.card{
-    background:var(--card)!important;
-    backdrop-filter:blur(20px);
-    border-radius:22px;
-    border:1px solid var(--border);
-    overflow:hidden;
-}
-
-/* ===== TABLE ===== */
-.table{
-    margin:0;
-    color:var(--text);
-}
-.table thead{
-    background:transparent;
-}
-.table th{
-    color:var(--muted);
-    font-weight:600;
-    border-bottom:1px solid var(--border);
-}
-.table td{
-    border-top:1px solid var(--border);
-}
-
-/* ===== BADGES ===== */
-.badge{
-    border-radius:999px;
-    padding:.35rem .65rem;
-}
-
-/* ===== ACTION BTNS ===== */
-.action-btns .btn{
-    border-radius:12px;
-}
-
-/* ===== MOBILE RESPONSIVE ===== */
-@media(max-width:768px){
-    table thead{display:none;}
-
-    table tr{
-        display:block;
-        padding:1rem;
-        border-bottom:1px solid var(--border);
-    }
-
-    table td{
-        display:flex;
-        justify-content:space-between;
-        border:none;
-        padding:.35rem 0;
-    }
-
-    table td::before{
-        content:attr(data-label);
-        font-weight:600;
-        color:var(--muted);
-    }
-}
-
-</style>
-{% endblock %}
+{% block title %}Mahsulotlar boshqaruvi | Admin{% endblock %}
 
 {% block admin_content %}
-<div class="admin-ios">
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRow {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
 
-<div class="top-bar">
-    <h1 class="page-title"><i class="bi bi-box-seam me-2"></i>Mahsulotlar</h1>
-    <a href="{% url 'coin:admin_product_add' %}" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i>Yangi
-    </a>
-</div>
+.admin-header { animation: fadeInDown 0.5s ease-out; }
 
-<div class="card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Rasm</th>
-                        <th>Nomi</th>
-                        <th>Narxi</th>
-                        <th>Zaxira</th>
-                        <th>Holat</th>
-                        <th class="text-center">❤️</th>
-                        <th class="text-center">💬</th>
-                        <th>Amallar</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for product in products %}
-                    <tr>
+.pstat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    animation: fadeInUp 0.5s ease-out 0.05s both;
+}
+.pstat {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.25s;
+}
+.pstat:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.06); }
+[data-bs-theme="dark"] .pstat { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+.pstat-ico {
+    width: 40px; height: 40px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+.pstat-ico.total { background: rgba(99,102,241,0.12); color: #6366f1; }
+.pstat-ico.active { background: rgba(16,185,129,0.12); color: #10b981; }
+.pstat-ico.stock { background: rgba(245,158,11,0.14); color: #f59e0b; }
+.pstat-ico.out { background: rgba(239,68,68,0.12); color: #ef4444; }
+.pstat-val {
+    font-weight: 800;
+    font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace;
+    font-size: 1.15rem;
+    color: var(--bs-body-color, #0f172a);
+    line-height: 1.1;
+}
+.pstat-lbl {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
 
-                        <td data-label="Rasm">
-                            {% if product.image %}
-                            <img src="{{ product.image.url }}" class="rounded" width="46" height="46" style="object-fit: cover;">
-                            {% else %}
-                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width:46px;height:46px;">
-                                <i class="bi bi-image text-muted"></i>
-                            </div>
-                            {% endif %}
-                        </td>
+.admin-card {
+    border: none;
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
+    overflow: hidden;
+    animation: fadeInUp 0.6s ease-out 0.1s both;
+}
+[data-bs-theme="dark"] .admin-card {
+    background: #1e1e2e;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+}
+.admin-card .table th {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    font-weight: 650;
+    padding: 0.9rem 1rem;
+    white-space: nowrap;
+}
+.admin-card .table td {
+    padding: 0.85rem 1rem;
+    vertical-align: middle;
+}
+.admin-card .table tbody tr {
+    transition: all 0.3s ease;
+    animation: slideInRow 0.4s ease-out both;
+}
+.admin-card .table tbody tr:nth-child(1) { animation-delay: 0.05s; }
+.admin-card .table tbody tr:nth-child(2) { animation-delay: 0.1s; }
+.admin-card .table tbody tr:nth-child(3) { animation-delay: 0.15s; }
+.admin-card .table tbody tr:nth-child(4) { animation-delay: 0.2s; }
+.admin-card .table tbody tr:nth-child(5) { animation-delay: 0.25s; }
+.admin-card .table tbody tr:hover { background: rgba(99, 102, 241, 0.04); }
 
-                        <td data-label="Nomi" class="fw-bold">{{ product.name }}</td>
+.prod-thumb {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    object-fit: cover;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+.prod-thumb-empty {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    background: rgba(99,102,241,0.08);
+    display: flex; align-items: center; justify-content: center;
+    color: #6366f1;
+    border: 1px dashed rgba(99,102,241,0.25);
+}
 
-                        <td data-label="Narxi">
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-coin me-1"></i>{{ product.coin_price }}
-                            </span>
-                        </td>
+.price-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(245,158,11,0.14);
+    color: #b45309;
+    padding: 0.32rem 0.7rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace;
+}
+[data-bs-theme="dark"] .price-chip { color: #fbbf24; }
 
-                        <td data-label="Zaxira">
-                            {% if product.stock > 0 %}
-                            <span class="badge bg-success">{{ product.stock }} ta</span>
-                            {% else %}
-                            <span class="badge bg-danger">Tugagan</span>
-                            {% endif %}
-                        </td>
+.stat-badge {
+    border-radius: 8px;
+    padding: 0.32rem 0.65rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.stat-badge.ok { background: rgba(16,185,129,0.14); color: #059669; }
+.stat-badge.warn { background: rgba(245,158,11,0.14); color: #b45309; }
+.stat-badge.bad { background: rgba(239,68,68,0.14); color: #dc2626; }
+.stat-badge.dim { background: rgba(100,116,139,0.12); color: #64748b; }
+[data-bs-theme="dark"] .stat-badge.ok { color: #34d399; }
+[data-bs-theme="dark"] .stat-badge.warn { color: #fbbf24; }
+[data-bs-theme="dark"] .stat-badge.bad { color: #f87171; }
 
-                        <td data-label="Holat">
-                            {% if product.is_active %}
-                            <span class="badge bg-success">Faol</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Nofaol</span>
-                            {% endif %}
-                        </td>
+.eng-chip {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: rgba(236,72,153,0.12);
+    color: #db2777;
+    padding: 0.26rem 0.55rem;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace;
+}
+.eng-chip.info { background: rgba(59,130,246,0.12); color: #2563eb; }
+[data-bs-theme="dark"] .eng-chip { color: #f472b6; }
+[data-bs-theme="dark"] .eng-chip.info { color: #60a5fa; }
 
-                        <td data-label="Likelar" class="text-center">
-                            <span class="badge bg-danger">{{ product.likes_count }}</span>
-                        </td>
+.btn-add {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    padding: 0.55rem 1.3rem;
+    transition: all 0.3s;
+}
+.btn-add:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3);
+}
 
-                        <td data-label="Izohlar" class="text-center">
-                            <span class="badge bg-info">{{ product.comments_count }}</span>
-                        </td>
+.action-btn {
+    border-radius: 10px;
+    padding: 0.35rem 0.65rem;
+    transition: all 0.25s;
+}
+.action-btn:hover { transform: scale(1.1); }
 
-                        <td data-label="Amallar" class="action-btns">
-                            <a href="{% url 'coin:admin_product_edit' product.pk %}" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a href="{% url 'coin:admin_product_delete' product.pk %}" class="btn btn-sm btn-outline-danger">
-                                <i class="bi bi-trash"></i>
-                            </a>
-                        </td>
+/* Mobile cards */
+.mobile-prod-cards { display: none; }
 
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="8" class="text-center py-5 text-muted">
-                            <i class="bi bi-box-seam" style="font-size:3rem;"></i>
-                            <p class="mt-2 mb-0">Hozircha mahsulotlar yo'q</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+.prod-card-m {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: all 0.3s;
+    animation: fadeInUp 0.4s ease-out both;
+}
+[data-bs-theme="dark"] .prod-card-m {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+}
+.prod-card-m:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+.prod-card-m .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+.prod-card-m .card-title-wrap {
+    display: flex; align-items: center; gap: 0.7rem;
+    flex: 1; min-width: 0;
+}
+.prod-card-m .card-title {
+    font-weight: 700; font-size: 0.95rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.prod-card-m .card-meta {
+    display: flex; gap: 0.4rem; flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+}
+.prod-card-m .card-actions {
+    display: flex; gap: 0.5rem; justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+    .desktop-table { display: none; }
+    .mobile-prod-cards { display: block; }
+    .admin-header h2 { font-size: 1.2rem; }
+    .pstat-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0"><i class="bi bi-box-seam text-primary"></i> Mahsulotlar boshqaruvi</h2>
+        <a href="{% url 'coin:admin_product_add' %}" class="btn btn-add">
+            <i class="bi bi-plus-lg"></i> Yangi mahsulot
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="pstat-row">
+        <div class="pstat">
+            <div class="pstat-ico total"><i class="bi bi-box-seam"></i></div>
+            <div>
+                <div class="pstat-val">{{ products.count }}</div>
+                <div class="pstat-lbl">Jami</div>
+            </div>
         </div>
+        <div class="pstat">
+            <div class="pstat-ico active"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="pstat-val" id="pstatActive">0</div>
+                <div class="pstat-lbl">Faol</div>
+            </div>
+        </div>
+        <div class="pstat">
+            <div class="pstat-ico stock"><i class="bi bi-archive"></i></div>
+            <div>
+                <div class="pstat-val" id="pstatInStock">0</div>
+                <div class="pstat-lbl">Zaxirada</div>
+            </div>
+        </div>
+        <div class="pstat">
+            <div class="pstat-ico out"><i class="bi bi-exclamation-octagon"></i></div>
+            <div>
+                <div class="pstat-val" id="pstatOut">0</div>
+                <div class="pstat-lbl">Tugagan</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Desktop Table -->
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Mahsulot</th>
+                            <th>Narxi</th>
+                            <th>Zaxira</th>
+                            <th>Holat</th>
+                            <th class="text-center"><i class="bi bi-heart"></i></th>
+                            <th class="text-center"><i class="bi bi-chat"></i></th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-3">
+                                    {% if product.image %}
+                                        <img src="{{ product.image.url }}" class="prod-thumb" alt="{{ product.name }}">
+                                    {% else %}
+                                        <div class="prod-thumb-empty"><i class="bi bi-image"></i></div>
+                                    {% endif %}
+                                    <strong>{{ product.name }}</strong>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="price-chip">
+                                    <i class="bi bi-coin"></i> {{ product.coin_price }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if product.stock > 0 %}
+                                    <span class="stat-badge ok">{{ product.stock }} ta</span>
+                                {% else %}
+                                    <span class="stat-badge bad"><i class="bi bi-x-circle"></i> Tugagan</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if product.is_active %}
+                                    <span class="stat-badge ok"><i class="bi bi-check-circle-fill"></i> Faol</span>
+                                {% else %}
+                                    <span class="stat-badge dim">Nofaol</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <span class="eng-chip"><i class="bi bi-heart-fill"></i> {{ product.likes_count }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="eng-chip info"><i class="bi bi-chat-fill"></i> {{ product.comments_count }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'coin:admin_product_edit' product.pk %}" class="btn btn-sm btn-outline-warning action-btn" title="Tahrirlash">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{% url 'coin:admin_product_delete' product.pk %}" class="btn btn-sm btn-outline-danger action-btn" title="O'chirish">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-box-seam" style="font-size: 2.5rem; opacity: 0.4;"></i>
+                                <p class="mt-2 mb-0">Mahsulotlar mavjud emas</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Cards -->
+    <div class="mobile-prod-cards">
+        {% for product in products %}
+        <div class="prod-card-m" style="animation-delay: {{ forloop.counter0 }}0ms;">
+            <div class="card-top">
+                <div class="card-title-wrap">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" class="prod-thumb" alt="{{ product.name }}">
+                    {% else %}
+                        <div class="prod-thumb-empty"><i class="bi bi-image"></i></div>
+                    {% endif %}
+                    <span class="card-title">{{ product.name }}</span>
+                </div>
+                {% if product.is_active %}
+                    <span class="stat-badge ok"><i class="bi bi-check-circle-fill"></i></span>
+                {% else %}
+                    <span class="stat-badge dim">Nofaol</span>
+                {% endif %}
+            </div>
+            <div class="card-meta">
+                <span class="price-chip"><i class="bi bi-coin"></i> {{ product.coin_price }}</span>
+                {% if product.stock > 0 %}
+                    <span class="stat-badge ok">{{ product.stock }} ta</span>
+                {% else %}
+                    <span class="stat-badge bad">Tugagan</span>
+                {% endif %}
+                <span class="eng-chip"><i class="bi bi-heart-fill"></i> {{ product.likes_count }}</span>
+                <span class="eng-chip info"><i class="bi bi-chat-fill"></i> {{ product.comments_count }}</span>
+            </div>
+            <div class="card-actions">
+                <a href="{% url 'coin:admin_product_edit' product.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'coin:admin_product_delete' product.pk %}" class="btn btn-sm btn-outline-danger action-btn">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-box-seam" style="font-size: 2rem; opacity: 0.4;"></i>
+            <p class="mt-2 mb-0">Mahsulotlar mavjud emas</p>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
-</div>
+<script>
+(function(){
+    try {
+        var rows = document.querySelectorAll('.desktop-table tbody tr');
+        var active = 0, inStock = 0, out = 0;
+        rows.forEach(function(tr){
+            var t = tr.innerText || '';
+            if (t.indexOf('Faol') !== -1) active++;
+            if (tr.querySelector('.stat-badge.bad')) out++;
+            else if (tr.querySelector('.stat-badge.ok')) inStock++;
+        });
+        var elActive = document.getElementById('pstatActive');
+        if (elActive) elActive.textContent = active;
+        var elIn = document.getElementById('pstatInStock');
+        if (elIn) elIn.textContent = inStock;
+        var elOut = document.getElementById('pstatOut');
+        if (elOut) elOut.textContent = out;
+    } catch (e) { /* no-op */ }
+})();
+</script>
 {% endblock %}

@@ -1,0 +1,387 @@
+{% comment %}
+============================================================
+MARKET UI — umumiy dizayn tizimi (fokus uslub)
+Barcha market sahifalari uchun yagona tokenlar va komponentlar.
+Ishlatish: {% include 'coin/market/_market_ui.html' %} (extra_css blokida)
+============================================================
+{% endcomment %}
+<style>
+/* ============ TOKENLAR ============ */
+:root {
+    --mkt-card: #ffffff;
+    --mkt-bg-soft: #f6f7fb;
+    --mkt-border: rgba(15, 23, 42, 0.08);
+    --mkt-text: #0f172a;
+    --mkt-dim: #64748b;
+    --mkt-sub: #9aa3b5;
+    --mkt-accent: #6366f1;
+    --mkt-accent-2: #a78bfa;
+    --mkt-accent-soft: rgba(99, 102, 241, 0.1);
+    --mkt-gold: #f59e0b;
+    --mkt-gold-dark: #b45309;
+    --mkt-gold-soft: rgba(245, 158, 11, 0.12);
+    --mkt-ok: #10b981;
+    --mkt-ok-soft: rgba(16, 185, 129, 0.12);
+    --mkt-bad: #ef4444;
+    --mkt-bad-soft: rgba(239, 68, 68, 0.1);
+    --mkt-info: #3b82f6;
+    --mkt-info-soft: rgba(59, 130, 246, 0.12);
+    --mkt-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+    --mkt-shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.35);
+    --mkt-radius: 20px;
+    --mkt-radius-sm: 12px;
+    --mkt-mono: ui-monospace, 'Cascadia Code', 'SF Mono', 'JetBrains Mono', Consolas, 'Roboto Mono', monospace;
+}
+
+[data-bs-theme="dark"] {
+    --mkt-card: #16161f;
+    --mkt-bg-soft: #0f0f16;
+    --mkt-border: rgba(255, 255, 255, 0.08);
+    --mkt-text: #e7eaf0;
+    --mkt-dim: #8b93a7;
+    --mkt-sub: #4b5266;
+    --mkt-accent: #818cf8;
+    --mkt-accent-soft: rgba(129, 140, 248, 0.12);
+    --mkt-gold-dark: #fbbf24;
+    --mkt-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ============ ANIMATSIYALAR ============ */
+@keyframes mktFadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mktPop { 0% { transform: scale(0.4); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+@keyframes mktShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes mktPillIn { from { opacity: 0; transform: translateY(-14px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* ============ LAYOUT ============ */
+.mkt-wrap { max-width: 1120px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+.mkt-wrap-narrow { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+/* ============ HERO (toza karta + gradient chiziq) ============ */
+.mkt-hero {
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    animation: mktFadeUp 0.45s ease-out;
+}
+.mkt-hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--mkt-accent), var(--mkt-accent-2), var(--mkt-gold));
+}
+.mkt-hero.gold::before { background: linear-gradient(90deg, var(--mkt-gold), #fbbf24, var(--mkt-accent-2)); }
+.mkt-hero h1 {
+    font-weight: 800;
+    font-size: 1.65rem;
+    color: var(--mkt-text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 0.3rem;
+}
+.mkt-hero h1 i { color: var(--mkt-accent); }
+.mkt-hero.gold h1 i { color: var(--mkt-gold); }
+.mkt-hero .sub { color: var(--mkt-dim); margin: 0; font-size: 0.95rem; }
+
+/* ============ PANEL (oddiy karta) ============ */
+.mkt-panel {
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: var(--mkt-radius);
+    box-shadow: var(--mkt-shadow);
+    padding: 1.5rem 1.6rem;
+    margin-bottom: 1.25rem;
+    animation: mktFadeUp 0.5s ease-out both;
+}
+.mkt-panel h4, .mkt-panel h5 {
+    font-weight: 750;
+    color: var(--mkt-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ============ CHIP / BADGE ============ */
+.mkt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0.45rem 0.95rem;
+    border-radius: var(--mkt-radius-sm);
+    background: var(--mkt-accent-soft);
+    color: var(--mkt-text);
+    font-weight: 600;
+    font-size: 0.83rem;
+}
+.mkt-chip i { color: var(--mkt-accent); }
+.mkt-chip .num { font-family: var(--mkt-mono); font-weight: 700; }
+.mkt-chip.gold { background: var(--mkt-gold-soft); }
+.mkt-chip.gold i { color: var(--mkt-gold); }
+.mkt-chip.ok { background: var(--mkt-ok-soft); }
+.mkt-chip.ok i { color: var(--mkt-ok); }
+.mkt-chip.info { background: var(--mkt-info-soft); }
+.mkt-chip.info i { color: var(--mkt-info); }
+
+.mkt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.28rem 0.7rem;
+    border-radius: 99px;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+.mkt-badge.accent { background: var(--mkt-accent-soft); color: var(--mkt-accent); }
+.mkt-badge.gold { background: var(--mkt-gold-soft); color: var(--mkt-gold-dark); }
+.mkt-badge.ok { background: var(--mkt-ok-soft); color: #059669; }
+.mkt-badge.bad { background: var(--mkt-bad-soft); color: #dc2626; }
+.mkt-badge.dim { background: var(--mkt-border); color: var(--mkt-dim); }
+[data-bs-theme="dark"] .mkt-badge.ok { color: #34d399; }
+[data-bs-theme="dark"] .mkt-badge.bad { color: #f87171; }
+
+/* ============ TUGMALAR ============ */
+.mkt-btn {
+    border: none;
+    border-radius: 13px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    padding: 0.62rem 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-decoration: none;
+}
+.mkt-btn.primary { background: var(--mkt-accent); color: #fff; }
+.mkt-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(99, 102, 241, 0.35); color: #fff; }
+.mkt-btn.gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.mkt-btn.gold:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(245, 158, 11, 0.35); color: #fff; }
+.mkt-btn.ok { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.mkt-btn.ok:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(16, 185, 129, 0.35); color: #fff; }
+.mkt-btn.danger { background: var(--mkt-bad); color: #fff; }
+.mkt-btn.danger:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(239, 68, 68, 0.35); color: #fff; }
+.mkt-btn.ghost {
+    background: var(--mkt-card);
+    color: var(--mkt-dim);
+    border: 1px solid var(--mkt-border);
+}
+.mkt-btn.ghost:hover { color: var(--mkt-accent); border-color: var(--mkt-accent); }
+.mkt-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+.mkt-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--mkt-dim);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.88rem;
+    padding: 0.45rem 0.95rem;
+    border-radius: var(--mkt-radius-sm);
+    border: 1px solid var(--mkt-border);
+    background: var(--mkt-card);
+    transition: all 0.25s;
+}
+.mkt-back:hover { color: var(--mkt-accent); border-color: var(--mkt-accent); transform: translateX(-2px); }
+
+/* ============ STAT KARTA ============ */
+.mkt-stat {
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: 16px;
+    padding: 0.9rem 0.7rem;
+    text-align: center;
+}
+.mkt-stat .val {
+    font-family: var(--mkt-mono);
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--mkt-text);
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+}
+.mkt-stat .val.accent { color: var(--mkt-accent); }
+.mkt-stat .val.gold { color: var(--mkt-gold); }
+.mkt-stat .lbl {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--mkt-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+
+/* ============ TABLAR ============ */
+.mkt-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--mkt-accent-soft);
+    border-radius: var(--mkt-radius-sm);
+    padding: 4px;
+    flex-wrap: wrap;
+}
+.mkt-tab {
+    flex: 1;
+    border: none;
+    background: transparent;
+    padding: 0.5rem 0.9rem;
+    border-radius: 9px;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: var(--mkt-dim);
+    cursor: pointer;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+.mkt-tab:hover:not(.active) { color: var(--mkt-accent); }
+.mkt-tab.active { background: var(--mkt-accent); color: #fff; }
+.mkt-tab .cnt {
+    font-family: var(--mkt-mono);
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0.05rem 0.45rem;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.2);
+}
+.mkt-tab:not(.active) .cnt { background: var(--mkt-accent-soft); color: var(--mkt-accent); }
+
+/* ============ QIDIRUV ============ */
+.mkt-search {
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: 14px;
+    padding: 0.75rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+.mkt-search:focus-within { border-color: var(--mkt-accent); box-shadow: 0 0 0 4px var(--mkt-accent-soft); }
+.mkt-search i { color: var(--mkt-dim); font-size: 1.05rem; }
+.mkt-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--mkt-text);
+    font-size: 0.92rem;
+    font-weight: 500;
+    outline: none;
+}
+.mkt-search input::placeholder { color: var(--mkt-sub); }
+
+/* ============ EMPTY / SKELETON ============ */
+.mkt-empty {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: var(--mkt-radius);
+}
+.mkt-empty i { font-size: 2.6rem; color: var(--mkt-dim); opacity: 0.4; }
+.mkt-empty h4 { font-weight: 700; margin: 0.8rem 0 0.4rem; color: var(--mkt-text); }
+.mkt-empty p { color: var(--mkt-dim); font-size: 0.9rem; margin: 0; }
+
+.mkt-skel {
+    background: linear-gradient(90deg, var(--mkt-border) 25%, var(--mkt-card) 50%, var(--mkt-border) 75%);
+    background-size: 200% 100%;
+    animation: mktShimmer 1.5s infinite;
+    border-radius: var(--mkt-radius);
+}
+
+/* ============ PAGINATION ============ */
+.mkt-pagination { display: flex; justify-content: center; align-items: center; gap: 0.4rem; flex-wrap: wrap; margin-top: 1.25rem; }
+.mkt-pagination a, .mkt-pagination span {
+    min-width: 38px; height: 38px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 11px;
+    font-family: var(--mkt-mono);
+    font-size: 0.85rem; font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    padding: 0 0.5rem;
+}
+.mkt-pagination a { background: var(--mkt-card); border: 1px solid var(--mkt-border); color: var(--mkt-text); }
+.mkt-pagination a:hover { border-color: var(--mkt-accent); color: var(--mkt-accent); transform: translateY(-2px); }
+.mkt-pg-active { background: var(--mkt-accent) !important; color: #fff !important; border: none !important; }
+.mkt-pg-disabled { color: var(--mkt-dim); opacity: 0.4; cursor: default !important; }
+
+/* ============ MODAL ============ */
+.mkt-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 12, 22, 0.6);
+    backdrop-filter: blur(8px);
+    padding: 1rem;
+}
+.mkt-modal-overlay.show { display: flex; }
+.mkt-modal {
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: 22px;
+    padding: 1.8rem 1.9rem;
+    max-width: 440px;
+    width: 100%;
+    animation: mktPop 0.35s ease-out;
+    box-shadow: var(--mkt-shadow-lg);
+}
+.mkt-modal h3 { font-size: 1.15rem; font-weight: 800; color: var(--mkt-text); margin: 0 0 1rem; display: flex; align-items: center; gap: 8px; }
+.mkt-modal-info {
+    background: var(--mkt-accent-soft);
+    border-radius: 14px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.1rem;
+    font-size: 0.88rem;
+    color: var(--mkt-text);
+}
+.mkt-modal-info > div { display: flex; justify-content: space-between; padding: 0.28rem 0; }
+.mkt-modal-info .total { font-weight: 800; border-top: 1px solid var(--mkt-border); margin-top: 0.4rem; padding-top: 0.55rem; }
+.mkt-modal-actions { display: flex; gap: 0.6rem; }
+.mkt-modal-actions .mkt-btn { flex: 1; }
+
+/* ============ TOAST ============ */
+.mkt-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0.75rem 1.4rem;
+    border-radius: 99px;
+    font-weight: 700;
+    font-size: 0.88rem;
+    z-index: 99999;
+    animation: mktPillIn 0.35s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    color: #fff;
+}
+.mkt-toast.success { background: var(--mkt-ok); }
+.mkt-toast.error { background: var(--mkt-bad); }
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 768px) {
+    .mkt-wrap, .mkt-wrap-narrow { padding: 1rem 0.8rem 2.5rem; }
+    .mkt-hero { padding: 1.3rem 1.1rem; border-radius: 16px; }
+    .mkt-hero h1 { font-size: 1.25rem; }
+    .mkt-panel { padding: 1.15rem 1rem; border-radius: 16px; }
+    .mkt-stat .val { font-size: 1.15rem; }
+}
+</style>

@@ -1,115 +1,224 @@
-{% extends 'accounts/base.html' %}
+{% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}Mahsulotni o'chirish - Admin | IT Creative{% endblock %}
+{% block title %}Mahsulotni o'chirish | Admin{% endblock %}
 
-{% block extra_css %}
+{% block admin_content %}
 <style>
-    :root {
-        --card-bg: rgba(255, 255, 255, .8);
-        --card-border: rgba(0, 0, 0, .08);
-        --text-main: #111;
-        --soft-bg: rgba(0, 0, 0, .05);
-    }
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(25px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseIco {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
 
-    [data-bs-theme="dark"] {
-        --card-bg: rgba(18, 18, 18, .85);
-        --card-border: rgba(255, 255, 255, .08);
-        --text-main: #f1f1f1;
-        --soft-bg: rgba(255, 255, 255, .06);
-    }
+.admin-header { animation: fadeInDown 0.5s ease-out; }
 
-    /* ===== IOS CARD ===== */
-    .ios-card {
-        background: var(--card-bg);
-        backdrop-filter: blur(14px);
-        border: 1px solid var(--card-border);
-        border-radius: 24px;
-        box-shadow: 0 14px 40px rgba(0, 0, 0, .2);
-    }
+.confirm-card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 18px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    padding: 2rem;
+    text-align: center;
+    animation: fadeInUp 0.5s ease-out 0.1s both;
+    position: relative;
+    overflow: hidden;
+}
+.confirm-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, #ef4444, #dc2626, #b91c1c);
+}
+[data-bs-theme="dark"] .confirm-card {
+    background: #1e1e2e;
+    border-color: rgba(255,255,255,0.07);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
 
-    /* ===== IMAGE ===== */
-    .product-img {
-        max-height: 150px;
-        object-fit: cover;
-        border-radius: 14px;
-    }
+.warn-ico {
+    width: 76px; height: 76px;
+    border-radius: 50%;
+    background: rgba(239,68,68,0.12);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #ef4444;
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    animation: pulseIco 2.5s ease-in-out infinite;
+}
 
-    /* ===== BADGES ===== */
-    .badge {
-        border-radius: 999px;
-        padding: .5em .9em;
-    }
+.confirm-card h4 {
+    font-weight: 800;
+    margin-bottom: 0.4rem;
+}
 
-    /* ===== BUTTONS ===== */
-    .ios-btn {
-        border-radius: 14px;
-        font-weight: 600;
-    }
+.confirm-note {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.55;
+}
+.confirm-note .danger {
+    color: #dc2626;
+    font-weight: 700;
+}
+
+.prod-preview {
+    background: rgba(99,102,241,0.05);
+    border: 1px dashed rgba(99,102,241,0.25);
+    border-radius: 14px;
+    padding: 1rem;
+    margin: 0 auto 1.25rem;
+    max-width: 320px;
+}
+[data-bs-theme="dark"] .prod-preview { background: rgba(99,102,241,0.08); }
+
+.prod-preview img {
+    width: 110px; height: 110px;
+    border-radius: 12px;
+    object-fit: cover;
+    margin-bottom: 0.65rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+.prod-preview .pname {
+    font-weight: 700;
+    font-size: 1rem;
+    margin: 0.4rem 0;
+}
+
+.info-chips {
+    display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap;
+    margin: 1rem 0;
+}
+.info-chip {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.06);
+    border-radius: 12px;
+    padding: 0.55rem 0.9rem;
+    text-align: center;
+    min-width: 100px;
+}
+[data-bs-theme="dark"] .info-chip {
+    background: #16161f;
+    border-color: rgba(255,255,255,0.08);
+}
+.info-chip-lbl {
+    font-size: 0.66rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.info-chip-val {
+    font-family: ui-monospace, 'JetBrains Mono', Consolas, monospace;
+    font-weight: 800;
+    font-size: 0.95rem;
+    color: var(--bs-body-color);
+    margin-top: 2px;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.info-chip-val.gold { color: #b45309; }
+.info-chip-val.info { color: #2563eb; }
+[data-bs-theme="dark"] .info-chip-val.gold { color: #fbbf24; }
+[data-bs-theme="dark"] .info-chip-val.info { color: #60a5fa; }
+
+.btn-danger-solid {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    border: none;
+    color: white;
+    border-radius: 12px;
+    font-weight: 700;
+    padding: 0.65rem 1.4rem;
+    transition: all 0.3s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-danger-solid:hover {
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(239,68,68,0.35);
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid rgba(0,0,0,0.1);
+    color: #64748b;
+    border-radius: 12px;
+    font-weight: 650;
+    padding: 0.65rem 1.4rem;
+    transition: all 0.25s;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-cancel:hover {
+    color: #6366f1;
+    border-color: #6366f1;
+    transform: translateX(-2px);
+}
+[data-bs-theme="dark"] .btn-cancel {
+    border-color: rgba(255,255,255,0.12);
+    color: #8b93a7;
+}
+
+@media (max-width: 768px) {
+    .confirm-card { padding: 1.4rem 1.1rem; border-radius: 14px; }
+    .admin-header h2 { font-size: 1.15rem; }
+}
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="container my-4 my-md-5">
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <h2 class="fw-bold mb-0"><i class="bi bi-exclamation-triangle text-danger"></i> Mahsulotni o'chirish</h2>
+        <a href="{% url 'coin:admin_products' %}" class="btn btn-cancel">
+            <i class="bi bi-arrow-left"></i> Ortga
+        </a>
+    </div>
 
     <div class="row justify-content-center">
-        <div class="col-lg-5 col-md-7">
+        <div class="col-lg-6 col-md-8">
+            <div class="confirm-card">
+                <div class="warn-ico"><i class="bi bi-exclamation-triangle-fill"></i></div>
 
-            <div class="ios-card text-center p-4 p-md-5">
-
-                <div class="mb-3">
-                    <i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:4rem;"></i>
-                </div>
-
-                <h4 class="fw-bold mb-3">Mahsulotni o'chirish</h4>
-
-                {% if product.image %}
-                <img src="{{ product.image.url }}" class="product-img mb-3" alt="{{ product.name }}">
-                {% endif %}
-
-                <h5 class="mb-2">{{ product.name }}</h5>
-
-                <p class="text-muted small mb-4">
-                    Ushbu mahsulotni o'chirishni xohlaysizmi?<br>
-                    <span class="text-danger">Bu amalni qaytarib bo'lmaydi!</span>
+                <h4>Mahsulotni o'chirish</h4>
+                <p class="confirm-note">
+                    Ushbu mahsulotni o'chirishni tasdiqlaysizmi?<br>
+                    <span class="danger">Bu amalni qaytarib bo'lmaydi.</span>
                 </p>
 
-                <div class="d-flex justify-content-center gap-4 mb-4">
+                <div class="prod-preview">
+                    {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    {% endif %}
+                    <div class="pname">{{ product.name }}</div>
+                </div>
 
-                    <div class="text-center">
-                        <small class="text-muted d-block">Narxi</small>
-                        <span class="badge bg-warning text-dark">
-                            <i class="bi bi-coin me-1"></i>{{ product.coin_price }}
-                        </span>
+                <div class="info-chips">
+                    <div class="info-chip">
+                        <div class="info-chip-lbl">Narxi</div>
+                        <div class="info-chip-val gold"><i class="bi bi-coin"></i> {{ product.coin_price }}</div>
                     </div>
-
-                    <div class="text-center">
-                        <small class="text-muted d-block">Zaxira</small>
-                        <span class="badge bg-info">
-                            {{ product.stock }} ta
-                        </span>
+                    <div class="info-chip">
+                        <div class="info-chip-lbl">Zaxira</div>
+                        <div class="info-chip-val info">{{ product.stock }} ta</div>
                     </div>
-
                 </div>
 
                 <form method="post">
                     {% csrf_token %}
-                    <div class="d-flex gap-3 justify-content-center flex-wrap">
-
-                        <a href="{% url 'coin:admin_products' %}" class="btn btn-outline-secondary ios-btn px-4">
-                            <i class="bi bi-arrow-left me-2"></i>Ortga
+                    <div class="d-flex gap-3 justify-content-center flex-wrap mt-3">
+                        <a href="{% url 'coin:admin_products' %}" class="btn btn-cancel">
+                            <i class="bi bi-x-lg"></i> Bekor qilish
                         </a>
-
-                        <button type="submit" class="btn btn-danger ios-btn px-4">
-                            <i class="bi bi-trash me-2"></i>O'chirish
+                        <button type="submit" class="btn btn-danger-solid">
+                            <i class="bi bi-trash"></i> Ha, o'chirish
                         </button>
-
                     </div>
                 </form>
-
             </div>
-
         </div>
     </div>
-
 </div>
 {% endblock %}

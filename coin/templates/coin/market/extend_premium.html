@@ -3,567 +3,1005 @@
 {% block title %}Premium Uzaytirish | LMS{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/market/_market_ui.html' %}
 <style>
 :root {
-    --pe-bg: #f8fafc;
-    --pe-card: #ffffff;
-    --pe-text: #1e293b;
-    --pe-muted: #64748b;
-    --pe-border: rgba(0,0,0,0.06);
-    --pe-gold: #f59e0b;
-    --pe-gold-light: #fef3c7;
-    --pe-gold-dark: #d97706;
-    --pe-blue: #3b82f6;
-    --pe-blue-light: #dbeafe;
-    --pe-purple: #8b5cf6;
-    --pe-success: #10b981;
+    --xp-bg: #f6f7fb;
+    --xp-card: #ffffff;
+    --xp-text: #0f172a;
+    --xp-muted: #64748b;
+    --xp-subtle: #eef1f6;
+    --xp-border: rgba(15, 23, 42, 0.08);
+    --xp-border-strong: rgba(15, 23, 42, 0.12);
+
+    --xp-primary: #6366f1;
+    --xp-primary-dark: #4f46e5;
+    --xp-secondary: #a78bfa;
+    --xp-tertiary: #8b5cf6;
+
+    --xp-gold: #f59e0b;
+    --xp-gold-dark: #b45309;
+    --xp-gold-soft: #fef3c7;
+
+    --xp-success: #10b981;
+    --xp-success-soft: rgba(16, 185, 129, 0.12);
+    --xp-danger: #ef4444;
+    --xp-danger-soft: rgba(239, 68, 68, 0.1);
+    --xp-warning: #f59e0b;
+
+    --xp-shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --xp-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
+    --xp-shadow-lg: 0 20px 50px rgba(99, 102, 241, 0.15);
+    --xp-shadow-gold: 0 12px 40px rgba(245, 158, 11, 0.2);
+
+    --xp-radius: 20px;
+    --xp-radius-sm: 12px;
+    --xp-radius-lg: 20px;
 }
 [data-bs-theme="dark"] {
-    --pe-bg: #0f172a;
-    --pe-card: #1e293b;
-    --pe-text: #f1f5f9;
-    --pe-muted: #94a3b8;
-    --pe-border: rgba(255,255,255,0.08);
-    --pe-gold-light: rgba(245,158,11,0.15);
-    --pe-blue-light: rgba(59,130,246,0.15);
+    --xp-bg: #0f0f16;
+    --xp-card: #16161f;
+    --xp-text: #e7eaf0;
+    --xp-muted: #8b93a7;
+    --xp-subtle: #1f1f2a;
+    --xp-border: rgba(255, 255, 255, 0.08);
+    --xp-border-strong: rgba(255, 255, 255, 0.14);
+    --xp-gold-soft: rgba(245, 158, 11, 0.15);
+    --xp-success-soft: rgba(16, 185, 129, 0.15);
+    --xp-danger-soft: rgba(239, 68, 68, 0.15);
+    --xp-gold-dark: #fbbf24;
+    --xp-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+/* ============ ANIMATIONS ============ */
+@keyframes xpFadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+@keyframes xpFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes xpScaleIn { from{opacity:0;transform:scale(0.94)} to{opacity:1;transform:scale(1)} }
+@keyframes xpSlideRight { from{opacity:0;transform:translateX(-24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes xpFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes xpShimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+@keyframes xpGlow { 0%,100%{box-shadow:0 0 0 0 rgba(99,102,241,0)} 50%{box-shadow:0 0 30px rgba(99,102,241,0.35)} }
+@keyframes xpUrgentPulse { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 14px rgba(239,68,68,0)} }
+@keyframes xpRotate { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+@keyframes xpGradientShift { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+@keyframes xpDigitFlip { 0%{transform:translateY(-100%);opacity:0} 50%{opacity:1} 100%{transform:translateY(0);opacity:1} }
+@keyframes xpTicker { 0%,100%{transform:scale(1)} 50%{transform:scale(1.05)} }
+@keyframes xpDrawLine { from{stroke-dashoffset:100%} to{stroke-dashoffset:0} }
+@keyframes xpProgressGrow { from{width:0} to{width:var(--w)} }
+@keyframes xpParticle {
+    0% { opacity:0; transform:translateY(0) scale(0); }
+    30% { opacity:0.8; transform:translateY(-15px) scale(1); }
+    100% { opacity:0; transform:translateY(-60px) scale(0.3); }
 }
-@keyframes rotate360 {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+@keyframes xpConfetti {
+    0% { transform:translateY(-20px) rotate(0); opacity:0; }
+    50% { opacity:1; }
+    100% { transform:translateY(80px) rotate(360deg); opacity:0; }
 }
-@keyframes pulse-ring {
-    0% { transform: scale(0.9); opacity: 1; }
-    100% { transform: scale(1.6); opacity: 0; }
-}
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(40px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-@keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-}
-@keyframes timerPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.08); }
-}
-
-.pe-page {
-    min-height: 100vh;
-    background: var(--pe-bg);
-    padding-bottom: 4rem;
-}
-
-/* Hero */
-.pe-hero {
-    background: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
-    border-radius: 0 0 2.5rem 2.5rem;
-    padding: 2.5rem 1.5rem 3.5rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: -2rem;
-}
-.pe-hero::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='3' fill='%23ffffff' fill-opacity='0.05'/%3E%3C/svg%3E");
-}
-.pe-hero-icon-wrap {
-    position: relative;
-    display: inline-block;
-    margin-bottom: 0.5rem;
-}
-.pe-hero-icon {
-    font-size: 3rem;
-    color: white;
-    display: inline-block;
-    animation: rotate360 4s linear infinite;
-    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.2));
-}
-.pe-hero-ring {
-    position: absolute;
-    inset: -12px;
-    border: 3px solid rgba(255,255,255,0.3);
-    border-radius: 50%;
-    animation: pulse-ring 2s ease-out infinite;
-}
-.pe-hero h1 {
-    color: white;
-    font-weight: 800;
-    font-size: 1.8rem;
-    margin-bottom: 0.3rem;
-    animation: fadeInUp 0.6s ease-out;
-}
-.pe-hero p {
-    color: rgba(255,255,255,0.85);
-    animation: fadeInUp 0.6s ease-out 0.1s both;
+@keyframes xpBounce {
+    0%,20%,50%,80%,100% { transform:translateY(0); }
+    40% { transform:translateY(-8px); }
+    60% { transform:translateY(-4px); }
 }
 
-/* Status bar */
-.pe-status {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    justify-content: center;
-    margin-top: 1rem;
-    animation: fadeInUp 0.6s ease-out 0.2s both;
+/* ============ BASE ============ */
+.xp-page {
+    min-height:100vh;
+    background:
+        radial-gradient(1200px 400px at 50% -100px, rgba(139,92,246,0.08), transparent 60%),
+        var(--xp-bg);
+    padding-bottom:4rem;
+    color:var(--xp-text);
+    font-feature-settings:"cv02","cv03","cv04","cv11";
 }
-.pe-status-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.25);
-    border-radius: 50px;
-    padding: 0.45rem 1rem;
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
-.pe-status-item.timer {
-    animation: timerPulse 2s ease-in-out infinite;
-}
-.pe-status-item i { font-size: 1.1rem; }
+.xp-wrap { max-width:1080px; margin:0 auto; padding:0 1.25rem; }
 
-/* Cards */
-.pe-cards-wrap {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 1rem;
-    position: relative;
-    z-index: 2;
+/* ============ TOP BAR / STICKY MINI ============ */
+.xp-topbar {
+    position:sticky; top:0; z-index:100;
+    background:rgba(255,255,255,0.85);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border-bottom:1px solid var(--xp-border);
+    padding:0.65rem 1.25rem;
+    display:none; align-items:center; justify-content:space-between; gap:1rem;
+    transition:opacity 0.3s;
+    animation:xpFadeIn 0.3s ease;
 }
+[data-bs-theme="dark"] .xp-topbar { background:rgba(11,17,32,0.85); }
+.xp-topbar.visible { display:flex; }
+.xp-topbar-left { display:flex; align-items:center; gap:0.75rem; }
+.xp-topbar-badge {
+    width:36px; height:36px; border-radius:10px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.1rem;
+}
+.xp-topbar-info { display:flex; flex-direction:column; }
+.xp-topbar-title { font-weight:800; font-size:0.88rem; color:var(--xp-text); line-height:1.2; }
+.xp-topbar-sub { font-size:0.72rem; color:var(--xp-muted); font-weight:600; }
+.xp-topbar-cta {
+    padding:0.5rem 1rem; border-radius:10px;
+    background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;
+    font-weight:700; font-size:0.82rem; text-decoration:none;
+    border:none; cursor:pointer;
+    display:inline-flex; align-items:center; gap:0.35rem;
+    transition:all 0.2s;
+    box-shadow:0 4px 12px rgba(99,102,241,0.3);
+}
+.xp-topbar-cta:hover { transform:translateY(-1px); color:#fff; box-shadow:0 6px 18px rgba(99,102,241,0.45); }
 
-.pe-plan {
-    background: var(--pe-card);
-    border-radius: 1.5rem;
-    border: 2px solid var(--pe-border);
-    padding: 2rem 1.5rem;
-    text-align: center;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
+/* ============ HERO — fokus uslub ============ */
+.xp-hero {
+    position:relative;
+    max-width:1080px;
+    margin:1.5rem auto 1.25rem;
+    padding:1.8rem 2rem;
+    background:var(--xp-card);
+    border:1px solid var(--xp-border);
+    border-radius:var(--xp-radius);
+    box-shadow:var(--xp-shadow);
+    text-align:center;
+    overflow:hidden;
+    animation:xpFadeUp 0.5s cubic-bezier(0.16,1,0.3,1);
 }
-.pe-plan::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 0;
-    height: 3px;
-    background: linear-gradient(90deg, var(--pe-blue), var(--pe-purple));
-    transition: all 0.4s ease;
-    transform: translateX(-50%);
+.xp-hero::before {
+    content:''; position:absolute;
+    top:0; left:0; right:0;
+    height:4px;
+    background:linear-gradient(90deg, var(--xp-primary), var(--xp-secondary), var(--xp-gold));
 }
-.pe-plan:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 60px rgba(99,102,241,0.15);
-    border-color: var(--pe-blue);
+.xp-hero-bg { display:none; }
+.xp-hero-content { position:relative; z-index:1; color:var(--xp-text); }
+.xp-hero-tag {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    background:rgba(99, 102, 241, 0.1);
+    border:1px solid var(--xp-border);
+    padding:0.32rem 0.85rem; border-radius:99px;
+    font-size:0.75rem; font-weight:700;
+    color:var(--xp-text); margin-bottom:0.75rem;
+    animation:xpFadeUp 0.5s ease 0.05s both;
 }
-.pe-plan:hover::before { width: 100%; }
-
-.pe-plan-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 1rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    margin-bottom: 1rem;
-    transition: all 0.3s ease;
+.xp-hero-tag .xp-dot {
+    width:6px; height:6px; border-radius:50%; background:#22c55e;
+    box-shadow:0 0 8px rgba(34,197,94,0.55);
+    animation:xpTicker 1.5s ease-in-out infinite;
 }
-.pe-plan:hover .pe-plan-icon { transform: scale(1.1); border-radius: 50%; }
-
-.pe-plan-icon.weekly { background: var(--pe-blue-light); color: var(--pe-blue); }
-.pe-plan-icon.monthly { background: var(--pe-gold-light); color: var(--pe-gold); }
-.pe-plan-icon.bimonthly { background: #ede9fe; color: var(--pe-purple); }
-
-.pe-days-badge {
-    display: inline-block;
-    background: var(--pe-blue-light);
-    color: var(--pe-blue);
-    font-weight: 800;
-    font-size: 1.6rem;
-    padding: 0.3rem 1rem;
-    border-radius: 0.8rem;
-    margin: 0.5rem 0;
+.xp-hero h1 {
+    font-size:clamp(1.35rem, 3vw, 1.75rem);
+    font-weight:800;
+    line-height:1.2;
+    letter-spacing:-0.01em;
+    color:var(--xp-text);
+    margin:0 0 0.4rem;
+    animation:xpFadeUp 0.5s ease 0.1s both;
 }
-.pe-plan-label {
-    color: var(--pe-muted);
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+.xp-hero h1 .xp-highlight {
+    background:linear-gradient(135deg, var(--xp-gold), var(--xp-gold-dark));
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
 }
-
-.pe-price-row {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    gap: 0.3rem;
-    margin: 0.8rem 0 1.2rem;
-}
-.pe-price-val {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--pe-gold);
-    line-height: 1;
-}
-.pe-price-unit {
-    color: var(--pe-muted);
-    font-weight: 500;
+.xp-hero-sub {
+    font-size:0.95rem;
+    color:var(--xp-muted);
+    max-width:520px; margin:0 auto 1rem;
+    line-height:1.55;
+    animation:xpFadeUp 0.5s ease 0.15s both;
 }
 
-.pe-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    width: 100%;
-    padding: 0.8rem 1.5rem;
-    border-radius: 0.8rem;
-    font-weight: 700;
-    font-size: 0.95rem;
-    border: 2px solid var(--pe-blue);
-    background: transparent;
-    color: var(--pe-blue);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-    margin-top: auto;
-    text-decoration: none;
+/* Chip row */
+.xp-chips {
+    display:inline-flex; flex-wrap:wrap; gap:0.5rem; justify-content:center;
+    animation:xpFadeUp 0.5s ease 0.25s both;
 }
-.pe-btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 3s infinite;
-    opacity: 0;
-    transition: opacity 0.3s ease;
+.xp-chip {
+    display:inline-flex; align-items:center; gap:0.45rem;
+    background:rgba(99, 102, 241, 0.1);
+    border:1px solid var(--xp-border);
+    padding:0.42rem 0.9rem; border-radius:var(--xp-radius-sm);
+    font-size:0.82rem; font-weight:600; color:var(--xp-text);
 }
-.pe-btn:hover {
-    background: var(--pe-blue);
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(59,130,246,0.35);
-}
-.pe-btn:hover::after { opacity: 1; }
-.pe-btn-disabled {
-    border-color: var(--pe-border);
-    color: var(--pe-muted);
-    cursor: not-allowed;
-}
-.pe-btn-disabled:hover { background: transparent; color: var(--pe-muted); transform: none; box-shadow: none; }
+.xp-chip i { font-size:0.95rem; color:var(--xp-primary); }
+.xp-chip strong { font-weight:800; font-family:ui-monospace,'JetBrains Mono',Consolas,monospace; }
 
-/* Benefits */
-.pe-benefits {
-    background: var(--pe-card);
-    border-radius: 1.5rem;
-    padding: 2.5rem 2rem;
-    margin-top: 2.5rem;
-    border: 1px solid var(--pe-border);
-    position: relative;
-    overflow: hidden;
+/* ============ COUNTDOWN CARD ============ */
+.xp-countdown {
+    position:relative; z-index:2;
+    margin:-1.5rem auto 0;
+    max-width:720px;
+    padding:0 1.25rem;
+    animation:xpFadeUp 0.6s cubic-bezier(0.16,1,0.3,1) 0.3s both;
 }
-.pe-benefits::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #f59e0b, #d97706, #8b5cf6, #3b82f6);
+.xp-countdown-card {
+    background:var(--xp-card); border:1px solid var(--xp-border);
+    border-radius:var(--xp-radius); padding:1.75rem;
+    box-shadow:var(--xp-shadow);
+    position:relative; overflow:hidden;
+    transition:all 0.3s;
 }
-.pe-benefits-title {
-    text-align: center;
-    margin-bottom: 2rem;
+.xp-countdown-card::before {
+    content:''; position:absolute; inset:0 auto auto 0; height:4px; width:100%;
+    background:linear-gradient(90deg,#6366f1,#8b5cf6,#a855f7);
+    transition:opacity 0.3s;
 }
-.pe-benefits-title h5 {
-    font-weight: 800;
-    font-size: 1.3rem;
-    color: var(--pe-text);
-    margin-bottom: 0.3rem;
+.xp-countdown-card.state-warn::before { background:linear-gradient(90deg,#f59e0b,#d97706); }
+.xp-countdown-card.state-urgent::before { background:linear-gradient(90deg,#ef4444,#dc2626); }
+.xp-countdown-card.state-urgent { animation:xpUrgentPulse 2s ease-in-out infinite; border-color:rgba(239,68,68,0.3); }
+
+.xp-countdown-head {
+    display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; flex-wrap:wrap;
 }
-.pe-benefits-title p {
-    color: var(--pe-muted);
-    font-size: 0.9rem;
-    margin: 0;
+.xp-countdown-title-wrap { display:flex; align-items:center; gap:0.75rem; }
+.xp-countdown-ico {
+    width:44px; height:44px; border-radius:12px; flex-shrink:0;
+    background:linear-gradient(135deg,#eef2ff,#e0e7ff);
+    color:#6366f1; display:flex; align-items:center; justify-content:center; font-size:1.35rem;
+    transition:all 0.3s;
 }
-.pe-benefit-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.2rem;
+[data-bs-theme="dark"] .xp-countdown-ico { background:rgba(99,102,241,0.15); }
+.state-warn .xp-countdown-ico { background:linear-gradient(135deg,var(--xp-gold-soft),#fde68a); color:var(--xp-gold-dark); }
+.state-urgent .xp-countdown-ico { background:linear-gradient(135deg,var(--xp-danger-soft),#fecaca); color:var(--xp-danger); animation:xpBounce 1.5s ease infinite; }
+.xp-countdown-title { font-weight:800; font-size:1.05rem; margin:0; color:var(--xp-text); letter-spacing:-0.01em; }
+.xp-countdown-desc { font-size:0.85rem; color:var(--xp-muted); margin:0.1rem 0 0; }
+.xp-countdown-status {
+    font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.05em;
+    padding:0.3rem 0.7rem; border-radius:8px;
+    background:var(--xp-success-soft); color:var(--xp-success);
 }
-.pe-benefit-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 1rem;
-    padding: 1.2rem;
-    border-radius: 1rem;
-    border: 1px solid var(--pe-border);
-    background: var(--pe-bg);
-    transition: all 0.3s ease;
-    animation: fadeInUp 0.5s ease-out both;
+.state-warn .xp-countdown-status { background:var(--xp-gold-soft); color:var(--xp-gold-dark); }
+.state-urgent .xp-countdown-status { background:var(--xp-danger-soft); color:var(--xp-danger); }
+
+.xp-countdown-time {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:0.6rem;
 }
-.pe-benefit-item:nth-child(1) { animation-delay: 0.1s; }
-.pe-benefit-item:nth-child(2) { animation-delay: 0.15s; }
-.pe-benefit-item:nth-child(3) { animation-delay: 0.2s; }
-.pe-benefit-item:nth-child(4) { animation-delay: 0.25s; }
-.pe-benefit-item:nth-child(5) { animation-delay: 0.3s; }
-.pe-benefit-item:nth-child(6) { animation-delay: 0.35s; }
-.pe-benefit-item:nth-child(7) { animation-delay: 0.4s; }
-.pe-benefit-item:hover {
-    border-color: var(--pe-gold);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(245,158,11,0.1);
+.xp-time-block {
+    background:var(--xp-bg); border:1px solid var(--xp-border);
+    border-radius:14px; padding:0.9rem 0.4rem;
+    text-align:center; position:relative; overflow:hidden;
+    transition:all 0.3s;
 }
-.pe-benefit-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
-    flex-shrink: 0;
+.xp-time-block::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:2px;
+    background:linear-gradient(90deg,transparent,var(--xp-primary),transparent);
+    opacity:0.3;
 }
-.pe-benefit-icon.b-leaderboard { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #3b82f6; }
-.pe-benefit-icon.b-classmates { background: linear-gradient(135deg, #d1fae5, #a7f3d0); color: #10b981; }
-.pe-benefit-icon.b-coding { background: linear-gradient(135deg, #ede9fe, #ddd6fe); color: #8b5cf6; }
-.pe-benefit-icon.b-coins { background: linear-gradient(135deg, #fef3c7, #fde68a); color: var(--pe-gold); }
-.pe-benefit-icon.b-ai { background: linear-gradient(135deg, #fce7f3, #fbcfe8); color: #ec4899; }
-.pe-benefit-icon.b-market { background: linear-gradient(135deg, #ffedd5, #fed7aa); color: #f97316; }
-.pe-benefit-icon.b-badge { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
-.pe-benefit-info h6 {
-    font-weight: 700;
-    font-size: 0.95rem;
-    color: var(--pe-text);
-    margin: 0 0 0.25rem;
+.state-warn .xp-time-block::before { background:linear-gradient(90deg,transparent,var(--xp-gold),transparent); }
+.state-urgent .xp-time-block::before { background:linear-gradient(90deg,transparent,var(--xp-danger),transparent); }
+.xp-time-num {
+    font-size:2rem; font-weight:900; line-height:1;
+    color:var(--xp-text); font-variant-numeric:tabular-nums;
+    letter-spacing:-0.03em;
+    display:inline-block;
+    background:linear-gradient(135deg,var(--xp-primary),var(--xp-secondary));
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent;
 }
-.pe-benefit-info p {
-    font-size: 0.82rem;
-    color: var(--pe-muted);
-    margin: 0;
-    line-height: 1.5;
+.state-warn .xp-time-num { background:linear-gradient(135deg,var(--xp-gold),var(--xp-gold-dark)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.state-urgent .xp-time-num { background:linear-gradient(135deg,var(--xp-danger),#dc2626); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.xp-time-lbl {
+    font-size:0.68rem; font-weight:700; color:var(--xp-muted);
+    text-transform:uppercase; letter-spacing:0.08em; margin-top:0.35rem;
 }
-.pe-benefit-tag {
-    display: inline-block;
-    padding: 0.15rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    margin-top: 0.3rem;
+.xp-time-num.flip { animation:xpDigitFlip 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+/* Expiry timeline */
+.xp-timeline {
+    margin-top:1.25rem; padding-top:1.25rem;
+    border-top:1px dashed var(--xp-border-strong);
 }
-.pe-benefit-tag.t-exclusive {
-    background: rgba(245,158,11,0.15);
-    color: var(--pe-gold-dark);
+.xp-timeline-head { display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; font-weight:700; color:var(--xp-muted); margin-bottom:0.5rem; }
+.xp-timeline-bar { position:relative; height:8px; background:var(--xp-subtle); border-radius:20px; overflow:hidden; }
+.xp-timeline-fill {
+    position:absolute; inset:0 auto 0 0;
+    background:linear-gradient(90deg,var(--xp-success) 0%,var(--xp-warning) 60%,var(--xp-danger) 100%);
+    border-radius:20px;
+    animation:xpProgressGrow 1s cubic-bezier(0.4,0,0.2,1) 0.3s both;
 }
-.pe-benefit-tag.t-bonus {
-    background: rgba(16,185,129,0.15);
-    color: #10b981;
+.xp-timeline-marker {
+    position:absolute; top:-6px; width:20px; height:20px; border-radius:50%;
+    background:#fff; border:3px solid var(--xp-primary);
+    transform:translateX(-50%);
+    box-shadow:0 4px 12px rgba(99,102,241,0.4);
+    transition:left 1s cubic-bezier(0.4,0,0.2,1);
 }
-@media (max-width: 576px) {
-    .pe-benefits { padding: 1.5rem 1rem; }
-    .pe-benefit-grid { grid-template-columns: 1fr; }
+.state-warn .xp-timeline-marker { border-color:var(--xp-gold); box-shadow:0 4px 12px rgba(245,158,11,0.4); }
+.state-urgent .xp-timeline-marker { border-color:var(--xp-danger); box-shadow:0 4px 12px rgba(239,68,68,0.4); }
+
+/* ============ SECTION ============ */
+.xp-section {
+    margin-top:2.5rem;
+    animation:xpFadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.xp-section-head { text-align:center; margin-bottom:1.5rem; }
+.xp-section-tag {
+    display:inline-block;
+    font-size:0.72rem; font-weight:800; letter-spacing:0.1em; text-transform:uppercase;
+    color:var(--xp-primary);
+    background:rgba(99,102,241,0.08); padding:0.3rem 0.85rem; border-radius:50px;
+    margin-bottom:0.75rem;
+}
+.xp-section-head h2 {
+    font-size:clamp(1.35rem,3vw,1.75rem); font-weight:900;
+    letter-spacing:-0.02em; line-height:1.2;
+    color:var(--xp-text); margin:0;
+}
+.xp-section-head p { color:var(--xp-muted); margin:0.5rem 0 0; font-size:0.95rem; }
+
+/* ============ WHY EXTEND / VALUE PROP ============ */
+.xp-value-grid {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1rem;
+}
+.xp-value-card {
+    background:var(--xp-card); border:1px solid var(--xp-border);
+    border-radius:var(--xp-radius); padding:1.5rem 1.35rem;
+    position:relative; overflow:hidden;
+    transition:all 0.35s cubic-bezier(0.4,0,0.2,1);
+    box-shadow:var(--xp-shadow-sm);
+}
+.xp-value-card:hover {
+    transform:translateY(-4px);
+    border-color:var(--xp-primary);
+    box-shadow:var(--xp-shadow-lg);
+}
+.xp-value-card::before {
+    content:''; position:absolute; top:0; left:0; width:0; height:3px;
+    background:linear-gradient(90deg,var(--xp-primary),var(--xp-secondary));
+    transition:width 0.4s ease;
+}
+.xp-value-card:hover::before { width:100%; }
+.xp-value-icon {
+    width:42px; height:42px; border-radius:12px;
+    display:flex; align-items:center; justify-content:center; font-size:1.2rem;
+    margin-bottom:0.85rem;
+    transition:transform 0.3s;
+}
+.xp-value-card:hover .xp-value-icon { transform:rotate(-8deg) scale(1.05); }
+.xp-value-icon.v1 { background:linear-gradient(135deg,#eef2ff,#e0e7ff); color:#6366f1; }
+.xp-value-icon.v2 { background:linear-gradient(135deg,#f0fdf4,#dcfce7); color:#10b981; }
+.xp-value-icon.v3 { background:linear-gradient(135deg,#fef3c7,#fde68a); color:#d97706; }
+.xp-value-icon.v4 { background:linear-gradient(135deg,#fce7f3,#fbcfe8); color:#ec4899; }
+[data-bs-theme="dark"] .xp-value-icon.v1 { background:rgba(99,102,241,0.15); }
+[data-bs-theme="dark"] .xp-value-icon.v2 { background:rgba(16,185,129,0.15); }
+[data-bs-theme="dark"] .xp-value-icon.v3 { background:rgba(245,158,11,0.15); }
+[data-bs-theme="dark"] .xp-value-icon.v4 { background:rgba(236,72,153,0.15); }
+.xp-value-title { font-size:1rem; font-weight:800; margin:0 0 0.35rem; color:var(--xp-text); letter-spacing:-0.01em; }
+.xp-value-desc { font-size:0.86rem; color:var(--xp-muted); margin:0; line-height:1.55; }
+.xp-value-badge {
+    display:inline-block; margin-top:0.65rem;
+    padding:0.2rem 0.55rem; border-radius:6px;
+    font-size:0.7rem; font-weight:800;
+    background:var(--xp-success-soft); color:var(--xp-success);
 }
 
-/* Back */
-.pe-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--pe-muted);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-    padding: 0.6rem 1.2rem;
-    border-radius: 0.7rem;
-    border: 1px solid var(--pe-border);
-    background: var(--pe-card);
-    transition: all 0.3s ease;
+/* ============ VALUE CALCULATOR ============ */
+.xp-calc {
+    background:linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
+    border:1px solid var(--xp-border);
+    border-radius:var(--xp-radius);
+    padding:2rem 1.75rem;
+    position:relative; overflow:hidden;
+    animation:xpFadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
 }
-.pe-back:hover { color: var(--pe-blue); border-color: var(--pe-blue); transform: translateX(-4px); }
+[data-bs-theme="dark"] .xp-calc { background:linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.08)); }
+.xp-calc::before {
+    content:''; position:absolute; top:-50%; right:-10%; width:400px; height:400px;
+    background:radial-gradient(circle,rgba(139,92,246,0.15) 0%,transparent 60%);
+    pointer-events:none;
+}
+.xp-calc-head { display:flex; align-items:center; gap:0.85rem; margin-bottom:1.25rem; position:relative; z-index:1; }
+.xp-calc-ico {
+    width:48px; height:48px; border-radius:14px;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff;
+    display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+    box-shadow:0 8px 20px rgba(99,102,241,0.35);
+}
+.xp-calc-title { font-weight:900; font-size:1.15rem; letter-spacing:-0.01em; margin:0; }
+.xp-calc-sub { font-size:0.85rem; color:var(--xp-muted); margin:0.15rem 0 0; }
 
-/* Animate cards */
-.pe-anim-1 { animation: slideUp 0.5s ease-out 0.2s both; }
-.pe-anim-2 { animation: slideUp 0.5s ease-out 0.35s both; }
-.pe-anim-3 { animation: slideUp 0.5s ease-out 0.5s both; }
+.xp-calc-body {
+    display:grid; grid-template-columns:1fr auto 1fr; gap:1.25rem; align-items:center;
+    position:relative; z-index:1;
+}
+.xp-calc-col {
+    background:var(--xp-card); border:1px solid var(--xp-border);
+    border-radius:16px; padding:1.25rem 1rem;
+    text-align:center; position:relative;
+    box-shadow:var(--xp-shadow-sm);
+}
+.xp-calc-col.now { border-color:var(--xp-warning); }
+.xp-calc-col.after {
+    border-color:var(--xp-success); box-shadow:0 8px 25px rgba(16,185,129,0.15);
+    position:relative;
+}
+.xp-calc-col.after::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,var(--xp-success),#059669);
+    border-radius:16px 16px 0 0;
+}
+.xp-calc-col-lbl { font-size:0.72rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; color:var(--xp-muted); margin-bottom:0.35rem; }
+.xp-calc-col-num {
+    font-size:2.5rem; font-weight:900; line-height:1;
+    font-variant-numeric:tabular-nums; letter-spacing:-0.03em;
+}
+.xp-calc-col.now .xp-calc-col-num { color:var(--xp-warning); }
+.xp-calc-col.after .xp-calc-col-num {
+    background:linear-gradient(135deg,var(--xp-success),#059669);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+.xp-calc-col-unit { font-size:0.8rem; color:var(--xp-muted); font-weight:600; margin-top:0.25rem; }
+.xp-calc-arrow {
+    display:flex; align-items:center; justify-content:center;
+    width:44px; height:44px; border-radius:50%;
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff;
+    font-size:1.2rem; box-shadow:0 6px 18px rgba(99,102,241,0.4);
+    animation:xpFloat 2s ease-in-out infinite;
+}
+.xp-calc-savings {
+    margin-top:1.25rem; padding:0.9rem 1.15rem;
+    background:linear-gradient(135deg,var(--xp-success-soft),rgba(16,185,129,0.15));
+    border:1px solid rgba(16,185,129,0.25);
+    border-radius:14px;
+    display:flex; align-items:center; gap:0.75rem;
+    position:relative; z-index:1;
+}
+.xp-calc-savings i { font-size:1.4rem; color:var(--xp-success); }
+.xp-calc-savings-text { font-size:0.9rem; color:var(--xp-text); font-weight:600; margin:0; }
+.xp-calc-savings-text b { color:var(--xp-success); font-weight:800; }
 
-@media (max-width: 768px) {
-    .pe-hero { padding: 2rem 1rem 3rem; border-radius: 0 0 1.5rem 1.5rem; }
-    .pe-hero h1 { font-size: 1.4rem; }
-    .pe-hero-icon { font-size: 2.5rem; }
-    .pe-price-val { font-size: 2rem; }
-    .pe-plan { padding: 1.5rem 1.2rem; }
+/* ============ PLAN CARDS ============ */
+.xp-plans { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; }
+.xp-plan {
+    background:var(--xp-card); border:1.5px solid var(--xp-border);
+    border-radius:var(--xp-radius); padding:1.75rem 1.35rem 1.5rem;
+    position:relative; overflow:hidden;
+    transition:all 0.4s cubic-bezier(0.4,0,0.2,1);
+    display:flex; flex-direction:column;
+    animation:xpScaleIn 0.5s ease-out both;
+}
+.xp-plan:hover { transform:translateY(-8px); box-shadow:var(--xp-shadow-lg); border-color:var(--xp-primary); }
+.xp-plan.recommended { border-color:var(--xp-primary); box-shadow:0 12px 40px rgba(99,102,241,0.18); }
+.xp-plan.recommended::before {
+    content:''; position:absolute; top:0; left:0; right:0; height:3px;
+    background:linear-gradient(90deg,#6366f1,#8b5cf6,#a855f7);
+}
+.xp-plan-ribbon {
+    position:absolute; top:14px; right:14px;
+    background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;
+    padding:0.3rem 0.7rem; border-radius:8px;
+    font-size:0.68rem; font-weight:800; letter-spacing:0.05em;
+    box-shadow:0 6px 18px rgba(99,102,241,0.35);
+    animation:xpGlow 3s ease-in-out infinite;
+}
+.xp-plan-ribbon.gold { background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:0 6px 18px rgba(245,158,11,0.35); }
+.xp-plan-ribbon.emerald { background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 6px 18px rgba(16,185,129,0.35); }
+
+.xp-plan-name { font-size:0.78rem; font-weight:800; letter-spacing:0.08em; text-transform:uppercase; color:var(--xp-muted); margin:0 0 0.5rem; }
+.xp-plan-days-big {
+    font-size:3.5rem; font-weight:900; line-height:1;
+    letter-spacing:-0.04em;
+    background:linear-gradient(135deg,var(--xp-primary),var(--xp-secondary));
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    font-variant-numeric:tabular-nums;
+}
+.xp-plan-days-lbl { font-size:0.85rem; color:var(--xp-muted); font-weight:600; margin-bottom:0.75rem; }
+
+.xp-plan-price-row { display:flex; align-items:baseline; gap:0.35rem; margin:0.5rem 0 0.3rem; }
+.xp-plan-price {
+    font-size:1.65rem; font-weight:900; color:var(--xp-text);
+    font-variant-numeric:tabular-nums; letter-spacing:-0.02em;
+}
+.xp-plan-currency { font-size:0.85rem; color:var(--xp-muted); font-weight:700; }
+.xp-plan-perday {
+    display:inline-flex; align-items:center; gap:0.3rem;
+    font-size:0.75rem; font-weight:700; color:var(--xp-success);
+    background:var(--xp-success-soft); padding:0.25rem 0.6rem; border-radius:8px;
+    margin-bottom:1rem;
+}
+
+.xp-plan-newdate {
+    background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(99,102,241,0.08));
+    border:1px dashed rgba(16,185,129,0.3);
+    border-radius:12px; padding:0.65rem 0.85rem;
+    display:flex; align-items:center; gap:0.5rem;
+    margin-bottom:1rem;
+    font-size:0.82rem; font-weight:600;
+}
+.xp-plan-newdate i { color:var(--xp-success); font-size:1rem; }
+.xp-plan-newdate b { color:var(--xp-text); }
+
+.xp-plan-features { list-style:none; padding:0; margin:0 0 1rem; flex-grow:1; }
+.xp-plan-features li {
+    display:flex; align-items:center; gap:0.5rem;
+    padding:0.4rem 0; font-size:0.83rem; color:var(--xp-text); font-weight:500;
+}
+.xp-plan-features li i {
+    width:16px; height:16px; border-radius:50%;
+    background:var(--xp-success-soft); color:var(--xp-success);
+    display:inline-flex; align-items:center; justify-content:center;
+    font-size:0.65rem; flex-shrink:0;
+}
+
+.xp-plan-btn {
+    width:100%; padding:0.85rem; border:none; border-radius:12px;
+    font-weight:800; font-size:0.92rem;
+    background:var(--xp-subtle); color:var(--xp-text);
+    cursor:pointer; transition:all 0.3s;
+    display:inline-flex; align-items:center; justify-content:center; gap:0.4rem;
+    position:relative; overflow:hidden;
+}
+.xp-plan-btn::after {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent);
+    background-size:200% 100%; opacity:0; animation:xpShimmer 2.5s infinite;
+    transition:opacity 0.3s;
+}
+.xp-plan-btn:hover::after { opacity:1; }
+.xp-plan-btn:not(:disabled):hover { transform:translateY(-2px); }
+.xp-plan-btn.primary {
+    background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff;
+    box-shadow:0 6px 18px rgba(99,102,241,0.35);
+}
+.xp-plan-btn.primary:hover { box-shadow:0 10px 28px rgba(99,102,241,0.5); }
+.xp-plan-btn.gold {
+    background:linear-gradient(135deg,#f59e0b,#d97706); color:#fff;
+    box-shadow:0 6px 18px rgba(245,158,11,0.35);
+}
+.xp-plan-btn.gold:hover { box-shadow:0 10px 28px rgba(245,158,11,0.5); }
+.xp-plan-btn:disabled { opacity:0.6; cursor:not-allowed; }
+.xp-plan-btn:disabled:hover { transform:none; }
+
+/* ============ GUARANTEE BADGES ============ */
+.xp-guarantees {
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:1rem;
+    padding:1.5rem;
+    background:var(--xp-card); border:1px solid var(--xp-border);
+    border-radius:var(--xp-radius);
+    animation:xpFadeUp 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+.xp-guarantee { display:flex; align-items:center; gap:0.85rem; }
+.xp-guarantee-ico {
+    width:44px; height:44px; border-radius:12px; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center; font-size:1.4rem;
+    background:linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.05));
+    color:var(--xp-success);
+}
+.xp-guarantee.trust .xp-guarantee-ico { background:linear-gradient(135deg,rgba(99,102,241,0.1),rgba(99,102,241,0.05)); color:var(--xp-primary); }
+.xp-guarantee.speed .xp-guarantee-ico { background:linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.05)); color:var(--xp-gold); }
+.xp-guarantee-title { font-weight:800; font-size:0.9rem; margin:0; color:var(--xp-text); }
+.xp-guarantee-desc { font-size:0.78rem; color:var(--xp-muted); margin:0; }
+
+/* ============ MINI FAQ ============ */
+.xp-faq { display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; }
+.xp-faq-item {
+    background:var(--xp-card); border:1px solid var(--xp-border);
+    border-radius:14px; overflow:hidden;
+    transition:all 0.3s;
+}
+.xp-faq-item:hover { border-color:var(--xp-primary); }
+.xp-faq-q {
+    padding:1rem 1.15rem; cursor:pointer;
+    display:flex; justify-content:space-between; align-items:center; gap:1rem;
+    font-weight:700; font-size:0.9rem; color:var(--xp-text);
+}
+.xp-faq-q i { color:var(--xp-primary); font-size:1rem; transition:transform 0.3s; }
+.xp-faq-item.open .xp-faq-q i { transform:rotate(180deg); }
+.xp-faq-a {
+    max-height:0; overflow:hidden; padding:0 1.15rem;
+    color:var(--xp-muted); font-size:0.85rem; line-height:1.6;
+    transition:max-height 0.35s ease, padding 0.35s ease;
+}
+.xp-faq-item.open .xp-faq-a { max-height:200px; padding:0 1.15rem 1.1rem; }
+
+/* ============ BACK LINK ============ */
+.xp-back {
+    display:inline-flex; align-items:center; gap:0.4rem;
+    color:var(--xp-muted); text-decoration:none; font-weight:600; font-size:0.9rem;
+    padding:0.7rem 1.25rem; border-radius:12px;
+    border:1px solid var(--xp-border); background:var(--xp-card);
+    transition:all 0.3s;
+}
+.xp-back:hover { color:var(--xp-primary); border-color:var(--xp-primary); transform:translateX(-4px); }
+
+/* ============ ELIGIBILITY ============ */
+.xp-eligibility {
+    background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(220,38,38,0.04));
+    border:1.5px solid rgba(239,68,68,0.25);
+    border-radius:16px; padding:1rem 1.25rem;
+    display:flex; align-items:center; gap:0.9rem;
+    color:var(--xp-danger); font-weight:600; font-size:0.9rem;
+    margin-bottom:1.5rem;
+    animation:xpFadeUp 0.5s ease;
+}
+.xp-eligibility i { font-size:1.4rem; flex-shrink:0; }
+
+/* ============ SKELETON ============ */
+.xp-skel {
+    background:linear-gradient(90deg,var(--xp-subtle) 25%,var(--xp-card) 50%,var(--xp-subtle) 75%);
+    background-size:200% 100%; animation:xpShimmer 1.5s infinite;
+    border-radius:var(--xp-radius);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width:768px) {
+    .xp-hero { padding:1.3rem 1.1rem; border-radius:16px; }
+    .xp-hero h1 { font-size:1.25rem; }
+    .xp-plans { grid-template-columns:1fr; }
+    .xp-calc-body { grid-template-columns:1fr; }
+    .xp-calc-arrow { transform:rotate(90deg); margin:0 auto; animation:none; }
+    .xp-faq { grid-template-columns:1fr; }
+    .xp-time-num { font-size:1.6rem; }
+    .xp-time-block { padding:0.7rem 0.35rem; }
+    .xp-plan-days-big { font-size:2.75rem; }
+}
+@media (max-width:480px) {
+    .xp-countdown-time { gap:0.4rem; }
+    .xp-time-num { font-size:1.4rem; }
+    .xp-time-lbl { font-size:0.62rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="pe-page">
+<div class="xp-page">
 
-    <!-- Hero -->
-    <div class="pe-hero">
-        <div class="pe-hero-icon-wrap">
-            <div class="pe-hero-ring"></div>
-            <div class="pe-hero-icon"><i class="bi bi-arrow-repeat"></i></div>
+    <!-- STICKY TOP BAR -->
+    <div class="xp-topbar" id="xpTopbar">
+        <div class="xp-topbar-left">
+            <div class="xp-topbar-badge"><i class="bi bi-hourglass-split"></i></div>
+            <div class="xp-topbar-info">
+                <span class="xp-topbar-title">Premium tugashiga</span>
+                <span class="xp-topbar-sub" id="xpTopbarSub">...</span>
+            </div>
         </div>
-        <h1>Premium Uzaytirish</h1>
-        <p>Muddatingizni uzaytiring va imtiyozlardan foydalanishda davom eting</p>
+        <button class="xp-topbar-cta" onclick="document.getElementById('xpPlans').scrollIntoView({behavior:'smooth',block:'start'})">
+            Uzaytirish <i class="bi bi-arrow-right"></i>
+        </button>
+    </div>
 
-        <div class="pe-status">
-            {% if user.premium_expires_at %}
-            <div class="pe-status-item timer">
-                <i class="bi bi-clock"></i>
-                {{ user.premium_expires_at|date:"d.m.Y H:i" }} gacha
+    <!-- HERO -->
+    <div class="xp-hero">
+        <div class="xp-hero-bg"></div>
+        <div class="xp-hero-content">
+            <div class="xp-hero-tag">
+                <span class="xp-dot"></span> Premium faol
             </div>
-            {% endif %}
-            <div class="pe-status-item">
-                <i class="bi bi-coin"></i>
-                <span id="epBalance">{{ user.coins }} coin</span>
-            </div>
-            <div class="pe-status-item" style="font-size:0.85rem;opacity:0.85;">
-                <i class="bi bi-graph-up-arrow"></i>
-                <span id="epTotalEarned">...</span>
+            <h1>Muddatingizni <span class="xp-highlight">uzaytiring</span><br>imtiyozlar davom etsin</h1>
+            <p class="xp-hero-sub">Erta uzaytirsangiz kunlaringiz yo'qolmaydi — yangi tarif qolgan kunlarga qo'shib beriladi.</p>
+
+            <div class="xp-chips">
+                <div class="xp-chip">
+                    <i class="bi bi-coin"></i> Balans: <strong id="xpBalance">{{ user.coins }}</strong>
+                </div>
+                <div class="xp-chip">
+                    <i class="bi bi-graph-up-arrow"></i> Jami: <strong id="xpTotalEarned">...</strong>
+                </div>
             </div>
         </div>
     </div>
 
-    <div id="epEligibility" style="max-width:960px;margin:1rem auto 0;padding:0 1rem;display:none;"></div>
-
-    <!-- Plans -->
-    <div class="pe-cards-wrap mt-4">
-        <div class="row g-4" id="epPlansRow">
-            <div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>
-        </div>
-
-        <!-- Premium imkoniyatlari -->
-        <div class="pe-benefits">
-            <div class="pe-benefits-title">
-                <h5><i class="bi bi-gem me-2"></i>Premium imkoniyatlari</h5>
-                <p>Uzaytirsangiz quyidagi maxsus huquqlardan foydalanishda davom etasiz</p>
+    {% if user.premium_expires_at %}
+    <!-- COUNTDOWN CARD -->
+    <div class="xp-countdown">
+        <div class="xp-countdown-card" id="xpCdCard">
+            <div class="xp-countdown-head">
+                <div class="xp-countdown-title-wrap">
+                    <div class="xp-countdown-ico" id="xpCdIco"><i class="bi bi-hourglass-split"></i></div>
+                    <div>
+                        <h3 class="xp-countdown-title" id="xpCdTitle">Premium muddatingiz</h3>
+                        <p class="xp-countdown-desc" id="xpCdDesc">Kunlar davom etyapti</p>
+                    </div>
+                </div>
+                <span class="xp-countdown-status" id="xpCdStatus">FAOL</span>
             </div>
-            <div class="pe-benefit-grid">
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-leaderboard"><i class="bi bi-trophy"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>Reytingda hammani ko'rish</h6>
-                        <p>Oddiy foydalanuvchilar faqat o'z o'rnini ko'radi. Premium bilan to'liq reytingni ko'ring!</p>
-                        <span class="pe-benefit-tag t-exclusive">✅ Faqat Premium</span>
-                    </div>
+            <div class="xp-countdown-time">
+                <div class="xp-time-block"><div class="xp-time-num" id="xpDD">--</div><div class="xp-time-lbl">Kun</div></div>
+                <div class="xp-time-block"><div class="xp-time-num" id="xpHH">--</div><div class="xp-time-lbl">Soat</div></div>
+                <div class="xp-time-block"><div class="xp-time-num" id="xpMM">--</div><div class="xp-time-lbl">Daq</div></div>
+                <div class="xp-time-block"><div class="xp-time-num" id="xpSS">--</div><div class="xp-time-lbl">Son</div></div>
+            </div>
+            <div class="xp-timeline">
+                <div class="xp-timeline-head">
+                    <span>Boshlangan</span>
+                    <span id="xpTimelinePct">... % o'tgan</span>
+                    <span>Tugashi</span>
                 </div>
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-classmates"><i class="bi bi-people"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>Kursdoshlar bo'limi</h6>
-                        <p>Kursdoshlaringizni ko'ring va ular bilan aloqada bo'ling.</p>
-                        <span class="pe-benefit-tag t-exclusive">✅ Faqat Premium</span>
-                    </div>
+                <div class="xp-timeline-bar">
+                    <div class="xp-timeline-fill" id="xpTimelineFill" style="--w:0%;width:0%"></div>
+                    <div class="xp-timeline-marker" id="xpTimelineMarker" style="left:0%"></div>
                 </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-coins"><i class="bi bi-coin"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>2x Coin imkoniyati</h6>
-                        <p>Har kuni 5 coin olasiz va barcha coin olish yo'llarida 2 baravar ko'p coin yig'asiz!</p>
-                        <span class="pe-benefit-tag t-bonus">🔥 2x bonus</span>
-                    </div>
+    <div class="xp-wrap">
+
+        <div id="xpEligibility"></div>
+
+        <!-- WHY EXTEND -->
+        <div class="xp-section">
+            <div class="xp-section-head">
+                <span class="xp-section-tag">Nima uchun uzaytirish kerak</span>
+                <h2>Uzaytirmasangiz nima yo'qotasiz?</h2>
+                <p>Premium tugagach — imtiyozlaringiz darhol to'xtaydi</p>
+            </div>
+            <div class="xp-value-grid">
+                <div class="xp-value-card">
+                    <div class="xp-value-icon v1"><i class="bi bi-trophy"></i></div>
+                    <h4 class="xp-value-title">Reyting yopiladi</h4>
+                    <p class="xp-value-desc">Faqat o'z o'rningizni ko'rasiz — hamma o'quvchilar reytingi qulflanadi.</p>
+                    <span class="xp-value-badge" style="background:var(--xp-danger-soft);color:var(--xp-danger)">−To'liq ko'rish</span>
                 </div>
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-coding"><i class="bi bi-arrow-repeat"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>Testni arzon qayta topshirish</h6>
-                        <p>Boshqalar qayta topshirish uchun 10 coin to'laydi, Premium foydalanuvchilar faqat 5 coin!</p>
-                        <span class="pe-benefit-tag t-bonus">💰 20 coin tejash</span>
-                    </div>
+                <div class="xp-value-card">
+                    <div class="xp-value-icon v2"><i class="bi bi-coin"></i></div>
+                    <h4 class="xp-value-title">Coin oqimi sekinlashadi</h4>
+                    <p class="xp-value-desc">Kunlik 5 coin bonusi to'xtaydi, 2x multiplier 1x ga tushadi.</p>
+                    <span class="xp-value-badge" style="background:var(--xp-danger-soft);color:var(--xp-danger)">−50% tezlik</span>
                 </div>
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-ai"><i class="bi bi-robot"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>AI hulosa va tahlil</h6>
-                        <p>Yuborilgan uyga vazifalar uchun AI hulosasi va tahlilini ko'ring.</p>
-                        <span class="pe-benefit-tag t-exclusive">✅ Faqat Premium</span>
-                    </div>
+                <div class="xp-value-card">
+                    <div class="xp-value-icon v3"><i class="bi bi-robot"></i></div>
+                    <h4 class="xp-value-title">AI limitlar qisqaradi</h4>
+                    <p class="xp-value-desc">Kunlik 120 xabar → 60 ga, rasmlar 5 → 3 ga tushadi.</p>
+                    <span class="xp-value-badge" style="background:var(--xp-danger-soft);color:var(--xp-danger)">−50% AI</span>
                 </div>
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-ai"><i class="bi bi-chat-dots"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>Creative AI — 2x ko'proq limit</h6>
-                        <p>AI suhbatda kuniga 120 ta xabar (oddiy: 60) va 5 ta rasm (oddiy: 3). Bepul — coin talab qilinmaydi!</p>
-                        <span class="pe-benefit-tag t-bonus">🤖 2x limit + bepul</span>
-                    </div>
+                <div class="xp-value-card">
+                    <div class="xp-value-icon v4"><i class="bi bi-patch-check-fill"></i></div>
+                    <h4 class="xp-value-title">✅ Belgi olib tashlanadi</h4>
+                    <p class="xp-value-desc">Ismingiz yonidagi premium nishoni va kursdoshlar bo'limi yopiladi.</p>
+                    <span class="xp-value-badge" style="background:var(--xp-danger-soft);color:var(--xp-danger)">−Status</span>
                 </div>
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-market"><i class="bi bi-bag-check"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>Marketda 5% chegirma</h6>
-                        <p>Barcha mahsulotlarga 5% chegirma. Kamroq coin sarflab ko'proq xarid qiling!</p>
-                        <span class="pe-benefit-tag t-bonus">💰 5% tejash</span>
-                    </div>
-                </div>
-
-                <div class="pe-benefit-item">
-                    <div class="pe-benefit-icon b-badge"><i class="bi bi-patch-check-fill"></i></div>
-                    <div class="pe-benefit-info">
-                        <h6>Premium belgi ✅</h6>
-                        <p>Ismingiz yonida maxsus ✅ belgisi. Profilingiz va leaderboardda ko'rinadi.</p>
-                        <span class="pe-benefit-tag t-exclusive">✅ Premium nishoni</span>
-                    </div>
-                </div>
-
             </div>
         </div>
 
-        <div class="text-center mt-4">
-            <a href="{% url 'coin:market_list' %}" class="pe-back">
-                <i class="bi bi-arrow-left"></i>Marketga qaytish
+        <!-- VALUE CALCULATOR -->
+        <div class="xp-section">
+            <div class="xp-calc" id="xpCalc" style="display:none">
+                <div class="xp-calc-head">
+                    <div class="xp-calc-ico"><i class="bi bi-calculator"></i></div>
+                    <div>
+                        <h3 class="xp-calc-title">Uzaytirish qiymatini hisoblang</h3>
+                        <p class="xp-calc-sub">Hozir uzaytirish sizga qancha kun beradi?</p>
+                    </div>
+                </div>
+                <div class="xp-calc-body">
+                    <div class="xp-calc-col now">
+                        <div class="xp-calc-col-lbl">Hozir</div>
+                        <div class="xp-calc-col-num" id="xpCalcNow">0</div>
+                        <div class="xp-calc-col-unit">kun qolgan</div>
+                    </div>
+                    <div class="xp-calc-arrow"><i class="bi bi-plus-lg"></i></div>
+                    <div class="xp-calc-col after">
+                        <div class="xp-calc-col-lbl">Uzaytirsangiz</div>
+                        <div class="xp-calc-col-num" id="xpCalcAfter">0</div>
+                        <div class="xp-calc-col-unit">kunga cho'ziladi</div>
+                    </div>
+                </div>
+                <div class="xp-calc-savings">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                    <p class="xp-calc-savings-text">
+                        Erta uzaytirish — <b>bepul bonus.</b> Qolgan kunlaringiz avtomatik saqlanib qoladi, tanlangan tarif ustiga qo'shiladi.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLANS -->
+        <div class="xp-section" id="xpPlans">
+            <div class="xp-section-head">
+                <span class="xp-section-tag">Tariflar</span>
+                <h2>Uzaytirish variantlari</h2>
+                <p>Narxlar sizning yig'ilgan coinlaringizga qarab hisoblanadi</p>
+            </div>
+            <div class="xp-plans" id="xpPlansGrid">
+                <div class="xp-skel" style="height:400px"></div>
+                <div class="xp-skel" style="height:400px"></div>
+                <div class="xp-skel" style="height:400px"></div>
+            </div>
+        </div>
+
+        <!-- GUARANTEES -->
+        <div class="xp-section">
+            <div class="xp-guarantees">
+                <div class="xp-guarantee">
+                    <div class="xp-guarantee-ico"><i class="bi bi-shield-check"></i></div>
+                    <div>
+                        <p class="xp-guarantee-title">100% xavfsiz</p>
+                        <p class="xp-guarantee-desc">Coinlar to'g'ridan-to'g'ri balansdan yechiladi</p>
+                    </div>
+                </div>
+                <div class="xp-guarantee trust">
+                    <div class="xp-guarantee-ico"><i class="bi bi-arrow-repeat"></i></div>
+                    <div>
+                        <p class="xp-guarantee-title">Rad etilsa qaytariladi</p>
+                        <p class="xp-guarantee-desc">Admin rad etsa — coinlar to'liq qaytariladi</p>
+                    </div>
+                </div>
+                <div class="xp-guarantee speed">
+                    <div class="xp-guarantee-ico"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div>
+                        <p class="xp-guarantee-title">Tez faollashadi</p>
+                        <p class="xp-guarantee-desc">Admin tasdiqidan so'ng darhol</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="xp-section">
+            <div class="xp-section-head">
+                <span class="xp-section-tag">Savollar</span>
+                <h2>Ko'p beriladigan savollar</h2>
+            </div>
+            <div class="xp-faq">
+                <div class="xp-faq-item" onclick="xpToggleFaq(this)">
+                    <div class="xp-faq-q">Erta uzaytirsam kunlarim yo'qolmaydimi? <i class="bi bi-chevron-down"></i></div>
+                    <div class="xp-faq-a">Yo'q. Qolgan kunlaringiz yangi tarif kunlariga qo'shib beriladi. Masalan: 10 kun qolgan bo'lsa va 30 kunlik tarif olsangiz — jami 40 kun bo'ladi.</div>
+                </div>
+                <div class="xp-faq-item" onclick="xpToggleFaq(this)">
+                    <div class="xp-faq-q">Coinlar qachon yechiladi? <i class="bi bi-chevron-down"></i></div>
+                    <div class="xp-faq-a">So'rov yuborilganda darhol yechiladi. Admin rad etsa — to'liq qaytariladi.</div>
+                </div>
+                <div class="xp-faq-item" onclick="xpToggleFaq(this)">
+                    <div class="xp-faq-q">Narxlar nima uchun har xil? <i class="bi bi-chevron-down"></i></div>
+                    <div class="xp-faq-a">Narx sizning umumiy yig'ilgan coinlaringizning ma'lum foizi bo'ladi: Haftalik — 25%, 1 oylik — 50%, 2 oylik — 75%.</div>
+                </div>
+                <div class="xp-faq-item" onclick="xpToggleFaq(this)">
+                    <div class="xp-faq-q">Nechta so'rov yuborishim mumkin? <i class="bi bi-chevron-down"></i></div>
+                    <div class="xp-faq-a">Bir vaqtda faqat 1 ta kutilayotgan so'rov. Tasdiqlangandan keyin yangisini yuborishingiz mumkin.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BACK -->
+        <div class="xp-section" style="text-align:center">
+            <a href="{% url 'coin:market_list' %}" class="xp-back">
+                <i class="bi bi-arrow-left"></i> Marketga qaytish
             </a>
         </div>
-    </div>
 
+    </div>
 </div>
 
 <script>
 (function(){
     const API = '/api/v1/coin';
     let userCoins = 0;
+    let premiumExpiresAt = null;
+    let premiumPurchasedAt = null;
+    let xpTimerInt = null;
+    let lastDigits = {dd:null,hh:null,mm:null,ss:null};
 
+    {% if user.premium_expires_at %}
+    premiumExpiresAt = new Date("{{ user.premium_expires_at|date:'c' }}");
+    {% endif %}
+
+    function $(id){ return document.getElementById(id); }
     function getCsrf(){let v='; '+document.cookie,p=v.split('; csrftoken=');if(p.length===2)return p.pop().split(';').shift();}
     async function get(u){const r=await fetch(u,{credentials:'same-origin'});if(!r.ok)throw new Error(r.statusText);return r.json();}
     async function post(u,b){const r=await fetch(u,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(b||{})});const d=await r.json();if(!r.ok)throw d;return d;}
+    function formatNum(n){ return (n||0).toLocaleString('en-US').replace(/,/g,' '); }
+    function pad(n){ return String(n).padStart(2,'0'); }
 
-    const PLAN_ICONS = {weekly:'bi-lightning-fill',monthly:'bi-calendar-check-fill',bimonthly:'bi-gem'};
+    function setDigit(elId, val, key){
+        const el = $(elId);
+        if (!el) return;
+        const newVal = pad(val);
+        if (lastDigits[key] !== newVal){
+            el.textContent = newVal;
+            el.classList.remove('flip'); void el.offsetWidth; el.classList.add('flip');
+            lastDigits[key] = newVal;
+        }
+    }
 
-    async function loadExtendPlans() {
+    const PLAN_ICONS = {weekly:'bi-lightning-charge-fill', monthly:'bi-shield-fill-check', bimonthly:'bi-gem'};
+    const PLAN_LABELS = {weekly:'HAFTALIK', monthly:'OYLIK', bimonthly:'IKKI OYLIK'};
+    const PLAN_RIBBONS = {monthly:{text:'TAVSIYA', cls:''}, bimonthly:{text:'ENG TEJAMKOR', cls:'emerald'}};
+    const PLAN_FEATURES = {
+        weekly:['Barcha Premium imtiyozlar','+7 kun qo\'shiladi','✅ premium belgi'],
+        monthly:['Barcha Premium imtiyozlar','+30 kun qo\'shiladi','✅ premium belgi','Balansli tanlov'],
+        bimonthly:['Barcha Premium imtiyozlar','+60 kun qo\'shiladi','✅ premium belgi','Eng ko\'p tejash']
+    };
+
+    function updateCountdown(){
+        if (!premiumExpiresAt) return;
+        const card = $('xpCdCard');
+        const iconEl = $('xpCdIco');
+        const titleEl = $('xpCdTitle');
+        const descEl = $('xpCdDesc');
+        const statusEl = $('xpCdStatus');
+        const topbar = $('xpTopbar');
+        const topbarSub = $('xpTopbarSub');
+
+        const now = new Date();
+        const diff = premiumExpiresAt - now;
+
+        if (diff <= 0){
+            titleEl.textContent = 'Premium tugagan';
+            descEl.textContent = 'Yangilash uchun quyidan tarif tanlang';
+            statusEl.textContent = 'TUGAGAN';
+            iconEl.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
+            card.classList.remove('state-warn');
+            card.classList.add('state-urgent');
+            setDigit('xpDD',0,'dd'); setDigit('xpHH',0,'hh'); setDigit('xpMM',0,'mm'); setDigit('xpSS',0,'ss');
+            if (topbarSub) topbarSub.textContent = 'TUGAGAN';
+            return;
+        }
+
+        const d = Math.floor(diff/86400000);
+        const h = Math.floor((diff%86400000)/3600000);
+        const m = Math.floor((diff%3600000)/60000);
+        const s = Math.floor((diff%60000)/1000);
+
+        setDigit('xpDD', d, 'dd');
+        setDigit('xpHH', h, 'hh');
+        setDigit('xpMM', m, 'mm');
+        setDigit('xpSS', s, 'ss');
+
+        card.classList.remove('state-warn','state-urgent');
+        if (d < 3) {
+            card.classList.add('state-urgent');
+            titleEl.textContent = 'Muddat tez tugaydi!';
+            descEl.textContent = 'Hoziroq uzaytiring, aks holda imtiyozlar to\'xtaydi';
+            statusEl.textContent = 'SHOSHILINCH';
+            iconEl.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i>';
+        } else if (d < 7) {
+            card.classList.add('state-warn');
+            titleEl.textContent = 'Muddat yaqinlashmoqda';
+            descEl.textContent = 'Erta uzaytirsangiz — kunlar yo\'qolmaydi';
+            statusEl.textContent = 'OGOHLANTIRISH';
+            iconEl.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+        } else {
+            titleEl.textContent = 'Premium muddatingiz';
+            descEl.textContent = 'Hozir xotirjam bo\'lishingiz mumkin';
+            statusEl.textContent = 'FAOL';
+            iconEl.innerHTML = '<i class="bi bi-shield-check"></i>';
+        }
+
+        if (topbarSub) topbarSub.textContent = d + ' kun ' + pad(h) + ' soat qoldi';
+
+        // Timeline
+        if (premiumPurchasedAt) {
+            const start = new Date(premiumPurchasedAt);
+            const total = premiumExpiresAt - start;
+            const used = now - start;
+            const pctUsed = Math.max(0, Math.min(100, Math.round((used / total) * 100)));
+            const fill = $('xpTimelineFill');
+            const marker = $('xpTimelineMarker');
+            const pctLbl = $('xpTimelinePct');
+            if (fill) { fill.style.setProperty('--w', pctUsed+'%'); fill.style.width = pctUsed+'%'; }
+            if (marker) marker.style.left = pctUsed+'%';
+            if (pctLbl) pctLbl.textContent = pctUsed + '% o\'tgan';
+        }
+    }
+
+    function updateCalculator(){
+        if (!premiumExpiresAt) return;
+        const now = new Date();
+        const diff = premiumExpiresAt - now;
+        const remainDays = Math.max(0, Math.ceil(diff / 86400000));
+        // Show calculator with default = monthly plan (30 days) preview
+        const previewDays = 30;
+        $('xpCalcNow').textContent = remainDays;
+        $('xpCalcAfter').textContent = remainDays + previewDays;
+        $('xpCalc').style.display = 'block';
+    }
+
+    async function loadPlans(){
         try {
             const [summary, plans] = await Promise.all([get(API+'/summary/'), get(API+'/premium/plans/')]);
             userCoins = summary.total_coins;
+            premiumPurchasedAt = plans.premium_purchased_at ? new Date(plans.premium_purchased_at) : null;
 
-            document.getElementById('epBalance').textContent = userCoins + ' coin';
-            document.getElementById('epTotalEarned').textContent = 'Jami: ' + (plans.total_earned||0) + ' coin';
+            $('xpBalance').textContent = formatNum(userCoins);
+            $('xpTotalEarned').textContent = formatNum(plans.total_earned||0);
 
-            const eligEl = document.getElementById('epEligibility');
+            const eligEl = $('xpEligibility');
             if (!plans.eligible) {
-                eligEl.innerHTML = '<div style="background:rgba(239,68,68,0.1);border:2px solid rgba(239,68,68,0.3);border-radius:14px;padding:1rem 1.25rem;display:flex;align-items:center;gap:0.75rem;font-size:0.9rem;font-weight:600;color:#ef4444;"><i class="bi bi-lock-fill" style="font-size:1.3rem"></i><div>Premium uchun kamida 1 oy oldin ro\'yxatdan o\'tgan bo\'lishingiz kerak!<br><small style="opacity:0.8">Yana '+plans.days_until_eligible+' kun</small></div></div>';
-                eligEl.style.display = 'block';
+                eligEl.innerHTML = '<div class="xp-eligibility"><i class="bi bi-lock-fill"></i><div><b>Premium hozircha ochilmagan.</b><br><span style="opacity:0.85;font-weight:500">Ro\'yxatdan o\'tganingizga kamida 1 oy bo\'lishi kerak — yana '+plans.days_until_eligible+' kun</span></div></div>';
             }
+
+            // Update timeline once we have purchase date
+            updateCountdown();
 
             const planKeys = ['weekly','monthly','bimonthly'];
             let html = '';
@@ -571,50 +1009,70 @@
                 const p = plans.plans[key];
                 const isCheap = p.too_cheap;
                 const canAfford = !isCheap && userCoins >= p.price;
+                const isRec = key === 'monthly';
+                const perDay = p.days > 0 ? Math.max(1, Math.floor(p.price / p.days)) : p.price;
+                const now = new Date();
+                const base = premiumExpiresAt && premiumExpiresAt > now ? premiumExpiresAt : now;
+                const newExp = new Date(base.getTime() + p.days*86400000);
+                const newDateStr = newExp.toLocaleDateString('uz-UZ');
+
                 let btnHtml;
-                if (!plans.eligible) {
-                    btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled>🔒 Hali mumkin emas</button>';
-                } else if (isCheap) {
-                    btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled>📈 Coin yig\'ing</button>';
-                } else if (!canAfford) {
-                    btnHtml = '<button type="button" class="pe-btn pe-btn-disabled" disabled><i class="bi bi-lock-fill"></i>Coin yetarli emas</button>';
-                } else {
-                    btnHtml = '<button type="button" class="pe-btn" data-plan="'+key+'" data-name="'+p.name+'" data-price="'+p.price+'" data-days="'+p.days+'" onclick="epExtend(this)"><i class="bi bi-plus-circle-fill"></i>Uzaytirish</button>';
-                }
-                html += `<div class="col-12 col-md-4">
-                    <div class="pe-plan pe-anim-${idx+1}">
-                        <div class="pe-plan-icon ${key}"><i class="bi ${PLAN_ICONS[key]}"></i></div>
-                        <div class="pe-plan-label">${p.name}</div>
-                        <div class="pe-days-badge">+${p.days} kun <span style="font-size:0.7em;opacity:0.7">(${p.percent}%)</span></div>
-                        <div class="pe-price-row">
-                            <span class="pe-price-val">${isCheap?'<span style="text-decoration:line-through;opacity:0.4;font-size:0.6em">'+p.price+'</span> min '+p.min_price:p.price}</span>
-                            <span class="pe-price-unit">coin</span>
-                        </div>
-                        ${isCheap?'<div style="color:#ef4444;font-size:0.8rem;font-weight:600;margin:0.3rem 0">⚠️ Narx juda arzon! Coinlar yig\'ishni davom eting</div>':''}
-                        ${btnHtml}
-                    </div>
-                </div>`;
+                if (!plans.eligible) btnHtml = '<button class="xp-plan-btn" disabled><i class="bi bi-lock-fill"></i> Hali mumkin emas</button>';
+                else if (isCheap) btnHtml = '<button class="xp-plan-btn" disabled><i class="bi bi-arrow-up-circle"></i> Coin yig\'ing</button>';
+                else if (!canAfford) btnHtml = '<button class="xp-plan-btn" disabled><i class="bi bi-coin"></i> Coin yetarli emas</button>';
+                else btnHtml = '<button class="xp-plan-btn '+(isRec?'primary':(key==='bimonthly'?'gold':''))+'" onclick="xpExtend(\''+key+'\',\''+p.name+'\','+p.price+','+p.days+')"><i class="bi bi-plus-circle-fill"></i> Uzaytirish</button>';
+
+                const ribbon = PLAN_RIBBONS[key] ? '<span class="xp-plan-ribbon '+PLAN_RIBBONS[key].cls+'">'+PLAN_RIBBONS[key].text+'</span>' : '';
+
+                html += '<div class="xp-plan '+(isRec?'recommended':'')+'" style="animation-delay:'+(0.1+idx*0.08)+'s">'+
+                    ribbon+
+                    '<div class="xp-plan-name">'+PLAN_LABELS[key]+'</div>'+
+                    '<div class="xp-plan-days-big">+'+p.days+'</div>'+
+                    '<div class="xp-plan-days-lbl">kun qo\'shiladi</div>'+
+                    '<div class="xp-plan-price-row"><span class="xp-plan-price">'+(isCheap?'min '+formatNum(p.min_price):formatNum(p.price))+'</span><span class="xp-plan-currency">coin</span></div>'+
+                    (!isCheap ? '<span class="xp-plan-perday"><i class="bi bi-cash-coin"></i> ~'+formatNum(perDay)+' coin/kun</span>' : '<span class="xp-plan-perday" style="background:var(--xp-danger-soft);color:var(--xp-danger)"><i class="bi bi-exclamation-triangle"></i> Narx juda arzon</span>')+
+                    (!isCheap ? '<div class="xp-plan-newdate"><i class="bi bi-calendar-check-fill"></i><span>Yangi tugash: <b>'+newDateStr+'</b></span></div>' : '')+
+                    '<ul class="xp-plan-features">'+PLAN_FEATURES[key].map(f=>'<li><i class="bi bi-check-lg"></i>'+f+'</li>').join('')+'</ul>'+
+                    btnHtml+
+                '</div>';
             });
-            document.getElementById('epPlansRow').innerHTML = html;
-        } catch(e) {
-            document.getElementById('epPlansRow').innerHTML = '<div class="col-12 text-center py-4 text-muted">Xatolik yuz berdi</div>';
+            $('xpPlansGrid').innerHTML = html;
+
+            updateCalculator();
+        } catch(e){
+            $('xpPlansGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--xp-muted)">Xatolik yuz berdi</div>';
             console.error(e);
         }
     }
 
-    window.epExtend = function(btn) {
-        const plan = btn.dataset.plan;
-        const name = btn.dataset.name;
-        const price = parseInt(btn.dataset.price);
-        if (!confirm(name+' uzaytirish uchun '+price+' coin sarflanadi. Davom etasizmi?')) return;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Kutiling...';
-        post(API+'/premium/request/', {plan: plan})
-            .then(d => { alert(d.message || "So'rov yuborildi!"); loadExtendPlans(); })
-            .catch(e => { alert(e.error || 'Xatolik yuz berdi'); btn.disabled = false; btn.innerHTML = '<i class="bi bi-plus-circle-fill"></i>Uzaytirish'; });
+    window.xpExtend = function(key, name, price, days){
+        if (!confirm(name + ' uzaytirish uchun ' + formatNum(price) + ' coin sarflanadi. Davom etasizmi?')) return;
+        post(API+'/premium/request/', {plan:key})
+            .then(d => { alert(d.message || "So'rov yuborildi!"); loadPlans(); })
+            .catch(e => { alert(e.error || 'Xatolik yuz berdi'); });
     };
 
-    loadExtendPlans();
+    window.xpToggleFaq = function(el){
+        document.querySelectorAll('.xp-faq-item.open').forEach(x => { if (x !== el) x.classList.remove('open'); });
+        el.classList.toggle('open');
+    };
+
+    // Sticky topbar on scroll past hero
+    const heroEl = document.querySelector('.xp-hero');
+    const topbar = $('xpTopbar');
+    if (heroEl && topbar && premiumExpiresAt) {
+        window.addEventListener('scroll', () => {
+            const scrolled = window.scrollY > heroEl.offsetHeight * 0.7;
+            topbar.classList.toggle('visible', scrolled);
+        }, {passive:true});
+    }
+
+    // Init
+    updateCountdown();
+    if (premiumExpiresAt) {
+        xpTimerInt = setInterval(updateCountdown, 1000);
+    }
+    loadPlans();
 })();
 </script>
 {% endblock %}

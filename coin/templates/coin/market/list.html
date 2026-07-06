@@ -3,129 +3,329 @@
 {% block title %}Coin Market | LMS{% endblock %}
 
 {% block extra_css %}
+{% include 'coin/market/_market_ui.html' %}
 <style>
-@keyframes mkFadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-@keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+/* ============ MARKET LIST — sahifaga xos stillar ============ */
 
-.mk-container { max-width:1200px; margin:0 auto; padding:1.5rem 1rem 3rem; }
+/* Hero ichki joylashuv */
+.mk-hero-inner { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
+.mk-hero-left { flex: 1; min-width: 240px; }
 
-.mk-hero {
-    background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#a855f7 100%);
-    border-radius:20px; padding:2rem; color:#fff; position:relative; overflow:hidden; margin-bottom:1.5rem; animation:mkFadeUp 0.5s ease;
+/* Balans halqasi (fokus uslubda) */
+.mk-balance-ring-wrap { position: relative; width: 116px; height: 116px; flex-shrink: 0; }
+.mk-balance-ring { transform: rotate(-90deg); }
+.mk-balance-ring circle { fill: none; stroke-width: 8; }
+.mk-balance-ring .track { stroke: var(--mkt-border); }
+.mk-balance-ring .fill { stroke: var(--mkt-accent); stroke-linecap: round; transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1); }
+.mk-balance-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.mk-balance-inner .mk-coin-icon { font-size: 1rem; color: var(--mkt-gold); }
+.mk-balance-inner .mk-coin-value { font-family: var(--mkt-mono); font-size: 1.3rem; font-weight: 800; line-height: 1.1; color: var(--mkt-text); }
+.mk-balance-inner .mk-coin-label { font-size: 0.62rem; font-weight: 700; color: var(--mkt-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+/* Statistika chiplari */
+.mk-stats-strip { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.1rem; animation: mktFadeUp 0.5s ease 0.05s both; }
+.mk-stat-chip {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.5rem 0.95rem; border-radius: 13px;
+    background: var(--mkt-card); border: 1px solid var(--mkt-border);
+    font-size: 0.84rem; font-weight: 600; color: var(--mkt-dim);
 }
-.mk-hero::before { content:''; position:absolute; top:-50%; right:-10%; width:300px; height:300px; background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%); pointer-events:none; }
-.mk-hero-title { font-size:1.6rem; font-weight:800; margin:0; display:flex; align-items:center; gap:0.5rem; position:relative; z-index:1; }
-.mk-hero-sub { margin:0.3rem 0 0; opacity:0.85; font-size:0.9rem; position:relative; z-index:1; }
-.mk-balance { position:absolute; top:1.5rem; right:2rem; background:rgba(255,255,255,0.15); backdrop-filter:blur(10px); border-radius:12px; padding:0.5rem 1rem; display:flex; align-items:center; gap:0.4rem; font-weight:700; font-size:1.1rem; z-index:1; }
+.mk-stat-chip strong { font-family: var(--mkt-mono); color: var(--mkt-text); font-weight: 800; }
+.mk-stat-chip small { color: var(--mkt-dim); font-weight: 600; }
+.mk-stat-chip .mk-stat-icon { display: inline-flex; width: 26px; height: 26px; border-radius: 8px; align-items: center; justify-content: center; font-size: 0.85rem; }
+.mk-stat-chip.premium .mk-stat-icon { background: var(--mkt-gold-soft); }
+.mk-stat-chip.today .mk-stat-icon { background: var(--mkt-ok-soft); }
+.mk-stat-chip.total .mk-stat-icon { background: var(--mkt-info-soft); }
+.mk-stat-chip.timer .mk-stat-icon { background: var(--mkt-bad-soft); }
 
-.mk-search-bar { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:0.75rem 1rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:0.75rem; animation:mkFadeUp 0.5s ease 0.1s both; }
-.mk-search-bar i { color:var(--text-muted); font-size:1.1rem; }
-.mk-search-bar input { flex:1; border:none; background:transparent; color:var(--text); font-size:0.95rem; font-weight:500; outline:none; }
-.mk-search-bar input::placeholder { color:var(--text-muted); opacity:0.6; }
+/* Tez havolalar */
+.mk-quicknav { display: flex; gap: 0.5rem; margin-bottom: 1.1rem; flex-wrap: wrap; animation: mktFadeUp 0.5s ease 0.1s both; }
 
-.mk-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.25rem; margin-bottom:1.5rem; }
+/* Premium banner — toza gold panel */
+.mk-premium-banner {
+    display: block; text-decoration: none;
+    background: var(--mkt-card);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: var(--mkt-radius);
+    padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
+    position: relative; overflow: hidden;
+    animation: mktFadeUp 0.5s ease 0.15s both;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+.mk-premium-banner::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: linear-gradient(90deg, var(--mkt-gold), #fbbf24);
+}
+.mk-premium-banner:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(245, 158, 11, 0.18); }
+.mk-premium-inner { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.mk-premium-icon {
+    width: 52px; height: 52px; flex-shrink: 0;
+    border-radius: 14px; background: var(--mkt-gold-soft);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+}
+.mk-premium-content { flex: 1; min-width: 200px; }
+.mk-premium-title { font-weight: 800; font-size: 1.05rem; color: var(--mkt-text); margin: 0 0 0.15rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.mk-premium-badge {
+    display: inline-block; background: var(--mkt-gold-soft); color: var(--mkt-gold-dark);
+    padding: 0.15rem 0.55rem; border-radius: 8px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.4px;
+}
+.mk-premium-desc { font-size: 0.86rem; color: var(--mkt-dim); margin: 0; }
+.mk-premium-price-row { display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.4rem; }
+.mk-premium-old { text-decoration: line-through; color: var(--mkt-dim); opacity: 0.7; font-size: 0.85rem; font-family: var(--mkt-mono); }
+.mk-premium-new { font-family: var(--mkt-mono); font-size: 1.15rem; font-weight: 800; color: var(--mkt-gold-dark); }
+.mk-premium-cta {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.55rem 1.2rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
+    border-radius: 12px; font-weight: 800; font-size: 0.88rem;
+}
+
+/* Qidiruv paneli */
+.mk-search-holder { margin-bottom: 1.25rem; animation: mktFadeUp 0.5s ease 0.2s both; }
+
+/* Mahsulotlar grid */
+.mk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.15rem; margin-bottom: 1rem; }
 
 .mk-card {
-    background:var(--card); border:1px solid var(--border); border-radius:18px; overflow:hidden;
-    transition:transform 0.3s ease,box-shadow 0.3s ease; animation:mkFadeUp 0.5s ease both; position:relative;
+    background: var(--mkt-card);
+    border: 1px solid var(--mkt-border);
+    border-radius: var(--mkt-radius);
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
+    animation: mktFadeUp 0.5s ease both;
+    position: relative;
+    display: flex;
+    flex-direction: column;
 }
-.mk-card:hover { transform:translateY(-6px); box-shadow:0 16px 40px rgba(0,0,0,0.1); }
+.mk-card:hover { transform: translateY(-6px); box-shadow: var(--mkt-shadow); border-color: var(--mkt-accent); }
 
-.mk-card-img { width:100%; aspect-ratio:4/3; object-fit:cover; display:block; }
-.mk-card-img-wrap { position:relative; overflow:hidden; }
-.mk-stock-badge { position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.6); backdrop-filter:blur(6px); color:#fff; font-size:0.72rem; font-weight:700; padding:0.3rem 0.65rem; border-radius:8px; }
-.mk-stock-badge.out { background:rgba(239,68,68,0.85); }
-.mk-out-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.45); display:flex; align-items:center; justify-content:center; }
-.mk-out-text { background:rgba(239,68,68,0.9); color:#fff; font-weight:800; font-size:1.1rem; padding:0.5rem 1.5rem; border-radius:10px; transform:rotate(-5deg); }
+.mk-trending-ribbon {
+    position: absolute; top: 12px; left: 12px; z-index: 3;
+    background: var(--mkt-gold-soft); color: var(--mkt-gold-dark);
+    backdrop-filter: blur(6px);
+    font-weight: 800; font-size: 0.7rem;
+    padding: 0.32rem 0.7rem; border-radius: 9px;
+    display: flex; align-items: center; gap: 0.3rem;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.mk-fire { display: inline-block; }
 
-.mk-card-body { padding:1rem 1.15rem 1.15rem; }
-.mk-card-title { font-size:1.05rem; font-weight:700; margin:0 0 0.4rem; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mk-card-desc { font-size:0.82rem; color:var(--text-muted); margin:0 0 0.75rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.45; }
+.mk-card-img-wrap { position: relative; overflow: hidden; }
+.mk-card-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; transition: transform 0.5s ease; }
+.mk-card:hover .mk-card-img { transform: scale(1.05); }
 
-.mk-card-footer { display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; }
-.mk-price { font-size:1.1rem; font-weight:800; color:#f59e0b; display:flex; align-items:center; gap:0.3rem; }
-.mk-card-stats { display:flex; gap:0.75rem; font-size:0.8rem; color:var(--text-muted); }
-.mk-card-stats span { display:flex; align-items:center; gap:0.2rem; }
+.mk-stock-badge {
+    position: absolute; top: 12px; right: 12px;
+    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
+    color: #fff; font-size: 0.72rem; font-weight: 700;
+    padding: 0.32rem 0.7rem; border-radius: 9px;
+    display: inline-flex; align-items: center; gap: 0.25rem;
+}
+.mk-stock-badge.low { background: rgba(239, 68, 68, 0.9); }
+.mk-stock-badge.out { background: rgba(239, 68, 68, 0.9); }
+.mk-out-overlay { position: absolute; inset: 0; background: rgba(10, 12, 22, 0.55); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
+.mk-out-text { background: var(--mkt-bad); color: #fff; font-weight: 800; font-size: 1rem; padding: 0.5rem 1.4rem; border-radius: 12px; }
 
-.mk-card-actions { display:flex; gap:0.5rem; }
+.mk-card-body { padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; flex: 1; }
+.mk-card-title { font-size: 1rem; font-weight: 750; margin: 0 0 0.35rem; color: var(--mkt-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mk-card-desc { font-size: 0.82rem; color: var(--mkt-dim); margin: 0 0 0.7rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; min-height: 2.4em; }
+
+.mk-social-proof {
+    display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
+    font-size: 0.74rem; color: var(--mkt-dim);
+    padding: 0.5rem 0; margin-bottom: 0.5rem;
+    border-top: 1px dashed var(--mkt-border);
+    border-bottom: 1px dashed var(--mkt-border);
+}
+.mk-social-proof span { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600; }
+.mk-sp-hot { color: var(--mkt-gold-dark); font-weight: 800; }
+
+.mk-card-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+.mk-price {
+    display: flex; align-items: center; gap: 0.35rem;
+    font-family: var(--mkt-mono);
+    font-size: 1.05rem; font-weight: 800; color: var(--mkt-gold-dark);
+    background: var(--mkt-gold-soft);
+    padding: 0.32rem 0.7rem; border-radius: 11px;
+}
+.mk-price i { font-size: 0.95rem; }
+.mk-card-stats { display: flex; gap: 0.7rem; font-size: 0.8rem; color: var(--mkt-dim); }
+.mk-card-stats span { display: flex; align-items: center; gap: 0.25rem; font-weight: 600; }
+
+.mk-card-actions { display: flex; gap: 0.5rem; margin-top: auto; }
 .mk-like-btn {
-    width:42px; height:42px; border:2px solid var(--border); border-radius:12px; background:var(--bg);
-    display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:var(--text-muted);
-    cursor:pointer; transition:all 0.2s;
+    width: 42px; height: 42px;
+    border: 1px solid var(--mkt-border); border-radius: 12px; background: transparent;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--mkt-dim);
+    cursor: pointer; transition: all 0.2s;
 }
-.mk-like-btn.liked { color:#ef4444; border-color:rgba(239,68,68,0.3); background:rgba(239,68,68,0.05); }
-.mk-like-btn:hover { transform:scale(1.1); }
+.mk-like-btn.liked { color: var(--mkt-bad); border-color: rgba(239, 68, 68, 0.35); background: var(--mkt-bad-soft); }
+.mk-like-btn:hover { transform: scale(1.06); border-color: var(--mkt-bad); color: var(--mkt-bad); }
 .mk-buy-btn {
-    flex:1; height:42px; border:none; border-radius:12px; font-weight:700; font-size:0.85rem;
-    background:linear-gradient(135deg,#6366f1,#4f46e5); color:#fff; text-decoration:none;
-    display:flex; align-items:center; justify-content:center; gap:0.4rem; transition:all 0.2s;
+    flex: 1; height: 42px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.86rem;
+    background: var(--mkt-accent); color: #fff; text-decoration: none;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    transition: all 0.25s;
 }
-.mk-buy-btn:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(99,102,241,0.35); color:#fff; }
+.mk-buy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); color: #fff; }
 
-.mk-empty { text-align:center; padding:3rem; background:var(--card); border:1px solid var(--border); border-radius:16px; grid-column:1/-1; }
-.mk-empty i { font-size:3rem; color:var(--text-muted); opacity:0.4; }
-.mk-empty h4 { font-weight:700; margin:1rem 0 0.5rem; }
-.mk-empty p { color:var(--text-muted); }
+/* Eski nomlar bilan moslik (JS ishlatadi) */
+.mk-empty { text-align: center; padding: 3rem; background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: var(--mkt-radius); grid-column: 1/-1; }
+.mk-empty i { font-size: 2.6rem; color: var(--mkt-dim); opacity: 0.4; }
+.mk-empty h4 { font-weight: 700; margin: 0.8rem 0 0.4rem; color: var(--mkt-text); }
+.mk-empty p { color: var(--mkt-dim); margin: 0; }
+.mk-skeleton { background: linear-gradient(90deg, var(--mkt-border) 25%, var(--mkt-card) 50%, var(--mkt-border) 75%); background-size: 200% 100%; animation: mktShimmer 1.5s infinite; border-radius: var(--mkt-radius); }
 
-.mk-skeleton { background:linear-gradient(90deg,var(--border) 25%,var(--card) 50%,var(--border) 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:18px; }
+.mk-pagination { display: flex; justify-content: center; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.mk-pagination a, .mk-pagination span { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 11px; font-family: var(--mkt-mono); font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s; cursor: pointer; }
+.mk-pagination a { background: var(--mkt-card); border: 1px solid var(--mkt-border); color: var(--mkt-text); }
+.mk-pagination a:hover { border-color: var(--mkt-accent); color: var(--mkt-accent); transform: translateY(-2px); }
+.mk-pg-active { background: var(--mkt-accent) !important; color: #fff !important; border: none !important; }
+.mk-pg-disabled { color: var(--mkt-dim); opacity: 0.4; cursor: default !important; }
 
-.mk-pagination { display:flex; justify-content:center; align-items:center; gap:0.35rem; flex-wrap:wrap; }
-.mk-pagination a,.mk-pagination span { width:38px; height:38px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; font-size:0.85rem; font-weight:600; text-decoration:none; transition:all 0.2s; cursor:pointer; }
-.mk-pagination a { background:var(--card); border:1px solid var(--border); color:var(--text); }
-.mk-pagination a:hover { background:#6366f1; color:#fff; border-color:#6366f1; }
-.mk-pg-active { background:linear-gradient(135deg,#6366f1,#4f46e5)!important; color:#fff!important; border:none!important; }
-.mk-pg-disabled { color:var(--text-muted); opacity:0.4; cursor:default!important; }
+/* Ishonch paneli */
+.mk-trust-bar {
+    background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: var(--mkt-radius);
+    padding: 1.25rem 1.5rem; margin-top: 1.25rem;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+    animation: mktFadeUp 0.5s ease 0.3s both;
+}
+.mk-trust-item { display: flex; align-items: center; gap: 0.75rem; }
+.mk-trust-icon {
+    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
+}
+.mk-trust-item:nth-child(1) .mk-trust-icon { background: var(--mkt-ok-soft); color: var(--mkt-ok); }
+.mk-trust-item:nth-child(2) .mk-trust-icon { background: var(--mkt-accent-soft); color: var(--mkt-accent); }
+.mk-trust-item:nth-child(3) .mk-trust-icon { background: var(--mkt-gold-soft); color: var(--mkt-gold); }
+.mk-trust-title { font-weight: 700; font-size: 0.9rem; margin: 0; color: var(--mkt-text); }
+.mk-trust-desc { font-size: 0.78rem; color: var(--mkt-dim); margin: 0; line-height: 1.4; }
 
-@media(max-width:992px) { .mk-grid{grid-template-columns:repeat(2,1fr)} }
-@media(max-width:576px) { .mk-grid{grid-template-columns:1fr} .mk-balance{position:static;margin-top:0.75rem} .mk-hero{padding:1.5rem} }
+@media (max-width: 992px) {
+    .mk-grid { grid-template-columns: repeat(2, 1fr); }
+    .mk-trust-bar { grid-template-columns: 1fr; }
+}
+@media (max-width: 576px) {
+    .mk-grid { grid-template-columns: 1fr; }
+    .mk-hero-inner { gap: 1rem; }
+    .mk-balance-ring-wrap { width: 100px; height: 100px; }
+    .mk-stat-chip { font-size: 0.78rem; padding: 0.42rem 0.75rem; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="mk-container">
-    <div class="mk-hero">
-        <h1 class="mk-hero-title"><i class="bi bi-shop"></i> Coin Market</h1>
-        <p class="mk-hero-sub">Coinlaringiz bilan mahsulotlar sotib oling</p>
-        <div class="mk-balance" id="mkBalance"><i class="bi bi-coin"></i> <span>...</span></div>
+<div class="mkt-wrap">
+    <!-- HERO -->
+    <div class="mkt-hero">
+        <div class="mk-hero-inner">
+            <div class="mk-hero-left">
+                <h1><i class="bi bi-shop"></i> Coin Market</h1>
+                <p class="sub">Coinlaringiz bilan tanlangan mahsulotlarni sotib oling</p>
+            </div>
+            <div class="mk-balance-ring-wrap" id="mkBalanceRing">
+                <svg class="mk-balance-ring" width="116" height="116" viewBox="0 0 120 120">
+                    <circle class="track" cx="60" cy="60" r="52"></circle>
+                    <circle class="fill" cx="60" cy="60" r="52" stroke-dasharray="0 327" id="mkRingFill"></circle>
+                </svg>
+                <div class="mk-balance-inner">
+                    <div class="mk-coin-icon"><i class="bi bi-coin"></i></div>
+                    <div class="mk-coin-value" id="mkBalanceValue">...</div>
+                    <div class="mk-coin-label" id="mkRingLabel">Balans</div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Quick Nav -->
-    <div style="display:flex;gap:0.5rem;margin-bottom:1.25rem;flex-wrap:wrap;animation:mkFadeUp 0.5s ease 0.05s both;">
-        <a href="{% url 'coin:my_purchases' %}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1.25rem;border-radius:12px;background:var(--card);border:2px solid var(--border);color:var(--text);font-weight:700;font-size:0.88rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='#6366f1';this.style.color='#6366f1'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
-            <i class="bi bi-bag-check"></i> Mening Xaridlarim
+    <!-- LIVE STATS STRIP -->
+    <div class="mk-stats-strip" id="mkStatsStrip" style="display:none">
+        <div class="mk-stat-chip premium">
+            <span class="mk-stat-icon">⭐</span>
+            <span><strong id="mkStatPremium">0</strong> <small>Premium</small></span>
+        </div>
+        <div class="mk-stat-chip today">
+            <span class="mk-stat-icon">🔥</span>
+            <span><strong id="mkStatToday">0</strong> <small>bugungi xarid</small></span>
+        </div>
+        <div class="mk-stat-chip total">
+            <span class="mk-stat-icon">🛒</span>
+            <span><strong id="mkStatTotal">0</strong> <small>jami xarid</small></span>
+        </div>
+        <div class="mk-stat-chip timer">
+            <span class="mk-stat-icon">⏳</span>
+            <span>Haftalik chegirmagacha: <strong id="mkStatTimer">...</strong></span>
+        </div>
+    </div>
+
+    <!-- QUICK NAV -->
+    <div class="mk-quicknav">
+        <a href="{% url 'coin:my_purchases' %}" class="mkt-btn ghost">
+            <i class="bi bi-bag-check"></i> Mening xaridlarim
         </a>
-        <a href="{% url 'coin:coin_history' %}" style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1.25rem;border-radius:12px;background:var(--card);border:2px solid var(--border);color:var(--text);font-weight:700;font-size:0.88rem;text-decoration:none;transition:all 0.2s;" onmouseover="this.style.borderColor='#f59e0b';this.style.color='#f59e0b'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">
+        <a href="{% url 'coin:coin_history' %}" class="mkt-btn ghost">
             <i class="bi bi-clock-history"></i> Coin tarixi
         </a>
     </div>
 
-    <!-- Premium banner -->
-    <div id="mkPremiumBanner" style="display:none;margin-bottom:1.25rem;animation:mkFadeUp 0.5s ease 0.05s both;">
-        <a href="/market/premium/" style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-radius:16px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#f59e0b 0%,#d97706 50%,#b45309 100%);position:relative;overflow:hidden;">
-            <div style="display:flex;align-items:center;gap:0.75rem;position:relative;z-index:1;">
-                <span style="font-size:1.5rem;">⭐</span>
-                <div>
-                    <div style="font-weight:800;font-size:1rem;" id="mkPremiumTitle">Premium olish</div>
-                    <div style="font-size:0.82rem;opacity:0.9;" id="mkPremiumDesc">5% chegirma, 2x coin va maxsus badge</div>
+    <!-- PREMIUM BANNER -->
+    <a id="mkPremiumBanner" href="/market/premium/" class="mk-premium-banner" style="display:none">
+        <div class="mk-premium-inner">
+            <div class="mk-premium-icon">⭐</div>
+            <div class="mk-premium-content">
+                <div class="mk-premium-title" id="mkPremiumTitle">Premium olish</div>
+                <div class="mk-premium-desc" id="mkPremiumDesc">5% chegirma • 2x coin • maxsus badge</div>
+                <div class="mk-premium-price-row" id="mkPremiumPriceRow" style="display:none">
+                    <span class="mk-premium-old" id="mkPremiumOldPrice"></span>
+                    <span class="mk-premium-new" id="mkPremiumNewPrice"></span>
+                    <span class="mk-premium-badge" id="mkPremiumDiscount"></span>
                 </div>
             </div>
-            <i class="bi bi-chevron-right" style="font-size:1.2rem;opacity:0.8;position:relative;z-index:1;"></i>
-            <div style="position:absolute;top:-50%;right:-5%;width:200px;height:200px;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);pointer-events:none;"></div>
-        </a>
+            <span class="mk-premium-cta">Batafsil <i class="bi bi-arrow-right"></i></span>
+        </div>
+    </a>
+
+    <!-- SEARCH -->
+    <div class="mk-search-holder">
+        <div class="mkt-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="mkSearch" placeholder="Mahsulot qidirish...">
+        </div>
     </div>
 
-    <div class="mk-search-bar">
-        <i class="bi bi-search"></i>
-        <input type="text" id="mkSearch" placeholder="Mahsulot qidirish...">
-    </div>
-
+    <!-- GRID -->
     <div class="mk-grid" id="mkGrid">
-        <div class="mk-skeleton" style="height:340px"></div>
-        <div class="mk-skeleton" style="height:340px"></div>
-        <div class="mk-skeleton" style="height:340px"></div>
+        <div class="mk-skeleton" style="height:360px"></div>
+        <div class="mk-skeleton" style="height:360px"></div>
+        <div class="mk-skeleton" style="height:360px"></div>
     </div>
 
     <div id="mkPagination"></div>
+
+    <!-- TRUST BAR -->
+    <div class="mk-trust-bar">
+        <div class="mk-trust-item">
+            <div class="mk-trust-icon"><i class="bi bi-shield-check"></i></div>
+            <div>
+                <p class="mk-trust-title">Xavfsiz xarid</p>
+                <p class="mk-trust-desc">Barcha operatsiyalar coin balansi orqali himoyalangan</p>
+            </div>
+        </div>
+        <div class="mk-trust-item">
+            <div class="mk-trust-icon"><i class="bi bi-arrow-repeat"></i></div>
+            <div>
+                <p class="mk-trust-title">Bekor qilish imkoni</p>
+                <p class="mk-trust-desc">Yetkazilmagan buyurtmani bekor qiling, coinlar qaytadi</p>
+            </div>
+        </div>
+        <div class="mk-trust-item">
+            <div class="mk-trust-icon"><i class="bi bi-lightning-charge"></i></div>
+            <div>
+                <p class="mk-trust-title">Tez yetkazish</p>
+                <p class="mk-trust-desc">Admin tomonidan tez xronologik tartibda yetkaziladi</p>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -134,6 +334,11 @@
 (function(){
     const API = '/api/v1/coin';
     let page = 1, searchTimer = null;
+    let statsData = null;
+    let userCoins = 0;
+    let cheapestPlanPrice = null;
+    let weekEndsAt = null;
+    let timerInterval = null;
 
     function getCsrf() {
         let v='; '+document.cookie, p=v.split('; csrftoken=');
@@ -150,18 +355,123 @@
         return r.json();
     }
 
-    async function loadBalance() {
+    function formatNum(n){ return (n||0).toLocaleString('en-US').replace(/,/g,' '); }
+
+    function updateBalanceRing(coins, targetPrice){
+        userCoins = coins;
+        document.getElementById('mkBalanceValue').textContent = formatNum(coins);
+        const ring = document.getElementById('mkRingFill');
+        const label = document.getElementById('mkRingLabel');
+        const circumference = 2 * Math.PI * 52;
+        if (targetPrice && targetPrice > 0){
+            const pct = Math.min(1, coins / targetPrice);
+            const dash = pct * circumference;
+            ring.setAttribute('stroke-dasharray', dash + ' ' + circumference);
+            if (pct >= 1) {
+                label.textContent = '✓ Premium';
+            } else {
+                label.textContent = Math.round(pct * 100) + '% Premium';
+            }
+        } else {
+            ring.setAttribute('stroke-dasharray', circumference + ' ' + circumference);
+            label.textContent = 'Balans';
+        }
+    }
+
+    function startCountdown(){
+        if (!weekEndsAt) return;
+        const el = document.getElementById('mkStatTimer');
+        function tick(){
+            const now = new Date();
+            const diff = weekEndsAt - now;
+            if (diff <= 0){ el.textContent = 'Yangilanmoqda...'; return; }
+            const d = Math.floor(diff / 86400000);
+            const h = Math.floor((diff % 86400000) / 3600000);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            let text = '';
+            if (d > 0) text = d + 'k ' + h + 's';
+            else if (h > 0) text = h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
+            else text = m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
+            el.textContent = text;
+        }
+        tick();
+        if (timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(tick, 1000);
+    }
+
+    async function loadSummaryAndPlans() {
         try {
-            const d = await get(API+'/summary/');
-            document.getElementById('mkBalance').innerHTML = '<i class="bi bi-coin"></i> <span>'+d.total_coins+'</span>';
-        } catch(e){}
+            const [summary, plans] = await Promise.all([
+                get(API+'/summary/'),
+                get(API+'/premium/plans/').catch(()=>null)
+            ]);
+
+            // Find cheapest affordable plan for progress ring target
+            if (plans && plans.plans){
+                cheapestPlanPrice = plans.plans.weekly ? plans.plans.weekly.price : null;
+            }
+            updateBalanceRing(summary.total_coins, cheapestPlanPrice);
+
+            // Premium banner
+            const banner = document.getElementById('mkPremiumBanner');
+            const title = document.getElementById('mkPremiumTitle');
+            const desc = document.getElementById('mkPremiumDesc');
+            const priceRow = document.getElementById('mkPremiumPriceRow');
+            const oldEl = document.getElementById('mkPremiumOldPrice');
+            const newEl = document.getElementById('mkPremiumNewPrice');
+            const discountEl = document.getElementById('mkPremiumDiscount');
+
+            if (!plans) {
+                banner.style.display='block';
+            } else if (plans.has_pending_request) {
+                title.innerHTML = 'Premium so\'rov kutilmoqda <span class="mk-premium-badge">⏳</span>';
+                desc.textContent = 'Admin tasdiqlashini kuting';
+                banner.style.display='block';
+            } else if (plans.is_premium) {
+                title.innerHTML = 'Siz Premium foydalanuvchisiz <span class="mk-premium-badge">⭐ VIP</span>';
+                desc.textContent = 'Muddatni uzaytiring va imtiyozlardan foydalaning';
+                banner.style.display='block';
+            } else if (!plans.eligible) {
+                title.innerHTML = '🔒 Premium hali qulf ostida';
+                desc.textContent = 'Yana ' + plans.days_until_eligible + ' kunda ochiladi';
+                banner.style.display='block';
+            } else {
+                const mp = plans.plans.monthly;
+                const anchor = mp.price * 2;
+                title.innerHTML = 'Premium olish <span class="mk-premium-badge">🔥 CHEGIRMA</span>';
+                desc.textContent = '5% market chegirma • 2x coin • Reyting va AI imtiyozlari';
+                oldEl.textContent = formatNum(anchor) + ' coin';
+                newEl.textContent = formatNum(mp.price) + ' coin';
+                discountEl.textContent = '−50%';
+                priceRow.style.display = 'flex';
+                banner.style.display='block';
+            }
+        } catch(e){
+            console.warn('summary/plans error', e);
+        }
+    }
+
+    async function loadStats() {
+        try {
+            const s = await get(API+'/market/stats/');
+            statsData = s;
+            document.getElementById('mkStatPremium').textContent = formatNum(s.active_premium_users);
+            document.getElementById('mkStatToday').textContent = formatNum(s.purchases_today);
+            document.getElementById('mkStatTotal').textContent = formatNum(s.total_purchases);
+            document.getElementById('mkStatsStrip').style.display = 'flex';
+            weekEndsAt = new Date(s.week_ends_at);
+            startCountdown();
+        } catch(e){
+            console.warn('stats error', e);
+        }
     }
 
     async function loadProducts(pg) {
         page = pg||1;
         const grid = document.getElementById('mkGrid');
         const pag = document.getElementById('mkPagination');
-        grid.innerHTML = '<div class="mk-skeleton" style="height:340px"></div>'.repeat(3);
+        grid.innerHTML = '<div class="mk-skeleton" style="height:360px"></div>'.repeat(3);
         pag.innerHTML='';
 
         try {
@@ -170,6 +480,7 @@
             if(search) params.push('search='+encodeURIComponent(search));
             const d = await get(API+'/products/?'+params.join('&'));
             const totalPages = Math.ceil(d.count/20);
+            const topIds = (statsData && statsData.top_product_ids) || [];
 
             if(!d.results.length) {
                 grid.innerHTML='<div class="mk-empty"><i class="bi bi-box-seam"></i><h4>Mahsulotlar topilmadi</h4><p>Boshqa kalit so\'z bilan qidirib ko\'ring</p></div>';
@@ -178,22 +489,38 @@
 
             grid.innerHTML = d.results.map((p,i) => {
                 const outOfStock = p.stock <= 0;
-                return `<div class="mk-card" style="animation-delay:${i*60}ms">
+                const lowStock = p.stock > 0 && p.stock <= 3;
+                const isTrending = topIds.includes(p.id);
+                const stockBadge = outOfStock
+                    ? '<span class="mk-stock-badge out"><i class="bi bi-x-circle"></i> Tugagan</span><div class="mk-out-overlay"><div class="mk-out-text">Tugagan</div></div>'
+                    : lowStock
+                        ? '<span class="mk-stock-badge low">🔥 Faqat '+p.stock+' ta qoldi!</span>'
+                        : '<span class="mk-stock-badge">📦 '+p.stock+' ta</span>';
+                const trendingRibbon = isTrending
+                    ? '<div class="mk-trending-ribbon"><span class="mk-fire">🔥</span> TRENDING</div>'
+                    : '';
+                const socialProof = (p.likes_count > 0 || p.comments_count > 0)
+                    ? '<div class="mk-social-proof">'
+                        + (p.likes_count > 5 ? '<span class="mk-sp-hot">🔥 Ommabop</span>' : '')
+                        + '<span><i class="bi bi-heart-fill" style="color:'+(p.is_liked?'#ef4444':'#94a3b8')+'"></i> '+p.likes_count+' yoqtirgan</span>'
+                        + (p.comments_count > 0 ? '<span><i class="bi bi-chat-dots-fill"></i> '+p.comments_count+' izoh</span>' : '')
+                        + '</div>'
+                    : '';
+                return `<div class="mk-card" style="animation-delay:${i*70}ms">
+                    ${trendingRibbon}
                     <div class="mk-card-img-wrap">
                         <img class="mk-card-img" src="${p.image}" alt="${p.name}" loading="lazy">
-                        ${outOfStock
-                            ? '<span class="mk-stock-badge out">Tugagan</span><div class="mk-out-overlay"><div class="mk-out-text">Tugagan</div></div>'
-                            : '<span class="mk-stock-badge">📦 '+p.stock+' ta</span>'
-                        }
+                        ${stockBadge}
                     </div>
                     <div class="mk-card-body">
                         <h3 class="mk-card-title">${p.name}</h3>
                         <p class="mk-card-desc">${(p.description||'').substring(0,100)}${p.description&&p.description.length>100?'...':''}</p>
+                        ${socialProof}
                         <div class="mk-card-footer">
-                            <div class="mk-price"><i class="bi bi-coin"></i> ${p.coin_price}</div>
+                            <div class="mk-price"><i class="bi bi-coin"></i> ${formatNum(p.coin_price)}</div>
                             <div class="mk-card-stats">
-                                <span><i class="bi bi-heart-fill" style="color:${p.is_liked?'#ef4444':'inherit'}"></i> ${p.likes_count}</span>
-                                <span><i class="bi bi-chat-fill"></i> ${p.comments_count}</span>
+                                <span><i class="bi bi-heart${p.is_liked?'-fill':''}" style="color:${p.is_liked?'#ef4444':'inherit'}"></i> ${p.likes_count}</span>
+                                <span><i class="bi bi-chat-dots"></i> ${p.comments_count}</span>
                             </div>
                         </div>
                         <div class="mk-card-actions">
@@ -231,9 +558,9 @@
             const icon = btn.querySelector('i');
             if(d.liked) { btn.classList.add('liked'); icon.className='bi bi-heart-fill'; }
             else { btn.classList.remove('liked'); icon.className='bi bi-heart'; }
-            const statsEl = btn.closest('.mk-card-body').querySelector('.mk-card-stats span:first-child');
-            if(statsEl) statsEl.innerHTML = `<i class="bi bi-heart-fill" style="color:${d.liked?'#ef4444':'inherit'}"></i> ${d.likes_count}`;
-            loadBalance();
+            const stats = btn.closest('.mk-card-body').querySelector('.mk-card-stats span:first-child');
+            if(stats) stats.innerHTML = `<i class="bi bi-heart${d.liked?'-fill':''}" style="color:${d.liked?'#ef4444':'inherit'}"></i> ${d.likes_count}`;
+            loadSummaryAndPlans();
         } catch(e) { alert('Xatolik yuz berdi'); }
     };
 
@@ -242,33 +569,11 @@
         searchTimer = setTimeout(()=>loadProducts(1), 300);
     });
 
-    async function loadPremiumBanner() {
-        try {
-            const d = await get(API+'/premium/plans/');
-            const banner = document.getElementById('mkPremiumBanner');
-            const title = document.getElementById('mkPremiumTitle');
-            const desc = document.getElementById('mkPremiumDesc');
-            if(d.has_pending_request) {
-                title.textContent = 'Premium so\'rov kutilmoqda ⏳';
-                desc.textContent = 'Admin tasdiqlashini kuting';
-            } else if(d.is_premium) {
-                title.textContent = 'Siz Premium foydalanuvchisiz! ⭐';
-                desc.textContent = 'Muddatni uzaytirish yoki batafsil ma\'lumot';
-            } else if(!d.eligible) {
-                title.textContent = '🔒 Premium hali mavjud emas';
-                desc.textContent = 'Ro\'yxatdan o\'tganingizga kamida 1 oy bo\'lishi kerak (yana '+d.days_until_eligible+' kun)';
-            } else {
-                const mp = d.plans.monthly;
-                title.textContent = 'Premium olish';
-                desc.textContent = 'Narxlar jami coinlaringizga qarab: 1 oylik '+mp.price+' coin (50%)';
-            }
-            banner.style.display = 'block';
-        } catch(e) {}
-    }
-
-    loadBalance();
-    loadPremiumBanner();
-    loadProducts(1);
+    // Init: load stats first so trending IDs are ready when products render
+    (async function init(){
+        await Promise.all([loadStats(), loadSummaryAndPlans()]);
+        loadProducts(1);
+    })();
 })();
 </script>
 {% endblock %}
