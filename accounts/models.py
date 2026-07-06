@@ -35,7 +35,29 @@ class Profession(models.Model):
         null=True, blank=True, verbose_name="O'qish davomiyligi (oy)",
         help_text="O'qish necha oy davom etadi (masalan: 6).")
 
+    # ─── Ustoz to'lov stavkalari (har kasb uchun alohida) ───
+    # Ustozning daromadi shu stavkalarga qarab hisoblanadi. Standart qiymatlar
+    # avvalgi global narxlar bilan bir xil — mavjud hisob-kitob buzilmaydi.
+    price_per_video = models.PositiveIntegerField(
+        default=25000, verbose_name="Video dars uchun to'lov (so'm)")
+    price_per_test = models.PositiveIntegerField(
+        default=10000, verbose_name="Test uchun to'lov (so'm)")
+    price_per_homework = models.PositiveIntegerField(
+        default=10000, verbose_name="Uyga vazifa uchun to'lov (so'm)")
+
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # Dars turi -> stavka maydoni. Faqat to'lanadigan turlar bu yerda.
+    TEACHER_RATE_FIELDS = {
+        'video': 'price_per_video',
+        'test': 'price_per_test',
+        'homework': 'price_per_homework',
+    }
+
+    def teacher_rate(self, lesson_type):
+        """Berilgan dars turi uchun ustoz stavkasi (so'm). Noma'lum tur -> 0."""
+        field = self.TEACHER_RATE_FIELDS.get(lesson_type)
+        return getattr(self, field) if field else 0
 
     @property
     def is_lesson_limit_reached(self):

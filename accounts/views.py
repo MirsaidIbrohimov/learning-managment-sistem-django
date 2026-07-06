@@ -6804,8 +6804,12 @@ def admin_payments(request):
     paginator = Paginator(students_list, 30)
     students = paginator.get_page(request.GET.get('page'))
 
-    # Stats — tugatgan o'quvchilar to'lovlarda ko'rinmasligi uchun ularning recordlari ham hisobga kirmaydi
-    active_student_ids = list(CustomUser.objects.filter(role='student', is_finished=False).values_list('id', flat=True))
+    # Stats — tugatgan va shartnoma rejimidagi o'quvchilar qarzdorlikka kirmaydi
+    active_student_ids = list(
+        CustomUser.objects.filter(role='student', is_finished=False)
+        .exclude(student_balance__is_contract=True)
+        .values_list('id', flat=True)
+    )
     all_records = PaymentRecord.objects.filter(month=selected_month, year=selected_year, user_id__in=active_student_ids)
     total_students = len(active_student_ids)
     total_expected = all_records.aggregate(t=Sum('amount'))['t'] or 0
@@ -9457,6 +9461,10 @@ def admin_dashboard(request):
         ).aggregate(s=Sum('paid_amount'))
         _unpaid_agg = PaymentRecord.objects.filter(
             is_paid=False, month=_cur_m, year=_cur_y
+        ).exclude(
+            user__student_balance__is_contract=True
+        ).exclude(
+            user__is_finished=True
         ).aggregate(s=Sum('amount'), c=Count('id'))
         _cur_sum = int(_paid_agg['s'] or 0)
         _prev_sum = int(_prev_agg['s'] or 0)
@@ -14201,10 +14209,10 @@ def admin_teacher_earnings(request):
     teachers = CustomUser.objects.filter(role='teacher').order_by('first_name', 'last_name')
     teacher_earnings = []
     
-    VIDEO_PRICE = 25000
-    TEST_PRICE = 10000
-    HOMEWORK_PRICE = 10000
-    
+    # Video/test/vazifa narxlari har kasb uchun alohida (Profession'da) —
+    # daromad accounts.earnings orqali kasb stavkalari bo'yicha hisoblanadi.
+    from accounts.earnings import period_summary
+
     for teacher in teachers:
         professions = teacher.teaching_professions.all()
         
@@ -14230,34 +14238,14 @@ def admin_teacher_earnings(request):
         if teacher_filter and str(teacher.id) != teacher_filter:
             continue  # Skip this teacher if not the selected one
         
-        # Calculate earnings from content
-        video_lessons = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='video',
-            created_at__gte=month_start,
-            created_at__lt=month_end,
-        )
-        video_count = video_lessons.count()
-        video_total = video_count * VIDEO_PRICE
-        
-        test_lessons = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='test',
-            created_at__gte=month_start,
-            created_at__lt=month_end,
-        )
-        test_count = test_lessons.count()
-        test_total = test_count * TEST_PRICE
-        
-        hw_lessons = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='homework',
-            created_at__gte=month_start,
-            created_at__lt=month_end,
-        )
-        hw_count = hw_lessons.count()
-        hw_total = hw_count * HOMEWORK_PRICE
-        
+        # Kontentdan daromad — har kasbning o'z stavkasi bo'yicha
+        summary = period_summary(professions, start=month_start, end=month_end)
+        video_count = summary['video']['count']
+        video_total = summary['video']['total']
+        test_count = summary['test']['count']
+        test_total = summary['test']['total']
+        hw_count = summary['homework']['count']
+        hw_total = summary['homework']['total']
         calculated_earnings = video_total + test_total + hw_total
         
         # Get paid amount for this teacher
@@ -14282,57 +14270,25 @@ def admin_teacher_earnings(request):
             prev_month_start = date(now.year, now.month - 1, 1)
             prev_month_end = date(now.year, now.month, 1)
         
-        # Current month earnings
-        current_video = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='video',
-            created_at__gte=current_month_start,
-            created_at__lt=current_month_end,
-        ).count()
-        
-        current_test = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='test',
-            created_at__gte=current_month_start,
-            created_at__lt=current_month_end,
-        ).count()
-        
-        current_hw = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='homework',
-            created_at__gte=current_month_start,
-            created_at__lt=current_month_end,
-        ).count()
-        
-        current_month_earnings = (current_video * VIDEO_PRICE + 
-                                 current_test * TEST_PRICE + 
-                                 current_hw * HOMEWORK_PRICE)
-        
-        # Previous month earnings
-        prev_video = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='video',
-            created_at__gte=prev_month_start,
-            created_at__lt=prev_month_end,
-        ).count()
-        
-        prev_test = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='test',
-            created_at__gte=prev_month_start,
-            created_at__lt=prev_month_end,
-        ).count()
-        
-        prev_hw = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='homework',
-            created_at__gte=prev_month_start,
-            created_at__lt=prev_month_end,
-        ).count()
-        
-        prev_month_earnings = (prev_video * VIDEO_PRICE + 
-                              prev_test * TEST_PRICE + 
-                              prev_hw * HOMEWORK_PRICE)
+        # Joriy oy daromadi — kasb stavkalari bo'yicha
+        current_summary = period_summary(
+            professions, start=current_month_start, end=current_month_end)
+        current_video = current_summary['video']['count']
+        current_test = current_summary['test']['count']
+        current_hw = current_summary['homework']['count']
+        current_month_earnings = (current_summary['video']['total'] +
+                                  current_summary['test']['total'] +
+                                  current_summary['homework']['total'])
+
+        # O'tgan oy daromadi — kasb stavkalari bo'yicha
+        prev_summary = period_summary(
+            professions, start=prev_month_start, end=prev_month_end)
+        prev_video = prev_summary['video']['count']
+        prev_test = prev_summary['test']['count']
+        prev_hw = prev_summary['homework']['count']
+        prev_month_earnings = (prev_summary['video']['total'] +
+                               prev_summary['test']['total'] +
+                               prev_summary['homework']['total'])
         
         # Calculate month-over-month change
         earnings_change = current_month_earnings - prev_month_earnings
@@ -14356,6 +14312,9 @@ def admin_teacher_earnings(request):
             'video_count': video_count,
             'test_count': test_count,
             'hw_count': hw_count,
+            'video_total': video_total,
+            'test_total': test_total,
+            'hw_total': hw_total,
             'calculated_earnings': calculated_earnings,
             'paid_amount': paid_amount,
             'balance': calculated_earnings - paid_amount,
@@ -15638,27 +15597,70 @@ def payment_wall(request):
     })
 
 
-@login_required
-def admin_balance_management(request):
+def _balance_sweep_overdue():
     """
-    Admin / yordamchi admin — o'quvchilarga balans qo'shish va tarix ko'rish.
-    Shartnoma rejimidagi va kursni tugatgan o'quvchilar ko'rinmaydi.
+    Muddati o'tgan (next_payment_date <= bugun) shartnoma emas o'quvchilarning
+    to'lovini balansdan avtomatik yechib, sanani keyingi oyga suradi.
+    Shu tufayli "iyun" belgilangan sana o'z-o'zidan "iyul"ga o'tadi.
+    Har bir jarayonda ko'p marta ishlamasligi uchun cache-lock bilan cheklangan.
     """
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
+    from django.core.cache import cache
+    from .models import StudentBalance
+    from datetime import date as _date
 
-    from .models import StudentBalance, BalanceTopUp, PaymentStatus
+    if not cache.add('balance_sweep_lock', 1, 120):
+        return
+    today = _date.today()
+    overdue = StudentBalance.objects.filter(
+        is_contract=False,
+        next_payment_date__isnull=False,
+        next_payment_date__lte=today,
+        user__role='student',
+        user__is_finished=False,
+    )
+    charged_any = False
+    for bal in overdue:
+        try:
+            before = bal.next_payment_date
+            bal.advance_due_payment()
+            bal.refresh_from_db()
+            if bal.next_payment_date != before:
+                charged_any = True
+        except Exception:
+            pass
+    if charged_any:
+        # Dashboard moliya keshini yangilaymiz — qarzdorlik darhol to'g'ri chiqsin
+        cache.delete('admin_finance_stats')
+
+
+def _balance_management_context(request):
+    """
+    Balans Boshqaruvi sahifasi uchun umumiy kontekst (admin + yordamchi).
+    Filtr, saralash va shartnoma ko'rinishini boshqaradi.
+    """
+    from .models import StudentBalance, BalanceTopUp
     from django.db.models import Sum
+    from datetime import date as _date, timedelta as _td
+
+    today = _date.today()
+    SOON_DAYS = 7  # shuncha kun ichida to'lov -> "yaqinlashgan"
 
     search = request.GET.get('q', '').strip()
+    view = request.GET.get('view', 'active')      # 'active' | 'contract'
+    flt = request.GET.get('filter', '')           # '', 'no_date', 'soon', 'overdue', 'blocked'
 
-    # is_finished=False va shartnoma emas studentlar
-    students_qs = CustomUser.objects.filter(
+    # Muddati o'tgan to'lovlarni keyingi oyga surish (iyun -> iyul)
+    if view != 'contract':
+        _balance_sweep_overdue()
+
+    base = CustomUser.objects.filter(
         role='student', is_finished=False
-    ).select_related('student_balance', 'payment_status').order_by('first_name', 'last_name')
+    ).select_related('student_balance', 'payment_status')
 
-    # Shartnoma rejimidagilarni exclude — student_balance mavjud bo'lsa
-    students_qs = students_qs.exclude(student_balance__is_contract=True)
+    if view == 'contract':
+        students_qs = base.filter(student_balance__is_contract=True)
+    else:
+        students_qs = base.exclude(student_balance__is_contract=True)
 
     if search:
         students_qs = students_qs.filter(
@@ -15671,37 +15673,110 @@ def admin_balance_management(request):
 
     # Ensure StudentBalance exists for all students
     existing_bal_ids = set(StudentBalance.objects.values_list('user_id', flat=True))
-    missing_bal = [s for s in students_qs if s.pk not in existing_bal_ids]
+    missing_bal = [s.pk for s in students_qs if s.pk not in existing_bal_ids]
     if missing_bal:
         StudentBalance.objects.bulk_create(
-            [StudentBalance(user=s) for s in missing_bal], ignore_conflicts=True
+            [StudentBalance(user_id=pk) for pk in missing_bal], ignore_conflicts=True
         )
         students_qs = students_qs.all()
 
-    paginator = Paginator(students_qs, 25)
+    students_list = list(students_qs)
+
+    # Har bir studentga to'lov holati (days_left / pay_state) qo'shamiz
+    for s in students_list:
+        bal = getattr(s, 'student_balance', None)
+        npd = bal.next_payment_date if bal else None
+        if npd is None:
+            s.days_left = None
+            s.pay_state = 'nodate'
+        else:
+            dl = (npd - today).days
+            s.days_left = dl
+            if dl < 0:
+                s.pay_state = 'overdue'
+            elif dl <= SOON_DAYS:
+                s.pay_state = 'soon'
+            else:
+                s.pay_state = 'ok'
+
+    # Filtrlar (faqat active ko'rinishida)
+    if view != 'contract':
+        if flt == 'no_date':
+            students_list = [s for s in students_list if s.pay_state == 'nodate']
+        elif flt == 'soon':
+            students_list = [s for s in students_list if s.pay_state in ('soon', 'overdue')]
+        elif flt == 'overdue':
+            students_list = [s for s in students_list if s.pay_state == 'overdue']
+        elif flt == 'blocked':
+            students_list = [s for s in students_list if s.is_blocked]
+
+    # Saralash: sanasi belgilanmagan (0) va yaqin/o'tgan sanalar TEPADA
+    def _sort_key(s):
+        grp = 0 if s.days_left is None else 1
+        dl = 0 if s.days_left is None else s.days_left
+        return (grp, dl, (s.first_name or '').lower(), (s.last_name or '').lower())
+    students_list.sort(key=_sort_key)
+
+    paginator = Paginator(students_list, 25)
     students = paginator.get_page(request.GET.get('page'))
 
-    # Statistics (faqat faol/shartnoma emas studentlar)
-    total_balance = StudentBalance.objects.filter(is_contract=False).aggregate(t=Sum('amount'))['t'] or 0
+    # Statistics (faqat faol o'quvchilar)
+    total_balance = StudentBalance.objects.filter(
+        is_contract=False, user__role='student', user__is_finished=False
+    ).aggregate(t=Sum('amount'))['t'] or 0
     topup_today = BalanceTopUp.objects.filter(
-        created_at__date=timezone.now().date()
+        created_at__date=today
     ).aggregate(t=Sum('amount'))['t'] or 0
     blocked_count = CustomUser.objects.filter(
         role='student', is_finished=False, is_blocked=True
     ).exclude(student_balance__is_contract=True).count()
-    contract_count = StudentBalance.objects.filter(is_contract=True).count()
+    contract_count = StudentBalance.objects.filter(
+        is_contract=True, user__is_finished=False
+    ).count()
+
+    # Filtr sanoqlari (chip yonidagi raqamlar)
+    active_bals = StudentBalance.objects.filter(
+        is_contract=False, user__role='student', user__is_finished=False
+    )
+    no_date_count = active_bals.filter(next_payment_date__isnull=True).count()
+    soon_count = active_bals.filter(
+        next_payment_date__isnull=False,
+        next_payment_date__lte=today + _td(days=SOON_DAYS)
+    ).count()
+    overdue_count = active_bals.filter(
+        next_payment_date__isnull=False,
+        next_payment_date__lt=today
+    ).count()
 
     recent_topups = BalanceTopUp.objects.select_related('student', 'added_by').order_by('-created_at')[:30]
 
-    return render(request, 'accounts/admin/balance_management.html', {
+    return {
         'students': students,
         'search': search,
+        'view': view,
+        'filter': flt,
         'total_balance': total_balance,
         'topup_today': topup_today,
         'blocked_count': blocked_count,
         'contract_count': contract_count,
+        'no_date_count': no_date_count,
+        'soon_count': soon_count,
+        'overdue_count': overdue_count,
         'recent_topups': recent_topups,
-    })
+    }
+
+
+@login_required
+def admin_balance_management(request):
+    """
+    Admin — o'quvchilarga balans qo'shish va tarix ko'rish.
+    Kursni tugatgan o'quvchilar ko'rinmaydi; shartnoma rejimidagilar alohida
+    ko'rinishda (view=contract) ko'rinadi.
+    """
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+    return render(request, 'accounts/admin/balance_management.html',
+                  _balance_management_context(request))
 
 
 @login_required
@@ -15712,57 +15787,8 @@ def yordamchi_balance_management(request):
     """
     if not request.user.is_admin_or_assistant:
         return redirect('home')
-
-    from .models import StudentBalance, BalanceTopUp, PaymentStatus
-    from django.db.models import Sum
-
-    search = request.GET.get('q', '').strip()
-
-    students_qs = CustomUser.objects.filter(
-        role='student', is_finished=False
-    ).select_related('student_balance', 'payment_status').order_by('first_name', 'last_name')
-
-    students_qs = students_qs.exclude(student_balance__is_contract=True)
-
-    if search:
-        students_qs = students_qs.filter(
-            Q(first_name__icontains=search) |
-            Q(last_name__icontains=search) |
-            Q(username__icontains=search) |
-            Q(phone__icontains=search) |
-            Q(student_id__icontains=search)
-        )
-
-    existing_bal_ids = set(StudentBalance.objects.values_list('user_id', flat=True))
-    missing_bal = [s for s in students_qs if s.pk not in existing_bal_ids]
-    if missing_bal:
-        StudentBalance.objects.bulk_create(
-            [StudentBalance(user=s) for s in missing_bal], ignore_conflicts=True
-        )
-        students_qs = students_qs.all()
-
-    paginator = Paginator(students_qs, 25)
-    students = paginator.get_page(request.GET.get('page'))
-
-    total_balance = StudentBalance.objects.filter(is_contract=False).aggregate(t=Sum('amount'))['t'] or 0
-    topup_today = BalanceTopUp.objects.filter(
-        created_at__date=timezone.now().date()
-    ).aggregate(t=Sum('amount'))['t'] or 0
-    blocked_count = CustomUser.objects.filter(
-        role='student', is_finished=False, is_blocked=True
-    ).exclude(student_balance__is_contract=True).count()
-    contract_count = StudentBalance.objects.filter(is_contract=True).count()
-
-    recent_topups = BalanceTopUp.objects.select_related('student', 'added_by').order_by('-created_at')[:30]
-    return render(request, 'accounts/yordamchi/balance_management.html', {
-        'students': students,
-        'search': search,
-        'total_balance': total_balance,
-        'topup_today': topup_today,
-        'blocked_count': blocked_count,
-        'contract_count': contract_count,
-        'recent_topups': recent_topups,
-    })
+    return render(request, 'accounts/yordamchi/balance_management.html',
+                  _balance_management_context(request))
 
 
 @login_required
@@ -15820,6 +15846,13 @@ def admin_balance_topup(request, student_id):
             elif not balance.is_contract and not balance.next_payment_date:
                 # Birinchi marta balans to'ldirildi — oylik to'lovni yechib, sanani belgilaymiz
                 _auto_deduct_and_unblock(student)
+            elif not balance.is_contract and balance.next_payment_date:
+                # Muddati o'tgan bo'lsa — balansdan yechib keyingi oyga suramiz
+                # (iyun -> iyul). Muddat kelmagan bo'lsa hech narsa qilmaydi.
+                try:
+                    balance.advance_due_payment()
+                except Exception:
+                    pass
 
         # O'quvchiga Telegram orqali hisob to'ldirilgani haqida xabar yuboramiz
         try:
@@ -16179,7 +16212,11 @@ def yordamchi_payments(request):
     paginator = Paginator(students_list, 30)
     students  = paginator.get_page(request.GET.get('page'))
 
-    active_ids   = list(CustomUser.objects.filter(role='student', is_finished=False).values_list('id', flat=True))
+    active_ids   = list(
+        CustomUser.objects.filter(role='student', is_finished=False)
+        .exclude(student_balance__is_contract=True)
+        .values_list('id', flat=True)
+    )
     all_records  = PaymentRecord.objects.filter(month=selected_month, year=selected_year, user_id__in=active_ids)
     total_students   = len(active_ids)
     total_expected   = all_records.aggregate(t=Sum('amount'))['t'] or 0

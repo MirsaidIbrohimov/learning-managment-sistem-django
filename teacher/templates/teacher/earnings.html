@@ -253,11 +253,18 @@
     </div>
 </div>
 
-<!-- Price reference -->
-<div class="e-prices">
-    <span class="e-price-chip"><i class="bi bi-play-circle-fill" style="color: var(--e-video);"></i> Video dars <b>{{ VIDEO_PRICE|floatformat:0 }} so'm</b></span>
-    <span class="e-price-chip"><i class="bi bi-clipboard-check-fill" style="color: var(--e-test);"></i> Test <b>{{ TEST_PRICE|floatformat:0 }} so'm</b></span>
-    <span class="e-price-chip"><i class="bi bi-journal-text" style="color: var(--e-hw);"></i> Uyga vazifa <b>{{ HOMEWORK_PRICE|floatformat:0 }} so'm</b></span>
+<!-- Price reference — har kasb uchun alohida stavkalar -->
+<div class="e-prices" style="flex-direction:column; align-items:stretch; gap:.5rem;">
+    {% for pr in profession_rates %}
+    <span class="e-price-chip" style="justify-content:space-between; flex-wrap:wrap; gap:.5rem;">
+        <b><i class="bi bi-briefcase-fill me-1" style="color:#6366f1;"></i>{{ pr.name }}</b>
+        <span style="display:inline-flex; gap:.9rem; flex-wrap:wrap;">
+            <span><i class="bi bi-play-circle-fill" style="color: var(--e-video);"></i> Video <b>{{ pr.video|floatformat:0 }}</b></span>
+            <span><i class="bi bi-clipboard-check-fill" style="color: var(--e-test);"></i> Test <b>{{ pr.test|floatformat:0 }}</b></span>
+            <span><i class="bi bi-journal-text" style="color: var(--e-hw);"></i> Vazifa <b>{{ pr.homework|floatformat:0 }}</b></span>
+        </span>
+    </span>
+    {% endfor %}
     <span class="e-price-chip"><i class="bi bi-patch-question-fill" style="color: #0d9488;"></i> Video test (5+ savol) <b>{{ VIDEO_QUIZ_PRICE|floatformat:0 }} so'm / video</b></span>
 </div>
 
@@ -273,19 +280,19 @@
         <div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(139,92,246,.12); color: var(--e-video);"><i class="bi bi-play-circle-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">{% if video_rate_display %}Har biri {{ video_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.video_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.video_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">{% if test_rate_display %}Har biri {{ test_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.test_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.test_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(245,158,11,.12); color: var(--e-hw);"><i class="bi bi-journal-text"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">{% if hw_rate_display %}Har biri {{ hw_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ current_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ current_data.hw_total|floatformat:0 }}</div></div>
             </div>
@@ -311,19 +318,19 @@
         <div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(139,92,246,.12); color: var(--e-video);"><i class="bi bi-play-circle-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">Har biri {{ VIDEO_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Video darslar</div><div class="e-stat-desc">{% if video_rate_display %}Har biri {{ video_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.video_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.video_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(59,130,246,.12); color: var(--e-test);"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">Har biri {{ TEST_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Testlar</div><div class="e-stat-desc">{% if test_rate_display %}Har biri {{ test_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.test_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.test_total|floatformat:0 }}</div></div>
             </div>
             <div class="e-stat-row">
                 <div class="e-stat-icon-box" style="background: rgba(245,158,11,.12); color: var(--e-hw);"><i class="bi bi-journal-text"></i></div>
-                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">Har biri {{ HOMEWORK_PRICE|floatformat:0 }} so'm</div></div>
+                <div class="e-stat-info"><div class="e-stat-name">Uyga vazifalar</div><div class="e-stat-desc">{% if hw_rate_display %}Har biri {{ hw_rate_display|floatformat:0 }} so'm{% else %}Kurs narxiga qarab{% endif %}</div></div>
                 <div class="e-stat-count"><div class="e-stat-count-val">{{ prev_data.hw_count }}</div><div class="e-stat-count-label">ta</div></div>
                 <div class="e-stat-amount"><div class="e-stat-amount-val">{{ prev_data.hw_total|floatformat:0 }}</div></div>
             </div>
@@ -366,7 +373,7 @@
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-video"><i class="bi bi-play-circle"></i> Video</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ VIDEO_PRICE|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.test_list %}
@@ -375,7 +382,7 @@
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-test"><i class="bi bi-clipboard-check"></i> Test</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ TEST_PRICE|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.hw_list %}
@@ -384,7 +391,7 @@
                     <td>{{ item.profession__name }}</td>
                     <td><span class="e-type-badge e-type-hw"><i class="bi bi-journal-text"></i> Vazifa</span></td>
                     <td>{{ item.created_at|date:"d.m.Y" }}</td>
-                    <td class="e-amount-cell" style="text-align:right;">{{ HOMEWORK_PRICE|floatformat:0 }} so'm</td>
+                    <td class="e-amount-cell" style="text-align:right;">{{ item.rate|floatformat:0 }} so'm</td>
                 </tr>
                 {% endfor %}
                 {% for item in current_data.vq_list %}

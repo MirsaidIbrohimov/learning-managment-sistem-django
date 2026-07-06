@@ -164,14 +164,49 @@ class ProfessionForm(forms.ModelForm):
         label="O'qish davomiyligi (oy)"
     )
 
+    # ─── Ustoz to'lov stavkalari (har kasb uchun alohida) ───
+    price_per_video = forms.IntegerField(
+        required=False, min_value=0, initial=25000,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 500, 'placeholder': '25000'}),
+        label="Video dars uchun to'lov (so'm)",
+        help_text="Ustozga shu kursda har video dars uchun to'lanadi."
+    )
+    price_per_test = forms.IntegerField(
+        required=False, min_value=0, initial=10000,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 500, 'placeholder': '10000'}),
+        label="Test uchun to'lov (so'm)",
+        help_text="Ustozga shu kursda har test uchun to'lanadi."
+    )
+    price_per_homework = forms.IntegerField(
+        required=False, min_value=0, initial=10000,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 0, 'step': 500, 'placeholder': '10000'}),
+        label="Uyga vazifa uchun to'lov (so'm)",
+        help_text="Ustozga shu kursda har uyga vazifa uchun to'lanadi."
+    )
+
     def clean_topic_count(self):
         v = self.cleaned_data.get('topic_count')
         return v if v else 0
 
+    def _clean_rate(self, field, default):
+        """Bo'sh qoldirilsa standart qiymatga tushadi (maydon null bo'la olmaydi)."""
+        v = self.cleaned_data.get(field)
+        return default if v is None else v
+
+    def clean_price_per_video(self):
+        return self._clean_rate('price_per_video', 25000)
+
+    def clean_price_per_test(self):
+        return self._clean_rate('price_per_test', 10000)
+
+    def clean_price_per_homework(self):
+        return self._clean_rate('price_per_homework', 10000)
+
     class Meta:
         model = Profession
         fields = ['name', 'photo', 'description', 'kind', 'is_paid', 'is_mandatory',
-                  'has_certificate', 'topic_count', 'duration_months', 'closed_group_link']
+                  'has_certificate', 'topic_count', 'duration_months', 'closed_group_link',
+                  'price_per_video', 'price_per_test', 'price_per_homework']
 
 
 class UserProfileForm(forms.ModelForm):

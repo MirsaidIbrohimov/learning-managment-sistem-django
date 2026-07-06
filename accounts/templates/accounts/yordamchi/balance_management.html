@@ -52,6 +52,36 @@
 }
 .bm-search input:focus { outline: none; border-color: #10b981; box-shadow: 0 0 0 3px rgba(16,185,129,.1); }
 
+/* Filter chips */
+.bm-filters { padding: .85rem 1.5rem; border-bottom: 1px solid var(--yo-border); }
+.bm-fchips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.bm-fchip {
+    display: inline-flex; align-items: center; gap: .4rem;
+    padding: .4rem .85rem; border-radius: 20px; font-size: .8rem; font-weight: 600;
+    border: 1.5px solid var(--yo-border); background: var(--yo-input-bg);
+    color: var(--yo-input-text); text-decoration: none; transition: .2s; white-space: nowrap;
+}
+.bm-fchip:hover { border-color: #10b981; color: #6ee7b7; }
+.bm-fchip.active { border-color: #10b981; background: rgba(16,185,129,.12); color: #6ee7b7; }
+.bm-fchip.contract.active { border-color: #f59e0b; background: rgba(245,158,11,.12); color: #fbbf24; }
+.bm-fcount {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 10px;
+    font-size: .68rem; font-weight: 800; background: rgba(16,185,129,.15); color: #6ee7b7;
+}
+.bm-fchip.active .bm-fcount { background: #10b981; color: #fff; }
+.bm-fchip.contract .bm-fcount { background: rgba(245,158,11,.15); color: #fbbf24; }
+.bm-fchip.contract.active .bm-fcount { background: #f59e0b; color: #fff; }
+
+/* Payment-state badge */
+.bm-pay-badge {
+    display: inline-block; margin-left: 4px; padding: 1px 7px; border-radius: 10px;
+    font-size: .66rem; font-weight: 800; vertical-align: middle;
+}
+.bm-pay-badge.overdue { background: rgba(239,68,68,.12); color: #f87171; }
+.bm-pay-badge.soon    { background: rgba(245,158,11,.14); color: #fbbf24; }
+.bm-pay-badge.nodate  { background: rgba(148,163,184,.18); color: #94a3b8; }
+
 /* Table */
 .bm-tbl { width: 100%; border-collapse: collapse; }
 .bm-tbl thead th {
@@ -218,12 +248,36 @@
     <!-- Table card -->
     <div class="bm-card">
         <div class="bm-card-head">
-            <div class="bm-card-title"><i class="bi bi-people-fill"></i> O'quvchilar balansi</div>
+            <div class="bm-card-title"><i class="bi bi-people-fill"></i> {% if view == 'contract' %}Shartnoma rejimidagi o'quvchilar{% else %}O'quvchilar balansi{% endif %}</div>
             <form class="bm-search" method="get" action="">
                 <i class="bi bi-search"></i>
+                <input type="hidden" name="view" value="{{ view }}">
+                {% if filter %}<input type="hidden" name="filter" value="{{ filter }}">{% endif %}
                 <input type="text" name="q" value="{{ search }}" placeholder="Ism, username, telefon...">
             </form>
         </div>
+
+        <!-- Filter chips -->
+        <div class="bm-filters">
+            <div class="bm-fchips">
+                <a href="?view=active{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and not filter %}active{% endif %}">
+                    <i class="bi bi-people"></i> Hammasi
+                </a>
+                <a href="?view=active&filter=no_date{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and filter == 'no_date' %}active{% endif %}">
+                    <i class="bi bi-calendar-x"></i> To'lov kuni yo'q <span class="bm-fcount">{{ no_date_count }}</span>
+                </a>
+                <a href="?view=active&filter=soon{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and filter == 'soon' %}active{% endif %}">
+                    <i class="bi bi-alarm"></i> Yaqinlashgan / o'tgan <span class="bm-fcount">{{ soon_count }}</span>
+                </a>
+                <a href="?view=active&filter=blocked{% if search %}&q={{ search }}{% endif %}" class="bm-fchip {% if view != 'contract' and filter == 'blocked' %}active{% endif %}">
+                    <i class="bi bi-lock"></i> Bloklangan <span class="bm-fcount">{{ blocked_count }}</span>
+                </a>
+                <a href="?view=contract{% if search %}&q={{ search }}{% endif %}" class="bm-fchip contract {% if view == 'contract' %}active{% endif %}">
+                    <i class="bi bi-file-earmark-text"></i> Shartnoma <span class="bm-fcount">{{ contract_count }}</span>
+                </a>
+            </div>
+        </div>
+
         <div style="overflow-x:auto;">
             <table class="bm-tbl">
                 <thead>
@@ -277,9 +331,15 @@
                             </button>
                         </td>
                         <td style="font-size:.78rem;color:var(--yo-text-muted);" id="date-{{ student.pk }}">
-                            {% if student.student_balance.next_payment_date %}
+                            {% if student.student_balance.is_contract %}
+                                <span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#fbbf24;">Shartnoma</span>
+                            {% elif student.student_balance.next_payment_date %}
                                 {{ student.student_balance.next_payment_date|date:"d.m.Y" }}
-                            {% else %}—{% endif %}
+                                {% if student.pay_state == 'overdue' %}<span class="bm-pay-badge overdue">Muddati o'tgan</span>
+                                {% elif student.pay_state == 'soon' %}<span class="bm-pay-badge soon">Yaqinlashgan</span>{% endif %}
+                            {% else %}
+                                <span class="bm-pay-badge nodate">Belgilanmagan</span>
+                            {% endif %}
                         </td>
                         <td>
                             <span class="bm-status {% if student.is_blocked %}blocked{% else %}active{% endif %}">

@@ -1979,13 +1979,12 @@ def teacher_earnings(request):
         is_paid=False
     ).order_by('-year', '-month', '-created_at')
 
-    # Narxlar
-    VIDEO_PRICE = 25000
-    TEST_PRICE = 10000
-    HOMEWORK_PRICE = 10000
+    # Video/test/vazifa narxlari endi har kasb uchun alohida (Profession'da).
+    # Video-quiz mukofoti (alohida mexanizm) global qoladi.
     VIDEO_QUIZ_PRICE = 3000  # har bir video uchun (5+ test qo'shilganda bir marta)
 
     from video_quiz.models import TeacherVideoIncome
+    from accounts.earnings import period_summary, profession_rate_rows, uniform_rate
 
     # Joriy oy va o'tgan oy
     current_month_start = date(now.year, now.month, 1)
@@ -1999,39 +1998,16 @@ def teacher_earnings(request):
         next_month_start = date(now.year, now.month + 1, 1)
 
     def get_month_data(month_start, month_end):
-        """Berilgan oy uchun ma'lumotlarni hisoblash"""
-        # Video darslar
-        video_lessons = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='video',
-            created_by=user,
-            created_at__gte=month_start,
-            created_at__lt=month_end,
-        )
-        video_count = video_lessons.count()
-        video_list = list(video_lessons.values('id', 'title', 'profession__name', 'created_at'))
+        """Berilgan oy uchun ma'lumotlarni hisoblash.
 
-        # Testlar
-        test_lessons = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='test',
-            created_by=user,
-            created_at__gte=month_start,
-            created_at__lt=month_end,
+        Video/test/vazifa daromadi har kasbning o'z stavkasi bo'yicha
+        (accounts.earnings.period_summary). Har element o'z `rate` qiymati bilan.
+        """
+        summary = period_summary(
+            professions, created_by=user,
+            start=month_start, end=month_end, with_items=True,
         )
-        test_count = test_lessons.count()
-        test_list = list(test_lessons.values('id', 'title', 'profession__name', 'created_at'))
-
-        # Uyga vazifalar
-        hw_lessons = Lesson.objects.filter(
-            profession__in=professions,
-            lesson_type='homework',
-            created_by=user,
-            created_at__gte=month_start,
-            created_at__lt=month_end,
-        )
-        hw_count = hw_lessons.count()
-        hw_list = list(hw_lessons.values('id', 'title', 'profession__name', 'created_at'))
+        video, test, hw = summary['video'], summary['test'], summary['homework']
 
         # Video ichidagi testlar daromadi — VIDEO bo'yicha bir martalik
         # (ustoz bitta videoga 5+ test qo'shganda 3000 so'm, har savolga emas).
@@ -2048,26 +2024,23 @@ def teacher_earnings(request):
         ))
         vq_total = vq_incomes.aggregate(s=Sum('amount'))['s'] or 0
 
-        video_total = video_count * VIDEO_PRICE
-        test_total = test_count * TEST_PRICE
-        hw_total = hw_count * HOMEWORK_PRICE
-        grand_total = video_total + test_total + hw_total + vq_total
+        grand_total = video['total'] + test['total'] + hw['total'] + vq_total
 
         return {
-            'video_count': video_count,
-            'video_list': video_list,
-            'video_total': video_total,
-            'test_count': test_count,
-            'test_list': test_list,
-            'test_total': test_total,
-            'hw_count': hw_count,
-            'hw_list': hw_list,
-            'hw_total': hw_total,
+            'video_count': video['count'],
+            'video_list': video['items'],
+            'video_total': video['total'],
+            'test_count': test['count'],
+            'test_list': test['items'],
+            'test_total': test['total'],
+            'hw_count': hw['count'],
+            'hw_list': hw['items'],
+            'hw_total': hw['total'],
             'vq_count': vq_count,
             'vq_list': vq_list,
             'vq_total': vq_total,
             'grand_total': grand_total,
-            'total_items': video_count + test_count + hw_count + vq_count,
+            'total_items': video['count'] + test['count'] + hw['count'] + vq_count,
         }
 
     MONTH_NAMES = {
@@ -2105,9 +2078,12 @@ def teacher_earnings(request):
         'current_year': now.year,
         'prev_year': prev_month_start.year,
         'change_pct': change_pct,
-        'VIDEO_PRICE': VIDEO_PRICE,
-        'TEST_PRICE': TEST_PRICE,
-        'HOMEWORK_PRICE': HOMEWORK_PRICE,
+        # Har kasb uchun stavkalar jadvali + "Har biri X so'm" uchun bir xil stavka
+        # (agar barcha kasblarda bir xil bo'lsa; aks holda None -> shablon berkitadi).
+        'profession_rates': profession_rate_rows(professions),
+        'video_rate_display': uniform_rate(professions, 'video'),
+        'test_rate_display': uniform_rate(professions, 'test'),
+        'hw_rate_display': uniform_rate(professions, 'homework'),
         'VIDEO_QUIZ_PRICE': VIDEO_QUIZ_PRICE,
         'paid_salaries': paid_salaries,
         'unpaid_salaries': unpaid_salaries,
