@@ -106,6 +106,10 @@ function hideReconnectOverlay() {
 // o'rniga pollingni to'xtatib, aniq xabar beramiz. Sahifa yangilansa yangi token
 // olinadi va o'yin davom etadi.
 let _sessionExpired = false;
+// O'z yurishimiz serverga yuborilayotgan qisqa payt. Shu paytda polling
+// serverdagi (hali yangilanmagan) holatga qarab optimistik yurishimizni
+// qaytarib yubormasligi uchun reconcile'ni to'xtatamiz.
+let _localMovePending = false;
 function showSessionExpired() {
     if (_sessionExpired) return;
     _sessionExpired = true;
@@ -757,9 +761,10 @@ function doMove(fromR, fromC, move, isRemote = false) {
     // Multiplayer: yurishni serverga yuboramiz (o'yin tugagan bo'lsa winner bilan),
     // so'ng 30s ko'rib chiqish oynasini ikkala tomon uchun ko'rsatamiz.
     if (MODE === 'mp' && !isRemote) {
+        _localMovePending = true;
         sendMpMove(winner).then(match => {
             if (winner) scheduleEndGameDisplay((match && match.winner) || winner, 30);
-        });
+        }).finally(() => { _localMovePending = false; });
         if (winner) return;
     }
 
@@ -1583,11 +1588,20 @@ async function pollMatchState() {
         hideReconnectOverlay();
         if (!data.ok) { if (res.status === 403) showSessionExpired(); return; }
         const m = data.match;
-        const hasNewMove = m.move_count > lastSeenMoveCount;
         const isEnded = m.status === 'ended';
-        // MUHIM: o'yin tugaganda ham server taxtasini majburan ko'rsatamiz —
-        // shunda yutqazgan o'yinchi raqibning oxirgi (mag'lub etuvchi) yurishini ko'radi.
-        if (hasNewMove || isEnded) {
+        // Yangi yurish(lar) — raqib yurdi.
+        const hasNewMove = m.move_count > lastSeenMoveCount;
+        // Server bilan client holati farq qilyaptimi? FAQAT `>` emas, `!=` bilan
+        // tekshiramiz. Sabab: agar lastSeenMoveCount qandaydir yo'l bilan serverdan
+        // OSHIB ketgan bo'lsa (oldingi match qoldig'i yoki poll/send poygasi),
+        // eski kodda `>` hech qachon ishlamay, raqib yurishlari butunlay
+        // e'tiborsiz qolardi va taxta "Raqib yurmoqda"da qotib qolardi (faqat
+        // sahifani yangilash yordam berardi). Endi har qanday farqda serverga
+        // moslashamiz va lastSeenMoveCount'ni server qiymatiga tenglaymiz —
+        // shu bilan drift o'z-o'zidan tuzaladi. `_localMovePending` — o'z
+        // yurishimiz ketayotgan payt reconcile qilmaymiz.
+        const diverged = (m.move_count !== lastSeenMoveCount) || (m.current_turn !== currentTurn);
+        if (!_localMovePending && (diverged || isEnded)) {
             // Apply server board state
             board = m.board;
             currentTurn = m.current_turn;
@@ -1612,7 +1626,7 @@ async function pollMatchState() {
                     }
                 }
             }
-            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
+            lastSeenMoveCount = m.move_count || 0;   // serverga ishonamiz (drift'ni tuzatadi)
             renderBoard();
             updateTurnUI();
         }
