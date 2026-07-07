@@ -5,19 +5,23 @@ def _optimize_sqlite(sender, connection, **kwargs):
     if connection.vendor == 'sqlite':
         cursor = connection.cursor()
         # ============================================================
-        # BARQARORLIK > TEZLIK (Windows'da takroriy DB buzilishi sabab)
+        # BARQARORLIK + KO'P O'YINCHILI YUKGA CHIDAMLILIK
         # ------------------------------------------------------------
-        # Avval WAL + synchronous=NORMAL + mmap_size ishlatilgan edi va
-        # Windows'da bir necha bor "malformed database schema" hamda
-        # "disk I/O error" xatolariga olib keldi (ko'p jarayon + antivirus
-        # + jarayonni majburan to'xtatish = -wal/-shm fayllari buziladi).
-        #
-        # Shu sabab eng ishonchli, buzilishga chidamli sozlamaga o'tdik:
-        #   • journal_mode=DELETE — -wal/-shm fayllari umuman yaratilmaydi
-        #   • synchronous=FULL    — har bir yozuv diskka kafolatli yoziladi
+        # WAL ishlatilmaydi: Windows'da (ko'p jarayon + antivirus + jarayonni
+        # majburan to'xtatish) -wal/-shm fayllari buzilib, "malformed database
+        # schema" / "disk I/O error" xatolariga olib kelgan.
+        #   • journal_mode=DELETE — -wal/-shm fayllari umuman yaratilmaydi (xavfsiz).
+        #   • synchronous=NORMAL  — FULL o'rniga. FULL har yozuvda fsync qilib
+        #     yozuvni sekinlashtiradi; ko'p o'quvchi bir vaqtda o'ynaganda (real-time
+        #     o'yin yurishlari) yozuv qulfini uzoq ushlab, boshqa o'quvchilar
+        #     "Raqib yurmoqda"da qotib qolardi. NORMAL yozuvni tezlashtiradi →
+        #     qulf qisqa ushlanadi → yurishlar tez tarqaladi. DELETE bilan birga
+        #     ilova/antivirus/jarayon-to'xtatishdan buzilmaydi (faqat tok o'chishi
+        #     kabi noyob holatda oxirgi yurish yo'qolishi mumkin — bu o'yin uchun
+        #     maqbul). Kerak bo'lsa yana FULL'ga qaytarish mumkin.
         # ============================================================
         cursor.execute("PRAGMA journal_mode=DELETE;")
-        cursor.execute("PRAGMA synchronous=FULL;")
+        cursor.execute("PRAGMA synchronous=NORMAL;")
         # Boshqa jarayon DB'ni band qilsa, xato bermay 30s kutadi
         cursor.execute("PRAGMA busy_timeout=30000;")
         cursor.execute("PRAGMA cache_size=-64000;")

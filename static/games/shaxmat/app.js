@@ -15,6 +15,7 @@ const URLS = {
     result:  `${API_BASE}/result/`,
     mpFind:  `${API_BASE}/mp/find/`,
     mpState: `${API_BASE}/mp/state/`,
+    mpPing:  `${API_BASE}/mp/ping/`,
     mpMove:  `${API_BASE}/mp/move/`,
     mpResign:`${API_BASE}/mp/resign/`,
 };
@@ -562,10 +563,8 @@ function startGame(initialState = null) {
     if (MODE === 'mp') {
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        clearInterval(pollInterval);
-        pollInterval = setInterval(pollMatchState, 2000);
         lastSeenMoveCount = 0;
-        pollMatchState();   // darhol sinxronlaymiz (2s kutmasdan)
+        startPolling();
     } else if (PLAYER_COLOR === 'black') {
         setTimeout(aiMove, 500);
     }
@@ -1645,6 +1644,45 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
     overlay.querySelector('#end-pause-skip').onclick = finalize;
 }
 
+// ===== VERSIYAGA ASOSLANGAN MOSLASHUVCHAN POLLING =====
+// Har safar ARZON `mp/ping` (bitta qator: mc/status/turn) so'raladi. Faqat
+// biror narsa o'zgarsa — BIR MARTA to'liq pollMatchState() (taxta + reconcile)
+// chaqiriladi. Ko'p o'yinchi bir vaqtda o'ynaganda serverni engillashtiradi.
+// Raqib yurishini kutayotganda tez (~1s), o'z navbatimizda sekin (~3s).
+function _pollDelay() {
+    if (MODE !== 'mp' || resultSubmitted || _endPauseStarted) return 3000;
+    return (currentTurn !== PLAYER_COLOR) ? 1000 : 3000;
+}
+async function mpPingTick() {
+    if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
+    try {
+        const res = await fetch(URLS.mpPing, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
+        });
+        const d = await res.json();
+        if (!d.ok) { if (res.status === 403) showSessionExpired(); return; }
+        mpPollFailCount = 0; hideReconnectOverlay();
+        if (d.mc !== lastSeenMoveCount || d.st === 'ended' || d.ct !== currentTurn) {
+            await pollMatchState();
+        }
+    } catch (e) {
+        mpPollFailCount++;
+        if (mpPollFailCount >= MP_POLL_FAIL_THRESHOLD) showReconnectOverlay();
+    }
+}
+function startPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+    (function loop() {
+        pollInterval = setTimeout(async function() {
+            if (resultSubmitted || _endPauseStarted) return;
+            await mpPingTick();
+            if (!resultSubmitted && !_endPauseStarted) loop();
+        }, _pollDelay());
+    })();
+    mpPingTick();   // darhol sinxronlaymiz (kutmasdan)
+}
+
 async function pollMatchState() {
     if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
     // Eslatma: navbat o'zimizda bo'lsa ham so'rab turamiz — raqib taslim bo'lsa
@@ -1720,26 +1758,33 @@ async function sendMpMove(winner = null) {
     if (last.castle) notation = (last.color === 'white' ? 'O: ' : 'X: ') + (last.castle === 'k' ? 'O-O' : 'O-O-O');
     else notation = `${sym} ${pieceLetter}${file[last.from.c]}${8-last.from.r}${last.capture ? 'x' : '-'}${file[last.to.c]}${8-last.to.r}${last.promotion ? '='+(last.promoTo||'q').toUpperCase() : ''}`;
 
-    try {
-        const res = await fetch(URLS.mpMove, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({
-                token: TOKEN, game: GAME, match_id: MATCH_ID,
-                board: board,
-                last_move: { ...last, notation },
-                game_over: !!winner,
-                winner: winner || null,
-            })
-        });
-        const data = await res.json();
-        if (data.ok) {
-            lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
-            return data.match;
-        }
-        // Token muddati tugagan bo'lsa (403) — jimgina yo'qotmaymiz, xabar beramiz.
-        if (res.status === 403) showSessionExpired();
-    } catch (e) {}
+    // Yurishni serverga ISHONCHLI yetkazamiz: qulf/tarmoq xatosida qayta urinamiz.
+    // Aks holda yurish yo'qolib, raqib "Raqib yurmoqda"da qotib qolardi.
+    for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+            const res = await fetch(URLS.mpMove, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    token: TOKEN, game: GAME, match_id: MATCH_ID,
+                    board: board,
+                    last_move: { ...last, notation },
+                    game_over: !!winner,
+                    winner: winner || null,
+                })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                lastSeenMoveCount = data.match.move_count;
+                if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
+                return data.match;
+            }
+            if (res.status === 403) { showSessionExpired(); return null; }
+            if (res.status === 409) return null;   // navbat/holat — qayta urinish foydasiz
+            // boshqa (5xx / qulf) — quyida qayta urinamiz
+        } catch (e) { /* tarmoq xatosi — qayta urinamiz */ }
+        await new Promise(function (r) { setTimeout(r, 250 * (attempt + 1)); });
+    }
+    showReconnectOverlay();   // 3 marta ham bo'lmadi — ogohlantiramiz
     return null;
 }
 

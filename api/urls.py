@@ -52,6 +52,7 @@ urlpatterns = [
     # Multiplayer (Shashka uchun)
     path('games/external/mp/find/',   games_external_api.mp_find,   name='external_game_mp_find'),
     path('games/external/mp/state/',  games_external_api.mp_state,  name='external_game_mp_state'),
+    path('games/external/mp/ping/',   games_external_api.mp_ping,   name='external_game_mp_ping'),
     path('games/external/mp/move/',   games_external_api.mp_move,   name='external_game_mp_move'),
     path('games/external/mp/resign/', games_external_api.mp_resign, name='external_game_mp_resign'),
     path('games/external/mp/room/',   games_external_api.mp_room,   name='external_game_mp_room'),

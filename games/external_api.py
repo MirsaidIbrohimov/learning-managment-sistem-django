@@ -855,6 +855,67 @@ def mp_state(request):
     }), request)
 
 
+def _save_match_retry(match, attempts=4):
+    """SQLite qulflanganda (ko'p o'yinchi bir vaqtda yozganda) yozuvni bir necha
+    marta qayta urinadi. Aks holda yurish saqlanmay qolib, raqib 'Raqib yurmoqda'da
+    qotib qolardi. busy_timeout allaqachon kutadi; bu esa qulf darrov 'locked'
+    bersa qo'shimcha himoya."""
+    import time as _t
+    from django.db import OperationalError
+    for i in range(attempts):
+        try:
+            match.save()
+            return
+        except OperationalError as e:
+            if i < attempts - 1 and 'lock' in str(e).lower():
+                _t.sleep(0.12 * (i + 1))
+                continue
+            raise
+
+
+@csrf_exempt
+def mp_ping(request):
+    """
+    POST /api/v1/games/external/mp/ping/
+    Body: {token, game, match_id}
+
+    Ultra-yengil holat tekshiruvi — faqat move_count/status/turn/winner qaytaradi
+    (to'liq taxta YO'Q, JOIN yo'q). Client tez-tez shuni so'raydi; biror narsa
+    o'zgarsa (mc/status/turn), keyin BIR MARTA to'liq mp_state oladi. Bu SQLite
+    o'qish qulfini juda qisqartiradi → ko'p o'yinchi bir vaqtda o'ynaganda ham
+    yozuvlar (yurishlar) tez tarqaladi.
+    """
+    if request.method == 'OPTIONS':
+        return _cors_headers(JsonResponse({}), request)
+    if request.method != 'POST':
+        return _cors_headers(JsonResponse({'error': 'Method not allowed'}, status=405), request)
+    try:
+        data = json.loads(request.body or b'{}')
+    except json.JSONDecodeError:
+        return _cors_headers(JsonResponse({'ok': False, 'error': 'Invalid JSON'}, status=400), request)
+
+    user, game, err = _mp_resolve_user_and_game(request, data)
+    if err:
+        return err
+
+    row = BoardMatch.objects.filter(pk=data.get('match_id'), game=game).values(
+        'move_count', 'status', 'current_turn', 'winner',
+        'white_player_id', 'black_player_id',
+    ).first()
+    if not row:
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Match topilmadi"}, status=404), request)
+    if user.pk not in (row['white_player_id'], row['black_player_id']):
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Ruxsat yo'q"}, status=403), request)
+
+    return _cors_headers(JsonResponse({
+        'ok': True,
+        'mc': row['move_count'],
+        'st': row['status'],
+        'ct': row['current_turn'],
+        'w': row['winner'],
+    }), request)
+
+
 @csrf_exempt
 def mp_move(request):
     """
@@ -924,7 +985,7 @@ def mp_move(request):
             match.winner = winner
             match.ended_at = timezone.now()
 
-        match.save()
+        _save_match_retry(match)
         if match.status == 'ended':
             _save_mp_attempts(match)
 
@@ -963,7 +1024,7 @@ def mp_move(request):
             match.ended_at = timezone.now()
     # Chess uchun: client checkmate/stalemate'ni aniqlaydi va game_over yuboradi
 
-    match.save()
+    _save_match_retry(match)
 
     # Tugagan bo'lsa, ikkala o'yinchi uchun GameAttempt yaratish
     if match.status == 'ended':
