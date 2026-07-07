@@ -123,32 +123,6 @@ function showSessionExpired() {
     announce('Sessiya muddati tugadi, sahifani yangilang');
 }
 
-// ============== MP DIAGNOSTIKA (vaqtinchalik) ==============
-// Multiplayer sinxronlash holatini ekranda jonli ko'rsatadi — muammoni taxmin
-// qilmasdan "ko'rish" uchun. Muammo hal bo'lgach bu blok va dbgSync() chaqiruvlari
-// olib tashlanadi. Ekranning chap-past burchagidagi yashil yozuv.
-const MP_BUILD = 7;
-let _dbgNet = 'kutilmoqda...', _dbgSrvMc = '-', _dbgSrvTurn = '-';
-function dbgSync(net, m) {
-    if (MODE !== 'mp') return;
-    if (net != null) _dbgNet = net;
-    if (m) { _dbgSrvMc = m.move_count; _dbgSrvTurn = m.current_turn; }
-    let el = document.getElementById('mp-dbg');
-    if (!el) {
-        el = document.createElement('div');
-        el.id = 'mp-dbg';
-        el.style.cssText = 'position:fixed;left:6px;bottom:6px;z-index:99999;font:10px/1.45 monospace;background:rgba(0,0,0,.78);color:#7CFC00;padding:5px 8px;border-radius:6px;max-width:94vw;pointer-events:none;white-space:pre-line';
-        document.body.appendChild(el);
-    }
-    el.textContent =
-        'MP debug · build v' + MP_BUILD + ' · ' + new Date().toLocaleTimeString() + '\n' +
-        'net: ' + _dbgNet + '\n' +
-        'server: move#' + _dbgSrvMc + '  turn=' + _dbgSrvTurn + '\n' +
-        'client: seen#' + lastSeenMoveCount + '  turn=' + currentTurn + '  role=' + PLAYER_COLOR + '\n' +
-        'match=' + MATCH_ID + '  pending=' + _localMovePending;
-}
-console.log('[shashka] app.js build v' + MP_BUILD + ' yuklandi — MP sync fix aktiv');
-
 const screens = {
     auth:  $('auth-screen'),
     menu:  $('menu-screen'),
@@ -539,7 +513,6 @@ function startGame(initialState = null) {
     if (pollInterval) clearInterval(pollInterval);
     if (MODE === 'mp') {
         pollInterval = setInterval(pollMatchState, 2000);
-        dbgSync('boshlandi', null);
         pollMatchState();   // darhol sinxronlaymiz (2s kutmasdan)
     }
 }
@@ -566,7 +539,9 @@ function startTimer() {
 // ============== RENDER ==============
 function renderBoard() {
     const boardEl = $('board');
-    boardEl.innerHTML = '';
+    // Miltillashning oldini olish: kataklarni avval fragmentda yig'ib, keyin
+    // bitta atomik almashtirish bilan qo'yamiz (innerHTML='' bo'sh kadr bermaydi).
+    const frag = document.createDocumentFragment();
     const flip = PLAYER_COLOR === 'black'; // qora bo'lsa, doskani aylantirish
 
     for (let rr = 0; rr < 8; rr++) {
@@ -590,12 +565,14 @@ function renderBoard() {
                 cell.setAttribute('aria-hidden', 'true');
             }
 
-            // Last move highlight
+            // Oxirgi yurish belgisi — from + to kataklari. Manzil (to) kuchliroq.
             const last = moveHistory[moveHistory.length - 1];
-            if (last && (
-                (last.to[0] === r && last.to[1] === c) ||
-                (last.from[0] === r && last.from[1] === c)
-            )) cell.classList.add('last-move');
+            if (last && last.from && last.to) {
+                const isTo = last.to[0] === r && last.to[1] === c;
+                const isFrom = last.from[0] === r && last.from[1] === c;
+                if (isTo || isFrom) cell.classList.add('last-move');
+                if (isTo) cell.classList.add('last-move-to');
+            }
 
             if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
             const move = possibleMoves.find(m => m.r === r && m.c === c);
@@ -618,9 +595,10 @@ function renderBoard() {
             } else if (isDark) {
                 cell.setAttribute('aria-label', `${square}, bo'sh`);
             }
-            boardEl.appendChild(cell);
+            frag.appendChild(cell);
         }
     }
+    boardEl.replaceChildren(frag);   // bitta atomik almashtirish — miltillashsiz
     updateCapturedDisplay();
 }
 
@@ -1614,7 +1592,7 @@ async function pollMatchState() {
         // A response arrived — connection is fine, clear any reconnect warning
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        if (!data.ok) { dbgSync('XATO HTTP ' + res.status, null); if (res.status === 403) showSessionExpired(); return; }
+        if (!data.ok) { if (res.status === 403) showSessionExpired(); return; }
         const m = data.match;
         const isEnded = m.status === 'ended';
         // Yangi yurish(lar) — raqib yurdi.
@@ -1658,14 +1636,12 @@ async function pollMatchState() {
             renderBoard();
             updateTurnUI();
         }
-        dbgSync('ok HTTP ' + res.status, m);
         if (isEnded) {
             // Oldin taxta DOM yangilansin, keyin 30s pauza oynasi chiqsin
             requestAnimationFrame(() => scheduleEndGameDisplay(m.winner, 30));
         }
     } catch (e) {
         // Network/parse failure — after a couple of consecutive misses, warn the player
-        _dbgNet = 'TARMOQ XATOSI: ' + (e && e.message || e); dbgSync();
         mpPollFailCount++;
         if (mpPollFailCount >= MP_POLL_FAIL_THRESHOLD) showReconnectOverlay();
     }

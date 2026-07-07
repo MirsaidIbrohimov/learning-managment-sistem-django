@@ -4,32 +4,38 @@
 
 {% block extra_css %}
 <style>
-/* ============ FOKUS REJIM — dizayn tokenlari ============ */
+/* ============ YOZISH MASHQI — o'yinbop dizayn tokenlari ============ */
 :root {
     --tg-card: #ffffff;
-    --tg-border: rgba(15, 23, 42, 0.08);
-    --tg-text: #0f172a;
-    --tg-sub: #9aa3b5;
-    --tg-dim: #64748b;
-    --tg-accent: #6366f1;
-    --tg-accent-soft: rgba(99, 102, 241, 0.1);
-    --tg-ok: #10b981;
+    --tg-border: rgba(124, 58, 237, 0.14);
+    --tg-text: #1e1b2e;
+    --tg-sub: #c3bcd6;
+    --tg-dim: #7c748f;
+    --tg-accent: #7c3aed;               /* binafsha */
+    --tg-accent-2: #ec4899;             /* pushti */
+    --tg-accent-soft: rgba(124, 58, 237, 0.1);
+    --tg-grad: linear-gradient(135deg, #7c3aed, #ec4899);
+    --tg-grad-hero: linear-gradient(135deg, #6d28d9 0%, #9333ea 45%, #db2777 100%);
+    --tg-ok: #22c55e;
     --tg-bad: #ef4444;
     --tg-warn: #f59e0b;
-    --tg-shadow: 0 8px 30px rgba(15, 23, 42, 0.06);
-    --tg-radius: 20px;
+    --tg-shadow: 0 12px 34px rgba(124, 58, 237, 0.16);
+    --tg-radius: 22px;
     --tg-mono: ui-monospace, 'Cascadia Code', 'SF Mono', 'JetBrains Mono', Consolas, 'Roboto Mono', monospace;
 }
 
 [data-bs-theme="dark"] {
-    --tg-card: #16161f;
-    --tg-border: rgba(255, 255, 255, 0.08);
-    --tg-text: #e7eaf0;
-    --tg-sub: #4b5266;
-    --tg-dim: #8b93a7;
-    --tg-accent: #818cf8;
-    --tg-accent-soft: rgba(129, 140, 248, 0.12);
-    --tg-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    --tg-card: #1b1826;
+    --tg-border: rgba(168, 85, 247, 0.2);
+    --tg-text: #f1ecfa;
+    --tg-sub: #4a4460;
+    --tg-dim: #a79fbd;
+    --tg-accent: #a855f7;
+    --tg-accent-2: #f472b6;
+    --tg-accent-soft: rgba(168, 85, 247, 0.16);
+    --tg-grad: linear-gradient(135deg, #a855f7, #f472b6);
+    --tg-grad-hero: linear-gradient(135deg, #7c3aed 0%, #a21caf 50%, #db2777 100%);
+    --tg-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes tgFadeUp {
@@ -133,23 +139,36 @@
 }
 
 .tg-stat {
+    position: relative;
     background: var(--tg-card);
     border: 1px solid var(--tg-border);
-    border-radius: 16px;
-    padding: 0.85rem 0.6rem;
+    border-radius: 18px;
+    padding: 0.95rem 0.6rem;
     text-align: center;
-    transition: border-color 0.3s;
+    overflow: hidden;
+    transition: transform 0.25s, box-shadow 0.25s;
 }
+.tg-stat::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--tg-grad);
+    opacity: 0.9;
+}
+.tg-stat:hover { transform: translateY(-3px); box-shadow: var(--tg-shadow); }
 
 .tg-stat .val {
     font-family: var(--tg-mono);
-    font-size: 1.55rem;
-    font-weight: 700;
+    font-size: 1.65rem;
+    font-weight: 800;
     color: var(--tg-text);
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
 }
-.tg-stat .val.accent { color: var(--tg-accent); }
+.tg-stat .val.accent {
+    background: var(--tg-grad);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
 .tg-stat .lbl {
     font-size: 0.68rem;
     font-weight: 700;
@@ -161,8 +180,8 @@
 
 /* ============ Progress chiziq ============ */
 .tg-progress {
-    height: 6px;
-    background: var(--tg-border);
+    height: 10px;
+    background: var(--tg-accent-soft);
     border-radius: 99px;
     overflow: hidden;
     margin-bottom: 1.1rem;
@@ -171,18 +190,28 @@
     height: 100%;
     width: 0%;
     border-radius: 99px;
-    background: linear-gradient(90deg, var(--tg-accent), #a78bfa);
+    background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #a855f7, #6366f1);
+    background-size: 200% 100%;
+    box-shadow: 0 0 14px var(--tg-accent-soft);
     transition: width 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation: tgShimmer 2.4s linear infinite;
 }
+@keyframes tgShimmer { to { background-position: -200% 0; } }
 
 /* ============ Matn kartasi ============ */
 .tg-card {
+    position: relative;
     background: var(--tg-card);
-    border: 1px solid var(--tg-border);
+    border: 2px solid var(--tg-border);
     border-radius: var(--tg-radius);
     box-shadow: var(--tg-shadow);
     padding: 2rem 2.2rem;
     cursor: text;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.tg-card:focus-within {
+    border-color: var(--tg-accent);
+    box-shadow: 0 0 0 4px var(--tg-accent-soft), var(--tg-shadow);
 }
 
 .tg-words {
@@ -277,8 +306,8 @@
 .tg-btn.finish:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35); }
 .tg-btn.restart { background: var(--tg-card); color: var(--tg-dim); border: 1px solid var(--tg-border); }
 .tg-btn.restart:hover { color: var(--tg-accent); border-color: var(--tg-accent); }
-.tg-btn.primary { background: var(--tg-accent); color: #fff; }
-.tg-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 6px 18px var(--tg-accent-soft); color: #fff; }
+.tg-btn.primary { background: var(--tg-grad); color: #fff; box-shadow: 0 6px 16px rgba(124, 58, 237, 0.32); }
+.tg-btn.primary:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 12px 26px rgba(236, 72, 153, 0.42); color: #fff; }
 .tg-btn.ghost { background: transparent; color: var(--tg-dim); border: 1px solid var(--tg-border); }
 .tg-btn.ghost:hover { color: var(--tg-accent); border-color: var(--tg-accent); }
 
@@ -354,17 +383,23 @@
     box-shadow: 0 24px 70px rgba(0,0,0,0.35);
 }
 
-.tg-result .emoji { font-size: 3rem; animation: tgPop 0.6s ease 0.15s both; }
-.tg-result .headline { font-weight: 800; font-size: 1.25rem; color: var(--tg-text); margin-top: 0.4rem; }
+.tg-result .emoji { font-size: 4rem; animation: tgBounce 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both; }
+@keyframes tgBounce {
+    0% { transform: scale(0) rotate(-25deg); opacity: 0; }
+    60% { transform: scale(1.25) rotate(8deg); opacity: 1; }
+    100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+.tg-result .headline { font-weight: 800; font-size: 1.3rem; color: var(--tg-text); margin-top: 0.4rem; }
 .tg-result .score {
     font-family: var(--tg-mono);
-    font-size: 3.4rem;
+    font-size: 3.6rem;
     font-weight: 800;
     line-height: 1.1;
-    background: linear-gradient(135deg, var(--tg-accent), #a78bfa);
+    background: var(--tg-grad);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    filter: drop-shadow(0 4px 16px rgba(124, 58, 237, 0.3));
 }
 .tg-result .score-lbl { color: var(--tg-dim); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 
@@ -400,6 +435,74 @@
     .tg-words { font-size: 1.02rem; }
     .tg-result-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ============ O'YINBOP QO'SHIMCHALAR ============ */
+/* Rang-barang natija kataklari */
+.tg-result-grid .cell:nth-child(1) { background: rgba(99, 102, 241, 0.15); }
+.tg-result-grid .cell:nth-child(2) { background: rgba(34, 197, 94, 0.15); }
+.tg-result-grid .cell:nth-child(3) { background: rgba(245, 158, 11, 0.15); }
+.tg-result-grid .cell:nth-child(4) { background: rgba(239, 68, 68, 0.15); }
+
+/* Combo / streak — ketma-ket to'g'ri so'zlar */
+.tg-combo {
+    position: fixed; right: 20px; top: 120px; z-index: 9000;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0.5rem 1rem; border-radius: 99px;
+    background: var(--tg-grad); color: #fff;
+    font-weight: 800; font-size: 1rem;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+    opacity: 0; transform: scale(0.6) translateY(10px);
+    pointer-events: none; transition: opacity 0.2s, transform 0.2s;
+}
+.tg-combo.show { opacity: 1; transform: scale(1) translateY(0); }
+.tg-combo.pop { animation: tgComboPop 0.3s ease; }
+@keyframes tgComboPop { 0% { transform: scale(1); } 50% { transform: scale(1.22); } 100% { transform: scale(1); } }
+.tg-combo .flame { font-size: 1.15rem; animation: tgFlame 0.5s ease-in-out infinite alternate; }
+@keyframes tgFlame { from { transform: scale(1) rotate(-5deg); } to { transform: scale(1.18) rotate(5deg); } }
+@media (max-width: 768px) { .tg-combo { right: 12px; top: auto; bottom: 84px; font-size: 0.9rem; } }
+
+/* Konfetti */
+#confettiCanvas { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+
+/* ============ INTERAKTIV TUR ============ */
+.tg-tour { position: fixed; inset: 0; z-index: 12000; display: none; }
+.tg-tour.show { display: block; }
+.tg-tour-mask {
+    position: fixed; inset: 0;
+    background: rgba(12, 10, 24, 0.74);
+    transition: all 0.4s ease;
+}
+.tg-tour-ring {
+    position: absolute; border-radius: 16px;
+    box-shadow: 0 0 0 3px #fff, 0 0 0 7px var(--tg-accent), 0 0 46px rgba(168, 85, 247, 0.7);
+    transition: all 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    pointer-events: none;
+}
+.tg-tour-tip {
+    position: absolute; max-width: 300px;
+    background: var(--tg-card); color: var(--tg-text);
+    border-radius: 18px; padding: 1.1rem 1.2rem;
+    box-shadow: 0 22px 55px rgba(0, 0, 0, 0.45);
+    transition: all 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.tg-tour-tip .emoji { font-size: 1.9rem; line-height: 1; }
+.tg-tour-tip .step { font-size: 0.7rem; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--tg-accent); margin-top: 0.4rem; }
+.tg-tour-tip h4 { font-weight: 800; font-size: 1.05rem; margin: 0.15rem 0 0.4rem; color: var(--tg-text); }
+.tg-tour-tip p { font-size: 0.88rem; color: var(--tg-dim); margin: 0 0 1rem; line-height: 1.55; }
+.tg-tour-tip .row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+.tg-tour-dots { display: flex; gap: 5px; }
+.tg-tour-dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--tg-accent-soft); display: inline-block; transition: all 0.2s; }
+.tg-tour-dots i.on { background: var(--tg-accent); transform: scale(1.25); }
+.tg-tour-btns { display: flex; gap: 0.5rem; align-items: center; }
+.tg-tour-skip { background: none; border: none; color: var(--tg-dim); font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+.tg-tour-next {
+    background: var(--tg-grad); color: #fff; border: none;
+    border-radius: 11px; font-weight: 800; font-size: 0.85rem;
+    padding: 0.5rem 1.15rem; cursor: pointer;
+    box-shadow: 0 5px 14px rgba(124, 58, 237, 0.35);
+    transition: transform 0.2s;
+}
+.tg-tour-next:hover { transform: translateY(-1px) scale(1.03); }
 </style>
 {% endblock %}
 
@@ -533,6 +636,31 @@
     <input type="hidden" name="signature" id="hiddenSignature">
     <input type="hidden" name="keystroke_count" id="hiddenKeystrokeCount">
 </form>
+
+<!-- Combo / streak ko'rsatkichi -->
+<div class="tg-combo" id="comboBox"><span class="flame">🔥</span> <span id="comboText">x2</span></div>
+
+<!-- Konfetti -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- Interaktiv tur (faqat birinchi marta) -->
+<div class="tg-tour" id="tourRoot" aria-hidden="true">
+    <div class="tg-tour-mask" id="tourMask"></div>
+    <div class="tg-tour-ring" id="tourRing"></div>
+    <div class="tg-tour-tip" id="tourTip">
+        <div class="emoji" id="tourEmoji">👋</div>
+        <div class="step" id="tourStep">1 / 5</div>
+        <h4 id="tourTitle">Xush kelibsiz!</h4>
+        <p id="tourBody"></p>
+        <div class="row">
+            <div class="tg-tour-dots" id="tourDots"></div>
+            <div class="tg-tour-btns">
+                <button class="tg-tour-skip" id="tourSkip" type="button">O'tkazish</button>
+                <button class="tg-tour-next" id="tourNext" type="button">Keyingi</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -832,10 +960,12 @@
             wordEl.className = 'tg-word correct';
             correctCount++;
             sfx.ok();
+            bumpCombo(true);
         } else {
             wordEl.className = 'tg-word wrong';
             wrongCount++;
             sfx.bad();
+            bumpCombo(false);
         }
 
         currentIndex++;
@@ -984,6 +1114,7 @@
             document.getElementById('resultTime').textContent = Math.round(t) + 's';
             document.getElementById('resultErrors').textContent = wrongCount;
             document.getElementById('resultOverlay').classList.add('show');
+            if (s >= 40) confettiBurst();
             drawWpmChart();
         }
 
@@ -1004,8 +1135,136 @@
 
     finishBtn.addEventListener('click', finishGame);
 
+    // ===== COMBO / STREAK =====
+    var _combo = 0;
+    function bumpCombo(ok) {
+        var box = document.getElementById('comboBox');
+        var txt = document.getElementById('comboText');
+        if (!box) return;
+        if (ok) {
+            _combo++;
+            if (_combo >= 2) {
+                txt.textContent = 'x' + _combo + ' combo';
+                box.classList.add('show');
+                box.classList.remove('pop'); void box.offsetWidth; box.classList.add('pop');
+            }
+        } else {
+            _combo = 0;
+            box.classList.remove('show');
+        }
+    }
+
+    // ===== KONFETTI (tashqi kutubxonasiz) =====
+    function confettiBurst() {
+        var cv = document.getElementById('confettiCanvas');
+        if (!cv || !cv.getContext) return;
+        var ctx = cv.getContext('2d');
+        cv.width = window.innerWidth; cv.height = window.innerHeight;
+        var colors = ['#7c3aed', '#ec4899', '#a855f7', '#6366f1', '#22c55e', '#f59e0b', '#06b6d4'];
+        var parts = [];
+        for (var i = 0; i < 150; i++) {
+            parts.push({
+                x: cv.width / 2, y: cv.height * 0.32,
+                vx: (Math.random() - 0.5) * 15,
+                vy: Math.random() * -14 - 4,
+                g: 0.32 + Math.random() * 0.16,
+                s: 5 + Math.random() * 7,
+                c: colors[(Math.random() * colors.length) | 0],
+                rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.4,
+                life: 90 + Math.random() * 45
+            });
+        }
+        var frame = 0;
+        (function anim() {
+            ctx.clearRect(0, 0, cv.width, cv.height);
+            var alive = false;
+            parts.forEach(function(p) {
+                if (p.life <= 0) return;
+                alive = true;
+                p.life--; p.vy += p.g; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, Math.min(1, p.life / 40));
+                ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+                ctx.fillStyle = p.c;
+                ctx.fillRect(-p.s / 2, -p.s / 2, p.s, p.s * 0.6);
+                ctx.restore();
+            });
+            frame++;
+            if (alive && frame < 170) requestAnimationFrame(anim);
+            else ctx.clearRect(0, 0, cv.width, cv.height);
+        })();
+    }
+
+    // ===== INTERAKTIV TUR (faqat birinchi marta) =====
+    var TOUR_KEY = 'tg_tour_done_v1';
+    var tourSteps = [
+        { sel: null, emoji: '👋', title: 'Xush kelibsiz!', body: "Bu — Yozish mashqi. Berilgan matnni tez va aniq ko'chirib yozing. Keling, qisqacha ko'rsatib beray." },
+        { sel: '.tg-stats', emoji: '📊', title: "Ko'rsatkichlar", body: "Bu yerda WPM (daqiqada so'z), aniqlik, o'tgan vaqt va yozilgan so'zlar soni jonli ko'rinadi." },
+        { sel: '#promptWords', emoji: '⌨️', title: 'Matn', body: "Shu matnni yozing. Joriy so'z belgilanadi; harf to'g'ri bo'lsa yashil, xato bo'lsa qizil bo'ladi." },
+        { sel: '#typingArea', emoji: '␣', title: 'Yozish maydoni', body: "Shu yerga yozing. Har so'zdan keyin PROBEL bosing — so'z shu bilan tasdiqlanadi." },
+        { sel: '.tg-progress', emoji: '🔥', title: 'Combo va ball', body: "Ketma-ket to'g'ri yozsangiz — combo yig'iladi! Oxirida ball, WPM va tezlik grafigi chiqadi. Omad!" }
+    ];
+    var _tourIdx = 0;
+    function positionTour(step) {
+        var ring = document.getElementById('tourRing');
+        var tip = document.getElementById('tourTip');
+        var el = step.sel ? document.querySelector(step.sel) : null;
+        if (!el) {
+            ring.style.opacity = '0';
+            tip.style.left = '50%'; tip.style.top = '50%';
+            tip.style.transform = 'translate(-50%, -50%)';
+            return;
+        }
+        var r = el.getBoundingClientRect();
+        var pad = 8;
+        ring.style.opacity = '1';
+        ring.style.left = (r.left - pad) + 'px';
+        ring.style.top = (r.top - pad) + 'px';
+        ring.style.width = (r.width + pad * 2) + 'px';
+        ring.style.height = (r.height + pad * 2) + 'px';
+        tip.style.transform = 'none';
+        var tipW = 300, vw = window.innerWidth, vh = window.innerHeight;
+        tip.style.left = Math.min(Math.max(12, r.left), Math.max(12, vw - tipW - 12)) + 'px';
+        if (r.bottom + 200 < vh) tip.style.top = (r.bottom + 16) + 'px';
+        else tip.style.top = Math.max(12, r.top - 200) + 'px';
+    }
+    function renderTour() {
+        var s = tourSteps[_tourIdx];
+        document.getElementById('tourEmoji').textContent = s.emoji;
+        document.getElementById('tourStep').textContent = (_tourIdx + 1) + ' / ' + tourSteps.length;
+        document.getElementById('tourTitle').textContent = s.title;
+        document.getElementById('tourBody').textContent = s.body;
+        var dots = '';
+        for (var i = 0; i < tourSteps.length; i++) dots += '<i class="' + (i === _tourIdx ? 'on' : '') + '"></i>';
+        document.getElementById('tourDots').innerHTML = dots;
+        document.getElementById('tourNext').textContent = (_tourIdx === tourSteps.length - 1) ? 'Boshladik!' : 'Keyingi';
+        positionTour(s);
+    }
+    function _tourResize() { renderTour(); }
+    function startTour(onDone) {
+        var root = document.getElementById('tourRoot');
+        var overlay = document.getElementById('countOverlay');
+        if (!root) { onDone(); return; }
+        overlay.classList.add('hidden');   // sanoqni tur tugagach ko'rsatamiz
+        root.classList.add('show');
+        _tourIdx = 0; renderTour();
+        function finish() {
+            root.classList.remove('show');
+            try { localStorage.setItem(TOUR_KEY, '1'); } catch (e) {}
+            window.removeEventListener('resize', _tourResize);
+            overlay.classList.remove('hidden');
+            onDone();
+        }
+        document.getElementById('tourNext').onclick = function() {
+            if (_tourIdx < tourSteps.length - 1) { _tourIdx++; renderTour(); }
+            else finish();
+        };
+        document.getElementById('tourSkip').onclick = finish;
+        window.addEventListener('resize', _tourResize);
+    }
+
     // ===== 3-2-1 COUNTDOWN =====
-    (function runCountdown() {
+    function runCountdown() {
         var overlay = document.getElementById('countOverlay');
         var numEl = document.getElementById('countNum');
         var n = 3;
@@ -1038,7 +1297,13 @@
         // Birinchi bosishda audio kontekstni uyg'otish uchun
         document.addEventListener('pointerdown', ensureAudio, {once: true});
         step();
-    })();
+    }
+
+    // Birinchi marta kirgan foydalanuvchiga avval interaktiv tur, so'ng sanoq
+    var _seenTour = false;
+    try { _seenTour = !!localStorage.getItem(TOUR_KEY); } catch (e) { _seenTour = true; }
+    if (_seenTour) runCountdown();
+    else startTour(runCountdown);
 
     // ===== ANTI-CHEAT: Tab/Window almashish =====
     document.addEventListener('visibilitychange', function() {
