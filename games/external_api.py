@@ -28,8 +28,13 @@ from django.views.decorators.http import require_POST
 from .models import Game, GameAttempt, BoardMatch
 
 
-# Launch token amal qilish vaqti (sekund)
-LAUNCH_TOKEN_TTL = 60 * 30  # 30 daqiqa
+# Launch token amal qilish vaqti (sekund).
+# MUHIM: multiplayer o'yin (va uni sinxronlab turuvchi 2 soniyalik polling) 30
+# daqiqadan uzoq davom etishi mumkin. Token muddati o'yin davomida tugasa, barcha
+# mp/state va mp/move so'rovlari 403 qaytaradi — natijada taxta "Raqib yurmoqda"da
+# qotib qoladi (client 403 ni jimgina e'tiborsiz qoldiradi). Shu sabab TTL o'yin
+# seansidan ancha uzun qilib belgilangan.
+LAUNCH_TOKEN_TTL = 60 * 60 * 12  # 12 soat
 
 # Replay attack himoyasi uchun used nonce cache prefiksi
 NONCE_CACHE_PREFIX = 'ext_game_used_nonce:'

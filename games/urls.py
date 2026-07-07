@@ -8,6 +8,7 @@ urlpatterns = [
     path('my-results/', views.my_results, name='my_results'),
     path('my-results/pdf/', views.my_results_pdf, name='my_results_pdf'),
     path('leaderboard/<int:competition_id>/', views.competition_leaderboard, name='competition_leaderboard'),
+    path('leaderboard/<int:competition_id>/api/', views.competition_leaderboard_api, name='competition_leaderboard_api'),
     path('word-leaderboard/<int:competition_id>/', views.word_game_leaderboard, name='word_game_leaderboard'),
 
     # Spectating — slug dan OLDIN bo'lishi shart

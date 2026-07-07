@@ -1,423 +1,1112 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
-{% block title %}Leaderboard - {{ competition.title }}{% endblock %}
+{% block title %}{{ competition.title }} — Reyting{% endblock %}
 
 {% block extra_css %}
 <style>
+/* ═══════════════════════════════════════════════════════════════════════
+   MUSOBAQA REYTINGI — NEO ARENA (unique design, live updates)
+   ═══════════════════════════════════════════════════════════════════════ */
 :root {
-    --g-card: #ffffff;
-    --g-border: rgba(0, 0, 0, 0.06);
-    --g-text: #1e293b;
-    --g-text-muted: #64748b;
-    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.07);
-    --g-radius: 22px;
-    --g-primary: #6366f1;
+  --arena-bg:        #0a0b14;
+  --arena-panel:     rgba(255,255,255,.03);
+  --arena-panel-hi:  rgba(255,255,255,.06);
+  --arena-border:    rgba(255,255,255,.07);
+  --arena-text:      #e8eaf3;
+  --arena-mute:      #7a8296;
+  --arena-accent:    #7c5cff;
+  --arena-accent-2:  #22d3ee;
+  --arena-hot:       #ff5b8a;
+  --arena-gold:      #ffcd3a;
+  --arena-silver:    #cfd8e6;
+  --arena-bronze:    #e28a3d;
+  --arena-live:      #22c55e;
+  --arena-radius:    22px;
+  --arena-radius-sm: 14px;
+  --arena-shadow:    0 20px 60px rgba(0,0,0,.45);
+}
+[data-bs-theme="light"] {
+  --arena-bg:        #f5f6ff;
+  --arena-panel:     rgba(255,255,255,.9);
+  --arena-panel-hi:  #ffffff;
+  --arena-border:    rgba(15,23,42,.08);
+  --arena-text:      #101433;
+  --arena-mute:      #6b7392;
+  --arena-shadow:    0 12px 40px rgba(74,63,181,.14);
 }
 
-[data-bs-theme="dark"] {
-    --g-card: #1e1e2e;
-    --g-border: rgba(255, 255, 255, 0.07);
-    --g-text: #f1f5f9;
-    --g-text-muted: #94a3b8;
-    --g-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+/* ── Full bleed reset ── */
+#weather_effect { display:none!important; }
+.arena {
+  width:100vw; position:relative; left:50%; margin-left:-50vw;
+  margin-top:-1.25rem; margin-bottom:-1.25rem;
+  min-height:calc(100vh - 60px);
+  background:
+    radial-gradient(1200px 600px at 12% -10%, rgba(124,92,255,.18), transparent 60%),
+    radial-gradient(900px 500px  at 92%  8%, rgba(34,211,238,.14), transparent 60%),
+    radial-gradient(700px 400px  at 50% 110%, rgba(255,91,138,.10), transparent 60%),
+    var(--arena-bg);
+  color:var(--arena-text);
+  font-family:'Space Grotesk','Inter',system-ui,sans-serif;
+  overflow-x:hidden;
+  padding:24px 0 80px;
+}
+[data-bs-theme="light"] .arena {
+  background:
+    radial-gradient(1200px 600px at 12% -10%, rgba(124,92,255,.12), transparent 60%),
+    radial-gradient(900px 500px  at 92%  8%, rgba(34,211,238,.10), transparent 60%),
+    radial-gradient(700px 400px  at 50% 110%, rgba(255,91,138,.08), transparent 60%),
+    var(--arena-bg);
 }
 
-@keyframes fadeInDown {
-    from { opacity: 0; transform: translateY(-30px); }
-    to { opacity: 1; transform: translateY(0); }
+/* Ambient particle canvas */
+#arenaCanvas {
+  position:absolute; inset:0; pointer-events:none; z-index:0;
 }
 
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
+.arena-wrap {
+  position:relative; z-index:2;
+  max-width:1080px; margin:0 auto; padding:0 20px;
 }
 
-@keyframes slideInRow {
-    from { opacity: 0; transform: translateX(-25px); }
-    to { opacity: 1; transform: translateX(0); }
+/* ═══════════════ HERO / COMMAND BAR ═══════════════ */
+.arena-hero {
+  position:relative;
+  padding:26px 24px;
+  border-radius:var(--arena-radius);
+  background:linear-gradient(135deg, rgba(124,92,255,.18), rgba(34,211,238,.09));
+  border:1px solid rgba(124,92,255,.28);
+  backdrop-filter:blur(20px);
+  overflow:hidden;
+  animation:arenaFadeDown .5s ease;
+}
+[data-bs-theme="light"] .arena-hero {
+  background:linear-gradient(135deg,#fff, #efeaff 60%, #e5f7fb);
+}
+.arena-hero::after {
+  content:''; position:absolute; inset:0;
+  background:
+    linear-gradient(90deg, transparent 0%, rgba(255,255,255,.06) 50%, transparent 100%);
+  transform:translateX(-100%);
+  animation:arenaShine 6s ease-in-out infinite;
+}
+@keyframes arenaShine{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+
+.arena-hero-grid {
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:20px;
+  align-items:center;
 }
 
-@keyframes trophyBounce {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1) rotate(5deg); }
+.arena-emblem {
+  width:76px; height:76px; border-radius:20px;
+  display:flex; align-items:center; justify-content:center;
+  background:conic-gradient(from 220deg, #7c5cff, #22d3ee, #ff5b8a, #ffcd3a, #7c5cff);
+  box-shadow:0 12px 40px rgba(124,92,255,.45);
+  position:relative;
+  animation:arenaSpin 8s linear infinite;
+}
+.arena-emblem::before {
+  content:''; position:absolute; inset:3px; border-radius:17px;
+  background:#0a0b14;
+}
+[data-bs-theme="light"] .arena-emblem::before { background:#fff; }
+.arena-emblem i {
+  position:relative; z-index:1; font-size:2rem;
+  background:linear-gradient(135deg,#7c5cff,#22d3ee);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+@keyframes arenaSpin{to{transform:rotate(360deg)}}
+
+.arena-hero-info { min-width:0; }
+.arena-hero-title {
+  font-size:clamp(1.25rem, 2.4vw, 1.8rem);
+  font-weight:800; letter-spacing:-.02em; margin:0;
+  color:var(--arena-text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.arena-hero-sub {
+  color:var(--arena-mute); font-size:.9rem; margin-top:4px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.arena-hero-sub .dot { width:4px; height:4px; border-radius:50%; background:var(--arena-mute); }
+
+/* Live pulse indicator */
+.arena-live-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:4px 10px; border-radius:100px;
+  background:rgba(34,197,94,.14); color:#22c55e;
+  font-weight:700; font-size:.72rem; letter-spacing:.05em;
+  border:1px solid rgba(34,197,94,.28);
+}
+.arena-live-pill.ended { background:rgba(120,120,120,.14); color:#94a3b8; border-color:rgba(148,163,184,.3); }
+.arena-live-pill.soon  { background:rgba(251,146,60,.14); color:#fb923c; border-color:rgba(251,146,60,.3); }
+.arena-live-dot {
+  width:7px; height:7px; border-radius:50%; background:currentColor;
+  animation:arenaPulse 1.4s ease-in-out infinite;
+  box-shadow:0 0 0 0 currentColor;
+}
+@keyframes arenaPulse{
+  0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}
+  100%{box-shadow:0 0 0 8px rgba(34,197,94,0)}
 }
 
-@keyframes goldShine {
-    0% { text-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
-    50% { text-shadow: 0 0 20px rgba(245, 158, 11, 0.6); }
-    100% { text-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+/* Hero-right: countdown + prize pool */
+.arena-hero-right { display:flex; align-items:center; gap:16px; flex-shrink:0; }
+.arena-countdown {
+  display:flex; gap:6px;
+  font-family:'JetBrains Mono','SF Mono',monospace;
+}
+.arena-cd-cell {
+  background:rgba(10,11,20,.5);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;
+  padding:6px 8px;
+  min-width:44px;
+  text-align:center;
+}
+[data-bs-theme="light"] .arena-cd-cell { background:rgba(255,255,255,.7); border-color:rgba(15,23,42,.08); }
+.arena-cd-cell .n {
+  font-size:1.15rem; font-weight:800; color:var(--arena-text);
+  line-height:1;
+}
+.arena-cd-cell .l {
+  font-size:.55rem; text-transform:uppercase; letter-spacing:.1em;
+  color:var(--arena-mute); margin-top:2px;
 }
 
-@keyframes crownFloat {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50% { transform: translateY(-5px) rotate(3deg); }
+.arena-prize {
+  display:flex; align-items:center; gap:8px;
+  padding:10px 14px; border-radius:14px;
+  background:linear-gradient(135deg, rgba(255,205,58,.15), rgba(255,205,58,.05));
+  border:1px solid rgba(255,205,58,.3);
+}
+.arena-prize i { color:var(--arena-gold); font-size:1.15rem; }
+.arena-prize-nums { display:flex; align-items:center; gap:6px; font-family:'JetBrains Mono',monospace; font-weight:800; font-size:.92rem; }
+.arena-prize-nums .p1 { color:var(--arena-gold); }
+.arena-prize-nums .p2 { color:var(--arena-silver); }
+.arena-prize-nums .p3 { color:var(--arena-bronze); }
+.arena-prize-nums span.sep { color:var(--arena-mute); font-weight:400; }
+
+/* ═══════════════ STATS STRIP ═══════════════ */
+.arena-strip {
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0,1fr));
+  gap:12px;
+  margin-top:16px;
+  animation:arenaFadeUp .5s .1s ease both;
+}
+.arena-stat {
+  padding:14px 16px;
+  border-radius:var(--arena-radius-sm);
+  background:var(--arena-panel);
+  border:1px solid var(--arena-border);
+  backdrop-filter:blur(12px);
+  display:flex; align-items:center; gap:12px;
+}
+.arena-stat-ico {
+  width:38px; height:38px; border-radius:11px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1rem; flex-shrink:0;
+}
+.arena-stat-ico.a { background:rgba(124,92,255,.18); color:#a78bfa; }
+.arena-stat-ico.b { background:rgba(34,211,238,.15); color:#22d3ee; }
+.arena-stat-ico.c { background:rgba(255,205,58,.15); color:var(--arena-gold); }
+.arena-stat-ico.d { background:rgba(255,91,138,.15); color:var(--arena-hot); }
+.arena-stat-txt { min-width:0; }
+.arena-stat-val {
+  font-size:1.3rem; font-weight:800; line-height:1;
+  font-family:'JetBrains Mono',monospace; color:var(--arena-text);
+}
+.arena-stat-lab {
+  font-size:.7rem; color:var(--arena-mute); margin-top:4px;
+  text-transform:uppercase; letter-spacing:.06em;
 }
 
-.lb-hero {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 40%, #b45309 100%);
-    border-radius: var(--g-radius);
-    padding: 2.5rem 2rem;
-    color: white;
-    margin-bottom: 2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    animation: fadeInDown 0.6s ease-out;
+/* ═══════════════ YOUR RANK CARD ═══════════════ */
+.arena-you {
+  margin-top:16px;
+  border-radius:var(--arena-radius);
+  padding:14px 18px;
+  background:linear-gradient(135deg, rgba(124,92,255,.16), rgba(34,211,238,.08));
+  border:1px solid rgba(124,92,255,.36);
+  display:flex; align-items:center; gap:14px;
+  animation:arenaFadeUp .5s .15s ease both;
+  box-shadow:0 8px 32px rgba(124,92,255,.18);
+}
+.arena-you-rank {
+  width:52px; height:52px; border-radius:14px;
+  background:linear-gradient(135deg,#7c5cff,#22d3ee);
+  color:#fff; font-weight:900; font-size:1.35rem;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; box-shadow:0 6px 20px rgba(124,92,255,.4);
+}
+.arena-you-info { flex:1; min-width:0; }
+.arena-you-lab { font-size:.72rem; color:var(--arena-mute); text-transform:uppercase; letter-spacing:.08em; }
+.arena-you-name { font-size:1.02rem; font-weight:700; color:var(--arena-text); margin-top:2px; }
+.arena-you-score {
+  padding:8px 14px; border-radius:12px;
+  background:rgba(255,205,58,.14); color:var(--arena-gold);
+  font-weight:800; font-size:1rem; font-family:'JetBrains Mono',monospace;
+  border:1px solid rgba(255,205,58,.26);
+  display:flex; align-items:center; gap:6px; white-space:nowrap;
 }
 
-.lb-hero::before {
-    content: '';
-    position: absolute;
-    top: -60%;
-    left: -20%;
-    width: 300px;
-    height: 300px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    border-radius: 50%;
+/* ═══════════════ PODIUM (Top 3) ═══════════════ */
+.arena-podium-wrap {
+  margin-top:20px;
+  border-radius:var(--arena-radius);
+  padding:32px 20px 24px;
+  background:
+    radial-gradient(600px 200px at 50% 100%, rgba(124,92,255,.16), transparent 70%),
+    var(--arena-panel);
+  border:1px solid var(--arena-border);
+  backdrop-filter:blur(20px);
+  position:relative; overflow:hidden;
+  animation:arenaFadeUp .5s .2s ease both;
+}
+.arena-podium {
+  display:grid;
+  grid-template-columns:1fr 1.2fr 1fr;
+  align-items:end;
+  gap:14px;
+  max-width:640px;
+  margin:0 auto;
+  position:relative; z-index:1;
+}
+.arena-pod {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  text-decoration:none; color:inherit;
+  transition:transform .35s cubic-bezier(.34,1.56,.64,1);
+  cursor:pointer;
+}
+.arena-pod:hover { transform:translateY(-6px); color:inherit; }
+.arena-pod-avatar {
+  width:82px; height:82px; border-radius:50%;
+  border:3px solid var(--arena-accent);
+  background:linear-gradient(135deg,#7c5cff,#22d3ee);
+  display:flex; align-items:center; justify-content:center;
+  font-size:2rem; font-weight:900; color:#fff;
+  overflow:hidden;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);
+  position:relative;
+}
+.arena-pod-avatar img { width:100%; height:100%; object-fit:cover; }
+.arena-pod-name {
+  font-weight:700; font-size:.9rem; color:var(--arena-text);
+  max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  text-align:center;
+}
+.arena-pod-score {
+  padding:5px 12px; border-radius:100px;
+  background:rgba(255,205,58,.18);
+  color:var(--arena-gold);
+  font-family:'JetBrains Mono',monospace;
+  font-weight:800; font-size:.85rem;
+  border:1px solid rgba(255,205,58,.32);
+  display:inline-flex; align-items:center; gap:5px;
+}
+.arena-pod-base {
+  width:100%; margin-top:6px;
+  border-radius:12px 12px 6px 6px;
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+  border:1px solid var(--arena-border);
+  border-bottom:none;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:900; font-size:1.6rem;
+  color:var(--arena-text);
+  position:relative;
 }
 
-.lb-hero .trophy-icon {
-    font-size: 3.5rem;
-    display: block;
-    animation: trophyBounce 2s ease-in-out infinite;
-    position: relative;
-    z-index: 1;
+/* Podium heights */
+.arena-pod-1 .arena-pod-base { height:140px; background:linear-gradient(180deg, rgba(255,205,58,.35), rgba(255,205,58,.05)); border-color:rgba(255,205,58,.35); color:var(--arena-gold); }
+.arena-pod-2 .arena-pod-base { height:110px; background:linear-gradient(180deg, rgba(207,216,230,.28), rgba(207,216,230,.03)); border-color:rgba(207,216,230,.28); color:var(--arena-silver); }
+.arena-pod-3 .arena-pod-base { height:88px;  background:linear-gradient(180deg, rgba(226,138,61,.28), rgba(226,138,61,.03)); border-color:rgba(226,138,61,.28); color:var(--arena-bronze); }
+
+.arena-pod-1 .arena-pod-avatar {
+  width:96px; height:96px;
+  border-color:var(--arena-gold);
+  box-shadow:0 0 30px rgba(255,205,58,.4), 0 10px 30px rgba(0,0,0,.4);
+  animation:arenaGlowGold 3s ease-in-out infinite;
+}
+.arena-pod-2 .arena-pod-avatar { border-color:var(--arena-silver); }
+.arena-pod-3 .arena-pod-avatar { border-color:var(--arena-bronze); }
+@keyframes arenaGlowGold{
+  0%,100%{box-shadow:0 0 24px rgba(255,205,58,.4), 0 10px 30px rgba(0,0,0,.4)}
+  50%{box-shadow:0 0 44px rgba(255,205,58,.7), 0 10px 30px rgba(0,0,0,.4)}
 }
 
-.lb-hero h2 {
-    font-weight: 800;
-    position: relative;
-    z-index: 1;
+/* Crown */
+.arena-crown {
+  position:absolute; top:-22px; left:50%; transform:translateX(-50%);
+  font-size:1.7rem; filter:drop-shadow(0 4px 12px rgba(255,205,58,.6));
+  animation:arenaCrownFloat 2.4s ease-in-out infinite;
+}
+@keyframes arenaCrownFloat{
+  0%,100%{transform:translateX(-50%) translateY(0) rotate(-4deg)}
+  50%{transform:translateX(-50%) translateY(-4px) rotate(4deg)}
 }
 
-.lb-hero p {
-    opacity: 0.9;
-    position: relative;
-    z-index: 1;
+/* Ordering (1 in the middle, 2 on left, 3 on right) */
+.arena-pod-1 { order:2; }
+.arena-pod-2 { order:1; }
+.arena-pod-3 { order:3; }
+
+.arena-podium-empty {
+  text-align:center; color:var(--arena-mute); padding:24px 12px;
+  font-size:.95rem;
 }
 
-.lb-hero .coin-badges {
-    margin-top: 0.75rem;
-    position: relative;
-    z-index: 1;
+/* ═══════════════ MAIN LIST ═══════════════ */
+.arena-list-wrap {
+  margin-top:20px;
+  border-radius:var(--arena-radius);
+  background:var(--arena-panel);
+  border:1px solid var(--arena-border);
+  backdrop-filter:blur(20px);
+  overflow:hidden;
+  animation:arenaFadeUp .5s .25s ease both;
+}
+.arena-list-head {
+  padding:14px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  border-bottom:1px solid var(--arena-border);
+  background:rgba(124,92,255,.06);
+}
+.arena-list-title {
+  display:flex; align-items:center; gap:8px;
+  font-weight:800; font-size:1.02rem; color:var(--arena-text);
+}
+.arena-list-title i { color:var(--arena-accent); }
+
+/* Sync indicator */
+.arena-sync {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:.75rem; color:var(--arena-mute);
+  padding:5px 10px; border-radius:100px;
+  background:var(--arena-panel-hi); border:1px solid var(--arena-border);
+}
+.arena-sync-dot {
+  width:7px; height:7px; border-radius:50%; background:var(--arena-live);
+  animation:arenaPulse2 1.4s ease-in-out infinite;
+}
+.arena-sync-dot.warn { background:#fb923c; }
+.arena-sync-dot.err  { background:#ef4444; animation:none; }
+@keyframes arenaPulse2{
+  0%,100%{opacity:.5; transform:scale(.9)}
+  50%{opacity:1; transform:scale(1.2)}
 }
 
-.lb-hero .coin-badges .badge {
-    font-size: 0.85rem;
-    padding: 0.4rem 0.8rem;
-    border-radius: 10px;
-    margin: 0 3px;
-    transition: all 0.3s;
+/* Rows */
+.arena-row {
+  position:relative;
+  display:grid;
+  grid-template-columns:60px minmax(0,1fr) auto;
+  align-items:center; gap:14px;
+  padding:14px 20px;
+  border-bottom:1px solid var(--arena-border);
+  transition:background .3s ease, transform .3s ease;
+  text-decoration:none; color:inherit;
+}
+.arena-row:last-child { border-bottom:none; }
+.arena-row:hover { background:rgba(124,92,255,.06); color:inherit; }
+.arena-row.is-you {
+  background:linear-gradient(90deg, rgba(124,92,255,.14), transparent 60%);
+  border-left:3px solid var(--arena-accent);
+}
+.arena-row.is-you:hover { background:linear-gradient(90deg, rgba(124,92,255,.22), transparent 60%); }
+.arena-row.updated {
+  animation:arenaRowFlash 1.6s ease;
+}
+@keyframes arenaRowFlash{
+  0%{background:rgba(34,211,238,.22)}
+  100%{background:transparent}
+}
+.arena-row.moved-up::after {
+  content:'▲';
+  position:absolute; right:8px; top:8px;
+  color:var(--arena-live); font-size:.7rem;
+  animation:arenaMoveTag 2s ease forwards;
+}
+.arena-row.moved-down::after {
+  content:'▼';
+  position:absolute; right:8px; top:8px;
+  color:var(--arena-hot); font-size:.7rem;
+  animation:arenaMoveTag 2s ease forwards;
+}
+@keyframes arenaMoveTag{
+  0%{opacity:0; transform:translateY(4px)}
+  20%,80%{opacity:1; transform:translateY(0)}
+  100%{opacity:0}
 }
 
-.lb-hero .coin-badges .badge:hover {
-    transform: scale(1.08);
+/* Rank cell */
+.arena-rank {
+  width:44px; height:44px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:1rem;
+  background:rgba(255,255,255,.05);
+  border:1px solid var(--arena-border);
+  color:var(--arena-mute);
+  font-family:'JetBrains Mono',monospace;
 }
+.arena-rank.g1 { background:linear-gradient(135deg,#f59e0b,#ffcd3a); color:#1a1400; border-color:transparent; box-shadow:0 6px 20px rgba(255,205,58,.35); }
+.arena-rank.g2 { background:linear-gradient(135deg,#94a3b8,#cfd8e6); color:#0f172a; border-color:transparent; box-shadow:0 6px 20px rgba(207,216,230,.28); }
+.arena-rank.g3 { background:linear-gradient(135deg,#b45309,#e28a3d); color:#fff; border-color:transparent; box-shadow:0 6px 20px rgba(226,138,61,.28); }
 
-.lb-card {
-    background: var(--g-card);
-    border: 1px solid var(--g-border);
-    border-radius: var(--g-radius);
-    box-shadow: var(--g-shadow);
-    overflow: hidden;
-    animation: fadeInUp 0.6s ease-out 0.2s both;
+/* User cell */
+.arena-user {
+  display:flex; align-items:center; gap:12px;
+  min-width:0;
 }
-
-.lb-row {
-    display: flex;
-    align-items: center;
-    padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--g-border);
-    transition: all 0.35s ease;
-    animation: slideInRow 0.5s ease-out both;
+.arena-avatar {
+  width:44px; height:44px; border-radius:50%;
+  background:linear-gradient(135deg,#7c5cff,#22d3ee);
+  color:#fff; font-weight:800; font-size:1rem;
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden; flex-shrink:0;
+  border:2px solid rgba(255,255,255,.1);
 }
-
-.lb-row:nth-child(1) { animation-delay: 0.1s; }
-.lb-row:nth-child(2) { animation-delay: 0.15s; }
-.lb-row:nth-child(3) { animation-delay: 0.2s; }
-.lb-row:nth-child(4) { animation-delay: 0.25s; }
-.lb-row:nth-child(5) { animation-delay: 0.3s; }
-.lb-row:nth-child(6) { animation-delay: 0.35s; }
-.lb-row:nth-child(7) { animation-delay: 0.4s; }
-.lb-row:nth-child(8) { animation-delay: 0.45s; }
-.lb-row:nth-child(9) { animation-delay: 0.5s; }
-.lb-row:nth-child(10) { animation-delay: 0.55s; }
-
-.lb-row:last-child { border-bottom: none; }
-
-.lb-row:hover {
-    background: rgba(99, 102, 241, 0.04);
-    transform: translateX(6px);
+.arena-avatar img { width:100%; height:100%; object-fit:cover; }
+.arena-avatar.premium { border-color:#a78bfa; box-shadow:0 0 12px rgba(167,139,250,.5); }
+.arena-user-txt { min-width:0; }
+.arena-user-name {
+  font-weight:700; font-size:.95rem; color:var(--arena-text);
+  display:flex; align-items:center; gap:6px;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
-
-.lb-row.current-user {
-    background: rgba(99, 102, 241, 0.08);
-    border-left: 4px solid #6366f1;
+.arena-user-name .badge-you {
+  padding:2px 8px; border-radius:6px;
+  background:var(--arena-accent); color:#fff;
+  font-size:.62rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em;
 }
-
-.lb-row.current-user:hover {
-    background: rgba(99, 102, 241, 0.12);
+.arena-user-name .prem-check {
+  color:#a78bfa; font-size:.85rem;
 }
-
-.lb-row.top-1 {
-    background: linear-gradient(90deg, rgba(245, 158, 11, 0.08), transparent);
+.arena-user-sub {
+  font-size:.78rem; color:var(--arena-mute);
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  margin-top:2px;
 }
-
-.lb-row.top-2 {
-    background: linear-gradient(90deg, rgba(148, 163, 184, 0.08), transparent);
+.arena-user-sub .stat {
+  display:inline-flex; align-items:center; gap:3px;
 }
+.arena-user-sub .stat i { font-size:.7rem; }
 
-.lb-row.top-3 {
-    background: linear-gradient(90deg, rgba(205, 124, 47, 0.08), transparent);
+/* Primary value */
+.arena-primary {
+  display:flex; flex-direction:column; align-items:flex-end;
+  gap:4px; flex-shrink:0;
 }
-
-.lb-rank {
-    width: 50px;
-    text-align: center;
-    font-weight: 800;
-    font-size: 1.3rem;
-    color: var(--g-text-muted);
-    flex-shrink: 0;
+.arena-primary-val {
+  padding:6px 12px; border-radius:100px;
+  background:linear-gradient(135deg, rgba(255,205,58,.18), rgba(255,205,58,.04));
+  border:1px solid rgba(255,205,58,.3);
+  color:var(--arena-gold);
+  font-family:'JetBrains Mono',monospace;
+  font-weight:800; font-size:.95rem;
+  display:inline-flex; align-items:center; gap:5px;
 }
-
-.lb-rank.gold {
-    color: #f59e0b;
-    animation: goldShine 2s infinite;
+.arena-primary-lab {
+  font-size:.65rem; color:var(--arena-mute);
+  text-transform:uppercase; letter-spacing:.08em;
 }
-
-.lb-rank.silver { color: #94a3b8; }
-.lb-rank.bronze { color: #cd7c2f; }
-
-.lb-rank .rank-emoji {
-    font-size: 1.5rem;
-    display: inline-block;
+.arena-reward-tag {
+  padding:2px 8px; border-radius:6px;
+  font-size:.63rem; font-weight:800;
+  display:inline-flex; align-items:center; gap:3px;
 }
+.arena-reward-tag.r1 { background:rgba(255,205,58,.18); color:var(--arena-gold); border:1px solid rgba(255,205,58,.32); }
+.arena-reward-tag.r2 { background:rgba(207,216,230,.18); color:var(--arena-silver); border:1px solid rgba(207,216,230,.32); }
+.arena-reward-tag.r3 { background:rgba(226,138,61,.18); color:var(--arena-bronze); border:1px solid rgba(226,138,61,.32); }
 
-.lb-rank .rank-emoji.first {
-    animation: crownFloat 2.5s ease-in-out infinite;
+/* Empty state */
+.arena-empty {
+  text-align:center;
+  padding:60px 30px;
 }
-
-.lb-user {
-    flex: 1;
-    margin-left: 1rem;
-    min-width: 0;
+.arena-empty-ico {
+  width:88px; height:88px; border-radius:26px;
+  background:linear-gradient(135deg, rgba(124,92,255,.15), rgba(34,211,238,.1));
+  border:1px solid rgba(124,92,255,.28);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 20px;
+  font-size:2.4rem; color:#a78bfa;
+  animation:arenaFloat 3s ease-in-out infinite;
 }
+@keyframes arenaFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.arena-empty h4 { font-weight:800; color:var(--arena-text); font-size:1.2rem; margin-bottom:6px; }
+.arena-empty p { color:var(--arena-mute); font-size:.92rem; max-width:340px; margin:0 auto; }
 
-.lb-user .name {
-    font-weight: 650;
-    color: var(--g-text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+/* Skeleton loading */
+.arena-skel {
+  padding:14px 20px; display:grid;
+  grid-template-columns:60px minmax(0,1fr) auto;
+  gap:14px; align-items:center;
+  border-bottom:1px solid var(--arena-border);
 }
-
-.lb-user .meta {
-    font-size: 0.78rem;
-    color: var(--g-text-muted);
+.arena-skel:last-child { border-bottom:none; }
+.arena-skel-block {
+  height:14px; border-radius:6px;
+  background:linear-gradient(90deg, rgba(255,255,255,.04) 0%, rgba(255,255,255,.11) 50%, rgba(255,255,255,.04) 100%);
+  background-size:200% 100%;
+  animation:arenaSkelSlide 1.4s ease-in-out infinite;
 }
-
-.lb-stats {
-    display: flex;
-    gap: 1.5rem;
-    text-align: center;
-    flex-shrink: 0;
+[data-bs-theme="light"] .arena-skel-block {
+  background:linear-gradient(90deg, rgba(15,23,42,.05) 0%, rgba(15,23,42,.13) 50%, rgba(15,23,42,.05) 100%);
+  background-size:200% 100%;
 }
+@keyframes arenaSkelSlide{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.arena-skel-rank { width:44px; height:44px; border-radius:12px; }
+.arena-skel-avatar { width:44px; height:44px; border-radius:50%; }
+.arena-skel-name { width:140px; }
+.arena-skel-sub  { width:80px; margin-top:8px; height:10px; }
+.arena-skel-val  { width:72px; height:26px; border-radius:100px; }
 
-.lb-stats .st {
-    min-width: 55px;
+/* Actions footer */
+.arena-actions {
+  margin-top:20px;
+  display:flex; gap:10px; flex-wrap:wrap; justify-content:center;
 }
-
-.lb-stats .st .val {
-    font-weight: 700;
-    color: var(--g-text);
-    font-size: 0.95rem;
+.arena-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 22px; border-radius:14px;
+  font-weight:700; font-size:.9rem;
+  text-decoration:none; border:none; cursor:pointer;
+  transition:transform .2s, box-shadow .25s;
 }
-
-.lb-stats .st .lbl {
-    font-size: 0.68rem;
-    color: var(--g-text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+.arena-btn-primary {
+  background:linear-gradient(135deg, #7c5cff, #22d3ee);
+  color:#fff; box-shadow:0 8px 24px rgba(124,92,255,.4);
 }
-
-.lb-empty {
-    text-align: center;
-    padding: 3rem;
+.arena-btn-primary:hover { transform:translateY(-2px); box-shadow:0 12px 32px rgba(124,92,255,.55); color:#fff; }
+.arena-btn-ghost {
+  background:var(--arena-panel);
+  color:var(--arena-text);
+  border:1px solid var(--arena-border);
 }
+.arena-btn-ghost:hover { background:var(--arena-panel-hi); transform:translateY(-2px); color:var(--arena-text); }
 
-.lb-empty i {
-    font-size: 3rem;
-    opacity: 0.4;
-    display: block;
-    margin-bottom: 0.5rem;
+/* Animations */
+@keyframes arenaFadeDown{from{opacity:0;transform:translateY(-14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes arenaFadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .arena-strip { grid-template-columns:repeat(2,1fr); }
+  .arena-hero-grid { grid-template-columns:auto 1fr; }
+  .arena-hero-right { grid-column:1/-1; justify-content:space-between; }
 }
-
-.btn-back {
-    border-radius: 14px;
-    font-weight: 600;
-    padding: 0.55rem 1.5rem;
-    transition: all 0.3s;
-}
-
-.btn-back:hover {
-    transform: translateX(-4px);
-}
-
-@media (max-width: 768px) {
-    .lb-hero {
-        padding: 1.8rem 1.2rem;
-        border-radius: 16px;
-    }
-    .lb-hero h2 {
-        font-size: 1.3rem;
-    }
-    .lb-hero .trophy-icon {
-        font-size: 2.5rem;
-    }
-    .lb-row {
-        padding: 0.9rem 1rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    .lb-stats {
-        width: 100%;
-        justify-content: space-around;
-        margin-top: 0.5rem;
-        padding-top: 0.5rem;
-        border-top: 1px solid var(--g-border);
-        gap: 0.5rem;
-    }
-    .lb-rank {
-        width: 40px;
-        font-size: 1.1rem;
-    }
-    .lb-card {
-        border-radius: 16px;
-    }
-}
-
-@media (max-width: 576px) {
-    .lb-hero {
-        padding: 1.3rem 1rem;
-    }
-    .lb-hero h2 {
-        font-size: 1.15rem;
-    }
-    .lb-user .name {
-        font-size: 0.9rem;
-    }
-    .lb-stats .st .val {
-        font-size: 0.85rem;
-    }
+@media (max-width: 640px) {
+  .arena-hero { padding:20px 16px; }
+  .arena-emblem { width:60px; height:60px; border-radius:16px; }
+  .arena-emblem i { font-size:1.5rem; }
+  .arena-hero-title { font-size:1.15rem; }
+  .arena-prize { display:none; }
+  .arena-podium { max-width:100%; gap:8px; }
+  .arena-pod-avatar { width:64px; height:64px; font-size:1.5rem; border-width:2px; }
+  .arena-pod-1 .arena-pod-avatar { width:78px; height:78px; }
+  .arena-pod-1 .arena-pod-base { height:110px; }
+  .arena-pod-2 .arena-pod-base { height:88px; }
+  .arena-pod-3 .arena-pod-base { height:70px; }
+  .arena-pod-name { font-size:.78rem; max-width:96px; }
+  .arena-pod-score { font-size:.72rem; padding:3px 8px; }
+  .arena-row { padding:12px 14px; grid-template-columns:40px minmax(0,1fr) auto; gap:10px; }
+  .arena-rank { width:36px; height:36px; font-size:.85rem; border-radius:10px; }
+  .arena-avatar { width:38px; height:38px; font-size:.85rem; }
+  .arena-user-name { font-size:.88rem; }
+  .arena-user-sub { font-size:.7rem; }
+  .arena-primary-val { font-size:.82rem; padding:5px 10px; }
+  .arena-list-head { padding:12px 14px; }
+  .arena-you { padding:12px 14px; }
+  .arena-you-rank { width:44px; height:44px; font-size:1.1rem; border-radius:12px; }
+  .arena-cd-cell { min-width:38px; padding:5px 6px; }
+  .arena-cd-cell .n { font-size:.95rem; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width: 800px;">
-    <div class="lb-hero">
-        <i class="bi bi-trophy trophy-icon"></i>
-        <h2 class="mt-2">{{ competition.title }}</h2>
-        <p class="mb-0">{{ competition.game.title }} &middot; {{ competition.start_time|date:"d.m.Y" }}</p>
-        {% if competition.coin_1st %}
-        <div class="coin-badges">
-            <span class="badge bg-dark">&#x1F947; {{ competition.coin_1st }} coin</span>
-            {% if competition.coin_2nd %}<span class="badge bg-dark">&#x1F948; {{ competition.coin_2nd }} coin</span>{% endif %}
-            {% if competition.coin_3rd %}<span class="badge bg-dark">&#x1F949; {{ competition.coin_3rd }} coin</span>{% endif %}
+<div class="arena" data-competition-id="{{ competition.id }}">
+  <canvas id="arenaCanvas"></canvas>
+
+  <div class="arena-wrap">
+
+    <!-- ══ HERO ══ -->
+    <div class="arena-hero">
+      <div class="arena-hero-grid">
+        <div class="arena-emblem"><i class="bi bi-trophy-fill"></i></div>
+        <div class="arena-hero-info">
+          <h1 class="arena-hero-title">{{ competition.title }}</h1>
+          <div class="arena-hero-sub">
+            <span><i class="bi bi-controller"></i> {{ competition.game.title }}</span>
+            <span class="dot"></span>
+            <span id="arenaStatusPill" class="arena-live-pill">
+              <span class="arena-live-dot"></span>
+              <span id="arenaStatusText">Yuklanmoqda…</span>
+            </span>
+          </div>
         </div>
-        {% endif %}
+        <div class="arena-hero-right">
+          <div class="arena-countdown" id="arenaCountdown">
+            <div class="arena-cd-cell"><div class="n" id="cdD">—</div><div class="l">Kun</div></div>
+            <div class="arena-cd-cell"><div class="n" id="cdH">—</div><div class="l">Soat</div></div>
+            <div class="arena-cd-cell"><div class="n" id="cdM">—</div><div class="l">Daq</div></div>
+            <div class="arena-cd-cell"><div class="n" id="cdS">—</div><div class="l">Son</div></div>
+          </div>
+          {% if competition.coin_1st or competition.coin_2nd or competition.coin_3rd %}
+          <div class="arena-prize">
+            <i class="bi bi-coin"></i>
+            <span class="arena-prize-nums">
+              {% if competition.coin_1st %}<span class="p1">{{ competition.coin_1st }}</span>{% endif %}
+              {% if competition.coin_2nd %}<span class="sep">/</span><span class="p2">{{ competition.coin_2nd }}</span>{% endif %}
+              {% if competition.coin_3rd %}<span class="sep">/</span><span class="p3">{{ competition.coin_3rd }}</span>{% endif %}
+            </span>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Strip -->
+      <div class="arena-strip">
+        <div class="arena-stat">
+          <div class="arena-stat-ico a"><i class="bi bi-people-fill"></i></div>
+          <div class="arena-stat-txt">
+            <div class="arena-stat-val" id="arenaTotal">—</div>
+            <div class="arena-stat-lab">Ishtirokchi</div>
+          </div>
+        </div>
+        <div class="arena-stat">
+          <div class="arena-stat-ico b"><i class="bi bi-lightning-charge-fill"></i></div>
+          <div class="arena-stat-txt">
+            <div class="arena-stat-val" id="arenaTop">—</div>
+            <div class="arena-stat-lab">Eng yuqori ball</div>
+          </div>
+        </div>
+        <div class="arena-stat">
+          <div class="arena-stat-ico c"><i class="bi bi-graph-up-arrow"></i></div>
+          <div class="arena-stat-txt">
+            <div class="arena-stat-val" id="arenaAvg">—</div>
+            <div class="arena-stat-lab">O‘rtacha</div>
+          </div>
+        </div>
+        <div class="arena-stat">
+          <div class="arena-stat-ico d"><i class="bi bi-fire"></i></div>
+          <div class="arena-stat-txt">
+            <div class="arena-stat-val" id="arenaLive">LIVE</div>
+            <div class="arena-stat-lab">Real vaqt</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="lb-card">
-        {% for attempt in attempts %}
-        <div class="lb-row {% if attempt.user == request.user %}current-user{% endif %} {% if attempt.rank == 1 %}top-1{% elif attempt.rank == 2 %}top-2{% elif attempt.rank == 3 %}top-3{% endif %}">
-            <div class="lb-rank {% if attempt.rank == 1 %}gold{% elif attempt.rank == 2 %}silver{% elif attempt.rank == 3 %}bronze{% endif %}">
-                {% if attempt.rank == 1 %}
-                    <span class="rank-emoji first">&#x1F947;</span>
-                {% elif attempt.rank == 2 %}
-                    <span class="rank-emoji">&#x1F948;</span>
-                {% elif attempt.rank == 3 %}
-                    <span class="rank-emoji">&#x1F949;</span>
-                {% else %}
-                    {{ attempt.rank }}
-                {% endif %}
-            </div>
-            <div class="lb-user">
-                <div class="name">
-                    {{ attempt.user.full_name }}
-                    {% if attempt.rank == 1 and competition.coin_1st %}
-                        <span class="badge bg-warning text-dark ms-1" style="font-size:0.7rem;">+{{ competition.coin_1st }} <i class="bi bi-coin"></i></span>
-                    {% elif attempt.rank == 2 and competition.coin_2nd %}
-                        <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">+{{ competition.coin_2nd }} <i class="bi bi-coin"></i></span>
-                    {% elif attempt.rank == 3 and competition.coin_3rd %}
-                        <span class="badge bg-secondary ms-1" style="font-size:0.7rem;">+{{ competition.coin_3rd }} <i class="bi bi-coin"></i></span>
-                    {% endif %}
-                </div>
-                <div class="meta">@{{ attempt.user.username }}</div>
-            </div>
-            <div class="lb-stats">
-                {% if is_board %}
-                <div class="st">
-                    <div class="val">{{ attempt.wins }}</div>
-                    <div class="lbl"><i class="bi bi-trophy"></i> G&#x02BC;alaba</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.draws }}</div>
-                    <div class="lbl"><i class="bi bi-dash-circle"></i> Durang</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.losses }}</div>
-                    <div class="lbl"><i class="bi bi-x-circle"></i> Mag&#x02BC;lub</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.played }}</div>
-                    <div class="lbl"><i class="bi bi-controller"></i> O&#x02BC;yin</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.score }}</div>
-                    <div class="lbl"><i class="bi bi-bullseye"></i> Ball</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.win_rate }}%</div>
-                    <div class="lbl"><i class="bi bi-percent"></i> G&#x02BC;alaba %</div>
-                </div>
-                {% else %}
-                <div class="st">
-                    <div class="val">{{ attempt.score }}</div>
-                    <div class="lbl">Ball</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.wpm }}</div>
-                    <div class="lbl">WPM</div>
-                </div>
-                <div class="st">
-                    <div class="val">{{ attempt.accuracy }}%</div>
-                    <div class="lbl">Aniqlik</div>
-                </div>
-                {% endif %}
-            </div>
+    <!-- ══ YOUR RANK CARD ══ -->
+    <div id="arenaYou" class="arena-you" style="display:none;">
+      <div class="arena-you-rank" id="arenaYouRank">—</div>
+      <div class="arena-you-info">
+        <div class="arena-you-lab">Sizning o‘rningiz</div>
+        <div class="arena-you-name" id="arenaYouName">{{ request.user.full_name }}</div>
+      </div>
+      <div class="arena-you-score" id="arenaYouScore"><i class="bi bi-coin"></i> —</div>
+    </div>
+
+    <!-- ══ PODIUM ══ -->
+    <div id="arenaPodiumWrap" class="arena-podium-wrap" style="display:none;">
+      <div class="arena-podium" id="arenaPodium"></div>
+    </div>
+
+    <!-- ══ LIST ══ -->
+    <div class="arena-list-wrap">
+      <div class="arena-list-head">
+        <div class="arena-list-title">
+          <i class="bi bi-bar-chart-line-fill"></i>
+          <span>To‘liq reyting</span>
         </div>
-        {% empty %}
-        <div class="lb-empty">
-            <i class="bi bi-emoji-smile"></i>
-            <p class="text-muted mt-2 mb-0">Hali natijalar yo&#x02BC;q</p>
+        <div class="arena-sync">
+          <span class="arena-sync-dot" id="arenaSyncDot"></span>
+          <span id="arenaSyncTxt">Yangilanmoqda…</span>
+        </div>
+      </div>
+
+      <div id="arenaList">
+        <!-- Skeleton -->
+        {% for _ in "12345"|make_list %}
+        <div class="arena-skel">
+          <div class="arena-skel-block arena-skel-rank"></div>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <div class="arena-skel-block arena-skel-avatar"></div>
+            <div>
+              <div class="arena-skel-block arena-skel-name"></div>
+              <div class="arena-skel-block arena-skel-sub"></div>
+            </div>
+          </div>
+          <div class="arena-skel-block arena-skel-val"></div>
         </div>
         {% endfor %}
+      </div>
     </div>
 
-    <div class="text-center mt-3 d-flex gap-2 justify-content-center flex-wrap">
-        {% if is_board %}
-        <a href="{% url 'games:game_launch' competition.game.slug %}?competition_id={{ competition.id }}" class="btn btn-primary btn-back">
-            <i class="bi bi-play-circle"></i> Musobaqada o&#x02BC;ynash
-        </a>
-        <a href="{% url 'games:game_launch' competition.game.slug %}" class="btn btn-outline-primary btn-back">
-            <i class="bi bi-arrow-left"></i> O&#x02BC;yinga qaytish
-        </a>
-        {% else %}
-        <a href="{% url 'games:game_detail' competition.game.slug %}" class="btn btn-outline-primary btn-back">
-            <i class="bi bi-arrow-left"></i> O&#x02BC;yin sahifasiga
-        </a>
-        {% endif %}
+    <!-- ══ ACTIONS ══ -->
+    <div class="arena-actions">
+      {% if is_board %}
+      <a href="{% url 'games:game_launch' competition.game.slug %}?competition_id={{ competition.id }}" class="arena-btn arena-btn-primary">
+        <i class="bi bi-play-circle-fill"></i> Musobaqada o‘ynash
+      </a>
+      {% endif %}
+      <a href="{% url 'games:game_detail' competition.game.slug %}" class="arena-btn arena-btn-ghost">
+        <i class="bi bi-arrow-left"></i> O‘yin sahifasiga
+      </a>
     </div>
+  </div>
 </div>
+
+<script>
+(function(){
+  'use strict';
+
+  const CONFIG = {
+    apiUrl:   "{% url 'games:competition_leaderboard_api' competition.id %}",
+    userId:   {{ request.user.pk }},
+    pollMs:   4000,
+    userName: "{{ request.user.full_name|escapejs }}"
+  };
+
+  // ---- Element refs ----
+  const $ = (id) => document.getElementById(id);
+  const listEl      = $('arenaList');
+  const podiumWrap  = $('arenaPodiumWrap');
+  const podiumEl    = $('arenaPodium');
+  const youEl       = $('arenaYou');
+  const youRank     = $('arenaYouRank');
+  const youName     = $('arenaYouName');
+  const youScore    = $('arenaYouScore');
+  const totalEl     = $('arenaTotal');
+  const topEl       = $('arenaTop');
+  const avgEl       = $('arenaAvg');
+  const statusPill  = $('arenaStatusPill');
+  const statusText  = $('arenaStatusText');
+  const syncDot     = $('arenaSyncDot');
+  const syncTxt     = $('arenaSyncTxt');
+  const cdD = $('cdD'), cdH = $('cdH'), cdM = $('cdM'), cdS = $('cdS');
+
+  // ---- State ----
+  let prevRanks   = new Map();  // user_id -> rank (previous fetch)
+  let prevScores  = new Map();  // user_id -> primary (previous fetch)
+  let secondsLeft = 0;
+  let compStatus  = 'active';
+  let pollTimer   = null;
+  let cdTimer     = null;
+  let isFetching  = false;
+
+  // ---- Helpers ----
+  function esc(s){ const d=document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+  function pad(n){ return String(n).padStart(2,'0'); }
+
+  function fmtCoin(n){
+    if (n === null || n === undefined) return '0';
+    if (n >= 1e6) return (n/1e6).toFixed(1).replace(/\.0$/,'')+'M';
+    if (n >= 1e3) return (n/1e3).toFixed(1).replace(/\.0$/,'')+'K';
+    return String(n);
+  }
+
+  function renderCountdown(){
+    if (secondsLeft <= 0){
+      cdD.textContent = '00'; cdH.textContent='00'; cdM.textContent='00'; cdS.textContent='00';
+      return;
+    }
+    const d = Math.floor(secondsLeft / 86400);
+    const h = Math.floor((secondsLeft % 86400) / 3600);
+    const m = Math.floor((secondsLeft % 3600) / 60);
+    const s = secondsLeft % 60;
+    cdD.textContent = pad(d);
+    cdH.textContent = pad(h);
+    cdM.textContent = pad(m);
+    cdS.textContent = pad(s);
+  }
+
+  function tickCountdown(){
+    if (secondsLeft > 0) { secondsLeft--; renderCountdown(); }
+  }
+
+  function setStatus(status, statusDisplay){
+    compStatus = status;
+    statusText.textContent = statusDisplay || status;
+    statusPill.classList.remove('ended','soon');
+    if (status === 'ended') statusPill.classList.add('ended');
+    else if (status === 'upcoming') statusPill.classList.add('soon');
+  }
+
+  function subStatsLine(mode, stats){
+    if (!stats) return '';
+    if (mode === 'board'){
+      return `<span class="stat"><i class="bi bi-trophy"></i>${stats.wins||0}W</span>` +
+             `<span class="stat"><i class="bi bi-dash-circle"></i>${stats.draws||0}D</span>` +
+             `<span class="stat"><i class="bi bi-x-circle"></i>${stats.losses||0}L</span>` +
+             `<span class="stat"><i class="bi bi-percent"></i>${stats.win_rate||0}%</span>`;
+    }
+    if (mode === 'word'){
+      return `<span class="stat"><i class="bi bi-fonts"></i>${stats.words||0} so‘z</span>` +
+             `<span class="stat"><i class="bi bi-stopwatch"></i>${stats.time_spent||0}s</span>`;
+    }
+    // typing
+    return `<span class="stat"><i class="bi bi-speedometer2"></i>${stats.wpm||0} WPM</span>` +
+           `<span class="stat"><i class="bi bi-bullseye"></i>${stats.accuracy||0}%</span>`;
+  }
+
+  function rewardTag(rank, comp){
+    if (rank === 1 && comp.coin_1st) return `<span class="arena-reward-tag r1"><i class="bi bi-coin"></i>+${comp.coin_1st}</span>`;
+    if (rank === 2 && comp.coin_2nd) return `<span class="arena-reward-tag r2"><i class="bi bi-coin"></i>+${comp.coin_2nd}</span>`;
+    if (rank === 3 && comp.coin_3rd) return `<span class="arena-reward-tag r3"><i class="bi bi-coin"></i>+${comp.coin_3rd}</span>`;
+    return '';
+  }
+
+  function avatarHTML(p, extraClass){
+    const cls = 'arena-avatar' + (p.is_premium ? ' premium' : '') + (extraClass ? (' '+extraClass) : '');
+    if (p.photo) return `<div class="${cls}"><img src="${esc(p.photo)}" alt=""></div>`;
+    return `<div class="${cls}">${esc(p.initials || '?')}</div>`;
+  }
+
+  function renderPodium(participants, comp){
+    const top3 = participants.slice(0, 3);
+    if (top3.length < 1){
+      podiumWrap.style.display = 'none';
+      return;
+    }
+    podiumWrap.style.display = '';
+    // Ensure array has 3 items (fill with null for placeholders)
+    const [p1, p2, p3] = [top3[0], top3[1], top3[2]];
+    let html = '';
+    const cells = [
+      {pos:1, p:p1, cls:'arena-pod-1'},
+      {pos:2, p:p2, cls:'arena-pod-2'},
+      {pos:3, p:p3, cls:'arena-pod-3'},
+    ];
+    cells.forEach(c => {
+      if (!c.p){
+        html += `<div class="arena-pod ${c.cls}" style="opacity:.35;">
+                   <div class="arena-pod-avatar" style="background:rgba(255,255,255,.06)"><i class="bi bi-person"></i></div>
+                   <div class="arena-pod-name">—</div>
+                   <div class="arena-pod-base">${c.pos}</div>
+                 </div>`;
+        return;
+      }
+      const crown = c.pos === 1 ? '<div class="arena-crown">👑</div>' : '';
+      html += `<div class="arena-pod ${c.cls}">
+                 <div class="arena-pod-avatar">${crown}${c.p.photo ? `<img src="${esc(c.p.photo)}" alt="">` : `<span>${esc(c.p.initials || '?')}</span>`}</div>
+                 <div class="arena-pod-name">${esc(c.p.full_name)}${c.p.is_you ? ' <span style="color:#a78bfa;font-size:.65rem;">(siz)</span>' : ''}</div>
+                 <div class="arena-pod-score"><i class="bi bi-star-fill"></i>${c.p.primary}</div>
+                 <div class="arena-pod-base">${c.pos}</div>
+               </div>`;
+    });
+    podiumEl.innerHTML = html;
+  }
+
+  function renderList(participants, mode, comp){
+    if (!participants.length){
+      listEl.innerHTML = `
+        <div class="arena-empty">
+          <div class="arena-empty-ico"><i class="bi bi-hourglass-split"></i></div>
+          <h4>Hali natijalar yo‘q</h4>
+          <p>Musobaqa boshlangach, ishtirokchilarning natijalari shu yerda real vaqtda paydo bo‘ladi.</p>
+        </div>`;
+      return;
+    }
+
+    let html = '';
+    participants.forEach((p, i) => {
+      const rankCls = p.rank === 1 ? 'g1' : p.rank === 2 ? 'g2' : p.rank === 3 ? 'g3' : '';
+      const rowCls = [];
+      if (p.is_you) rowCls.push('is-you');
+
+      // Detect movement
+      const prevRank  = prevRanks.get(p.user_id);
+      const prevScore = prevScores.get(p.user_id);
+      if (prevRank !== undefined && prevRank !== p.rank){
+        rowCls.push(p.rank < prevRank ? 'moved-up' : 'moved-down');
+      }
+      if (prevScore !== undefined && prevScore !== p.primary){
+        rowCls.push('updated');
+      }
+
+      const reward = rewardTag(p.rank, comp);
+      const nameLine = `${esc(p.full_name)}${p.is_premium ? '<i class="bi bi-patch-check-fill prem-check"></i>' : ''}${p.is_you ? '<span class="badge-you">Siz</span>' : ''}`;
+      const subLine = `<span class="stat">@${esc(p.username)}</span>${subStatsLine(mode, p.stats)}`;
+
+      html += `<div class="arena-row ${rowCls.join(' ')}" data-uid="${p.user_id}" style="animation:arenaFadeUp .35s ${Math.min(i*30,600)}ms ease both;">
+                 <div class="arena-rank ${rankCls}">${p.rank}</div>
+                 <div class="arena-user">
+                   ${avatarHTML(p)}
+                   <div class="arena-user-txt">
+                     <div class="arena-user-name">${nameLine}</div>
+                     <div class="arena-user-sub">${subLine}</div>
+                   </div>
+                 </div>
+                 <div class="arena-primary">
+                   <span class="arena-primary-val"><i class="bi bi-star-fill"></i>${p.primary}</span>
+                   ${reward}
+                 </div>
+               </div>`;
+    });
+    listEl.innerHTML = html;
+  }
+
+  function updateStats(participants, total){
+    totalEl.textContent = total;
+    if (!participants.length){
+      topEl.textContent = '0';
+      avgEl.textContent = '0';
+      return;
+    }
+    const top = participants[0].primary || 0;
+    const sum = participants.reduce((a,p) => a + (p.primary || 0), 0);
+    const avg = participants.length ? Math.round((sum / participants.length) * 10) / 10 : 0;
+    topEl.textContent = top;
+    avgEl.textContent = avg;
+  }
+
+  function updateYou(participants){
+    const me = participants.find(p => p.is_you);
+    if (!me){
+      youEl.style.display = 'none';
+      return;
+    }
+    youEl.style.display = '';
+    youRank.textContent = me.rank;
+    youScore.innerHTML = `<i class="bi bi-star-fill"></i> ${me.primary}`;
+  }
+
+  function markSync(state){
+    if (state === 'ok'){
+      syncDot.className = 'arena-sync-dot';
+      const now = new Date();
+      syncTxt.textContent = `Yangilangan • ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    } else if (state === 'loading'){
+      syncDot.className = 'arena-sync-dot';
+      syncTxt.textContent = 'Yangilanmoqda…';
+    } else {
+      syncDot.className = 'arena-sync-dot err';
+      syncTxt.textContent = 'Aloqa yo‘q — qayta urinilmoqda';
+    }
+  }
+
+  async function fetchData(){
+    if (isFetching) return;
+    isFetching = true;
+    markSync('loading');
+    try {
+      const resp = await fetch(CONFIG.apiUrl, {
+        headers:{'X-Requested-With':'XMLHttpRequest'},
+        credentials:'same-origin'
+      });
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      const data = await resp.json();
+
+      // Countdown sync
+      secondsLeft = data.competition.seconds_remaining || 0;
+      renderCountdown();
+
+      // Status
+      setStatus(data.competition.status, data.competition.status_display);
+
+      // Render podium + list + stats
+      renderPodium(data.participants, data.competition);
+      renderList(data.participants, data.mode, data.competition);
+      updateStats(data.participants, data.total_participants);
+      updateYou(data.participants);
+
+      // Persist rank/score maps for next diff
+      prevRanks.clear();
+      prevScores.clear();
+      data.participants.forEach(p => {
+        prevRanks.set(p.user_id, p.rank);
+        prevScores.set(p.user_id, p.primary);
+      });
+
+      markSync('ok');
+
+      // Stop polling when competition is over
+      if (data.competition.status === 'ended'){
+        if (pollTimer) clearInterval(pollTimer);
+        pollTimer = null;
+      }
+    } catch (err){
+      console.error('Leaderboard fetch failed', err);
+      markSync('err');
+    } finally {
+      isFetching = false;
+    }
+  }
+
+  // ---- Ambient particle canvas ----
+  (function(){
+    const c = document.getElementById('arenaCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const parent = c.parentElement;
+    let particles = [];
+    function resize(){
+      c.width  = parent.offsetWidth;
+      c.height = parent.offsetHeight;
+      particles = [];
+      const count = Math.min(80, Math.round((c.width * c.height) / 25000));
+      for (let i=0;i<count;i++){
+        particles.push({
+          x: Math.random()*c.width,
+          y: Math.random()*c.height,
+          vx: (Math.random()-.5)*.25,
+          vy: (Math.random()-.5)*.25,
+          r: Math.random()*1.6 + .4,
+          hue: Math.random() < .5 ? 254 : 190
+        });
+      }
+    }
+    function draw(){
+      ctx.clearRect(0,0,c.width,c.height);
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > c.width) p.vx *= -1;
+        if (p.y < 0 || p.y > c.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = `hsla(${p.hue}, 90%, 70%, 0.4)`;
+        ctx.fill();
+      });
+      // Connect close particles
+      for (let i=0; i<particles.length; i++){
+        for (let j=i+1; j<particles.length; j++){
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const d = Math.hypot(dx, dy);
+          if (d < 110){
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(124,92,255,${0.08 * (1 - d/110)})`;
+            ctx.lineWidth = .6;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+    draw();
+  })();
+
+  // ---- Bootstrap ----
+  fetchData();
+  pollTimer = setInterval(fetchData, CONFIG.pollMs);
+  cdTimer   = setInterval(tickCountdown, 1000);
+
+  // Refresh immediately when tab regains focus
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) fetchData();
+  });
+
+})();
+</script>
 {% endblock %}

@@ -621,6 +621,187 @@ def competition_leaderboard(request, competition_id):
     })
 
 
+@login_required
+def competition_leaderboard_api(request, competition_id):
+    """Live JSON API for competition leaderboard — returns ranked participants.
+
+    Handles all three modes:
+      - Board games (chess/checkers): aggregated wins/draws/losses
+      - Word Builder: total_score / found_count / time
+      - Typing (default): score / wpm / accuracy
+    """
+    competition = get_object_or_404(Competition, pk=competition_id)
+
+    if competition.status == 'ended' and not competition.coins_awarded:
+        competition.award_competition_coins()
+
+    engine = (competition.game.config or {}).get('engine', '')
+    is_board = competition.game.game_type == 'external' and engine in ('chess', 'checkers')
+    is_word = competition.game.game_type == 'word_builder'
+
+    participants = []
+
+    if is_board:
+        all_attempts = GameAttempt.objects.filter(
+            competition=competition
+        ).select_related('user').order_by('user_id', '-created_at')
+
+        agg = {}
+        for a in all_attempts:
+            u = agg.setdefault(a.user_id, {
+                'user': a.user,
+                'played': 0, 'wins': 0, 'draws': 0, 'losses': 0,
+                'score': 0.0, 'time_spent': 0.0, 'last_at': None,
+            })
+            u['played'] += 1
+            if a.accuracy >= 100:
+                u['wins'] += 1
+            elif a.accuracy <= 0:
+                u['losses'] += 1
+            else:
+                u['draws'] += 1
+            u['score'] += float(a.score or 0)
+            u['time_spent'] += float(a.time_spent or 0)
+            if not u['last_at'] or a.created_at > u['last_at']:
+                u['last_at'] = a.created_at
+
+        ranked_list = sorted(
+            agg.values(),
+            key=lambda x: (-x['wins'], -x['score'], -x['draws'], x['time_spent'])
+        )
+        for i, r in enumerate(ranked_list, start=1):
+            u = r['user']
+            wr = round((r['wins'] / r['played']) * 100, 1) if r['played'] else 0
+            participants.append({
+                'rank': i,
+                'user_id': u.pk,
+                'is_you': u.pk == request.user.pk,
+                'full_name': u.full_name,
+                'username': u.username,
+                'initials': u.get_initials(),
+                'photo': u.photo.url if u.photo else None,
+                'is_premium': getattr(u, 'is_premium', False),
+                'primary': round(r['score'], 1),
+                'stats': {
+                    'wins': r['wins'],
+                    'draws': r['draws'],
+                    'losses': r['losses'],
+                    'played': r['played'],
+                    'win_rate': wr,
+                    'time_spent': round(r['time_spent'], 1),
+                },
+                'last_at': r['last_at'].isoformat() if r['last_at'] else None,
+            })
+
+    elif is_word:
+        all_attempts = WordGameAttempt.objects.filter(
+            competition=competition
+        ).select_related('user').order_by('-total_score', 'time_spent')
+
+        seen = set()
+        rank = 0
+        for a in all_attempts:
+            if a.user_id in seen:
+                continue
+            seen.add(a.user_id)
+            rank += 1
+            u = a.user
+            participants.append({
+                'rank': rank,
+                'user_id': u.pk,
+                'is_you': u.pk == request.user.pk,
+                'full_name': u.full_name,
+                'username': u.username,
+                'initials': u.get_initials(),
+                'photo': u.photo.url if u.photo else None,
+                'is_premium': getattr(u, 'is_premium', False),
+                'primary': round(float(a.total_score or 0), 1),
+                'stats': {
+                    'words': a.found_count,
+                    'time_spent': round(float(a.time_spent or 0), 1),
+                },
+                'last_at': a.created_at.isoformat() if a.created_at else None,
+            })
+
+    else:
+        all_attempts = GameAttempt.objects.filter(
+            competition=competition
+        ).select_related('user').order_by('-score', '-accuracy', 'time_spent')
+
+        seen = set()
+        rank = 0
+        for a in all_attempts:
+            if a.user_id in seen:
+                continue
+            seen.add(a.user_id)
+            rank += 1
+            u = a.user
+            participants.append({
+                'rank': rank,
+                'user_id': u.pk,
+                'is_you': u.pk == request.user.pk,
+                'full_name': u.full_name,
+                'username': u.username,
+                'initials': u.get_initials(),
+                'photo': u.photo.url if u.photo else None,
+                'is_premium': getattr(u, 'is_premium', False),
+                'primary': round(float(a.score or 0), 1),
+                'stats': {
+                    'wpm': round(float(a.wpm or 0), 1),
+                    'accuracy': round(float(a.accuracy or 0), 1),
+                    'time_spent': round(float(a.time_spent or 0), 1),
+                },
+                'last_at': a.created_at.isoformat() if a.created_at else None,
+            })
+
+    if is_board:
+        mode = 'board'
+        primary_label = 'Ball'
+    elif is_word:
+        mode = 'word'
+        primary_label = 'Ball'
+    else:
+        mode = 'typing'
+        primary_label = 'Ball'
+
+    your_rank = None
+    for p in participants:
+        if p['is_you']:
+            your_rank = p['rank']
+            break
+
+    now = timezone.now()
+    if competition.status == 'upcoming':
+        seconds_remaining = int((competition.start_time - now).total_seconds())
+    elif competition.status == 'active':
+        seconds_remaining = int((competition.end_time - now).total_seconds())
+    else:
+        seconds_remaining = 0
+
+    return JsonResponse({
+        'competition': {
+            'id': competition.pk,
+            'title': competition.title,
+            'game_title': competition.game.title,
+            'game_slug': competition.game.slug,
+            'status': competition.status,
+            'status_display': competition.status_display,
+            'start_time': competition.start_time.isoformat(),
+            'end_time': competition.end_time.isoformat(),
+            'seconds_remaining': max(0, seconds_remaining),
+            'coin_1st': competition.coin_1st,
+            'coin_2nd': competition.coin_2nd,
+            'coin_3rd': competition.coin_3rd,
+        },
+        'mode': mode,
+        'primary_label': primary_label,
+        'total_participants': len(participants),
+        'your_rank': your_rank,
+        'participants': participants,
+        'server_time': now.isoformat(),
+    })
+
+
 # ============== ADMIN VIEWS ==============
 
 @login_required
@@ -1568,26 +1749,8 @@ def word_game_finish(request, slug):
 
 @login_required
 def word_game_leaderboard(request, competition_id):
-    competition = get_object_or_404(Competition, pk=competition_id)
-    if competition.game.game_type != 'word_builder':
-        return redirect('games:competition_leaderboard', competition_id=competition_id)
-
-    all_attempts = WordGameAttempt.objects.filter(
-        competition=competition
-    ).select_related('user', 'word_round').order_by('-total_score', '-found_words', 'time_spent')
-
-    seen_users = set()
-    ranked = []
-    for attempt in all_attempts:
-        if attempt.user_id not in seen_users:
-            seen_users.add(attempt.user_id)
-            attempt.rank = len(ranked) + 1
-            ranked.append(attempt)
-
-    return render(request, 'games/student/word_game_leaderboard.html', {
-        'competition': competition,
-        'attempts': ranked,
-    })
+    # Unified live leaderboard handles word_builder mode too.
+    return redirect('games:competition_leaderboard', competition_id=competition_id)
 
 
 # ---- So'z taklifi ----
@@ -2023,28 +2186,8 @@ def word_game_submit(request, slug):
 
 @login_required
 def word_game_leaderboard(request, competition_id):
-    competition = get_object_or_404(Competition, pk=competition_id)
-    if competition.game.game_type != 'word_builder':
-        return redirect('games:competition_leaderboard', competition_id=competition_id)
-
-    # Musobaqa tugagan bo'lsa, coin berish
-    if competition.status == 'ended' and not competition.coins_awarded:
-        competition.award_competition_coins()
-
-    all_attempts = WordGameAttempt.objects.filter(competition=competition).select_related('user', 'word_round').order_by('-total_score', '-found_words', 'time_spent')
-
-    seen_users = set()
-    ranked = []
-    for attempt in all_attempts:
-        if attempt.user_id not in seen_users:
-            seen_users.add(attempt.user_id)
-            attempt.rank = len(ranked) + 1
-            ranked.append(attempt)
-
-    return render(request, 'games/student/word_game_leaderboard.html', {
-        'competition': competition,
-        'attempts': ranked,
-    })
+    # Unified live leaderboard handles word_builder mode too.
+    return redirect('games:competition_leaderboard', competition_id=competition_id)
 
 
 # ============== WORD BUILDER ADMIN VIEWS ==============

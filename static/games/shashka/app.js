@@ -102,6 +102,22 @@ function hideReconnectOverlay() {
     overlay.classList.add('hidden');
     overlay.classList.remove('reconnecting');
 }
+// Token muddati tugaganda (HTTP 403) — jimgina "Raqib yurmoqda"da qotib qolish
+// o'rniga pollingni to'xtatib, aniq xabar beramiz. Sahifa yangilansa yangi token
+// olinadi va o'yin davom etadi.
+let _sessionExpired = false;
+function showSessionExpired() {
+    if (_sessionExpired) return;
+    _sessionExpired = true;
+    if (pollInterval) clearInterval(pollInterval);
+    const overlay = $('wait-overlay');
+    if (overlay) {
+        $('wait-text').innerHTML = "<i class=\"bi bi-hourglass-bottom\"></i> Sessiya muddati tugadi. Davom etish uchun sahifani yangilang.";
+        overlay.classList.remove('hidden');
+        overlay.classList.remove('reconnecting');
+    }
+    announce('Sessiya muddati tugadi, sahifani yangilang');
+}
 
 const screens = {
     auth:  $('auth-screen'),
@@ -1565,7 +1581,7 @@ async function pollMatchState() {
         // A response arrived — connection is fine, clear any reconnect warning
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        if (!data.ok) return;
+        if (!data.ok) { if (res.status === 403) showSessionExpired(); return; }
         const m = data.match;
         const hasNewMove = m.move_count > lastSeenMoveCount;
         const isEnded = m.status === 'ended';
@@ -1637,6 +1653,8 @@ async function sendMpMove(winner = null) {
             if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
             return data.match;
         }
+        // Token muddati tugagan bo'lsa (403) — jimgina yo'qotmaymiz, xabar beramiz.
+        if (res.status === 403) showSessionExpired();
     } catch (e) {}
     return null;
 }
