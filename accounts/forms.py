@@ -367,12 +367,9 @@ class VideoLessonForm(forms.Form):
         }),
         label="YouTube havolasi"
     )
-    duration = forms.IntegerField(
-        min_value=1,
-        initial=10,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Davomiyligi (daqiqa)'}),
-        help_text="Video davomiyligi (daqiqada). O'quvchi shu vaqtning yarmini ko'rishi kerak."
-    )
+    # `duration` (davomiylik) maydoni olib tashlandi — video davomiyligi endi
+    # pleer (YouTube/Vimeo) haqiqiy vaqtidan avtomatik aniqlanadi va o'quvchi
+    # videoni ko'rib bo'lgach DB'ga yoziladi (mark_video_watched).
 
     def clean(self):
         cleaned_data = super().clean()

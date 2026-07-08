@@ -3654,6 +3654,29 @@ def submit_speaking(request, pk):
     return redirect('lesson_view', pk=speaking_task.lesson.pk)
 
 
+def _autosave_video_duration(request, video):
+    """Pleer (YouTube/Vimeo) bergan haqiqiy davomiylikni DB'ga yozadi.
+
+    `duration` (daqiqa) endi qo'lda kiritilmaydi — mijoz "Ko'rdim" so'rovi bilan
+    birga `duration_seconds` yuboradi va agar DB'da hali qiymat bo'lmasa
+    (0) shu yerda daqiqaga aylantirib saqlaymiz. Bu statistika (jami video
+    daqiqalari) va fallback timer uchun ishlatiladi.
+    """
+    if video.duration and video.duration > 0:
+        return
+    try:
+        import json
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+        secs = float(payload.get('duration_seconds') or 0)
+    except Exception:
+        return
+    if secs and secs > 0:
+        minutes = max(1, round(secs / 60))
+        # Atomik: faqat DB'da hali 0 bo'lsa yozamiz (parallel yakunlashlarda
+        # birinchi yozilgan qiymat ustidan yozib yuborilmasligi uchun).
+        VideoLesson.objects.filter(pk=video.pk, duration=0).update(duration=minutes)
+
+
 @login_required
 def mark_video_watched(request, pk):
     if request.method != 'POST':
@@ -3663,6 +3686,7 @@ def mark_video_watched(request, pk):
         return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin', 'use_token': True}, status=403)
     
     video = get_object_or_404(VideoLesson, pk=pk)
+    _autosave_video_duration(request, video)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
     
     coin_amount = 2 if request.user.is_premium else 1
@@ -5408,6 +5432,7 @@ def student_mark_video_watched(request, token):
         return JsonResponse({'success': False, 'error': 'Not a video lesson'})
 
     video = lesson.video
+    _autosave_video_duration(request, video)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
 
     coin_amount = 2 if request.user.is_premium else 1
@@ -7373,7 +7398,8 @@ def add_lesson(request, pk):
                     lesson=lesson,
                     video_url=vimeo_url or None,
                     youtube_url=youtube_url or None,
-                    duration=form.cleaned_data.get('duration') or 0
+                    # duration=0 — pleer haqiqiy davomiyligidan avtomatik to'ldiriladi
+                    # (o'quvchi videoni ko'rib bo'lgach mark_video_watched orqali).
                 )
                 # AI maqola yaratish
                 ai_article = _generate_ai_article(lesson.title, profession.name)
@@ -7570,9 +7596,17 @@ def edit_lesson(request, pk):
                 lesson.title = form.cleaned_data['title']
                 lesson.ai_article = request.POST.get('ai_article', '').strip() or None
                 lesson.save(update_fields=['title', 'ai_article'])
-                lesson.video.video_url = form.cleaned_data.get('vimeo_url') or None
-                lesson.video.youtube_url = form.cleaned_data.get('youtube_url') or None
-                lesson.video.duration = form.cleaned_data.get('duration') or 0
+                new_vimeo = form.cleaned_data.get('vimeo_url') or None
+                new_youtube = form.cleaned_data.get('youtube_url') or None
+                # Havola o'zgargan bo'lsagina davomiylikni 0 ga tushiramiz — yangi
+                # video uchun pleerdan qayta aniqlanadi. Aks holda avtomatik
+                # saqlangan davomiylik saqlanib qoladi (title/AI tahriri uni o'chirmaydi).
+                url_changed = (lesson.video.video_url or None) != new_vimeo or \
+                              (lesson.video.youtube_url or None) != new_youtube
+                lesson.video.video_url = new_vimeo
+                lesson.video.youtube_url = new_youtube
+                if url_changed:
+                    lesson.video.duration = 0
                 lesson.video.save()
                 # Xabar yuborish
                 send_course_notification(
@@ -7608,7 +7642,6 @@ def edit_lesson(request, pk):
                 'title': lesson.title,
                 'vimeo_url': lesson.video.video_url or '',
                 'youtube_url': lesson.video.youtube_url or '',
-                'duration': lesson.video.duration,
             })
         elif lesson.lesson_type == 'homework':
             form = HomeworkForm(initial={

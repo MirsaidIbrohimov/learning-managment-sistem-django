@@ -6,33 +6,53 @@
 <style>
 /* ── Design Tokens ─────────────────────────────────── */
 :root {
-    --vl-bg:      #f2f2f7;
-    --vl-card:    #ffffff;
-    --vl-border:  rgba(0,0,0,.07);
-    --vl-sep:     rgba(60,60,67,.1);
-    --vl-text:    #1c1c1e;
-    --vl-muted:   #8e8e93;
-    --vl-soft:    rgba(0,0,0,.03);
-    --vl-radius:  18px;
-    --vl-shadow:  0 2px 20px rgba(0,0,0,.06);
-    --vl-ease:    .3s cubic-bezier(.25,.1,.25,1);
-    --vl-spring:  .5s cubic-bezier(.34,1.56,.64,1);
-    --vl-blue:    #007aff;
-    --vl-green:   #34c759;
-    --vl-orange:  #ff9500;
-    --vl-purple:  #af52de;
-    --vl-yellow:  #ffcc00;
+    --vl-bg:        #f5f5f7;
+    --vl-bg-grad:   radial-gradient(1200px 600px at 10% -10%, rgba(0,122,255,.06), transparent 60%),
+                    radial-gradient(1000px 500px at 100% 0%, rgba(175,82,222,.05), transparent 55%);
+    --vl-card:      #ffffff;
+    --vl-card-2:    #fafafc;
+    --vl-border:    rgba(0,0,0,.06);
+    --vl-sep:       rgba(60,60,67,.09);
+    --vl-text:      #0f0f14;
+    --vl-text-2:    #3c3c43;
+    --vl-muted:     #86868b;
+    --vl-soft:      rgba(0,0,0,.035);
+    --vl-radius:    20px;
+    --vl-radius-sm: 14px;
+    --vl-shadow:    0 1px 2px rgba(0,0,0,.04), 0 8px 24px -8px rgba(0,0,0,.08);
+    --vl-shadow-lg: 0 4px 12px rgba(0,0,0,.05), 0 20px 48px -12px rgba(0,0,0,.14);
+    --vl-ease:      .3s cubic-bezier(.25,.1,.25,1);
+    --vl-spring:    .5s cubic-bezier(.34,1.56,.64,1);
+    --vl-blue:      #007aff;
+    --vl-blue-2:    #5ac8fa;
+    --vl-green:     #34c759;
+    --vl-orange:    #ff9500;
+    --vl-purple:    #af52de;
+    --vl-pink:      #ff375f;
+    --vl-yellow:    #ffcc00;
+    --vl-indigo:    #5e5ce6;
+    --vl-grad-blue: linear-gradient(135deg, #007aff, #5ac8fa);
+    --vl-grad-purple: linear-gradient(135deg, #5e5ce6, #af52de);
+    --vl-grad-green: linear-gradient(135deg, #34c759, #30d158);
+    --vl-grad-warm: linear-gradient(135deg, #ff9500, #ff375f);
+    --vl-grad-gold: linear-gradient(135deg, #ffcc00, #ffb300);
 }
 [data-bs-theme="dark"] {
-    --vl-bg:     #000;
-    --vl-card:   #1c1c1e;
-    --vl-border: rgba(255,255,255,.08);
-    --vl-sep:    rgba(84,84,88,.3);
-    --vl-text:   #fff;
-    --vl-muted:  #98989d;
-    --vl-soft:   rgba(255,255,255,.04);
-    --vl-shadow: 0 2px 20px rgba(0,0,0,.3);
+    --vl-bg:        #0a0a0f;
+    --vl-bg-grad:   radial-gradient(1200px 600px at 10% -10%, rgba(0,122,255,.14), transparent 60%),
+                    radial-gradient(1000px 500px at 100% 0%, rgba(175,82,222,.12), transparent 55%);
+    --vl-card:      #17171c;
+    --vl-card-2:    #1f1f27;
+    --vl-border:    rgba(255,255,255,.07);
+    --vl-sep:       rgba(255,255,255,.06);
+    --vl-text:      #f5f5f7;
+    --vl-text-2:    #c7c7cc;
+    --vl-muted:     #8e8e93;
+    --vl-soft:      rgba(255,255,255,.04);
+    --vl-shadow:    0 1px 2px rgba(0,0,0,.5), 0 8px 24px -8px rgba(0,0,0,.6);
+    --vl-shadow-lg: 0 4px 12px rgba(0,0,0,.5), 0 20px 48px -12px rgba(0,0,0,.7);
 }
+body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 
 /* ── Page wrapper ──────────────────────────────────── */
 .vl-wrap {
@@ -50,17 +70,26 @@
 .vl-back {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     color: var(--vl-blue);
-    font-size: .9rem;
+    font-size: .88rem;
     font-weight: 600;
     text-decoration: none;
-    padding: 6px 0;
-    margin-bottom: 14px;
-    transition: opacity var(--vl-ease);
+    padding: 8px 14px 8px 10px;
+    margin-bottom: 16px;
+    border-radius: 100px;
+    background: var(--vl-card);
+    border: 1px solid var(--vl-border);
+    box-shadow: var(--vl-shadow);
+    transition: transform var(--vl-ease), box-shadow var(--vl-ease), color var(--vl-ease);
 }
-.vl-back:hover { opacity: .6; color: var(--vl-blue); }
-.vl-back i { font-size: 1.1rem; }
+.vl-back:hover {
+    color: var(--vl-blue);
+    transform: translateX(-3px);
+    box-shadow: var(--vl-shadow-lg);
+}
+.vl-back i { font-size: 1.05rem; transition: transform var(--vl-ease); }
+.vl-back:hover i { transform: translateX(-2px); }
 
 /* ── Two-column grid ───────────────────────────────── */
 .vl-grid {
@@ -92,22 +121,41 @@
     border-radius: var(--vl-radius);
     box-shadow: var(--vl-shadow);
     overflow: hidden;
+    transition: box-shadow var(--vl-ease), transform var(--vl-ease);
 }
 
 /* ── Lesson header (title + tags) ──────────────────── */
 .vl-header {
-    padding: 18px 20px 14px;
-    margin-bottom: 12px;
+    padding: 22px 24px 18px;
+    margin-bottom: 14px;
+    position: relative;
+    overflow: hidden;
+}
+.vl-header::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(0,122,255,.04) 0%, rgba(175,82,222,.03) 100%);
+    pointer-events: none;
 }
 .vl-title {
-    font-size: 1.2rem;
-    font-weight: 700;
+    position: relative;
+    font-size: 1.35rem;
+    font-weight: 750;
     color: var(--vl-text);
-    margin: 0 0 10px;
-    line-height: 1.35;
-    letter-spacing: -.02em;
+    margin: 0 0 12px;
+    line-height: 1.3;
+    letter-spacing: -.025em;
+    display: flex; align-items: center; gap: 10px;
+}
+.vl-title::before {
+    content: '';
+    width: 4px; height: 22px;
+    border-radius: 2px;
+    background: var(--vl-grad-blue);
+    flex-shrink: 0;
 }
 .vl-tags {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
@@ -116,16 +164,19 @@
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 4px 11px;
-    border-radius: 20px;
+    padding: 5px 12px;
+    border-radius: 100px;
     font-size: .72rem;
     font-weight: 700;
     letter-spacing: .01em;
+    border: 1px solid transparent;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
-.vl-tag-yt      { background: rgba(255,0,0,.08); color: #e00; }
-[data-bs-theme="dark"] .vl-tag-yt { background: rgba(255,0,0,.14); color: #ff4444; }
-.vl-tag-watched { background: rgba(52,199,89,.1); color: var(--vl-green); }
-.vl-tag-premium { background: rgba(175,82,222,.1); color: var(--vl-purple); }
+.vl-tag-yt      { background: rgba(255,0,0,.08); color: #e00; border-color: rgba(255,0,0,.15); }
+[data-bs-theme="dark"] .vl-tag-yt { background: rgba(255,0,0,.14); color: #ff4444; border-color: rgba(255,68,68,.25); }
+.vl-tag-watched { background: rgba(52,199,89,.12); color: var(--vl-green); border-color: rgba(52,199,89,.2); }
+.vl-tag-premium { background: rgba(175,82,222,.12); color: var(--vl-purple); border-color: rgba(175,82,222,.2); }
 
 /* ── Video player ──────────────────────────────────── */
 .vl-video-wrap {
@@ -208,6 +259,38 @@
     box-shadow: 0 1px 4px rgba(0,0,0,.35);
 }
 .vl-ctrl-spacer { flex: 1; }
+/* ── Sifat (quality) tanlash tugmasi va menyusi ── */
+.vl-quality-wrap { position: relative; display: flex; align-items: center; }
+.vl-quality-menu {
+    position: absolute;
+    right: 0; bottom: 44px;
+    min-width: 132px;
+    background: rgba(20,20,22,.96);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.5);
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    z-index: 8;
+}
+.vl-quality-menu.vl-open { display: flex; }
+.vl-quality-title {
+    font-size: .7rem; font-weight: 700; letter-spacing: .04em;
+    text-transform: uppercase; color: rgba(255,255,255,.5);
+    padding: 4px 10px 6px;
+}
+.vl-quality-opt {
+    border: 0; background: transparent; color: #fff;
+    text-align: left; padding: 8px 12px; border-radius: 8px;
+    font-size: .9rem; cursor: pointer; white-space: nowrap;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    transition: background .15s ease;
+}
+.vl-quality-opt:hover { background: rgba(255,255,255,.12); }
+.vl-quality-opt.vl-active { color: #34c759; font-weight: 700; }
+.vl-quality-opt.vl-active::after { content: '\F26E'; font-family: 'bootstrap-icons'; font-size: .95rem; }
 @media (max-width: 576px) {
     .vl-vol-slider { width: 60px; }
     .vl-ctrl-btn { width: 30px; height: 30px; font-size: .95rem; }
@@ -240,40 +323,55 @@
 .vl-play-btn {
     position: relative;
     z-index: 1;
-    width: 76px;
-    height: 76px;
+    width: 88px;
+    height: 88px;
     border-radius: 50%;
-    background: rgba(255,255,255,.18);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255,255,255,.14);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.15);
     transition: all var(--vl-ease);
 }
 .vl-play-btn::before {
     content: '';
     position: absolute;
-    inset: -7px;
+    inset: -10px;
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,.18);
+    border: 2px solid rgba(255,255,255,.22);
     animation: vlPlayPulse 2.4s ease-in-out infinite;
 }
-.vl-placeholder:hover .vl-play-btn {
-    transform: scale(1.08);
-    background: rgba(255,255,255,.25);
+.vl-play-btn::after {
+    content: '';
+    position: absolute;
+    inset: -18px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,.12);
+    animation: vlPlayPulse 2.4s ease-in-out infinite .6s;
 }
-.vl-play-btn i { font-size: 2.2rem; color: #fff; margin-left: 4px; }
+.vl-placeholder:hover .vl-play-btn {
+    transform: scale(1.1);
+    background: rgba(255,255,255,.22);
+}
+.vl-play-btn i { font-size: 2.4rem; color: #fff; margin-left: 5px; filter: drop-shadow(0 2px 8px rgba(0,0,0,.35)); }
 .vl-play-hint {
     position: relative; z-index: 1;
-    color: rgba(255,255,255,.65);
-    font-size: .8rem; font-weight: 500;
-    margin-top: 14px;
-    letter-spacing: .02em;
+    color: rgba(255,255,255,.75);
+    font-size: .82rem; font-weight: 600;
+    margin-top: 18px;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    background: rgba(0,0,0,.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
 }
 @keyframes vlPlayPulse {
-    0%,100% { transform: scale(1);    opacity: .5; }
-    50%      { transform: scale(1.14); opacity: 0; }
+    0%,100% { transform: scale(1);    opacity: .6; }
+    50%      { transform: scale(1.2); opacity: 0; }
 }
 
 /* No video */
@@ -285,76 +383,98 @@
 .vl-no-video .vl-play-btn::before { display: none; }
 
 /* ── Progress panel card (right sidebar) ───────────── */
-.vl-panel { padding: 18px 20px; }
+.vl-panel { padding: 20px 22px; }
 .vl-panel-label {
-    font-size: .7rem;
-    font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+    font-size: .68rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .08em;
     color: var(--vl-muted);
-    margin-bottom: 14px;
+    margin-bottom: 16px;
 }
+.vl-panel-label i { color: var(--vl-blue); font-size: .9rem; }
 
 /* Timer row */
 .vl-timer-row {
     display: flex;
     align-items: center;
     gap: 14px;
-    background: var(--vl-soft);
-    border-radius: 14px;
-    padding: 14px 16px;
+    background: linear-gradient(135deg, var(--vl-soft), transparent);
+    border: 1px solid var(--vl-sep);
+    border-radius: 16px;
+    padding: 15px 16px;
     margin-bottom: 14px;
-    transition: background var(--vl-ease);
+    transition: all var(--vl-ease);
 }
 .vl-timer-icon {
-    width: 46px;
-    height: 46px;
-    border-radius: 13px;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     flex-shrink: 0;
     transition: all var(--vl-ease);
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
 }
-.vl-timer-icon.waiting { background: rgba(142,142,147,.1); color: var(--vl-muted); }
-.vl-timer-icon.running { background: rgba(0,122,255,.12); color: var(--vl-blue); }
-.vl-timer-icon.paused  { background: rgba(255,149,0,.1);  color: var(--vl-orange); }
-.vl-timer-icon.ready   { background: rgba(52,199,89,.12); color: var(--vl-green);
-    animation: vlReadyPop var(--vl-spring) both; }
+.vl-timer-icon.waiting { background: rgba(142,142,147,.12); color: var(--vl-muted); }
+.vl-timer-icon.running {
+    background: linear-gradient(135deg, rgba(0,122,255,.15), rgba(90,200,250,.12));
+    color: var(--vl-blue);
+    box-shadow: 0 4px 12px rgba(0,122,255,.15);
+}
+.vl-timer-icon.paused  {
+    background: linear-gradient(135deg, rgba(255,149,0,.15), rgba(255,204,0,.1));
+    color: var(--vl-orange);
+}
+.vl-timer-icon.ready   {
+    background: var(--vl-grad-green);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(52,199,89,.35);
+    animation: vlReadyPop var(--vl-spring) both;
+}
 @keyframes vlReadyPop { from{transform:scale(.75);}to{transform:scale(1);} }
 
 .vl-timer-info { flex: 1; min-width: 0; }
 .vl-timer-sublabel {
-    font-size: .73rem;
-    font-weight: 600;
+    font-size: .72rem;
+    font-weight: 700;
     color: var(--vl-muted);
-    margin-bottom: 1px;
+    margin-bottom: 2px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
 }
 .vl-timer-val {
-    font-size: 1.55rem;
+    font-size: 1.65rem;
     font-weight: 800;
     color: var(--vl-text);
-    letter-spacing: -.03em;
+    letter-spacing: -.035em;
     font-variant-numeric: tabular-nums;
     line-height: 1.1;
 }
 
 /* SVG ring */
-.vl-ring { width: 46px; height: 46px; flex-shrink: 0; }
-.vl-ring svg { transform: rotate(-90deg); width:46px; height:46px; }
+.vl-ring { width: 48px; height: 48px; flex-shrink: 0; }
+.vl-ring svg { transform: rotate(-90deg); width:48px; height:48px; }
 .vl-ring-bg   { fill:none; stroke:var(--vl-sep); stroke-width:3.5; }
 .vl-ring-fill { fill:none; stroke:var(--vl-blue); stroke-width:3.5; stroke-linecap:round;
     stroke-dasharray:113; stroke-dashoffset:113;
+    filter: drop-shadow(0 0 4px rgba(0,122,255,.35));
     transition: stroke-dashoffset 1s linear, stroke var(--vl-ease); }
-.vl-ring-fill.ready  { stroke: var(--vl-green); }
-.vl-ring-fill.paused { stroke: var(--vl-orange); }
+.vl-ring-fill.ready  { stroke: var(--vl-green); filter: drop-shadow(0 0 6px rgba(52,199,89,.5)); }
+.vl-ring-fill.paused { stroke: var(--vl-orange); filter: drop-shadow(0 0 4px rgba(255,149,0,.4)); }
 
 .vl-status-hint {
-    font-size: .76rem;
+    font-size: .78rem;
     color: var(--vl-muted);
     text-align: center;
     margin-bottom: 14px;
+    padding: 8px 12px;
+    background: var(--vl-soft);
+    border-radius: 10px;
+    font-weight: 500;
 }
 
 /* Ko'rdim button */
@@ -362,18 +482,27 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 9px;
+    gap: 10px;
     width: 100%;
-    padding: 15px 20px;
+    padding: 16px 20px;
     border: none;
-    border-radius: 14px;
-    font-size: .97rem;
+    border-radius: 16px;
+    font-size: 1rem;
     font-weight: 700;
     cursor: pointer;
     transition: all var(--vl-ease);
     -webkit-tap-highlight-color: transparent;
     position: relative; overflow: hidden;
+    letter-spacing: -.01em;
 }
+.vl-btn-watched::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.2), transparent 70%);
+    transform: translateX(-100%);
+    transition: transform .8s ease;
+}
+.vl-btn-watched:not(:disabled):hover::before { transform: translateX(100%); }
 .vl-btn-watched:disabled {
     background: rgba(142,142,147,.12);
     color: var(--vl-muted);
@@ -383,13 +512,13 @@
     background: rgba(255,255,255,.06);
 }
 .vl-btn-watched:not(:disabled) {
-    background: var(--vl-green);
+    background: var(--vl-grad-green);
     color: #fff;
-    box-shadow: 0 4px 20px rgba(52,199,89,.28);
+    box-shadow: 0 6px 24px rgba(52,199,89,.35), inset 0 1px 0 rgba(255,255,255,.2);
 }
 .vl-btn-watched:not(:disabled):hover {
-    transform: translateY(-1px);
-    box-shadow: 0 6px 28px rgba(52,199,89,.34);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 32px rgba(52,199,89,.42), inset 0 1px 0 rgba(255,255,255,.25);
     filter: brightness(1.05);
 }
 .vl-btn-watched:not(:disabled):active {
@@ -400,96 +529,127 @@
     align-items: center;
     gap: 4px;
     background: rgba(255,255,255,.22);
-    padding: 3px 10px;
-    border-radius: 20px;
+    padding: 4px 11px;
+    border-radius: 100px;
     font-size: .75rem;
-    font-weight: 700;
+    font-weight: 800;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 
 /* Already-watched success panel */
 .vl-success-panel {
     text-align: center;
-    padding: 24px 20px;
+    padding: 28px 22px;
+    position: relative;
+    overflow: hidden;
+}
+.vl-success-panel::before {
+    content: '';
+    position: absolute; top: -50%; left: 50%;
+    transform: translateX(-50%);
+    width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(52,199,89,.14), transparent 60%);
+    pointer-events: none;
 }
 .vl-success-icon {
-    width: 60px;
-    height: 60px;
+    position: relative;
+    width: 68px;
+    height: 68px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #34c759, #30d158);
+    background: var(--vl-grad-green);
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
+    font-size: 1.7rem;
     color: #fff;
-    box-shadow: 0 6px 22px rgba(52,199,89,.22);
+    box-shadow: 0 8px 28px rgba(52,199,89,.35), inset 0 1px 0 rgba(255,255,255,.25);
     animation: vlCheckPop var(--vl-spring) .15s both;
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 @keyframes vlCheckPop {
     from { transform: scale(0) rotate(-30deg); opacity:0; }
     to   { transform: scale(1) rotate(0); opacity:1; }
 }
 .vl-success-title {
-    font-size: 1.05rem;
-    font-weight: 700;
+    position: relative;
+    font-size: 1.15rem;
+    font-weight: 750;
     color: var(--vl-text);
     margin: 0 0 6px;
+    letter-spacing: -.02em;
 }
 .vl-success-desc {
-    font-size: .84rem;
-    color: var(--vl-muted);
+    position: relative;
+    font-size: .86rem;
+    color: var(--vl-text-2);
     margin: 0;
+    line-height: 1.5;
 }
 .vl-coin-pill {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: linear-gradient(135deg, #ffcc00, #ffb300);
+    background: var(--vl-grad-gold);
     color: #1c1c1e;
-    padding: 3px 13px;
-    border-radius: 20px;
-    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 100px;
+    font-weight: 800;
     font-size: .8rem;
-    box-shadow: 0 2px 8px rgba(255,204,0,.18);
+    box-shadow: 0 3px 12px rgba(255,204,0,.28);
 }
 
 /* ── AI Article card ───────────────────────────────── */
 .vl-ai-card {
-    margin-top: 12px;
+    margin-top: 14px;
     transition: all var(--vl-ease);
+    position: relative;
+}
+.vl-ai-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--vl-grad-purple);
+    z-index: 1;
 }
 .vl-ai-header {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 15px 20px;
+    gap: 14px;
+    padding: 18px 22px;
     border-bottom: 1px solid var(--vl-sep);
     cursor: pointer;
     transition: background var(--vl-ease);
     -webkit-tap-highlight-color: transparent;
+    background: linear-gradient(135deg, rgba(94,92,230,.03), rgba(175,82,222,.02));
 }
-.vl-ai-header:hover { background: var(--vl-soft); }
+.vl-ai-header:hover { background: linear-gradient(135deg, rgba(94,92,230,.06), rgba(175,82,222,.04)); }
 .vl-ai-icon {
-    width: 40px; height: 40px;
-    border-radius: 11px;
-    background: linear-gradient(135deg, #5e5ce6, #af52de);
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--vl-grad-purple);
     display: flex; align-items: center; justify-content: center;
-    font-size: 1.05rem; color: #fff; flex-shrink: 0;
+    font-size: 1.15rem; color: #fff; flex-shrink: 0;
+    box-shadow: 0 6px 18px rgba(175,82,222,.32), inset 0 1px 0 rgba(255,255,255,.2);
 }
 .vl-ai-meta { flex: 1; min-width: 0; }
-.vl-ai-title { font-size: .93rem; font-weight: 650; color: var(--vl-text); margin: 0; }
-.vl-ai-sub   { font-size: .7rem; color: var(--vl-purple); font-weight: 600; margin: 0; }
+.vl-ai-title { font-size: .98rem; font-weight: 700; color: var(--vl-text); margin: 0 0 2px; letter-spacing: -.01em; }
+.vl-ai-sub   { font-size: .7rem; color: var(--vl-purple); font-weight: 700; margin: 0; text-transform: uppercase; letter-spacing: .04em; }
 .vl-ai-chev  {
-    color: var(--vl-muted); font-size: .95rem; flex-shrink: 0;
-    transition: transform var(--vl-ease);
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--vl-soft);
+    color: var(--vl-muted); font-size: .9rem; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--vl-ease);
 }
+.vl-ai-header:hover .vl-ai-chev { background: rgba(175,82,222,.12); color: var(--vl-purple); }
 .vl-ai-card.collapsed .vl-ai-chev   { transform: rotate(180deg); }
 .vl-ai-card.collapsed .vl-ai-body   { display: none; }
 .vl-ai-body {
-    padding: 20px 24px 24px;
+    padding: 22px 26px 26px;
     line-height: 1.85;
-    font-size: .9rem;
-    color: var(--vl-text);
+    font-size: .93rem;
+    color: var(--vl-text-2);
 }
 .vl-ai-body h2 {
     font-size: 1.1rem; font-weight: 700;
@@ -864,6 +1024,87 @@ const videoId   = "{{ video.get_video_id|default:'' }}";
 let isVideoPlaying = false;
 let vimeoPlayer    = null;
 
+/* ── Video sifati (quality) ─────────────────────────────────
+ * Pleerning o'z boshqaruvi (controls:0) o'chirilgani uchun sifatni tanlash
+ * uchun o'zimizning menyuni to'ldiramiz.
+ *   • YouTube: getAvailableQualityLevels() + setPlaybackQuality() (best-effort —
+ *     zamonaviy YouTube ba'zan sifatni avtomatik boshqaradi).
+ *   • Vimeo:   getQualities() + setQuality() (ishonchli ishlaydi).
+ */
+let qualityReady = false;
+
+// YouTube sifat kodlarini o'qiladigan yorliqqa aylantirish.
+const YT_QUALITY_LABELS = {
+    highres: '4K', hd2160: '2160p', hd1440: '1440p', hd1080: '1080p',
+    hd720: '720p', large: '480p', medium: '360p', small: '240p',
+    tiny: '144p', auto: 'Avto',
+};
+
+function vlBuildQualityMenu(options, onSelect) {
+    // options: [{value, label, active}] — birinchi bo'lib "Avto" keladi.
+    const wrap = document.getElementById('vlQualityWrap');
+    const menu = document.getElementById('vlQualityMenu');
+    if (!wrap || !menu) return;
+    if (!options || options.length <= 1) { wrap.style.display = 'none'; return; }
+
+    // Eski variantlarni tozalab, sarlavhani qoldiramiz.
+    menu.querySelectorAll('.vl-quality-opt').forEach(el => el.remove());
+
+    options.forEach(function(opt) {
+        const btn = document.createElement('button');
+        btn.className = 'vl-quality-opt' + (opt.active ? ' vl-active' : '');
+        btn.textContent = opt.label;
+        btn.dataset.value = String(opt.value);
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            onSelect(opt.value);
+            menu.querySelectorAll('.vl-quality-opt').forEach(o => o.classList.remove('vl-active'));
+            btn.classList.add('vl-active');
+            menu.classList.remove('vl-open');
+        });
+        menu.appendChild(btn);
+    });
+    wrap.style.display = 'flex';
+}
+
+function vlSetupQuality() {
+    if (qualityReady) return;
+    // ── YouTube ──
+    try {
+        if (window._vqYT && typeof window._vqYT.getAvailableQualityLevels === 'function') {
+            const levels = window._vqYT.getAvailableQualityLevels() || [];
+            if (!levels.length) return;   // hali tayyor emas — keyingi PLAYING'da qayta urinamiz
+            const current = (typeof window._vqYT.getPlaybackQuality === 'function')
+                ? window._vqYT.getPlaybackQuality() : 'auto';
+            const opts = [{ value: 'default', label: 'Avto', active: current === 'auto' || current === 'default' }];
+            levels.filter(l => l !== 'auto').forEach(function(l) {
+                opts.push({ value: l, label: YT_QUALITY_LABELS[l] || l, active: l === current });
+            });
+            vlBuildQualityMenu(opts, function(v) {
+                try { window._vqYT.setPlaybackQuality(v === 'default' ? 'default' : v); } catch (e) {}
+            });
+            qualityReady = true;
+            return;
+        }
+    } catch (e) {}
+    // ── Vimeo ──
+    try {
+        if (vimeoPlayer && typeof vimeoPlayer.getQualities === 'function') {
+            vimeoPlayer.getQualities().then(function(qs) {
+                if (!qs || !qs.length) return;
+                // Vimeo o'zi "auto" ni ro'yxatga qo'shadi.
+                const opts = qs.map(function(q) {
+                    return { value: q.id, label: q.id === 'auto' ? 'Avto' : (q.label || q.id), active: !!q.active };
+                });
+                vlBuildQualityMenu(opts, function(v) {
+                    try { vimeoPlayer.setQuality(v).catch(function(){}); } catch (e) {}
+                });
+                qualityReady = true;
+            }).catch(function(){});
+        }
+    } catch (e) {}
+}
+
 /* ── Video ustidagi himoya qatlami ──
  * Pleerning O'ZINI (seek bar / progress bar) bilan ishlashni butunlay to'sadi:
  * oldinga ham, orqaga ham o'tkazib bo'lmaydi. Bosilganda faqat play/pause. */
@@ -919,6 +1160,12 @@ function addCustomControls(box) {
             <input type="range" min="0" max="100" value="100" step="1" class="vl-vol-slider" id="vlVolSlider">
         </div>
         <div class="vl-ctrl-spacer"></div>
+        <div class="vl-quality-wrap" id="vlQualityWrap" style="display:none;">
+            <button class="vl-ctrl-btn" id="vlQualityBtn" title="Video sifati"><i class="bi bi-gear-fill"></i></button>
+            <div class="vl-quality-menu" id="vlQualityMenu">
+                <div class="vl-quality-title">Video sifati</div>
+            </div>
+        </div>
         <button class="vl-ctrl-btn" id="vlFsBtn" title="To'liq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
     `;
     // Har bir tugma bosilganda videoGuard'ga click o'tmasin
@@ -998,6 +1245,20 @@ function addCustomControls(box) {
     }
     document.addEventListener('fullscreenchange',       onFsChange);
     document.addEventListener('webkitfullscreenchange', onFsChange);
+
+    // ── Sifat (quality) tugmasi: menyuni ochish/yopish ──
+    const qBtn  = document.getElementById('vlQualityBtn');
+    const qMenu = document.getElementById('vlQualityMenu');
+    if (qBtn && qMenu) {
+        qBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            qMenu.classList.toggle('vl-open');
+        });
+        // Tashqariga bosilganda menyu yopiladi
+        document.addEventListener('click', function(e) {
+            if (!qMenu.contains(e.target) && e.target !== qBtn) qMenu.classList.remove('vl-open');
+        });
+    }
 }
 
 if (placeholder) {
@@ -1022,10 +1283,10 @@ if (placeholder) {
                     events: {
                         onStateChange: function(e) {
                             const s = e.data;
-                            if      (s === YT.PlayerState.PLAYING)   { isVideoPlaying = true;  resumeTimer(); }
-                            else if (s === YT.PlayerState.BUFFERING) { isVideoPlaying = false; pauseTimer("Yuklanmoqda..."); }
-                            else if (s === YT.PlayerState.PAUSED)    { isVideoPlaying = false; pauseTimer("To'xtatildi"); }
-                            else if (s === YT.PlayerState.ENDED)     { isVideoPlaying = false; pauseTimer("Tugadi"); }
+                            if      (s === YT.PlayerState.PLAYING)   { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
+                            else if (s === YT.PlayerState.BUFFERING) { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); }
+                            else if (s === YT.PlayerState.PAUSED)    { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); }
+                            else if (s === YT.PlayerState.ENDED)     { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); }
                         }
                     }
                 });
@@ -1044,11 +1305,12 @@ if (placeholder) {
             iframe.src = "https://player.vimeo.com/video/" + videoId + "?autoplay=1&title=0&byline=0&portrait=0&controls=0&keyboard=0&pip=0";
             iframe.onload = function() {
                 vimeoPlayer = new Vimeo.Player(iframe);
-                vimeoPlayer.on('play',        () => { isVideoPlaying = true;  resumeTimer(); });
-                vimeoPlayer.on('pause',       () => { isVideoPlaying = false; pauseTimer("To'xtatildi"); });
-                vimeoPlayer.on('ended',       () => { isVideoPlaying = false; pauseTimer("Tugadi"); });
-                vimeoPlayer.on('bufferstart', () => { isVideoPlaying = false; pauseTimer("Yuklanmoqda..."); });
-                vimeoPlayer.on('bufferend',   () => { isVideoPlaying = true;  resumeTimer(); });
+                vlSetupQuality();
+                vimeoPlayer.on('play',        () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
+                vimeoPlayer.on('pause',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); });
+                vimeoPlayer.on('ended',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); });
+                vimeoPlayer.on('bufferstart', () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); });
+                vimeoPlayer.on('bufferend',   () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); });
             };
         }
     });
@@ -1068,11 +1330,14 @@ if (placeholder) {
  *     shuning uchun watchedTime ham to'xtaydi.
  */
 
-// DB'dagi `duration` (daqiqa) — HAR EHTIMOL uchun fallback (masalan pleer
-// getDuration()'ni bermay qolsa). Odatda pleer haqiqiy davomiylikni beradi
-// va biz UI'ni faqat SHUNDA yangilaymiz — sakrash bo'lmasligi uchun.
-const dbMinutes     = {{ video.duration|default:1 }};
-const DB_FALLBACK_DELAY_MS = 8000;   // pleer 8 sek ichida getDuration bermasa — DB'ga tushamiz
+// DB'dagi `duration` (daqiqa) endi qo'lda kiritilmaydi — u faqat oldin ko'rilgan
+// videolar uchun avtomatik yozib qo'yilgan zaxira (fallback) qiymat. 0 bo'lsa
+// (hali hech kim ko'rmagan) DB'ga TUSHMAYMIZ — pleer getDuration() ni kutamiz,
+// chunki u har doim (biroz kechikib bo'lsa ham) haqiqiy davomiylikni beradi.
+// Shu bilan noto'g'ri/eskirgan qiymatdan kelib chiqadigan "timer qotib qolishi"
+// muammosi bartaraf etiladi.
+const dbSeconds     = {{ video.duration|default:0 }} * 60;   // 0 = noma'lum
+const DB_FALLBACK_DELAY_MS = 12000;  // pleer 12 sek ichida getDuration bermasa VA DB'da haqiqiy qiymat bo'lsa — DB'ga tushamiz
 const circumference = 2 * Math.PI * 18;
 
 // totalSeconds/requiredTime dastlab NULL — countdown "—:—" ko'rinishida turadi.
@@ -1081,15 +1346,19 @@ let requiredTime   = null;
 let durationLocked = false;   // haqiqiy (yoki fallback) davomiylik o'rnatildimi
 
 // ── Anti-skip sozlamalari ──
-// Sakrashni ANIQLASH endi "haqiqiy vaqt"ga asoslangan: bir tik ichida pleer
-// pozitsiyasi (posDt) real o'tgan vaqtdan (wallDt) MAX_PLAY_RATE barobardan
-// ko'proq oldinga ketsa — bu sakrash (o'ynatishda mumkin emas) → revert.
-// Shu bilan watchedTime hech qachon oldinga SAKRAMAYDI (faqat real ko'rilgan
-// vaqt qadar o'sadi) va orqaga ham SILJIMAYDI.
-const TICK_MS        = 350;   // tez aniqlash uchun (avval 500)
-const MAX_PLAY_RATE  = 2.0;   // ruxsat etilgan maks. tezlik (2x gacha bemalol)
-const STEP_TOLERANCE = 0.5;   // o'lchov/tik jitteri uchun zaxira (soniya)
-const SEEK_LOCK_MS   = 800;   // revert o'rnashguncha qayta tetiklamaymiz
+// Sakrashni ANIQLASH endi "eng uzoq qonuniy ko'rilgan nuqta"ga (watchedTime)
+// nisbatan o'lchanadi, bir tikdagi posDt'ga EMAS. Sabab: bufer/qayta ulanishda
+// pleer pozitsiyasi bir tikda kichik "sakrab" ketishi mumkin — bu qonuniy, lekin
+// eski (posDt > maxStep) mantiq buni sakrash deb hisoblab, videoni ORQAGA
+// qaytaraverar va natijada video bir joyda QOTIB QOLARDI (revert-loop).
+// Yangi mantiq: pozitsiya watchedTime'dan SEEK_AHEAD_LIMIT dan ko'proq oldinda
+// bo'lsagina — bu haqiqiy oldinga sakrash → revert. Kichik buferli siljishlar
+// esa toleratsiya qilinadi (lekin baribir faqat real vaqt qadar hisoblanadi).
+const TICK_MS         = 350;   // tez aniqlash uchun (avval 500)
+const MAX_PLAY_RATE   = 2.0;   // ruxsat etilgan maks. tezlik (2x gacha bemalol)
+const STEP_TOLERANCE  = 0.5;   // o'lchov/tik jitteri uchun zaxira (soniya)
+const SEEK_AHEAD_LIMIT = 4.0;  // watchedTime'dan shuncha soniyadan ko'p oldinda → sakrash
+const SEEK_LOCK_MS    = 800;   // revert o'rnashguncha qayta tetiklamaymiz
 
 let watchedTime = 0;      // erishilgan MAKS qonuniy pleer sekundi (monoton o'suvchi)
 let isReady     = false;  // 90% ga yetdi
@@ -1201,11 +1470,12 @@ function resolveDuration() {
     });
 }
 
-// Fallback: agar pleer 8 sek ichida davomiylikni bermasa (masalan noma'lum
-// format yoki API tushmagan bo'lsa), DB qiymatiga tushamiz. Ilgari lock qilinsa —
-// bu setTimeout hech narsa qilmaydi (durationLocked=true tekshiruvi tufayli).
+// Fallback: agar pleer belgilangan vaqt ichida davomiylikni bermasa VA DB'da
+// haqiqiy (oldin avtomatik yozilgan) qiymat bo'lsa — DB'ga tushamiz. DB 0 bo'lsa
+// (noma'lum) hech narsa qilmaymiz: resolveDuration() har tikda pleerni qayta
+// so'raydi va u ijro boshlanishi bilan haqiqiy davomiylikni beradi.
 setTimeout(function() {
-    if (!durationLocked) lockDuration(dbMinutes * 60);
+    if (!durationLocked && dbSeconds >= 60) lockDuration(dbSeconds);
 }, DB_FALLBACK_DELAY_MS);
 
 /* UI'ni watchedTime bo'yicha yangilaydi (davomiylik lock qilingandan keyin).
@@ -1225,6 +1495,35 @@ function updateTimerUI() {
         statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
         markWatchedBtn.disabled = false;
     }
+}
+
+/* Video oxirigacha ijro etilib TUGAGANDA (ENDED) chaqiriladi. Oldinga sakrash
+   taqiqlangani uchun ENDED faqat video haqiqatda to'liq ko'rilganda yuz beradi.
+   Shuning uchun bu yerda timerni ishonch bilan yakunlaymiz — davomiylik biroz
+   noaniq bo'lsa ham (masalan requiredTime haqiqiy videodan sal uzunroq) timer
+   "qotib" qolib, "Ko'rdim" tugmasi yoqilmay qolmaydi. */
+function completeOnEnded() {
+    if (isReady) return;
+    // Davomiylik hali aniqlanmagan bo'lsa — avval pleer davomiyligini, keyin
+    // joriy pozitsiyani asos qilamiz (ENDED bo'lsa ikkalasi ham ≈ to'liq vaqt).
+    if (!durationLocked) {
+        getPlayerDuration(function(d) {
+            if (d && isFinite(d) && d > 1) {
+                lockDuration(d);
+                watchedTime = requiredTime;
+                updateTimerUI();
+            } else {
+                getPlayerTime(function(t) {
+                    if (t && isFinite(t) && t > 1) lockDuration(t);
+                    watchedTime = requiredTime || watchedTime;
+                    updateTimerUI();
+                });
+            }
+        });
+        return;
+    }
+    watchedTime = requiredTime;
+    updateTimerUI();
 }
 
 /* ── Har tikda: pleer soniyasi o'qiladi, real vaqt bilan solishtiriladi ──
@@ -1250,11 +1549,14 @@ function tick() {
             return;
         }
 
-        const posDt   = t - lastPos;                          // pleer siljishi (soniya)
         const maxStep = wallDt * MAX_PLAY_RATE + STEP_TOLERANCE;
 
-        // ── OLDINGA SAKRASH: real vaqtdan tez oldinga ketdi → videoni qaytaramiz
-        if (posDt > maxStep) {
+        // ── OLDINGA SAKRASH: pozitsiya eng uzoq qonuniy ko'rilgan nuqtadan
+        //    (watchedTime) SEEK_AHEAD_LIMIT dan ko'proq oldinda → foydalanuvchi
+        //    oldinga o'tkazgan → videoni qaytaramiz. Bufer/qayta ulanishdagi
+        //    kichik siljishlar bu chegara ostida qoladi, shuning uchun endi
+        //    revert-loop (qotib qolish) yuz bermaydi.
+        if (t > watchedTime + SEEK_AHEAD_LIMIT) {
             seekLock = true;
             seekPlayerTo(watchedTime);
             if (!isReady) statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
@@ -1264,11 +1566,11 @@ function tick() {
         }
 
         // ── QATTIQ QOIDA: watchedTime FAQAT video HAQIQATDA ijro etilayotganda
-        //    (isVideoPlaying) VA pozitsiya shu tikda oldinga siljiganda (posDt > 0)
-        //    o'sadi. Pauza/bufer/tugash paytida pozitsiya qotadi (posDt ≈ 0) va
-        //    isVideoPlaying=false — shuning uchun timer BUTUNLAY to'xtaydi.
-        //    Orqaga (rewind): posDt manfiy yoki t < watchedTime → o'smaydi (kamaymaydi ham).
-        if (isVideoPlaying && posDt > 0 && t > watchedTime) {
+        //    (isVideoPlaying) VA pozitsiya watchedTime'dan oldinda bo'lganda
+        //    o'sadi — lekin bir tikda ko'pi bilan maxStep (real vaqt) qadar.
+        //    Pauza/bufer/tugash paytida isVideoPlaying=false — timer to'xtaydi.
+        //    Orqaga (rewind): t < watchedTime → o'smaydi (kamaymaydi ham).
+        if (isVideoPlaying && t > watchedTime) {
             watchedTime = Math.min(t, watchedTime + maxStep);
         }
 
@@ -1342,7 +1644,10 @@ markWatchedBtn.addEventListener('click', function() {
     fetch('{% url "mark_video_watched" video.pk %}', {
     {% endif %}
         method: 'POST',
-        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' }
+        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+        // Pleer aniqlagan haqiqiy davomiylik (soniya) — server DB'da 0 bo'lsa
+        // shundan daqiqa hisoblab saqlaydi (davomiylik endi qo'lda kiritilmaydi).
+        body: JSON.stringify({ duration_seconds: Math.round(totalSeconds || 0) })
     })
     .then(r => { if (!r.ok) throw new Error('Server xatosi: '+r.status); return r.json(); })
     .then(data => {
