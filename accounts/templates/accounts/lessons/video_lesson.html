@@ -138,6 +138,26 @@
     position: absolute;
     inset: 0; width: 100%; height: 100%; border: 0;
 }
+/* Video ustidagi himoya qatlami — pleerning o'z boshqaruvi (seek bar) bilan
+   ishlashni to'sadi (oldinga/orqaga o'tkazib bo'lmaydi). Bosilganda faqat
+   play/pause. */
+#videoGuard {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    cursor: pointer;
+    background: transparent;
+}
+#videoGuard .vl-pp-flash {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(0,0,0,.55); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.9rem; opacity: 0; pointer-events: none;
+}
+#videoGuard .vl-pp-flash.show { animation: vlPP 0.5s ease-out; }
+@keyframes vlPP { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.1); } }
 
 /* Placeholder */
 .vl-placeholder {
@@ -787,10 +807,50 @@ const videoId   = "{{ video.get_video_id|default:'' }}";
 let isVideoPlaying = false;
 let vimeoPlayer    = null;
 
+/* ── Video ustidagi himoya qatlami ──
+ * Pleerning O'ZINI (seek bar / progress bar) bilan ishlashni butunlay to'sadi:
+ * oldinga ham, orqaga ham o'tkazib bo'lmaydi. Bosilganda faqat play/pause. */
+function flashPP(nowPaused) {
+    const f = document.querySelector('#videoGuard .vl-pp-flash');
+    if (!f) return;
+    f.innerHTML = nowPaused ? '<i class="bi bi-pause-fill"></i>' : '<i class="bi bi-play-fill"></i>';
+    f.classList.remove('show'); void f.offsetWidth; f.classList.add('show');
+}
+function togglePlayPause() {
+    try {
+        if (window._vqYT && typeof window._vqYT.getPlayerState === 'function') {
+            const playing = window._vqYT.getPlayerState() === 1;   // 1 = PLAYING
+            if (playing) window._vqYT.pauseVideo(); else window._vqYT.playVideo();
+            flashPP(playing);
+            return;
+        }
+    } catch (e) {}
+    try {
+        if (vimeoPlayer) {
+            vimeoPlayer.getPaused().then(function(p) {
+                if (p) vimeoPlayer.play(); else vimeoPlayer.pause();
+                flashPP(!p);
+            }).catch(function(){});
+        }
+    } catch (e) {}
+}
+function addVideoGuard() {
+    const box = document.getElementById('videoBox');
+    if (!box || document.getElementById('videoGuard')) return;
+    const guard = document.createElement('div');
+    guard.id = 'videoGuard';
+    guard.innerHTML = '<div class="vl-pp-flash"></div>';
+    guard.addEventListener('click', togglePlayPause);
+    guard.addEventListener('dblclick',    function(e){ e.preventDefault(); e.stopPropagation(); });
+    guard.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+    box.appendChild(guard);
+}
+
 if (placeholder) {
     placeholder.addEventListener('click', function() {
         placeholder.classList.add('d-none');
         iframe.classList.remove('d-none');
+        addVideoGuard();   // pleer boshqaruvini to'sadigan qatlam
 
         if (isYouTube) {
             iframe.remove();
@@ -802,7 +862,9 @@ if (placeholder) {
             function onYouTubeIframeAPIReady() {
                 window._vqYT = new YT.Player('ytPlayer', {
                     videoId: videoId,
-                    playerVars: { autoplay:1, rel:0, modestbranding:1 },
+                    // controls:0 — seek bar yo'q; disablekb:1 — klaviatura bilan
+                    // o'tkazish yo'q; fs:0 — to'liq ekran yo'q (u yerda seek bar chiqardi).
+                    playerVars: { autoplay:1, rel:0, modestbranding:1, controls:0, disablekb:1, fs:0, playsinline:1, iv_load_policy:3 },
                     events: {
                         onStateChange: function(e) {
                             const s = e.data;
@@ -825,7 +887,7 @@ if (placeholder) {
         }
 
         if (isVimeo) {
-            iframe.src = "https://player.vimeo.com/video/" + videoId + "?autoplay=1&title=0&byline=0&portrait=0";
+            iframe.src = "https://player.vimeo.com/video/" + videoId + "?autoplay=1&title=0&byline=0&portrait=0&controls=0&keyboard=0&pip=0";
             iframe.onload = function() {
                 vimeoPlayer = new Vimeo.Player(iframe);
                 vimeoPlayer.on('play',        () => { isVideoPlaying = true;  resumeTimer(); });
