@@ -864,12 +864,22 @@ let totalSeconds   = null;
 let requiredTime   = null;
 let durationLocked = false;   // haqiqiy (yoki fallback) davomiylik o'rnatildimi
 
-// Oldinga sakrash toleransi (playback + poll drift uchun).
-const FORWARD_SEEK_TOLERANCE = 2.0;
+// ── Anti-skip sozlamalari ──
+// Sakrashni ANIQLASH endi "haqiqiy vaqt"ga asoslangan: bir tik ichida pleer
+// pozitsiyasi (posDt) real o'tgan vaqtdan (wallDt) MAX_PLAY_RATE barobardan
+// ko'proq oldinga ketsa — bu sakrash (o'ynatishda mumkin emas) → revert.
+// Shu bilan watchedTime hech qachon oldinga SAKRAMAYDI (faqat real ko'rilgan
+// vaqt qadar o'sadi) va orqaga ham SILJIMAYDI.
+const TICK_MS        = 350;   // tez aniqlash uchun (avval 500)
+const MAX_PLAY_RATE  = 2.0;   // ruxsat etilgan maks. tezlik (2x gacha bemalol)
+const STEP_TOLERANCE = 0.5;   // o'lchov/tik jitteri uchun zaxira (soniya)
+const SEEK_LOCK_MS   = 800;   // revert o'rnashguncha qayta tetiklamaymiz
 
-let watchedTime = 0;      // erishilgan MAKS pleer sekundi
+let watchedTime = 0;      // erishilgan MAKS qonuniy pleer sekundi (monoton o'suvchi)
 let isReady     = false;  // 90% ga yetdi
-let seekLock    = false;  // dasturiy seek payti takroriy tetiklash bo'lmasin
+let seekLock    = false;  // revert davomida tetiklamaslik
+let lastPos     = null;   // oldingi tikdagi pleer pozitsiyasi (soniya)
+let lastWall    = null;   // oldingi tik vaqti (ms) — real vaqt hisobi uchun
 
 const countdownEl    = document.getElementById('countdown');
 const ringFill       = document.getElementById('ringFill');
@@ -982,47 +992,70 @@ setTimeout(function() {
     if (!durationLocked) lockDuration(dbMinutes * 60);
 }, DB_FALLBACK_DELAY_MS);
 
-/* ── Har tikda: pleer soniyasini o'qib, timer va anti-seek ── */
+/* UI'ni watchedTime bo'yicha yangilaydi (davomiylik lock qilingandan keyin).
+   Countdown va ring FAQAT watchedTime'dan hisoblanadi — u monoton bo'lgani
+   uchun ekranda ham orqa-oldinga sakramaydi. */
+function updateTimerUI() {
+    if (!durationLocked || isReady) return;
+    const remaining = Math.max(0, requiredTime - watchedTime);
+    const progress  = Math.min(1, watchedTime / requiredTime);
+    countdownEl.textContent = formatTime(remaining);
+    ringFill.style.strokeDashoffset = circumference * (1 - progress);
+    if (watchedTime >= requiredTime) {
+        isReady = true;
+        setTimerState('ready');
+        countdownEl.textContent = '✓';
+        timerLabel.textContent  = 'Tayyor!';
+        statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
+        markWatchedBtn.disabled = false;
+    }
+}
+
+/* ── Har tikda: pleer soniyasi o'qiladi, real vaqt bilan solishtiriladi ──
+ * Asosiy g'oya: o'ynatishda pleer pozitsiyasi real o'tgan vaqtdan tez oldinga
+ * keta olmaydi. Bir tik ichida posDt (pozitsiya o'zgarishi) real vaqtdan
+ * (wallDt) MAX_PLAY_RATE barobardan ko'p bo'lsa — bu SEEK (sakrash) → revert.
+ * watchedTime esa FAQAT qonuniy, real vaqt qadar oldinga o'sadi (sakramaydi)
+ * va hech qachon kamaymaydi (orqaga siljimaydi).
+ */
 function tick() {
-    // Har tikda pleer davomiyligini so'raymiz — birinchi valid javobda LOCK.
     if (!durationLocked) resolveDuration();
 
     getPlayerTime(function(t) {
         if (t == null || !isFinite(t)) return;
+        const now    = Date.now();
+        const wallDt = (lastWall == null) ? 0 : (now - lastWall) / 1000;
 
-        // Oldinga sakrash — orqaga qaytaramiz
-        if (!seekLock && t > watchedTime + FORWARD_SEEK_TOLERANCE) {
-            seekLock = true;
-            seekPlayerTo(watchedTime);
-            if (!isReady) {
-                statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
-            }
-            setTimeout(() => { seekLock = false; }, 900);
+        // Kuzatuvni QAYTA BOSHLASH holatlari (bu tikda aniqlash/o'sish yo'q):
+        //  • birinchi o'qish  • revert davomi (seekLock)  • uzoq tanaffus (fon rejimi)
+        if (seekLock || lastPos == null || lastWall == null || wallDt > 3) {
+            lastPos = t; lastWall = now;
+            updateTimerUI();
             return;
         }
 
-        // Odatiy o'ynatish: watchedTime faqat o'sib boradi (rewind uni pasaytirmaydi)
+        const posDt   = t - lastPos;                          // pleer siljishi (soniya)
+        const maxStep = wallDt * MAX_PLAY_RATE + STEP_TOLERANCE;
+
+        // ── OLDINGA SAKRASH: real vaqtdan tez oldinga ketdi → videoni qaytaramiz
+        if (posDt > maxStep) {
+            seekLock = true;
+            seekPlayerTo(watchedTime);
+            if (!isReady) statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
+            lastPos = null; lastWall = null;                  // hisobni tozalaymiz
+            setTimeout(function () { seekLock = false; }, SEEK_LOCK_MS);
+            return;
+        }
+
+        // ── Qonuniy siljish. watchedTime faqat oldinga va real vaqt qadar.
+        //    Orqaga (rewind): posDt manfiy → sakrash emas → ruxsat, lekin
+        //    watchedTime kamaymaydi (t < watchedTime bo'lgani uchun o'zgarmaydi).
         if (t > watchedTime) {
-            watchedTime = t;
+            watchedTime = Math.min(t, watchedTime + maxStep);
         }
 
-        // UI'ni faqat davomiylik lock qilinganidan keyin yangilaymiz —
-        // aks holda "9:00 -> 4:33" sakrashi bo'lardi.
-        if (!durationLocked) return;
-
-        const remaining = Math.max(0, requiredTime - watchedTime);
-        const progress  = Math.min(1, watchedTime / requiredTime);
-        countdownEl.textContent = formatTime(remaining);
-        ringFill.style.strokeDashoffset = circumference * (1 - progress);
-
-        if (!isReady && watchedTime >= requiredTime) {
-            isReady = true;
-            setTimerState('ready');
-            countdownEl.textContent = '✓';
-            timerLabel.textContent  = 'Tayyor!';
-            statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
-            markWatchedBtn.disabled = false;
-        }
+        lastPos = t; lastWall = now;
+        updateTimerUI();
     });
 }
 
@@ -1036,7 +1069,7 @@ document.addEventListener('visibilitychange', () => {
 countdownEl.textContent = '—:—';
 ringFill.style.strokeDashoffset = circumference;
 statusText.textContent = 'Video davomiyligi aniqlanmoqda…';
-setInterval(tick, 500);
+setInterval(tick, TICK_MS);
 
 /* ── Celebration ───────────────────────────────────── */
 function launchConfetti() {
