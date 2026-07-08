@@ -1109,10 +1109,12 @@ function tick() {
             return;
         }
 
-        // ── Qonuniy siljish. watchedTime faqat oldinga va real vaqt qadar.
-        //    Orqaga (rewind): posDt manfiy → sakrash emas → ruxsat, lekin
-        //    watchedTime kamaymaydi (t < watchedTime bo'lgani uchun o'zgarmaydi).
-        if (t > watchedTime) {
+        // ── QATTIQ QOIDA: watchedTime FAQAT video HAQIQATDA ijro etilayotganda
+        //    (isVideoPlaying) VA pozitsiya shu tikda oldinga siljiganda (posDt > 0)
+        //    o'sadi. Pauza/bufer/tugash paytida pozitsiya qotadi (posDt ≈ 0) va
+        //    isVideoPlaying=false — shuning uchun timer BUTUNLAY to'xtaydi.
+        //    Orqaga (rewind): posDt manfiy yoki t < watchedTime → o'smaydi (kamaymaydi ham).
+        if (isVideoPlaying && posDt > 0 && t > watchedTime) {
             watchedTime = Math.min(t, watchedTime + maxStep);
         }
 
