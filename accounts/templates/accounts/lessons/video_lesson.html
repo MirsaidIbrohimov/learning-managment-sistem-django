@@ -159,6 +159,63 @@
 #videoGuard .vl-pp-flash.show { animation: vlPP 0.5s ease-out; }
 @keyframes vlPP { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.1); } }
 
+/* ── Custom control bar (volume + fullscreen) ────────
+   videoGuard ustida turadi (z-index: 6 > 5), shuning uchun bu tugmalar
+   bosilganda videoGuard'ning play/pause hodisasi ishga tushmaydi. */
+#vlControls {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: linear-gradient(to top, rgba(0,0,0,.65), rgba(0,0,0,0));
+    opacity: 0;
+    transition: opacity .25s ease;
+    pointer-events: none;
+}
+#videoBox:hover #vlControls,
+#vlControls.vl-show { opacity: 1; pointer-events: auto; }
+.vl-ctrl-btn {
+    width: 34px; height: 34px;
+    border: 0; border-radius: 50%;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem;
+    cursor: pointer;
+    transition: background .2s ease, transform .2s ease;
+}
+.vl-ctrl-btn:hover { background: rgba(255,255,255,.28); transform: scale(1.05); }
+.vl-ctrl-btn:active { transform: scale(.94); }
+.vl-vol-wrap { display: flex; align-items: center; gap: 8px; }
+.vl-vol-slider {
+    -webkit-appearance: none; appearance: none;
+    width: 90px; height: 4px; border-radius: 4px;
+    background: rgba(255,255,255,.35);
+    outline: none; cursor: pointer;
+}
+.vl-vol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; appearance: none;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: #fff; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,.35);
+}
+.vl-vol-slider::-moz-range-thumb {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: #fff; border: 0; cursor: pointer;
+    box-shadow: 0 1px 4px rgba(0,0,0,.35);
+}
+.vl-ctrl-spacer { flex: 1; }
+@media (max-width: 576px) {
+    .vl-vol-slider { width: 60px; }
+    .vl-ctrl-btn { width: 30px; height: 30px; font-size: .95rem; }
+}
+/* Fullscreen ichida video butun ekranni to'ldirsin */
+#videoBox:fullscreen { width: 100vw; height: 100vh; padding-bottom: 0; background: #000; }
+#videoBox:-webkit-full-screen { width: 100vw; height: 100vh; padding-bottom: 0; background: #000; }
+
 /* Placeholder */
 .vl-placeholder {
     position: absolute;
@@ -844,6 +901,103 @@ function addVideoGuard() {
     guard.addEventListener('dblclick',    function(e){ e.preventDefault(); e.stopPropagation(); });
     guard.addEventListener('contextmenu', function(e){ e.preventDefault(); });
     box.appendChild(guard);
+    addCustomControls(box);
+}
+
+/* ── Custom controls: volume + fullscreen ──
+ * Pleerning o'z boshqaruvi (seek bar bilan) o'chirilgan, shu sabab bu yerda
+ * faqat ovoz va to'liq ekran uchun tugmalar qo'shamiz. Bu tugmalar
+ * videoGuard'dan yuqori z-index'da (6 > 5) turadi va event.stopPropagation
+ * qiladi — shuning uchun play/pause bosilmaydi. */
+function addCustomControls(box) {
+    if (document.getElementById('vlControls')) return;
+    const bar = document.createElement('div');
+    bar.id = 'vlControls';
+    bar.innerHTML = `
+        <button class="vl-ctrl-btn" id="vlMuteBtn" title="Ovozni o'chirish"><i class="bi bi-volume-up-fill"></i></button>
+        <div class="vl-vol-wrap">
+            <input type="range" min="0" max="100" value="100" step="1" class="vl-vol-slider" id="vlVolSlider">
+        </div>
+        <div class="vl-ctrl-spacer"></div>
+        <button class="vl-ctrl-btn" id="vlFsBtn" title="To'liq ekran"><i class="bi bi-arrows-fullscreen"></i></button>
+    `;
+    // Har bir tugma bosilganda videoGuard'ga click o'tmasin
+    bar.addEventListener('click',    function(e){ e.stopPropagation(); });
+    bar.addEventListener('dblclick', function(e){ e.stopPropagation(); });
+    box.appendChild(bar);
+
+    const muteBtn   = document.getElementById('vlMuteBtn');
+    const volSlider = document.getElementById('vlVolSlider');
+    const fsBtn     = document.getElementById('vlFsBtn');
+
+    let currentVol = 100;
+    let isMuted    = false;
+
+    function updateMuteIcon() {
+        const i = muteBtn.querySelector('i');
+        if (isMuted || currentVol === 0) i.className = 'bi bi-volume-mute-fill';
+        else if (currentVol < 50)        i.className = 'bi bi-volume-down-fill';
+        else                              i.className = 'bi bi-volume-up-fill';
+    }
+
+    function applyVolume(v) {
+        // YouTube: 0..100, Vimeo: 0..1
+        try {
+            if (window._vqYT && typeof window._vqYT.setVolume === 'function') {
+                window._vqYT.setVolume(v);
+                if (v === 0) window._vqYT.mute && window._vqYT.mute();
+                else         window._vqYT.unMute && window._vqYT.unMute();
+            }
+        } catch (e) {}
+        try {
+            if (vimeoPlayer) {
+                vimeoPlayer.setVolume(v / 100).catch(function(){});
+            }
+        } catch (e) {}
+    }
+
+    volSlider.addEventListener('input', function() {
+        currentVol = parseInt(this.value, 10);
+        isMuted = (currentVol === 0);
+        applyVolume(currentVol);
+        updateMuteIcon();
+    });
+
+    muteBtn.addEventListener('click', function() {
+        isMuted = !isMuted;
+        if (isMuted) {
+            applyVolume(0);
+            volSlider.value = 0;
+        } else {
+            const restore = currentVol > 0 ? currentVol : 100;
+            currentVol = restore;
+            applyVolume(restore);
+            volSlider.value = restore;
+        }
+        updateMuteIcon();
+    });
+
+    fsBtn.addEventListener('click', function() {
+        const target = document.getElementById('videoBox');
+        const inFs = document.fullscreenElement || document.webkitFullscreenElement;
+        if (!inFs) {
+            if (target.requestFullscreen)            target.requestFullscreen();
+            else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+            else if (target.msRequestFullscreen)     target.msRequestFullscreen();
+        } else {
+            if (document.exitFullscreen)             document.exitFullscreen();
+            else if (document.webkitExitFullscreen)  document.webkitExitFullscreen();
+            else if (document.msExitFullscreen)      document.msExitFullscreen();
+        }
+    });
+
+    function onFsChange() {
+        const inFs = document.fullscreenElement || document.webkitFullscreenElement;
+        const i = fsBtn.querySelector('i');
+        i.className = inFs ? 'bi bi-fullscreen-exit' : 'bi bi-arrows-fullscreen';
+    }
+    document.addEventListener('fullscreenchange',       onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
 }
 
 if (placeholder) {
