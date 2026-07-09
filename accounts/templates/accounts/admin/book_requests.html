@@ -335,10 +335,10 @@ function renderTable(reqs) {
       <td>
         ${r.status === 'pending' ? `
           <div class="brq-act-wrap">
-            <button class="brq-act-btn approve" onclick="openApprove(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+            <button class="brq-act-btn approve" onclick="openApprove(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
               <i class="bi bi-check-lg"></i> Tasdiqlash
             </button>
-            <button class="brq-act-btn reject" onclick="openReject(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+            <button class="brq-act-btn reject" onclick="openReject(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
               <i class="bi bi-x-lg"></i> Rad
             </button>
           </div>` : '<span style="color:var(--bs-secondary-color);font-size:.78rem">—</span>'}
@@ -376,10 +376,10 @@ function renderMobile(reqs) {
       <div style="font-size:.75rem;color:var(--bs-secondary-color);margin-bottom:.75rem">${fmtDate(r.created_at)}</div>
       ${r.status === 'pending' ? `
         <div class="brq-act-wrap">
-          <button class="brq-act-btn approve" style="flex:1;justify-content:center" onclick="openApprove(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+          <button class="brq-act-btn approve" style="flex:1;justify-content:center" onclick="openApprove(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
             <i class="bi bi-check-lg"></i> Tasdiqlash
           </button>
-          <button class="brq-act-btn reject" style="flex:1;justify-content:center" onclick="openReject(${r.id},'${esc(r.book_title)}','${esc(r.student_name)}')">
+          <button class="brq-act-btn reject" style="flex:1;justify-content:center" onclick="openReject(${r.id},'${escJs(r.book_title)}','${escJs(r.student_name)}')">
             <i class="bi bi-x-lg"></i> Rad etish
           </button>
         </div>` : ''}
@@ -477,6 +477,19 @@ function fmtDate(iso) {
 
 function esc(s) {
   return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Inline onclick="fn('...')" ichidagi JS satri uchun xavfsiz escape (apostrof, backslash, HTML)
+function escJs(s) {
+  const jsEscaped = String(s || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\r?\n/g, '\\n');
+  return jsEscaped
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function showToast(msg, type = 'success') {
