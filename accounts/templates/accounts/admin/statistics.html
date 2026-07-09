@@ -79,6 +79,68 @@
     transform:translateY(-3px); color:#fff;
     box-shadow:0 10px 30px rgba(239,68,68,.35);
 }
+.st-filter-label {
+    display:inline-flex; align-items:center; gap:6px;
+    color:#6366f1; font-weight:700;
+}
+
+/* ── SORT / FILTER BAR ── */
+.st-filterbar {
+    display:flex; flex-wrap:wrap; align-items:flex-end; gap:16px;
+    padding:18px 20px; margin-bottom:32px;
+    border-radius:20px;
+    background:var(--bs-body-bg);
+    border:1px solid var(--bs-border-color);
+    box-shadow:0 8px 32px rgba(99,102,241,.08);
+}
+.st-fb-title {
+    display:flex; align-items:center; gap:8px;
+    font-weight:800; font-size:.95rem;
+    color:#6366f1; margin-right:8px; padding-bottom:8px;
+}
+.st-fb-controls {
+    display:flex; flex-wrap:wrap; gap:14px; flex:1 1 auto;
+}
+.st-fb-field { display:flex; flex-direction:column; gap:6px; min-width:180px; flex:1 1 180px; }
+.st-fb-field label {
+    display:flex; align-items:center; gap:6px;
+    font-size:.78rem; font-weight:600;
+    color:var(--bs-secondary-color);
+}
+.st-fb-select {
+    padding:11px 14px; border-radius:12px;
+    border:1.5px solid var(--bs-border-color);
+    background:var(--bs-body-bg); color:var(--bs-body-color);
+    font-size:.9rem; font-weight:600;
+    transition:all .25s ease; cursor:pointer;
+}
+.st-fb-select:focus {
+    outline:none; border-color:#6366f1;
+    box-shadow:0 0 0 4px rgba(99,102,241,.12);
+}
+.st-fb-actions { display:flex; gap:10px; align-items:flex-end; padding-bottom:1px; }
+.st-fb-btn {
+    display:inline-flex; align-items:center; gap:7px;
+    padding:11px 22px; border-radius:12px;
+    font-weight:700; font-size:.86rem; border:none;
+    text-decoration:none; cursor:pointer;
+    transition:all .25s ease;
+}
+.st-fb-btn.apply {
+    background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff;
+    box-shadow:0 4px 16px rgba(99,102,241,.28);
+}
+.st-fb-btn.apply:hover { transform:translateY(-2px); box-shadow:0 10px 26px rgba(99,102,241,.38); }
+.st-fb-btn.reset {
+    background:transparent; color:var(--bs-secondary-color);
+    border:1.5px solid var(--bs-border-color);
+}
+.st-fb-btn.reset:hover { color:#ef4444; border-color:#ef4444; }
+@media (max-width:575px) {
+    .st-filterbar { flex-direction:column; align-items:stretch; }
+    .st-fb-actions { justify-content:stretch; }
+    .st-fb-btn { flex:1; justify-content:center; }
+}
 
 .st-stats {
     display:grid; grid-template-columns:repeat(4,1fr);
@@ -456,14 +518,61 @@
         <div>
             <h1>Analitika & Statistika</h1>
             <div class="st-header-sub">
-                <span class="st-live">Jonli</span> — Barcha ko'rsatkichlar real vaqtda
+                <span class="st-live">Jonli</span> —
+                {% if filter_active %}
+                    <span class="st-filter-label"><i class="bi bi-funnel-fill"></i> {{ filter_label }}</span>
+                {% else %}
+                    Barcha ko'rsatkichlar real vaqtda
+                {% endif %}
             </div>
         </div>
     </div>
-    <a href="{% url 'export_system_pdf' %}" class="st-pdf-btn">
+    <a href="{% url 'export_system_pdf' %}{% if filter_query %}?{{ filter_query }}{% endif %}" class="st-pdf-btn">
         <i class="bi bi-file-earmark-pdf-fill"></i> PDF yuklab olish
     </a>
 </div>
+
+<!-- SORT / FILTER BAR -->
+<form method="get" class="st-filterbar sa1" id="stFilterForm">
+    <div class="st-fb-title">
+        <i class="bi bi-sliders2"></i> Saralash
+    </div>
+    <div class="st-fb-controls">
+        <div class="st-fb-field">
+            <label for="fbProfession"><i class="bi bi-mortarboard"></i> Kurs yo'nalishi</label>
+            <select name="profession" id="fbProfession" class="st-fb-select">
+                <option value="">Barcha yo'nalishlar</option>
+                {% for p in filter_professions %}
+                    <option value="{{ p.id }}" {% if selected_profession == p.id %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="st-fb-field">
+            <label for="fbYear"><i class="bi bi-calendar3"></i> Yil</label>
+            <select name="year" id="fbYear" class="st-fb-select">
+                <option value="">Barcha yillar</option>
+                {% for y in filter_years %}
+                    <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="st-fb-field">
+            <label for="fbMonth"><i class="bi bi-calendar-month"></i> Oy</label>
+            <select name="month" id="fbMonth" class="st-fb-select">
+                <option value="">Barcha oylar</option>
+                {% for m in filter_months %}
+                    <option value="{{ m.num }}" {% if selected_month == m.num %}selected{% endif %}>{{ m.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="st-fb-actions">
+        <button type="submit" class="st-fb-btn apply"><i class="bi bi-check2-circle"></i> Qo'llash</button>
+        {% if filter_active %}
+        <a href="{% url 'admin_statistics' %}" class="st-fb-btn reset"><i class="bi bi-arrow-counterclockwise"></i> Tozalash</a>
+        {% endif %}
+    </div>
+</form>
 
 <!-- STAT CARDS ROW 1 -->
 <div class="st-stats">

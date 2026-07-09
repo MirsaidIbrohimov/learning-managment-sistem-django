@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Q, Sum, Avg
 from django.db import models, transaction
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, date
 import json
 import random
 import time
@@ -6426,14 +6426,49 @@ def export_system_pdf(request):
         ]))
         return table
     
-    elements.append(Paragraph("Tizim Statistikasi - To'liq Hisobot", styles['Title']))
+    # ===== FILTRLAR (yil / oy / kurs yo'nalishi) =====
+    f = _parse_stats_filters(request)
+    start_date, end_date, profession = f['start_date'], f['end_date'], f['profession']
+    today = timezone.now().date()
+
+    def date_range(field):
+        kw = {}
+        if start_date:
+            kw[f'{field}__date__gte'] = start_date
+        if end_date:
+            kw[f'{field}__date__lt'] = end_date
+        return kw
+
+    elements.append(Paragraph("Tizim Statistikasi - Umumiy Hisobot", styles['Title']))
     elements.append(Paragraph(f"Hisobot sanasi: {timezone.now().strftime('%d.%m.%Y %H:%M')}", styles['Normal']))
+    # Filtr yorlig'i
+    period_style = ParagraphStyle(
+        'PeriodStyle', parent=styles['Normal'],
+        fontSize=11, textColor=colors.HexColor('#dc2626'), spaceBefore=4
+    )
+    elements.append(Paragraph(f"Filtr (davr / yo'nalish): {f['label']}", period_style))
     elements.append(Spacer(1, 20))
-    
-    total_students = CustomUser.objects.filter(role='student').count()
-    total_teachers = CustomUser.objects.filter(role='teacher').count()
+
+    # ===== 1. Foydalanuvchilar =====
+    users_qs = CustomUser.objects.all()
+    students_qs = CustomUser.objects.filter(role='student')
+    teachers_qs = CustomUser.objects.filter(role='teacher')
+    if profession:
+        students_qs = students_qs.filter(enrollments__profession=profession).distinct()
+        teachers_qs = teachers_qs.filter(profession=profession).distinct()
+        users_qs = CustomUser.objects.filter(
+            Q(enrollments__profession=profession) | Q(profession=profession)
+        ).distinct()
+    if start_date or end_date:
+        djf = date_range('date_joined')
+        users_qs = users_qs.filter(**djf)
+        students_qs = students_qs.filter(**djf)
+        teachers_qs = teachers_qs.filter(**djf)
+
+    total_users = users_qs.count()
+    total_students = students_qs.count()
+    total_teachers = teachers_qs.count()
     total_admins = CustomUser.objects.filter(role='admin').count()
-    total_users = CustomUser.objects.count()
     
     elements.append(Paragraph("1. Foydalanuvchilar statistikasi", heading_style))
     user_data = [
@@ -6446,9 +6481,18 @@ def export_system_pdf(request):
     elements.append(create_table(user_data))
     elements.append(Spacer(1, 15))
     
-    total_courses = Profession.objects.count()
-    courses_with_students = Profession.objects.annotate(
-        student_count=Count('enrollments')
+    # ===== 2. Kurslar va talabalar =====
+    enroll_date_q = Q()
+    if start_date:
+        enroll_date_q &= Q(enrollments__enrolled_at__date__gte=start_date)
+    if end_date:
+        enroll_date_q &= Q(enrollments__enrolled_at__date__lt=end_date)
+    courses_qs = Profession.objects.all()
+    if profession:
+        courses_qs = courses_qs.filter(pk=profession.pk)
+    total_courses = courses_qs.count()
+    courses_with_students = courses_qs.annotate(
+        student_count=Count('enrollments', filter=enroll_date_q)
     ).order_by('-student_count')
     
     elements.append(Paragraph("2. Kurslar va talabalar", heading_style))
@@ -6460,10 +6504,20 @@ def export_system_pdf(request):
     elements.append(create_table(course_data))
     elements.append(Spacer(1, 15))
     
-    total_lessons = Lesson.objects.count()
-    total_videos = VideoLesson.objects.count()
-    total_tests = Test.objects.count()
-    total_homeworks_created = Homework.objects.count()
+    # ===== 3. Dars materiallari =====
+    lessons_qs = Lesson.objects.all()
+    videos_qs = VideoLesson.objects.all()
+    tests_qs = Test.objects.all()
+    hw_created_qs = Homework.objects.all()
+    if profession:
+        lessons_qs = lessons_qs.filter(profession=profession)
+        videos_qs = videos_qs.filter(lesson__profession=profession)
+        tests_qs = tests_qs.filter(lesson__profession=profession)
+        hw_created_qs = hw_created_qs.filter(lesson__profession=profession)
+    total_lessons = lessons_qs.count()
+    total_videos = videos_qs.count()
+    total_tests = tests_qs.count()
+    total_homeworks_created = hw_created_qs.count()
     
     elements.append(Paragraph("3. Dars materiallari", heading_style))
     lesson_data = [
@@ -6476,10 +6530,15 @@ def export_system_pdf(request):
     elements.append(create_table(lesson_data))
     elements.append(Spacer(1, 15))
     
-    total_test_results = TestResult.objects.count()
-    passed_tests = TestResult.objects.filter(passed=True).count()
+    # ===== 4. Test natijalari =====
+    tr_qs = TestResult.objects.all()
+    if profession:
+        tr_qs = tr_qs.filter(test__lesson__profession=profession)
+    tr_qs = tr_qs.filter(**date_range('completed_at'))
+    total_test_results = tr_qs.count()
+    passed_tests = tr_qs.filter(passed=True).count()
     failed_tests = total_test_results - passed_tests
-    avg_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    avg_score = tr_qs.aggregate(avg=Avg('score'))['avg'] or 0
     
     elements.append(Paragraph("4. Test natijalari", heading_style))
     test_data = [
@@ -6492,10 +6551,15 @@ def export_system_pdf(request):
     elements.append(create_table(test_data))
     elements.append(Spacer(1, 15))
     
-    total_submissions = HomeworkSubmission.objects.count()
-    pending_homeworks = HomeworkSubmission.objects.filter(grade__isnull=True).count()
-    graded_homeworks = HomeworkSubmission.objects.filter(grade__isnull=False).count()
-    avg_grade = HomeworkSubmission.objects.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
+    # ===== 5. Uy vazifalari holati =====
+    hw_qs = HomeworkSubmission.objects.all()
+    if profession:
+        hw_qs = hw_qs.filter(homework__lesson__profession=profession)
+    hw_qs = hw_qs.filter(**date_range('submitted_at'))
+    total_submissions = hw_qs.count()
+    pending_homeworks = hw_qs.filter(grade__isnull=True).count()
+    graded_homeworks = hw_qs.filter(grade__isnull=False).count()
+    avg_grade = hw_qs.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
     
     elements.append(Paragraph("5. Uy vazifalari holati", heading_style))
     hw_data = [
@@ -6508,21 +6572,28 @@ def export_system_pdf(request):
     elements.append(create_table(hw_data))
     elements.append(Spacer(1, 15))
     
+    # ===== 6. Coin statistikasi (davr bo'yicha) =====
+    coin_tx_qs = CoinTransaction.objects.filter(**date_range('created_at'))
+    total_transactions = coin_tx_qs.count()
     total_coins = CustomUser.objects.aggregate(Sum('coins'))['coins__sum'] or 0
-    total_transactions = CoinTransaction.objects.count()
     avg_coins_per_user = total_coins / total_users if total_users > 0 else 0
     
     elements.append(Paragraph("6. Coin statistikasi", heading_style))
     coin_data = [
         ["Ko'rsatkich", 'Qiymat'],
-        ['Jami tarqatilgan coinlar', str(total_coins)],
-        ['Coin tranzaksiyalari', str(total_transactions)],
+        ['Jami mavjud coinlar', str(total_coins)],
+        ['Coin tranzaksiyalari (davr)', str(total_transactions)],
         ["Har bir foydalanuvchiga o'rtacha", f"{avg_coins_per_user:.1f}"],
     ]
     elements.append(create_table(coin_data))
     elements.append(Spacer(1, 15))
     
-    total_enrollments = CourseEnrollment.objects.count()
+    # ===== 7. Kursga yozilish =====
+    enroll_qs = CourseEnrollment.objects.all()
+    if profession:
+        enroll_qs = enroll_qs.filter(profession=profession)
+    enroll_qs = enroll_qs.filter(**date_range('enrolled_at'))
+    total_enrollments = enroll_qs.count()
     
     elements.append(Paragraph("7. Kursga yozilish statistikasi", heading_style))
     enroll_data = [
@@ -6532,21 +6603,54 @@ def export_system_pdf(request):
     elements.append(create_table(enroll_data))
     elements.append(Spacer(1, 15))
     
-    elements.append(Paragraph("8. Oxirgi 7 kunlik registratsiya", heading_style))
+    # ===== 8. To'lovlar (davr bo'yicha) =====
+    pay_qs = PaymentRecord.objects.all()
+    if f['year'] and f['month']:
+        pay_qs = pay_qs.filter(year=f['year'], month=f['month'])
+        pay_label = f"{MONTH_NAMES_UZ[f['month']]} {f['year']}"
+    elif f['year']:
+        pay_qs = pay_qs.filter(year=f['year'])
+        pay_label = str(f['year'])
+    elif f['month']:
+        pay_qs = pay_qs.filter(month=f['month'], year=today.year)
+        pay_label = f"{MONTH_NAMES_UZ[f['month']]} {today.year}"
+    else:
+        pay_qs = pay_qs.filter(month=today.month, year=today.year)
+        pay_label = f"{MONTH_NAMES_UZ[today.month]} {today.year}"
+    pay_paid = pay_qs.filter(is_paid=True).count()
+    pay_unpaid = pay_qs.filter(is_paid=False).count()
+    pay_revenue = pay_qs.aggregate(total=Sum('paid_amount'))['total'] or 0
+    
+    elements.append(Paragraph(f"8. To'lovlar ({pay_label})", heading_style))
+    pay_data = [
+        ["Ko'rsatkich", 'Qiymat'],
+        ["To'langan", str(pay_paid)],
+        ["To'lanmagan", str(pay_unpaid)],
+        ["Yig'ilgan summa", f"{pay_revenue:,.0f} so'm"],
+    ]
+    elements.append(create_table(pay_data))
+    elements.append(Spacer(1, 15))
+    
+    # ===== 9. Oxirgi 7 kunlik registratsiya =====
+    reg_base = CustomUser.objects.all()
+    if profession:
+        reg_base = CustomUser.objects.filter(
+            Q(enrollments__profession=profession) | Q(profession=profession)
+        ).distinct()
+    elements.append(Paragraph("9. Oxirgi 7 kunlik registratsiya", heading_style))
     reg_data = [['Sana', "Yangi foydalanuvchilar"]]
     for i in range(6, -1, -1):
         day = timezone.now().date() - timedelta(days=i)
-        count = CustomUser.objects.filter(
-            date_joined__date=day
-        ).count()
+        count = reg_base.filter(date_joined__date=day).count()
         reg_data.append([day.strftime('%d.%m.%Y'), str(count)])
     elements.append(create_table(reg_data))
     
     doc.build(elements)
     buffer.seek(0)
     
+    fname_suffix = f['query_string'].replace('&', '_').replace('=', '') or 'umumiy'
     response = HttpResponse(buffer, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="system_statistics.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="statistika_{fname_suffix}.pdf"'
     return response
 
 
@@ -10685,6 +10789,117 @@ def admin_user_delete(request, pk):
     return render(request, 'accounts/admin/user_delete.html', {'user_obj': user})
 
 
+MONTH_NAMES_UZ = [
+    '', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun',
+    'Iyul', 'Avgust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'
+]
+
+
+def _parse_stats_filters(request):
+    """Analitika sahifasi uchun yil / oy / kurs yo'nalishi (profession) filtrlarini
+    GET parametrlaridan o'qib, sana oralig'ini hisoblaydi.
+
+    Qaytaradi: dict(year, month, profession_id, profession, start_date, end_date,
+                    label, query_string)
+    """
+    today = timezone.now().date()
+
+    def _int(v):
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            return None
+
+    year = _int(request.GET.get('year'))
+    month = _int(request.GET.get('month'))
+    profession_id = _int(request.GET.get('profession'))
+
+    if month is not None and not (1 <= month <= 12):
+        month = None
+    if year is not None and not (2000 <= year <= today.year + 1):
+        year = None
+
+    profession = None
+    if profession_id:
+        profession = Profession.objects.filter(pk=profession_id).first()
+        if not profession:
+            profession_id = None
+
+    # ── Sana oralig'i (start <= x < end) ──
+    start_date = end_date = None
+    if year and month:
+        start_date = date(year, month, 1)
+        end_date = date(year + 1, 1, 1) if month == 12 else date(year, month + 1, 1)
+    elif year:
+        start_date = date(year, 1, 1)
+        end_date = date(year + 1, 1, 1)
+    elif month:
+        y = today.year
+        start_date = date(y, month, 1)
+        end_date = date(y + 1, 1, 1) if month == 12 else date(y, month + 1, 1)
+
+    # ── Inson o'qiy oladigan yorliq ──
+    label_parts = []
+    if profession:
+        label_parts.append(profession.name)
+    if month:
+        label_parts.append(MONTH_NAMES_UZ[month])
+    if year:
+        label_parts.append(str(year))
+    elif month:
+        label_parts.append(str(today.year))
+    label = " · ".join(label_parts) if label_parts else "Umumiy (barcha davr)"
+
+    # ── PDF havolasi uchun query string ──
+    qs_parts = []
+    if year:
+        qs_parts.append(f"year={year}")
+    if month:
+        qs_parts.append(f"month={month}")
+    if profession_id:
+        qs_parts.append(f"profession={profession_id}")
+    query_string = "&".join(qs_parts)
+
+    return {
+        'year': year,
+        'month': month,
+        'profession_id': profession_id,
+        'profession': profession,
+        'start_date': start_date,
+        'end_date': end_date,
+        'label': label,
+        'query_string': query_string,
+    }
+
+
+def _filter_options(selected):
+    """Filtr dropdownlari uchun yil / oy / kurs ro'yxatini tayyorlaydi."""
+    today = timezone.now().date()
+
+    years = set()
+    first_join = CustomUser.objects.order_by('date_joined').values_list('date_joined', flat=True).first()
+    start_year = first_join.year if first_join else today.year
+    for y in range(start_year, today.year + 1):
+        years.add(y)
+    years = sorted(years, reverse=True)
+
+    months = [{'num': m, 'name': MONTH_NAMES_UZ[m]} for m in range(1, 13)]
+
+    professions = list(Profession.objects.order_by('name').values('id', 'name'))
+
+    return {
+        'filter_years': years,
+        'filter_months': months,
+        'filter_professions': professions,
+        'selected_year': selected['year'],
+        'selected_month': selected['month'],
+        'selected_profession': selected['profession_id'],
+        'filter_label': selected['label'],
+        'filter_query': selected['query_string'],
+        'filter_active': bool(selected['year'] or selected['month'] or selected['profession_id']),
+    }
+
+
 @login_required
 def admin_statistics(request):
     if not request.user.is_admin:
@@ -10692,13 +10907,41 @@ def admin_statistics(request):
     
     today = timezone.now().date()
     now = timezone.now()
-    
-    # ===== BASIC COUNTS =====
-    total_users = CustomUser.objects.count()
-    total_teachers = CustomUser.objects.filter(role='teacher').count()
-    total_students = CustomUser.objects.filter(role='student').count()
+
+    # ===== FILTRLAR (yil / oy / kurs yo'nalishi) =====
+    f = _parse_stats_filters(request)
+    start_date, end_date, profession = f['start_date'], f['end_date'], f['profession']
+
+    def date_range(field):
+        """DateTimeField uchun sana oralig'i lookup lug'ati."""
+        kw = {}
+        if start_date:
+            kw[f'{field}__date__gte'] = start_date
+        if end_date:
+            kw[f'{field}__date__lt'] = end_date
+        return kw
+
+    # ===== BASIC COUNTS (filtrlangan) =====
+    users_qs = CustomUser.objects.all()
+    students_qs = CustomUser.objects.filter(role='student')
+    teachers_qs = CustomUser.objects.filter(role='teacher')
+    if profession:
+        students_qs = students_qs.filter(enrollments__profession=profession).distinct()
+        teachers_qs = teachers_qs.filter(profession=profession).distinct()
+        users_qs = CustomUser.objects.filter(
+            Q(enrollments__profession=profession) | Q(profession=profession)
+        ).distinct()
+    if start_date or end_date:
+        djf = date_range('date_joined')
+        users_qs = users_qs.filter(**djf)
+        students_qs = students_qs.filter(**djf)
+        teachers_qs = teachers_qs.filter(**djf)
+
+    total_users = users_qs.count()
+    total_teachers = teachers_qs.count()
+    total_students = students_qs.count()
     total_admins = CustomUser.objects.filter(role='admin').count()
-    blocked_users = CustomUser.objects.filter(is_blocked=True).count()
+    blocked_users = users_qs.filter(is_blocked=True).count()
     online_users = CustomUser.objects.filter(
         last_activity__gte=now - timedelta(seconds=300)
     ).count()
@@ -10719,102 +10962,158 @@ def admin_statistics(request):
     else:
         growth_percent = 100 if new_users_this_month > 0 else 0
     
-    # ===== PROFESSION STATS =====
-    profession_stats = Profession.objects.annotate(
-        student_count=Count('enrollments', filter=Q(enrollments__user__role='student')),
+    # ===== PROFESSION STATS (filtrlangan) =====
+    enroll_date_q = Q()
+    if start_date:
+        enroll_date_q &= Q(enrollments__enrolled_at__date__gte=start_date)
+    if end_date:
+        enroll_date_q &= Q(enrollments__enrolled_at__date__lt=end_date)
+
+    prof_qs = Profession.objects.all()
+    if profession:
+        prof_qs = prof_qs.filter(pk=profession.pk)
+    profession_stats = prof_qs.annotate(
+        student_count=Count('enrollments', filter=Q(enrollments__user__role='student') & enroll_date_q),
         teacher_count=Count('students', filter=Q(students__role='teacher')),
-        total=Count('enrollments')
+        total=Count('enrollments', filter=enroll_date_q)
     ).order_by('-total')
-    
+
+    # Registratsiya uchun asos (kurs yo'nalishi bo'yicha)
+    reg_base = CustomUser.objects.all()
+    if profession:
+        reg_base = CustomUser.objects.filter(
+            Q(enrollments__profession=profession) | Q(profession=profession)
+        ).distinct()
+
     # ===== DAILY REGISTRATIONS (last 7 days for chart) =====
     daily_registrations = []
     for i in range(6, -1, -1):
         day = today - timedelta(days=i)
-        count = CustomUser.objects.filter(date_joined__date=day).count()
+        count = reg_base.filter(date_joined__date=day).count()
         daily_registrations.append({'date': day, 'count': count})
     
-    # Monthly registrations for last 6 months (for bar chart)
+    # ===== MONTHLY REGISTRATIONS =====
+    # Yil tanlangan bo'lsa -> o'sha yilning 12 oyi, aks holda oxirgi 6 oy.
     monthly_registrations = []
     month_names = ['', 'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
-    for i in range(5, -1, -1):
-        m_date = today - timedelta(days=i*30)
-        m_start = m_date.replace(day=1)
-        if m_date.month == 12:
-            m_end = m_date.replace(year=m_date.year+1, month=1, day=1)
-        else:
-            m_end = m_date.replace(month=m_date.month+1, day=1)
-        count = CustomUser.objects.filter(date_joined__date__gte=m_start, date_joined__date__lt=m_end).count()
-        monthly_registrations.append({
-            'month': month_names[m_date.month],
-            'year': m_date.year,
-            'count': count,
-        })
+    if f['year']:
+        yr = f['year']
+        for mth in range(1, 13):
+            m_start = date(yr, mth, 1)
+            m_end = date(yr + 1, 1, 1) if mth == 12 else date(yr, mth + 1, 1)
+            count = reg_base.filter(date_joined__date__gte=m_start, date_joined__date__lt=m_end).count()
+            monthly_registrations.append({'month': month_names[mth], 'year': yr, 'count': count})
+    else:
+        for i in range(5, -1, -1):
+            m_date = today - timedelta(days=i*30)
+            m_start = m_date.replace(day=1)
+            if m_date.month == 12:
+                m_end = m_date.replace(year=m_date.year+1, month=1, day=1)
+            else:
+                m_end = m_date.replace(month=m_date.month+1, day=1)
+            count = reg_base.filter(date_joined__date__gte=m_start, date_joined__date__lt=m_end).count()
+            monthly_registrations.append({
+                'month': month_names[m_date.month],
+                'year': m_date.year,
+                'count': count,
+            })
     max_monthly = max((m['count'] for m in monthly_registrations), default=1) or 1
     for m in monthly_registrations:
         m['pct'] = round(m['count'] / max_monthly * 100)
     
-    # ===== TEST ANALYTICS =====
-    total_tests = Test.objects.count()
-    total_test_results = TestResult.objects.count()
-    avg_test_score = TestResult.objects.aggregate(avg=Avg('score'))['avg'] or 0
+    # ===== TEST ANALYTICS (filtrlangan) =====
+    tests_qs = Test.objects.all()
+    if profession:
+        tests_qs = tests_qs.filter(lesson__profession=profession)
+    total_tests = tests_qs.count()
+
+    tr_qs = TestResult.objects.all()
+    if profession:
+        tr_qs = tr_qs.filter(test__lesson__profession=profession)
+    tr_qs = tr_qs.filter(**date_range('completed_at'))
+    total_test_results = tr_qs.count()
+    avg_test_score = tr_qs.aggregate(avg=Avg('score'))['avg'] or 0
     test_pass_rate = 0
     if total_test_results > 0:
-        passed_tests = TestResult.objects.filter(passed=True).count()
+        passed_tests = tr_qs.filter(passed=True).count()
         test_pass_rate = round((passed_tests / total_test_results) * 100)
     
-    # ===== HOMEWORK ANALYTICS =====
-    total_hw_submissions = HomeworkSubmission.objects.count()
-    hw_pending = HomeworkSubmission.objects.filter(status='pending').count()
-    hw_graded = HomeworkSubmission.objects.filter(status='graded').count()
-    hw_accepted = HomeworkSubmission.objects.filter(status='accepted').count()
-    hw_avg_grade = HomeworkSubmission.objects.filter(
-        grade__isnull=False
-    ).aggregate(avg=Avg('grade'))['avg'] or 0
+    # ===== HOMEWORK ANALYTICS (filtrlangan) =====
+    hw_qs = HomeworkSubmission.objects.all()
+    if profession:
+        hw_qs = hw_qs.filter(homework__lesson__profession=profession)
+    hw_qs = hw_qs.filter(**date_range('submitted_at'))
+    total_hw_submissions = hw_qs.count()
+    hw_pending = hw_qs.filter(status='pending').count()
+    hw_graded = hw_qs.filter(status='graded').count()
+    hw_accepted = hw_qs.filter(status='accepted').count()
+    hw_avg_grade = hw_qs.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
     
-    # ===== VIDEO ANALYTICS =====
-    total_videos = VideoLesson.objects.count()
-    total_video_minutes = VideoLesson.objects.aggregate(total=Sum('duration'))['total'] or 0
-    videos_watched = VideoProgress.objects.filter(watched=True).count()
+    # ===== VIDEO ANALYTICS (filtrlangan) =====
+    videos_qs = VideoLesson.objects.all()
+    if profession:
+        videos_qs = videos_qs.filter(lesson__profession=profession)
+    total_videos = videos_qs.count()
+    total_video_minutes = videos_qs.aggregate(total=Sum('duration'))['total'] or 0
+    vp_qs = VideoProgress.objects.filter(watched=True)
+    if profession:
+        vp_qs = vp_qs.filter(video__lesson__profession=profession)
+    vp_qs = vp_qs.filter(**date_range('watched_at'))
+    videos_watched = vp_qs.count()
     
-    # ===== LESSON COUNTS =====
-    total_lessons = Lesson.objects.count()
-    video_lessons_count = Lesson.objects.filter(lesson_type='video').count()
-    test_lessons_count = Lesson.objects.filter(lesson_type='test').count()
-    hw_lessons_count = Lesson.objects.filter(lesson_type='homework').count()
+    # ===== LESSON COUNTS (filtrlangan) =====
+    lessons_qs = Lesson.objects.all()
+    if profession:
+        lessons_qs = lessons_qs.filter(profession=profession)
+    total_lessons = lessons_qs.count()
+    video_lessons_count = lessons_qs.filter(lesson_type='video').count()
+    test_lessons_count = lessons_qs.filter(lesson_type='test').count()
+    hw_lessons_count = lessons_qs.filter(lesson_type='homework').count()
     
-    # ===== PAYMENT ANALYTICS =====
-    current_month = today.month
-    current_year = today.year
-    paid_this_month = PaymentRecord.objects.filter(
-        month=current_month, year=current_year, is_paid=True
-    ).count()
-    unpaid_this_month = PaymentRecord.objects.filter(
-        month=current_month, year=current_year, is_paid=False
-    ).count()
-    total_revenue_this_month = PaymentRecord.objects.filter(
-        month=current_month, year=current_year
-    ).aggregate(total=Sum('paid_amount'))['total'] or 0
+    # ===== PAYMENT ANALYTICS (filtrlangan) =====
+    pay_qs = PaymentRecord.objects.all()
+    if f['year'] and f['month']:
+        pay_qs = pay_qs.filter(year=f['year'], month=f['month'])
+    elif f['year']:
+        pay_qs = pay_qs.filter(year=f['year'])
+    elif f['month']:
+        pay_qs = pay_qs.filter(month=f['month'], year=today.year)
+    else:
+        pay_qs = pay_qs.filter(month=today.month, year=today.year)
+    paid_this_month = pay_qs.filter(is_paid=True).count()
+    unpaid_this_month = pay_qs.filter(is_paid=False).count()
+    total_revenue_this_month = pay_qs.aggregate(total=Sum('paid_amount'))['total'] or 0
     
-    # ===== TOP STUDENTS (by test scores) =====
-    top_students = CustomUser.objects.filter(
-        role='student',
-        test_results__isnull=False
-    ).annotate(
-        avg_score=Avg('test_results__score'),
-        tests_taken=Count('test_results')
-    ).order_by('-avg_score')[:5]
+    # ===== TOP STUDENTS (by test scores, filtrlangan) =====
+    result_q = Q()
+    if profession:
+        result_q &= Q(test_results__test__lesson__profession=profession)
+    if start_date:
+        result_q &= Q(test_results__completed_at__date__gte=start_date)
+    if end_date:
+        result_q &= Q(test_results__completed_at__date__lt=end_date)
+    top_students = CustomUser.objects.filter(role='student').annotate(
+        avg_score=Avg('test_results__score', filter=result_q),
+        tests_taken=Count('test_results', filter=result_q)
+    ).filter(tests_taken__gt=0).order_by('-avg_score')[:5]
     
-    # ===== RECENT ACTIVITY =====
+    # ===== RECENT ACTIVITY (filtrlangan) =====
     recent_test_results = TestResult.objects.select_related(
         'student', 'test__lesson__profession'
-    ).order_by('-completed_at')[:8]
+    )
+    if profession:
+        recent_test_results = recent_test_results.filter(test__lesson__profession=profession)
+    recent_test_results = recent_test_results.filter(**date_range('completed_at')).order_by('-completed_at')[:8]
     
     recent_submissions = HomeworkSubmission.objects.select_related(
         'student', 'homework__lesson__profession'
-    ).order_by('-submitted_at')[:8]
+    )
+    if profession:
+        recent_submissions = recent_submissions.filter(homework__lesson__profession=profession)
+    recent_submissions = recent_submissions.filter(**date_range('submitted_at')).order_by('-submitted_at')[:8]
     
     # ===== PREMIUM STATS =====
-    premium_users = CustomUser.objects.filter(is_premium=True).count()
+    premium_users = users_qs.filter(is_premium=True).count()
     
     context = {
         'total_users': total_users,
@@ -10860,6 +11159,8 @@ def admin_statistics(request):
         # Premium
         'premium_users': premium_users,
     }
+    # Filtr sozlamalari (yil / oy / kurs yo'nalishi)
+    context.update(_filter_options(f))
     
     return render(request, 'accounts/admin/statistics.html', context)
 
