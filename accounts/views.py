@@ -2336,7 +2336,7 @@ def professions_view(request):
                 lesson__profession_id__in=enrolled_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
             test_counts = dict(Lesson.objects.filter(
-                profession_id__in=enrolled_ids, lesson_type='test'
+                profession_id__in=enrolled_ids, lesson_type='test'
             ).values_list('profession_id').annotate(c=Count('id')).values_list('profession_id', 'c'))
             hw_counts = dict(Homework.objects.filter(
                 lesson__profession_id__in=enrolled_ids
@@ -17375,15 +17375,92 @@ def my_study_schedule(request):
     weekly = _build_weekly_schedule(groups)
     today_lessons, next_lesson, current_day = _get_today_and_next_lesson(groups)
 
+    now = timezone.localtime()
+    now_time = now.time()
+
+    # Bugungi darslarni holatlar bilan boyitish (kelayotgan/ketmoqda/tugagan + progress)
+    today_lessons_enriched = []
+    for g in today_lessons:
+        if now_time < g.start_time:
+            state = 'upcoming'
+            progress = 0
+        elif g.start_time <= now_time <= g.end_time:
+            state = 'ongoing'
+            start_min = g.start_time.hour * 60 + g.start_time.minute
+            end_min = g.end_time.hour * 60 + g.end_time.minute
+            now_min = now_time.hour * 60 + now_time.minute
+            total = end_min - start_min
+            elapsed = now_min - start_min
+            progress = round(elapsed / total * 100) if total > 0 else 0
+        else:
+            state = 'ended'
+            progress = 100
+        today_lessons_enriched.append({
+            'group': g,
+            'state': state,
+            'progress': progress,
+        })
+
+    # Keyingi darsgacha sanoq
+    next_lesson_countdown = None
+    if next_lesson:
+        today_date = now.date()
+        target_datetime = None
+        if next_lesson in today_lessons and next_lesson.start_time > now_time:
+            target_datetime = timezone.make_aware(
+                timezone.datetime.combine(today_date, next_lesson.start_time)
+            )
+        else:
+            for offset in range(1, 8):
+                check_day = ((current_day - 1 + offset) % 7) + 1
+                if check_day == 7:
+                    continue
+                if next_lesson.has_day(check_day):
+                    check_date = today_date + timedelta(days=offset)
+                    target_datetime = timezone.make_aware(
+                        timezone.datetime.combine(check_date, next_lesson.start_time)
+                    )
+                    break
+        if target_datetime and target_datetime > now:
+            diff = target_datetime - now
+            total_min = int(diff.total_seconds() // 60)
+            next_lesson_countdown = {
+                'days': total_min // (24 * 60),
+                'hours': (total_min % (24 * 60)) // 60,
+                'mins': total_min % 60,
+                'total_min': total_min,
+                'target_iso': target_datetime.isoformat(),
+            }
+
+    # Student uchun davomat statistikasi (oxirgi 30 kun)
+    attendance_summary = None
+    if role_label == 'student':
+        month_ago = timezone.localdate() - timedelta(days=30)
+        my_atts = StudentAttendance.objects.filter(student=user, date__gte=month_ago)
+        total = my_atts.count()
+        if total > 0:
+            present = my_atts.filter(status__in=['present', 'late']).count()
+            absent = my_atts.filter(status='absent').count()
+            attendance_summary = {
+                'total': total,
+                'present': present,
+                'absent': absent,
+                'pct': round(present / total * 100),
+            }
+
     context = {
         'groups': groups,
         'weekly': weekly,
         'days_of_week': StudyGroup.DAYS_OF_WEEK,
         'today_lessons': today_lessons,
+        'today_lessons_enriched': today_lessons_enriched,
         'next_lesson': next_lesson,
+        'next_lesson_countdown': next_lesson_countdown,
         'current_day': current_day,
         'role_label': role_label,
         'total_groups': groups.count(),
+        'attendance_summary': attendance_summary,
+        'now_time': now_time,
     }
     if role_label == 'teacher':
         template_name = 'teacher/my_study_schedule.html'

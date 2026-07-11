@@ -1,620 +1,741 @@
 <style>
 @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
-@keyframes pulseSoft {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.35); }
-    50% { box-shadow: 0 0 0 12px rgba(99,102,241,0); }
+@keyframes softPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); }
+    50% { box-shadow: 0 0 0 14px rgba(99,102,241,0); }
+}
+@keyframes livePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.15); opacity: 0.7; }
+}
+@keyframes progressShine {
+    from { background-position: -200% 0; }
+    to { background-position: 200% 0; }
+}
+@keyframes countTick {
+    from { opacity: 0.5; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.ms-wrap {
+/* Root wrapper */
+.ss-wrap {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 24px 16px 60px;
+    padding: 20px 14px 60px;
 }
 
-/* Header */
-.ms-header {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+/* ===== Hero panel ===== */
+.ss-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #ec4899 100%);
     border-radius: 24px;
-    padding: 32px 28px;
+    padding: 24px 26px;
     color: #fff;
-    margin-bottom: 24px;
     position: relative;
     overflow: hidden;
+    margin-bottom: 18px;
     animation: fadeUp 0.5s ease both;
 }
-.ms-header::before {
-    content: '';
-    position: absolute;
-    top: -80px; right: -80px;
+.ss-hero::before {
+    content: ''; position: absolute; top: -90px; right: -90px;
     width: 260px; height: 260px;
-    background: rgba(255,255,255,0.08);
-    border-radius: 50%;
+    background: rgba(255,255,255,0.09); border-radius: 50%;
 }
-.ms-header::after {
-    content: '';
-    position: absolute;
-    bottom: -60px; left: -60px;
-    width: 180px; height: 180px;
-    background: rgba(255,255,255,0.06);
-    border-radius: 50%;
+.ss-hero::after {
+    content: ''; position: absolute; bottom: -70px; left: -50px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.06); border-radius: 50%;
 }
-.ms-header-inner {
+.ss-hero-content {
     position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    flex-wrap: wrap;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
 }
-.ms-header h1 {
-    font-size: 1.6rem;
-    font-weight: 800;
-    margin: 0 0 6px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.ss-hero-title {
+    font-size: 1.5rem; font-weight: 800; margin: 0 0 4px;
+    display: flex; align-items: center; gap: 12px;
 }
-.ms-header h1 i {
-    width: 46px; height: 46px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.3rem;
+.ss-hero-title .icn {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: rgba(255,255,255,0.22);
     backdrop-filter: blur(6px);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
 }
-.ms-header-sub {
-    opacity: 0.9;
-    font-size: 0.9rem;
-    font-weight: 500;
+.ss-hero-sub {
+    font-size: 0.9rem; opacity: 0.92;
+    display: flex; align-items: center; gap: 6px;
 }
-.ms-header-stats {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
+.ss-hero-stats {
+    display: flex; gap: 10px; flex-wrap: wrap;
 }
-.ms-hstat {
-    background: rgba(255,255,255,0.15);
-    padding: 12px 20px;
-    border-radius: 14px;
+.ss-hero-stat {
+    background: rgba(255,255,255,0.16);
     backdrop-filter: blur(8px);
-    text-align: center;
-    min-width: 100px;
+    padding: 12px 18px; border-radius: 14px;
+    text-align: center; min-width: 90px;
 }
-.ms-hstat .num {
-    font-size: 1.5rem;
-    font-weight: 800;
-    display: block;
-    line-height: 1;
+.ss-hero-stat .num {
+    font-size: 1.5rem; font-weight: 800; display: block; line-height: 1;
 }
-.ms-hstat .lbl {
-    font-size: 0.72rem;
-    opacity: 0.85;
-    margin-top: 4px;
-    font-weight: 600;
+.ss-hero-stat .lbl {
+    font-size: 0.7rem; opacity: 0.9; margin-top: 3px; font-weight: 600;
 }
 
-/* Next lesson card */
-.ms-next {
+/* Attendance meter (student) */
+.ss-att-summary {
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(8px);
+    padding: 8px 14px;
+    border-radius: 12px;
+    margin-top: 12px;
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    position: relative;
+    z-index: 1;
+}
+.ss-att-summary .meter {
+    width: 80px; height: 6px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 50px;
+    overflow: hidden;
+}
+.ss-att-summary .meter-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981, #34d399);
+    border-radius: 50px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ===== Countdown card ===== */
+.ss-count {
     background: var(--card-bg, #fff);
     border: 1px solid var(--border-color, #e5e7eb);
     border-radius: 20px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: center;
-    gap: 18px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    display: flex; align-items: center; gap: 18px;
     flex-wrap: wrap;
     animation: fadeUp 0.55s ease both;
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
 }
-.ms-next::before {
+.ss-count::before {
     content: '';
-    position: absolute;
-    left: 0; top: 0; bottom: 0;
-    width: 5px;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 5px;
     background: linear-gradient(180deg, #6366f1, #8b5cf6);
 }
-.ms-next-icon {
-    width: 56px; height: 56px;
-    border-radius: 16px;
+.ss-count-icon {
+    width: 56px; height: 56px; border-radius: 16px;
     background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15));
     color: #6366f1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     font-size: 1.6rem;
-    animation: pulseSoft 2.5s infinite;
+    animation: softPulse 2.5s infinite;
     flex-shrink: 0;
 }
-.ms-next-info { flex: 1; min-width: 250px; }
-.ms-next-label {
-    font-size: 0.72rem;
-    color: #6c757d;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.ss-count-info { flex: 1; min-width: 220px; }
+.ss-count-label {
+    font-size: 0.72rem; font-weight: 700;
+    color: var(--text-muted, #6b7280);
+    text-transform: uppercase; letter-spacing: 0.5px;
 }
-.ms-next-title {
-    font-size: 1.15rem;
-    font-weight: 800;
+.ss-count-title {
+    font-size: 1.15rem; font-weight: 800;
     color: var(--text-color, #111);
-    margin: 4px 0 6px;
+    margin: 3px 0 5px;
 }
-.ms-next-meta {
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
-    font-size: 0.85rem;
-    color: #6c757d;
-}
-.ms-next-meta span {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+.ss-count-meta {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    font-size: 0.82rem; color: var(--text-muted, #6b7280);
     font-weight: 600;
 }
-.ms-next-meta i { color: #6366f1; }
-.ms-next-time {
+.ss-count-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.ss-count-meta i { color: #6366f1; }
+.ss-count-timer {
+    display: flex; gap: 6px; align-items: center;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: #fff;
-    padding: 14px 22px;
-    border-radius: 16px;
-    text-align: center;
-    min-width: 120px;
-    box-shadow: 0 6px 20px rgba(99,102,241,0.3);
+    padding: 12px 16px;
+    border-radius: 14px;
+    box-shadow: 0 8px 22px rgba(99,102,241,0.32);
 }
-.ms-next-time .h {
-    font-size: 1.6rem;
-    font-weight: 800;
-    display: block;
-    line-height: 1;
+.ss-count-cell {
+    text-align: center; min-width: 40px;
 }
-.ms-next-time .d {
-    font-size: 0.78rem;
-    margin-top: 5px;
-    opacity: 0.95;
-    font-weight: 600;
+.ss-count-cell .v {
+    font-size: 1.35rem; font-weight: 800;
+    line-height: 1; display: block;
+    font-variant-numeric: tabular-nums;
+}
+.ss-count-cell .u {
+    font-size: 0.62rem; opacity: 0.85;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    margin-top: 2px;
+}
+.ss-count-sep {
+    font-size: 1.35rem; opacity: 0.5;
+    padding: 0 2px;
 }
 
-/* Weekly grid */
-.ms-week {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 14px;
-    margin-bottom: 24px;
-}
-.ms-day {
+/* ===== Today's Lessons ===== */
+.ss-today-block {
     background: var(--card-bg, #fff);
     border: 1px solid var(--border-color, #e5e7eb);
-    border-radius: 18px;
-    padding: 16px 14px;
-    min-height: 240px;
-    animation: fadeUp 0.5s ease both;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+    border-radius: 20px;
+    padding: 18px 22px;
+    margin-bottom: 18px;
+    animation: fadeUp 0.55s ease both;
 }
-.ms-day.today {
-    border-color: #6366f1;
-    background: linear-gradient(180deg, rgba(99,102,241,0.06) 0%, var(--card-bg, #fff) 40%);
-    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+.ss-block-title {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; margin-bottom: 14px;
 }
-.ms-day-head {
-    text-align: center;
-    padding-bottom: 12px;
-    border-bottom: 1px dashed var(--border-color, #e5e7eb);
-    margin-bottom: 12px;
-}
-.ms-day-head .name {
-    font-size: 0.85rem;
-    font-weight: 800;
+.ss-block-title h5 {
+    margin: 0; font-size: 1.05rem; font-weight: 800;
     color: var(--text-color, #111);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
+    display: flex; align-items: center; gap: 8px;
 }
-.ms-day-head .today-mark {
-    display: inline-block;
-    margin-top: 5px;
-    padding: 2px 10px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: #fff;
-    border-radius: 50px;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.4px;
-}
-.ms-day-head .cnt {
-    display: inline-block;
-    margin-top: 4px;
+.ss-block-title h5 i { color: #6366f1; font-size: 1.2rem; }
+.ss-live-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 50px;
+    background: rgba(239,68,68,0.1);
+    color: #dc2626; font-weight: 700;
     font-size: 0.72rem;
-    color: #6c757d;
-    padding: 2px 10px;
-    background: rgba(0,0,0,0.04);
-    border-radius: 50px;
-    font-weight: 600;
+    text-transform: uppercase;
 }
-.ms-day.today .ms-day-head .name { color: #6366f1; }
+.ss-live-badge .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #ef4444;
+    animation: livePulse 1.5s infinite;
+}
 
-.ms-lesson {
-    border-radius: 12px;
-    padding: 10px 12px;
-    margin-bottom: 8px;
-    border-left: 4px solid;
+.ss-today-list {
+    display: grid; gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.ss-today-item {
     background: var(--bg-color, #f8fafc);
-    color: var(--text-color, #111);
+    border-radius: 14px;
+    padding: 12px 14px;
+    border-left: 5px solid;
+    position: relative;
     transition: transform 0.2s;
     animation: fadeUp 0.4s ease both;
 }
-.ms-lesson:hover {
-    transform: translateX(3px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+.ss-today-item:hover { transform: translateY(-2px); }
+.ss-today-item.ongoing {
+    background: linear-gradient(135deg, rgba(239,68,68,0.05), rgba(236,72,153,0.05));
+    box-shadow: 0 4px 14px rgba(239,68,68,0.08);
 }
-.ms-lesson .time {
-    font-size: 0.78rem;
-    font-weight: 800;
+.ss-today-item.upcoming {
+    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.03));
+}
+.ss-today-item.ended { opacity: 0.6; }
+.ss-today-status {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 50px;
+    font-size: 0.66rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.3px;
+    margin-bottom: 5px;
+}
+.ss-today-item.ongoing .ss-today-status {
+    background: #ef4444; color: #fff;
+}
+.ss-today-item.upcoming .ss-today-status {
+    background: rgba(99,102,241,0.15); color: #4f46e5;
+}
+.ss-today-item.ended .ss-today-status {
+    background: rgba(107,114,128,0.15); color: #6b7280;
+}
+.ss-today-name {
+    font-size: 0.95rem; font-weight: 800;
+    color: var(--text-color, #111);
+    line-height: 1.2;
+    margin: 2px 0 4px;
+}
+.ss-today-time {
+    font-size: 0.85rem; font-weight: 700;
     color: #6366f1;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 3px;
+    display: inline-flex; align-items: center; gap: 4px;
 }
-.ms-lesson .name {
-    font-size: 0.88rem;
+.ss-today-meta {
+    font-size: 0.72rem; color: var(--text-muted, #6b7280);
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 4px;
+}
+.ss-today-progress {
+    height: 4px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 50px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+.ss-today-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #ef4444, #ec4899, #ef4444);
+    background-size: 200% 100%;
+    animation: progressShine 2s linear infinite;
+    border-radius: 50px;
+    transition: width 0.5s ease;
+}
+
+/* ===== Weekly grid ===== */
+.ss-week-block {
+    margin-bottom: 18px;
+}
+.ss-week {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 10px;
+}
+.ss-day {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e5e7eb);
+    border-radius: 16px;
+    padding: 12px 10px;
+    min-height: 200px;
+    animation: fadeUp 0.5s ease both;
+    display: flex; flex-direction: column;
+    position: relative;
+    transition: all 0.25s;
+}
+.ss-day:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+.ss-day.today {
+    background: linear-gradient(180deg, rgba(99,102,241,0.08) 0%, var(--card-bg, #fff) 40%);
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.ss-day-head {
+    text-align: center;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed var(--border-color, #e5e7eb);
+}
+.ss-day-name {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-color, #111);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+.ss-day.today .ss-day-name { color: #6366f1; }
+.ss-day-tag {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 2px 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border-radius: 50px;
+    font-size: 0.62rem;
     font-weight: 700;
-    margin-bottom: 3px;
-    line-height: 1.25;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+.ss-day-count {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 0.68rem;
+    color: var(--text-muted, #6b7280);
+    padding: 2px 8px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 50px;
+    font-weight: 700;
+}
+[data-bs-theme="dark"] .ss-day-count { background: rgba(255,255,255,0.06); }
+
+.ss-lesson {
+    background: var(--bg-color, #f8fafc);
+    border-radius: 10px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    border-left: 3px solid;
+    animation: fadeUp 0.4s ease both;
+    transition: transform 0.15s;
+}
+.ss-lesson:hover { transform: translateX(2px); }
+.ss-lesson-time {
+    font-size: 0.7rem; font-weight: 800;
+    color: #6366f1;
+    display: flex; align-items: center; gap: 3px;
+}
+.ss-lesson-name {
+    font-size: 0.78rem; font-weight: 700;
+    color: var(--text-color, #111);
+    line-height: 1.2;
+    margin: 3px 0 2px;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-.ms-lesson .course {
-    font-size: 0.72rem;
-    color: #6c757d;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-bottom: 2px;
+.ss-lesson-course {
+    font-size: 0.66rem; color: var(--text-muted, #6b7280);
+    display: flex; align-items: center; gap: 3px;
+    line-height: 1.2;
 }
-.ms-lesson .extra {
-    font-size: 0.7rem;
-    color: #6c757d;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 2px;
-}
-.ms-day-empty {
+.ss-day-empty {
     text-align: center;
-    padding: 20px 8px;
-    color: #6c757d;
-    opacity: 0.5;
-    font-size: 0.8rem;
+    padding: 16px 4px;
+    color: var(--text-muted, #6b7280);
+    opacity: 0.45;
+    font-size: 0.7rem;
     flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 6px;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    gap: 4px;
 }
-.ms-day-empty i { font-size: 1.5rem; }
+.ss-day-empty i { font-size: 1.2rem; }
 
-/* Groups list */
-.ms-groups-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 1rem;
-    font-weight: 800;
-    color: var(--text-color, #111);
-    margin: 24px 0 14px;
-}
-.ms-groups-title i {
-    color: #6366f1;
-    font-size: 1.2rem;
-}
-.ms-groups-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 14px;
-}
-.ms-group-card {
+/* ===== Groups list ===== */
+.ss-groups-block {
     background: var(--card-bg, #fff);
     border: 1px solid var(--border-color, #e5e7eb);
-    border-radius: 16px;
-    padding: 0;
-    overflow: hidden;
-    transition: all 0.25s;
-    animation: fadeUp 0.5s ease both;
+    border-radius: 20px;
+    padding: 18px 22px;
+    animation: fadeUp 0.55s ease both;
 }
-.ms-group-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 24px rgba(0,0,0,0.08);
+.ss-groups-list {
+    display: grid; gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
 }
-.ms-gc-top {
-    padding: 14px 18px;
-    color: #fff;
-    position: relative;
-}
-.ms-gc-name {
-    font-size: 1rem;
-    font-weight: 800;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 7px;
-}
-.ms-gc-sub {
-    font-size: 0.76rem;
-    opacity: 0.9;
-    margin-top: 3px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-.ms-gc-body {
-    padding: 14px 18px;
-}
-.ms-gc-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.85rem;
-    padding: 6px 0;
-    color: var(--text-color, #111);
-}
-.ms-gc-row i {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+.ss-group-item {
+    display: flex; align-items: center; gap: 12px;
     background: var(--bg-color, #f8fafc);
-    color: #6366f1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.85rem;
+    border-radius: 14px;
+    padding: 12px;
+    transition: all 0.2s;
+    animation: fadeUp 0.4s ease both;
+}
+.ss-group-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+.ss-group-color {
+    width: 5px; align-self: stretch;
+    border-radius: 50px;
     flex-shrink: 0;
 }
-.ms-gc-days {
-    display: flex;
-    gap: 4px;
-    margin-top: 8px;
+.ss-group-info { flex: 1; min-width: 0; }
+.ss-group-name {
+    font-size: 0.92rem; font-weight: 700;
+    color: var(--text-color, #111);
+    display: flex; align-items: center; gap: 5px;
+    line-height: 1.2;
 }
-.ms-gc-day {
-    width: 30px; height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+.ss-group-course {
+    font-size: 0.72rem; color: var(--text-muted, #6b7280);
+    margin-top: 3px;
+    display: flex; align-items: center; gap: 4px;
+}
+.ss-group-badges {
+    display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap;
+}
+.ss-group-badge {
+    padding: 2px 7px;
     border-radius: 6px;
-    font-size: 0.7rem;
+    font-size: 0.66rem;
     font-weight: 700;
-    background: var(--bg-color, #f8fafc);
-    color: #6c757d;
-    border: 1px solid var(--border-color, #e5e7eb);
+    background: rgba(99,102,241,0.1);
+    color: #4f46e5;
+    display: inline-flex; align-items: center; gap: 3px;
 }
-.ms-gc-day.on {
+.ss-group-badge.time {
+    background: rgba(16,185,129,0.1);
+    color: #059669;
+}
+.ss-group-days {
+    display: flex; gap: 3px; flex-shrink: 0;
+    flex-direction: column; align-items: center;
+}
+.ss-group-days-label {
+    font-size: 0.6rem; font-weight: 700;
+    color: var(--text-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.ss-group-days-row { display: flex; gap: 2px; }
+.ss-mini-day {
+    width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 4px;
+    font-size: 0.58rem; font-weight: 700;
+    background: rgba(0,0,0,0.05);
+    color: var(--text-muted, #6b7280);
+}
+[data-bs-theme="dark"] .ss-mini-day { background: rgba(255,255,255,0.06); }
+.ss-mini-day.on {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: #fff;
-    border-color: transparent;
 }
 
-/* Empty */
-.ms-empty {
+/* Empty state */
+.ss-empty {
     background: var(--card-bg, #fff);
     border: 2px dashed var(--border-color, #e5e7eb);
     border-radius: 20px;
     padding: 60px 24px;
     text-align: center;
 }
-.ms-empty-icon {
+.ss-empty-icon {
     width: 90px; height: 90px;
     border-radius: 22px;
     background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1));
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; align-items: center; justify-content: center;
     margin: 0 auto 16px;
-    font-size: 2.2rem;
-    color: #6366f1;
+    font-size: 2.2rem; color: #6366f1;
 }
-.ms-empty h4 {
-    font-weight: 800;
-    color: var(--text-color, #111);
+.ss-empty h4 {
+    font-weight: 800; color: var(--text-color, #111);
     margin-bottom: 6px;
 }
-.ms-empty p {
-    color: #6c757d;
+.ss-empty p {
+    color: var(--text-muted, #6b7280);
     max-width: 420px;
     margin: 0 auto;
 }
 
-@media (max-width: 1200px) {
-    .ms-week { grid-template-columns: repeat(3, 1fr); }
+/* Responsive */
+@media (max-width: 1100px) {
+    .ss-week { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 768px) {
-    .ms-week { grid-template-columns: repeat(2, 1fr); }
-    .ms-header { padding: 22px 20px; }
-    .ms-header h1 { font-size: 1.3rem; }
-    .ms-header-stats { width: 100%; }
-    .ms-hstat { flex: 1; }
-    .ms-next { padding: 16px; }
-    .ms-next-time { width: 100%; }
-    .ms-groups-grid { grid-template-columns: 1fr; }
+    .ss-hero { padding: 18px 20px; }
+    .ss-hero-title { font-size: 1.15rem; }
+    .ss-hero-title .icn { width: 38px; height: 38px; font-size: 1rem; }
+    .ss-hero-stats { width: 100%; }
+    .ss-hero-stat { flex: 1; min-width: auto; padding: 10px 12px; }
+    .ss-hero-stat .num { font-size: 1.25rem; }
+    .ss-count-timer { width: 100%; justify-content: center; }
+    .ss-count-cell .v { font-size: 1.1rem; }
+    .ss-week { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .ss-groups-list { grid-template-columns: 1fr; }
+    .ss-block-title h5 { font-size: 0.95rem; }
 }
 @media (max-width: 480px) {
-    .ms-week { grid-template-columns: 1fr; }
-    .ms-day { min-height: auto; }
+    .ss-week { grid-template-columns: 1fr; }
+    .ss-day { min-height: auto; }
+    .ss-today-list { grid-template-columns: 1fr; }
 }
 </style>
 
-<div class="ms-wrap">
-    <!-- Header -->
-    <div class="ms-header">
-        <div class="ms-header-inner">
-            <div>
-                <h1><i class="bi bi-calendar2-week-fill"></i> Dars jadvalim</h1>
-                <div class="ms-header-sub">
+<div class="ss-wrap">
+    <!-- Hero -->
+    <div class="ss-hero">
+        <div class="ss-hero-content">
+            <div style="min-width: 0;">
+                <h1 class="ss-hero-title">
+                    <span class="icn"><i class="bi bi-calendar2-week-fill"></i></span>
+                    Dars jadvalim
+                </h1>
+                <div class="ss-hero-sub">
+                    <i class="bi bi-info-circle"></i>
                     {% if role_label == 'teacher' %}
-                        Siz o'qituvchi sifatida quyidagi guruhlarda dars berasiz
+                        {{ total_groups }} guruhda o'qituvchisiz
                     {% else %}
-                        Siz quyidagi guruhlarda dars olasiz
+                        {{ total_groups }} guruhga biriktirilgansiz
                     {% endif %}
                 </div>
+                {% if attendance_summary %}
+                <div class="ss-att-summary">
+                    <i class="bi bi-clipboard-check-fill"></i>
+                    <span>Davomat (30 kun):</span>
+                    <strong>{{ attendance_summary.pct }}%</strong>
+                    <div class="meter"><div class="meter-fill" style="width: {{ attendance_summary.pct }}%;"></div></div>
+                    <small style="opacity:0.85;">{{ attendance_summary.present }}/{{ attendance_summary.total }}</small>
+                </div>
+                {% endif %}
             </div>
-            <div class="ms-header-stats">
-                <div class="ms-hstat">
+            <div class="ss-hero-stats">
+                <div class="ss-hero-stat">
                     <span class="num">{{ total_groups }}</span>
                     <span class="lbl">Guruhlar</span>
                 </div>
-                <div class="ms-hstat">
+                <div class="ss-hero-stat">
                     <span class="num">{{ today_lessons|length }}</span>
-                    <span class="lbl">Bugungi dars</span>
+                    <span class="lbl">Bugun</span>
                 </div>
             </div>
         </div>
     </div>
 
-    {% if next_lesson %}
-    <!-- Next lesson -->
-    <div class="ms-next">
-        <div class="ms-next-icon"><i class="bi bi-alarm-fill"></i></div>
-        <div class="ms-next-info">
-            <div class="ms-next-label">
-                {% if next_lesson in today_lessons %}Bugungi keyingi dars{% else %}Keyingi dars{% endif %}
-            </div>
-            <div class="ms-next-title">{{ next_lesson.name }}</div>
-            <div class="ms-next-meta">
-                <span><i class="bi bi-briefcase"></i> {{ next_lesson.profession.name }}</span>
+    {% if next_lesson_countdown %}
+    <!-- Countdown -->
+    <div class="ss-count">
+        <div class="ss-count-icon"><i class="bi bi-alarm-fill"></i></div>
+        <div class="ss-count-info">
+            <div class="ss-count-label">Keyingi dars boshlanishigacha</div>
+            <div class="ss-count-title">{{ next_lesson.name }}</div>
+            <div class="ss-count-meta">
+                <span><i class="bi bi-briefcase"></i>{{ next_lesson.profession.name }}</span>
+                <span><i class="bi bi-clock"></i>{{ next_lesson.time_range }}</span>
+                {% if next_lesson.room %}<span><i class="bi bi-geo-alt"></i>{{ next_lesson.room }}</span>{% endif %}
                 {% if next_lesson.teacher and role_label == 'student' %}
-                <span><i class="bi bi-person"></i> {{ next_lesson.teacher.first_name }} {{ next_lesson.teacher.last_name }}</span>
-                {% endif %}
-                {% if next_lesson.room %}
-                <span><i class="bi bi-geo-alt"></i> {{ next_lesson.room }}</span>
-                {% endif %}
-                {% if role_label == 'teacher' %}
-                <span><i class="bi bi-people"></i> {{ next_lesson.students_count }} o'quvchi</span>
+                <span><i class="bi bi-person"></i>{{ next_lesson.teacher.first_name }} {{ next_lesson.teacher.last_name }}</span>
                 {% endif %}
             </div>
         </div>
-        <div class="ms-next-time">
-            <span class="h">{{ next_lesson.start_time|time:'H:i' }}</span>
-            <span class="d">
-                {% if next_lesson in today_lessons %}Bugun{% else %}{{ next_lesson.days_display }}{% endif %}
-            </span>
+        <div class="ss-count-timer" data-target="{{ next_lesson_countdown.target_iso }}">
+            {% if next_lesson_countdown.days > 0 %}
+            <div class="ss-count-cell">
+                <span class="v" data-cell="days">{{ next_lesson_countdown.days }}</span>
+                <span class="u">kun</span>
+            </div>
+            <div class="ss-count-sep">:</div>
+            {% endif %}
+            <div class="ss-count-cell">
+                <span class="v" data-cell="hours">{{ next_lesson_countdown.hours|stringformat:"02d" }}</span>
+                <span class="u">soat</span>
+            </div>
+            <div class="ss-count-sep">:</div>
+            <div class="ss-count-cell">
+                <span class="v" data-cell="mins">{{ next_lesson_countdown.mins|stringformat:"02d" }}</span>
+                <span class="u">daq</span>
+            </div>
+            <div class="ss-count-sep">:</div>
+            <div class="ss-count-cell">
+                <span class="v" data-cell="secs">00</span>
+                <span class="u">son</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if today_lessons_enriched %}
+    <!-- Bugungi darslar -->
+    <div class="ss-today-block">
+        <div class="ss-block-title">
+            <h5><i class="bi bi-calendar-day-fill"></i> Bugungi darslar</h5>
+            {% for item in today_lessons_enriched %}
+                {% if item.state == 'ongoing' %}
+                <span class="ss-live-badge"><span class="dot"></span> Ketmoqda</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="ss-today-list">
+            {% for item in today_lessons_enriched %}
+            <div class="ss-today-item {{ item.state }}" style="border-left-color: {{ item.group.color }};">
+                <div class="ss-today-status">
+                    {% if item.state == 'ongoing' %}
+                    <i class="bi bi-broadcast"></i> Ketmoqda
+                    {% elif item.state == 'upcoming' %}
+                    <i class="bi bi-arrow-right-circle"></i> Kelayotgan
+                    {% else %}
+                    <i class="bi bi-check-circle"></i> Tugagan
+                    {% endif %}
+                </div>
+                <div class="ss-today-name">{{ item.group.name }}</div>
+                <div class="ss-today-time">
+                    <i class="bi bi-clock"></i> {{ item.group.time_range }}
+                </div>
+                <div class="ss-today-meta">
+                    <span><i class="bi bi-briefcase"></i>{{ item.group.profession.name }}</span>
+                    {% if item.group.room %}<span><i class="bi bi-geo-alt"></i>{{ item.group.room }}</span>{% endif %}
+                    {% if item.group.teacher and role_label == 'student' %}
+                    <span><i class="bi bi-person"></i>{{ item.group.teacher.first_name }}</span>
+                    {% endif %}
+                    {% if role_label == 'teacher' %}
+                    <span><i class="bi bi-people"></i>{{ item.group.students_count }}</span>
+                    {% endif %}
+                </div>
+                {% if item.state == 'ongoing' %}
+                <div class="ss-today-progress">
+                    <div class="ss-today-progress-bar" style="width: {{ item.progress }}%;"></div>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
     </div>
     {% endif %}
 
     {% if groups %}
-    <!-- Weekly grid -->
-    <div class="ms-week">
-        {% for day in weekly %}
-        <div class="ms-day {% if day.is_today %}today{% endif %}" style="animation-delay:{{ forloop.counter0 }}0ms;">
-            <div class="ms-day-head">
-                <div class="name">{{ day.day_name }}</div>
-                {% if day.is_today %}
-                <div class="today-mark"><i class="bi bi-star-fill"></i> Bugun</div>
+    <!-- Haftalik jadval -->
+    <div class="ss-week-block">
+        <div class="ss-block-title">
+            <h5><i class="bi bi-grid-3x3-gap-fill"></i> Haftalik jadval</h5>
+        </div>
+        <div class="ss-week">
+            {% for day in weekly %}
+            <div class="ss-day {% if day.is_today %}today{% endif %}" style="animation-delay:{{ forloop.counter0 }}0ms;">
+                <div class="ss-day-head">
+                    <div class="ss-day-name">{{ day.day_name }}</div>
+                    {% if day.is_today %}
+                    <div class="ss-day-tag"><i class="bi bi-star-fill"></i> Bugun</div>
+                    {% else %}
+                    <div class="ss-day-count">{{ day.lessons|length }} dars</div>
+                    {% endif %}
+                </div>
+                {% if day.lessons %}
+                    {% for g in day.lessons %}
+                    <div class="ss-lesson" style="border-left-color: {{ g.color }};">
+                        <div class="ss-lesson-time"><i class="bi bi-clock"></i>{{ g.time_range }}</div>
+                        <div class="ss-lesson-name">{{ g.name }}</div>
+                        <div class="ss-lesson-course"><i class="bi bi-briefcase"></i>{{ g.profession.name }}</div>
+                    </div>
+                    {% endfor %}
                 {% else %}
-                <div class="cnt">{{ day.lessons|length }} dars</div>
+                    <div class="ss-day-empty">
+                        <i class="bi bi-cup-hot"></i>
+                        <div>Dam olish</div>
+                    </div>
                 {% endif %}
             </div>
-            {% if day.lessons %}
-                {% for g in day.lessons %}
-                <div class="ms-lesson" style="border-left-color: {{ g.color }};">
-                    <div class="time">
-                        <i class="bi bi-clock"></i>{{ g.time_range }}
-                    </div>
-                    <div class="name">{{ g.name }}</div>
-                    <div class="course"><i class="bi bi-briefcase"></i>{{ g.profession.name }}</div>
-                    {% if g.teacher and role_label == 'student' %}
-                    <div class="extra"><i class="bi bi-person"></i>{{ g.teacher.first_name }} {{ g.teacher.last_name }}</div>
-                    {% endif %}
-                    {% if role_label == 'teacher' %}
-                    <div class="extra"><i class="bi bi-people"></i>{{ g.students_count }} o'quvchi</div>
-                    {% endif %}
-                    {% if g.room %}
-                    <div class="extra"><i class="bi bi-geo-alt"></i>{{ g.room }}</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            {% else %}
-                <div class="ms-day-empty">
-                    <i class="bi bi-cup-hot"></i>
-                    <div>Dam olish</div>
-                </div>
-            {% endif %}
+            {% endfor %}
         </div>
-        {% endfor %}
     </div>
 
-    <!-- Groups list -->
-    <div class="ms-groups-title">
-        <i class="bi bi-collection-fill"></i>
-        {% if role_label == 'teacher' %}Mening guruhlarim{% else %}Mening guruhlarim{% endif %}
-    </div>
-    <div class="ms-groups-grid">
-        {% for g in groups %}
-        <div class="ms-group-card" style="animation-delay:{{ forloop.counter0|add:1 }}0ms;">
-            <div class="ms-gc-top" style="background: linear-gradient(135deg, {{ g.color }}, {{ g.color }}dd);">
-                <div class="ms-gc-name"><i class="bi bi-collection-fill"></i> {{ g.name }}</div>
-                <div class="ms-gc-sub"><i class="bi bi-briefcase-fill"></i> {{ g.profession.name }}</div>
-            </div>
-            <div class="ms-gc-body">
-                <div class="ms-gc-row">
-                    <i class="bi bi-clock-fill"></i>
-                    <div>
-                        <div style="font-weight:700;">{{ g.time_range }}</div>
-                        <small style="color:#6c757d;">{{ g.duration_minutes }} daqiqa</small>
-                    </div>
-                </div>
-                {% if role_label == 'student' and g.teacher %}
-                <div class="ms-gc-row">
-                    <i class="bi bi-person-workspace"></i>
-                    <div>
-                        <div style="font-weight:600;">{{ g.teacher.first_name }} {{ g.teacher.last_name }}</div>
-                        <small style="color:#6c757d;">O'qituvchi</small>
-                    </div>
-                </div>
-                {% endif %}
-                {% if role_label == 'teacher' %}
-                <div class="ms-gc-row">
-                    <i class="bi bi-people-fill"></i>
-                    <div>
-                        <div style="font-weight:700;">{{ g.students_count }} o'quvchi</div>
-                        <small style="color:#6c757d;">Guruhda</small>
-                    </div>
-                </div>
-                {% endif %}
-                {% if g.room %}
-                <div class="ms-gc-row">
-                    <i class="bi bi-geo-alt-fill"></i>
-                    <div>{{ g.room }}</div>
-                </div>
-                {% endif %}
-                <div class="ms-gc-days">
-                    {% with days_list=g.get_days_list %}
-                    <span class="ms-gc-day {% if 1 in days_list %}on{% endif %}">Du</span>
-                    <span class="ms-gc-day {% if 2 in days_list %}on{% endif %}">Se</span>
-                    <span class="ms-gc-day {% if 3 in days_list %}on{% endif %}">Ch</span>
-                    <span class="ms-gc-day {% if 4 in days_list %}on{% endif %}">Pa</span>
-                    <span class="ms-gc-day {% if 5 in days_list %}on{% endif %}">Ju</span>
-                    <span class="ms-gc-day {% if 6 in days_list %}on{% endif %}">Sh</span>
-                    {% endwith %}
-                </div>
-            </div>
+    <!-- Mening guruhlarim -->
+    <div class="ss-groups-block">
+        <div class="ss-block-title">
+            <h5><i class="bi bi-collection-fill"></i> Mening guruhlarim</h5>
+            <span style="font-size: 0.72rem; padding: 3px 10px; background: rgba(99,102,241,0.1); color: #4f46e5; border-radius: 50px; font-weight: 700;">
+                {{ total_groups }}
+            </span>
         </div>
-        {% endfor %}
+        <div class="ss-groups-list">
+            {% for g in groups %}
+            <div class="ss-group-item" style="animation-delay:{{ forloop.counter0 }}0ms;">
+                <div class="ss-group-color" style="background: {{ g.color }};"></div>
+                <div class="ss-group-info">
+                    <div class="ss-group-name">{{ g.name }}</div>
+                    <div class="ss-group-course"><i class="bi bi-briefcase"></i>{{ g.profession.name }}</div>
+                    <div class="ss-group-badges">
+                        <span class="ss-group-badge time"><i class="bi bi-clock"></i>{{ g.time_range }}</span>
+                        {% if g.room %}<span class="ss-group-badge"><i class="bi bi-geo-alt"></i>{{ g.room }}</span>{% endif %}
+                        {% if g.teacher and role_label == 'student' %}
+                        <span class="ss-group-badge"><i class="bi bi-person"></i>{{ g.teacher.first_name }}</span>
+                        {% endif %}
+                        {% if role_label == 'teacher' %}
+                        <span class="ss-group-badge"><i class="bi bi-people"></i>{{ g.students_count }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="ss-group-days">
+                    <span class="ss-group-days-label">Kunlar</span>
+                    <div class="ss-group-days-row">
+                        {% with days_list=g.get_days_list %}
+                        <span class="ss-mini-day {% if 1 in days_list %}on{% endif %}">D</span>
+                        <span class="ss-mini-day {% if 2 in days_list %}on{% endif %}">S</span>
+                        <span class="ss-mini-day {% if 3 in days_list %}on{% endif %}">C</span>
+                        <span class="ss-mini-day {% if 4 in days_list %}on{% endif %}">P</span>
+                        <span class="ss-mini-day {% if 5 in days_list %}on{% endif %}">J</span>
+                        <span class="ss-mini-day {% if 6 in days_list %}on{% endif %}">Sh</span>
+                        {% endwith %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
+
     {% else %}
-    <div class="ms-empty">
-        <div class="ms-empty-icon"><i class="bi bi-calendar-x"></i></div>
+    <div class="ss-empty">
+        <div class="ss-empty-icon"><i class="bi bi-calendar-x"></i></div>
         <h4>Hozircha guruhga biriktirilmagansiz</h4>
         <p>
             {% if role_label == 'teacher' %}
@@ -625,3 +746,42 @@
         </p>
     </div>
     {% endif %}
+</div>
+
+{% if next_lesson_countdown %}
+<script>
+(function(){
+    const timerEl = document.querySelector('.ss-count-timer[data-target]');
+    if (!timerEl) return;
+    const target = new Date(timerEl.dataset.target);
+    const daysCell = timerEl.querySelector('[data-cell="days"]');
+    const hoursCell = timerEl.querySelector('[data-cell="hours"]');
+    const minsCell = timerEl.querySelector('[data-cell="mins"]');
+    const secsCell = timerEl.querySelector('[data-cell="secs"]');
+
+    function pad(n) { return n.toString().padStart(2, '0'); }
+
+    function tick() {
+        const now = new Date();
+        let diff = Math.floor((target - now) / 1000);
+        if (diff <= 0) {
+            setTimeout(() => location.reload(), 2000);
+            return;
+        }
+        const days = Math.floor(diff / (24 * 3600));
+        diff -= days * 24 * 3600;
+        const hours = Math.floor(diff / 3600);
+        diff -= hours * 3600;
+        const mins = Math.floor(diff / 60);
+        const secs = diff - mins * 60;
+
+        if (daysCell) daysCell.textContent = days;
+        if (hoursCell) hoursCell.textContent = pad(hours);
+        if (minsCell) minsCell.textContent = pad(mins);
+        if (secsCell) secsCell.textContent = pad(secs);
+    }
+    tick();
+    setInterval(tick, 1000);
+})();
+</script>
+{% endif %}
