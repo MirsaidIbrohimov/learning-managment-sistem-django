@@ -1,0 +1,235 @@
+<style>
+.ar-header {
+    background: linear-gradient(135deg, {{ group.color }} 0%, {{ group.color }}dd 100%);
+    color: #fff;
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+}
+.ar-header h2 {
+    margin: 0 0 4px; font-size: 1.2rem; font-weight: 800;
+    display: flex; align-items: center; gap: 10px;
+}
+.ar-filter {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; padding: 14px 18px;
+    margin-bottom: 14px;
+    display: flex; gap: 10px; align-items: end; flex-wrap: wrap;
+}
+.ar-filter label {
+    display: block; font-size: 0.72rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted); margin-bottom: 4px;
+}
+.ar-filter .form-select {
+    padding: 8px 12px; border-radius: 10px;
+    background: var(--bg-color); border: 1.5px solid var(--border-color);
+    color: var(--text-color); font-weight: 600;
+}
+.ar-filter button {
+    padding: 9px 18px; border-radius: 10px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; border: none; font-weight: 700; font-size: 0.85rem;
+    display: inline-flex; align-items: center; gap: 5px;
+    cursor: pointer;
+}
+
+.ar-table-wrap {
+    background: var(--card-bg); border: 1px solid var(--border-color);
+    border-radius: 14px; overflow: hidden;
+}
+.ar-table-scroll { overflow-x: auto; }
+.ar-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 720px;
+    font-size: 0.82rem;
+}
+.ar-table th, .ar-table td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+}
+.ar-table th.sticky-left, .ar-table td.sticky-left {
+    position: sticky; left: 0;
+    background: var(--card-bg);
+    z-index: 1;
+    text-align: left; min-width: 200px;
+}
+.ar-table th {
+    background: var(--bg-color);
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+.ar-table th.sticky-left { background: var(--bg-color); z-index: 2; }
+.ar-table tbody tr:hover { background: rgba(99,102,241,0.03); }
+
+.ar-student {
+    display: flex; align-items: center; gap: 8px;
+}
+.ar-student-avatar {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; font-weight: 700; font-size: 0.72rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.ar-student-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.ar-student-name {
+    font-weight: 600; font-size: 0.82rem;
+    color: var(--text-color);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;
+}
+.ar-status-dot {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 6px;
+    font-size: 0.78rem;
+}
+.ar-status-dot.present { background: rgba(16,185,129,0.15); color: #059669; }
+.ar-status-dot.absent { background: rgba(239,68,68,0.15); color: #dc2626; }
+.ar-status-dot.late { background: rgba(245,158,11,0.15); color: #d97706; }
+.ar-status-dot.sick { background: rgba(139,92,246,0.15); color: #7c3aed; }
+.ar-status-dot.excused { background: rgba(59,130,246,0.15); color: #1d4ed8; }
+.ar-status-dot.none { color: var(--text-muted); opacity: 0.4; }
+
+.ar-totals-cell {
+    font-weight: 700;
+    background: var(--bg-color);
+}
+.ar-score {
+    padding: 4px 10px; border-radius: 6px;
+    font-weight: 800; font-size: 0.82rem;
+}
+.ar-score.high { background: rgba(16,185,129,0.12); color: #059669; }
+.ar-score.mid { background: rgba(245,158,11,0.12); color: #d97706; }
+.ar-score.low { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+.ar-date-hd {
+    font-weight: 700 !important;
+    color: var(--text-color) !important;
+    font-size: 0.72rem !important;
+    min-width: 38px;
+}
+.ar-date-hd .wd { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+
+.ar-empty {
+    padding: 40px 20px; text-align: center;
+    color: var(--text-muted);
+}
+</style>
+<!-- Header -->
+<div class="ar-header">
+    <div>
+        <h2><i class="bi bi-file-earmark-bar-graph-fill"></i> {{ group.name }} — davomat hisoboti</h2>
+        <div style="opacity: 0.9;">{{ month_name }} {{ year }} · {{ group.profession.name }} · {{ total_students }} o'quvchi · {{ day_dates|length }} dars kuni</div>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="ar-filter">
+    <form method="GET" style="display: flex; gap: 10px; align-items: end; flex-wrap: wrap;">
+        <div>
+            <label>Yil</label>
+            <select name="year" class="form-select">
+                {% for y in year_choices %}
+                <option value="{{ y }}" {% if y == year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>Oy</label>
+            <select name="month" class="form-select">
+                {% for m_num, m_name in month_choices %}
+                <option value="{{ m_num }}" {% if m_num == month %}selected{% endif %}>{{ m_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit"><i class="bi bi-funnel-fill"></i> Ko'rish</button>
+    </form>
+</div>
+
+<!-- Table -->
+<div class="ar-table-wrap">
+    {% if rows and day_dates %}
+    <div class="ar-table-scroll">
+        <table class="ar-table">
+            <thead>
+                <tr>
+                    <th class="sticky-left">O'quvchi</th>
+                    {% for d in day_dates %}
+                    <th class="ar-date-hd">
+                        {{ d|date:"d" }}<br>
+                        <span class="wd">
+                            {% if d.isoweekday == 1 %}Du{% elif d.isoweekday == 2 %}Se{% elif d.isoweekday == 3 %}Ch{% elif d.isoweekday == 4 %}Pa{% elif d.isoweekday == 5 %}Ju{% elif d.isoweekday == 6 %}Sh{% endif %}
+                        </span>
+                    </th>
+                    {% endfor %}
+                    <th title="Kelgan">✓</th>
+                    <th title="Kelmagan">✗</th>
+                    <th title="Kechikkan">⏰</th>
+                    <th title="Ball">Ball</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in rows %}
+                <tr>
+                    <td class="sticky-left">
+                        <div class="ar-student">
+                            <div class="ar-student-avatar">
+                                {% if row.student.photo %}
+                                <img src="{{ row.student.photo.url }}" alt="">
+                                {% else %}
+                                {{ row.student.first_name|slice:':1' }}{{ row.student.last_name|slice:':1' }}
+                                {% endif %}
+                            </div>
+                            <span class="ar-student-name">{{ row.student.first_name }} {{ row.student.last_name }}</span>
+                        </div>
+                    </td>
+                    {% for cell in row.cells %}
+                    <td>
+                        {% if cell.attendance %}
+                        <span class="ar-status-dot {{ cell.attendance.status }}" title="{{ cell.attendance.get_status_display }}">
+                            {% if cell.attendance.status == 'present' %}<i class="bi bi-check-lg"></i>
+                            {% elif cell.attendance.status == 'absent' %}<i class="bi bi-x-lg"></i>
+                            {% elif cell.attendance.status == 'late' %}<i class="bi bi-clock"></i>
+                            {% elif cell.attendance.status == 'sick' %}<i class="bi bi-heart-pulse"></i>
+                            {% elif cell.attendance.status == 'excused' %}<i class="bi bi-file-earmark"></i>
+                            {% endif %}
+                        </span>
+                        {% else %}
+                        <span class="ar-status-dot none">—</span>
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                    <td class="ar-totals-cell" style="color: #059669;">{{ row.totals.present }}</td>
+                    <td class="ar-totals-cell" style="color: #dc2626;">{{ row.totals.absent }}</td>
+                    <td class="ar-totals-cell" style="color: #d97706;">{{ row.totals.late }}</td>
+                    <td class="ar-totals-cell">
+                        <span class="ar-score {% if row.avg_score >= 80 %}high{% elif row.avg_score >= 50 %}mid{% else %}low{% endif %}">
+                            {{ row.avg_score }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="ar-empty">
+        {% if not day_dates %}
+        <i class="bi bi-calendar-x" style="font-size: 2rem;"></i>
+        <p>Bu oyda dars kuni yo'q</p>
+        {% else %}
+        <i class="bi bi-people" style="font-size: 2rem;"></i>
+        <p>Guruhda o'quvchi yo'q</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>

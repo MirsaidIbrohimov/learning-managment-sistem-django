@@ -1,0 +1,575 @@
+<style>
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes bump {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+/* Group header */
+.am-header {
+    background: linear-gradient(135deg, {{ group.color }} 0%, {{ group.color }}dd 100%);
+    color: #fff;
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    animation: fadeUp 0.4s ease both;
+    position: relative; overflow: hidden;
+}
+.am-header::before {
+    content:''; position: absolute; top: -50px; right: -50px;
+    width: 160px; height: 160px;
+    background: rgba(255,255,255,0.1); border-radius: 50%;
+}
+.am-header-info { position: relative; z-index: 1; flex: 1; min-width: 240px; }
+.am-header-name {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 1.3rem; font-weight: 800; margin: 0 0 4px;
+}
+.am-header-meta {
+    display: flex; flex-wrap: wrap; gap: 14px;
+    font-size: 0.85rem; opacity: 0.95;
+}
+.am-header-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.am-header-date-badge {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(6px);
+    padding: 14px 20px;
+    border-radius: 14px;
+    text-align: center;
+    min-width: 140px;
+    position: relative; z-index: 1;
+}
+.am-header-date-badge .d { font-size: 1.8rem; font-weight: 800; line-height: 1; }
+.am-header-date-badge .m { font-size: 0.78rem; opacity: 0.9; margin-top: 2px; }
+
+/* Date navigation strip */
+.am-datebar {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px 18px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.45s ease both;
+}
+.am-datebar-nav {
+    display: flex; gap: 6px; align-items: center;
+}
+.am-datebar-btn {
+    padding: 8px 12px; border-radius: 10px;
+    background: var(--bg-color);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-color); text-decoration: none;
+    font-weight: 600; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.am-datebar-btn:hover { border-color: #6366f1; color: #6366f1; }
+.am-date-input {
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: var(--bg-color);
+    border: 1.5px solid var(--border-color);
+    color: var(--text-color);
+    font-weight: 600; font-size: 0.85rem;
+    min-width: 150px;
+}
+.am-date-quick {
+    display: flex; gap: 5px; flex-wrap: wrap;
+    padding-left: 12px;
+    border-left: 1px dashed var(--border-color);
+    margin-left: 6px;
+}
+.am-quick-day {
+    display: inline-flex; flex-direction: column; align-items: center;
+    padding: 5px 10px;
+    background: var(--bg-color);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-color); text-decoration: none;
+    transition: all 0.2s;
+    min-width: 44px;
+}
+.am-quick-day:hover { border-color: #6366f1; color: #6366f1; }
+.am-quick-day.selected {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; border-color: transparent;
+}
+.am-quick-day.today:not(.selected) {
+    border-color: #f59e0b; color: #f59e0b;
+}
+.am-quick-day .d1 { font-size: 0.72rem; font-weight: 700; line-height: 1; }
+.am-quick-day .d2 { font-size: 0.62rem; opacity: 0.8; margin-top: 2px; }
+
+/* Bulk actions */
+.am-bulk {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap;
+    animation: fadeUp 0.5s ease both;
+}
+.am-bulk-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.am-bulk-btn {
+    padding: 7px 14px; border-radius: 50px;
+    border: 1.5px solid;
+    background: transparent;
+    font-weight: 600; font-size: 0.8rem;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+}
+.am-bulk-btn:hover { transform: translateY(-1px); }
+.am-bulk-btn.present { border-color: #10b981; color: #10b981; }
+.am-bulk-btn.present:hover { background: #10b981; color: #fff; }
+.am-bulk-btn.absent { border-color: #ef4444; color: #ef4444; }
+.am-bulk-btn.absent:hover { background: #ef4444; color: #fff; }
+.am-bulk-btn.clear { border-color: var(--text-muted); color: var(--text-muted); }
+.am-bulk-btn.clear:hover { background: var(--text-muted); color: #fff; }
+
+/* Stats bar */
+.am-stats {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.am-stat {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+    animation: fadeUp 0.5s ease both;
+}
+.am-stat .num {
+    font-size: 1.2rem; font-weight: 800;
+    display: block; line-height: 1;
+}
+.am-stat .lbl {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    margin-top: 3px;
+    display: block;
+}
+.am-stat.present .num { color: #10b981; }
+.am-stat.absent .num { color: #ef4444; }
+.am-stat.late .num { color: #f59e0b; }
+.am-stat.sick .num { color: #8b5cf6; }
+.am-stat.excused .num { color: #3b82f6; }
+.am-stat.unmarked .num { color: var(--text-muted); }
+
+/* Students list */
+.am-students {
+    display: grid; gap: 10px;
+}
+.am-student {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp 0.35s ease both;
+    transition: all 0.2s;
+    position: relative;
+}
+.am-student:hover {
+    border-color: rgba(99,102,241,0.3);
+}
+.am-student.status-present { border-left: 5px solid #10b981; }
+.am-student.status-absent { border-left: 5px solid #ef4444; }
+.am-student.status-late { border-left: 5px solid #f59e0b; }
+.am-student.status-sick { border-left: 5px solid #8b5cf6; }
+.am-student.status-excused { border-left: 5px solid #3b82f6; }
+
+.am-student-idx {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--bg-color);
+    color: var(--text-muted);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.8rem;
+    flex-shrink: 0;
+}
+.am-student-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; font-weight: 800; font-size: 0.9rem;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.am-student-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.am-student-info { flex: 1; min-width: 0; }
+.am-student-name {
+    font-size: 0.95rem; font-weight: 700; margin: 0;
+    color: var(--text-color);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.am-student-meta {
+    font-size: 0.72rem; color: var(--text-muted);
+    display: flex; gap: 10px; flex-wrap: wrap; margin-top: 3px;
+}
+.am-student-meta span {
+    display: inline-flex; align-items: center; gap: 3px;
+}
+
+/* Status toggle group */
+.am-status-group {
+    display: flex; gap: 5px; flex-shrink: 0;
+}
+.am-status-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 1.05rem;
+    position: relative;
+}
+.am-status-btn:hover { transform: translateY(-2px); }
+
+.am-status-btn.selected.present {
+    background: #10b981; color: #fff; border-color: #10b981;
+    box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+}
+.am-status-btn.selected.absent {
+    background: #ef4444; color: #fff; border-color: #ef4444;
+    box-shadow: 0 4px 12px rgba(239,68,68,0.35);
+}
+.am-status-btn.selected.late {
+    background: #f59e0b; color: #fff; border-color: #f59e0b;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.35);
+}
+.am-status-btn.selected.sick {
+    background: #8b5cf6; color: #fff; border-color: #8b5cf6;
+    box-shadow: 0 4px 12px rgba(139,92,246,0.35);
+}
+.am-status-btn.selected.excused {
+    background: #3b82f6; color: #fff; border-color: #3b82f6;
+    box-shadow: 0 4px 12px rgba(59,130,246,0.35);
+}
+.am-status-btn.selected { animation: bump 0.35s ease; }
+
+/* Attendance percentage badge */
+.am-pct {
+    padding: 5px 10px; border-radius: 8px;
+    font-size: 0.75rem; font-weight: 700;
+    background: var(--bg-color);
+    min-width: 50px; text-align: center;
+    flex-shrink: 0;
+}
+.am-pct.high { background: rgba(16,185,129,0.12); color: #059669; }
+.am-pct.mid { background: rgba(245,158,11,0.12); color: #d97706; }
+.am-pct.low { background: rgba(239,68,68,0.12); color: #dc2626; }
+
+/* Save button */
+.am-save-bar {
+    position: sticky;
+    bottom: 12px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px 20px;
+    margin-top: 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14px; flex-wrap: wrap;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.08);
+    z-index: 50;
+}
+.am-save-info {
+    font-size: 0.85rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+}
+.am-save-btn {
+    padding: 12px 28px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; border: none;
+    font-weight: 700; font-size: 0.95rem;
+    cursor: pointer;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+}
+.am-save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(99,102,241,0.4);
+}
+.am-save-btn.pulse {
+    animation: pulseSave 2s infinite;
+}
+@keyframes pulseSave {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0.5); }
+    50% { box-shadow: 0 0 0 10px rgba(99,102,241,0); }
+}
+
+/* Empty */
+.am-empty {
+    text-align: center; padding: 60px 24px;
+    background: var(--card-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: 18px;
+}
+.am-empty-icon {
+    width: 80px; height: 80px; border-radius: 20px;
+    background: var(--bg-color);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    color: var(--text-muted); font-size: 2rem;
+}
+
+@media (max-width: 768px) {
+    .am-header { padding: 16px; }
+    .am-header-name { font-size: 1.1rem; }
+    .am-stats { grid-template-columns: repeat(3, 1fr); }
+    .am-student { padding: 10px 12px; flex-wrap: wrap; }
+    .am-student-info { min-width: 120px; }
+    .am-status-group { width: 100%; justify-content: space-between; }
+    .am-status-btn { width: 100%; }
+    .am-datebar { padding: 10px; }
+    .am-date-quick { padding-left: 0; border-left: none; margin-left: 0; width: 100%; margin-top: 6px; }
+}
+</style>
+<!-- Group Header -->
+<div class="am-header">
+    <div class="am-header-info">
+        <h2 class="am-header-name">
+            <i class="bi bi-collection-fill"></i> {{ group.name }}
+        </h2>
+        <div class="am-header-meta">
+            <span><i class="bi bi-briefcase"></i>{{ group.profession.name }}</span>
+            <span><i class="bi bi-clock"></i>{{ group.time_range }}</span>
+            <span><i class="bi bi-calendar-week"></i>{{ group.days_display }}</span>
+            <span><i class="bi bi-people"></i>{{ total_students }} o'quvchi</span>
+        </div>
+    </div>
+    <div class="am-header-date-badge">
+        <div class="d">{{ selected_date|date:"d" }}</div>
+        <div class="m">{{ selected_date|date:"F Y" }}</div>
+        <div class="m"><i class="bi bi-calendar3"></i> {{ weekday_name }}</div>
+    </div>
+</div>
+
+<!-- Date bar -->
+<div class="am-datebar">
+    <div class="am-datebar-nav">
+        <a href="?date={{ prev_date|date:'Y-m-d' }}" class="am-datebar-btn" title="Oldingi kun">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <form method="GET" style="display: inline-flex; gap: 6px; margin: 0;">
+            <input type="date" name="date" class="am-date-input" value="{{ selected_date|date:'Y-m-d' }}" onchange="this.form.submit()">
+        </form>
+        <a href="?date={{ next_date|date:'Y-m-d' }}" class="am-datebar-btn" title="Keyingi kun">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+        <a href="?date={{ today|date:'Y-m-d' }}" class="am-datebar-btn" title="Bugun">
+            <i class="bi bi-calendar-check"></i> Bugun
+        </a>
+    </div>
+    <div class="am-date-quick">
+        {% for d in recent_days %}
+        <a href="?date={{ d.date|date:'Y-m-d' }}" class="am-quick-day {% if d.is_selected %}selected{% endif %} {% if d.is_today %}today{% endif %}">
+            <div class="d1">{{ d.date|date:"d" }}</div>
+            <div class="d2">{{ d.label|slice:'3:' }}</div>
+        </a>
+        {% endfor %}
+    </div>
+    <div style="margin-left: auto;">
+        <a href="{% url 'attendance_report' group.pk %}?year={{ selected_date.year }}&month={{ selected_date.month }}"
+           class="am-datebar-btn">
+            <i class="bi bi-file-earmark-bar-graph"></i> Oylik hisobot
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="am-stats">
+    <div class="am-stat present"><span class="num" id="cnt-present">{{ stats.present }}</span><span class="lbl"><i class="bi bi-check-circle"></i> Kelgan</span></div>
+    <div class="am-stat absent"><span class="num" id="cnt-absent">{{ stats.absent }}</span><span class="lbl"><i class="bi bi-x-circle"></i> Kelmagan</span></div>
+    <div class="am-stat late"><span class="num" id="cnt-late">{{ stats.late }}</span><span class="lbl"><i class="bi bi-clock"></i> Kechikkan</span></div>
+    <div class="am-stat sick"><span class="num" id="cnt-sick">{{ stats.sick }}</span><span class="lbl"><i class="bi bi-heart-pulse"></i> Kasal</span></div>
+    <div class="am-stat excused"><span class="num" id="cnt-excused">{{ stats.excused }}</span><span class="lbl"><i class="bi bi-file-earmark"></i> Sabab</span></div>
+    <div class="am-stat unmarked"><span class="num" id="cnt-unmarked">{{ stats.unmarked }}</span><span class="lbl"><i class="bi bi-question-circle"></i> Yo'q</span></div>
+</div>
+
+{% if students_with_status %}
+<!-- Bulk actions -->
+<div class="am-bulk">
+    <span class="am-bulk-label"><i class="bi bi-lightning-charge-fill"></i> Tez amallar:</span>
+    <button type="button" class="am-bulk-btn present" data-bulk="present">
+        <i class="bi bi-check-all"></i> Barchasi kelgan
+    </button>
+    <button type="button" class="am-bulk-btn absent" data-bulk="absent">
+        <i class="bi bi-x-lg"></i> Barchasi kelmagan
+    </button>
+    <button type="button" class="am-bulk-btn clear" data-bulk="clear">
+        <i class="bi bi-arrow-counterclockwise"></i> Belgilanmagan holatga
+    </button>
+</div>
+
+<form method="POST" id="attForm">
+    {% csrf_token %}
+    <input type="hidden" name="date" value="{{ selected_date|date:'Y-m-d' }}">
+
+    <div class="am-students">
+        {% for row in students_with_status %}
+        <div class="am-student status-{{ row.current_status }}" data-student="{{ row.student.pk }}">
+            <span class="am-student-idx">{{ forloop.counter }}</span>
+            <div class="am-student-avatar">
+                {% if row.student.photo %}
+                <img src="{{ row.student.photo.url }}" alt="">
+                {% else %}
+                {{ row.student.first_name|slice:':1' }}{{ row.student.last_name|slice:':1' }}
+                {% endif %}
+            </div>
+            <div class="am-student-info">
+                <div class="am-student-name">{{ row.student.first_name }} {{ row.student.last_name }}</div>
+                <div class="am-student-meta">
+                    {% if row.student.phone %}
+                    <span><i class="bi bi-telephone"></i> {{ row.student.phone }}</span>
+                    {% endif %}
+                    {% if row.month_stats.total > 0 %}
+                    <span title="Oxirgi 30 kun"><i class="bi bi-calendar3"></i>
+                        {{ row.month_stats.total }} kun
+                        · <span style="color:#10b981;">{{ row.month_stats.present }} kelgan</span>
+                        · <span style="color:#ef4444;">{{ row.month_stats.absent }} yo'q</span>
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if row.attendance_pct is not None %}
+            <div class="am-pct {% if row.attendance_pct >= 80 %}high{% elif row.attendance_pct >= 50 %}mid{% else %}low{% endif %}"
+                 title="Oxirgi 30 kun davomat foizi">
+                {{ row.attendance_pct }}%
+            </div>
+            {% endif %}
+            <div class="am-status-group" data-student-id="{{ row.student.pk }}">
+                <input type="hidden" name="status_{{ row.student.pk }}" value="{{ row.current_status }}">
+                <button type="button" class="am-status-btn present {% if row.current_status == 'present' %}selected{% endif %}"
+                        data-status="present" title="Kelgan">
+                    <i class="bi bi-check-lg"></i>
+                </button>
+                <button type="button" class="am-status-btn absent {% if row.current_status == 'absent' %}selected{% endif %}"
+                        data-status="absent" title="Kelmagan">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+                <button type="button" class="am-status-btn late {% if row.current_status == 'late' %}selected{% endif %}"
+                        data-status="late" title="Kechikkan">
+                    <i class="bi bi-clock"></i>
+                </button>
+                <button type="button" class="am-status-btn sick {% if row.current_status == 'sick' %}selected{% endif %}"
+                        data-status="sick" title="Kasal">
+                    <i class="bi bi-heart-pulse"></i>
+                </button>
+                <button type="button" class="am-status-btn excused {% if row.current_status == 'excused' %}selected{% endif %}"
+                        data-status="excused" title="Sabab bilan">
+                    <i class="bi bi-file-earmark"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="am-save-bar">
+        <div class="am-save-info">
+            <i class="bi bi-info-circle"></i>
+            <span>Har bir o'quvchi uchun holatni tanlang va saqlang</span>
+        </div>
+        <button type="submit" class="am-save-btn pulse">
+            <i class="bi bi-check-circle-fill"></i> Davomatni saqlash
+        </button>
+    </div>
+</form>
+{% else %}
+<div class="am-empty">
+    <div class="am-empty-icon"><i class="bi bi-people"></i></div>
+    <h5>Guruhda o'quvchi yo'q</h5>
+    <p style="color: var(--text-muted);">Bu guruhga hozircha o'quvchilar qo'shilmagan.</p>
+</div>
+{% endif %}
+<script>
+(function(){
+    const statusColors = {
+        present: '#10b981', absent: '#ef4444', late: '#f59e0b',
+        sick: '#8b5cf6', excused: '#3b82f6',
+    };
+
+    function updateCounts() {
+        const rows = document.querySelectorAll('.am-student');
+        const counts = { present: 0, absent: 0, late: 0, sick: 0, excused: 0, unmarked: 0 };
+        rows.forEach(row => {
+            const hidden = row.querySelector('input[type="hidden"]');
+            const v = hidden.value;
+            if (v && counts[v] !== undefined) counts[v]++;
+            else counts.unmarked++;
+        });
+        Object.keys(counts).forEach(k => {
+            const el = document.getElementById('cnt-' + k);
+            if (el) el.textContent = counts[k];
+        });
+    }
+
+    function selectStatus(group, status) {
+        const btns = group.querySelectorAll('.am-status-btn');
+        btns.forEach(b => b.classList.remove('selected'));
+        const target = group.querySelector(`.am-status-btn[data-status="${status}"]`);
+        if (target) target.classList.add('selected');
+        const hidden = group.querySelector('input[type="hidden"]');
+        hidden.value = status;
+        // Update row border
+        const row = group.closest('.am-student');
+        row.className = row.className.replace(/\bstatus-\w+/g, '').trim() + ' status-' + status;
+        updateCounts();
+    }
+
+    document.querySelectorAll('.am-status-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const group = this.parentElement;
+            const status = this.dataset.status;
+            selectStatus(group, status);
+        });
+    });
+
+    // Bulk actions
+    document.querySelectorAll('.am-bulk-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = this.dataset.bulk;
+            document.querySelectorAll('.am-status-group').forEach(group => {
+                if (target === 'clear') {
+                    group.querySelectorAll('.am-status-btn').forEach(b => b.classList.remove('selected'));
+                    group.querySelector('input[type="hidden"]').value = '';
+                    const row = group.closest('.am-student');
+                    row.className = row.className.replace(/\bstatus-\w+/g, '').trim();
+                } else {
+                    selectStatus(group, target);
+                }
+            });
+            updateCounts();
+        });
+    });
+
+    updateCounts();
+})();
+</script>

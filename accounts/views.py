@@ -17543,7 +17543,13 @@ def attendance_home(request):
         'present_pct': present_pct,
         'can_edit_all': user.is_admin_or_assistant,
     }
-    return render(request, 'accounts/attendance/home.html', context)
+    if user.role == 'teacher':
+        template_name = 'accounts/attendance/home.html'
+    elif user.role == 'assistant_admin':
+        template_name = 'accounts/yordamchi/attendance_home.html'
+    else:
+        template_name = 'accounts/admin/attendance_home.html'
+    return render(request, template_name, context)
 
 
 @login_required
@@ -17651,7 +17657,13 @@ def attendance_mark(request, group_pk):
         'recent_days': recent_days,
         'weekday_name': dict(StudyGroup.DAYS_OF_WEEK).get(selected_date.isoweekday(), ''),
     }
-    return render(request, 'accounts/attendance/mark.html', context)
+    if user.role == 'teacher':
+        template_name = 'accounts/attendance/mark.html'
+    elif user.role == 'assistant_admin':
+        template_name = 'accounts/yordamchi/attendance_mark.html'
+    else:
+        template_name = 'accounts/admin/attendance_mark.html'
+    return render(request, template_name, context)
 
 
 @login_required
@@ -17747,4 +17759,10 @@ def attendance_report(request, group_pk):
         'month_choices': month_choices,
         'total_students': len(students),
     }
-    return render(request, 'accounts/attendance/report.html', context)
+    if user.role == 'teacher':
+        template_name = 'accounts/attendance/report.html'
+    elif user.role == 'assistant_admin':
+        template_name = 'accounts/yordamchi/attendance_report.html'
+    else:
+        template_name = 'accounts/admin/attendance_report.html'
+    return render(request, template_name, context)

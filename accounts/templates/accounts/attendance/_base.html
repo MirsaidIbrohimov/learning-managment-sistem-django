@@ -127,7 +127,11 @@
             <a href="{% url 'teacher:dashboard' %}" class="att-back">
                 <i class="bi bi-arrow-left"></i> Panel
             </a>
-            {% elif user.is_admin_or_assistant %}
+            {% elif user.role == 'assistant_admin' %}
+            <a href="{% url 'yordamchi_dashboard' %}" class="att-back">
+                <i class="bi bi-arrow-left"></i> Panel
+            </a>
+            {% elif user.is_admin %}
             <a href="{% url 'admin_dashboard' %}" class="att-back">
                 <i class="bi bi-arrow-left"></i> Panel
             </a>
