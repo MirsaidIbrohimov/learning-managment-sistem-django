@@ -69,6 +69,26 @@ def get_user_agent(request: HttpRequest) -> str:
     return request.META.get("HTTP_USER_AGENT", "")[:512]
 
 
+# Telefon va planshet (mobil qurilma) User-Agent naqshi.
+_MOBILE_UA_RE = re.compile(
+    r"(android|iphone|ipod|ipad|iemobile|blackberry|bb10|opera mini|opera mobi|"
+    r"windows phone|kindle|silk|playbook|webos|palm|mobile|tablet)",
+    re.IGNORECASE,
+)
+
+
+def is_mobile_device(user_agent: str) -> bool:
+    """Telefon yoki planshetdan kelgan so'rovni User-Agent bo'yicha aniqlaydi.
+
+    Kompyuter/noutbuk uchun False qaytaradi. Bu faqat UA asosidagi tekshiruv:
+    UA'ni yashiradigan qurilmalar (masalan, "desktop rejimidagi" iPad) uchun
+    mijoz tomonida qo'shimcha sensor (touch) tekshiruvi qo'llanadi.
+    """
+    if not user_agent:
+        return False
+    return bool(_MOBILE_UA_RE.search(user_agent))
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # 2. IP QORA RO'YXATI
 # ─────────────────────────────────────────────────────────────────────────────

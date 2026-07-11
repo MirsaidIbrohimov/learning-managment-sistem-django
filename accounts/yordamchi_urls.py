@@ -2,6 +2,7 @@
 
 from django.urls import path
 
+from . import views as account_views
 from . import yordamchi_views as v
 
 urlpatterns = [
@@ -20,6 +21,10 @@ urlpatterns = [
     # O'quv jarayoni (faqat ko'rish, baholash YO'Q)
     path('vazifalar/', v.yordamchi_homework, name='yordamchi_homework'),
     path('testlar/', v.yordamchi_tests, name='yordamchi_tests'),
+    path('guruhlar/', account_views.admin_study_groups, name='yordamchi_study_groups'),
+    path('guruhlar/yangi/', account_views.admin_study_group_create, name='yordamchi_study_group_create'),
+    path('guruhlar/<int:pk>/tahrirlash/', account_views.admin_study_group_edit, name='yordamchi_study_group_edit'),
+    path('guruhlar/<int:pk>/ochirish/', account_views.admin_study_group_delete, name='yordamchi_study_group_delete'),
     path('sertifikatlar/', v.yordamchi_certificates, name='yordamchi_certificates'),
 
     # Kutubxona

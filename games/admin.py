@@ -38,11 +38,11 @@ class PromptAdmin(admin.ModelAdmin):
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
-    list_display = ['title', 'game', 'start_time', 'end_time', 'is_active', 'max_attempts', 'allow_retry']
-    list_filter = ['game', 'is_active']
+    list_display = ['title', 'game', 'audience_type', 'start_time', 'end_time', 'is_active', 'max_attempts', 'allow_retry']
+    list_filter = ['game', 'is_active', 'audience_type']
     search_fields = ['title']
     list_editable = ['is_active']
-    filter_horizontal = ['prompts']
+    filter_horizontal = ['prompts', 'groups', 'participants']
 
 
 @admin.register(GameAttempt)

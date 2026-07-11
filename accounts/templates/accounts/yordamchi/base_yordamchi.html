@@ -451,6 +451,7 @@
     }
     @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
     </style>
+    {% block extra_css %}{% endblock %}
     {% block extra_head %}{% endblock %}
 </head>
 <body>
@@ -488,7 +489,7 @@
         <a href="{% url 'yordamchi_tests' %}" class="yo-nav-link {% if 'tests' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-clipboard-check"></i> <span>Test natijalari</span>
         </a>
-        <a href="{% url 'admin_study_groups' %}" class="yo-nav-link {% if 'study_group' in request.resolver_match.url_name %}active{% endif %}">
+        <a href="{% url 'yordamchi_study_groups' %}" class="yo-nav-link {% if 'study_group' in request.resolver_match.url_name %}active{% endif %}">
             <i class="bi bi-calendar2-week"></i> <span>Guruhlar & Jadval</span>
         </a>
         <a href="{% url 'attendance_home' %}" class="yo-nav-link {% if 'attendance' in request.resolver_match.url_name %}active{% endif %}">
@@ -580,7 +581,7 @@
                 </div>
             {% endfor %}
         {% endif %}
-        {% block content %}{% endblock %}
+        {% block content %}{% block admin_content %}{% endblock %}{% endblock %}
     </div>
 </main>
 

@@ -1,7 +1,9 @@
-{% extends 'accounts/admin/base_admin.html' %}
+{% extends study_groups_base %}
 {% load static %}
 
-{% block title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %} - Admin Panel{% endblock %}
+{% block title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %}{% endblock %}
+{% block page_title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %}{% endblock %}
+{% block topbar_title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -336,7 +338,7 @@
             </span>
             {% if group %}Guruhni tahrirlash{% else %}Yangi guruh yaratish{% endif %}
         </h1>
-        <a href="{% url 'admin_study_groups' %}" class="sgf-back">
+        <a href="{% url study_groups_url %}" class="sgf-back">
             <i class="bi bi-arrow-left"></i> Orqaga
         </a>
     </div>
@@ -479,7 +481,7 @@
 
         <!-- Actions -->
         <div class="sgf-actions">
-            <a href="{% url 'admin_study_groups' %}" class="sgf-btn sgf-btn-cancel">
+            <a href="{% url study_groups_url %}" class="sgf-btn sgf-btn-cancel">
                 <i class="bi bi-x-circle"></i> Bekor qilish
             </a>
             <button type="submit" class="sgf-btn sgf-btn-primary">

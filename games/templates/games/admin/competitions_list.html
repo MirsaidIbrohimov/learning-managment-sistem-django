@@ -170,6 +170,7 @@
                         <tr>
                             <th>O'yin</th>
                             <th>Nomi</th>
+                            <th>Kimlar uchun</th>
                             <th>Boshlanish</th>
                             <th>Tugash</th>
                             <th>Holat</th>
@@ -185,6 +186,21 @@
                         <tr>
                             <td>{{ comp.game.title }}</td>
                             <td><strong>{{ comp.title }}</strong></td>
+                            <td>
+                                {% if comp.audience_type == 'groups' %}
+                                <span class="badge bg-warning text-dark" style="border-radius: 8px;" title="{{ comp.audience_display }}">
+                                    <i class="bi bi-diagram-3"></i> {{ comp.audience_display|truncatechars:30 }}
+                                </span>
+                                {% elif comp.audience_type == 'students' %}
+                                <span class="badge bg-info text-dark" style="border-radius: 8px;" title="Tanlangan o'quvchilar">
+                                    <i class="bi bi-person-check"></i> {{ comp.audience_display }}
+                                </span>
+                                {% else %}
+                                <span class="badge bg-success" style="border-radius: 8px;">
+                                    <i class="bi bi-globe2"></i> Hammaga
+                                </span>
+                                {% endif %}
+                            </td>
                             <td>{{ comp.start_time|date:"d.m.Y H:i" }}</td>
                             <td>{{ comp.end_time|date:"d.m.Y H:i" }}</td>
                             <td>
@@ -240,7 +256,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="10" class="text-center py-4 text-muted">
+                            <td colspan="11" class="text-center py-4 text-muted">
                                 <i class="bi bi-trophy" style="font-size: 2rem; opacity: 0.4;"></i>
                                 <p class="mt-2 mb-0">Musobaqalar mavjud emas</p>
                             </td>
@@ -268,6 +284,12 @@
             </div>
             <div class="card-meta">
                 <div><i class="bi bi-controller"></i> {{ comp.game.title }}</div>
+                <div>
+                    {% if comp.audience_type == 'groups' %}<i class="bi bi-diagram-3"></i>
+                    {% elif comp.audience_type == 'students' %}<i class="bi bi-person-check"></i>
+                    {% else %}<i class="bi bi-globe2"></i>{% endif %}
+                    {{ comp.audience_display|truncatechars:40 }}
+                </div>
                 <div><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}</div>
                 <div><i class="bi bi-arrow-repeat"></i> {{ comp.max_attempts }} urinish {% if comp.allow_retry %} · Qayta urinish: Ha{% endif %}</div>
                 <div>

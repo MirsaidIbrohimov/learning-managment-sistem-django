@@ -2015,7 +2015,9 @@ def home_view(request):
                    'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
         comp_qs = _Competition.objects.filter(
             is_active=True, end_time__gte=_now
-        ).order_by('start_time')[:5]
+        ).filter(
+            _Competition.visible_q(request.user)
+        ).order_by('start_time').distinct()[:5]
         for comp in comp_qs:
             st = timezone.localtime(comp.start_time) if comp.start_time else None
             if st:
@@ -17080,12 +17082,37 @@ def _parse_time(value):
             return None
 
 
+def _study_group_panel_context(user):
+    """Guruh sahifalarini foydalanuvchining o'z panelida ochish sozlamalari."""
+    if user.is_assistant_admin:
+        return {
+            'study_groups_base': 'accounts/yordamchi/base_yordamchi.html',
+            'study_groups_url': 'yordamchi_study_groups',
+            'study_group_create_url': 'yordamchi_study_group_create',
+            'study_group_edit_url': 'yordamchi_study_group_edit',
+            'study_group_delete_url': 'yordamchi_study_group_delete',
+        }
+    return {
+        'study_groups_base': 'accounts/admin/base_admin.html',
+        'study_groups_url': 'admin_study_groups',
+        'study_group_create_url': 'admin_study_group_create',
+        'study_group_edit_url': 'admin_study_group_edit',
+        'study_group_delete_url': 'admin_study_group_delete',
+    }
+
+
 @login_required
 def admin_study_groups(request):
     """Guruhlar & Dars jadvali ro'yxati."""
     if not request.user.is_admin_or_assistant:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
+
+    if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_groups':
+        target = reverse('yordamchi_study_groups')
+        if request.GET:
+            target = f'{target}?{request.GET.urlencode()}'
+        return redirect(target)
 
     q = request.GET.get('q', '').strip()
     profession_id = request.GET.get('profession', '')
@@ -17142,6 +17169,7 @@ def admin_study_groups(request):
         'total_groups': groups.count(),
         'active_groups': sum(1 for g in groups if g.is_active),
     }
+    context.update(_study_group_panel_context(request.user))
     return render(request, 'accounts/admin/study_groups.html', context)
 
 
@@ -17150,6 +17178,11 @@ def admin_study_group_create(request):
     if not request.user.is_admin_or_assistant:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
+
+    if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_create':
+        return redirect('yordamchi_study_group_create')
+
+    panel_context = _study_group_panel_context(request.user)
 
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
@@ -17196,7 +17229,7 @@ def admin_study_group_create(request):
                     CustomUser.objects.filter(pk__in=student_ids, role='student')
                 )
             messages.success(request, f"'{group.name}' guruhi yaratildi.")
-            return redirect('admin_study_groups')
+            return redirect(panel_context['study_groups_url'])
 
     professions = Profession.objects.all()
     teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
@@ -17211,6 +17244,7 @@ def admin_study_group_create(request):
         'selected_days': [],
         'selected_students': [],
     }
+    context.update(panel_context)
     return render(request, 'accounts/admin/study_group_form.html', context)
 
 
@@ -17219,6 +17253,11 @@ def admin_study_group_edit(request, pk):
     if not request.user.is_admin_or_assistant:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
+
+    if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_edit':
+        return redirect('yordamchi_study_group_edit', pk=pk)
+
+    panel_context = _study_group_panel_context(request.user)
 
     group = get_object_or_404(StudyGroup, pk=pk)
 
@@ -17266,7 +17305,7 @@ def admin_study_group_edit(request, pk):
                 CustomUser.objects.filter(pk__in=student_ids, role='student')
             )
             messages.success(request, f"'{group.name}' guruhi yangilandi.")
-            return redirect('admin_study_groups')
+            return redirect(panel_context['study_groups_url'])
 
     professions = Profession.objects.all()
     teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
@@ -17281,6 +17320,7 @@ def admin_study_group_edit(request, pk):
         'selected_days': group.get_days_list(),
         'selected_students': list(group.students.values_list('pk', flat=True)),
     }
+    context.update(panel_context)
     return render(request, 'accounts/admin/study_group_form.html', context)
 
 
@@ -17289,13 +17329,20 @@ def admin_study_group_delete(request, pk):
     if not request.user.is_admin_or_assistant:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
+    if request.user.is_assistant_admin and request.resolver_match.url_name == 'admin_study_group_delete':
+        return redirect('yordamchi_study_group_delete', pk=pk)
+
+    panel_context = _study_group_panel_context(request.user)
     group = get_object_or_404(StudyGroup, pk=pk)
     if request.method == 'POST':
         name = group.name
         group.delete()
         messages.success(request, f"'{name}' guruhi o'chirildi.")
-        return redirect('admin_study_groups')
-    return render(request, 'accounts/admin/study_group_delete.html', {'group': group})
+        return redirect(panel_context['study_groups_url'])
+    return render(request, 'accounts/admin/study_group_delete.html', {
+        'group': group,
+        **panel_context,
+    })
 
 
 # ==================== STUDENT & TEACHER — DARS JADVALIM ====================
@@ -17666,22 +17713,14 @@ def attendance_mark(request, group_pk):
     return render(request, template_name, context)
 
 
-@login_required
-def attendance_report(request, group_pk):
-    """Guruh davomati bo'yicha oy/yil bo'yicha hisobot."""
-    user = request.user
-    group = get_object_or_404(StudyGroup, pk=group_pk)
-
-    if not _can_mark_attendance(user, group):
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('attendance_home')
-
+def _build_attendance_report_data(group, year, month):
+    """Davomat sahifasi va Excel eksporti uchun bir xil oylik hisobotni tayyorlaydi."""
     today = timezone.localdate()
-    year = _to_int(request.GET.get('year'), today.year)
-    month = _to_int(request.GET.get('month'), today.month)
-
     if month < 1 or month > 12:
         month = today.month
+    if year < 1 or year > 9999:
+        year = today.year
+
     from calendar import monthrange
     _, days_in_month = monthrange(year, month)
 
@@ -17740,24 +17779,39 @@ def attendance_report(request, group_pk):
             'avg_score': avg_score,
         })
 
-    # Yil ro'yxati
-    year_choices = list(range(today.year, today.year - 4, -1))
     month_choices = [
         (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
         (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
         (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
     ]
-
-    context = {
-        'group': group,
+    return {
         'year': year,
         'month': month,
         'month_name': dict(month_choices).get(month, ''),
         'day_dates': day_dates,
         'rows': rows,
-        'year_choices': year_choices,
+        'year_choices': list(range(today.year, today.year - 4, -1)),
         'month_choices': month_choices,
         'total_students': len(students),
+    }
+
+
+@login_required
+def attendance_report(request, group_pk):
+    """Guruh davomati bo'yicha oy/yil bo'yicha hisobot."""
+    user = request.user
+    group = get_object_or_404(StudyGroup, pk=group_pk)
+
+    if not _can_mark_attendance(user, group):
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('attendance_home')
+
+    today = timezone.localdate()
+    year = _to_int(request.GET.get('year'), today.year)
+    month = _to_int(request.GET.get('month'), today.month)
+    context = {
+        'group': group,
+        **_build_attendance_report_data(group, year, month),
     }
     if user.role == 'teacher':
         template_name = 'accounts/attendance/report.html'
@@ -17766,3 +17820,129 @@ def attendance_report(request, group_pk):
     else:
         template_name = 'accounts/admin/attendance_report.html'
     return render(request, template_name, context)
+
+
+@login_required
+def attendance_report_excel(request, group_pk):
+    """Admin va yordamchi admin uchun guruh davomatini Excel ko'rinishida yuklash."""
+    user = request.user
+    group = get_object_or_404(
+        StudyGroup.objects.select_related('profession', 'teacher'),
+        pk=group_pk,
+    )
+    if not user.is_admin_or_assistant:
+        messages.error(request, "Excel hisobotini yuklab olish huquqingiz yo'q!")
+        return redirect('attendance_report', group_pk=group.pk)
+
+    today = timezone.localdate()
+    year = _to_int(request.GET.get('year'), today.year)
+    month = _to_int(request.GET.get('month'), today.month)
+    report = _build_attendance_report_data(group, year, month)
+
+    import openpyxl
+    from openpyxl.comments import Comment
+    from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+    from openpyxl.utils import get_column_letter
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = 'Davomat'
+    ws.sheet_view.showGridLines = False
+
+    headers = ["№", "O'quvchi"]
+    headers.extend(d.strftime('%d.%m') for d in report['day_dates'])
+    headers.extend(['Kelgan', 'Kelmagan', 'Kechikkan', 'Kasal', 'Sababli', 'Ball (%)'])
+    last_column = get_column_letter(len(headers))
+
+    ws.merge_cells(f'A1:{last_column}1')
+    ws['A1'] = f"{group.name} — o'quvchilar davomati"
+    ws['A1'].font = Font(size=16, bold=True, color='FFFFFF')
+    ws['A1'].fill = PatternFill('solid', fgColor='4F46E5')
+    ws['A1'].alignment = Alignment(horizontal='center', vertical='center')
+    ws.row_dimensions[1].height = 30
+
+    teacher_name = 'Biriktirilmagan'
+    if group.teacher:
+        teacher_name = group.teacher.get_full_name() or group.teacher.username
+    ws.merge_cells(f'A2:{last_column}2')
+    ws['A2'] = (
+        f"Kurs: {group.profession.name} | O'qituvchi: {teacher_name} | "
+        f"Davr: {report['month_name']} {report['year']} | "
+        f"O'quvchilar: {report['total_students']}"
+    )
+    ws['A2'].font = Font(italic=True, color='475569')
+    ws['A2'].alignment = Alignment(horizontal='center')
+
+    header_row = 4
+    header_fill = PatternFill('solid', fgColor='0F766E')
+    header_font = Font(bold=True, color='FFFFFF')
+    thin = Side(style='thin', color='CBD5E1')
+    border = Border(left=thin, right=thin, top=thin, bottom=thin)
+    for column, value in enumerate(headers, 1):
+        cell = ws.cell(row=header_row, column=column, value=value)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+        cell.border = border
+
+    status_fills = {
+        'present': PatternFill('solid', fgColor='DCFCE7'),
+        'absent': PatternFill('solid', fgColor='FEE2E2'),
+        'late': PatternFill('solid', fgColor='FEF3C7'),
+        'sick': PatternFill('solid', fgColor='F3E8FF'),
+        'excused': PatternFill('solid', fgColor='DBEAFE'),
+    }
+    status_labels = dict(StudentAttendance.STATUS_CHOICES)
+    first_data_row = header_row + 1
+    for row_number, row in enumerate(report['rows'], first_data_row):
+        student = row['student']
+        student_name = student.get_full_name() or student.username
+        values = [row_number - header_row, student_name]
+        values.extend(
+            status_labels.get(cell['attendance'].status, '') if cell['attendance'] else ''
+            for cell in row['cells']
+        )
+        values.extend([
+            row['totals']['present'],
+            row['totals']['absent'],
+            row['totals']['late'],
+            row['totals']['sick'],
+            row['totals']['excused'],
+            row['avg_score'],
+        ])
+        for column, value in enumerate(values, 1):
+            cell = ws.cell(row=row_number, column=column, value=value)
+            cell.border = border
+            cell.alignment = Alignment(
+                horizontal='left' if column == 2 else 'center',
+                vertical='center',
+                wrap_text=True,
+            )
+
+        for offset, attendance_cell in enumerate(row['cells'], 3):
+            attendance = attendance_cell['attendance']
+            if attendance:
+                ws.cell(row=row_number, column=offset).fill = status_fills[attendance.status]
+                if attendance.note:
+                    ws.cell(row=row_number, column=offset).comment = Comment(attendance.note, 'LMS')
+
+    ws.freeze_panes = 'C5'
+    ws.auto_filter.ref = f'A4:{last_column}{max(header_row, ws.max_row)}'
+    ws.column_dimensions['A'].width = 6
+    ws.column_dimensions['B'].width = 30
+    for column in range(3, 3 + len(report['day_dates'])):
+        ws.column_dimensions[get_column_letter(column)].width = 13
+    for column in range(3 + len(report['day_dates']), len(headers) + 1):
+        ws.column_dimensions[get_column_letter(column)].width = 12
+    ws.page_setup.orientation = 'landscape'
+    ws.page_setup.fitToWidth = 1
+    ws.sheet_properties.pageSetUpPr.fitToPage = True
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = (
+        f'attachment; filename="davomat_guruh_{group.pk}_{report["year"]}_{report["month"]:02d}.xlsx"'
+    )
+    wb.save(response)
+    return response

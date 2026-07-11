@@ -23,6 +23,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
 from accounts.models import CustomUser
+from accounts.security import get_user_agent, is_mobile_device
 from . import external_api
 
 
@@ -41,10 +42,13 @@ def games_list(request):
         comp.award_competition_coins()
 
     # Faol yoki tez orada boshlanadigan musobaqalar â€” sahifaning tepasida chiqadi
+    # Faqat foydalanuvchi auditoriyasiga mos musobaqalar ko'rsatiladi
     comps = (Competition.objects
              .filter(is_active=True, end_time__gte=now, game__is_active=True)
+             .filter(Competition.visible_q(request.user))
              .select_related('game')
-             .order_by('start_time'))
+             .order_by('start_time')
+             .distinct())
 
     active_competitions = []
     for comp in comps:
@@ -78,7 +82,10 @@ def game_detail(request, slug):
     if game.game_type == 'external':
         return redirect('games:game_launch', slug=game.slug)
 
-    competitions = game.competitions.filter(is_active=True).order_by('-start_time')
+    competitions = (game.competitions.filter(is_active=True)
+                    .filter(Competition.visible_q(request.user))
+                    .order_by('-start_time')
+                    .distinct())
     for comp in competitions:
         # Musobaqa tugagan bo'lsa, coin berish
         if comp.status == 'ended' and not comp.coins_awarded:
@@ -136,6 +143,7 @@ def game_detail(request, slug):
         'practice_count': practice_count,
         'best_practice': best_practice,
         'all_attempts': all_attempts,
+        'is_mobile': is_mobile_device(get_user_agent(request)),
     })
 
 
@@ -205,6 +213,9 @@ def game_launch(request, slug):
             comp_check = game.competitions.filter(pk=int(competition_id), is_active=True).first()
         except (TypeError, ValueError):
             comp_check = None
+        if comp_check and not comp_check.is_user_allowed(request.user):
+            messages.warning(request, f"'{comp_check.title}' musobaqasi siz uchun mo'ljallanmagan.")
+            return redirect('games:game_detail', slug=slug)
         if comp_check:
             used = comp_check.user_attempts_count(request.user)
             if comp_check.status == 'ended':
@@ -247,7 +258,7 @@ def game_launch(request, slug):
     from django.utils import timezone
     active_competitions = game.competitions.filter(
         is_active=True, start_time__lte=timezone.now(), end_time__gte=timezone.now()
-    ).order_by('end_time')
+    ).filter(Competition.visible_q(request.user)).order_by('end_time').distinct()
 
     return render(request, 'games/student/external_game_embed.html', {
         'game': game,
@@ -301,12 +312,24 @@ def game_play(request, slug, competition_id=None):
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
-            if competition.status == 'upcoming':
+            if not competition.is_user_allowed(request.user):
+                messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
+            elif competition.status == 'upcoming':
                 messages.info(request, "Musobaqa hali boshlanmagan!")
             elif competition.status == 'ended':
                 messages.info(request, "Musobaqa tugagan!")
             else:
                 messages.info(request, "Urinishlaringiz tugadi!")
+            return redirect('games:game_detail', slug=slug)
+
+        # 📵 Musobaqada faqat kompyuter/noutbukda qatnashish mumkin.
+        # Telefon va planshet (mobil qurilma) taqiqlanadi; mashq rejimi ochiq.
+        if is_mobile_device(get_user_agent(request)):
+            messages.warning(
+                request,
+                "Musobaqada faqat kompyuter yoki noutbukda qatnashish mumkin. "
+                "Telefon va planshetda musobaqa yopiq — mashq rejimidan foydalaning."
+            )
             return redirect('games:game_detail', slug=slug)
 
     # Matn pooli: musobaqa — maxsus tanlangan yoki "Musobaqa" rejimidagi matnlar;
@@ -406,6 +429,15 @@ def game_submit(request, slug):
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
             return JsonResponse({'error': "Siz bu musobaqada ishtirok eta olmaysiz!"}, status=403)
+
+        # 📵 Musobaqa telefon/planshetda taqiqlangan.
+        # Server UA + mijoz sensori (iPad "desktop rejimi" UA'ni yashiradi) bo'yicha bloklaymiz.
+        client_touch = request.POST.get('is_touch') == '1'
+        if is_mobile_device(get_user_agent(request)) or client_touch:
+            return JsonResponse(
+                {'error': "Musobaqada faqat kompyuter yoki noutbukda qatnashish mumkin."},
+                status=403,
+            )
 
     original_words = prompt.text.split()
     typed_words = typed_text.split()
@@ -1221,12 +1253,72 @@ def _save_competition_prompts(competition, request):
     competition.prompts.set(valid_prompts)
 
 
+def _clean_audience(request):
+    """Formdan auditoriya ma'lumotlarini o'qish va validatsiya qilish.
+
+    Qaytaradi: (audience_type, group_ids, student_ids, error_message)
+    """
+    from accounts.models import StudyGroup
+
+    audience_type = request.POST.get('audience_type', 'all')
+    if audience_type not in dict(Competition.AUDIENCE_CHOICES):
+        audience_type = 'all'
+
+    group_ids = [gid for gid in request.POST.getlist('group_ids') if gid.isdigit()]
+    student_ids = [sid for sid in request.POST.getlist('student_ids') if sid.isdigit()]
+
+    if audience_type == 'groups':
+        group_ids = list(
+            StudyGroup.objects.filter(pk__in=group_ids).values_list('pk', flat=True)
+        )
+        if not group_ids:
+            return audience_type, [], [], "Kamida bitta guruh tanlang!"
+    elif audience_type == 'students':
+        student_ids = list(
+            CustomUser.objects.filter(pk__in=student_ids, role='student')
+            .values_list('pk', flat=True)
+        )
+        if not student_ids:
+            return audience_type, [], [], "Kamida bitta o'quvchi tanlang!"
+
+    return audience_type, group_ids, student_ids, None
+
+
+def _save_competition_audience(competition, audience_type, group_ids, student_ids):
+    """Auditoriya turini va tegishli M2M bog'lamalarni saqlash.
+
+    Tanlanmagan rejimdagi bog'lamalar tozalanadi — eski tanlovlar
+    chalkashlik keltirmasligi uchun.
+    """
+    competition.audience_type = audience_type
+    competition.save(update_fields=['audience_type'])
+    competition.groups.set(group_ids if audience_type == 'groups' else [])
+    competition.participants.set(student_ids if audience_type == 'students' else [])
+
+
+def _audience_form_context():
+    """Musobaqa formasi uchun guruhlar va o'quvchilar ro'yxati."""
+    from accounts.models import StudyGroup
+
+    groups = (
+        StudyGroup.objects.filter(is_active=True)
+        .select_related('profession')
+        .annotate(student_count=Count('students', distinct=True))
+        .order_by('name')
+    )
+    students_data = [
+        {'id': s.pk, 'name': s.full_name or s.username, 'username': s.username}
+        for s in CustomUser.objects.filter(role='student', is_active=True).order_by('first_name', 'last_name')
+    ]
+    return {'study_groups': groups, 'students_data': students_data}
+
+
 @login_required
 def admin_competitions(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    competitions = Competition.objects.all().select_related('game').annotate(
+    competitions = Competition.objects.all().select_related('game').prefetch_related('groups').annotate(
         selected_prompts_count=Count('prompts', distinct=True),
         typing_participants=Count('attempts__user', distinct=True),
         word_participants=Count('word_attempts__user', distinct=True),
@@ -1250,31 +1342,40 @@ def admin_competition_add(request):
         allow_retry = 'allow_retry' in request.POST
         is_active = 'is_active' in request.POST
 
-        if game_id and title and start_time and end_time:
+        audience_type, group_ids, student_ids, audience_error = _clean_audience(request)
+
+        if not (game_id and title and start_time and end_time):
+            messages.error(request, "Barcha maydonlarni to'ldiring!")
+        elif audience_error:
+            messages.error(request, audience_error)
+        else:
             game = get_object_or_404(Game, pk=game_id)
             comp = Competition.objects.create(
                 game=game, title=title, start_time=start_time,
                 end_time=end_time, max_attempts=max(1, max_attempts),
                 allow_retry=allow_retry, is_active=is_active,
+                audience_type=audience_type,
                 coin_1st=_int_or(request.POST.get('coin_1st')),
                 coin_2nd=_int_or(request.POST.get('coin_2nd')),
                 coin_3rd=_int_or(request.POST.get('coin_3rd')),
             )
             _save_competition_prompts(comp, request)
-            # Telegram guruhga xabar yuborish
+            _save_competition_audience(comp, audience_type, group_ids, student_ids)
+            # Telegram xabar: hammaga — guruh kanaliga, cheklangan — shaxsiy DM
             if is_active:
                 from telegram_bot.utils import notify_competition_started
                 notify_competition_started(comp)
             messages.success(request, "Musobaqa qo'shildi!")
             return redirect('games:admin_competitions')
-        else:
-            messages.error(request, "Barcha maydonlarni to'ldiring!")
 
     return render(request, 'games/admin/competition_form.html', {
         'title_page': "Musobaqa qo'shish",
         'games': games,
         'prompts_data': _competition_prompts_data(games),
         'selected_prompt_ids': [],
+        'selected_group_ids': [],
+        'selected_student_ids': [],
+        **_audience_form_context(),
     })
 
 
@@ -1287,20 +1388,26 @@ def admin_competition_edit(request, pk):
     games = Game.objects.filter(is_active=True).prefetch_related('prompts')
 
     if request.method == 'POST':
-        competition.game = get_object_or_404(Game, pk=request.POST.get('game'))
-        competition.title = request.POST.get('title', competition.title).strip() or competition.title
-        competition.start_time = request.POST.get('start_time')
-        competition.end_time = request.POST.get('end_time')
-        competition.max_attempts = max(1, _int_or(request.POST.get('max_attempts'), 1))
-        competition.allow_retry = 'allow_retry' in request.POST
-        competition.is_active = 'is_active' in request.POST
-        competition.coin_1st = _int_or(request.POST.get('coin_1st'))
-        competition.coin_2nd = _int_or(request.POST.get('coin_2nd'))
-        competition.coin_3rd = _int_or(request.POST.get('coin_3rd'))
-        competition.save()
-        _save_competition_prompts(competition, request)
-        messages.success(request, "Musobaqa yangilandi!")
-        return redirect('games:admin_competitions')
+        audience_type, group_ids, student_ids, audience_error = _clean_audience(request)
+
+        if audience_error:
+            messages.error(request, audience_error)
+        else:
+            competition.game = get_object_or_404(Game, pk=request.POST.get('game'))
+            competition.title = request.POST.get('title', competition.title).strip() or competition.title
+            competition.start_time = request.POST.get('start_time')
+            competition.end_time = request.POST.get('end_time')
+            competition.max_attempts = max(1, _int_or(request.POST.get('max_attempts'), 1))
+            competition.allow_retry = 'allow_retry' in request.POST
+            competition.is_active = 'is_active' in request.POST
+            competition.coin_1st = _int_or(request.POST.get('coin_1st'))
+            competition.coin_2nd = _int_or(request.POST.get('coin_2nd'))
+            competition.coin_3rd = _int_or(request.POST.get('coin_3rd'))
+            competition.save()
+            _save_competition_prompts(competition, request)
+            _save_competition_audience(competition, audience_type, group_ids, student_ids)
+            messages.success(request, "Musobaqa yangilandi!")
+            return redirect('games:admin_competitions')
 
     return render(request, 'games/admin/competition_form.html', {
         'title_page': "Musobaqani tahrirlash",
@@ -1308,6 +1415,9 @@ def admin_competition_edit(request, pk):
         'games': games,
         'prompts_data': _competition_prompts_data(games),
         'selected_prompt_ids': list(competition.prompts.values_list('pk', flat=True)),
+        'selected_group_ids': list(competition.groups.values_list('pk', flat=True)),
+        'selected_student_ids': list(competition.participants.values_list('pk', flat=True)),
+        **_audience_form_context(),
     })
 
 
@@ -1549,7 +1659,9 @@ def word_game_play(request, slug, competition_id=None):
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
-            if competition.status == 'upcoming':
+            if not competition.is_user_allowed(request.user):
+                messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
+            elif competition.status == 'upcoming':
                 messages.info(request, "Musobaqa hali boshlanmagan!")
             elif competition.status == 'ended':
                 messages.info(request, "Musobaqa tugagan!")
@@ -1967,7 +2079,9 @@ def word_game_play(request, slug, competition_id=None):
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
         if not competition.can_user_play(request.user):
-            if competition.status == 'upcoming':
+            if not competition.is_user_allowed(request.user):
+                messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
+            elif competition.status == 'upcoming':
                 messages.info(request, "Musobaqa hali boshlanmagan!")
             elif competition.status == 'ended':
                 messages.info(request, "Musobaqa tugagan!")

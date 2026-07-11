@@ -232,6 +232,7 @@ urlpatterns = [
     path('attendance/', views.attendance_home, name='attendance_home'),
     path('attendance/group/<int:group_pk>/', views.attendance_mark, name='attendance_mark'),
     path('attendance/group/<int:group_pk>/report/', views.attendance_report, name='attendance_report'),
+    path('attendance/group/<int:group_pk>/report/excel/', views.attendance_report_excel, name='attendance_report_excel'),
     
     # Discounts / Chegirmalar
     path('dashboard/discounts/', views.admin_discounts, name='admin_discounts'),

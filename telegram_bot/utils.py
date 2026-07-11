@@ -91,13 +91,9 @@ def notify_user(telegram_id, text):
     threading.Thread(target=_send, daemon=True).start()
 
 
-def notify_competition_started(competition):
-    """Yangi musobaqa boshlanganda guruhga xabar yuborish"""
-    from django.conf import settings as django_settings
-
-    site_url = getattr(django_settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
+def _competition_started_text(competition):
+    """Musobaqa e'loni matnini tayyorlash (guruh va DM uchun umumiy)."""
     game = competition.game
-    game_url = f"{site_url}/games/{game.slug}/"
 
     coins_text = ""
     if competition.coin_1st or competition.coin_2nd or competition.coin_3rd:
@@ -109,10 +105,17 @@ def notify_competition_started(competition):
         if competition.coin_3rd:
             coins_text += f"   🥉 3-o'rin: {competition.coin_3rd} coin"
 
-    text = (
+    audience_text = ""
+    if competition.audience_type == 'groups':
+        audience_text = f"\n👥 Kimlar uchun: <b>{competition.audience_display}</b>"
+    elif competition.audience_type == 'students':
+        audience_text = "\n👥 Kimlar uchun: <b>maxsus tanlangan o'quvchilar</b>"
+
+    return (
         f"🎉🎮 <b>YANGI MUSOBAQA BOSHLANDI!</b> 🎮🎉\n\n"
         f"🏆 <b>{competition.title}</b>\n"
-        f"🎯 O'yin: {game.title}\n\n"
+        f"🎯 O'yin: {game.title}"
+        f"{audience_text}\n\n"
         f"📅 Boshlanish: {competition.start_time.strftime('%d.%m.%Y %H:%M') if hasattr(competition.start_time, 'strftime') else competition.start_time}\n"
         f"⏰ Tugash: {competition.end_time.strftime('%d.%m.%Y %H:%M') if hasattr(competition.end_time, 'strftime') else competition.end_time}\n"
         f"🔄 Urinishlar: {competition.max_attempts} ta"
@@ -120,8 +123,45 @@ def notify_competition_started(competition):
         f"💪 Hoziroq ishtirok eting va g'olib bo'ling!"
     )
 
+
+def notify_competition_started(competition):
+    """Yangi musobaqa e'loni.
+
+    'Hammaga' — umumiy Telegram guruhiga (avvalgidek).
+    Cheklangan auditoriya — faqat tegishli o'quvchilarga: shaxsiy Telegram DM
+    va saytdagi in-app xabar. Umumiy guruhga yuborilmaydi, chunki musobaqa
+    boshqalarga tegishli emas.
+    """
+    from django.conf import settings as django_settings
+
+    site_url = getattr(django_settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
+    game_url = f"{site_url}/games/{competition.game.slug}/"
+    text = _competition_started_text(competition)
     button = [[{'text': '🎮 Musobaqaga kirish', 'url': game_url}]]
-    notify_group(text, inline_keyboard=button)
+
+    allowed = competition.allowed_students()
+    if allowed is None:
+        notify_group(text, inline_keyboard=button)
+        return
+
+    from accounts.models import Message
+
+    dm_text = text + f"\n\n🔗 {game_url}"
+    for student in allowed:
+        Message.objects.create(
+            title=f"🏆 Yangi musobaqa: {competition.title}",
+            content=(
+                f"Siz \"{competition.title}\" musobaqasiga taklif qilindingiz! "
+                f"O'yin: {competition.game.title}. "
+                f"Muddat: {competition.start_time.strftime('%d.%m.%Y %H:%M')} — "
+                f"{competition.end_time.strftime('%d.%m.%Y %H:%M')}. "
+                f"Omad tilaymiz! 🎮"
+            ),
+            message_type='personal',
+            recipient=student,
+        )
+        if student.telegram_id:
+            notify_user(student.telegram_id, dm_text)
 
 
 def notify_competition_reminder():
@@ -165,8 +205,17 @@ def notify_competition_reminder():
             f"Tashrif buyuring va o'z kuchingizni sinab ko'ring! 💪"
         )
 
-        button = [[{'text': '🎮 Hozir o\'ynash', 'url': game_url}]]
-        notify_group(text, inline_keyboard=button)
+        allowed = comp.allowed_students()
+        if allowed is None:
+            # Hammaga ochiq — umumiy guruhga
+            button = [[{'text': '🎮 Hozir o\'ynash', 'url': game_url}]]
+            notify_group(text, inline_keyboard=button)
+        else:
+            # Cheklangan auditoriya — faqat tegishli o'quvchilarga DM
+            dm_text = text + f"\n\n🔗 {game_url}"
+            for student in allowed:
+                if student.telegram_id:
+                    notify_user(student.telegram_id, dm_text)
 
         comp.last_reminder_at = now
         comp.save(update_fields=['last_reminder_at'])

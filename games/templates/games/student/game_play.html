@@ -635,6 +635,7 @@
     <input type="hidden" name="typed_text" id="hiddenTypedText">
     <input type="hidden" name="signature" id="hiddenSignature">
     <input type="hidden" name="keystroke_count" id="hiddenKeystrokeCount">
+    <input type="hidden" name="is_touch" id="hiddenIsTouch" value="0">
 </form>
 
 <!-- Combo / streak ko'rsatkichi -->
@@ -705,6 +706,32 @@
     const promptText = _rawPromptText.replace(/['‘’ʼ]/g, '`');
     const isCompetition = {{ competition|yesno:"true,false" }};
     const words = promptText.split(/\s+/);
+
+    // ===== 📵 MUSOBAQADA TELEFON/PLANSHET TAQIQI (mijoz tomoni) =====
+    // Server UA orqali bloklaydi. iPad "desktop rejimi" UA'ni yashirgani uchun
+    // bu yerda sensor (touch) bo'yicha qo'shimcha aniqlaymiz va serverga signal beramiz.
+    var _isTouchDevice = (navigator.maxTouchPoints || 0) > 0
+        || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
+        || ('ontouchstart' in window);
+    var _touchField = document.getElementById('hiddenIsTouch');
+    if (_touchField) { _touchField.setAttribute('value', _isTouchDevice ? '1' : '0'); }
+
+    if (isCompetition && _isTouchDevice) {
+        var _backUrl = "{% url 'games:game_detail' game.slug %}";
+        document.body.innerHTML =
+            '<div style="max-width:520px;margin:80px auto;padding:40px 28px;text-align:center;'
+            + 'font-family:system-ui,-apple-system,\'Segoe UI\',sans-serif;">'
+            + '<div style="font-size:3.6rem;">📵</div>'
+            + '<h2 style="color:#7c3aed;margin:16px 0 10px;font-weight:800;">Musobaqa faqat kompyuterda</h2>'
+            + '<p style="color:#6b7280;font-size:1.02rem;line-height:1.65;">Telefon va planshetda musobaqada '
+            + 'qatnashib bo\'lmaydi. Iltimos, kompyuter yoki noutbukdan kiring. '
+            + 'Mashq rejimi barcha qurilmalarda ochiq.</p>'
+            + '<a href="' + _backUrl + '" style="display:inline-block;margin-top:20px;padding:11px 24px;'
+            + 'background:linear-gradient(135deg,#7c3aed,#ec4899);color:#fff;border-radius:12px;'
+            + 'text-decoration:none;font-weight:700;">← Orqaga</a>'
+            + '</div>';
+        return;
+    }
 
     const promptWordsEl = document.getElementById('promptWords');
     const typingArea = document.getElementById('typingArea');

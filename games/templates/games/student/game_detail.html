@@ -371,9 +371,15 @@
                         <div class="actions">
                             {% if comp.status == 'active' %}
                                 {% if comp.can_play %}
-                                <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp">
-                                    <i class="bi bi-play-fill"></i> Qatnashish
-                                </a>
+                                    {% if is_mobile %}
+                                    <span class="tgd-status ended" title="Musobaqada faqat kompyuter yoki noutbukda qatnashish mumkin">
+                                        <i class="bi bi-laptop"></i> Faqat kompyuterda
+                                    </span>
+                                    {% else %}
+                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp">
+                                        <i class="bi bi-play-fill"></i> Qatnashish
+                                    </a>
+                                    {% endif %}
                                 {% else %}
                                 <span class="tgd-status ended">Urinishlar tugadi</span>
                                 {% endif %}

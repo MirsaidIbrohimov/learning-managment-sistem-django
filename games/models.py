@@ -78,8 +78,30 @@ class Prompt(models.Model):
 
 
 class Competition(models.Model):
+    AUDIENCE_CHOICES = (
+        ('all', 'Hammaga'),
+        ('groups', 'Tanlangan guruhlar'),
+        ('students', "Tanlangan o'quvchilar"),
+    )
+
     game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='competitions', verbose_name="O'yin")
     title = models.CharField(max_length=200, verbose_name="Musobaqa nomi")
+    audience_type = models.CharField(
+        max_length=10, choices=AUDIENCE_CHOICES, default='all',
+        verbose_name="Kimlar uchun",
+        help_text="Musobaqa hammaga, tanlangan guruhlarga yoki tanlangan o'quvchilarga ochiq bo'ladi.",
+    )
+    groups = models.ManyToManyField(
+        'accounts.StudyGroup', blank=True, related_name='competitions',
+        verbose_name="Guruhlar",
+        help_text="Faqat 'Tanlangan guruhlar' rejimida ishlatiladi.",
+    )
+    participants = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name='invited_competitions',
+        limit_choices_to={'role': 'student'},
+        verbose_name="Tanlangan o'quvchilar",
+        help_text="Faqat 'Tanlangan o'quvchilar' rejimida ishlatiladi.",
+    )
     prompts = models.ManyToManyField(
         'Prompt', blank=True, related_name='competitions',
         verbose_name="Maxsus topshiriqlar",
@@ -124,6 +146,68 @@ class Competition(models.Model):
             return 'Faol'
         return 'Tugagan'
 
+    # ===== Auditoriya (kimlar uchun) =====
+
+    @staticmethod
+    def visible_q(user):
+        """Berilgan foydalanuvchi ko'ra oladigan musobaqalar uchun Q filtri.
+
+        Admin/assistent — hammasini ko'radi. Qolganlar: 'all' — hamma,
+        'groups' — o'z guruhidagilar, 'students' — tanlanganlar.
+        Diqqat: M2M join tufayli natijaga .distinct() qo'llash shart.
+        """
+        if not user or not user.is_authenticated:
+            return models.Q(audience_type='all')
+        if getattr(user, 'is_admin_or_assistant', False):
+            return models.Q()
+        return (
+            models.Q(audience_type='all')
+            | models.Q(audience_type='groups', groups__students=user)
+            | models.Q(audience_type='students', participants=user)
+        )
+
+    def is_user_allowed(self, user):
+        """Foydalanuvchi ushbu musobaqa auditoriyasiga kiradimi."""
+        if not user or not user.is_authenticated:
+            return False
+        if getattr(user, 'is_admin_or_assistant', False):
+            return True
+        if self.audience_type == 'all':
+            return True
+        if self.audience_type == 'groups':
+            return self.groups.filter(students=user).exists()
+        if self.audience_type == 'students':
+            return self.participants.filter(pk=user.pk).exists()
+        return False
+
+    def allowed_students(self):
+        """Auditoriyaga kiruvchi faol o'quvchilar queryset'i.
+
+        'all' rejimida None qaytadi — bu "cheklov yo'q" degani
+        (xabarnomalar umumiy guruh kanaliga yuboriladi).
+        """
+        from accounts.models import CustomUser
+
+        if self.audience_type == 'groups':
+            return CustomUser.objects.filter(
+                role='student', is_active=True, study_groups__in=self.groups.all()
+            ).distinct()
+        if self.audience_type == 'students':
+            return self.participants.filter(is_active=True)
+        return None
+
+    @property
+    def audience_display(self):
+        """UI uchun qisqa auditoriya matni."""
+        if self.audience_type == 'groups':
+            # .all() — prefetch_related('groups') keshidan foydalanadi
+            names = [g.name for g in self.groups.all()]
+            return ', '.join(names) if names else 'Guruhlar tanlanmagan'
+        if self.audience_type == 'students':
+            count = self.participants.count()
+            return f"{count} ta o'quvchi"
+        return 'Hammaga ochiq'
+
     def user_attempts_count(self, user):
         typing_count = self.attempts.filter(user=user).count()
         word_count = self.word_attempts.filter(user=user).count()
@@ -133,6 +217,8 @@ class Competition(models.Model):
         if self.status != 'active':
             return False
         if not self.is_active:
+            return False
+        if not self.is_user_allowed(user):
             return False
         count = self.user_attempts_count(user)
         if count >= self.max_attempts and not self.allow_retry:

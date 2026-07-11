@@ -484,6 +484,16 @@
                 <div class="comp-game-name"><i class="bi bi-controller"></i> {{ comp.game.title }}</div>
                 <h3>{{ comp.title }}</h3>
 
+                {% if comp.audience_type == 'groups' %}
+                <div class="comp-meta" title="{{ comp.audience_display }}">
+                    <span><i class="bi bi-diagram-3"></i> Guruh: {{ comp.audience_display|truncatechars:40 }}</span>
+                </div>
+                {% elif comp.audience_type == 'students' %}
+                <div class="comp-meta">
+                    <span><i class="bi bi-person-check"></i> Maxsus taklif — siz ishtirokchisiz</span>
+                </div>
+                {% endif %}
+
                 {% if comp.coin_1st or comp.coin_2nd or comp.coin_3rd %}
                 <div class="comp-prizes">
                     {% if comp.coin_1st %}<span class="comp-prize">&#129351; {{ comp.coin_1st }}</span>{% endif %}

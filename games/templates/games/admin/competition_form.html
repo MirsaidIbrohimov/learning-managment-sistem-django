@@ -146,6 +146,75 @@
 }
 [data-bs-theme="dark"] .pool-hint { background: rgba(255,255,255,0.04); }
 
+/* ===== Auditoriya (kimlar uchun) paneli ===== */
+.audience-section {
+    background: rgba(16, 185, 129, 0.05);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 14px;
+    padding: 1.2rem;
+    margin-top: 0.5rem;
+}
+[data-bs-theme="dark"] .audience-section { background: rgba(16, 185, 129, 0.08); }
+
+.audience-options { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+.audience-option {
+    flex: 1 1 180px;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #fff;
+    border: 2px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    padding: 0.8rem 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+[data-bs-theme="dark"] .audience-option { background: #16161f; border-color: rgba(255,255,255,0.08); }
+.audience-option:hover { border-color: #10b981; }
+.audience-option.checked { border-color: #10b981; background: rgba(16, 185, 129, 0.07); }
+.audience-option input { margin-top: 3px; }
+.audience-option .a-title { font-weight: 700; font-size: 0.9rem; }
+.audience-option .a-desc { font-size: 0.75rem; color: #64748b; margin-top: 2px; }
+
+.audience-pane { margin-top: 0.9rem; }
+.audience-pane.d-none { display: none; }
+
+.pick-list {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding-right: 4px;
+}
+.pick-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    padding: 0.6rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+[data-bs-theme="dark"] .pick-item { background: #16161f; border-color: rgba(255,255,255,0.08); }
+.pick-item:hover { border-color: #10b981; }
+.pick-item.checked { border-color: #10b981; background: rgba(16, 185, 129, 0.06); }
+.pick-item input { margin-top: 3px; }
+.pick-item .p-name { font-size: 0.86rem; font-weight: 600; }
+.pick-item .p-sub { font-size: 0.72rem; color: #64748b; font-weight: 600; margin-top: 1px; }
+
+.pick-counter {
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: #059669;
+    background: rgba(16, 185, 129, 0.1);
+    border-radius: 99px;
+    padding: 0.3rem 0.9rem;
+}
+.pick-empty { text-align: center; color: #64748b; padding: 1rem 0; font-size: 0.88rem; }
+
 .btn-save {
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     border: none;
@@ -163,8 +232,9 @@
 @media (max-width: 768px) {
     .form-header h2 { font-size: 1.2rem; }
     .form-header { flex-direction: column; gap: 0.75rem; align-items: flex-start !important; }
-    .coin-section, .prompt-section { padding: 1rem; }
+    .coin-section, .prompt-section, .audience-section { padding: 1rem; }
     .prompt-toolbar .form-control { max-width: 100%; }
+    .audience-options { flex-direction: column; }
 }
 </style>
 
@@ -261,6 +331,74 @@
                         </div>
                     </div>
 
+                    <!-- Auditoriya: kimlar uchun -->
+                    <div class="col-12">
+                        <div class="audience-section">
+                            <h5 class="fw-bold mb-1"><i class="bi bi-people-fill text-success"></i> Kimlar uchun</h5>
+                            <p class="text-muted small mb-3">
+                                Musobaqada kimlar ishtirok eta olishini belgilang. Boshqalar musobaqani ko'rmaydi va o'ynay olmaydi.
+                            </p>
+
+                            <div class="audience-options">
+                                <label class="audience-option" data-aud="all">
+                                    <input type="radio" name="audience_type" value="all"
+                                        {% if not competition or competition.audience_type == 'all' %}checked{% endif %}>
+                                    <span>
+                                        <span class="a-title d-block"><i class="bi bi-globe2"></i> Hammaga</span>
+                                        <span class="a-desc d-block">Barcha o'quvchilar ishtirok etadi</span>
+                                    </span>
+                                </label>
+                                <label class="audience-option" data-aud="groups">
+                                    <input type="radio" name="audience_type" value="groups"
+                                        {% if competition.audience_type == 'groups' %}checked{% endif %}>
+                                    <span>
+                                        <span class="a-title d-block"><i class="bi bi-diagram-3"></i> Tanlangan guruhlar</span>
+                                        <span class="a-desc d-block">Faqat tanlangan guruh o'quvchilari</span>
+                                    </span>
+                                </label>
+                                <label class="audience-option" data-aud="students">
+                                    <input type="radio" name="audience_type" value="students"
+                                        {% if competition.audience_type == 'students' %}checked{% endif %}>
+                                    <span>
+                                        <span class="a-title d-block"><i class="bi bi-person-check"></i> Tanlangan o'quvchilar</span>
+                                        <span class="a-desc d-block">Faqat ro'yxatdan tanlanganlar</span>
+                                    </span>
+                                </label>
+                            </div>
+
+                            <!-- Guruhlar paneli -->
+                            <div class="audience-pane d-none" id="groupsPane">
+                                <div class="prompt-toolbar">
+                                    <span class="pick-counter"><span id="groupSelCount">0</span> ta guruh tanlangan</span>
+                                </div>
+                                <div class="pick-list">
+                                    {% for g in study_groups %}
+                                    <label class="pick-item group-item">
+                                        <input type="checkbox" name="group_ids" value="{{ g.pk }}"
+                                            {% if g.pk in selected_group_ids %}checked{% endif %}>
+                                        <span>
+                                            <span class="p-name d-block">{{ g.name }}</span>
+                                            <span class="p-sub d-block">{{ g.profession.name }} · {{ g.student_count }} o'quvchi · {{ g.days_display }} {{ g.time_range }}</span>
+                                        </span>
+                                    </label>
+                                    {% empty %}
+                                    <div class="pick-empty">Faol guruhlar yo'q. Avval guruh yarating.</div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <!-- O'quvchilar paneli -->
+                            <div class="audience-pane d-none" id="studentsPane">
+                                <div class="prompt-toolbar">
+                                    <span class="pick-counter"><span id="studentSelCount">0</span> ta o'quvchi tanlangan</span>
+                                    <button type="button" class="mini-btn" id="studentClearBtn">Tozalash</button>
+                                    <input type="text" class="form-control" id="studentSearch" placeholder="Ism yoki login bo'yicha qidirish…">
+                                </div>
+                                <div class="pick-list" id="studentList"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="col-12">
                         <div class="coin-section">
                             <h5 class="fw-bold mb-3"><i class="bi bi-coin text-warning"></i> Mukofot coinlari</h5>
@@ -293,6 +431,8 @@
 
 {{ prompts_data|json_script:"promptsData" }}
 {{ selected_prompt_ids|json_script:"selectedPromptIds" }}
+{{ students_data|json_script:"studentsData" }}
+{{ selected_student_ids|json_script:"selectedStudentIds" }}
 
 <script>
 (function() {
@@ -429,6 +569,143 @@
     // Init
     updateCount();
     renderList();
+})();
+
+/* ===== Auditoriya (kimlar uchun) ===== */
+(function() {
+    'use strict';
+
+    var studentsData = JSON.parse(document.getElementById('studentsData').textContent || '[]');
+    var selectedStudents = new Set(JSON.parse(document.getElementById('selectedStudentIds').textContent || '[]'));
+
+    var groupsPane = document.getElementById('groupsPane');
+    var studentsPane = document.getElementById('studentsPane');
+    var studentListEl = document.getElementById('studentList');
+    var studentSearchEl = document.getElementById('studentSearch');
+    var studentCountEl = document.getElementById('studentSelCount');
+    var groupCountEl = document.getElementById('groupSelCount');
+    var form = studentsPane ? studentsPane.closest('form') : null;
+
+    function escHtml(s) {
+        return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function currentAudience() {
+        var checked = document.querySelector('input[name="audience_type"]:checked');
+        return checked ? checked.value : 'all';
+    }
+
+    function refreshPanes() {
+        var aud = currentAudience();
+        groupsPane.classList.toggle('d-none', aud !== 'groups');
+        studentsPane.classList.toggle('d-none', aud !== 'students');
+        document.querySelectorAll('.audience-option').forEach(function(opt) {
+            opt.classList.toggle('checked', opt.dataset.aud === aud);
+        });
+    }
+
+    function updateStudentCount() {
+        studentCountEl.textContent = selectedStudents.size;
+    }
+
+    function updateGroupCount() {
+        groupCountEl.textContent = document.querySelectorAll('input[name="group_ids"]:checked').length;
+    }
+
+    function renderStudents() {
+        var q = (studentSearchEl.value || '').toLowerCase().trim();
+        studentListEl.innerHTML = '';
+
+        if (!studentsData.length) {
+            studentListEl.innerHTML = '<div class="pick-empty">Faol o\'quvchilar topilmadi</div>';
+            return;
+        }
+
+        var shown = 0;
+        studentsData.forEach(function(s) {
+            var hay = (s.name + ' ' + s.username).toLowerCase();
+            if (q && hay.indexOf(q) === -1) return;
+            shown++;
+
+            var label = document.createElement('label');
+            label.className = 'pick-item' + (selectedStudents.has(s.id) ? ' checked' : '');
+            label.innerHTML =
+                '<input type="checkbox"' + (selectedStudents.has(s.id) ? ' checked' : '') + '>' +
+                '<span><span class="p-name d-block">' + escHtml(s.name) + '</span>' +
+                '<span class="p-sub d-block">@' + escHtml(s.username) + '</span></span>';
+
+            label.querySelector('input').addEventListener('change', function() {
+                if (this.checked) { selectedStudents.add(s.id); label.classList.add('checked'); }
+                else { selectedStudents.delete(s.id); label.classList.remove('checked'); }
+                updateStudentCount();
+            });
+
+            studentListEl.appendChild(label);
+        });
+
+        if (!shown) {
+            studentListEl.innerHTML = '<div class="pick-empty">Qidiruv bo\'yicha o\'quvchi topilmadi</div>';
+        }
+    }
+
+    // Radio almashganda panellarni ko'rsatish/yashirish
+    document.querySelectorAll('input[name="audience_type"]').forEach(function(radio) {
+        radio.addEventListener('change', refreshPanes);
+    });
+
+    // Guruh checkbox'lari: checked-klass va hisoblagich
+    document.querySelectorAll('.group-item input[name="group_ids"]').forEach(function(cb) {
+        cb.addEventListener('change', function() {
+            cb.closest('.pick-item').classList.toggle('checked', cb.checked);
+            updateGroupCount();
+        });
+        cb.closest('.pick-item').classList.toggle('checked', cb.checked);
+    });
+
+    studentSearchEl.addEventListener('input', renderStudents);
+
+    document.getElementById('studentClearBtn').addEventListener('click', function() {
+        selectedStudents.clear();
+        updateStudentCount();
+        renderStudents();
+    });
+
+    // Submit: tanlangan o'quvchilarni hidden input sifatida yuborish
+    // (qidiruv paytida ko'rinmay qolgan checkbox'lar yo'qolmasligi uchun)
+    // hamda bo'sh tanlov uchun client-side validatsiya.
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            var aud = currentAudience();
+
+            if (aud === 'groups' && !document.querySelectorAll('input[name="group_ids"]:checked').length) {
+                e.preventDefault();
+                alert('Kamida bitta guruh tanlang!');
+                return;
+            }
+            if (aud === 'students' && !selectedStudents.size) {
+                e.preventDefault();
+                alert("Kamida bitta o'quvchi tanlang!");
+                return;
+            }
+
+            form.querySelectorAll('input[name="student_ids"]').forEach(function(el) { el.remove(); });
+            if (aud === 'students') {
+                selectedStudents.forEach(function(id) {
+                    var input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'student_ids';
+                    input.value = id;
+                    form.appendChild(input);
+                });
+            }
+        });
+    }
+
+    // Init
+    refreshPanes();
+    updateStudentCount();
+    updateGroupCount();
+    renderStudents();
 })();
 </script>
 {% endblock %}

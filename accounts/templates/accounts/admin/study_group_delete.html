@@ -1,6 +1,8 @@
-{% extends 'accounts/admin/base_admin.html' %}
+{% extends study_groups_base %}
 
 {% block title %}Guruhni o'chirish - {{ group.name }}{% endblock %}
+{% block page_title %}Guruhni o'chirish{% endblock %}
+{% block topbar_title %}Guruhni o'chirish{% endblock %}
 
 {% block admin_content %}
 <style>
@@ -101,7 +103,7 @@
         <form method="POST">
             {% csrf_token %}
             <div class="sgd-actions">
-                <a href="{% url 'admin_study_groups' %}" class="sgd-btn sgd-btn-cancel">
+                <a href="{% url study_groups_url %}" class="sgd-btn sgd-btn-cancel">
                     <i class="bi bi-x-circle"></i> Bekor qilish
                 </a>
                 <button type="submit" class="sgd-btn sgd-btn-delete">
