@@ -1,0 +1,558 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{% if group %}Guruhni tahrirlash{% else %}Yangi guruh{% endif %} - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.sgf-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Header */
+.sgf-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 12px;
+    padding: 20px 26px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    margin-bottom: 20px;
+    position: relative; overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+}
+.sgf-header::before {
+    content:''; position: absolute; inset: 0 0 auto 0; height: 4px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+}
+.sgf-title {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 1.25rem; font-weight: 800;
+    color: var(--text-color); margin: 0;
+}
+.sgf-title-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+}
+.sgf-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 10px;
+    background: var(--bg-color); border: 2px solid var(--border-color);
+    color: var(--text-color); text-decoration: none;
+    font-weight: 600; font-size: 0.85rem;
+    transition: all 0.2s;
+}
+.sgf-back:hover { border-color: #6366f1; color: #6366f1; }
+
+/* Card */
+.sgf-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 26px 28px;
+    margin-bottom: 18px;
+    animation: fadeUp 0.5s ease both;
+}
+.sgf-card h6 {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.95rem; font-weight: 800;
+    color: var(--text-color); margin: 0 0 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px dashed var(--border-color);
+}
+.sgf-card h6 i { color: #6366f1; font-size: 1.1rem; }
+
+/* Grid */
+.sgf-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+.sgf-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+}
+
+.sgf-field label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.75rem; font-weight: 700;
+    color: #6c757d; text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 6px;
+}
+.sgf-field label i { color: #8b5cf6; font-size: 0.9rem; }
+.sgf-field label .req { color: #ef4444; margin-left: 2px; }
+
+.sgf-field .form-control,
+.sgf-field .form-select,
+.sgf-field textarea {
+    width: 100%;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    transition: all 0.2s;
+}
+.sgf-field .form-control:focus,
+.sgf-field .form-select:focus,
+.sgf-field textarea:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+    outline: none;
+}
+.sgf-field textarea { resize: vertical; min-height: 80px; }
+.sgf-field input[type=color] {
+    width: 60px; height: 40px; padding: 3px; cursor: pointer;
+}
+
+/* Days grid */
+.sgf-days {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+.sgf-day {
+    position: relative;
+}
+.sgf-day input[type=checkbox] {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.sgf-day-label {
+    display: flex; flex-direction: column; align-items: center;
+    padding: 14px 8px; border-radius: 14px;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+    text-align: center;
+}
+.sgf-day-label .short {
+    font-size: 1.1rem; font-weight: 800;
+    color: var(--text-color);
+    margin-bottom: 2px;
+}
+.sgf-day-label .full {
+    font-size: 0.7rem; color: #6c757d; font-weight: 600;
+}
+.sgf-day input:checked + .sgf-day-label {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(99,102,241,0.35);
+}
+.sgf-day input:checked + .sgf-day-label .short,
+.sgf-day input:checked + .sgf-day-label .full {
+    color: #fff;
+}
+.sgf-day-label:hover {
+    border-color: #6366f1;
+}
+
+/* Quick day buttons */
+.sgf-quick {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;
+}
+.sgf-quick button {
+    padding: 6px 12px; border-radius: 50px;
+    background: transparent; border: 1.5px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.75rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+}
+.sgf-quick button:hover {
+    border-color: #6366f1; color: #6366f1;
+}
+
+/* Students picker */
+.sgf-students {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+}
+.sgf-students-search {
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    width: 100%;
+    font-size: 0.88rem;
+    color: var(--text-color);
+}
+.sgf-students-list {
+    max-height: 320px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 8px;
+}
+.sgf-student-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px;
+    background: var(--card-bg);
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+}
+.sgf-student-item:hover { border-color: #6366f1; }
+.sgf-student-item input[type=checkbox] {
+    position: absolute; opacity: 0; pointer-events: none;
+}
+.sgf-student-item.checked {
+    background: rgba(99,102,241,0.08);
+    border-color: #6366f1;
+}
+.sgf-student-item .avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff; font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    overflow: hidden;
+}
+.sgf-student-item .info { flex: 1; min-width: 0; }
+.sgf-student-item .name {
+    font-size: 0.84rem; font-weight: 600;
+    color: var(--text-color);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sgf-student-item .phone {
+    font-size: 0.72rem; color: #6c757d;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.sgf-student-item .check-mark {
+    width: 22px; height: 22px; border-radius: 6px;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    display: flex; align-items: center; justify-content: center;
+    color: transparent; font-size: 0.8rem;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+.sgf-student-item.checked .check-mark {
+    background: #6366f1;
+    border-color: #6366f1;
+    color: #fff;
+}
+
+.sgf-students-info {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 4px 12px;
+    font-size: 0.8rem; color: #6c757d;
+    font-weight: 600;
+}
+.sgf-count-badge {
+    padding: 3px 10px; border-radius: 50px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff;
+}
+
+/* Toggle */
+.sgf-toggle {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 14px;
+    background: var(--bg-color);
+    border-radius: 10px;
+    border: 2px solid var(--border-color);
+}
+.sgf-toggle input {
+    width: 42px; height: 22px;
+    appearance: none;
+    background: #cbd5e1;
+    border-radius: 50px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sgf-toggle input::before {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff;
+    transition: all 0.2s;
+}
+.sgf-toggle input:checked {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+.sgf-toggle input:checked::before { left: 22px; }
+
+/* Actions */
+.sgf-actions {
+    display: flex; gap: 10px; justify-content: flex-end;
+    padding-top: 8px; flex-wrap: wrap;
+}
+.sgf-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 11px 22px; border-radius: 12px;
+    font-weight: 600; font-size: 0.9rem;
+    text-decoration: none; border: none;
+    cursor: pointer; transition: all 0.25s;
+}
+.sgf-btn-primary {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+}
+.sgf-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+    color: #fff;
+}
+.sgf-btn-cancel {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+}
+.sgf-btn-cancel:hover { border-color: #ef4444; color: #ef4444; }
+
+@media (max-width: 768px) {
+    .sgf-grid, .sgf-grid-3 { grid-template-columns: 1fr; }
+    .sgf-days { grid-template-columns: repeat(3, 1fr); }
+    .sgf-students-list { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="sgf-wrap">
+    <!-- Header -->
+    <div class="sgf-header">
+        <h1 class="sgf-title">
+            <span class="sgf-title-icon">
+                <i class="bi bi-{% if group %}pencil-square{% else %}plus-circle-fill{% endif %}"></i>
+            </span>
+            {% if group %}Guruhni tahrirlash{% else %}Yangi guruh yaratish{% endif %}
+        </h1>
+        <a href="{% url 'admin_study_groups' %}" class="sgf-back">
+            <i class="bi bi-arrow-left"></i> Orqaga
+        </a>
+    </div>
+
+    <form method="POST" id="sgfForm">
+        {% csrf_token %}
+
+        <!-- Asosiy ma'lumot -->
+        <div class="sgf-card">
+            <h6><i class="bi bi-info-circle-fill"></i> Asosiy ma'lumot</h6>
+            <div class="sgf-grid">
+                <div class="sgf-field">
+                    <label><i class="bi bi-tag"></i> Guruh nomi <span class="req">*</span></label>
+                    <input type="text" name="name" class="form-control" placeholder="Masalan: Python-A" required value="{{ group.name|default:'' }}">
+                </div>
+                <div class="sgf-field">
+                    <label><i class="bi bi-briefcase"></i> Kurs <span class="req">*</span></label>
+                    <select name="profession" class="form-select" required>
+                        <option value="">Tanlang...</option>
+                        {% for p in professions %}
+                        <option value="{{ p.pk }}" {% if group and group.profession_id == p.pk %}selected{% endif %}>{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="sgf-grid" style="margin-top:16px;">
+                <div class="sgf-field">
+                    <label><i class="bi bi-person-workspace"></i> O'qituvchi</label>
+                    <select name="teacher" class="form-select">
+                        <option value="">— Tanlanmagan —</option>
+                        {% for t in teachers %}
+                        <option value="{{ t.pk }}" {% if group and group.teacher_id == t.pk %}selected{% endif %}>{{ t.first_name }} {{ t.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sgf-field">
+                    <label><i class="bi bi-geo-alt"></i> Xona / Joy</label>
+                    <input type="text" name="room" class="form-control" placeholder="Ixtiyoriy" value="{{ group.room|default:'' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- Kunlar va vaqt -->
+        <div class="sgf-card">
+            <h6><i class="bi bi-calendar-week"></i> Dars kunlari va vaqti</h6>
+
+            <div class="sgf-field">
+                <label><i class="bi bi-calendar-check"></i> Kunlarni tanlang <span class="req">*</span></label>
+                <div class="sgf-quick">
+                    <button type="button" data-days="1,3,5"><i class="bi bi-1-square"></i> Toq kunlar (Du,Ch,Ju)</button>
+                    <button type="button" data-days="2,4,6"><i class="bi bi-2-square"></i> Juft kunlar (Se,Pa,Sh)</button>
+                    <button type="button" data-days="1,2,3,4,5,6"><i class="bi bi-check-all"></i> Hammasi</button>
+                    <button type="button" data-days=""><i class="bi bi-x-circle"></i> Tozalash</button>
+                </div>
+                <div class="sgf-days">
+                    {% for d_num, d_name in days_of_week %}
+                    <label class="sgf-day">
+                        <input type="checkbox" name="days" value="{{ d_num }}"
+                               {% if d_num in selected_days %}checked{% endif %}>
+                        <span class="sgf-day-label">
+                            <span class="short">
+                                {% if d_num == 1 %}Du{% elif d_num == 2 %}Se{% elif d_num == 3 %}Ch{% elif d_num == 4 %}Pa{% elif d_num == 5 %}Ju{% elif d_num == 6 %}Sh{% endif %}
+                            </span>
+                            <span class="full">{{ d_name }}</span>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="sgf-grid-3" style="margin-top:20px;">
+                <div class="sgf-field">
+                    <label><i class="bi bi-clock"></i> Boshlanish vaqti <span class="req">*</span></label>
+                    <input type="time" name="start_time" class="form-control" required
+                           value="{% if group %}{{ group.start_time|time:'H:i' }}{% else %}09:00{% endif %}">
+                </div>
+                <div class="sgf-field">
+                    <label><i class="bi bi-clock-history"></i> Tugash vaqti <span class="req">*</span></label>
+                    <input type="time" name="end_time" class="form-control" required
+                           value="{% if group %}{{ group.end_time|time:'H:i' }}{% else %}11:00{% endif %}">
+                </div>
+                <div class="sgf-field">
+                    <label><i class="bi bi-palette"></i> Guruh rangi</label>
+                    <input type="color" name="color" class="form-control" value="{{ group.color|default:'#6366f1' }}">
+                </div>
+            </div>
+        </div>
+
+        <!-- O'quvchilar -->
+        <div class="sgf-card">
+            <h6><i class="bi bi-people-fill"></i> O'quvchilar</h6>
+
+            <div class="sgf-students">
+                <input type="text" id="studentSearch" class="sgf-students-search"
+                       placeholder="🔍 O'quvchi ismi bo'yicha qidirish...">
+                <div class="sgf-students-info">
+                    <span>Jami: <strong>{{ students|length }}</strong> o'quvchi mavjud</span>
+                    <span>Tanlangan: <span class="sgf-count-badge" id="selectedCount">0</span></span>
+                </div>
+                <div class="sgf-students-list" id="studentsList">
+                    {% for s in students %}
+                    <label class="sgf-student-item" data-name="{{ s.first_name|lower }} {{ s.last_name|lower }} {{ s.phone|default:'' }}">
+                        <input type="checkbox" name="students" value="{{ s.pk }}"
+                               {% if s.pk in selected_students %}checked{% endif %}>
+                        <div class="avatar">
+                            {% if s.photo %}
+                            <img src="{{ s.photo.url }}" alt="" style="width:100%;height:100%;object-fit:cover;">
+                            {% else %}
+                            {{ s.first_name|slice:':1' }}{{ s.last_name|slice:':1' }}
+                            {% endif %}
+                        </div>
+                        <div class="info">
+                            <div class="name">{{ s.first_name }} {{ s.last_name }}</div>
+                            {% if s.phone %}<div class="phone">{{ s.phone }}</div>{% endif %}
+                        </div>
+                        <div class="check-mark"><i class="bi bi-check-lg"></i></div>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Qo'shimcha -->
+        <div class="sgf-card">
+            <h6><i class="bi bi-card-text"></i> Qo'shimcha</h6>
+            <div class="sgf-field" style="margin-bottom:14px;">
+                <label><i class="bi bi-chat-square-text"></i> Izoh</label>
+                <textarea name="description" placeholder="Guruh haqida qo'shimcha ma'lumot (ixtiyoriy)">{{ group.description|default:'' }}</textarea>
+            </div>
+            {% if group %}
+            <label class="sgf-toggle">
+                <input type="checkbox" name="is_active" {% if group.is_active %}checked{% endif %}>
+                <div>
+                    <div style="font-weight:700;font-size:0.9rem;color:var(--text-color);">Guruh faol</div>
+                    <div style="font-size:0.75rem;color:#6c757d;">Nofaol guruhlar dars jadvalida ko'rinmaydi</div>
+                </div>
+            </label>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        <div class="sgf-actions">
+            <a href="{% url 'admin_study_groups' %}" class="sgf-btn sgf-btn-cancel">
+                <i class="bi bi-x-circle"></i> Bekor qilish
+            </a>
+            <button type="submit" class="sgf-btn sgf-btn-primary">
+                <i class="bi bi-check-circle-fill"></i> {% if group %}Saqlash{% else %}Yaratish{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+// Quick day buttons
+document.querySelectorAll('.sgf-quick button').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const days = (this.dataset.days || '').split(',').filter(x => x);
+        document.querySelectorAll('input[name="days"]').forEach(cb => {
+            cb.checked = days.includes(cb.value);
+        });
+    });
+});
+
+// Student search + selection count
+const studentSearch = document.getElementById('studentSearch');
+const studentsList = document.getElementById('studentsList');
+const selectedCount = document.getElementById('selectedCount');
+
+function updateStudentCount() {
+    const c = studentsList.querySelectorAll('input[name="students"]:checked').length;
+    selectedCount.textContent = c;
+}
+
+function updateStudentCheckedState(item) {
+    const cb = item.querySelector('input[type="checkbox"]');
+    if (cb.checked) item.classList.add('checked');
+    else item.classList.remove('checked');
+}
+
+studentsList.querySelectorAll('.sgf-student-item').forEach(item => {
+    updateStudentCheckedState(item);
+    item.addEventListener('click', function(e) {
+        if (e.target.tagName === 'INPUT') return;
+        e.preventDefault();
+        const cb = item.querySelector('input[type="checkbox"]');
+        cb.checked = !cb.checked;
+        updateStudentCheckedState(item);
+        updateStudentCount();
+    });
+});
+
+studentSearch.addEventListener('input', function() {
+    const q = this.value.trim().toLowerCase();
+    studentsList.querySelectorAll('.sgf-student-item').forEach(item => {
+        const name = item.dataset.name || '';
+        item.style.display = name.includes(q) ? '' : 'none';
+    });
+});
+
+updateStudentCount();
+
+// Form validation
+document.getElementById('sgfForm').addEventListener('submit', function(e) {
+    const days = document.querySelectorAll('input[name="days"]:checked').length;
+    if (days === 0) {
+        e.preventDefault();
+        alert("Kamida bitta kun tanlang!");
+        return;
+    }
+    const start = document.querySelector('input[name="start_time"]').value;
+    const end = document.querySelector('input[name="end_time"]').value;
+    if (start && end && start >= end) {
+        e.preventDefault();
+        alert("Tugash vaqti boshlanish vaqtidan katta bo'lishi kerak!");
+        return;
+    }
+});
+</script>
+{% endblock %}

@@ -2,7 +2,6 @@ import json
 import random
 import time
 import hashlib
-import hmac
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -392,30 +391,9 @@ def game_submit(request, slug):
     if str(session_comp_id or '') != str(competition_id or ''):
         return JsonResponse({'error': "Musobaqa mos kelmadi."}, status=403)
 
-    # HMAC imzoni tekshirish (JavaScript manipulyatsiyadan himoya)
-    client_signature = request.POST.get('signature', '')
-    hmac_key = game_session.get('hmac_key', '')
-    expected_sig = hmac.new(
-        hmac_key.encode(),
-        f'{prompt_id}:{game_token}:{len(typed_text)}'.encode(),
-        hashlib.sha256
-    ).hexdigest()[:16]
-    
-    if not hmac.compare_digest(client_signature, expected_sig):
-        return JsonResponse({'error': "Xavfsizlik tekshiruvi muvaffaqiyatsiz."}, status=403)
-
-    # Keystroke sonini tekshirish
-    keystroke_count = int(request.POST.get('keystroke_count', 0))
-    if keystroke_count < len(typed_text) * 0.5:
-        return JsonResponse({'error': "Noto'g'ri kiritish usuli aniqlandi."}, status=403)
-
     server_started_at = game_session.get('started_at', 0)
     server_elapsed = time.time() - server_started_at
     time_spent = max(server_elapsed, MIN_GAME_SECONDS)
-
-    # Juda tez yuborilgan bo'lsa (2 soniyadan kam)
-    if server_elapsed < 2:
-        return JsonResponse({'error': "Juda tez yuborildi. Qaytadan urinib ko'ring."}, status=403)
 
     game_session['used'] = True
     request.session[session_key] = game_session
@@ -431,11 +409,6 @@ def game_submit(request, slug):
 
     original_words = prompt.text.split()
     typed_words = typed_text.split()
-    
-    # So'z soni tekshiruvi - prompt so'z sonidan 2x ko'p bo'lmasligi kerak
-    session_word_count = game_session.get('prompt_word_count', len(original_words))
-    if len(typed_words) > session_word_count * 2:
-        return JsonResponse({'error': "Noto'g'ri matn yuborildi."}, status=403)
 
     import re
     def _normalize_apostrophes(s):

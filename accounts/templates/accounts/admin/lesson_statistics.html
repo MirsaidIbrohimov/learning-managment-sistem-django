@@ -76,10 +76,27 @@
     font-size: 1.6rem;
 }
 
+.ls-title-sub {
+    font-size: 0.82rem;
+    color: #6c757d;
+    margin-top: 6px;
+    font-weight: 500;
+}
+
+.ls-header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
 .ls-header-actions .btn {
     border-radius: 12px;
     font-weight: 600;
     padding: 8px 18px;
+}
+
+.ls-header-actions .btn-print {
+    padding: 8px 12px;
 }
 
 /* ===== Alerts Strip ===== */
@@ -158,64 +175,201 @@
 .ls-filter {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
+    border-radius: 18px;
+    padding: 22px 26px;
+    margin-bottom: 22px;
     animation: fadeUp 0.45s ease both;
+    position: relative;
+    overflow: hidden;
 }
 
-.ls-filter form {
+.ls-filter::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+}
+
+/* Quick range chips */
+.ls-quick-chips {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
-    gap: 12px;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
-.ls-filter .fg {
-    flex: 1;
-    min-width: 150px;
+.ls-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border: 1.5px solid var(--border-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    white-space: nowrap;
 }
+
+.ls-chip:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    transform: translateY(-1px);
+}
+
+.ls-chip.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 3px 10px rgba(99, 102, 241, 0.35);
+}
+
+.ls-chip i { font-size: 0.85rem; }
+
+.ls-filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    align-items: flex-end;
+}
+
+.ls-filter .fg { display: flex; flex-direction: column; }
 
 .ls-filter .fg label {
     display: block;
-    font-size: 0.72rem;
+    font-size: 0.7rem;
     font-weight: 700;
     color: #6c757d;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
+
+.ls-filter .fg label i { font-size: 0.9rem; color: #8b5cf6; }
 
 .ls-filter .fg .form-control,
 .ls-filter .fg .form-select {
-    border-radius: 10px;
-    padding: 9px 14px;
+    border-radius: 12px;
+    padding: 10px 14px;
     font-size: 0.88rem;
     background: var(--bg-color);
     border: 2px solid var(--border-color);
     color: var(--text-color);
+    transition: all 0.2s;
 }
 
 .ls-filter .fg .form-control:focus,
 .ls-filter .fg .form-select:focus {
     border-color: #6366f1;
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.ls-filter-actions {
+    display: flex;
+    gap: 8px;
+    align-items: stretch;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+    margin-top: 4px;
+    flex-wrap: wrap;
 }
 
 .ls-filter .btn-search {
-    padding: 9px 22px;
-    border-radius: 10px;
+    padding: 10px 22px;
+    border-radius: 12px;
     font-weight: 600;
     background: linear-gradient(135deg, #6366f1, #8b5cf6);
     border: none;
     color: #fff;
     white-space: nowrap;
     transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .ls-filter .btn-search:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
+    box-shadow: 0 6px 18px rgba(99, 102, 241, 0.35);
+}
+
+.ls-filter .btn-reset {
+    padding: 10px 18px;
+    border-radius: 12px;
+    font-weight: 600;
+    background: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+    white-space: nowrap;
+    transition: all 0.25s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.ls-filter .btn-reset:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+}
+
+/* Active filters row */
+.ls-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 14px;
+    margin-top: 14px;
+    border-top: 1px dashed var(--border-color);
+    align-items: center;
+}
+
+.ls-active-filters .af-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #6c757d;
+    letter-spacing: 0.5px;
+}
+
+.ls-active-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 6px 4px 12px;
+    border-radius: 50px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.ls-active-chip a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.2);
+    color: #6366f1;
+    text-decoration: none;
+    font-size: 0.7rem;
+    transition: all 0.2s;
+}
+
+.ls-active-chip a:hover {
+    background: #ef4444;
+    color: #fff;
 }
 
 /* ===== Stat Cards ===== */
@@ -325,6 +479,18 @@
 
 .ls-chart-header h6 i {
     color: #6366f1;
+}
+
+.ls-chart-period {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #6c757d;
+    padding: 5px 12px;
+    background: var(--bg-color);
+    border-radius: 50px;
+    border: 1px solid var(--border-color);
+    display: inline-flex;
+    align-items: center;
 }
 
 .ls-chart-body {
@@ -675,6 +841,38 @@
     .ls-stat-icon { width: 38px; height: 38px; font-size: 1rem; margin-bottom: 8px; }
     .ls-stat-num { font-size: 1.15rem; }
     .ls-stat-lbl { font-size: 0.72rem; }
+    .ls-filter { padding: 16px; }
+    .ls-quick-chips { gap: 6px; }
+    .ls-chip { padding: 6px 10px; font-size: 0.72rem; }
+    .ls-chart-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+}
+
+/* Print */
+@media print {
+    .ls-header-actions,
+    .ls-tabs,
+    .ls-filter { display: none !important; }
+    .ls-tab-pane { display: block !important; page-break-inside: avoid; }
+    .ls-section { break-inside: avoid; box-shadow: none !important; }
+}
+
+/* Dark mode adjustments */
+[data-bs-theme="dark"] .ls-active-chip {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border-color: rgba(139, 92, 246, 0.25);
+}
+
+[data-bs-theme="dark"] .ls-chip {
+    background: rgba(255,255,255,0.03);
+}
+
+[data-bs-theme="dark"] .ls-chart-period {
+    background: rgba(255,255,255,0.04);
 }
 </style>
 {% endblock %}
@@ -682,11 +880,20 @@
 {% block admin_content %}
 <!-- Header -->
 <div class="ls-header">
-    <h1 class="ls-title">
-        <i class="bi bi-bar-chart-line-fill"></i>
-        Darslar Tahlili
-    </h1>
+    <div>
+        <h1 class="ls-title">
+            <i class="bi bi-bar-chart-line-fill"></i>
+            Darslar Tahlili
+        </h1>
+        <div class="ls-title-sub">
+            <i class="bi bi-info-circle me-1"></i>
+            {{ activity_period_label }} · {{ video_stats|length }} video · {{ test_stats|length }} test · {{ homework_stats|length }} vazifa
+        </div>
+    </div>
     <div class="ls-header-actions">
+        <button type="button" class="btn btn-outline-secondary btn-print" onclick="window.print()" title="Chop etish">
+            <i class="bi bi-printer"></i>
+        </button>
         <a href="{% url 'admin_reports' %}" class="btn btn-primary">
             <i class="bi bi-file-pdf me-2"></i>PDF Hisobot
         </a>
@@ -707,29 +914,91 @@
 
 <!-- Filter -->
 <div class="ls-filter">
-    <form method="GET">
-        <div class="fg">
-            <label>Qidirish</label>
-            <input type="text" name="q" class="form-control" placeholder="Dars nomi..." value="{{ search_query }}">
+    <form method="GET" id="lsFilterForm">
+        <!-- Quick range chips -->
+        <div class="ls-quick-chips">
+            <a href="{{ range_urls.all }}" class="ls-chip {% if not selected_range and not selected_year and not selected_month and not date_from %}active{% endif %}">
+                <i class="bi bi-infinity"></i> Barchasi
+            </a>
+            <a href="{{ range_urls.today }}" class="ls-chip {% if selected_range == 'today' %}active{% endif %}">
+                <i class="bi bi-sun"></i> Bugun
+            </a>
+            <a href="{{ range_urls.week }}" class="ls-chip {% if selected_range == 'week' %}active{% endif %}">
+                <i class="bi bi-calendar-week"></i> 7 kun
+            </a>
+            <a href="{{ range_urls.month }}" class="ls-chip {% if selected_range == 'month' %}active{% endif %}">
+                <i class="bi bi-calendar-month"></i> Shu oy
+            </a>
+            <a href="{{ range_urls.year }}" class="ls-chip {% if selected_range == 'year' %}active{% endif %}">
+                <i class="bi bi-calendar-range"></i> Shu yil
+            </a>
         </div>
-        <div class="fg">
-            <label>Kurs</label>
-            <select name="profession" class="form-select">
-                <option value="">Barcha kurslar</option>
-                {% for p in professions %}
-                <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
-                {% endfor %}
-            </select>
+
+        <div class="ls-filter-grid">
+            <div class="fg">
+                <label><i class="bi bi-search"></i> Qidirish</label>
+                <input type="text" name="q" class="form-control" placeholder="Dars nomi..." value="{{ search_query }}">
+            </div>
+            <div class="fg">
+                <label><i class="bi bi-mortarboard"></i> Kurs (guruh)</label>
+                <select name="profession" class="form-select">
+                    <option value="">Barcha kurslar</option>
+                    {% for p in professions %}
+                    <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fg">
+                <label><i class="bi bi-calendar3"></i> Yil</label>
+                <select name="year" class="form-select">
+                    <option value="">Barcha yillar</option>
+                    {% for y in year_choices %}
+                    <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fg">
+                <label><i class="bi bi-calendar-month"></i> Oy</label>
+                <select name="month" class="form-select">
+                    <option value="">Barcha oylar</option>
+                    {% for m_num, m_name in month_choices %}
+                    <option value="{{ m_num }}" {% if selected_month == m_num %}selected{% endif %}>{{ m_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="fg">
+                <label><i class="bi bi-calendar-event"></i> Dan</label>
+                <input type="date" name="date_from" class="form-control" value="{% if date_from %}{{ date_from|date:'Y-m-d' }}{% endif %}">
+            </div>
+            <div class="fg">
+                <label><i class="bi bi-calendar-check"></i> Gacha</label>
+                <input type="date" name="date_to" class="form-control" value="{% if date_to %}{{ date_to|date:'Y-m-d' }}{% endif %}">
+            </div>
+            <div class="ls-filter-actions">
+                {% if active_filters %}
+                <a href="{% url 'admin_lesson_statistics' %}" class="btn-reset">
+                    <i class="bi bi-x-circle"></i> Tozalash
+                </a>
+                {% endif %}
+                <button type="submit" class="btn-search">
+                    <i class="bi bi-funnel-fill"></i> Filterlash
+                </button>
+            </div>
         </div>
-        <div class="fg" style="min-width:130px;">
-            <label>Dan</label>
-            <input type="date" name="date_from" class="form-control" value="{% if date_from %}{{ date_from|date:'Y-m-d' }}{% endif %}">
+
+        {% if active_filters %}
+        <div class="ls-active-filters">
+            <span class="af-label"><i class="bi bi-check2-square me-1"></i>Faol filterlar:</span>
+            {% for f in active_filters %}
+            <span class="ls-active-chip">
+                {{ f.label }}
+                <a href="{{ f.remove_url }}" title="Olib tashlash">
+                    <i class="bi bi-x"></i>
+                </a>
+            </span>
+            {% endfor %}
         </div>
-        <div class="fg" style="min-width:130px;">
-            <label>Gacha</label>
-            <input type="date" name="date_to" class="form-control" value="{% if date_to %}{{ date_to|date:'Y-m-d' }}{% endif %}">
-        </div>
-        <button type="submit" class="btn-search"><i class="bi bi-search me-1"></i>Qidirish</button>
+        {% endif %}
     </form>
 </div>
 
@@ -770,7 +1039,10 @@
 <!-- Chart -->
 <div class="ls-chart-card">
     <div class="ls-chart-header">
-        <h6><i class="bi bi-graph-up-arrow"></i>Kunlik faollik (oxirgi 30 kun)</h6>
+        <h6><i class="bi bi-graph-up-arrow"></i>Faollik dinamikasi</h6>
+        <span class="ls-chart-period">
+            <i class="bi bi-clock-history me-1"></i>{{ activity_period_label }}
+        </span>
     </div>
     <div class="ls-chart-body">
         <canvas id="activityChart" height="90"></canvas>
@@ -1162,10 +1434,27 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script id="chartDataJson" type="application/json">{{ daily_activity_json|safe }}</script>
 <script>
 // ===== Chart =====
-const chartData = {{ daily_activity|safe }};
-const ctx = document.getElementById('activityChart').getContext('2d');
+const chartData = JSON.parse(document.getElementById('chartDataJson').textContent);
+const chartCanvas = document.getElementById('activityChart');
+const ctx = chartCanvas.getContext('2d');
+
+// Gradient background
+function makeGradient(color1, color2) {
+    const g = ctx.createLinearGradient(0, 0, 0, 260);
+    g.addColorStop(0, color1);
+    g.addColorStop(1, color2);
+    return g;
+}
+
+const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)';
+const tickColor = isDark ? '#9ca3af' : '#6b7280';
+
+// Rasmda ko'p nuqta bo'lsa ularni yashiraylik
+const showPoints = chartData.length <= 45;
 
 new Chart(ctx, {
     type: 'line',
@@ -1173,45 +1462,52 @@ new Chart(ctx, {
         labels: chartData.map(d => d.date),
         datasets: [
             {
-                label: 'Video',
+                label: 'Video ko\'rildi',
                 data: chartData.map(d => d.videos),
                 borderColor: '#6366f1',
-                backgroundColor: 'rgba(99,102,241,0.08)',
+                backgroundColor: makeGradient('rgba(99,102,241,0.28)', 'rgba(99,102,241,0)'),
                 fill: true,
                 tension: 0.4,
                 borderWidth: 2.5,
-                pointRadius: 0,
-                pointHoverRadius: 5,
+                pointRadius: showPoints ? 3 : 0,
+                pointHoverRadius: 6,
                 pointBackgroundColor: '#6366f1',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
             },
             {
-                label: 'Test',
+                label: 'Test yechildi',
                 data: chartData.map(d => d.tests),
                 borderColor: '#10b981',
-                backgroundColor: 'rgba(16,185,129,0.08)',
+                backgroundColor: makeGradient('rgba(16,185,129,0.28)', 'rgba(16,185,129,0)'),
                 fill: true,
                 tension: 0.4,
                 borderWidth: 2.5,
-                pointRadius: 0,
-                pointHoverRadius: 5,
+                pointRadius: showPoints ? 3 : 0,
+                pointHoverRadius: 6,
                 pointBackgroundColor: '#10b981',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
             },
             {
-                label: 'Vazifa',
+                label: 'Vazifa topshirildi',
                 data: chartData.map(d => d.homeworks),
                 borderColor: '#f59e0b',
-                backgroundColor: 'rgba(245,158,11,0.08)',
+                backgroundColor: makeGradient('rgba(245,158,11,0.28)', 'rgba(245,158,11,0)'),
                 fill: true,
                 tension: 0.4,
                 borderWidth: 2.5,
-                pointRadius: 0,
-                pointHoverRadius: 5,
+                pointRadius: showPoints ? 3 : 0,
+                pointHoverRadius: 6,
                 pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
             }
         ]
     },
     options: {
         responsive: true,
+        maintainAspectRatio: false,
         interaction: {
             mode: 'index',
             intersect: false,
@@ -1219,34 +1515,62 @@ new Chart(ctx, {
         plugins: {
             legend: {
                 position: 'top',
+                align: 'end',
                 labels: {
                     usePointStyle: true,
                     pointStyle: 'circle',
-                    padding: 20,
-                    font: { weight: '600', size: 12 }
+                    padding: 18,
+                    font: { weight: '600', size: 12 },
+                    color: tickColor,
                 }
             },
             tooltip: {
-                backgroundColor: 'rgba(0,0,0,0.8)',
+                backgroundColor: 'rgba(15,23,42,0.95)',
                 cornerRadius: 12,
-                padding: 12,
-                titleFont: { weight: '700' },
-                bodyFont: { size: 13 },
+                padding: 14,
+                titleFont: { weight: '700', size: 13 },
+                bodyFont: { size: 12.5 },
+                titleColor: '#fff',
+                bodyColor: '#e5e7eb',
+                borderColor: 'rgba(255,255,255,0.1)',
+                borderWidth: 1,
+                displayColors: true,
+                boxPadding: 6,
+                callbacks: {
+                    footer: function(items) {
+                        let total = 0;
+                        items.forEach(i => total += i.parsed.y);
+                        return 'Jami: ' + total;
+                    }
+                }
             }
         },
         scales: {
             x: {
                 grid: { display: false },
-                ticks: { font: { size: 11 }, color: '#9ca3af' }
+                ticks: {
+                    font: { size: 11 },
+                    color: tickColor,
+                    maxRotation: 45,
+                    autoSkip: true,
+                    maxTicksLimit: 15,
+                }
             },
             y: {
                 beginAtZero: true,
-                grid: { color: 'rgba(0,0,0,0.04)' },
-                ticks: { font: { size: 11 }, color: '#9ca3af' }
+                grid: { color: gridColor, drawBorder: false },
+                ticks: { font: { size: 11 }, color: tickColor, precision: 0 }
             }
         }
     }
 });
+
+// Fixed height parent (needed for maintainAspectRatio:false)
+chartCanvas.parentElement.style.height = '320px';
+chartCanvas.parentElement.style.position = 'relative';
+
+// Quick-chip Barchasi da tugma default holatga qaytishi uchun
+// (chip href="?" ni tekshiradi)
 
 // ===== Custom Tabs =====
 document.querySelectorAll('.ls-tab-btn').forEach(btn => {

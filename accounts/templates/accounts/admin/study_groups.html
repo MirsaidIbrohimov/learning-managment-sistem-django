@@ -1,0 +1,668 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Guruhlar & Dars jadvali - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-15px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.sg-anim { animation: fadeUp 0.5s ease both; }
+
+/* ===== Header ===== */
+.sg-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 22px 26px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    margin-bottom: 22px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.4s ease both;
+}
+.sg-header::before {
+    content:'';
+    position: absolute; inset: 0 0 auto 0; height: 4px;
+    background: linear-gradient(90deg,#6366f1,#8b5cf6,#ec4899);
+}
+.sg-title {
+    display: flex; align-items: center; gap: 12px;
+    margin: 0; font-size: 1.4rem; font-weight: 800;
+    color: var(--text-color);
+}
+.sg-title-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+}
+.sg-title-sub {
+    font-size: 0.82rem; color: #6c757d; margin-top: 4px; font-weight: 500;
+}
+.sg-header-actions {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.sg-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 18px; border-radius: 12px; font-weight: 600;
+    font-size: 0.9rem; text-decoration: none; border: none;
+    transition: all 0.25s;
+    cursor: pointer;
+}
+.sg-btn-primary {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff;
+}
+.sg-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(99,102,241,0.35);
+    color: #fff;
+}
+.sg-btn-outline {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-color);
+}
+.sg-btn-outline:hover {
+    border-color: #6366f1; color: #6366f1;
+}
+
+/* ===== View switcher ===== */
+.sg-view-switch {
+    display: inline-flex; gap: 4px; padding: 4px;
+    background: var(--bg-color); border-radius: 12px;
+    border: 1.5px solid var(--border-color);
+}
+.sg-view-switch a {
+    padding: 7px 14px; border-radius: 9px;
+    color: #6c757d; text-decoration: none;
+    font-weight: 600; font-size: 0.82rem;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all 0.2s;
+}
+.sg-view-switch a.active {
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff; box-shadow: 0 3px 10px rgba(99,102,241,0.3);
+}
+
+/* ===== Filter ===== */
+.sg-filter {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin-bottom: 22px;
+    animation: fadeUp 0.45s ease both;
+}
+.sg-filter form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    align-items: end;
+}
+.sg-filter label {
+    display: flex; align-items: center; gap: 5px;
+    font-size: 0.72rem; font-weight: 700;
+    color: #6c757d; text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 6px;
+}
+.sg-filter label i { color: #8b5cf6; font-size: 0.9rem; }
+.sg-filter .form-control,
+.sg-filter .form-select {
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 0.88rem;
+    color: var(--text-color);
+}
+.sg-filter .form-control:focus,
+.sg-filter .form-select:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+}
+.sg-filter-btns {
+    display: flex; gap: 6px; align-items: stretch;
+}
+
+/* ===== Stat pills ===== */
+.sg-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+.sg-stat-pill {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    padding: 16px 18px;
+    display: flex; align-items: center; gap: 14px;
+    animation: fadeUp 0.5s ease both;
+    transition: transform 0.25s;
+}
+.sg-stat-pill:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+.sg-stat-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.sg-stat-icon.p1 { background: rgba(99,102,241,0.12); color: #6366f1; }
+.sg-stat-icon.p2 { background: rgba(16,185,129,0.12); color: #10b981; }
+.sg-stat-icon.p3 { background: rgba(245,158,11,0.12); color: #f59e0b; }
+.sg-stat-icon.p4 { background: rgba(236,72,153,0.12); color: #ec4899; }
+.sg-stat-info .n { font-size: 1.35rem; font-weight: 800; color: var(--text-color); }
+.sg-stat-info .l { font-size: 0.78rem; color: #6c757d; font-weight: 600; }
+
+/* ===== LIST view — group cards ===== */
+.sg-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+}
+.sg-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 0;
+    overflow: hidden;
+    transition: all 0.3s;
+    animation: fadeUp 0.5s ease both;
+    display: flex; flex-direction: column;
+}
+.sg-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.09);
+    border-color: rgba(99,102,241,0.3);
+}
+.sg-card-top {
+    padding: 16px 18px 12px;
+    color: #fff;
+    position: relative;
+}
+.sg-card-top::after {
+    content:''; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.15) 100%);
+    pointer-events: none;
+}
+.sg-card-name {
+    font-size: 1.05rem; font-weight: 800; margin: 0 0 3px;
+    display: flex; align-items: center; gap: 8px; position: relative;
+}
+.sg-card-course {
+    font-size: 0.8rem; opacity: 0.9; position: relative;
+    display: flex; align-items: center; gap: 5px;
+}
+.sg-card-status {
+    position: absolute; top: 12px; right: 12px;
+    padding: 3px 10px; border-radius: 50px;
+    font-size: 0.7rem; font-weight: 700;
+    background: rgba(255,255,255,0.25);
+    color: #fff; backdrop-filter: blur(6px);
+}
+.sg-card-status.inactive { background: rgba(0,0,0,0.4); }
+
+.sg-card-body {
+    padding: 14px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    flex: 1;
+}
+.sg-card-row {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 0.85rem; color: var(--text-color);
+}
+.sg-card-row i {
+    width: 30px; height: 30px; border-radius: 8px;
+    background: var(--bg-color);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; color: #6366f1;
+    flex-shrink: 0;
+}
+
+/* Days badges */
+.sg-days {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    padding-top: 4px;
+}
+.sg-day-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 34px; height: 26px; padding: 0 8px;
+    border-radius: 8px;
+    font-size: 0.72rem; font-weight: 700;
+    background: var(--bg-color);
+    color: #6c757d;
+    border: 1.5px solid var(--border-color);
+    transition: all 0.2s;
+}
+.sg-day-badge.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff; border-color: transparent;
+}
+
+.sg-card-footer {
+    padding: 12px 18px;
+    background: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.sg-card-footer-info {
+    font-size: 0.78rem; color: #6c757d; font-weight: 600;
+    display: flex; align-items: center; gap: 5px;
+}
+.sg-card-actions {
+    display: flex; gap: 5px;
+}
+.sg-action-btn {
+    width: 32px; height: 32px; border-radius: 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--card-bg); border: 1.5px solid var(--border-color);
+    color: #6c757d; text-decoration: none;
+    transition: all 0.2s; cursor: pointer;
+}
+.sg-action-btn:hover.edit { border-color: #6366f1; color: #6366f1; }
+.sg-action-btn:hover.delete { border-color: #ef4444; color: #ef4444; }
+.sg-action-btn:hover.view { border-color: #10b981; color: #10b981; }
+
+/* Student avatar stack */
+.sg-avatars {
+    display: flex; align-items: center;
+}
+.sg-avatars .av {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: #fff; font-size: 0.65rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--card-bg);
+    object-fit: cover; overflow: hidden;
+    margin-left: -8px;
+}
+.sg-avatars .av:first-child { margin-left: 0; }
+.sg-avatars .av-more {
+    background: var(--bg-color); color: #6c757d;
+    font-size: 0.7rem; font-weight: 700;
+    border: 2px solid var(--card-bg);
+}
+
+/* ===== SCHEDULE view — weekly grid ===== */
+.sg-schedule {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 12px;
+    animation: fadeUp 0.5s ease both;
+}
+.sg-day-col {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 12px;
+    min-height: 300px;
+    display: flex; flex-direction: column;
+}
+.sg-day-col.today {
+    border-color: rgba(99,102,241,0.5);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
+}
+.sg-day-header {
+    text-align: center;
+    padding: 6px 0 12px;
+    border-bottom: 1px dashed var(--border-color);
+    margin-bottom: 12px;
+}
+.sg-day-header .name {
+    font-size: 0.9rem; font-weight: 700;
+    color: var(--text-color);
+}
+.sg-day-header .count {
+    display: inline-block;
+    margin-top: 3px;
+    font-size: 0.72rem;
+    color: #6c757d;
+    padding: 2px 8px;
+    background: var(--bg-color);
+    border-radius: 50px;
+}
+.sg-day-col.today .sg-day-header .name { color: #6366f1; }
+
+.sg-lesson-block {
+    background: var(--bg-color);
+    border-radius: 12px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid;
+    animation: slideIn 0.35s ease both;
+    text-decoration: none;
+    color: var(--text-color);
+    display: block;
+    transition: transform 0.2s;
+}
+.sg-lesson-block:hover { transform: translateX(3px); color: var(--text-color); }
+.sg-lesson-time {
+    font-size: 0.78rem; font-weight: 700; color: #6366f1;
+    display: flex; align-items: center; gap: 4px;
+}
+.sg-lesson-name {
+    font-size: 0.86rem; font-weight: 700; margin: 4px 0 2px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sg-lesson-meta {
+    font-size: 0.72rem; color: #6c757d;
+    display: flex; align-items: center; gap: 4px;
+    margin-top: 2px;
+}
+.sg-day-empty {
+    padding: 24px 8px;
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.8rem;
+    opacity: 0.6;
+}
+.sg-day-empty i { font-size: 1.4rem; display: block; margin-bottom: 4px; }
+
+/* Empty state */
+.sg-empty {
+    background: var(--card-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: 18px;
+    padding: 60px 20px;
+    text-align: center;
+}
+.sg-empty .sg-empty-icon {
+    width: 80px; height: 80px; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; color: #6366f1;
+    margin: 0 auto 16px;
+}
+.sg-empty h5 {
+    font-weight: 700; color: var(--text-color); margin-bottom: 6px;
+}
+.sg-empty p {
+    color: #6c757d; margin-bottom: 20px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 1200px) {
+    .sg-schedule { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 768px) {
+    .sg-header { flex-direction: column; align-items: stretch; }
+    .sg-grid { grid-template-columns: 1fr; }
+    .sg-schedule { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .sg-schedule { grid-template-columns: 1fr; }
+    .sg-stats { grid-template-columns: 1fr 1fr; }
+    .sg-btn { padding: 8px 14px; font-size: 0.82rem; }
+}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<!-- Header -->
+<div class="sg-header">
+    <div style="display:flex;align-items:center;gap:14px;">
+        <div class="sg-title-icon"><i class="bi bi-calendar2-week-fill"></i></div>
+        <div>
+            <h1 class="sg-title">Guruhlar & Dars jadvali</h1>
+            <div class="sg-title-sub">
+                <i class="bi bi-info-circle me-1"></i>
+                Guruh yaratish, dars kunlarini belgilash va o'quvchilarni biriktirish
+            </div>
+        </div>
+    </div>
+    <div class="sg-header-actions">
+        <div class="sg-view-switch">
+            <a href="?view=list{% if q %}&q={{ q }}{% endif %}{% if selected_profession %}&profession={{ selected_profession }}{% endif %}"
+               class="{% if view_mode != 'schedule' %}active{% endif %}">
+                <i class="bi bi-grid-3x3-gap-fill"></i> Kartalar
+            </a>
+            <a href="?view=schedule{% if q %}&q={{ q }}{% endif %}{% if selected_profession %}&profession={{ selected_profession }}{% endif %}"
+               class="{% if view_mode == 'schedule' %}active{% endif %}">
+                <i class="bi bi-calendar-week"></i> Jadval
+            </a>
+        </div>
+        <a href="{% url 'admin_study_group_create' %}" class="sg-btn sg-btn-primary">
+            <i class="bi bi-plus-circle-fill"></i> Guruh yaratish
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="sg-stats">
+    <div class="sg-stat-pill" style="animation-delay:0.05s;">
+        <div class="sg-stat-icon p1"><i class="bi bi-collection-fill"></i></div>
+        <div class="sg-stat-info">
+            <div class="n">{{ total_groups }}</div>
+            <div class="l">Jami guruhlar</div>
+        </div>
+    </div>
+    <div class="sg-stat-pill" style="animation-delay:0.1s;">
+        <div class="sg-stat-icon p2"><i class="bi bi-check-circle-fill"></i></div>
+        <div class="sg-stat-info">
+            <div class="n">{{ active_groups }}</div>
+            <div class="l">Faol guruhlar</div>
+        </div>
+    </div>
+    <div class="sg-stat-pill" style="animation-delay:0.15s;">
+        <div class="sg-stat-icon p3"><i class="bi bi-mortarboard-fill"></i></div>
+        <div class="sg-stat-info">
+            <div class="n">{{ teachers|length }}</div>
+            <div class="l">O'qituvchilar</div>
+        </div>
+    </div>
+    <div class="sg-stat-pill" style="animation-delay:0.2s;">
+        <div class="sg-stat-icon p4"><i class="bi bi-briefcase-fill"></i></div>
+        <div class="sg-stat-info">
+            <div class="n">{{ professions|length }}</div>
+            <div class="l">Kurslar</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter -->
+<div class="sg-filter">
+    <form method="GET">
+        <input type="hidden" name="view" value="{{ view_mode }}">
+        <div>
+            <label><i class="bi bi-search"></i> Qidirish</label>
+            <input type="text" name="q" class="form-control" placeholder="Guruh yoki kurs nomi..." value="{{ q }}">
+        </div>
+        <div>
+            <label><i class="bi bi-briefcase"></i> Kurs</label>
+            <select name="profession" class="form-select">
+                <option value="">Barchasi</option>
+                {% for p in professions %}
+                <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label><i class="bi bi-person-workspace"></i> O'qituvchi</label>
+            <select name="teacher" class="form-select">
+                <option value="">Barchasi</option>
+                {% for t in teachers %}
+                <option value="{{ t.pk }}" {% if selected_teacher == t.pk|stringformat:"i" %}selected{% endif %}>{{ t.first_name }} {{ t.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label><i class="bi bi-calendar-day"></i> Kun</label>
+            <select name="day" class="form-select">
+                <option value="">Barcha kunlar</option>
+                {% for d_num, d_name in days_of_week %}
+                <option value="{{ d_num }}" {% if selected_day == d_num|stringformat:"i" %}selected{% endif %}>{{ d_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="sg-filter-btns">
+            <button type="submit" class="sg-btn sg-btn-primary">
+                <i class="bi bi-funnel-fill"></i> Filter
+            </button>
+            <a href="{% url 'admin_study_groups' %}" class="sg-btn sg-btn-outline" title="Tozalash">
+                <i class="bi bi-x-circle"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+{% if groups %}
+    {% if view_mode == 'schedule' %}
+        <!-- ========== SCHEDULE VIEW ========== -->
+        <div class="sg-schedule">
+            {% for day in weekly_by_day %}
+            <div class="sg-day-col {% if day.is_today %}today{% endif %}">
+                <div class="sg-day-header">
+                    <div class="name">
+                        {% if day.is_today %}<i class="bi bi-star-fill me-1" style="color:#f59e0b;"></i>{% endif %}
+                        {{ day.day_name }}
+                    </div>
+                    <div class="count">{{ day.lessons|length }} dars</div>
+                </div>
+                {% if day.lessons %}
+                    {% for g in day.lessons %}
+                    <a href="{% url 'admin_study_group_edit' g.pk %}" class="sg-lesson-block"
+                       style="border-left-color: {{ g.color }};">
+                        <div class="sg-lesson-time">
+                            <i class="bi bi-clock"></i>{{ g.time_range }}
+                        </div>
+                        <div class="sg-lesson-name">{{ g.name }}</div>
+                        <div class="sg-lesson-meta">
+                            <i class="bi bi-briefcase"></i>{{ g.profession.name }}
+                        </div>
+                        {% if g.teacher %}
+                        <div class="sg-lesson-meta">
+                            <i class="bi bi-person"></i>{{ g.teacher.first_name }} {{ g.teacher.last_name }}
+                        </div>
+                        {% endif %}
+                        <div class="sg-lesson-meta">
+                            <i class="bi bi-people"></i>{{ g.students_count }} o'quvchi
+                        </div>
+                    </a>
+                    {% endfor %}
+                {% else %}
+                    <div class="sg-day-empty">
+                        <i class="bi bi-calendar2-x"></i>
+                        <div>Dars yo'q</div>
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <!-- ========== CARDS VIEW ========== -->
+        <div class="sg-grid">
+            {% for g in groups %}
+            <div class="sg-card" style="animation-delay: {{ forloop.counter0|add:1 }}00ms;">
+                <div class="sg-card-top" style="background: linear-gradient(135deg, {{ g.color }}, {{ g.color }}dd);">
+                    <div class="sg-card-status {% if not g.is_active %}inactive{% endif %}">
+                        {% if g.is_active %}<i class="bi bi-check-circle-fill me-1"></i>Faol{% else %}<i class="bi bi-pause-circle-fill me-1"></i>Nofaol{% endif %}
+                    </div>
+                    <div class="sg-card-name">
+                        <i class="bi bi-collection-fill"></i>{{ g.name }}
+                    </div>
+                    <div class="sg-card-course">
+                        <i class="bi bi-briefcase-fill"></i>{{ g.profession.name }}
+                    </div>
+                </div>
+                <div class="sg-card-body">
+                    <div class="sg-card-row">
+                        <i class="bi bi-clock-fill"></i>
+                        <div>
+                            <div style="font-weight:700;">{{ g.time_range }}</div>
+                            <small style="color:#6c757d;">{{ g.duration_minutes }} daqiqa</small>
+                        </div>
+                    </div>
+                    {% if g.teacher %}
+                    <div class="sg-card-row">
+                        <i class="bi bi-person-workspace"></i>
+                        <div>
+                            <div style="font-weight:600;">{{ g.teacher.first_name }} {{ g.teacher.last_name }}</div>
+                            <small style="color:#6c757d;">O'qituvchi</small>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="sg-card-row">
+                        <i class="bi bi-person-x"></i>
+                        <div>
+                            <div style="color:#6c757d;font-style:italic;">O'qituvchi biriktirilmagan</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if g.room %}
+                    <div class="sg-card-row">
+                        <i class="bi bi-geo-alt-fill"></i>
+                        <div><span>{{ g.room }}</span></div>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <div style="font-size:0.72rem;font-weight:700;color:#6c757d;text-transform:uppercase;margin-bottom:4px;">
+                            <i class="bi bi-calendar-week me-1"></i>Dars kunlari
+                        </div>
+                        <div class="sg-days">
+                            {% with days_list=g.get_days_list %}
+                            <span class="sg-day-badge {% if 1 in days_list %}active{% endif %}" title="Dushanba">Du</span>
+                            <span class="sg-day-badge {% if 2 in days_list %}active{% endif %}" title="Seshanba">Se</span>
+                            <span class="sg-day-badge {% if 3 in days_list %}active{% endif %}" title="Chorshanba">Ch</span>
+                            <span class="sg-day-badge {% if 4 in days_list %}active{% endif %}" title="Payshanba">Pa</span>
+                            <span class="sg-day-badge {% if 5 in days_list %}active{% endif %}" title="Juma">Ju</span>
+                            <span class="sg-day-badge {% if 6 in days_list %}active{% endif %}" title="Shanba">Sh</span>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                <div class="sg-card-footer">
+                    <div class="sg-card-footer-info">
+                        <div class="sg-avatars">
+                            {% for s in g.students.all|slice:":4" %}
+                            {% if s.photo %}
+                            <img src="{{ s.photo.url }}" class="av" alt="{{ s.first_name }}">
+                            {% else %}
+                            <div class="av">{{ s.first_name|slice:':1' }}{{ s.last_name|slice:':1' }}</div>
+                            {% endif %}
+                            {% endfor %}
+                            {% if g.students.count > 4 %}
+                            <div class="av av-more">+{{ g.students.count|add:-4 }}</div>
+                            {% endif %}
+                        </div>
+                        <span>{{ g.students.count }} o'quvchi</span>
+                    </div>
+                    <div class="sg-card-actions">
+                        <a href="{% url 'admin_study_group_edit' g.pk %}" class="sg-action-btn edit" title="Tahrirlash">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <a href="{% url 'admin_study_group_delete' g.pk %}" class="sg-action-btn delete" title="O'chirish">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% else %}
+    <div class="sg-empty">
+        <div class="sg-empty-icon"><i class="bi bi-calendar-x"></i></div>
+        <h5>Hozircha guruh yo'q</h5>
+        <p>Birinchi guruhingizni yaratish uchun quyidagi tugmani bosing.</p>
+        <a href="{% url 'admin_study_group_create' %}" class="sg-btn sg-btn-primary">
+            <i class="bi bi-plus-circle-fill"></i> Guruh yaratish
+        </a>
+    </div>
+{% endif %}
+{% endblock %}

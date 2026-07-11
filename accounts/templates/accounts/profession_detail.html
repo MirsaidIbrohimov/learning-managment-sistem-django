@@ -1571,7 +1571,9 @@
                 <div style="padding: 0.5rem 0;">
                 {% for item in final_test_lessons %}
                 {% with lesson=item.lesson test=item.test payment_status=item.payment_status progress=item.progress %}
-                {% if request.user.is_student and item.token %}
+                {% if item.locked %}
+                <div style="text-decoration:none;opacity:0.58;cursor:not-allowed;">
+                {% elif request.user.is_student and item.token %}
                 <a href="{% url 'student_lesson_view' item.token.token %}" style="text-decoration:none;">
                 {% else %}
                 <a href="{% url 'lesson_view' lesson.pk %}" style="text-decoration:none;">
@@ -1608,7 +1610,11 @@
                         </div>
                         <!-- Status badge -->
                         <div style="flex-shrink:0;">
-                            {% if payment_status == 'pending' %}
+                            {% if item.locked %}
+                            <span style="background:rgba(107,114,128,0.12);color:#6b7280;border:1px solid rgba(107,114,128,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
+                                <i class="bi bi-lock-fill me-1"></i>Avval barcha darslarni bajaring
+                            </span>
+                            {% elif payment_status == 'pending' %}
                             <span style="background:rgba(245,158,11,0.12);color:#d97706;border:1px solid rgba(245,158,11,0.3);border-radius:20px;padding:.25rem .75rem;font-size:.73rem;font-weight:700;white-space:nowrap;">
                                 <i class="bi bi-hourglass-split me-1"></i>To'lov kutilmoqda
                             </span>
@@ -1632,7 +1638,11 @@
                         </div>
                         <i class="bi bi-chevron-right" style="color:rgba(239,68,68,0.5);font-size:.8rem;flex-shrink:0;"></i>
                     </div>
+                {% if item.locked %}
+                </div>
+                {% else %}
                 </a>
+                {% endif %}
                 {% endwith %}
                 {% endfor %}
                 </div>
@@ -1685,6 +1695,12 @@
                     <i class="bi bi-download"></i> Sertifikatni yuklab olish
                 </a>
             </div>
+        </div>
+        {% elif not has_final_test %}
+        <div class="text-center">
+            <div class="cd-cert-icon gray"><i class="bi bi-ui-checks-grid"></i></div>
+            <h5 class="fw-bold mb-1" style="color:var(--text-muted);">Yakuniy test mavjud emas</h5>
+            <p class="text-muted mb-0">Sertifikat olish uchun kursga yakuniy test qo'shilishi va undan muvaffaqiyatli o'tish kerak.</p>
         </div>
         {% elif has_empty_section %}
         <div class="text-center">

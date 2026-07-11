@@ -244,6 +244,7 @@ def _serialize_submission(sub: HomeworkSubmission, request) -> dict:
         "can_edit":         sub.can_edit,
         "edit_seconds_left": sub.edit_seconds_left,
         "coin_awarded":     sub.coin_awarded,
+        "coins_earned":     sub.coins_earned,
     }
 
 
@@ -259,6 +260,7 @@ def _serialize_homework(hw: Homework) -> dict:
         "allow_late":       hw.allow_late,
         "is_deadline_passed": hw.is_deadline_passed,
         "allowed_formats":  hw.get_allowed_formats_list(),
+        "max_coin_reward":  HomeworkSubmission.MAX_COIN_REWARD,
     }
 
 
@@ -716,19 +718,12 @@ def hw_grade(request, sub_pk):
 
     # Award coins on graded/accepted (faqat birinchi baholashda: revision_count == 0)
     if status in ('graded', 'accepted') and not sub.coin_awarded and sub.revision_count == 0 and grade is not None:
-        coin_amount = 5
-        if not sub.is_late:
-            coin_amount = 10
-        if grade >= 9:
-            coin_amount += 5
-        elif grade >= 7:
-            coin_amount += 2
-        if sub.student.is_premium:
-            coin_amount *= 2
+        coin_amount = sub.calculate_coin_reward(grade)
         try:
             sub.student.add_coins(coin_amount, f"Vazifa baholandi: {sub.homework.lesson.title}")
             sub.coin_awarded = True
-            sub.save(update_fields=['coin_awarded'])
+            sub.coins_earned = coin_amount
+            sub.save(update_fields=['coin_awarded', 'coins_earned'])
         except Exception:
             pass
 

@@ -26,7 +26,8 @@ from .models import (
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
     DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken,
-    SurveyForm, SurveyQuestion, SurveyResponse, SurveyAnswer
+    SurveyForm, SurveyQuestion, SurveyResponse, SurveyAnswer, StudyGroup, StudentAttendance,
+    final_test_prerequisites_met,
 )
 from django.contrib.auth.hashers import make_password
 from .security import get_client_ip, check_rate_limit
@@ -637,6 +638,11 @@ def _register_device_and_session(request, user):
         expires_at=timezone.now() + timedelta(seconds=7200),
         is_active=True,
     )
+
+    # DeviceLimitMiddleware faol sessiyani cache'dan tekshiradi.
+    # Eski sessiyalar o'chirilgandan keyin cache yangilanmasa, keyingi requestda
+    # yangi login qilingan foydalanuvchi darhol logout bo'lib qolishi mumkin.
+    cache.set(f'active_session_{user.id}', request.session.session_key, 120)
 
     return True
 
@@ -1572,9 +1578,9 @@ def home_view(request):
             video_counts = dict(VideoLesson.objects.filter(
                 lesson__profession_id__in=prof_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
-            test_counts = dict(Test.objects.filter(
-                lesson__profession_id__in=prof_ids
-            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            test_counts = dict(Lesson.objects.filter(
+                profession_id__in=prof_ids, lesson_type='test'
+            ).values_list('profession_id').annotate(c=Count('id')).values_list('profession_id', 'c'))
             hw_counts = dict(Homework.objects.filter(
                 lesson__profession_id__in=prof_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
@@ -1584,10 +1590,7 @@ def home_view(request):
                 user=request.user, watched=True,
                 video__lesson__profession_id__in=prof_ids
             ).values_list('video__lesson__profession_id').annotate(c=Count('id')).values_list('video__lesson__profession_id', 'c'))
-            passed_counts = dict(TestResult.objects.filter(
-                student=request.user, passed=True,
-                test__lesson__profession_id__in=prof_ids
-            ).values_list('test__lesson__profession_id').annotate(c=Count('test_id', distinct=True)).values_list('test__lesson__profession_id', 'c'))
+            passed_counts = _passed_test_lesson_counts(request.user, prof_ids)
             done_hw_counts = dict(HomeworkSubmission.objects.filter(
                 student=request.user,
                 homework__lesson__profession_id__in=prof_ids,
@@ -2332,18 +2335,16 @@ def professions_view(request):
             video_counts = dict(VideoLesson.objects.filter(
                 lesson__profession_id__in=enrolled_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
-            test_counts = dict(Test.objects.filter(
-                lesson__profession_id__in=enrolled_ids
-            ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
+            test_counts = dict(Lesson.objects.filter(
+                profession_id__in=enrolled_ids, lesson_type='test'
+            ).values_list('profession_id').annotate(c=Count('id')).values_list('profession_id', 'c'))
             hw_counts = dict(Homework.objects.filter(
                 lesson__profession_id__in=enrolled_ids
             ).values_list('lesson__profession_id').annotate(c=Count('id')).values_list('lesson__profession_id', 'c'))
             watched_counts = dict(VideoProgress.objects.filter(
                 user=request.user, watched=True, video__lesson__profession_id__in=enrolled_ids
             ).values_list('video__lesson__profession_id').annotate(c=Count('id')).values_list('video__lesson__profession_id', 'c'))
-            passed_counts = dict(TestResult.objects.filter(
-                student=request.user, passed=True, test__lesson__profession_id__in=enrolled_ids
-            ).values_list('test__lesson__profession_id').annotate(c=Count('test_id', distinct=True)).values_list('test__lesson__profession_id', 'c'))
+            passed_counts = _passed_test_lesson_counts(request.user, enrolled_ids)
             done_hw_counts = dict(HomeworkSubmission.objects.filter(
                 student=request.user, homework__lesson__profession_id__in=enrolled_ids, status__in=['accepted', 'graded']
             ).values_list('homework__lesson__profession_id').annotate(c=Count('homework_id', distinct=True)).values_list('homework__lesson__profession_id', 'c'))
@@ -2377,6 +2378,35 @@ def professions_view(request):
         'enrolled_ids': enrolled_ids,
         'course_token_map': course_token_map,
     })
+
+
+def _passed_test_lesson_counts(user, profession_ids):
+    """Eski test va yangi Quiz natijalarini dars bo'yicha takrorlamasdan sanaydi."""
+    passed_by_profession = {}
+
+    legacy_rows = TestResult.objects.filter(
+        student=user,
+        passed=True,
+        test__lesson__profession_id__in=profession_ids,
+    ).values_list('test__lesson__profession_id', 'test__lesson_id')
+    for profession_id, lesson_id in legacy_rows:
+        passed_by_profession.setdefault(profession_id, set()).add(lesson_id)
+
+    from quiz.models import Attempt as QuizAttempt
+    quiz_rows = QuizAttempt.objects.filter(
+        student=user,
+        passed=True,
+        status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+        quiz__lesson__profession_id__in=profession_ids,
+    ).values_list('quiz__lesson__profession_id', 'quiz__lesson_id')
+    for profession_id, lesson_id in quiz_rows:
+        if lesson_id:
+            passed_by_profession.setdefault(profession_id, set()).add(lesson_id)
+
+    return {
+        profession_id: len(lesson_ids)
+        for profession_id, lesson_ids in passed_by_profession.items()
+    }
 
 
 def _homework_locked_lesson_ids(lessons, completed_lesson_ids, submitted_homework_lesson_ids=None):
@@ -2735,9 +2765,10 @@ def profession_detail(request, pk):
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'daily'
             else:
-                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids, submitted_hw_lesson_ids)
                 for l in section_lessons:
-                    lesson_is_locked[l.pk] = 'homework' if l.pk in homework_locked_ids else False
+                    # Bo'lim ochilgan bo'lsa, uning video, vazifa va oddiy testlari
+                    # birgalikda ochiladi. Keyingi bo'lim esa hammasi bajarilgach ochiladi.
+                    lesson_is_locked[l.pk] = False
 
         # Daily limit banner
         if today_section_access:
@@ -2785,12 +2816,22 @@ def profession_detail(request, pk):
 
     # Yakuniy testlar — alohida UI uchun
     final_test_lessons = []
+    has_final_test = False
     if is_enrolled or is_teaching or request.user.is_admin:
-        final_test_qs = Lesson.objects.filter(
+        _final_prerequisites_ready = True
+        if request.user.is_student:
+            _completed_ids = {
+                lid for lid, progress in lesson_progress.items() if progress.get('completed')
+            }
+            _final_prerequisites_ready = final_test_prerequisites_met(
+                request.user, profession, _completed_ids,
+            )
+        final_test_qs = list(Lesson.objects.filter(
             profession=profession,
             lesson_type='test',
             test__test_type='final'
-        ).select_related('test')
+        ).select_related('test'))
+        has_final_test = bool(final_test_qs)
         for _fl in final_test_qs:
             _payment_status = None
             if request.user.is_authenticated and request.user.is_student:
@@ -2805,6 +2846,7 @@ def profession_detail(request, pk):
                 'payment_status': _payment_status,
                 'progress': lesson_progress.get(_fl.pk),
                 'token': token_map.get(_fl.pk),
+                'locked': request.user.is_student and not _final_prerequisites_ready,
             })
 
     _roadmap_completed = section_completed if isinstance(locals().get('section_completed'), dict) else {}
@@ -2834,6 +2876,7 @@ def profession_detail(request, pk):
         'lesson_is_locked': lesson_is_locked,
         'token_map': token_map,
         'final_test_lessons': final_test_lessons,
+        'has_final_test': has_final_test,
     })
 
 
@@ -3149,6 +3192,15 @@ def request_certificate(request, pk):
     if not profession.has_certificate:
         messages.error(request, "Bu kurs uchun sertifikat joriy qilinmagan.")
         return redirect('profession_detail', pk=pk)
+
+    if not Test.objects.filter(
+        lesson__profession=profession, test_type='final'
+    ).exists():
+        messages.error(
+            request,
+            "Bu kursda yakuniy test mavjud emas. Sertifikat olish uchun yakuniy test bo'lishi kerak.",
+        )
+        return redirect('profession_detail', pk=pk)
     
     enrollment = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists()
     if not enrollment and request.user.profession != profession:
@@ -3197,12 +3249,8 @@ def request_certificate(request, pk):
     
     if request.method == 'POST':
         # 🎓 AVTOMATIK BERISH: so'rov o'rniga sertifikat darhol yaratiladi.
-        # Kurs to'liq tugatilgani (barcha dars/test/vazifa) yuqorida allaqachon
-        # tekshirildi — shu sabab yakuniy test talabi takrorlanmaydi.
         from .certificates import issue_course_certificate
-        cert, error = issue_course_certificate(
-            request.user, profession, require_final=False
-        )
+        cert, error = issue_course_certificate(request.user, profession)
         if cert:
             messages.success(
                 request,
@@ -3521,7 +3569,11 @@ def lesson_view(request, pk):
         # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
         # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
         # Vazifa TOPSHIRILGACH keyingi darsga (test) o'tish kartasi ochiladi — tasdiqni kutmaydi
-        context['homework_approved'] = bool(submission)
+        context['homework_approved'] = bool(
+            not next_lesson
+            or next_lesson.section_id == lesson.section_id
+            or submission
+        )
         context['form'] = HomeworkSubmissionForm()
         return render(request, 'accounts/lessons/homework_lesson.html', context)
     
@@ -3833,18 +3885,11 @@ def _schedule_ai_check(submission_pk):
                 ])
 
                 if ai_result['status'] == 'graded' and not sub.coin_awarded:
-                    coin_amount = 5
-                    if not sub.is_late:
-                        coin_amount = 10
-                    if ai_result['grade'] >= 9:
-                        coin_amount += 5
-                    elif ai_result['grade'] >= 8:
-                        coin_amount += 3
-                    if sub.student.is_premium:
-                        coin_amount *= 2
+                    coin_amount = sub.calculate_coin_reward(ai_result['grade'])
                     sub.student.add_coins(coin_amount, f"Vazifa baholandi: {hw.lesson.title}")
                     sub.coin_awarded = True
-                    sub.save(update_fields=['coin_awarded'])
+                    sub.coins_earned = coin_amount
+                    sub.save(update_fields=['coin_awarded', 'coins_earned'])
                     ActivityLog.objects.create(
                         user=sub.student, action_type='homework_graded',
                         description=f"Vazifa AI baholadi: {hw.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
@@ -5122,9 +5167,9 @@ def student_course_view(request, token):
                 for l in section_lessons:
                     lesson_is_locked[l.pk] = 'daily'
             else:
-                homework_locked_ids, _ = _homework_locked_lesson_ids(section_lessons, completed_lesson_ids, submitted_hw_lesson_ids)
                 for l in section_lessons:
-                    lesson_is_locked[l.pk] = 'homework' if l.pk in homework_locked_ids else False
+                    # Bo'lim ochilgan bo'lsa, uning barcha dars turlari birga ochiladi.
+                    lesson_is_locked[l.pk] = False
 
         # Classmates
         classmates = CustomUser.objects.filter(
@@ -5145,12 +5190,17 @@ def student_course_view(request, token):
 
     # Yakuniy testlar — alohida UI uchun
     final_test_lessons = []
+    has_final_test = False
     if is_enrolled:
-        final_test_qs = Lesson.objects.filter(
+        _final_prerequisites_ready = final_test_prerequisites_met(
+            request.user, profession, completed_lesson_ids,
+        )
+        final_test_qs = list(Lesson.objects.filter(
             profession=profession,
             lesson_type='test',
             test__test_type='final'
-        ).select_related('test')
+        ).select_related('test'))
+        has_final_test = bool(final_test_qs)
         for _fl in final_test_qs:
             _payment_status = None
             _pay = FinalTestPayment.objects.filter(
@@ -5164,6 +5214,7 @@ def student_course_view(request, token):
                 'payment_status': _payment_status,
                 'progress': lesson_progress.get(_fl.pk),
                 'token': token_map.get(_fl.pk),
+                'locked': not _final_prerequisites_ready,
             })
 
     return render(request, 'accounts/profession_detail.html', {
@@ -5193,6 +5244,7 @@ def student_course_view(request, token):
         'token_map': token_map,
         'course_token': token_obj,
         'final_test_lessons': final_test_lessons,
+        'has_final_test': has_final_test,
     })
 
 
@@ -5205,6 +5257,16 @@ def student_lesson_view(request, token):
     if not CourseEnrollment.objects.filter(user=request.user, profession=profession).exists():
         messages.error(request, "Avval kursga yoziling!")
         return redirect('professions')
+
+    lesson_test = getattr(lesson, 'test', None) if lesson.lesson_type == 'test' else None
+    if (lesson_test and lesson_test.test_type == 'final'
+            and not final_test_prerequisites_met(request.user, profession)):
+        messages.warning(
+            request,
+            "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring!",
+        )
+        course_token = StudentCourseToken.get_or_create(request.user, profession)
+        return redirect('student_course_view', token=course_token.token)
 
     # Lug'at darslariga cheklovsiz kirish
     if lesson.lesson_type != 'dictionary':
@@ -5243,35 +5305,6 @@ def student_lesson_view(request, token):
                 )
                 section_started = bool(section_lessons_ids & completed_lesson_ids)
                 section_completed = section_lessons_ids.issubset(completed_lesson_ids)
-
-                # Vazifa (uy ishi) tasdiqlanmaguncha undan keyingi darsga
-                # o'tib bo'lmasligi kerak -- section_started True bo'lgach
-                # (bo'lim ichida boshqa bir dars bajarilgan bo'lsa) doim
-                # shunday bo'lib qoladi va pastdagi tekshiruv ishlamay
-                # qoladi, shu sabab bu yerda alohida, bo'lim holatidan
-                # qat'i nazar ishlaydigan tekshiruv qo'shildi. Ustoz/admin
-                # yoki AI vazifani "qayta ishlang" (revision) deb qaytarsa
-                # yoki u hali ko'rib chiqilmagan bo'lsa, shu vazifadan
-                # keyingi darslar aynan shu joyda qulflanadi.
-                section_lessons_ordered = list(
-                    current_section.lessons.exclude(lesson_type='dictionary').order_by('order')
-                )
-                submitted_hw_lesson_ids = set(
-                    HomeworkSubmission.objects.filter(
-                        student=request.user, homework__lesson__profession=profession
-                    ).values_list('homework__lesson_id', flat=True)
-                )
-                homework_locked_ids, blocking_hw_lesson = _homework_locked_lesson_ids(
-                    section_lessons_ordered, completed_lesson_ids, submitted_hw_lesson_ids,
-                )
-                if lesson.pk in homework_locked_ids and blocking_hw_lesson:
-                    messages.warning(
-                        request,
-                        f"Avval \"{blocking_hw_lesson.title}\" vazifasini tasdiqlatishingiz kerak. "
-                        "Iltimos, uni qayta ko'rib chiqib qayta topshiring! 📝"
-                    )
-                    hw_token = StudentLessonToken.get_or_create_for_lesson(request.user, blocking_hw_lesson)
-                    return redirect('student_lesson_view', token=hw_token.token)
 
                 if not section_completed and not section_started:
                     all_sections = list(profession.sections.filter(is_active=True).order_by('order', 'created_at'))
@@ -5368,7 +5401,11 @@ def student_lesson_view(request, token):
         # (student_lesson_view'dagi homework_locked_ids tekshiruvi) bilan
         # bloklanadi -- ikkalasi bir xil holatni aks ettirishi kerak.
         # Vazifa TOPSHIRILGACH keyingi darsga (test) o'tish kartasi ochiladi — tasdiqni kutmaydi
-        context['homework_approved'] = bool(submission)
+        context['homework_approved'] = bool(
+            not next_lesson
+            or next_lesson.section_id == lesson.section_id
+            or submission
+        )
         context['form'] = HomeworkSubmissionForm()
         return render(request, 'accounts/lessons/homework_lesson.html', context)
 
@@ -5632,6 +5669,15 @@ def student_start_test(request, token):
         messages.error(request, "Avval kursga yoziling!")
         return redirect('profession_detail', pk=profession.pk)
 
+    if (test.test_type == 'final'
+            and not final_test_prerequisites_met(request.user, profession)):
+        messages.warning(
+            request,
+            "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring!",
+        )
+        course_token = StudentCourseToken.get_or_create(request.user, profession)
+        return redirect('student_course_view', token=course_token.token)
+
     existing_result = TestResult.objects.filter(test=test, student=request.user).first()
     if existing_result:
         if test.test_type == 'final':
@@ -5743,6 +5789,15 @@ def student_submit_test(request, token):
     token_obj = _get_token_or_404(request.user, token)
     lesson = token_obj.lesson
     test = get_object_or_404(Test, lesson=lesson)
+
+    if (test.test_type == 'final'
+            and not final_test_prerequisites_met(request.user, lesson.profession)):
+        messages.warning(
+            request,
+            "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring!",
+        )
+        course_token = StudentCourseToken.get_or_create(request.user, lesson.profession)
+        return redirect('student_course_view', token=course_token.token)
 
     if request.method != 'POST':
         return redirect('student_start_test', token=token_obj.token)
@@ -8551,14 +8606,11 @@ def grade_homework(request, pk):
             submission.save()
             
             if not submission.coin_awarded and submission.revision_count == 0:
-                coin_amount = 5
-                if not submission.is_late:
-                    coin_amount = 10
-                if submission.student.is_premium:
-                    coin_amount *= 2
+                coin_amount = submission.calculate_coin_reward(5)
                 submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                 submission.coin_awarded = True
-                submission.save()
+                submission.coins_earned = coin_amount
+                submission.save(update_fields=['coin_awarded', 'coins_earned'])
 
                 ActivityLog.objects.create(
                     user=submission.student,
@@ -8593,18 +8645,11 @@ def grade_homework(request, pk):
             submission.save()
             
             if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
-                coin_amount = 5
-                if not submission.is_late:
-                    coin_amount = 10
-                if submission.grade >= 9:
-                    coin_amount += 5
-                elif submission.grade >= 8:
-                    coin_amount += 3
-                if submission.student.is_premium:
-                    coin_amount *= 2
+                coin_amount = submission.calculate_coin_reward()
                 submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                 submission.coin_awarded = True
-                submission.save()
+                submission.coins_earned = coin_amount
+                submission.save(update_fields=['coin_awarded', 'coins_earned'])
                 ActivityLog.objects.create(
                     user=submission.student,
                     action_type='homework_graded',
@@ -8644,19 +8689,12 @@ def grade_homework(request, pk):
                 
                 # Coin berish (faqat birinchi baholashda: revision_count == 0)
                 if not submission.coin_awarded and submission.revision_count == 0:
-                    coin_amount = 5
-                    if not submission.is_late:
-                        coin_amount = 10
-                    if submission.grade >= 9:
-                        coin_amount += 5
-                    elif submission.grade >= 8:
-                        coin_amount += 3
-                    if submission.student.is_premium:
-                        coin_amount *= 2
+                    coin_amount = submission.calculate_coin_reward()
 
                     submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                     submission.coin_awarded = True
-                    submission.save()
+                    submission.coins_earned = coin_amount
+                    submission.save(update_fields=['coin_awarded', 'coins_earned'])
 
                     ActivityLog.objects.create(
                         user=submission.student,
@@ -8737,18 +8775,11 @@ def bulk_ai_grade(request):
         submission.save()
 
         if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
-            coin_amount = 5
-            if not submission.is_late:
-                coin_amount = 10
-            if submission.grade >= 9:
-                coin_amount += 5
-            elif submission.grade >= 8:
-                coin_amount += 3
-            if submission.student.is_premium:
-                coin_amount *= 2
+            coin_amount = submission.calculate_coin_reward()
             submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
             submission.coin_awarded = True
-            submission.save()
+            submission.coins_earned = coin_amount
+            submission.save(update_fields=['coin_awarded', 'coins_earned'])
             ActivityLog.objects.create(
                 user=submission.student,
                 action_type='homework_graded',
@@ -11887,12 +11918,15 @@ def admin_lesson_statistics(request):
     if not request.user.is_admin:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
-    
+
     profession_id = request.GET.get('profession')
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
     search_query = request.GET.get('q', '')
-    
+    year_param = request.GET.get('year', '')
+    month_param = request.GET.get('month', '')
+    quick_range = request.GET.get('range', '')  # today, week, month, year
+
     # Sana filterlari
     if date_from:
         try:
@@ -11904,6 +11938,49 @@ def admin_lesson_statistics(request):
             date_to = timezone.datetime.strptime(date_to, '%Y-%m-%d').date()
         except:
             date_to = None
+
+    # Yil / Oy filterlar (Yil+Oy tanlansa oy oralig'iga; faqat yil bo'lsa yil oralig'iga)
+    year_int = _to_int(year_param, 0) or None
+    month_int = _to_int(month_param, 0) or None
+    today = timezone.now().date()
+
+    if quick_range == 'today':
+        date_from = today
+        date_to = today
+    elif quick_range == 'week':
+        date_from = today - timedelta(days=6)
+        date_to = today
+    elif quick_range == 'month':
+        date_from = today.replace(day=1)
+        date_to = today
+    elif quick_range == 'year':
+        date_from = today.replace(month=1, day=1)
+        date_to = today
+    elif year_int and month_int:
+        try:
+            date_from = date(year_int, month_int, 1)
+            if month_int == 12:
+                date_to = date(year_int, 12, 31)
+            else:
+                date_to = date(year_int, month_int + 1, 1) - timedelta(days=1)
+        except ValueError:
+            pass
+    elif year_int:
+        try:
+            date_from = date(year_int, 1, 1)
+            date_to = date(year_int, 12, 31)
+        except ValueError:
+            pass
+    elif month_int and not year_int:
+        # Faqat oy tanlansa, joriy yilning shu oyi
+        try:
+            date_from = date(today.year, month_int, 1)
+            if month_int == 12:
+                date_to = date(today.year, 12, 31)
+            else:
+                date_to = date(today.year, month_int + 1, 1) - timedelta(days=1)
+        except ValueError:
+            pass
     
     # ==================== UMUMIY STATISTIKA ====================
     total_lessons = Lesson.objects.count()
@@ -11932,25 +12009,65 @@ def admin_lesson_statistics(request):
     total_possible_views = CourseEnrollment.objects.count() * total_video_lessons if total_video_lessons > 0 else 1
     completion_percent = (total_video_views / total_possible_views * 100) if total_possible_views > 0 else 0
     
-    # ==================== KUNLIK FAOLLIK (oxirgi 30 kun) ====================
-    thirty_days_ago = timezone.now() - timedelta(days=30)
+    # ==================== KUNLIK FAOLLIK (dinamik davr) ====================
+    # Filter bo'lsa - shu davr uchun, aks holda oxirgi 30 kun
+    if date_from and date_to:
+        chart_start = date_from
+        chart_end = date_to
+    else:
+        chart_end = today
+        chart_start = today - timedelta(days=29)
+
+    chart_days = (chart_end - chart_start).days + 1
+    # Agar davr juda uzun bo'lsa (>120 kun), oy bo'yicha guruhla
     daily_activity = []
-    for i in range(30):
-        day = timezone.now().date() - timedelta(days=29-i)
-        day_start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
-        day_end = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.max.time()))
-        
-        videos_watched = VideoProgress.objects.filter(watched_at__range=(day_start, day_end)).count()
-        tests_taken = TestResult.objects.filter(completed_at__range=(day_start, day_end)).count()
-        homeworks_sent = HomeworkSubmission.objects.filter(submitted_at__range=(day_start, day_end)).count()
-        
-        daily_activity.append({
-            'date': day.strftime('%d.%m'),
-            'videos': videos_watched,
-            'tests': tests_taken,
-            'homeworks': homeworks_sent,
-            'total': videos_watched + tests_taken + homeworks_sent
-        })
+    activity_period_label = ""
+
+    if chart_days > 120:
+        # Oylar bo'yicha guruhlash
+        activity_period_label = f"{chart_start.strftime('%d.%m.%Y')} - {chart_end.strftime('%d.%m.%Y')} (oylar bo'yicha)"
+        cursor = date(chart_start.year, chart_start.month, 1)
+        end_cursor = date(chart_end.year, chart_end.month, 1)
+        while cursor <= end_cursor:
+            if cursor.month == 12:
+                next_cursor = date(cursor.year + 1, 1, 1)
+            else:
+                next_cursor = date(cursor.year, cursor.month + 1, 1)
+            month_end = next_cursor - timedelta(days=1)
+            m_start_dt = timezone.make_aware(timezone.datetime.combine(cursor, timezone.datetime.min.time()))
+            m_end_dt = timezone.make_aware(timezone.datetime.combine(month_end, timezone.datetime.max.time()))
+
+            videos_watched = VideoProgress.objects.filter(watched_at__range=(m_start_dt, m_end_dt)).count()
+            tests_taken = TestResult.objects.filter(completed_at__range=(m_start_dt, m_end_dt)).count()
+            homeworks_sent = HomeworkSubmission.objects.filter(submitted_at__range=(m_start_dt, m_end_dt)).count()
+
+            month_names = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
+            daily_activity.append({
+                'date': f"{month_names[cursor.month - 1]} {cursor.year}",
+                'videos': videos_watched,
+                'tests': tests_taken,
+                'homeworks': homeworks_sent,
+                'total': videos_watched + tests_taken + homeworks_sent,
+            })
+            cursor = next_cursor
+    else:
+        activity_period_label = f"{chart_start.strftime('%d.%m.%Y')} - {chart_end.strftime('%d.%m.%Y')}"
+        for i in range(chart_days):
+            day = chart_start + timedelta(days=i)
+            day_start = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.min.time()))
+            day_end = timezone.make_aware(timezone.datetime.combine(day, timezone.datetime.max.time()))
+
+            videos_watched = VideoProgress.objects.filter(watched_at__range=(day_start, day_end)).count()
+            tests_taken = TestResult.objects.filter(completed_at__range=(day_start, day_end)).count()
+            homeworks_sent = HomeworkSubmission.objects.filter(submitted_at__range=(day_start, day_end)).count()
+
+            daily_activity.append({
+                'date': day.strftime('%d.%m'),
+                'videos': videos_watched,
+                'tests': tests_taken,
+                'homeworks': homeworks_sent,
+                'total': videos_watched + tests_taken + homeworks_sent
+            })
     
     # ==================== BARCHA DARSLAR ====================
     lessons = Lesson.objects.select_related('profession', 'section').all()
@@ -12230,7 +12347,70 @@ def admin_lesson_statistics(request):
         })
     
     professions = Profession.objects.all()
-    
+
+    # Yil ro'yxati: eng eski yozilish/dars sanasidan hozirgi yilgacha
+    from django.db.models import Min as _Min
+    first_enrollment = CourseEnrollment.objects.aggregate(min=_Min('enrolled_at'))['min']
+    if first_enrollment:
+        start_year = first_enrollment.year
+    else:
+        start_year = today.year - 2
+    year_choices = list(range(today.year, start_year - 1, -1))
+    month_choices = [
+        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
+        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
+        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
+    ]
+
+    # Faol filterlar ro'yxati (chip'lar uchun)
+    def _remove_url(remove_key):
+        """Berilgan parametrni olib tashlab, qolgan filterlar bilan URL yasaydi."""
+        params = request.GET.copy()
+        if remove_key in params:
+            params.pop(remove_key)
+        qs = params.urlencode()
+        return '?' + qs if qs else '?'
+
+    # Quick range chips URL - boshqa filterlarni saqlash bilan
+    def _range_url(range_key):
+        params = request.GET.copy()
+        # date_from/date_to va year/month ni tozalaymiz, chunki range ular bilan konflikt qiladi
+        for k in ('date_from', 'date_to', 'year', 'month', 'range'):
+            if k in params:
+                params.pop(k)
+        if range_key:
+            params['range'] = range_key
+        qs = params.urlencode()
+        return '?' + qs if qs else '?'
+
+    range_urls = {
+        'all': _range_url(''),
+        'today': _range_url('today'),
+        'week': _range_url('week'),
+        'month': _range_url('month'),
+        'year': _range_url('year'),
+    }
+
+    active_filters = []
+    if search_query:
+        active_filters.append({'label': f"Qidiruv: {search_query}", 'remove_url': _remove_url('q')})
+    if profession_id:
+        prof = professions.filter(pk=profession_id).first()
+        if prof:
+            active_filters.append({'label': f"Kurs: {prof.name}", 'remove_url': _remove_url('profession')})
+    if year_int:
+        active_filters.append({'label': f"Yil: {year_int}", 'remove_url': _remove_url('year')})
+    if month_int:
+        month_name = dict(month_choices).get(month_int, str(month_int))
+        active_filters.append({'label': f"Oy: {month_name}", 'remove_url': _remove_url('month')})
+    if quick_range:
+        range_labels = {'today': 'Bugun', 'week': '7 kun', 'month': 'Shu oy', 'year': 'Shu yil'}
+        active_filters.append({'label': f"Davr: {range_labels.get(quick_range, quick_range)}", 'remove_url': _remove_url('range')})
+    if request.GET.get('date_from'):
+        active_filters.append({'label': f"Dan: {request.GET.get('date_from')}", 'remove_url': _remove_url('date_from')})
+    if request.GET.get('date_to'):
+        active_filters.append({'label': f"Gacha: {request.GET.get('date_to')}", 'remove_url': _remove_url('date_to')})
+
     context = {
         # Umumiy statistika
         'total_lessons': total_lessons,
@@ -12244,36 +12424,45 @@ def admin_lesson_statistics(request):
         'total_homework_submissions': total_homework_submissions,
         'avg_test_score': round(avg_test_score, 1),
         'completion_percent': round(completion_percent, 1),
-        
+
         # Kunlik faollik
+        'daily_activity_json': json.dumps(daily_activity),
         'daily_activity': daily_activity,
-        
+        'activity_period_label': activity_period_label,
+
         # Darslar statistikasi
         'video_stats': video_stats_sorted,
         'test_stats': test_stats_sorted,
         'homework_stats': homework_stats_sorted,
         'hardest_questions': hardest_questions,
-        
+
         # O'quvchilar
         'passive_students': passive_students,
         'struggling_students': struggling_students,
         'near_certificate_students': near_certificate_students,
-        
+
         # Top darslar
         'top_video_lessons': top_video_lessons,
         'top_test_lessons': top_test_lessons,
-        
+
         # Alerts
         'alerts': alerts,
-        
+
         # Filterlar
         'professions': professions,
         'selected_profession': profession_id,
         'date_from': date_from,
         'date_to': date_to,
         'search_query': search_query,
+        'year_choices': year_choices,
+        'month_choices': month_choices,
+        'selected_year': year_int,
+        'selected_month': month_int,
+        'selected_range': quick_range,
+        'active_filters': active_filters,
+        'range_urls': range_urls,
     }
-    
+
     return render(request, 'accounts/admin/lesson_statistics.html', context)
 
 
@@ -16859,3 +17048,626 @@ def admin_direct_chat_detail(request, u1_pk, u2_pk):
         'page_obj': page_obj,
         'messages_chrono': messages_chrono,
     })
+
+
+# ==================== GURUHLAR & DARS JADVALI ====================
+
+def _parse_days_from_request(request):
+    """POST'dan tanlangan kunlarni ('days' massivi) o'qib, bit-mask qaytaradi."""
+    days = request.POST.getlist('days')
+    mask = 0
+    for d in days:
+        try:
+            d_int = int(d)
+            if 1 <= d_int <= 6:
+                mask |= (1 << (d_int - 1))
+        except (TypeError, ValueError):
+            continue
+    return mask
+
+
+def _parse_time(value):
+    """'HH:MM' formatidagi qatorni time obyektiga aylantiradi."""
+    from datetime import datetime as _dt
+    if not value:
+        return None
+    try:
+        return _dt.strptime(value.strip(), '%H:%M').time()
+    except (ValueError, AttributeError):
+        try:
+            return _dt.strptime(value.strip(), '%H:%M:%S').time()
+        except (ValueError, AttributeError):
+            return None
+
+
+@login_required
+def admin_study_groups(request):
+    """Guruhlar & Dars jadvali ro'yxati."""
+    if not request.user.is_admin_or_assistant:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    q = request.GET.get('q', '').strip()
+    profession_id = request.GET.get('profession', '')
+    day_filter = request.GET.get('day', '')
+    teacher_id = request.GET.get('teacher', '')
+    view_mode = request.GET.get('view', 'list')  # list yoki schedule
+
+    groups = StudyGroup.objects.select_related('profession', 'teacher').prefetch_related('students')
+
+    if q:
+        groups = groups.filter(Q(name__icontains=q) | Q(profession__name__icontains=q))
+    if profession_id:
+        groups = groups.filter(profession_id=profession_id)
+    if teacher_id:
+        groups = groups.filter(teacher_id=teacher_id)
+    if day_filter:
+        try:
+            d = int(day_filter)
+            if 1 <= d <= 6:
+                groups = groups.filter(days_mask__gte=1).extra(
+                    where=[f'(days_mask & {1 << (d - 1)}) > 0']
+                )
+        except (TypeError, ValueError):
+            pass
+
+    groups = groups.order_by('start_time', 'name')
+
+    # Haftalik ko'rinish uchun kunlar bo'yicha guruhlash — list of dicts
+    weekly_by_day = []
+    for d_num, d_name in StudyGroup.DAYS_OF_WEEK:
+        day_groups = [g for g in groups if g.has_day(d_num)]
+        day_groups.sort(key=lambda x: x.start_time)
+        weekly_by_day.append({
+            'day_num': d_num,
+            'day_name': d_name,
+            'lessons': day_groups,
+            'is_today': d_num == timezone.localtime().isoweekday(),
+        })
+
+    professions = Profession.objects.all()
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+
+    context = {
+        'groups': groups,
+        'weekly_by_day': weekly_by_day,
+        'days_of_week': StudyGroup.DAYS_OF_WEEK,
+        'professions': professions,
+        'teachers': teachers,
+        'q': q,
+        'selected_profession': profession_id,
+        'selected_teacher': teacher_id,
+        'selected_day': day_filter,
+        'view_mode': view_mode,
+        'total_groups': groups.count(),
+        'active_groups': sum(1 for g in groups if g.is_active),
+    }
+    return render(request, 'accounts/admin/study_groups.html', context)
+
+
+@login_required
+def admin_study_group_create(request):
+    if not request.user.is_admin_or_assistant:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        profession_id = request.POST.get('profession')
+        teacher_id = request.POST.get('teacher')
+        start_time = _parse_time(request.POST.get('start_time'))
+        end_time = _parse_time(request.POST.get('end_time'))
+        room = request.POST.get('room', '').strip()
+        color = request.POST.get('color', '#6366f1').strip() or '#6366f1'
+        description = request.POST.get('description', '').strip()
+        days_mask = _parse_days_from_request(request)
+        student_ids = request.POST.getlist('students')
+
+        errors = []
+        if not name:
+            errors.append("Guruh nomi kiritilishi shart.")
+        if not profession_id:
+            errors.append("Kurs tanlang.")
+        if not start_time or not end_time:
+            errors.append("Dars vaqtini to'g'ri kiriting.")
+        if start_time and end_time and start_time >= end_time:
+            errors.append("Tugash vaqti boshlanishdan katta bo'lishi kerak.")
+        if not days_mask:
+            errors.append("Kamida bitta kun tanlang.")
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            group = StudyGroup.objects.create(
+                name=name,
+                profession_id=profession_id,
+                teacher_id=teacher_id or None,
+                start_time=start_time,
+                end_time=end_time,
+                days_mask=days_mask,
+                room=room,
+                color=color,
+                description=description,
+                created_by=request.user,
+            )
+            if student_ids:
+                group.students.set(
+                    CustomUser.objects.filter(pk__in=student_ids, role='student')
+                )
+            messages.success(request, f"'{group.name}' guruhi yaratildi.")
+            return redirect('admin_study_groups')
+
+    professions = Profession.objects.all()
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    students = CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name')
+
+    context = {
+        'professions': professions,
+        'teachers': teachers,
+        'students': students,
+        'days_of_week': StudyGroup.DAYS_OF_WEEK,
+        'group': None,
+        'selected_days': [],
+        'selected_students': [],
+    }
+    return render(request, 'accounts/admin/study_group_form.html', context)
+
+
+@login_required
+def admin_study_group_edit(request, pk):
+    if not request.user.is_admin_or_assistant:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    group = get_object_or_404(StudyGroup, pk=pk)
+
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        profession_id = request.POST.get('profession')
+        teacher_id = request.POST.get('teacher')
+        start_time = _parse_time(request.POST.get('start_time'))
+        end_time = _parse_time(request.POST.get('end_time'))
+        room = request.POST.get('room', '').strip()
+        color = request.POST.get('color', '#6366f1').strip() or '#6366f1'
+        description = request.POST.get('description', '').strip()
+        days_mask = _parse_days_from_request(request)
+        student_ids = request.POST.getlist('students')
+        is_active = request.POST.get('is_active') == 'on'
+
+        errors = []
+        if not name:
+            errors.append("Guruh nomi kiritilishi shart.")
+        if not profession_id:
+            errors.append("Kurs tanlang.")
+        if not start_time or not end_time:
+            errors.append("Dars vaqtini to'g'ri kiriting.")
+        if start_time and end_time and start_time >= end_time:
+            errors.append("Tugash vaqti boshlanishdan katta bo'lishi kerak.")
+        if not days_mask:
+            errors.append("Kamida bitta kun tanlang.")
+
+        if errors:
+            for e in errors:
+                messages.error(request, e)
+        else:
+            group.name = name
+            group.profession_id = profession_id
+            group.teacher_id = teacher_id or None
+            group.start_time = start_time
+            group.end_time = end_time
+            group.days_mask = days_mask
+            group.room = room
+            group.color = color
+            group.description = description
+            group.is_active = is_active
+            group.save()
+            group.students.set(
+                CustomUser.objects.filter(pk__in=student_ids, role='student')
+            )
+            messages.success(request, f"'{group.name}' guruhi yangilandi.")
+            return redirect('admin_study_groups')
+
+    professions = Profession.objects.all()
+    teachers = CustomUser.objects.filter(role='teacher').order_by('first_name')
+    students = CustomUser.objects.filter(role='student', is_blocked=False).order_by('first_name')
+
+    context = {
+        'professions': professions,
+        'teachers': teachers,
+        'students': students,
+        'days_of_week': StudyGroup.DAYS_OF_WEEK,
+        'group': group,
+        'selected_days': group.get_days_list(),
+        'selected_students': list(group.students.values_list('pk', flat=True)),
+    }
+    return render(request, 'accounts/admin/study_group_form.html', context)
+
+
+@login_required
+def admin_study_group_delete(request, pk):
+    if not request.user.is_admin_or_assistant:
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+    group = get_object_or_404(StudyGroup, pk=pk)
+    if request.method == 'POST':
+        name = group.name
+        group.delete()
+        messages.success(request, f"'{name}' guruhi o'chirildi.")
+        return redirect('admin_study_groups')
+    return render(request, 'accounts/admin/study_group_delete.html', {'group': group})
+
+
+# ==================== STUDENT & TEACHER — DARS JADVALIM ====================
+
+def _build_weekly_schedule(groups_qs):
+    """Guruhlar QuerySet'idan haftalik jadvalni list ko'rinishida hosil qiladi.
+
+    Har bir element: { 'day_num', 'day_name', 'lessons', 'is_today' }
+    """
+    current_day = timezone.localtime().isoweekday()
+    result = []
+    for d_num, d_name in StudyGroup.DAYS_OF_WEEK:
+        day_groups = [g for g in groups_qs if g.has_day(d_num)]
+        day_groups.sort(key=lambda x: x.start_time)
+        result.append({
+            'day_num': d_num,
+            'day_name': d_name,
+            'lessons': day_groups,
+            'is_today': d_num == current_day,
+        })
+    return result
+
+
+def _get_today_and_next_lesson(groups_qs):
+    """Bugungi darslar va keyingi darsni topadi."""
+    now = timezone.localtime()
+    weekday_uz = now.isoweekday()  # 1=Du..7=Yakshanba
+
+    today_lessons = []
+    next_lesson = None
+
+    for g in groups_qs:
+        if g.has_day(weekday_uz):
+            today_lessons.append(g)
+
+    today_lessons.sort(key=lambda x: x.start_time)
+
+    # Keyingi dars — bugundan boshlab
+    now_time = now.time()
+    for g in today_lessons:
+        if g.start_time > now_time:
+            next_lesson = g
+            break
+
+    # Bugun dars qolmagan bo'lsa — keyingi kunlardan qidiramiz
+    if next_lesson is None:
+        for offset in range(1, 8):
+            check_day = ((weekday_uz - 1 + offset) % 7) + 1
+            if check_day == 7:  # Yakshanba
+                continue
+            for g in groups_qs:
+                if g.has_day(check_day):
+                    if next_lesson is None or g.start_time < next_lesson.start_time:
+                        next_lesson = g
+            if next_lesson:
+                break
+
+    return today_lessons, next_lesson, weekday_uz
+
+
+@login_required
+def my_study_schedule(request):
+    """O'quvchi yoki o'qituvchining shaxsiy dars jadvali."""
+    user = request.user
+    if user.role == 'student':
+        groups = StudyGroup.objects.filter(students=user, is_active=True)
+        role_label = 'student'
+    elif user.role == 'teacher':
+        groups = StudyGroup.objects.filter(teacher=user, is_active=True)
+        role_label = 'teacher'
+    else:
+        # Admin uchun ham ko'rsatiladi, lekin admin panelga yo'naltirilishi ma'qul
+        return redirect('admin_study_groups')
+
+    groups = groups.select_related('profession', 'teacher').prefetch_related('students').order_by('start_time')
+
+    weekly = _build_weekly_schedule(groups)
+    today_lessons, next_lesson, current_day = _get_today_and_next_lesson(groups)
+
+    context = {
+        'groups': groups,
+        'weekly': weekly,
+        'days_of_week': StudyGroup.DAYS_OF_WEEK,
+        'today_lessons': today_lessons,
+        'next_lesson': next_lesson,
+        'current_day': current_day,
+        'role_label': role_label,
+        'total_groups': groups.count(),
+    }
+    if role_label == 'teacher':
+        template_name = 'teacher/my_study_schedule.html'
+    else:
+        template_name = 'accounts/my_study_schedule.html'
+    return render(request, template_name, context)
+
+
+# ==================== O'QUVCHILAR DAVOMATI ====================
+
+def _can_mark_attendance(user, group):
+    """Foydalanuvchi guruh uchun davomat qo'yishi mumkinmi?
+
+    - Admin/Assistant admin: hamma guruhda
+    - Teacher: faqat o'zi biriktirilgan guruhda
+    """
+    if not user.is_authenticated:
+        return False
+    if user.is_admin_or_assistant:
+        return True
+    if user.role == 'teacher' and group.teacher_id == user.pk:
+        return True
+    return False
+
+
+@login_required
+def attendance_home(request):
+    """Davomat bosh sahifasi — foydalanuvchi bemalol guruh tanlaydi va davomat qiladi."""
+    user = request.user
+    if not (user.is_admin_or_assistant or user.role == 'teacher'):
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('home')
+
+    if user.role == 'teacher':
+        groups = StudyGroup.objects.filter(teacher=user, is_active=True)
+    else:
+        groups = StudyGroup.objects.filter(is_active=True)
+
+    groups = groups.select_related('profession', 'teacher').prefetch_related('students').order_by('name')
+
+    today = timezone.localdate()
+    weekday_today = today.isoweekday()
+
+    # Bugun dars bo'lgan guruhlar
+    today_groups = [g for g in groups if g.has_day(weekday_today)]
+
+    # Umumiy statistika (oxirgi 7 kun)
+    week_ago = today - timedelta(days=7)
+    recent_attendances = StudentAttendance.objects.filter(
+        date__gte=week_ago,
+        group__in=groups,
+    )
+    total_marked = recent_attendances.count()
+    present_pct = 0
+    if total_marked > 0:
+        present_count = recent_attendances.filter(status='present').count()
+        present_pct = round(present_count / total_marked * 100, 1)
+
+    # Har bir guruh uchun bugungi davomat ushbu holati
+    group_status_map = {}
+    for g in groups:
+        today_att = StudentAttendance.objects.filter(group=g, date=today)
+        marked = today_att.count()
+        total = g.students.count()
+        group_status_map[g.pk] = {
+            'marked': marked,
+            'total': total,
+            'done': marked >= total and total > 0,
+            'has_lesson_today': g.has_day(weekday_today),
+        }
+
+    context = {
+        'groups': groups,
+        'today_groups': today_groups,
+        'today': today,
+        'weekday_today': weekday_today,
+        'group_status_map': group_status_map,
+        'total_groups': groups.count(),
+        'total_marked_week': total_marked,
+        'present_pct': present_pct,
+        'can_edit_all': user.is_admin_or_assistant,
+    }
+    return render(request, 'accounts/attendance/home.html', context)
+
+
+@login_required
+def attendance_mark(request, group_pk):
+    """Guruh uchun bir sana davomatini belgilash — oson bir sahifada."""
+    user = request.user
+    group = get_object_or_404(StudyGroup, pk=group_pk)
+
+    if not _can_mark_attendance(user, group):
+        messages.error(request, "Sizda bu guruh uchun davomat qo'yish huquqi yo'q!")
+        return redirect('attendance_home')
+
+    # Sana - GET dan yoki bugungi
+    date_str = request.GET.get('date') or request.POST.get('date')
+    if date_str:
+        try:
+            selected_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            selected_date = timezone.localdate()
+    else:
+        selected_date = timezone.localdate()
+
+    students = list(group.students.filter(is_blocked=False).order_by('first_name', 'last_name'))
+    existing = {a.student_id: a for a in StudentAttendance.objects.filter(group=group, date=selected_date)}
+
+    if request.method == 'POST':
+        saved = 0
+        for s in students:
+            status = request.POST.get(f'status_{s.pk}', '').strip()
+            note = request.POST.get(f'note_{s.pk}', '').strip()
+            if status not in dict(StudentAttendance.STATUS_CHOICES):
+                continue
+            att, created = StudentAttendance.objects.update_or_create(
+                group=group, student=s, date=selected_date,
+                defaults={
+                    'status': status,
+                    'note': note[:300],
+                    'marked_by': user,
+                },
+            )
+            saved += 1
+        messages.success(request, f"{saved} ta o'quvchi davomati saqlandi.")
+        return redirect(f"{reverse('attendance_mark', args=[group.pk])}?date={selected_date.strftime('%Y-%m-%d')}")
+
+    # Statistika
+    total = len(students)
+    stats = {'present': 0, 'absent': 0, 'late': 0, 'sick': 0, 'excused': 0, 'unmarked': 0}
+    for s in students:
+        att = existing.get(s.pk)
+        if att:
+            stats[att.status] = stats.get(att.status, 0) + 1
+        else:
+            stats['unmarked'] += 1
+
+    # Har bir o'quvchining oxirgi 30 kunlik statistikasi
+    month_ago = selected_date - timedelta(days=30)
+    student_month_stats = {}
+    month_atts = StudentAttendance.objects.filter(
+        group=group, date__gte=month_ago, date__lte=selected_date
+    )
+    for a in month_atts:
+        m = student_month_stats.setdefault(a.student_id, {'present': 0, 'absent': 0, 'late': 0, 'sick': 0, 'excused': 0, 'total': 0})
+        m[a.status] = m.get(a.status, 0) + 1
+        m['total'] += 1
+
+    # Sana navigatsiya
+    prev_date = selected_date - timedelta(days=1)
+    next_date = selected_date + timedelta(days=1)
+
+    # Oxirgi 7 kun sanoq (button'lar uchun)
+    recent_days = []
+    for i in range(7):
+        d = timezone.localdate() - timedelta(days=i)
+        recent_days.append({
+            'date': d,
+            'label': d.strftime('%d.%m'),
+            'weekday': d.isoweekday(),
+            'is_selected': d == selected_date,
+            'is_today': d == timezone.localdate(),
+        })
+    recent_days.reverse()
+
+    students_with_status = []
+    for s in students:
+        att = existing.get(s.pk)
+        m = student_month_stats.get(s.pk, {'present': 0, 'absent': 0, 'late': 0, 'sick': 0, 'excused': 0, 'total': 0})
+        students_with_status.append({
+            'student': s,
+            'current_status': att.status if att else '',
+            'current_note': att.note if att else '',
+            'month_stats': m,
+            'attendance_pct': round((m['present'] + m['late']) / m['total'] * 100) if m['total'] > 0 else None,
+        })
+
+    context = {
+        'group': group,
+        'selected_date': selected_date,
+        'students_with_status': students_with_status,
+        'stats': stats,
+        'total_students': total,
+        'status_choices': StudentAttendance.STATUS_CHOICES,
+        'prev_date': prev_date,
+        'next_date': next_date,
+        'today': timezone.localdate(),
+        'recent_days': recent_days,
+        'weekday_name': dict(StudyGroup.DAYS_OF_WEEK).get(selected_date.isoweekday(), ''),
+    }
+    return render(request, 'accounts/attendance/mark.html', context)
+
+
+@login_required
+def attendance_report(request, group_pk):
+    """Guruh davomati bo'yicha oy/yil bo'yicha hisobot."""
+    user = request.user
+    group = get_object_or_404(StudyGroup, pk=group_pk)
+
+    if not _can_mark_attendance(user, group):
+        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
+        return redirect('attendance_home')
+
+    today = timezone.localdate()
+    year = _to_int(request.GET.get('year'), today.year)
+    month = _to_int(request.GET.get('month'), today.month)
+
+    if month < 1 or month > 12:
+        month = today.month
+    from calendar import monthrange
+    _, days_in_month = monthrange(year, month)
+
+    students = list(group.students.filter(is_blocked=False).order_by('first_name', 'last_name'))
+
+    # Faqat guruh dars kunlarini olish (masalan, du, ch, ju bo'lsa faqat shular)
+    day_dates = []
+    for d in range(1, days_in_month + 1):
+        try:
+            check_date = date(year, month, d)
+            if group.has_day(check_date.isoweekday()):
+                day_dates.append(check_date)
+        except ValueError:
+            pass
+
+    # Attendance ma'lumotlarini olish
+    attendances = StudentAttendance.objects.filter(
+        group=group, date__year=year, date__month=month
+    ).select_related('student')
+
+    att_map = {}  # (student_id, date) -> attendance
+    for a in attendances:
+        att_map[(a.student_id, a.date)] = a
+
+    # Har bir o'quvchi uchun jadval
+    rows = []
+    for s in students:
+        cells = []
+        totals = {'present': 0, 'absent': 0, 'late': 0, 'sick': 0, 'excused': 0, 'marked': 0}
+        for d in day_dates:
+            a = att_map.get((s.pk, d))
+            if a:
+                totals[a.status] = totals.get(a.status, 0) + 1
+                totals['marked'] += 1
+            cells.append({
+                'date': d,
+                'attendance': a,
+            })
+        # Ballli hisoblash: present + late = 100, sick/excused=80, absent=0
+        score_total = 0
+        for d in day_dates:
+            a = att_map.get((s.pk, d))
+            if a:
+                if a.status == 'present':
+                    score_total += 100
+                elif a.status == 'late':
+                    score_total += 70
+                elif a.status in ('sick', 'excused'):
+                    score_total += 50
+        avg_score = round(score_total / len(day_dates)) if day_dates else 0
+
+        rows.append({
+            'student': s,
+            'cells': cells,
+            'totals': totals,
+            'avg_score': avg_score,
+        })
+
+    # Yil ro'yxati
+    year_choices = list(range(today.year, today.year - 4, -1))
+    month_choices = [
+        (1, 'Yanvar'), (2, 'Fevral'), (3, 'Mart'), (4, 'Aprel'),
+        (5, 'May'), (6, 'Iyun'), (7, 'Iyul'), (8, 'Avgust'),
+        (9, 'Sentabr'), (10, 'Oktabr'), (11, 'Noyabr'), (12, 'Dekabr'),
+    ]
+
+    context = {
+        'group': group,
+        'year': year,
+        'month': month,
+        'month_name': dict(month_choices).get(month, ''),
+        'day_dates': day_dates,
+        'rows': rows,
+        'year_choices': year_choices,
+        'month_choices': month_choices,
+        'total_students': len(students),
+    }
+    return render(request, 'accounts/attendance/report.html', context)

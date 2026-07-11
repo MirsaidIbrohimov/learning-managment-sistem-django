@@ -1098,18 +1098,11 @@ def teacher_grade_homework(request, pk):
             
             # AI baholashda coin berish (faqat birinchi baholashda: revision_count == 0)
             if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
-                coin_amount = 5
-                if not submission.is_late:
-                    coin_amount = 10
-                if submission.grade >= 9:
-                    coin_amount += 5
-                elif submission.grade >= 8:
-                    coin_amount += 3
-                if submission.student.is_premium:
-                    coin_amount *= 2
+                coin_amount = submission.calculate_coin_reward()
                 submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
                 submission.coin_awarded = True
-                submission.save()
+                submission.coins_earned = coin_amount
+                submission.save(update_fields=['coin_awarded', 'coins_earned'])
                 ActivityLog.objects.create(
                     user=submission.student,
                     action_type='homework_graded',
@@ -1150,18 +1143,11 @@ def teacher_grade_homework(request, pk):
         
         # Coin berish (faqat birinchi baholashda: revision_count == 0)
         if status == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
-            coin_amount = 5
-            if not submission.is_late:
-                coin_amount = 10
-            if grade_val and grade_val >= 9:
-                coin_amount += 5
-            elif grade_val and grade_val >= 8:
-                coin_amount += 3
-            if submission.student.is_premium:
-                coin_amount *= 2
+            coin_amount = submission.calculate_coin_reward(grade_val)
             submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
             submission.coin_awarded = True
-            submission.save()
+            submission.coins_earned = coin_amount
+            submission.save(update_fields=['coin_awarded', 'coins_earned'])
             ActivityLog.objects.create(
                 user=submission.student,
                 action_type='homework_graded',

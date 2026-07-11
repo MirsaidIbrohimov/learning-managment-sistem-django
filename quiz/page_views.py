@@ -20,7 +20,7 @@ from django.views import View
 from django.views.generic import TemplateView
 
 from .models import Attempt, Quiz, QuizRetryPayment
-from .permissions import can_take_quiz
+from .permissions import can_take_quiz, quiz_prerequisites_met
 
 
 def _quiz_parent_template(user):
@@ -243,6 +243,8 @@ class QuizTakeView(StudentRequiredMixin, TemplateView):
             blocked_reason = "Bu test hali e'lon qilinmagan."
         elif not can_take_quiz(student, quiz):
             blocked_reason = "Siz bu kursga yozilmagansiz, shuning uchun bu testni topshira olmaysiz."
+        elif not quiz_prerequisites_met(student, quiz):
+            blocked_reason = "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring."
         elif settings_ is None:
             blocked_reason = "Bu test uchun sozlamalar kiritilmagan."
         elif not quiz.quiz_questions.exists():

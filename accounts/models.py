@@ -765,6 +765,8 @@ class Homework(models.Model):
 
 
 class HomeworkSubmission(models.Model):
+    MAX_COIN_REWARD = 30
+
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
         ('reviewing', 'Ko\'rib chiqilmoqda'),
@@ -791,6 +793,7 @@ class HomeworkSubmission(models.Model):
     graded_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='graded_homeworks')
     graded_at = models.DateTimeField(null=True, blank=True)
     coin_awarded = models.BooleanField(default=False)
+    coins_earned = models.PositiveSmallIntegerField(default=0, verbose_name="Berilgan coin")
     is_late = models.BooleanField(default=False, verbose_name="Kech topshirilgan")
     revision_count = models.IntegerField(default=0, verbose_name="Qayta topshirish soni")
     version = models.IntegerField(default=1, verbose_name="Versiya")
@@ -806,6 +809,18 @@ class HomeworkSubmission(models.Model):
     
     def __str__(self):
         return f"{self.student.full_name} - {self.homework.lesson.title}"
+
+    def calculate_coin_reward(self, grade=None):
+        """Vazifa mukofotini hisoblaydi; har qanday holatda maksimum 30 coin."""
+        grade = self.grade if grade is None else grade
+        amount = 5 if self.is_late else 10
+        if grade is not None and grade >= 9:
+            amount += 5
+        elif grade is not None and grade >= 8:
+            amount += 3
+        if self.student.is_premium:
+            amount *= 2
+        return min(amount, self.MAX_COIN_REWARD)
     
     @property
     def unread_messages_count(self):
@@ -1063,6 +1078,46 @@ class SpeakingSubmission(models.Model):
     
     def __str__(self):
         return f"{self.student.full_name} - {self.speaking_task.lesson.title}"
+
+
+def completed_course_lesson_ids(user, profession):
+    """Kursdagi bajarilgan video, vazifa, speaking va o'tilgan test IDlari."""
+    watched_videos = set(VideoProgress.objects.filter(
+        user=user, watched=True, video__lesson__profession=profession,
+    ).values_list('video__lesson_id', flat=True))
+    passed_tests = set(TestResult.objects.filter(
+        student=user, passed=True, test__lesson__profession=profession,
+    ).values_list('test__lesson_id', flat=True))
+    accepted_homeworks = set(HomeworkSubmission.objects.filter(
+        student=user, status__in=['accepted', 'graded'],
+        homework__lesson__profession=profession,
+    ).values_list('homework__lesson_id', flat=True))
+    graded_speakings = set(SpeakingSubmission.objects.filter(
+        student=user, status='graded', speaking_task__lesson__profession=profession,
+    ).values_list('speaking_task__lesson_id', flat=True))
+
+    from quiz.models import Attempt as QuizAttempt
+    passed_quizzes = set(QuizAttempt.objects.filter(
+        student=user,
+        passed=True,
+        quiz__lesson__profession=profession,
+        status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+    ).values_list('quiz__lesson_id', flat=True))
+
+    return watched_videos | passed_tests | passed_quizzes | accepted_homeworks | graded_speakings
+
+
+def final_test_prerequisites_met(user, profession, completed_lesson_ids=None):
+    """Yakuniy testdan boshqa barcha majburiy darslar bajarilganini tekshiradi."""
+    required_ids = set(
+        Lesson.objects.filter(profession=profession)
+        .exclude(lesson_type='dictionary')
+        .exclude(test__test_type='final')
+        .values_list('pk', flat=True)
+    )
+    if completed_lesson_ids is None:
+        completed_lesson_ids = completed_course_lesson_ids(user, profession)
+    return required_ids.issubset(set(completed_lesson_ids))
 
 
 class Certificate(models.Model):
@@ -2725,3 +2780,216 @@ class CertificateSettings(models.Model):
         self.next_number += 1
         self.save(update_fields=['next_number', 'updated_at'])
         return cert_id
+
+
+# ==================== GURUHLAR & DARS JADVALI ====================
+
+class StudyGroup(models.Model):
+    """Guruh — dars jadvali bilan bog'liq o'quv guruhi.
+
+    Bir guruh bitta kursga (profession) tegishli. Bir yoki bir nechta kunlarda
+    dars bo'ladi (dushanbadan shanbagacha). Har bir kunda boshlanish va tugash
+    vaqti bir xil bo'ladi (guruh darajasida). Guruhga o'quvchilar va bitta
+    o'qituvchi biriktiriladi.
+    """
+    DAYS_OF_WEEK = (
+        (1, 'Dushanba'),
+        (2, 'Seshanba'),
+        (3, 'Chorshanba'),
+        (4, 'Payshanba'),
+        (5, 'Juma'),
+        (6, 'Shanba'),
+    )
+
+    DAY_SHORT = {
+        1: 'Du', 2: 'Se', 3: 'Ch', 4: 'Pa', 5: 'Ju', 6: 'Sh',
+    }
+
+    name = models.CharField(max_length=150, verbose_name="Guruh nomi")
+    profession = models.ForeignKey(
+        Profession,
+        on_delete=models.CASCADE,
+        related_name='study_groups',
+        verbose_name="Kurs",
+    )
+    teacher = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='study_groups_teaching',
+        limit_choices_to={'role': 'teacher'},
+        verbose_name="O'qituvchi",
+    )
+    start_time = models.TimeField(verbose_name="Dars boshlanish vaqti")
+    end_time = models.TimeField(verbose_name="Dars tugash vaqti")
+    # 1-6 kunlar, JSON emas — bit-mask: 1=Du, 2=Se, 4=Ch, 8=Pa, 16=Ju, 32=Sh
+    days_mask = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Kunlar (bit-mask)",
+        help_text="Bit-mask: 1=Dushanba, 2=Seshanba, 4=Chorshanba, 8=Payshanba, 16=Juma, 32=Shanba",
+    )
+    room = models.CharField(
+        max_length=100, blank=True, default='', verbose_name="Xona / Joy",
+        help_text="Ixtiyoriy: dars o'tiladigan xona yoki joy",
+    )
+    color = models.CharField(
+        max_length=20, blank=True, default='#6366f1',
+        verbose_name="Guruh rangi",
+    )
+    students = models.ManyToManyField(
+        CustomUser,
+        blank=True,
+        related_name='study_groups',
+        limit_choices_to={'role': 'student'},
+        verbose_name="O'quvchilar",
+    )
+    description = models.TextField(blank=True, verbose_name="Izoh")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='created_study_groups',
+        verbose_name="Kim yaratgan",
+    )
+
+    class Meta:
+        ordering = ['start_time', 'name']
+        verbose_name = "Guruh"
+        verbose_name_plural = "Guruhlar"
+        indexes = [
+            models.Index(fields=['profession', 'is_active']),
+            models.Index(fields=['teacher', 'is_active']),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.profession.name})"
+
+    # --- Days helpers ---
+    def get_days_list(self):
+        """Guruh dars kunlarini raqamlar ro'yxati sifatida qaytaradi."""
+        result = []
+        for day_num, _ in self.DAYS_OF_WEEK:
+            if self.days_mask & (1 << (day_num - 1)):
+                result.append(day_num)
+        return result
+
+    def set_days_list(self, days):
+        """Kunlar ro'yxatidan bit-mask hosil qiladi."""
+        mask = 0
+        for d in days or []:
+            try:
+                d_int = int(d)
+                if 1 <= d_int <= 6:
+                    mask |= (1 << (d_int - 1))
+            except (TypeError, ValueError):
+                continue
+        self.days_mask = mask
+
+    def has_day(self, day_num):
+        return bool(self.days_mask & (1 << (int(day_num) - 1)))
+
+    @property
+    def days_display(self):
+        """Qisqa nom bilan ko'rsatish: 'Du, Ch, Ju'"""
+        return ', '.join(self.DAY_SHORT[d] for d in self.get_days_list())
+
+    @property
+    def days_full_display(self):
+        """To'liq nom: 'Dushanba, Chorshanba, Juma'"""
+        names = dict(self.DAYS_OF_WEEK)
+        return ', '.join(names[d] for d in self.get_days_list())
+
+    @property
+    def time_range(self):
+        return f"{self.start_time.strftime('%H:%M')} - {self.end_time.strftime('%H:%M')}"
+
+    @property
+    def duration_minutes(self):
+        try:
+            start_min = self.start_time.hour * 60 + self.start_time.minute
+            end_min = self.end_time.hour * 60 + self.end_time.minute
+            return max(0, end_min - start_min)
+        except Exception:
+            return 0
+
+    @property
+    def students_count(self):
+        return self.students.count()
+
+
+class StudentAttendance(models.Model):
+    """Guruh darsiga o'quvchining kelish davomati.
+
+    Har bir o'quvchi bir kunda bir guruh uchun faqat bitta yozuvga ega bo'ladi.
+    Statuslar: kelgan, kelmagan, kechikkan, kasal, sabab bilan.
+    """
+    STATUS_CHOICES = (
+        ('present', 'Kelgan'),
+        ('absent', 'Kelmagan'),
+        ('late', 'Kechikkan'),
+        ('sick', 'Kasal'),
+        ('excused', 'Sabab bilan'),
+    )
+
+    group = models.ForeignKey(
+        StudyGroup,
+        on_delete=models.CASCADE,
+        related_name='attendances',
+        verbose_name="Guruh",
+    )
+    student = models.ForeignKey(
+        CustomUser,
+        on_delete=models.CASCADE,
+        related_name='study_attendances',
+        limit_choices_to={'role': 'student'},
+        verbose_name="O'quvchi",
+    )
+    date = models.DateField(verbose_name="Sana", db_index=True)
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default='present',
+        verbose_name="Holati",
+    )
+    note = models.CharField(max_length=300, blank=True, default='', verbose_name="Izoh")
+    marked_by = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='marked_attendances',
+        verbose_name="Kim belgilagan",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', 'student__first_name']
+        unique_together = ['group', 'student', 'date']
+        verbose_name = "O'quvchi davomati"
+        verbose_name_plural = "O'quvchilar davomati"
+        indexes = [
+            models.Index(fields=['group', 'date']),
+            models.Index(fields=['student', 'date']),
+        ]
+
+    def __str__(self):
+        return f"{self.student.first_name} — {self.group.name} — {self.date} ({self.get_status_display()})"
+
+    @property
+    def status_icon(self):
+        return {
+            'present': 'bi-check-circle-fill',
+            'absent': 'bi-x-circle-fill',
+            'late': 'bi-clock-fill',
+            'sick': 'bi-heart-pulse-fill',
+            'excused': 'bi-file-earmark-text-fill',
+        }.get(self.status, 'bi-question-circle')
+
+    @property
+    def status_color(self):
+        return {
+            'present': '#10b981',
+            'absent': '#ef4444',
+            'late': '#f59e0b',
+            'sick': '#8b5cf6',
+            'excused': '#3b82f6',
+        }.get(self.status, '#6c757d')

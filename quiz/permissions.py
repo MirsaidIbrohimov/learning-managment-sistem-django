@@ -53,6 +53,19 @@ def can_take_quiz(student, quiz):
     )
 
 
+def quiz_prerequisites_met(student, quiz):
+    """Yakuniy quiz uchun kursdagi barcha oldingi darslar bajarilganmi."""
+    if not quiz.lesson_id or not quiz.lesson.profession_id:
+        return True
+
+    from accounts.models import Test, final_test_prerequisites_met
+
+    is_final = Test.objects.filter(lesson_id=quiz.lesson_id, test_type='final').exists()
+    if not is_final:
+        return True
+    return final_test_prerequisites_met(student, quiz.lesson.profession)
+
+
 def can_access_question(user, question):
     """Whether `user` (a teacher) may read/edit this bank question."""
     if user.is_admin or user.is_assistant_admin:

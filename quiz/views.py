@@ -14,7 +14,10 @@ from .models import (
     AnswerOption, Attempt, AttemptAnswer, Question, QuestionStatus, QuestionType, Quiz, QuizQuestion,
     QuizRetryPayment,
 )
-from .permissions import IsAdminOrTeacher, IsStudent, can_access_question, can_access_quiz, can_take_quiz
+from .permissions import (
+    IsAdminOrTeacher, IsStudent, can_access_question, can_access_quiz,
+    can_take_quiz, quiz_prerequisites_met,
+)
 from .serializers import AttemptSerializer, QuestionSerializer, QuizQuestionSerializer, QuizSerializer
 
 # Question types graded automatically at submit-time. ESSAY has no
@@ -1078,6 +1081,10 @@ class AttemptViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
             raise ValidationError("This quiz isn't published yet.")
         if not can_take_quiz(student, quiz):
             raise PermissionDenied("You're not enrolled in this course.")
+        if not quiz_prerequisites_met(student, quiz):
+            raise PermissionDenied(
+                "Yakuniy test ochilishi uchun avval kursdagi barcha video, vazifa va testlarni bajaring."
+            )
         if not hasattr(quiz, 'settings'):
             raise ValidationError("This quiz has no settings configured.")
 

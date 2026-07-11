@@ -222,7 +222,8 @@ MIDDLEWARE = [
     # ── 1. Xavfsizlik (eng birinchi — hamma narsadan oldin) ───────────────
     'django.middleware.security.SecurityMiddleware',
     'accounts.middleware.RequestSizeLimitMiddleware',    # Katta body (>20MB) bloklash
-    'accounts.middleware.GlobalRateLimitMiddleware',     # DDoS / brute-force
+    # Global IP rate-limit o'chirilgan: bitta tarmoqdagi ko'p o'quvchini 429 bilan
+    # noto'g'ri bloklar edi. Login/register/parol va muhim API limitlari saqlanadi.
     # O'CHIRILDI: noto'g'ri (false-positive) ravishda Market, to'lovlar filtri kabi
     # oddiy sahifalarni 'xavfli' deb bloklab, request.user xatosini chiqarardi.
     # 'accounts.middleware.SuspiciousRequestMiddleware',   # SQLi/XSS/PathTraversal skan

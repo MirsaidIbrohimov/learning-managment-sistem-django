@@ -218,6 +218,20 @@ urlpatterns = [
     
     # Darslar statistikasi
     path('dashboard/lesson-statistics/', views.admin_lesson_statistics, name='admin_lesson_statistics'),
+
+    # Guruhlar & Dars jadvali (Admin & Assistant Admin)
+    path('dashboard/study-groups/', views.admin_study_groups, name='admin_study_groups'),
+    path('dashboard/study-groups/create/', views.admin_study_group_create, name='admin_study_group_create'),
+    path('dashboard/study-groups/<int:pk>/edit/', views.admin_study_group_edit, name='admin_study_group_edit'),
+    path('dashboard/study-groups/<int:pk>/delete/', views.admin_study_group_delete, name='admin_study_group_delete'),
+
+    # Foydalanuvchi uchun shaxsiy dars jadvali
+    path('my-schedule/', views.my_study_schedule, name='my_study_schedule'),
+
+    # O'quvchilar davomati (Teacher & Assistant Admin & Admin)
+    path('attendance/', views.attendance_home, name='attendance_home'),
+    path('attendance/group/<int:group_pk>/', views.attendance_mark, name='attendance_mark'),
+    path('attendance/group/<int:group_pk>/report/', views.attendance_report, name='attendance_report'),
     
     # Discounts / Chegirmalar
     path('dashboard/discounts/', views.admin_discounts, name='admin_discounts'),

@@ -133,11 +133,11 @@ def regenerate_certificate_file(certificate):
 def student_passed_final_test(student, profession):
     """O'quvchi kursning yakuniy testidan o'tganmi?
 
-    Uch holat qamrab olinadi:
+    Ikki test tizimi qamrab olinadi:
       1. Eski tizim: Test(test_type='final') + TestResult(passed=True)
       2. Yangi tizim: shu darsga biriktirilgan Quiz + Attempt(passed=True)
-      3. Kursda yakuniy test umuman bo'lmasa — talab qo'yilmaydi
-         (kurs tugatilganligi request_certificate da alohida tekshiriladi)
+
+    Kursda yakuniy test bo'lmasa sertifikat olish mumkin emas.
     """
     from accounts.models import Test, TestResult
 
@@ -145,9 +145,9 @@ def student_passed_final_test(student, profession):
         lesson__profession=profession, test_type='final'
     )
 
-    # Kursda yakuniy test yo'q — bu shart talab qilinmaydi
+    # Sertifikatli kursda yakuniy test majburiy.
     if not final_tests.exists():
-        return True
+        return False
 
     # 1) Eski tizim natijasi
     if TestResult.objects.filter(
@@ -256,15 +256,8 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
     return cert, None
 
 
-def issue_course_certificate(student, profession, issued_by=None, require_final=True):
-    """Sertifikatni avtomatik berish.
-
-    require_final=False — chaqiruvchi tomon kurs tugatilganligini allaqachon
-    tekshirgan bo'lsa (masalan request_certificate: barcha dars/test/vazifalar
-    bajarilgani tasdiqlangan), yakuniy test tekshiruvi takrorlanmaydi.
-
-    Returns: (certificate | None, error_message | None)
-    """
+def issue_course_certificate(student, profession, issued_by=None):
+    """Yakuniy testdan o'tgan o'quvchiga sertifikatni avtomatik berish."""
     from accounts.models import Certificate, CertificateSettings, Message
     from telegram_bot.utils import notify_user
 
@@ -272,7 +265,14 @@ def issue_course_certificate(student, profession, issued_by=None, require_final=
     if not getattr(profession, 'has_certificate', False):
         return None, "Bu kurs uchun sertifikat joriy qilinmagan."
 
-    # 2) Seriya sozlanganmi
+    # 2) Sertifikatli kursda yakuniy test bo'lishi majburiy
+    from accounts.models import Test
+    if not Test.objects.filter(
+        lesson__profession=profession, test_type='final'
+    ).exists():
+        return None, "Sertifikat olish uchun kursda yakuniy test bo'lishi kerak."
+
+    # 3) Seriya sozlanganmi
     try:
         cfg = profession.certificate_settings
     except CertificateSettings.DoesNotExist:
@@ -283,18 +283,18 @@ def issue_course_certificate(student, profession, issued_by=None, require_final=
             "Administratorga murojaat qiling."
         )
 
-    # 3) Allaqachon berilganmi
+    # 4) Allaqachon berilganmi
     existing = Certificate.objects.filter(
         student=student, profession=profession
     ).first()
     if existing:
         return existing, None
 
-    # 4) Yakuniy testdan o'tganmi
-    if require_final and not student_passed_final_test(student, profession):
+    # 5) Yakuniy testdan o'tganmi
+    if not student_passed_final_test(student, profession):
         return None, "Sertifikat olish uchun avval yakuniy testdan o'ting."
 
-    # 5) Yaratish
+    # 6) Yaratish
     today = timezone.localdate()
     try:
         valid_until = today.replace(year=today.year + cfg.validity_years)
@@ -313,7 +313,7 @@ def issue_course_certificate(student, profession, issued_by=None, require_final=
     cert.save()
     regenerate_certificate_file(cert)
 
-    # 6) Xabarlar
+    # 7) Xabarlar
     try:
         Message.objects.create(
             recipient=student,

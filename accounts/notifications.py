@@ -7,7 +7,7 @@ from datetime import timedelta
 from django.db.models import Avg, Count, Sum
 from .models import (
     Message, CustomUser, CourseEnrollment, Lesson, VideoProgress,
-    TestResult, HomeworkSubmission, Homework, Test, VideoLesson
+    TestResult, HomeworkSubmission, Homework, VideoLesson
 )
 
 
@@ -104,11 +104,20 @@ def check_course_progress_milestones(user, profession):
         watched=True
     ).count()
     
-    completed_tests = TestResult.objects.filter(
+    passed_test_lesson_ids = set(TestResult.objects.filter(
         student=user,
         test__lesson__profession=profession,
         passed=True
-    ).values('test_id').distinct().count()
+    ).values_list('test__lesson_id', flat=True))
+
+    from quiz.models import Attempt as QuizAttempt
+    passed_test_lesson_ids.update(QuizAttempt.objects.filter(
+        student=user,
+        passed=True,
+        status__in=[QuizAttempt.Status.SUBMITTED, QuizAttempt.Status.GRADED],
+        quiz__lesson__profession=profession,
+    ).exclude(quiz__lesson_id=None).values_list('quiz__lesson_id', flat=True))
+    completed_tests = len(passed_test_lesson_ids)
     
     completed_homeworks = HomeworkSubmission.objects.filter(
         student=user,
@@ -120,7 +129,7 @@ def check_course_progress_milestones(user, profession):
     
     # Video + test + homework soni
     total_videos = VideoLesson.objects.filter(lesson__profession=profession).count()
-    total_tests = Test.objects.filter(lesson__profession=profession).count()
+    total_tests = Lesson.objects.filter(profession=profession, lesson_type='test').count()
     total_homeworks = Homework.objects.filter(lesson__profession=profession).count()
     total_items = total_videos + total_tests + total_homeworks
     

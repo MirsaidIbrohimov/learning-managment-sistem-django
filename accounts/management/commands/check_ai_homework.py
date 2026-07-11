@@ -264,19 +264,14 @@ class Command(BaseCommand):
 
                         if ai_result['status'] == 'graded':
                             if not sub.coin_awarded:
-                                coin_amount = 5 if sub.is_late else 10
-                                if ai_result['grade'] >= 9:
-                                    coin_amount += 5
-                                elif ai_result['grade'] >= 8:
-                                    coin_amount += 3
-                                if sub.student.is_premium:
-                                    coin_amount *= 2
+                                coin_amount = sub.calculate_coin_reward(ai_result['grade'])
                                 sub.student.add_coins(
                                     coin_amount,
                                     f"Vazifa baholandi: {hw.lesson.title}"
                                 )
                                 sub.coin_awarded = True
-                                sub.save(update_fields=['coin_awarded'])
+                                sub.coins_earned = coin_amount
+                                sub.save(update_fields=['coin_awarded', 'coins_earned'])
                                 ActivityLog.objects.create(
                                     user=sub.student,
                                     action_type='homework_graded',

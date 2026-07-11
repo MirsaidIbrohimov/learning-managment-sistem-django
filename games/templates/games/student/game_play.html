@@ -797,13 +797,9 @@
     const _keyTimings = [];
 
     function _onCheatDetected(reason) {
-        if (cheated) return;
-        cheated = true;
-        keystrokeCount = 0;
-        showToast('🚫 Noqonuniy harakat aniqlandi! O\'yin to\'xtatildi.');
-        if (startTime && !finished) {
-            finishGame();
-        }
+        // Yozish mashqida anti-cheat noto'g'ri ishlab, o'yinni to'xtatib qo'ymasligi uchun
+        // shubhali holatlar faqat e'tiborsiz qoldiriladi.
+        return;
     }
 
     // ===== ANTI-CHEAT: Textarea value monitoring =====
@@ -941,14 +937,6 @@
 
     function checkWord(typedWord) {
         if (currentIndex >= words.length || finished) return;
-
-        // Tezlik tekshiruvi
-        var elapsed = getElapsedSeconds();
-        var wordsPerSecond = (currentIndex + 1) / (elapsed || 0.1);
-        if (wordsPerSecond > 8 && currentIndex > 5) {
-            _onCheatDetected('speed_hack');
-            return;
-        }
 
         var wordEl = document.getElementById('word-' + currentIndex);
         var originalWord = words[currentIndex];
@@ -1313,9 +1301,6 @@
             var pill = document.getElementById('tabPill');
             pill.classList.add('show');
             setTimeout(function() { pill.classList.remove('show'); }, 3000);
-            if (isCompetition && tabSwitchCount >= 3) {
-                finishGame();
-            }
         }
     });
 
