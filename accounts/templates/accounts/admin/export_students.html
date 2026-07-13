@@ -103,7 +103,24 @@
 
     <form method="post">
         {% csrf_token %}
-        
+
+        <div class="card border-0 shadow-sm mb-3" style="border-radius: 12px;">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="bi bi-people-fill me-2"></i> Guruh bo'yicha (ixtiyoriy)</h5>
+                <select name="group" class="form-select" style="max-width: 460px;">
+                    <option value="">Barcha o'quvchilar</option>
+                    {% for g in groups %}
+                    <option value="{{ g.id }}" {% if selected_group == g.id|stringformat:"i" %}selected{% endif %}>
+                        {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="text-muted small mt-2">
+                    <i class="bi bi-info-circle"></i> Guruh tanlansa, faqat o'sha guruh o'quvchilari eksport qilinadi.
+                </div>
+            </div>
+        </div>
+
         <div class="card border-0 shadow-sm" style="border-radius: 12px;">
             <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">

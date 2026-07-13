@@ -10168,8 +10168,9 @@ def admin_users(request):
     role_filter = request.GET.get('role', '')
     profession_filter = request.GET.get('profession', '')
     status_filter = request.GET.get('status', '')
+    group_filter = request.GET.get('group', '')
     sort_by = request.GET.get('sort', '')
-    
+
     users = CustomUser.objects.only(
         'id', 'username', 'first_name', 'last_name', 'phone', 'photo',
         'role', 'is_blocked', 'is_finished', 'is_premium', 'last_activity', 'date_joined',
@@ -10193,6 +10194,9 @@ def admin_users(request):
         users = users.filter(is_blocked=True)
     elif status_filter == 'active':
         users = users.filter(is_blocked=False)
+    if group_filter:
+        # Guruh a'zolari (o'quvchilar) bo'yicha filtrlash — StudyGroup.students M2M
+        users = users.filter(study_groups__id=group_filter).distinct()
     
     if sort_by == 'name':
         users = users.order_by('first_name', 'last_name')
@@ -10209,24 +10213,31 @@ def admin_users(request):
     
     total_count = users.count()
     professions = Profession.objects.only('id', 'name')
-    
+    from .models import StudyGroup
+    groups = StudyGroup.objects.select_related('profession').only(
+        'id', 'name', 'profession__name'
+    ).order_by('profession__name', 'name')
+
     paginator = Paginator(users, 25)
     page = request.GET.get('page')
     users = paginator.get_page(page)
-    
+
     active_filters = sum([
         bool(role_filter),
         bool(profession_filter),
         bool(status_filter),
+        bool(group_filter),
     ])
-    
+
     return render(request, 'accounts/admin/users.html', {
         'users': users,
         'professions': professions,
+        'groups': groups,
         'search_query': search_query,
         'role_filter': role_filter,
         'profession_filter': profession_filter,
         'status_filter': status_filter,
+        'group_filter': group_filter,
         'sort_by': sort_by,
         'total_count': total_count,
         'active_filters': active_filters,
@@ -10274,36 +10285,51 @@ def admin_export_students(request):
         'telegram_username': "Telegram",
     }
     
+    from .models import StudyGroup
+    groups = StudyGroup.objects.select_related('profession').only(
+        'id', 'name', 'profession__name'
+    ).order_by('profession__name', 'name')
+    selected_group = (request.GET.get('group', '') or request.POST.get('group', '')).strip()
+
     if request.method == 'POST':
         selected_fields = request.POST.getlist('fields')
         if not selected_fields:
             messages.error(request, "Kamida bitta maydon tanlang!")
             return render(request, 'accounts/admin/export_students.html', {
                 'export_fields': EXPORT_FIELDS,
+                'groups': groups,
+                'selected_group': selected_group,
             })
-        
+
         # Filter: only valid fields
         valid_fields = [f for f in selected_fields if f in EXPORT_FIELDS]
         if not valid_fields:
             messages.error(request, "Noto'g'ri maydonlar tanlandi!")
             return redirect('admin_export_students')
-        
-        return _generate_students_excel(valid_fields, EXPORT_FIELDS)
-    
+
+        return _generate_students_excel(valid_fields, EXPORT_FIELDS, group_id=selected_group or None)
+
     return render(request, 'accounts/admin/export_students.html', {
         'export_fields': EXPORT_FIELDS,
+        'groups': groups,
+        'selected_group': selected_group,
     })
 
 
-def _generate_students_excel(selected_fields, field_labels):
-    """Tanlangan maydonlar asosida Excel fayl yaratish"""
+def _generate_students_excel(selected_fields, field_labels, group_id=None):
+    """Tanlangan maydonlar asosida Excel fayl yaratish.
+
+    ``group_id`` berilsa — faqat o'sha guruh (StudyGroup) a'zolari eksport
+    qilinadi; aks holda barcha o'quvchilar."""
     import openpyxl
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
     from openpyxl.utils import get_column_letter
     from django.http import HttpResponse
-    
+
     # Query students
     students = CustomUser.objects.filter(role='student').select_related('profession').order_by('first_name', 'last_name')
+    if group_id:
+        students = students.filter(study_groups__id=group_id).distinct()
     
     wb = openpyxl.Workbook()
     ws = wb.active

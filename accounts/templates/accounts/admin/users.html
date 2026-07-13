@@ -283,9 +283,9 @@
             <p class="au-sub" style="margin-bottom:0;">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
         </div>
         <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <a href="{% url 'admin_export_students' %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#28a745,#20c997);box-shadow:0 2px 8px rgba(40,167,69,0.25);">
+            <a href="{% url 'admin_export_students' %}{% if group_filter %}?group={{ group_filter }}{% endif %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#28a745,#20c997);box-shadow:0 2px 8px rgba(40,167,69,0.25);">
                 <i class="bi bi-file-earmark-excel"></i>
-                <span>Excel Export</span>
+                <span>Excel Export{% if group_filter %} (guruh){% endif %}</span>
             </a>
             <a href="{% url 'admin_add_teacher' %}" class="au-add-teacher-btn">
                 <i class="bi bi-person-plus-fill"></i>
@@ -369,6 +369,17 @@
                     <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Bloklangan</option>
                 </select>
             </div>
+            <div class="au-filter-group">
+                <label>Guruh</label>
+                <select name="group" class="au-filter-select">
+                    <option value="">Barchasi</option>
+                    {% for g in groups %}
+                    <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>
+                        {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
         <div class="au-filter-actions">
             <a href="{% url 'admin_users' %}" class="au-btn-reset">
@@ -383,32 +394,39 @@
     </form>
 
     <!-- Active Filter Chips -->
-    {% if search_query or role_filter or profession_filter or status_filter %}
+    {% if search_query or role_filter or profession_filter or status_filter or group_filter %}
     <div class="au-chips">
         {% if search_query %}
         <span class="au-chip">
             <i class="bi bi-search"></i> "{{ search_query }}"
-            <a href="?{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if role_filter %}
         <span class="au-chip">
             <i class="bi bi-person-badge"></i>
             {% if role_filter == 'admin' %}Admin{% elif role_filter == 'assistant_admin' %}Yordamchi admin{% elif role_filter == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if profession_filter %}
         <span class="au-chip">
             <i class="bi bi-mortarboard"></i> Yo'nalish: {{ profession_filter }}
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if status_filter %}
         <span class="au-chip">
             <i class="bi bi-circle-fill" style="font-size:0.4rem;"></i>
             {% if status_filter == 'active' %}Faol{% else %}Bloklangan{% endif %}
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
+        {% if group_filter %}
+        <span class="au-chip">
+            <i class="bi bi-people-fill"></i>
+            {% for g in groups %}{% if group_filter == g.id|stringformat:"i" %}{{ g.name }}{% endif %}{% endfor %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
     </div>
