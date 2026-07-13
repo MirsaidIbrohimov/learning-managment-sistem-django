@@ -7173,7 +7173,11 @@ def send_bulk_payment_reminders(request):
         unpaid_ids = PaymentRecord.objects.filter(
             month=m, year=y, is_paid=False
         ).values_list('user_id', flat=True)
-        unpaid_students = CustomUser.objects.filter(pk__in=unpaid_ids, role='student')
+        # Shartnoma rejimidagi va kursni tugatgan o'quvchilarga oylik to'lov
+        # eslatmasi yuborilmaydi — ular oylik to'lovga aloqador emas.
+        unpaid_students = CustomUser.objects.filter(
+            pk__in=unpaid_ids, role='student', is_finished=False
+        ).exclude(student_balance__is_contract=True)
 
         count = 0
         for student in unpaid_students:
@@ -16507,6 +16511,12 @@ def admin_balance_set_fee(request, student_id):
         balance.next_payment_date = None
         balance.save(update_fields=['is_contract', 'next_payment_date'])
         ps.save()
+        # Shartnoma rejimidagi o'quvchining oylik to'lovga umuman aloqasi
+        # bo'lmasligi kerak. To'lanmagan oylik yozuvlarini o'chiramiz — aks holda
+        # ular oylik to'lovlar sahifasi/eslatma/hisobotlarda "To'lanmagan" bo'lib
+        # ko'rinishda davom etadi. To'langan (haqiqiy) tarix saqlab qolinadi.
+        from .models import PaymentRecord
+        PaymentRecord.objects.filter(user=student, is_paid=False).delete()
         return JsonResponse({
             'success': True,
             'mode': 'contract',
