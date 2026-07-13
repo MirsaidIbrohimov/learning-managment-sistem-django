@@ -21,6 +21,8 @@ urlpatterns = [
     # O'quv jarayoni (faqat ko'rish, baholash YO'Q)
     path('vazifalar/', v.yordamchi_homework, name='yordamchi_homework'),
     path('testlar/', v.yordamchi_tests, name='yordamchi_tests'),
+    path('test-hulosalari/', v.yordamchi_test_summary, name='yordamchi_test_summary'),
+    path('test-hulosalari/<str:ref>/', v.yordamchi_test_summary_detail, name='yordamchi_test_summary_detail'),
     path('guruhlar/', account_views.admin_study_groups, name='yordamchi_study_groups'),
     path('guruhlar/yangi/', account_views.admin_study_group_create, name='yordamchi_study_group_create'),
     path('guruhlar/<int:pk>/tahrirlash/', account_views.admin_study_group_edit, name='yordamchi_study_group_edit'),

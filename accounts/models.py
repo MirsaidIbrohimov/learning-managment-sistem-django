@@ -765,7 +765,8 @@ class Homework(models.Model):
 
 
 class HomeworkSubmission(models.Model):
-    MAX_COIN_REWARD = 30
+    MAX_COIN_REWARD = 50
+    RESUBMIT_COIN_PENALTY = 30
 
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),
@@ -811,7 +812,7 @@ class HomeworkSubmission(models.Model):
         return f"{self.student.full_name} - {self.homework.lesson.title}"
 
     def calculate_coin_reward(self, grade=None):
-        """Vazifa mukofotini hisoblaydi; har qanday holatda maksimum 30 coin."""
+        """Vazifa mukofotini hisoblaydi; har qanday holatda maksimum 50 coin."""
         grade = self.grade if grade is None else grade
         amount = 5 if self.is_late else 10
         if grade is not None and grade >= 9:

@@ -762,27 +762,13 @@
                         </div>
                         <div class="hw-coin-warn-info">
                             <div class="hw-coin-warn-title">
-                                Qayta topshirish narxi:
-                                {% if request.user.is_premium %}
-                                <span class="hw-coin-amount premium-cost"><i class="bi bi-coin"></i> -{{ resubmit_cost }}</span>
-                                {% else %}
+                                Qayta topshirish jarimasi:
                                 <span class="hw-coin-amount cost"><i class="bi bi-coin"></i> -{{ resubmit_cost }}</span>
-                                {% endif %}
                                 <span class="hw-coin-balance"><i class="bi bi-wallet2"></i> {{ request.user.coins }} coin</span>
                             </div>
                             <p class="hw-coin-warn-text">
-                                {% if request.user.is_premium %}
-                                Premium obunangiz tufayli siz atigi <strong>{{ resubmit_cost }} coin</strong> to'laysiz (oddiy: 5 coin).
-                                {% else %}
-                                Har bir qayta topshirish uchun <strong>{{ resubmit_cost }} coin</strong> yechiladi.
-                                {% endif %}
+                                Har bir qayta topshirish uchun balansingizdan <strong>{{ resubmit_cost }} coin</strong> yechiladi.
                             </p>
-                            {% if not request.user.is_premium %}
-                            <div class="hw-premium-tip">
-                                <i class="bi bi-gem"></i> Premium obunchilar faqat 3 coin to'laydi.
-                                <a href="{% url 'coin:buy_premium' %}">Premium olish →</a>
-                            </div>
-                            {% endif %}
                             {% if request.user.coins < 0 %}
                             <div class="hw-not-enough" style="background:rgba(255,165,0,0.15);border-color:orange;color:orange;">
                                 <i class="bi bi-info-circle-fill"></i> Balans: {{ request.user.coins }} coin. Qayta topshirsangiz {{ resubmit_cost }} coin yechiladi.

@@ -376,6 +376,53 @@ def yordamchi_tests(request):
 
 
 # ============================================================
+# TEST HULOSALARI (chuqurlashtirilgan test tahlili)
+# ============================================================
+
+@login_required
+def yordamchi_test_summary(request):
+    """Test hulosalari — kim qaysi testni necha marta ishlagan, ko'rsatkichlar
+    bilan. Yangi (quiz.Attempt) + eski (TestResult) ma'lumotlar birlashtirilgan.
+    Assistant admin barcha kurslarni ko'radi."""
+    if not _require_perm(request, 'tests.view'):
+        return redirect('home')
+
+    from quiz import analytics
+
+    context = analytics.build_summary_context(
+        allowed_profession_ids=None,  # assistant -> barcha kurslar
+        professions=Profession.objects.order_by('name'),
+        summary_url_name='yordamchi_test_summary',
+        detail_url_name='yordamchi_test_summary_detail',
+        course_id=request.GET.get('course', ''),
+        q=request.GET.get('q', ''),
+        source=request.GET.get('source', ''),
+        page=request.GET.get('page') or 1,
+    )
+    return render(request, 'accounts/yordamchi/test_summary.html', context)
+
+
+@login_required
+def yordamchi_test_summary_detail(request, ref):
+    """Bitta test bo'yicha chuqur tahlil: har bir o'quvchining urinishlari +
+    savollar tahlili."""
+    if not _require_perm(request, 'tests.view'):
+        return redirect('home')
+
+    from quiz import analytics
+
+    context = analytics.build_detail_context(
+        ref_key=ref,
+        allowed_profession_ids=None,
+        back_url_name='yordamchi_test_summary',
+    )
+    if context['detail'] is None:
+        messages.error(request, "Test topilmadi.")
+        return redirect('yordamchi_test_summary')
+    return render(request, 'accounts/yordamchi/test_summary_detail.html', context)
+
+
+# ============================================================
 # SERTIFIKAT SO'ROVLARI
 # ============================================================
 

@@ -778,7 +778,7 @@
         <div class="sp-meta-row" id="descMetaRow">
           <span class="sp-pill info"><i class="bi bi-trophy"></i> <span id="metaMaxScore">—</span> ball</span>
           <span class="sp-pill" id="metaDue"></span>
-          <span class="sp-pill warn" id="metaCoins"><i class="bi bi-coin"></i> 30 coin gacha</span>
+          <span class="sp-pill warn" id="metaCoins"><i class="bi bi-coin"></i> 50 coin gacha</span>
           <span class="sp-pill violet" id="metaAi" style="display:none"><i class="bi bi-robot"></i> AI tekshiradi</span>
           <span class="sp-pill warn" id="metaFileOnly" style="display:none"><i class="bi bi-paperclip"></i> Faqat fayl</span>
           <span class="sp-pill warn" id="metaHandwritten" style="display:none"><i class="bi bi-pen"></i> Qo'lyozma</span>
@@ -811,7 +811,8 @@
             <i class="bi bi-arrow-repeat" style="font-size:20px;flex-shrink:0;margin-top:1px"></i>
             <div>
               <b>Qayta topshirish</b><br>
-              Avvalgi versiyalaringiz saqlanib qoladi. Yangi versiya alohida ko'rib chiqiladi.
+              Avvalgi versiyalaringiz saqlanib qoladi. Har bir qayta topshirishda
+              <strong><span id="resubmitPenalty">30</span> coin jarima</strong> yechiladi.
             </div>
           </div>
 
@@ -1113,7 +1114,7 @@ function renderMeta() {
   const hw = hwState.homework;
   if (!hw) return;
   document.getElementById('metaMaxScore').textContent = hw.max_score;
-  document.getElementById('metaCoins').innerHTML = `<i class="bi bi-coin"></i> ${hw.max_coin_reward || 30} coin gacha`;
+  document.getElementById('metaCoins').innerHTML = `<i class="bi bi-coin"></i> ${hw.max_coin_reward || 50} coin gacha`;
   const dueEl = document.getElementById('metaDue');
   if (hw.due_date) {
     dueEl.className = 'sp-pill ' + (hw.is_deadline_passed ? 'danger' : 'warn');
@@ -1401,6 +1402,7 @@ function renderSubmitForm() {
 
   document.getElementById('resubmitNotice').style.display = sub ? '' : 'none';
   document.getElementById('submitBtnText').textContent    = sub ? 'Qayta topshirish' : 'Topshirish';
+  document.getElementById('resubmitPenalty').textContent  = hw.resubmit_coin_penalty || 30;
 
   // AI notice
   if (hw.ai_check) document.getElementById('aiNotice').style.display = '';

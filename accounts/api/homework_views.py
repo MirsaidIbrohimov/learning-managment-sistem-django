@@ -261,6 +261,7 @@ def _serialize_homework(hw: Homework) -> dict:
         "is_deadline_passed": hw.is_deadline_passed,
         "allowed_formats":  hw.get_allowed_formats_list(),
         "max_coin_reward":  HomeworkSubmission.MAX_COIN_REWARD,
+        "resubmit_coin_penalty": HomeworkSubmission.RESUBMIT_COIN_PENALTY,
     }
 
 
@@ -321,6 +322,7 @@ def hw_detail(request, lesson_pk):
         return _err("Ruxsat yo'q", 403)
 
     hw = get_object_or_404(Homework, lesson=lesson)
+
     submission = _get_submission_or_none(hw, request.user)
 
     # Count all versions if student has multiple submissions
@@ -363,6 +365,10 @@ def hw_submit(request, lesson_pk):
 
     hw = get_object_or_404(Homework, lesson=lesson)
 
+    prev_count = HomeworkSubmission.objects.filter(
+        homework=hw, student=request.user
+    ).count()
+
     # Deadline check
     if hw.is_deadline_passed and not hw.allow_late:
         return _err("Topshirish muddati tugagan va kech topshirishga ruxsat yo'q.")
@@ -395,11 +401,6 @@ def hw_submit(request, lesson_pk):
         # Is it late?
         is_late = hw.is_deadline_passed
 
-        # Previous submission version count
-        prev_count = HomeworkSubmission.objects.filter(
-            homework=hw, student=request.user
-        ).count()
-
         sub = HomeworkSubmission.objects.create(
             homework=hw,
             student=request.user,
@@ -422,10 +423,6 @@ def hw_submit(request, lesson_pk):
 
         clean_text = _sanitize_html(raw_text)
         is_late    = hw.is_deadline_passed
-        prev_count = HomeworkSubmission.objects.filter(
-            homework=hw, student=request.user
-        ).count()
-
         sub = HomeworkSubmission.objects.create(
             homework=hw,
             student=request.user,
@@ -434,6 +431,12 @@ def hw_submit(request, lesson_pk):
             is_late=is_late,
             version=prev_count + 1,
             revision_count=prev_count,
+        )
+
+    if prev_count > 0:
+        request.user.remove_coins(
+            HomeworkSubmission.RESUBMIT_COIN_PENALTY,
+            f"Uyga vazifa qayta topshirish: {hw.lesson.title}",
         )
 
     # Notify teacher
@@ -453,7 +456,11 @@ def hw_submit(request, lesson_pk):
 
     return _ok(
         {"submission": _serialize_submission(sub, request)},
-        message="Vazifa muvaffaqiyatli yuborildi!" + (" (Kech topshirildi)" if sub.is_late else ""),
+        message=(
+            f"Vazifa qayta topshirildi. {HomeworkSubmission.RESUBMIT_COIN_PENALTY} coin jarima yechildi!"
+            if prev_count > 0
+            else "Vazifa muvaffaqiyatli yuborildi!" + (" (Kech topshirildi)" if sub.is_late else "")
+        ),
     )
 
 

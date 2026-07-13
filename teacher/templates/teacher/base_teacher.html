@@ -240,6 +240,9 @@
                 <div class="nav-icon-wrap"><i class="bi bi-journal-check"></i></div><span>Uyga vazifalar</span>
                 {% if pending_homeworks_count %}<span class="sidebar-badge">{{ pending_homeworks_count }}</span>{% endif %}
             </a>
+            <a href="{% url 'quizui:test_summary' %}" class="nav-link {% if 'test_summary' in request.resolver_match.url_name %}active{% endif %}" data-title="Test hulosalari">
+                <div class="nav-icon-wrap"><i class="bi bi-clipboard-data"></i></div><span>Test hulosalari</span>
+            </a>
             <a href="{% url 'teacher:speaking_tasks' %}" class="nav-link {% if 'speaking' in request.resolver_match.url_name %}active{% endif %}" data-title="Speaking vazifalar">
                 <div class="nav-icon-wrap"><i class="bi bi-mic"></i></div><span>Speaking vazifalar</span>
                 {% if pending_speakings_count %}<span class="sidebar-badge" style="background:#8b5cf6;">{{ pending_speakings_count }}</span>{% endif %}

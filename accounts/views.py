@@ -2901,7 +2901,11 @@ def _course_statistics_data(profession):
     total_homeworks = lessons.filter(lesson_type='homework').count()
     total_videos = lessons.filter(lesson_type='video').count()
 
-    test_results = TestResult.objects.filter(test__lesson__profession=profession)
+    completed_statuses = [Attempt.Status.SUBMITTED, Attempt.Status.GRADED]
+    test_results = Attempt.objects.filter(
+        quiz__lesson__profession=profession,
+        status__in=completed_statuses,
+    )
     avg_test_score = test_results.aggregate(avg=Avg('score'))['avg'] or 0
     total_test_attempts = test_results.count()
     passed_tests = test_results.filter(passed=True).count()
@@ -2916,8 +2920,10 @@ def _course_statistics_data(profession):
 
     # Bulk test statistikasi
     test_stats = defaultdict(lambda: {'count': 0, 'passed': 0, 'total_score': 0, 'avg_score': 0})
-    for row in TestResult.objects.filter(
-        student_id__in=student_ids, test__lesson__profession=profession
+    for row in Attempt.objects.filter(
+        student_id__in=student_ids,
+        quiz__lesson__profession=profession,
+        status__in=completed_statuses,
     ).values('student_id').annotate(
         count=Count('id'),
         passed=Count('id', filter=Q(passed=True)),
@@ -6905,8 +6911,12 @@ def admin_payments(request):
     search_query = request.GET.get('q', '').strip()
     filter_status = request.GET.get('status', '')
 
-    # Tugatgan o'quvchilarni to'lovlar sahifasida ko'rsatmaymiz
-    qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
+    # Tugatgan va shartnoma rejimidagi o'quvchilarni to'lovlar sahifasida ko'rsatmaymiz
+    qs = (
+        CustomUser.objects.filter(role='student', is_finished=False)
+        .exclude(student_balance__is_contract=True)
+        .select_related('payment_status')
+    )
 
     # Har bir studentga PaymentStatus yaratish
     existing_ids = set(PaymentStatus.objects.filter(user__role='student', user__is_finished=False).values_list('user_id', flat=True))
@@ -6916,7 +6926,11 @@ def admin_payments(request):
         PaymentStatus.objects.bulk_create([
             PaymentStatus(user_id=uid) for uid in missing
         ], ignore_conflicts=True)
-        qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
+        qs = (
+            CustomUser.objects.filter(role='student', is_finished=False)
+            .exclude(student_balance__is_contract=True)
+            .select_related('payment_status')
+        )
 
     # PaymentRecord yaratish (tanlangan oy uchun)
     existing_record_ids = set(
@@ -8973,8 +8987,8 @@ def homework_chat(request, pk):
             has_new_content = new_file or new_text
             
             if has_new_content:
-                # Qayta topshirish uchun coin yechish (premium: 30, oddiy: 50)
-                resubmit_cost = 30 if request.user.is_premium else 50
+                # Qayta topshirish uchun belgilangan jarimani yechish
+                resubmit_cost = HomeworkSubmission.RESUBMIT_COIN_PENALTY
                 request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
                 
                 from .models import HomeworkRevision
@@ -9059,7 +9073,7 @@ def homework_chat(request, pk):
             return redirect('homework_chat', pk=pk)
     
 
-    resubmit_cost = 30 if request.user.is_premium else 50
+    resubmit_cost = HomeworkSubmission.RESUBMIT_COIN_PENALTY
     return render(request, 'accounts/homework_chat.html', {
         'submission': submission,
         'chat_messages': chat_messages,
@@ -16656,7 +16670,11 @@ def yordamchi_payments(request):
     search_query   = request.GET.get('q', '').strip()
     filter_status  = request.GET.get('status', '')
 
-    qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
+    qs = (
+        CustomUser.objects.filter(role='student', is_finished=False)
+        .exclude(student_balance__is_contract=True)
+        .select_related('payment_status')
+    )
 
     # Ensure PaymentStatus exists for every student
     existing_ids = set(PaymentStatus.objects.filter(
@@ -16668,7 +16686,11 @@ def yordamchi_payments(request):
         PaymentStatus.objects.bulk_create(
             [PaymentStatus(user_id=uid) for uid in missing_ps], ignore_conflicts=True
         )
-        qs = CustomUser.objects.filter(role='student', is_finished=False).select_related('payment_status')
+        qs = (
+            CustomUser.objects.filter(role='student', is_finished=False)
+            .exclude(student_balance__is_contract=True)
+            .select_related('payment_status')
+        )
 
     # Ensure PaymentRecord exists for selected month
     existing_rec_ids = set(PaymentRecord.objects.filter(

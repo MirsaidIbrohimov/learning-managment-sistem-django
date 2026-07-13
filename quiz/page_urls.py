@@ -11,6 +11,7 @@ from .page_views import (
     QuizBuilderView, QuizListView, QuizTakeView,
     QuizRetryPaymentApproveView, QuizRetryPaymentListView, QuizRetryPaymentRejectView,
     QuizRetryPaymentRequestView,
+    TestSummaryView, TestSummaryDetailView,
 )
 
 app_name = 'quizui'
@@ -42,6 +43,11 @@ urlpatterns = [
     # Phase 5: student exam-taking page. Additive/parallel -- see
     # QuizTakeView's docstring and docs/QUIZ_MODULE_REDESIGN.md §4.
     path('quizzes/<int:pk>/take/', QuizTakeView.as_view(), name='quiz_take'),
+
+    # Test hulosalari (test summary / analytics) -- Admin & Teacher panels.
+    # `ref` is a short test token: `q<id>` (new quiz) or `t<id>` (legacy test).
+    path('test-hulosalari/', TestSummaryView.as_view(), name='test_summary'),
+    path('test-hulosalari/<str:ref>/', TestSummaryDetailView.as_view(), name='test_summary_detail'),
 
     # Paid-retry flow (replaces accounts.FinalTestPayment) -- see
     # QuizRetryPayment in models.py and docs/QUIZ_MODULE_REDESIGN.md §4.

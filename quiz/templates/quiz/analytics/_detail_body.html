@@ -1,0 +1,128 @@
+{% comment %}
+Shared per-test detail body for "Test hulosalari" (all three panels).
+
+Expected context:
+  detail         : quiz.analytics.TestDetail
+  back_url_name  : url name of the summary page (back link)
+{% endcomment %}
+
+<style>
+  .td-wrap { --td-radius: 14px; }
+  .td-back { display:inline-flex; align-items:center; gap:6px; color:#2563eb; text-decoration:none; font-weight:600; font-size:.9rem; margin-bottom:14px; }
+  .td-back:hover { text-decoration: underline; }
+  .td-header { background: var(--card-bg,#fff); border:1px solid rgba(0,0,0,.06); border-radius:var(--td-radius); padding:18px 20px; margin-bottom:18px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .td-header h2 { margin:0 0 6px; font-size:1.35rem; color:var(--ts-ink,#1f2733); }
+  .td-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .td-meta .chip { font-size:.76rem; padding:4px 10px; border-radius:999px; background:#eef2f7; color:#475569; font-weight:600; }
+  .td-meta .chip.b { background:#dbeafe; color:#1d4ed8; }
+  .td-kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:14px; margin-bottom:20px; }
+  .td-kpi { background:var(--card-bg,#fff); border:1px solid rgba(0,0,0,.06); border-radius:var(--td-radius); padding:14px 16px; box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .td-kpi .lbl { font-size:.74rem; text-transform:uppercase; letter-spacing:.03em; color:#8a92a6; margin-bottom:5px; }
+  .td-kpi .val { font-size:1.5rem; font-weight:700; color:var(--ts-ink,#1f2733); }
+  .td-card { background:var(--card-bg,#fff); border:1px solid rgba(0,0,0,.06); border-radius:var(--td-radius); box-shadow:0 1px 3px rgba(0,0,0,.05); margin-bottom:20px; overflow:hidden; }
+  .td-card > .h { padding:14px 18px; border-bottom:1px solid rgba(0,0,0,.06); font-weight:700; color:var(--ts-ink,#1f2733); display:flex; align-items:center; gap:9px; }
+  .td-table { width:100%; border-collapse:collapse; font-size:.9rem; }
+  .td-table th, .td-table td { padding:10px 14px; text-align:left; border-bottom:1px solid rgba(0,0,0,.05); }
+  .td-table th { font-size:.73rem; text-transform:uppercase; letter-spacing:.03em; color:#8a92a6; background:rgba(0,0,0,.015); }
+  .td-table .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .td-scroll { overflow-x:auto; }
+  .td-badge { display:inline-block; padding:3px 9px; border-radius:999px; font-size:.74rem; font-weight:600; }
+  .td-badge.g { background:#dcfce7; color:#15803d; } .td-badge.r { background:#fee2e2; color:#b91c1c; }
+  .td-badge.b { background:#dbeafe; color:#1d4ed8; }
+  .td-student-row td { background:rgba(37,99,235,.04); font-weight:600; }
+  .td-score { font-weight:700; } .td-score.hi{color:#16a34a} .td-score.mid{color:#d97706} .td-score.lo{color:#dc2626}
+  .td-bar { height:8px; border-radius:6px; background:#eef2f7; overflow:hidden; min-width:80px; }
+  .td-bar > span { display:block; height:100%; background:#dc2626; }
+  .td-empty { padding:34px; text-align:center; color:#8a92a6; }
+</style>
+
+<div class="td-wrap">
+  <a class="td-back" href="{% url back_url_name %}"><i class="bi bi-arrow-left"></i> Test hulosalariga qaytish</a>
+
+  <div class="td-header">
+    <h2>{{ detail.title }}</h2>
+    <div class="td-meta">
+      <span class="chip b">{{ detail.course_name }}</span>
+      {% if detail.lesson_order is not None %}<span class="chip">Dars {{ detail.lesson_order }}</span>{% endif %}
+      {% if detail.section_title %}<span class="chip">{{ detail.section_title }}</span>{% endif %}
+      <span class="chip">Savollar: {{ detail.question_count }}</span>
+      {% if detail.passing_score is not None %}<span class="chip">O'tish bali: {{ detail.passing_score }}%</span>{% endif %}
+      <span class="chip">{% if detail.ref.source == 'quiz' %}Yangi tizim{% else %}Eski tizim{% endif %}</span>
+    </div>
+  </div>
+
+  <div class="td-kpis">
+    <div class="td-kpi"><div class="lbl">Urinishlar</div><div class="val">{{ detail.overview.attempts }}</div></div>
+    <div class="td-kpi"><div class="lbl">O'quvchilar</div><div class="val">{{ detail.overview.students }}</div></div>
+    <div class="td-kpi"><div class="lbl">O'tganlar</div><div class="val">{{ detail.overview.passed }}</div></div>
+    <div class="td-kpi"><div class="lbl">O'tish foizi</div><div class="val">{{ detail.overview.pass_rate }}%</div></div>
+    <div class="td-kpi"><div class="lbl">O'rtacha ball</div><div class="val">{{ detail.overview.avg_score }}%</div></div>
+  </div>
+
+  {# ── Per-student attempts (necha marta) ── #}
+  <div class="td-card">
+    <div class="h"><i class="bi bi-person-lines-fill"></i> O'quvchilar bo'yicha urinishlar</div>
+    <div class="td-scroll">
+      <table class="td-table">
+        <thead>
+          <tr><th>O'quvchi / Urinish</th><th class="num">Ball</th><th class="num">To'g'ri / Jami</th><th>Holat</th><th>Sana</th></tr>
+        </thead>
+        <tbody>
+          {% for g in detail.student_groups %}
+            <tr class="td-student-row">
+              <td>{{ g.student_name }}{% if g.student_code %} <span class="td-badge b">#{{ g.student_code }}</span>{% endif %}
+                  <span class="td-badge">{{ g.attempts|length }}× urinish</span></td>
+              <td class="num">Eng yaxshi: <span class="td-score {% if g.best_score >= 80 %}hi{% elif g.best_score >= 60 %}mid{% else %}lo{% endif %}">{{ g.best_score }}%</span></td>
+              <td class="num"></td>
+              <td>{% if g.ever_passed %}<span class="td-badge g">O'tgan</span>{% else %}<span class="td-badge r">Yiqilgan</span>{% endif %}</td>
+              <td></td>
+            </tr>
+            {% for a in g.attempts %}
+              <tr>
+                <td style="padding-left:34px;color:#64748b">↳ {{ forloop.counter }}-urinish</td>
+                <td class="num"><span class="td-score {% if a.score >= 80 %}hi{% elif a.score >= 60 %}mid{% else %}lo{% endif %}">{{ a.score }}%</span></td>
+                <td class="num">{{ a.correct }} / {{ a.total }}</td>
+                <td>{% if a.passed %}<span class="td-badge g">O'tdi</span>{% else %}<span class="td-badge r">Yiqildi</span>{% endif %}</td>
+                <td>{{ a.finished_at|date:"d.m.Y H:i" }}</td>
+              </tr>
+            {% endfor %}
+          {% empty %}
+            <tr><td colspan="5" class="td-empty">Bu testni hali hech kim ishlamagan.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ── Question-level analysis ── #}
+  <div class="td-card">
+    <div class="h"><i class="bi bi-question-circle"></i> Savollar tahlili <span style="font-weight:500;color:#8a92a6;font-size:.85rem">— eng ko'p xato qilingani yuqorida</span></div>
+    <div class="td-scroll">
+      <table class="td-table">
+        <thead>
+          <tr><th>#</th><th>Savol</th><th class="num">Javob berildi</th><th class="num">To'g'ri</th><th class="num">Xato</th><th style="min-width:140px">Xato darajasi</th></tr>
+        </thead>
+        <tbody>
+          {% for q in detail.question_stats %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ q.text|truncatechars:90 }}</td>
+              <td class="num">{{ q.answered }}</td>
+              <td class="num">{{ q.correct }}</td>
+              <td class="num">{{ q.wrong }}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div class="td-bar"><span style="width:{{ q.error_rate }}%"></span></div>
+                  <span style="font-size:.8rem;font-weight:600;color:#64748b">{{ q.error_rate }}%</span>
+                </div>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="td-empty">Savollar bo'yicha ma'lumot yo'q.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

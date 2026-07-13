@@ -19,6 +19,7 @@ from django.utils import timezone
 from django.views import View
 from django.views.generic import TemplateView
 
+from . import analytics
 from .models import Attempt, Quiz, QuizRetryPayment
 from .permissions import can_take_quiz, quiz_prerequisites_met
 
@@ -464,3 +465,56 @@ class QuizRetryPaymentRejectView(QuizRetryPaymentReviewMixin, View):
             payment.save(update_fields=['status', 'reviewed_by', 'reviewed_at', 'reject_reason'])
             messages.success(request, f"{payment.student.full_name}ning to'lovi rad etildi.")
         return redirect('quizui:quiz_retry_payment_list')
+
+
+# ============================================================
+# Test hulosalari (test summary / analytics) -- Admin & Teacher panels
+# ============================================================
+
+def _summary_scope(user):
+    """Return ``(allowed_profession_ids, professions_for_filter)``.
+
+    Admins/assistant-admins see every course (``None`` = no restriction);
+    a pure teacher is scoped to the courses they teach."""
+    from accounts.models import Profession
+
+    if user.is_admin or user.is_assistant_admin:
+        return None, Profession.objects.order_by('name')
+    professions = user.teaching_professions.order_by('name')
+    return set(professions.values_list('id', flat=True)), professions
+
+
+class TestSummaryView(QuizStaffRequiredMixin, TemplateView):
+    """"Test hulosalari" overview: which student solved which test how many
+    times, with course/lesson context and pass indicators."""
+    template_name = 'quiz/test_summary.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        allowed, professions = _summary_scope(self.request.user)
+        context.update(analytics.build_summary_context(
+            allowed_profession_ids=allowed,
+            professions=professions,
+            summary_url_name='quizui:test_summary',
+            detail_url_name='quizui:test_summary_detail',
+            course_id=self.request.GET.get('course', ''),
+            q=self.request.GET.get('q', ''),
+            source=self.request.GET.get('source', ''),
+            page=self.request.GET.get('page') or 1,
+        ))
+        return context
+
+
+class TestSummaryDetailView(QuizStaffRequiredMixin, TemplateView):
+    """Per-test drill-down: every student's attempts + question-level analysis."""
+    template_name = 'quiz/test_summary_detail.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        allowed, _ = _summary_scope(self.request.user)
+        context.update(analytics.build_detail_context(
+            ref_key=self.kwargs.get('ref', ''),
+            allowed_profession_ids=allowed,
+            back_url_name='quizui:test_summary',
+        ))
+        return context
