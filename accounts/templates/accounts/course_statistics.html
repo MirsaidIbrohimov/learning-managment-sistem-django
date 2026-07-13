@@ -432,6 +432,24 @@
 .filter-chip.active { background: linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border-color: transparent; }
 
 .table-empty-row td { text-align: center; padding: 2.25rem 1rem; color: var(--stat-muted); }
+
+/* ── Server-rendered progress gradients (JS'siz ham ishlaydi) ── */
+.mini-progress-fill.p-high  { background: linear-gradient(90deg,#22c55e,#16a34a); }
+.mini-progress-fill.p-medium{ background: linear-gradient(90deg,#f59e0b,#eab308); }
+.mini-progress-fill.p-low   { background: linear-gradient(90deg,#ef4444,#dc2626); }
+
+/* ── Tushuntirish banneri va bo'sh holatlar ── */
+.stat-note {
+    display: flex; gap: .75rem; align-items: flex-start;
+    background: rgba(99,102,241,.07); border: 1px solid rgba(99,102,241,.22);
+    border-radius: 16px; padding: .95rem 1.15rem; margin-bottom: 1.5rem;
+    color: var(--stat-text); font-size: .9rem; line-height: 1.5;
+    opacity: 0; animation: fadeInUp .6s ease .15s forwards;
+}
+.stat-note i { color: #6366f1; font-size: 1.25rem; margin-top: 1px; flex-shrink: 0; }
+.section-hint { font-size: .82rem; color: var(--stat-muted); font-weight: 500; }
+.empty-state { text-align: center; padding: 2.5rem 1rem; color: var(--stat-muted); }
+.empty-state i { font-size: 2.5rem; opacity: .5; display: block; margin-bottom: .6rem; }
 </style>
 {% endblock %}
 
@@ -508,6 +526,18 @@
     </div>
 </div>
 
+{% if overview.total_students == 0 %}
+<div class="stat-note">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>Bu kursga hali hech kim yozilmagan. O'quvchilar yozilgach, ularning natijalari shu yerda avtomatik ko'rinadi.</div>
+</div>
+{% elif not overview.total_test_attempts and not overview.total_hw_submitted %}
+<div class="stat-note">
+    <i class="bi bi-info-circle-fill"></i>
+    <div>O'quvchilar hali test yechmagan yoki vazifa topshirmagan. Faoliyat boshlangach, o'rtacha ballar, o'tish darajasi va reyting avtomatik to'ladi.</div>
+</div>
+{% endif %}
+
 <!-- Charts -->
 <div class="stat-charts">
     <div class="chart-card">
@@ -567,6 +597,9 @@
             <button type="button" class="filter-chip" data-filter="medium"><i class="bi bi-circle-fill text-warning me-1" style="font-size:.55rem;"></i>O'rtacha (40–69%)</button>
             <button type="button" class="filter-chip" data-filter="low"><i class="bi bi-circle-fill text-danger me-1" style="font-size:.55rem;"></i>Past (&lt;40%)</button>
         </div>
+        <div class="section-hint mt-2">
+            <i class="bi bi-lightbulb me-1 text-warning"></i>Umumiy ball = test ballari + vazifa baholari yig'indisi. Progress = bajarilgan darslar ulushi.
+        </div>
     </div>
     <!-- Desktop table -->
     <div class="table-responsive desktop-table">
@@ -585,12 +618,56 @@
                     <th data-sort="coins" class="sortable d-none d-sm-table-cell">Coin<i class="bi bi-arrow-down-up sort-ico"></i></th>
                 </tr>
             </thead>
-            <tbody id="studentTableBody"></tbody>
+            <tbody id="studentTableBody">
+                {% for s in stats_data.students %}
+                <tr class="student-row{% if s.id == request.user.pk %} current-user-row{% endif %}">
+                    <td><span class="rank-badge {% if s.rank == 1 %}rank-1{% elif s.rank == 2 %}rank-2{% elif s.rank == 3 %}rank-3{% else %}rank-other{% endif %}">{% if s.rank == 1 %}<i class="bi bi-trophy-fill"></i>{% elif s.rank == 2 %}<i class="bi bi-award-fill"></i>{% elif s.rank == 3 %}<i class="bi bi-star-fill"></i>{% else %}{{ s.rank }}{% endif %}</span></td>
+                    <td><div class="student-name-cell">{% if s.photo_url %}<img src="{{ s.photo_url }}" class="student-avatar" alt="">{% else %}<div class="student-avatar-placeholder">{{ s.initial }}</div>{% endif %}<span class="student-name">{{ s.name }}</span></div></td>
+                    <td><span class="fw-bold fs-6" style="color:#6366f1;">{{ s.total_score }}</span></td>
+                    <td><span class="score-badge {% if s.test_avg >= 80 %}score-high{% elif s.test_avg >= 50 %}score-medium{% else %}score-low{% endif %}">{{ s.test_avg }}%</span></td>
+                    <td><span class="text-primary fw-bold">{{ s.test_count }}</span> <span class="text-muted small">marta</span></td>
+                    <td><span class="score-badge {% if s.hw_avg >= 8 %}score-high{% elif s.hw_avg >= 5 %}score-medium{% else %}score-low{% endif %}">{{ s.hw_avg }}/10</span></td>
+                    <td><span class="text-danger fw-bold">{{ s.hw_count }}</span> <span class="text-muted small">ta</span></td>
+                    <td class="d-none d-md-table-cell"><i class="bi bi-play-circle-fill text-primary me-1"></i>{{ s.videos_watched }}</td>
+                    <td><div class="d-flex align-items-center gap-1"><div class="mini-progress"><div class="mini-progress-fill {% if s.progress >= 70 %}p-high{% elif s.progress >= 40 %}p-medium{% else %}p-low{% endif %}" style="width:{{ s.progress }}%;"></div></div><span class="small fw-bold">{{ s.progress }}%</span></div></td>
+                    <td class="d-none d-sm-table-cell"><span class="coin-display"><i class="bi bi-coin"></i> {{ s.coins }}</span></td>
+                </tr>
+                {% empty %}
+                <tr class="table-empty-row"><td colspan="10"><i class="bi bi-inbox fs-1 d-block mb-2 opacity-50"></i>Hali o'quvchi yo'q</td></tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 
     <!-- Mobile card layout -->
-    <div class="mobile-student-cards p-3" id="studentCards"></div>
+    <div class="mobile-student-cards p-3" id="studentCards">
+        {% for s in stats_data.students %}
+        <div class="m-student-card student-row{% if s.id == request.user.pk %} current-user-card{% endif %}">
+            <div class="m-card-top">
+                <div class="m-card-rank {% if s.rank == 1 %}rank-1{% elif s.rank == 2 %}rank-2{% elif s.rank == 3 %}rank-3{% else %}rank-other{% endif %}">{% if s.rank == 1 %}<i class="bi bi-trophy-fill"></i>{% elif s.rank == 2 %}<i class="bi bi-award-fill"></i>{% elif s.rank == 3 %}<i class="bi bi-star-fill"></i>{% else %}{{ s.rank }}{% endif %}</div>
+                {% if s.photo_url %}<img src="{{ s.photo_url }}" class="m-card-avatar" alt="">{% else %}<div class="m-card-avatar-ph">{{ s.initial }}</div>{% endif %}
+                <div class="m-card-name">{{ s.name }}</div>
+                <div class="m-card-total">{{ s.total_score }}</div>
+            </div>
+            <div class="m-card-stats">
+                <div class="m-card-stat"><i class="bi bi-journal-check text-warning"></i><span>Test:</span><span class="m-stat-val">{{ s.test_avg }}%</span></div>
+                <div class="m-card-stat"><i class="bi bi-arrow-repeat text-primary"></i><span>Urinish:</span><span class="m-stat-val">{{ s.test_count }}</span></div>
+                <div class="m-card-stat"><i class="bi bi-pencil-square text-danger"></i><span>Vazifa:</span><span class="m-stat-val">{{ s.hw_avg }}/10</span></div>
+                <div class="m-card-stat"><i class="bi bi-send-check text-danger"></i><span>Topsh:</span><span class="m-stat-val">{{ s.hw_count }} ta</span></div>
+                <div class="m-card-stat"><i class="bi bi-play-circle text-primary"></i><span>Video:</span><span class="m-stat-val">{{ s.videos_watched }}</span></div>
+                <div class="m-card-stat"><i class="bi bi-coin text-warning"></i><span>Coin:</span><span class="m-stat-val">{{ s.coins }}</span></div>
+            </div>
+            <div class="mt-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="mini-progress" style="flex:1; width:auto;"><div class="mini-progress-fill {% if s.progress >= 70 %}p-high{% elif s.progress >= 40 %}p-medium{% else %}p-low{% endif %}" style="width:{{ s.progress }}%;"></div></div>
+                    <span class="small fw-bold" style="color:var(--stat-text);">{{ s.progress }}%</span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state"><i class="bi bi-inbox"></i>Hali o'quvchi yo'q</div>
+        {% endfor %}
+    </div>
 </div>
 
 </div>
@@ -820,16 +897,21 @@
     new MutationObserver(function () { renderCharts(); })
         .observe(document.documentElement, { attributes: true, attributeFilter: ['data-bs-theme'] });
 
-    // Load Chart.js (CDN) if absent, then render everything
-    if (typeof Chart === 'undefined') {
+    // Core statistika (KPI + jadval) server tomonda allaqachon chizilgan — JS'siz
+    // ham to'liq ko'rinadi. Grafiklar esa IXTIYORIY: alohida, bloklamasdan yuklanadi.
+    // Internet yoki CDN ishlamasa ham jadval va ko'rsatkichlar yo'qolmaydi.
+    (function loadCharts() {
+        function done() { try { renderCharts(); } catch (e) {} }
+        if (typeof Chart !== 'undefined') { done(); return; }
         var sc = document.createElement('script');
-        sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js';
-        sc.onload = renderAll;
-        sc.onerror = renderAll;
+        sc.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+        sc.onload = done;
+        sc.onerror = function () {
+            var wrap = document.querySelector('.stat-charts');
+            if (wrap) wrap.style.display = 'none';
+        };
         document.head.appendChild(sc);
-    } else {
-        renderAll();
-    }
+    })();
 })();
 </script>
 {% endblock %}

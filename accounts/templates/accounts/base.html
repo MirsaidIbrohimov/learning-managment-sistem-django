@@ -835,6 +835,9 @@
     .navbar.nb .nb-brand-text { color: var(--text); }
 
     /* ── Responsive ── */
+    /* Mobil-only elementlar (masalan, offcanvas ochuvchi avatar) — desktop
+       breakpoint bilan BIR XIL chegarada (1200px) almashinadi. Aks holda
+       992–1199px oralig'ida avatar butunlay ko'rinmay qolardi. */
     @media (max-width: 1199px) {
       .nb-links-desktop { display: none !important; }
       .nb-hamburger { display: flex; }
@@ -843,6 +846,39 @@
     }
     @media (min-width: 1200px) {
       .nb-hamburger { display: none !important; }
+      .nb-mobile-only { display: none !important; }
+    }
+
+    /* ── Telefon (≤767px): kam ishlatiladigan tugmalarni yashirish ──
+       O'ng zonada joy ochiladi — qidiruv panel menyusidan topiladi. */
+    @media (max-width: 767px) {
+      .nb-phone-hide { display: none !important; }
+      /* Mobilda faqat logo ko'rinadi — brand matni ("IT | Shaharcha") yashiriladi.
+         Faqat yuqori navbarga tegishli; hamburger panel o'z brendini saqlaydi. */
+      .navbar.nb .nb-brand-text { display: none; }
+      .navbar.nb .nb-brand { gap: 0; }
+    }
+
+    /* ── Kichik telefon (≤575px): ixcham rejim ──
+       Brand matni yashirinadi (logo qoladi), tugmalar kichrayadi —
+       navbar hech qachon gorizontal toshib ketmaydi. */
+    @media (max-width: 575px) {
+      .navbar.nb {
+        top: 8px; margin-top: 8px;
+        width: calc(100% - 16px);
+        border-radius: 18px;
+      }
+      .nb-inner { padding: 0 0.5rem; gap: 4px; }
+      .nb-right { gap: 4px; }
+      .nb-brand { padding: 3px; gap: 0; }
+      .nb-brand-text { display: none; }
+      .nb-brand-icon { width: 34px; height: 34px; }
+      .nb-icon-btn { width: 34px; height: 34px; border-radius: 9px; }
+      .nb-icon-btn i { font-size: 0.9rem; }
+      .nb-hamburger { width: 34px; height: 34px; }
+      .nb-avatar, .nb-avatar-init { width: 32px; height: 32px; }
+      .nb-avatar-btn { padding: 2px; }
+      .nb-badge { min-width: 15px; height: 15px; font-size: 0.55rem; top: -3px; right: -3px; }
     }
 
     /* ── Mobile backdrop ── */
@@ -1009,8 +1045,8 @@
         <!-- Right zone -->
         <div class="nb-right">
 
-          <!-- Search -->
-          <a href="{% url 'global_search' %}" class="nb-icon-btn" title="Qidirish" aria-label="Qidirish"><i class="bi bi-search"></i></a>
+          <!-- Search (telefonda yashirin — panel menyusida bor) -->
+          <a href="{% url 'global_search' %}" class="nb-icon-btn nb-phone-hide" title="Qidirish" aria-label="Qidirish"><i class="bi bi-search"></i></a>
 
           <!-- Social dropdown (desktop) -->
           <div class="dropdown nb-desktop-only">
@@ -1048,8 +1084,8 @@
             <i class="bi bi-coin"></i>{{ user.coins|default:0 }}
           </a>
 
-          <!-- Divider -->
-          <div class="nb-divider"></div>
+          <!-- Divider (telefonda yashirin) -->
+          <div class="nb-divider nb-phone-hide"></div>
 
           <!-- Theme Toggle (top nav — desktop) -->
           <button class="nb-icon-btn nb-theme-top" id="themeToggleTop" aria-label="Mavzuni almashtirish" style="cursor:pointer;">
@@ -1116,8 +1152,8 @@
             </ul>
           </div>
 
-          <!-- Mobile: avatar (offcanvas) -->
-          <a class="nb-avatar-btn d-lg-none" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu">
+          <!-- Mobile: avatar (offcanvas) — desktop bilan bir xil 1200px chegarada -->
+          <a class="nb-avatar-btn nb-mobile-only" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu">
             {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
             {% else %}<div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
             <span class="nb-online-dot"></span>
@@ -1153,6 +1189,7 @@
       </div>
       <div class="nb-mobile-nav">
         <div class="nb-mobile-section-title">Asosiy</div>
+        <a class="nb-mobile-link" href="{% url 'global_search' %}"><i class="bi bi-search"></i>Qidiruv</a>
         <a class="nb-mobile-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}"><i class="bi bi-house-fill"></i>Bosh sahifa</a>
         <a class="nb-mobile-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}"><i class="bi bi-book-fill"></i>Kurslar</a>
         {% if user.is_authenticated and user.role != 'admin' and user.role != 'assistant_admin' %}
