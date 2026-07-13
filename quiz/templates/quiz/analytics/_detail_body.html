@@ -7,176 +7,360 @@ Expected context:
 {% endcomment %}
 
 <style>
-  .td-wrap { --td-radius: 10px; --td-ink: #1f2733; --td-muted: #8a92a6; --td-line: rgba(0,0,0,.06); font-size: 13.5px; }
-  .td-back { display:inline-flex; align-items:center; gap:5px; color:#2563eb; text-decoration:none; font-weight:600; font-size:.8rem; margin-bottom:10px; }
-  .td-back:hover { text-decoration: underline; }
+  .tx {
+    --tx-ink: #0f172a;
+    --tx-muted: #64748b;
+    --tx-line: #e5e9f2;
+    --tx-bg: #f8fafc;
+    --tx-radius: 12px;
+    --tx-accent: #6366f1;
+    --tx-hi: #10b981;
+    --tx-mid: #f59e0b;
+    --tx-lo: #ef4444;
+    font-size: 13px;
+    color: var(--tx-ink);
+    padding-bottom: 10px;
+  }
 
-  /* Compact header: title + meta chips + KPI strip all in one card */
-  .td-hero { background: var(--card-bg,#fff); border:1px solid var(--td-line); border-radius:var(--td-radius); box-shadow:0 1px 2px rgba(0,0,0,.04); margin-bottom:14px; overflow:hidden; }
-  .td-hero-top { padding:12px 16px; border-bottom:1px solid var(--td-line); }
-  .td-hero-top h2 { margin:0 0 6px; font-size:1.05rem; font-weight:700; color:var(--td-ink); line-height:1.25; }
-  .td-meta { display:flex; flex-wrap:wrap; gap:5px; }
-  .td-meta .chip { font-size:.7rem; padding:2px 8px; border-radius:999px; background:#eef2f7; color:#475569; font-weight:600; }
-  .td-meta .chip.b { background:#dbeafe; color:#1d4ed8; }
+  /* ─── Back link ─── */
+  .tx-back {
+    display:inline-flex; align-items:center; gap:6px;
+    color:var(--tx-muted); text-decoration:none; font-weight:500;
+    font-size:.78rem; margin-bottom:12px;
+    transition: color .15s;
+  }
+  .tx-back:hover { color: var(--tx-accent); }
 
-  .td-kpis { display:grid; grid-template-columns:repeat(5,1fr); }
-  .td-kpi { padding:10px 14px; border-right:1px solid var(--td-line); }
-  .td-kpi:last-child { border-right:0; }
-  .td-kpi .lbl { font-size:.65rem; text-transform:uppercase; letter-spacing:.04em; color:var(--td-muted); margin-bottom:2px; font-weight:600; }
-  .td-kpi .val { font-size:1.15rem; font-weight:700; color:var(--td-ink); line-height:1.1; }
-  .td-kpi .val small { font-size:.7rem; font-weight:600; color:var(--td-muted); margin-left:1px; }
-  .td-kpi.pass .val { color:#16a34a; }
-  .td-kpi.avg  .val { color:#d97706; }
-  @media (max-width: 720px) { .td-kpis { grid-template-columns:repeat(2,1fr); } .td-kpi { border-bottom:1px solid var(--td-line); } }
+  /* ─── Hero: gradient banner with title + inline stats ─── */
+  .tx-hero {
+    position: relative;
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 45%, #a855f7 100%);
+    border-radius: var(--tx-radius);
+    padding: 18px 22px 60px;
+    color: #fff;
+    overflow: hidden;
+    margin-bottom: 46px;
+  }
+  .tx-hero::before {
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(circle at 88% 20%, rgba(255,255,255,.14), transparent 45%),
+      radial-gradient(circle at 15% 90%, rgba(255,255,255,.10), transparent 40%);
+    pointer-events:none;
+  }
+  .tx-hero-eyebrow {
+    font-size:.68rem; text-transform:uppercase; letter-spacing:.12em;
+    opacity:.75; margin-bottom:6px; font-weight:600;
+  }
+  .tx-hero h1 {
+    margin:0 0 10px; font-size:1.4rem; font-weight:700;
+    line-height:1.25; letter-spacing:-.01em;
+  }
+  .tx-hero-meta { display:flex; flex-wrap:wrap; gap:6px; position:relative; }
+  .tx-hero-meta .m {
+    font-size:.7rem; padding:3px 10px; border-radius:999px;
+    background: rgba(255,255,255,.16); color:#fff; font-weight:600;
+    backdrop-filter: blur(4px);
+  }
+  .tx-hero-meta .m.dot::before { content:"●"; margin-right:5px; font-size:.55rem; }
 
-  .td-card { background:var(--card-bg,#fff); border:1px solid var(--td-line); border-radius:var(--td-radius); box-shadow:0 1px 2px rgba(0,0,0,.04); margin-bottom:14px; overflow:hidden; }
-  .td-card > .h { padding:9px 14px; border-bottom:1px solid var(--td-line); font-weight:700; color:var(--td-ink); display:flex; align-items:center; gap:7px; font-size:.85rem; background:rgba(0,0,0,.015); }
-  .td-card > .h .muted { font-weight:500; color:var(--td-muted); font-size:.75rem; }
+  /* Stat strip: floats on top of hero bottom */
+  .tx-stats {
+    position: relative;
+    margin: -40px 12px 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px -8px rgba(15,23,42,.18), 0 2px 6px rgba(15,23,42,.06);
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    overflow: hidden;
+  }
+  .tx-stat { padding: 12px 14px; border-right:1px solid var(--tx-line); position:relative; }
+  .tx-stat:last-child { border-right:0; }
+  .tx-stat .k { font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--tx-muted); font-weight:700; margin-bottom:4px; }
+  .tx-stat .v { font-size:1.3rem; font-weight:800; line-height:1; letter-spacing:-.02em; }
+  .tx-stat .v small { font-size:.72rem; font-weight:600; color:var(--tx-muted); margin-left:1px; }
+  .tx-stat .accent { position:absolute; top:0; left:0; width:100%; height:3px; }
+  .tx-stat[data-t="attempts"] .accent { background: #6366f1; }
+  .tx-stat[data-t="students"] .accent { background: #06b6d4; }
+  .tx-stat[data-t="passed"] .accent { background: #10b981; }
+  .tx-stat[data-t="pass"] .accent { background: #22c55e; }
+  .tx-stat[data-t="avg"] .accent { background: #f59e0b; }
+  .tx-stat[data-t="pass"] .v { color: #10b981; }
+  .tx-stat[data-t="avg"] .v { color: #f59e0b; }
+  @media (max-width: 780px) {
+    .tx-stats { grid-template-columns: repeat(2, 1fr); margin: -30px 6px 0; }
+    .tx-stat { border-bottom: 1px solid var(--tx-line); }
+  }
 
-  .td-table { width:100%; border-collapse:collapse; font-size:.82rem; }
-  .td-table th, .td-table td { padding:7px 12px; text-align:left; border-bottom:1px solid rgba(0,0,0,.04); vertical-align:middle; }
-  .td-table th { font-size:.66rem; text-transform:uppercase; letter-spacing:.03em; color:var(--td-muted); background:rgba(0,0,0,.02); font-weight:700; }
-  .td-table tbody tr:last-child td { border-bottom:0; }
-  .td-table .num { text-align:right; font-variant-numeric:tabular-nums; }
-  .td-scroll { overflow-x:auto; }
+  /* ─── Two-column layout ─── */
+  .tx-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 14px;
+  }
+  @media (max-width: 980px) { .tx-grid { grid-template-columns: 1fr; } }
 
-  .td-badge { display:inline-block; padding:1px 7px; border-radius:999px; font-size:.68rem; font-weight:600; line-height:1.4; }
-  .td-badge.g { background:#dcfce7; color:#15803d; } .td-badge.r { background:#fee2e2; color:#b91c1c; }
-  .td-badge.b { background:#dbeafe; color:#1d4ed8; } .td-badge.n { background:#eef2f7; color:#64748b; }
+  .tx-panel {
+    background: #fff;
+    border: 1px solid var(--tx-line);
+    border-radius: var(--tx-radius);
+    overflow: hidden;
+  }
+  .tx-panel-h {
+    padding: 12px 16px;
+    display:flex; align-items:center; gap:8px;
+    border-bottom:1px solid var(--tx-line);
+    background: #fafbfc;
+  }
+  .tx-panel-h .icon {
+    width:26px; height:26px; border-radius:8px;
+    background: rgba(99,102,241,.12); color:var(--tx-accent);
+    display:inline-flex; align-items:center; justify-content:center; font-size:.85rem;
+  }
+  .tx-panel-h .icon.warn { background: rgba(239,68,68,.12); color: var(--tx-lo); }
+  .tx-panel-h .t { font-weight:700; font-size:.88rem; letter-spacing:-.005em; }
+  .tx-panel-h .sub { font-size:.72rem; color:var(--tx-muted); margin-left:auto; }
 
-  /* Student groupings — nested style */
-  .td-student-row td { background:rgba(37,99,235,.04); font-weight:600; }
-  .td-student-row td:first-child { border-left:3px solid #2563eb; }
-  .td-attempt td { color:#64748b; font-size:.78rem; }
-  .td-attempt td:first-child { padding-left:28px; }
-  .td-attempt td:first-child::before { content:"↳ "; color:#94a3b8; }
+  /* ─── Student cards ─── */
+  .tx-students { padding: 8px; display:flex; flex-direction:column; gap:6px; max-height: 600px; overflow-y:auto; }
+  .tx-students::-webkit-scrollbar { width:6px; }
+  .tx-students::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:6px; }
 
-  .td-score { font-weight:700; }
-  .td-score.hi { color:#16a34a; } .td-score.mid { color:#d97706; } .td-score.lo { color:#dc2626; }
+  .tx-stu {
+    border: 1px solid var(--tx-line);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: box-shadow .18s;
+  }
+  .tx-stu:hover { box-shadow: 0 2px 8px rgba(15,23,42,.06); }
+  .tx-stu summary {
+    padding: 8px 12px;
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 10px;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+    background: #fff;
+  }
+  .tx-stu summary::-webkit-details-marker { display:none; }
+  .tx-stu summary::after {
+    content:"▾"; color:var(--tx-muted); font-size:.7rem; transition: transform .2s;
+  }
+  .tx-stu[open] summary::after { transform: rotate(180deg); }
+  .tx-stu-name { font-weight:600; font-size:.85rem; display:flex; align-items:center; gap:6px; min-width:0; }
+  .tx-stu-name .n { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tx-stu-code { font-size:.65rem; padding:1px 6px; border-radius:5px; background:#eef2f7; color:#64748b; font-weight:600; flex-shrink:0; }
+  .tx-tries { font-size:.68rem; padding:2px 7px; border-radius:999px; background: rgba(99,102,241,.1); color: var(--tx-accent); font-weight:700; }
+  .tx-score-pill {
+    font-size:.78rem; font-weight:800; padding:3px 10px; border-radius:8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .tx-score-pill.hi { background: rgba(16,185,129,.12); color:#059669; }
+  .tx-score-pill.mid { background: rgba(245,158,11,.14); color:#b45309; }
+  .tx-score-pill.lo { background: rgba(239,68,68,.12); color:#b91c1c; }
+  .tx-status-dot { width:8px; height:8px; border-radius:50%; }
+  .tx-status-dot.pass { background: var(--tx-hi); box-shadow: 0 0 0 3px rgba(16,185,129,.15); }
+  .tx-status-dot.fail { background: var(--tx-lo); box-shadow: 0 0 0 3px rgba(239,68,68,.15); }
 
-  .td-bar { height:6px; border-radius:4px; background:#eef2f7; overflow:hidden; min-width:70px; flex:1; }
-  .td-bar > span { display:block; height:100%; background:#dc2626; }
-  .td-bar.lo > span { background:#16a34a; }
-  .td-bar.mid > span { background:#d97706; }
+  .tx-stu-body { background: #fafbfc; border-top: 1px solid var(--tx-line); padding: 6px 10px 8px; }
+  .tx-attempt {
+    display:grid;
+    grid-template-columns: 24px 1fr auto auto auto;
+    gap:10px; align-items:center;
+    padding: 6px 8px;
+    font-size:.76rem;
+    border-radius:6px;
+  }
+  .tx-attempt + .tx-attempt { border-top:1px dashed #e2e8f0; }
+  .tx-attempt .idx { color:var(--tx-muted); font-weight:600; font-variant-numeric:tabular-nums; }
+  .tx-attempt .frac { color:var(--tx-muted); font-variant-numeric: tabular-nums; }
+  .tx-attempt .sc { font-weight:700; font-variant-numeric: tabular-nums; }
+  .tx-attempt .sc.hi{color:#059669} .tx-attempt .sc.mid{color:#b45309} .tx-attempt .sc.lo{color:#b91c1c}
+  .tx-attempt .st { font-size:.65rem; padding:1px 7px; border-radius:999px; font-weight:700; }
+  .tx-attempt .st.p { background: rgba(16,185,129,.14); color:#059669; }
+  .tx-attempt .st.f { background: rgba(239,68,68,.14); color:#b91c1c; }
+  .tx-attempt .date { color:var(--tx-muted); font-variant-numeric: tabular-nums; }
 
-  .td-empty { padding:22px; text-align:center; color:var(--td-muted); font-size:.85rem; }
+  /* ─── Question ranked list ─── */
+  .tx-qs { padding: 6px; max-height: 600px; overflow-y:auto; }
+  .tx-qs::-webkit-scrollbar { width:6px; }
+  .tx-qs::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:6px; }
+  .tx-q {
+    padding: 9px 12px;
+    border-radius: 8px;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 10px;
+    align-items: start;
+  }
+  .tx-q:hover { background: #f8fafc; }
+  .tx-q + .tx-q { border-top: 1px solid var(--tx-line); border-radius: 0; }
 
+  .tx-q-rank {
+    width:24px; height:24px; border-radius:6px;
+    background:#eef2f7; color:#475569;
+    display:flex; align-items:center; justify-content:center;
+    font-size:.72rem; font-weight:700; font-variant-numeric:tabular-nums;
+  }
+  .tx-q.crit .tx-q-rank { background: rgba(239,68,68,.12); color: var(--tx-lo); }
+  .tx-q.warn .tx-q-rank { background: rgba(245,158,11,.14); color: #b45309; }
+  .tx-q.ok .tx-q-rank { background: rgba(16,185,129,.12); color: #059669; }
+
+  .tx-q-text { font-size:.82rem; line-height:1.35; margin-bottom:5px; color:#1e293b; }
+  .tx-q-meter {
+    display:flex; align-items:center; gap:8px;
+  }
+  .tx-q-bar {
+    flex:1; height:5px; background:#eef2f7; border-radius:3px; overflow:hidden;
+  }
+  .tx-q-bar > span { display:block; height:100%; border-radius:3px; }
+  .tx-q.crit .tx-q-bar > span { background: linear-gradient(90deg,#ef4444,#dc2626); }
+  .tx-q.warn .tx-q-bar > span { background: linear-gradient(90deg,#f59e0b,#d97706); }
+  .tx-q.ok .tx-q-bar > span { background: linear-gradient(90deg,#10b981,#059669); }
+  .tx-q-stats { font-size:.68rem; color:var(--tx-muted); display:flex; gap:8px; font-variant-numeric:tabular-nums; }
+  .tx-q-stats b { color:#334155; font-weight:700; }
+  .tx-q-err {
+    font-size:.72rem; font-weight:800; min-width:38px; text-align:right;
+    font-variant-numeric:tabular-nums;
+  }
+  .tx-q.crit .tx-q-err { color: var(--tx-lo); }
+  .tx-q.warn .tx-q-err { color: #b45309; }
+  .tx-q.ok .tx-q-err { color: #059669; }
+
+  /* ─── Empty ─── */
+  .tx-empty {
+    padding: 30px 16px; text-align:center; color:var(--tx-muted); font-size:.85rem;
+  }
+  .tx-empty i { font-size:1.5rem; opacity:.4; display:block; margin-bottom:6px; }
+
+  /* ─── Dark mode ─── */
   @media (prefers-color-scheme: dark) {
-    .td-hero, .td-card { background: var(--card-bg, #1e2430); border-color: rgba(255,255,255,.07); }
-    .td-hero-top h2, .td-kpi .val, .td-card > .h { color:#e6eaf2; }
+    .tx { --tx-ink:#e6eaf2; --tx-line: rgba(255,255,255,.08); --tx-muted:#94a3b8; }
+    .tx-stats, .tx-panel { background:#1e2430; }
+    .tx-panel-h { background: rgba(255,255,255,.02); }
+    .tx-stu summary { background:#1e2430; }
+    .tx-stu-body { background: rgba(255,255,255,.02); }
+    .tx-stu-code { background: rgba(255,255,255,.06); color:#cbd5e1; }
+    .tx-q:hover { background: rgba(255,255,255,.03); }
+    .tx-q-rank { background: rgba(255,255,255,.06); color:#cbd5e1; }
+    .tx-q-bar { background: rgba(255,255,255,.06); }
+    .tx-q-text { color:#e6eaf2; }
   }
 </style>
 
-<div class="td-wrap">
-  <a class="td-back" href="{% url back_url_name %}"><i class="bi bi-arrow-left"></i> Test hulosalariga qaytish</a>
+<div class="tx">
+  <a class="tx-back" href="{% url back_url_name %}"><i class="bi bi-arrow-left"></i> Test hulosalariga qaytish</a>
 
-  {# ── Hero: title + meta + inline KPI strip ── #}
-  <div class="td-hero">
-    <div class="td-hero-top">
-      <h2>{{ detail.title }}</h2>
-      <div class="td-meta">
-        <span class="chip b">{{ detail.course_name }}</span>
-        {% if detail.lesson_order is not None %}<span class="chip">Dars {{ detail.lesson_order }}</span>{% endif %}
-        {% if detail.section_title %}<span class="chip">{{ detail.section_title }}</span>{% endif %}
-        <span class="chip">Savollar: {{ detail.question_count }}</span>
-        {% if detail.passing_score is not None %}<span class="chip">O'tish: {{ detail.passing_score }}%</span>{% endif %}
-        <span class="chip">{% if detail.ref.source == 'quiz' %}Yangi tizim{% else %}Eski tizim{% endif %}</span>
+  {# ─── Hero banner ─── #}
+  <div class="tx-hero">
+    <div class="tx-hero-eyebrow">Test tafsiloti</div>
+    <h1>{{ detail.title }}</h1>
+    <div class="tx-hero-meta">
+      <span class="m dot">{{ detail.course_name }}</span>
+      {% if detail.lesson_order is not None %}<span class="m">Dars {{ detail.lesson_order }}</span>{% endif %}
+      {% if detail.section_title %}<span class="m">{{ detail.section_title }}</span>{% endif %}
+      <span class="m">{{ detail.question_count }} savol</span>
+      {% if detail.passing_score is not None %}<span class="m">O'tish: {{ detail.passing_score }}%</span>{% endif %}
+      <span class="m">{% if detail.ref.source == 'quiz' %}Yangi tizim{% else %}Eski tizim{% endif %}</span>
+    </div>
+  </div>
+
+  {# ─── Floating stat strip ─── #}
+  <div class="tx-stats">
+    <div class="tx-stat" data-t="attempts"><span class="accent"></span>
+      <div class="k">Urinishlar</div><div class="v">{{ detail.overview.attempts }}</div>
+    </div>
+    <div class="tx-stat" data-t="students"><span class="accent"></span>
+      <div class="k">O'quvchilar</div><div class="v">{{ detail.overview.students }}</div>
+    </div>
+    <div class="tx-stat" data-t="passed"><span class="accent"></span>
+      <div class="k">O'tganlar</div><div class="v">{{ detail.overview.passed }}</div>
+    </div>
+    <div class="tx-stat" data-t="pass"><span class="accent"></span>
+      <div class="k">O'tish %</div><div class="v">{{ detail.overview.pass_rate }}<small>%</small></div>
+    </div>
+    <div class="tx-stat" data-t="avg"><span class="accent"></span>
+      <div class="k">O'rtacha</div><div class="v">{{ detail.overview.avg_score }}<small>%</small></div>
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
+
+  {# ─── Two-column grid ─── #}
+  <div class="tx-grid">
+
+    {# ─ Students (left) ─ #}
+    <div class="tx-panel">
+      <div class="tx-panel-h">
+        <span class="icon"><i class="bi bi-people-fill"></i></span>
+        <span class="t">O'quvchilar</span>
+        <span class="sub">{{ detail.overview.students }} kishi · bosib ochish</span>
       </div>
-    </div>
-    <div class="td-kpis">
-      <div class="td-kpi"><div class="lbl">Urinishlar</div><div class="val">{{ detail.overview.attempts }}</div></div>
-      <div class="td-kpi"><div class="lbl">O'quvchilar</div><div class="val">{{ detail.overview.students }}</div></div>
-      <div class="td-kpi"><div class="lbl">O'tganlar</div><div class="val">{{ detail.overview.passed }}</div></div>
-      <div class="td-kpi pass"><div class="lbl">O'tish %</div><div class="val">{{ detail.overview.pass_rate }}<small>%</small></div></div>
-      <div class="td-kpi avg"><div class="lbl">O'rtacha</div><div class="val">{{ detail.overview.avg_score }}<small>%</small></div></div>
-    </div>
-  </div>
-
-  {# ── Per-student attempts ── #}
-  <div class="td-card">
-    <div class="h"><i class="bi bi-person-lines-fill"></i> O'quvchilar bo'yicha urinishlar
-      <span class="muted">— eng yaxshi ball va har bir urinish</span></div>
-    <div class="td-scroll">
-      <table class="td-table">
-        <thead>
-          <tr>
-            <th style="min-width:220px">O'quvchi / Urinish</th>
-            <th class="num">Ball</th>
-            <th class="num">To'g'ri / Jami</th>
-            <th>Holat</th>
-            <th>Sana</th>
-          </tr>
-        </thead>
-        <tbody>
+      {% if detail.student_groups %}
+        <div class="tx-students">
           {% for g in detail.student_groups %}
-            <tr class="td-student-row">
-              <td>
-                {{ g.student_name }}
-                {% if g.student_code %}<span class="td-badge b">#{{ g.student_code }}</span>{% endif %}
-                <span class="td-badge n">{{ g.attempts|length }}× urinish</span>
-              </td>
-              <td class="num">
-                <span class="td-score {% if g.best_score >= 80 %}hi{% elif g.best_score >= 60 %}mid{% else %}lo{% endif %}">{{ g.best_score }}%</span>
-                <span style="font-size:.68rem;color:#94a3b8;font-weight:500">eng yaxshi</span>
-              </td>
-              <td class="num">—</td>
-              <td>{% if g.ever_passed %}<span class="td-badge g">O'tgan</span>{% else %}<span class="td-badge r">Yiqilgan</span>{% endif %}</td>
-              <td>—</td>
-            </tr>
-            {% for a in g.attempts %}
-              <tr class="td-attempt">
-                <td>{{ forloop.counter }}-urinish</td>
-                <td class="num"><span class="td-score {% if a.score >= 80 %}hi{% elif a.score >= 60 %}mid{% else %}lo{% endif %}">{{ a.score }}%</span></td>
-                <td class="num">{{ a.correct }} / {{ a.total }}</td>
-                <td>{% if a.passed %}<span class="td-badge g">O'tdi</span>{% else %}<span class="td-badge r">Yiqildi</span>{% endif %}</td>
-                <td>{{ a.finished_at|date:"d.m.Y H:i" }}</td>
-              </tr>
-            {% endfor %}
-          {% empty %}
-            <tr><td colspan="5" class="td-empty">Bu testni hali hech kim ishlamagan.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  {# ── Question-level analysis ── #}
-  <div class="td-card">
-    <div class="h"><i class="bi bi-question-circle"></i> Savollar tahlili
-      <span class="muted">— eng ko'p xato qilingani yuqorida</span></div>
-    <div class="td-scroll">
-      <table class="td-table">
-        <thead>
-          <tr>
-            <th style="width:34px">#</th>
-            <th>Savol</th>
-            <th class="num">Berilgan</th>
-            <th class="num">To'g'ri</th>
-            <th class="num">Xato</th>
-            <th style="min-width:150px">Xato darajasi</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for q in detail.question_stats %}
-            <tr>
-              <td style="color:#94a3b8;font-variant-numeric:tabular-nums">{{ forloop.counter }}</td>
-              <td>{{ q.text|truncatechars:90 }}</td>
-              <td class="num">{{ q.answered }}</td>
-              <td class="num" style="color:#16a34a;font-weight:600">{{ q.correct }}</td>
-              <td class="num" style="color:#dc2626;font-weight:600">{{ q.wrong }}</td>
-              <td>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div class="td-bar {% if q.error_rate >= 60 %}{% elif q.error_rate >= 30 %}mid{% else %}lo{% endif %}"><span style="width:{{ q.error_rate }}%"></span></div>
-                  <span style="font-size:.75rem;font-weight:600;color:#64748b;min-width:34px;text-align:right">{{ q.error_rate }}%</span>
+            <details class="tx-stu" {% if forloop.first %}open{% endif %}>
+              <summary>
+                <div class="tx-stu-name">
+                  <span class="n">{{ g.student_name }}</span>
+                  {% if g.student_code %}<span class="tx-stu-code">#{{ g.student_code }}</span>{% endif %}
                 </div>
-              </td>
-            </tr>
-          {% empty %}
-            <tr><td colspan="6" class="td-empty">Savollar bo'yicha ma'lumot yo'q.</td></tr>
+                <span class="tx-tries">{{ g.attempts|length }}×</span>
+                <span class="tx-score-pill {% if g.best_score >= 80 %}hi{% elif g.best_score >= 60 %}mid{% else %}lo{% endif %}">{{ g.best_score }}%</span>
+                <span class="tx-status-dot {% if g.ever_passed %}pass{% else %}fail{% endif %}" title="{% if g.ever_passed %}O'tgan{% else %}Yiqilgan{% endif %}"></span>
+              </summary>
+              <div class="tx-stu-body">
+                {% for a in g.attempts %}
+                  <div class="tx-attempt">
+                    <span class="idx">{{ forloop.counter }}.</span>
+                    <span class="date">{{ a.finished_at|date:"d.m.Y H:i" }}</span>
+                    <span class="frac">{{ a.correct }}/{{ a.total }}</span>
+                    <span class="sc {% if a.score >= 80 %}hi{% elif a.score >= 60 %}mid{% else %}lo{% endif %}">{{ a.score }}%</span>
+                    <span class="st {% if a.passed %}p{% else %}f{% endif %}">{% if a.passed %}O'tdi{% else %}Yiqildi{% endif %}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            </details>
           {% endfor %}
-        </tbody>
-      </table>
+        </div>
+      {% else %}
+        <div class="tx-empty"><i class="bi bi-inbox"></i>Bu testni hali hech kim ishlamagan.</div>
+      {% endif %}
     </div>
-  </div>
 
+    {# ─ Questions (right) ─ #}
+    <div class="tx-panel">
+      <div class="tx-panel-h">
+        <span class="icon warn"><i class="bi bi-bar-chart-fill"></i></span>
+        <span class="t">Savollar tahlili</span>
+        <span class="sub">xato darajasi bo'yicha</span>
+      </div>
+      {% if detail.question_stats %}
+        <div class="tx-qs">
+          {% for q in detail.question_stats %}
+            <div class="tx-q {% if q.error_rate >= 60 %}crit{% elif q.error_rate >= 30 %}warn{% else %}ok{% endif %}">
+              <div class="tx-q-rank">{{ forloop.counter }}</div>
+              <div>
+                <div class="tx-q-text">{{ q.text|truncatechars:110 }}</div>
+                <div class="tx-q-meter">
+                  <div class="tx-q-bar"><span style="width:{{ q.error_rate }}%"></span></div>
+                  <span class="tx-q-err">{{ q.error_rate }}%</span>
+                </div>
+                <div class="tx-q-stats" style="margin-top:4px">
+                  <span>Berilgan: <b>{{ q.answered }}</b></span>
+                  <span style="color:#059669">✓ <b>{{ q.correct }}</b></span>
+                  <span style="color:#b91c1c">✗ <b>{{ q.wrong }}</b></span>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="tx-empty"><i class="bi bi-inbox"></i>Savollar bo'yicha ma'lumot yo'q.</div>
+      {% endif %}
+    </div>
+
+  </div>
 </div>
