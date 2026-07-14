@@ -125,6 +125,7 @@ body { background: var(--ah-bg) !important; }
     animation: ahRise .3s ease both; position: relative;
 }
 .ah-item:hover { border-color: var(--ah-accent); }
+.ah-item:focus-within { z-index: 30; }  /* lift the card whose ⋯ menu is open above its neighbours */
 .ah-item.pinned { border-left: 3px solid var(--ah-accent); }
 .ah-item-ic {
     width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
@@ -151,7 +152,7 @@ body { background: var(--ah-bg) !important; }
 /* dropdown */
 .ah-menu {
     min-width: 190px; background: var(--ah-surface); border: 1px solid var(--ah-border);
-    border-radius: 12px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.14);
+    border-radius: 12px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.14); z-index: 1001;
 }
 .ah-menu .dropdown-item {
     display: flex; align-items: center; gap: 9px; border-radius: 8px;
