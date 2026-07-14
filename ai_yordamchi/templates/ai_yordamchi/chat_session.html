@@ -6,1292 +6,454 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <style>
-/* ============================================
-   AI YORDAMCHI - CHAT SESSION (2026 Redesign)
-   ============================================ */
+/* ============================================================
+   AI YORDAMCHI — CHAT (clean / minimal)
+   ============================================================ */
 :root {
-    --ay-p1: #7c3aed;
-    --ay-p2: #ec4899;
-    --ay-p3: #06b6d4;
-    --ay-grad: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #f59e0b 100%);
-    --ay-grad-user: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
-    --ay-grad-soft: linear-gradient(135deg, rgba(124,58,237,.10), rgba(236,72,153,.08));
-
-    --ay-bg: #f6f7fb;
-    --ay-bg-2: #ffffff;
-    --ay-surface: #ffffff;
-    --ay-surface-2: #fafbff;
-    --ay-border: rgba(15,23,42,.08);
-    --ay-border-strong: rgba(15,23,42,.14);
-    --ay-text: #0f172a;
-    --ay-text-2: #475569;
-    --ay-text-3: #94a3b8;
-
-    --ay-ai-bubble: #ffffff;
-    --ay-input-bg: #ffffff;
-    --ay-header-bg: rgba(246,247,251,.82);
-
-    --ay-shadow-sm: 0 1px 3px rgba(15,23,42,.05);
-    --ay-shadow-md: 0 6px 20px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
-    --ay-shadow-lg: 0 20px 48px rgba(124,58,237,.14);
-
-    --ay-radius-lg: 22px;
-    --ay-radius-md: 16px;
-    --ay-radius-sm: 10px;
-
-    --ay-font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
-    --ay-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+    --cw-bg: #ffffff;
+    --cw-surface: #f7f7f8;
+    --cw-surface-2: #ececef;
+    --cw-border: #e6e6ea;
+    --cw-text: #14141a;
+    --cw-text-2: #6a6a76;
+    --cw-text-3: #9a9aa4;
+    --cw-user-bubble: #f1f1f4;
+    --cw-accent: #4f46e5;
+    --cw-accent-soft: rgba(79,70,229,.10);
+    --cw-danger: #dc2626;
+    --cw-send-bg: #16161c;
+    --cw-send-fg: #ffffff;
+    --cw-online: #16a34a;
+    --cw-radius: 20px;
+    --cw-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --cw-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+    --cw-offset: 72px;
 }
-
 [data-bs-theme="dark"] {
-    --ay-bg: #0a0a12;
-    --ay-bg-2: #14141f;
-    --ay-surface: #14141f;
-    --ay-surface-2: #1a1a28;
-    --ay-border: rgba(255,255,255,.08);
-    --ay-border-strong: rgba(255,255,255,.14);
-    --ay-text: #f1f5f9;
-    --ay-text-2: #cbd5e1;
-    --ay-text-3: #64748b;
-    --ay-ai-bubble: #14141f;
-    --ay-input-bg: #14141f;
-    --ay-header-bg: rgba(10,10,18,.85);
-    --ay-grad-soft: linear-gradient(135deg, rgba(124,58,237,.18), rgba(236,72,153,.12));
-    --ay-shadow-sm: 0 1px 3px rgba(0,0,0,.4);
-    --ay-shadow-md: 0 6px 20px rgba(0,0,0,.4);
-    --ay-shadow-lg: 0 20px 48px rgba(0,0,0,.5);
+    --cw-bg: #191a1e;
+    --cw-surface: #232429;
+    --cw-surface-2: #2c2d33;
+    --cw-border: rgba(255,255,255,.09);
+    --cw-text: #ececf1;
+    --cw-text-2: #a1a1ad;
+    --cw-text-3: #70707b;
+    --cw-user-bubble: #2b2c33;
+    --cw-accent: #818cf8;
+    --cw-accent-soft: rgba(129,140,248,.14);
+    --cw-send-bg: #ffffff;
+    --cw-send-fg: #16161c;
+    --cw-online: #22c55e;
 }
 
-body {
-    background: var(--ay-bg) !important;
-    font-family: var(--ay-font) !important;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
+body { background: var(--cw-bg) !important; font-family: var(--cw-font) !important; -webkit-font-smoothing: antialiased; }
 
-/* ===== ANIMATIONS ===== */
-@keyframes ayFadeIn { from{opacity:0} to{opacity:1} }
-@keyframes ayRise {
-    from { opacity:0; transform: translateY(10px) }
-    to { opacity:1; transform: translateY(0) }
-}
-@keyframes ayFromLeft {
-    from { opacity:0; transform: translateX(-14px) scale(.96) }
-    to { opacity:1; transform: translateX(0) scale(1) }
-}
-@keyframes ayFromRight {
-    from { opacity:0; transform: translateX(14px) scale(.96) }
-    to { opacity:1; transform: translateX(0) scale(1) }
-}
-@keyframes ayBreathe {
-    0%,100% { transform: scale(1); opacity: 1 }
-    50% { transform: scale(1.3); opacity: .55 }
-}
-@keyframes ayFloat {
-    0%,100% { transform: translateY(0) }
-    50% { transform: translateY(-6px) }
-}
-@keyframes ayScaleIn {
-    from { opacity:0; transform: scale(.9) }
-    to { opacity:1; transform: scale(1) }
-}
-@keyframes ayTypingBounce {
-    0%,80%,100% { transform: scale(.5); opacity: .4 }
-    40% { transform: scale(1); opacity: 1 }
-}
-@keyframes aySpin { to { transform: rotate(360deg) } }
-@keyframes ayShimmer {
-    0% { background-position: -200% 0 }
-    100% { background-position: 200% 0 }
-}
-@keyframes ayGradientMove {
-    0% { background-position: 0% 50% }
-    50% { background-position: 100% 50% }
-    100% { background-position: 0% 50% }
-}
-@keyframes ayRing {
-    0% { transform: scale(1); opacity: .55 }
-    100% { transform: scale(1.7); opacity: 0 }
-}
+@keyframes cwRise { from { opacity:0; transform: translateY(8px) } to { opacity:1; transform: none } }
+@keyframes cwBlink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+@keyframes cwDot { 0%,80%,100% { transform: scale(.6); opacity:.4 } 40% { transform: scale(1); opacity:1 } }
 
 /* ===== LAYOUT ===== */
-.ay-chat {
-    max-width: 960px;
+.cw {
+    max-width: 800px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 70px);
-    animation: ayFadeIn .35s ease;
+    height: calc(100dvh - var(--cw-offset));
     position: relative;
 }
 
 /* ===== HEADER ===== */
-.ay-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 18px;
-    background: var(--ay-header-bg);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid var(--ay-border);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    min-height: 60px;
+.cw-head {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--cw-border);
+    background: var(--cw-bg);
+    position: sticky; top: 0; z-index: 20;
 }
+.cw-back {
+    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--cw-text-2); text-decoration: none;
+    transition: background .15s, color .15s;
+}
+.cw-back:hover { background: var(--cw-surface); color: var(--cw-text); }
+.cw-back i { font-size: 1.2rem; }
 
-.ay-h-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    flex: 1;
-}
-
-.ay-back {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 38px; height: 38px;
-    border-radius: 12px;
-    color: var(--ay-text);
-    background: transparent;
-    text-decoration: none;
-    transition: background .2s, color .2s;
-    flex-shrink: 0;
-    border: 1px solid transparent;
-}
-.ay-back:hover {
-    background: var(--ay-surface-2);
-    color: var(--ay-p1);
-    border-color: var(--ay-border);
-}
-.ay-back i { font-size: 1.15rem; }
-
-.ay-h-title-wrap {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-}
-
-.ay-h-avatar {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    background: var(--ay-grad);
-    background-size: 200% 200%;
-    animation: ayGradientMove 6s ease infinite;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    font-size: 1.1rem;
-    flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(124,58,237,.35);
+.cw-head-id { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
+.cw-avatar {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: var(--cw-text); color: var(--cw-bg); font-size: .95rem;
     position: relative;
 }
-.ay-h-avatar::after {
-    content: '';
-    position: absolute;
-    right: -2px; bottom: -2px;
-    width: 12px; height: 12px;
-    background: #10b981;
-    border: 2px solid var(--ay-bg);
-    border-radius: 50%;
-    animation: ayBreathe 2.4s ease-in-out infinite;
+.cw-avatar::after {
+    content: ''; position: absolute; right: -1px; bottom: -1px;
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--cw-online); border: 2px solid var(--cw-bg);
 }
+.cw-head-titles { min-width: 0; }
+.cw-title {
+    font-size: .92rem; font-weight: 600; color: var(--cw-text); margin: 0;
+    line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cw-sub { font-size: .72rem; color: var(--cw-text-2); }
 
-.ay-h-titles { min-width: 0; }
+.cw-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.cw-coin {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px; border-radius: 50px;
+    background: var(--cw-surface); border: 1px solid var(--cw-border);
+    font-size: .78rem; font-weight: 600; color: var(--cw-text-2);
+}
+.cw-coin i { color: #eab308; font-size: .85rem; }
+.cw-iconbtn {
+    width: 36px; height: 36px; border-radius: 10px;
+    border: 1px solid var(--cw-border); background: var(--cw-bg);
+    color: var(--cw-text-2); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .15s; font-size: .95rem;
+}
+.cw-iconbtn:hover { background: var(--cw-surface); color: var(--cw-danger); border-color: var(--cw-border); }
 
-.ay-h-title {
-    font-size: .95rem;
-    font-weight: 700;
-    color: var(--ay-text);
-    margin: 0;
-    line-height: 1.2;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    letter-spacing: -.01em;
+/* ===== META (limits) ===== */
+.cw-meta {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    flex-wrap: wrap; padding: 6px 14px;
+    font-size: .72rem; color: var(--cw-text-3);
+    border-bottom: 1px solid var(--cw-border);
 }
-
-.ay-h-status {
-    font-size: .72rem;
-    color: var(--ay-text-2);
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    margin-top: 2px;
-}
-.ay-h-status .dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: #10b981;
-    animation: ayBreathe 2.4s ease-in-out infinite;
-}
-
-.ay-h-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
-
-.ay-coin-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(239,68,68,.10));
-    border: 1px solid rgba(245,158,11,.24);
-    padding: 6px 12px;
-    border-radius: 50px;
-    font-size: .8rem;
-    font-weight: 700;
-    color: #f59e0b;
-    transition: transform .2s;
-}
-.ay-coin-pill:hover { transform: scale(1.05); }
-.ay-coin-pill i { font-size: .95rem; }
-
-.ay-icon-btn {
-    width: 38px; height: 38px;
-    border-radius: 12px;
-    border: 1px solid var(--ay-border);
-    background: var(--ay-surface);
-    color: var(--ay-text-2);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: all .2s;
-    font-size: .95rem;
-}
-.ay-icon-btn:hover {
-    background: rgba(239,68,68,.08);
-    color: #ef4444;
-    border-color: rgba(239,68,68,.2);
-}
-
-/* ===== LIMITS BAR ===== */
-.ay-limits {
-    display: flex;
-    gap: 10px;
-    padding: 8px 18px;
-    background: var(--ay-surface-2);
-    border-bottom: 1px solid var(--ay-border);
-    font-size: .74rem;
-    color: var(--ay-text-2);
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-.ay-lim {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 10px;
-    border-radius: 50px;
-    background: var(--ay-surface);
-    border: 1px solid var(--ay-border);
-    font-weight: 500;
-}
-.ay-lim i { font-size: .82rem; opacity: .8; }
-.ay-lim.warn { color: #f59e0b; border-color: rgba(245,158,11,.3); }
-.ay-lim.danger { color: #ef4444; border-color: rgba(239,68,68,.3); }
-.ay-lim.premium {
-    background: linear-gradient(135deg, #f59e0b, #ef4444);
-    color: #fff;
-    border: none;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    font-size: .65rem;
-    padding: 3px 10px;
-    box-shadow: 0 3px 10px rgba(245,158,11,.35);
-}
+.cw-meta .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--cw-text-3); opacity: .5; }
+.cw-meta b { font-weight: 600; color: var(--cw-text-2); }
+.cw-meta .warn { color: #d97706; }
+.cw-meta .danger { color: var(--cw-danger); }
+.cw-meta .prem { color: var(--cw-accent); font-weight: 700; }
 
 /* ===== MESSAGES ===== */
-.ay-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 0 24px;
-    scroll-behavior: smooth;
+.cw-msgs {
+    flex: 1; overflow-y: auto; overscroll-behavior: contain;
+    padding: 18px 14px 12px; scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    position: relative;
 }
-.ay-messages::-webkit-scrollbar { width: 6px; }
-.ay-messages::-webkit-scrollbar-track { background: transparent; }
-.ay-messages::-webkit-scrollbar-thumb {
-    background: rgba(148,163,184,.25);
-    border-radius: 50px;
-}
-.ay-messages::-webkit-scrollbar-thumb:hover {
-    background: rgba(148,163,184,.4);
-}
+.cw-msgs::-webkit-scrollbar { width: 7px; }
+.cw-msgs::-webkit-scrollbar-thumb { background: var(--cw-surface-2); border-radius: 50px; }
 
-/* Message row */
-.ios-msg {
-    padding: 4px 18px;
-    animation-fill-mode: both;
-}
-.ios-msg.user { animation: ayFromRight .35s ease-out; }
-.ios-msg.assistant { animation: ayFromLeft .35s ease-out; }
+.cw-row { display: flex; gap: 10px; margin-bottom: 18px; animation: cwRise .25s ease both; }
+.cw-row.user { flex-direction: row-reverse; }
 
-.ios-msg:nth-child(1){animation-delay:.02s}
-.ios-msg:nth-child(2){animation-delay:.05s}
-.ios-msg:nth-child(3){animation-delay:.08s}
-.ios-msg:nth-child(4){animation-delay:.1s}
+.cw-row-avatar {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: .72rem; font-weight: 600;
+}
+.cw-row.assistant .cw-row-avatar { background: var(--cw-text); color: var(--cw-bg); }
+.cw-row.user .cw-row-avatar { background: var(--cw-accent-soft); color: var(--cw-accent); }
 
-.ios-msg-row {
-    display: flex;
-    gap: 10px;
-    max-width: 85%;
-    align-items: flex-end;
-}
-.ios-msg.user .ios-msg-row {
-    margin-left: auto;
-    flex-direction: row-reverse;
-}
+.cw-body { min-width: 0; max-width: calc(100% - 38px); }
+.cw-row.user .cw-body { display: flex; flex-direction: column; align-items: flex-end; }
 
-/* Avatar */
-.ios-avatar {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: .78rem;
-    font-weight: 700;
-    flex-shrink: 0;
-    margin-bottom: 4px;
-    box-shadow: 0 3px 10px rgba(0,0,0,.12);
+/* user bubble */
+.cw-bubble {
+    background: var(--cw-user-bubble); color: var(--cw-text);
+    padding: 10px 14px; border-radius: 18px 18px 4px 18px;
+    font-size: .92rem; line-height: 1.5; white-space: pre-wrap;
+    word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;
 }
+/* assistant text (no bubble, minimal) */
+.cw-assistant-text { color: var(--cw-text); font-size: .93rem; line-height: 1.6; }
 
-.ios-msg.user .ios-avatar {
-    background: var(--ay-grad-user);
-    color: #fff;
-}
+.cw-time { font-size: .66rem; color: var(--cw-text-3); margin-top: 5px; padding: 0 2px; }
+.cw-time .coin { color: #ca8a04; }
 
-.ios-msg.assistant .ios-avatar {
-    background: var(--ay-grad);
-    background-size: 200% 200%;
-    animation: ayGradientMove 6s ease infinite;
-    color: #fff;
+/* attachments */
+.cw-img {
+    max-width: 260px; max-height: 280px; border-radius: 12px;
+    margin-top: 8px; cursor: pointer; display: block; border: 1px solid var(--cw-border);
 }
+.cw-file {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 8px;
+    background: var(--cw-surface); border: 1px solid var(--cw-border);
+    border-radius: 12px; padding: 9px 13px; text-decoration: none;
+    color: var(--cw-text); max-width: 280px; transition: background .15s;
+}
+.cw-file:hover { background: var(--cw-surface-2); color: var(--cw-text); }
+.cw-file-ic {
+    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
+    background: var(--cw-bg); border: 1px solid var(--cw-border);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--cw-accent); font-size: 1.05rem;
+}
+.cw-file-nm { font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cw-file-ex { font-size: .66rem; color: var(--cw-text-3); text-transform: uppercase; letter-spacing: .4px; }
 
-/* Bubble */
-.ios-bubble-wrap {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    max-width: calc(100% - 44px);
-}
+/* typing dots */
+.cw-dots { display: inline-flex; gap: 4px; align-items: center; height: 20px; }
+.cw-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--cw-text-3); animation: cwDot 1.2s infinite ease-in-out; }
+.cw-dots span:nth-child(1){animation-delay:-.24s} .cw-dots span:nth-child(2){animation-delay:-.12s}
 
-.ios-bubble {
-    padding: 12px 16px;
-    border-radius: 18px;
-    position: relative;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    transition: box-shadow .2s;
-}
-
-.ios-msg.user .ios-bubble {
-    background: var(--ay-grad-user);
-    color: #fff;
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 4px 14px rgba(124,58,237,.28);
-}
-
-.ios-msg.assistant .ios-bubble {
-    background: var(--ay-ai-bubble);
-    color: var(--ay-text);
-    border: 1px solid var(--ay-border);
-    border-bottom-left-radius: 6px;
-    box-shadow: var(--ay-shadow-sm);
-}
-
-.ios-msg.assistant .ios-bubble:hover {
-    box-shadow: var(--ay-shadow-md);
-}
-
-.ios-msg-text {
-    font-size: .93rem;
-    line-height: 1.5;
-    letter-spacing: -.003em;
-}
-
-.ios-msg.user .ios-msg-text { white-space: pre-wrap; }
-
-/* Timestamp */
-.ios-msg-time {
-    font-size: .68rem;
-    color: var(--ay-text-3);
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 0 4px;
-}
-.ios-msg.user .ios-msg-time { justify-content: flex-end; }
-.ios-msg-time .ios-coin-cost { color: #f59e0b; font-weight: 600; }
-
-/* Image */
-.ios-msg-image {
-    max-width: 100%;
-    max-height: 300px;
-    border-radius: 14px;
-    margin-top: 8px;
-    cursor: pointer;
-    transition: transform .25s;
-    display: block;
-}
-.ios-msg-image:hover { transform: scale(1.02); }
-
-/* File card */
-.ios-file-card {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--ay-surface-2);
-    border: 1px solid var(--ay-border);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin-top: 8px;
-    text-decoration: none;
-    color: var(--ay-text);
-    transition: background .2s, transform .2s;
-    max-width: 320px;
-}
-.ios-file-card:hover {
-    background: var(--ay-grad-soft);
-    color: var(--ay-text);
-    transform: translateY(-1px);
-}
-
-.ios-msg.user .ios-file-card {
-    background: rgba(255,255,255,.18);
-    border-color: rgba(255,255,255,.22);
-    color: #fff;
-}
-.ios-msg.user .ios-file-card:hover {
-    background: rgba(255,255,255,.28);
-    color: #fff;
-}
-
-.ios-file-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
-    background: var(--ay-grad-soft);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.15rem;
-    color: var(--ay-p1);
-    flex-shrink: 0;
-}
-.ios-msg.user .ios-file-icon {
-    background: rgba(255,255,255,.22);
-    color: #fff;
-}
-
-.ios-file-info { min-width: 0; }
-.ios-file-name {
-    font-size: .84rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.ios-file-ext {
-    font-size: .68rem;
-    color: var(--ay-text-3);
-    text-transform: uppercase;
-    letter-spacing: .5px;
-}
-.ios-msg.user .ios-file-ext { color: rgba(255,255,255,.65); }
-
-/* Attach preview inside input */
-.ios-attach-preview {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    background: var(--ay-surface-2);
-    border: 1px solid var(--ay-border);
-    border-radius: 10px;
-    padding: 7px 12px;
-    margin-top: 6px;
-    font-size: .82rem;
-    color: var(--ay-text);
-}
-.ios-attach-preview.active { display: flex; }
-.ios-attach-preview i { color: var(--ay-p1); font-size: 1rem; }
-.ios-attach-preview .name {
-    flex: 1;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    font-weight: 500;
-}
-.ios-attach-preview .remove {
-    background: none; border: none;
-    color: #ef4444;
-    cursor: pointer;
-    padding: 2px;
-    font-size: .95rem;
-    line-height: 1;
-}
+/* streaming cursor */
+.cw-cursor { display: inline-block; width: 7px; height: 1.05em; margin-left: 1px; vertical-align: -2px; background: var(--cw-accent); border-radius: 1px; animation: cwBlink 1s step-end infinite; }
 
 /* ===== MARKDOWN ===== */
-.markdown-body {
-    color: var(--ay-text);
-    font-size: .93rem;
-    line-height: 1.6;
-    letter-spacing: -.003em;
+.markdown-body { color: var(--cw-text); font-size: .93rem; line-height: 1.6; }
+.markdown-body > *:first-child { margin-top: 0; }
+.markdown-body > *:last-child { margin-bottom: 0; }
+.markdown-body p { margin: 0 0 .7rem; }
+.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4 { margin: 1.1rem 0 .5rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
+.markdown-body h1 { font-size: 1.3rem; } .markdown-body h2 { font-size: 1.15rem; }
+.markdown-body h3 { font-size: 1.02rem; } .markdown-body h4 { font-size: .95rem; }
+.markdown-body ul,.markdown-body ol { margin: .5rem 0; padding-left: 1.4rem; }
+.markdown-body li { margin: .28rem 0; }
+.markdown-body strong { font-weight: 700; }
+.markdown-body a { color: var(--cw-accent); text-decoration: none; border-bottom: 1px solid transparent; }
+.markdown-body a:hover { border-bottom-color: currentColor; }
+.markdown-body blockquote { border-left: 3px solid var(--cw-border); margin: .8rem 0; padding: .3rem .9rem; color: var(--cw-text-2); }
+.markdown-body hr { border: none; border-top: 1px solid var(--cw-border); margin: 1rem 0; }
+.markdown-body table { width: 100%; border-collapse: collapse; margin: .8rem 0; font-size: .85rem; border: 1px solid var(--cw-border); border-radius: 8px; overflow: hidden; }
+.markdown-body th,.markdown-body td { padding: .5rem .7rem; border-bottom: 1px solid var(--cw-border); text-align: left; }
+.markdown-body th { background: var(--cw-surface); font-weight: 600; }
+.markdown-body tr:last-child td { border-bottom: none; }
+.markdown-body p code,.markdown-body li code,.markdown-body td code {
+    background: var(--cw-surface); padding: 1px 6px; border-radius: 5px;
+    font-family: var(--cw-mono); font-size: .82em; color: var(--cw-accent);
+    border: 1px solid var(--cw-border);
 }
 
-.markdown-body p { margin-bottom: .7rem; }
-.markdown-body p:last-child { margin-bottom: 0; }
-
-.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-    color: var(--ay-text);
-    margin: 1.1rem 0 .55rem;
-    font-weight: 700;
-    line-height: 1.25;
-    letter-spacing: -.02em;
-}
-.markdown-body h1 { font-size: 1.4rem; }
-.markdown-body h2 { font-size: 1.2rem; }
-.markdown-body h3 { font-size: 1.06rem; }
-.markdown-body h4 { font-size: .96rem; }
-
-.markdown-body ul, .markdown-body ol {
-    margin: .55rem 0;
-    padding-left: 1.5rem;
-}
-.markdown-body li { margin: .3rem 0; }
-
-.markdown-body strong { font-weight: 700; color: var(--ay-text); }
-.markdown-body em { font-style: italic; color: var(--ay-text-2); }
-
-.markdown-body a, .markdown-body .markdown-link {
-    color: var(--ay-p1);
-    text-decoration: none;
-    border-bottom: 1px dashed rgba(124,58,237,.35);
-    transition: color .2s, border-color .2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-}
-.markdown-body a:hover {
-    color: var(--ay-p2);
-    border-bottom-color: var(--ay-p2);
-}
-.markdown-body a i { font-size: .75em; }
-
-.markdown-body blockquote {
-    border-left: 3px solid var(--ay-p1);
-    margin: .85rem 0;
-    padding: .55rem .95rem;
-    background: var(--ay-grad-soft);
-    border-radius: 0 var(--ay-radius-sm) var(--ay-radius-sm) 0;
-    color: var(--ay-text-2);
-}
-
-.markdown-body table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: .85rem 0;
-    font-size: .86rem;
-    border-radius: var(--ay-radius-sm);
-    overflow: hidden;
-    border: 1px solid var(--ay-border);
-}
-.markdown-body table th,
-.markdown-body table td {
-    padding: .55rem .75rem;
-    border-bottom: 1px solid var(--ay-border);
-    text-align: left;
-}
-.markdown-body table th {
-    background: var(--ay-surface-2);
-    font-weight: 700;
-}
-.markdown-body table tr:last-child td { border-bottom: none; }
-
-.markdown-body hr {
-    border: none;
-    border-top: 1px solid var(--ay-border);
-    margin: 1.2rem 0;
-}
-
-/* Inline code */
-.markdown-body p code,
-.markdown-body li code,
-.markdown-body td code {
-    background: var(--ay-surface-2);
-    padding: 2px 7px;
-    border-radius: 6px;
-    font-family: var(--ay-mono);
-    font-size: .82em;
-    color: var(--ay-p2);
-    border: 1px solid var(--ay-border);
-    font-weight: 500;
-}
-
-.ios-msg.user .markdown-body p code,
-.ios-msg.user .markdown-body li code {
-    background: rgba(255,255,255,.2);
-    color: #fff;
-    border-color: rgba(255,255,255,.25);
-}
-
-/* Code blocks */
-.code-block-wrapper {
-    margin: .85rem 0;
-    border-radius: var(--ay-radius-md);
-    overflow: hidden;
-    background: #0d1117;
-    border: 1px solid rgba(255,255,255,.06);
-    box-shadow: 0 4px 16px rgba(0,0,0,.18);
-    transition: transform .2s, box-shadow .2s;
-    animation: ayScaleIn .35s ease-out;
-}
-.code-block-wrapper:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0,0,0,.28);
-}
-
-.code-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 14px;
-    background: #010409;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-}
-
-.code-lang {
-    font-size: .68rem;
-    color: #7d8590;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: .8px;
-    font-family: var(--ay-mono);
-    display: inline-flex; align-items: center; gap: 6px;
-}
-.code-lang::before {
-    content: '';
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #7c3aed, #ec4899);
-}
-
-.copy-btn {
-    background: rgba(255,255,255,.05);
-    border: 1px solid rgba(255,255,255,.1);
-    color: #c9d1d9;
-    font-size: .7rem;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 8px;
-    transition: all .2s;
-    font-family: var(--ay-font);
-    font-weight: 600;
-}
-.copy-btn:hover {
-    background: rgba(255,255,255,.1);
-    color: #fff;
-    border-color: rgba(255,255,255,.2);
-}
-.copy-btn.copied {
-    color: #4ade80;
-    border-color: rgba(74,222,128,.35);
-    background: rgba(74,222,128,.08);
-}
-
-.markdown-body pre {
-    margin: 0;
-    padding: 14px 16px;
-    overflow-x: auto;
-    background: transparent !important;
-}
-.markdown-body pre code {
-    font-family: var(--ay-mono);
-    font-size: .82rem;
-    line-height: 1.6;
-    color: #c9d1d9;
-    background: transparent !important;
-}
-
+/* code blocks */
+.code-block-wrapper { margin: .8rem 0; border-radius: 12px; overflow: hidden; background: #0d1117; border: 1px solid rgba(255,255,255,.08); }
+.code-header { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; background: #010409; border-bottom: 1px solid rgba(255,255,255,.06); }
+.code-lang { font-size: .66rem; color: #8b949e; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; font-family: var(--cw-mono); }
+.copy-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #c9d1d9; font-size: .68rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 7px; transition: all .15s; font-family: var(--cw-font); font-weight: 600; }
+.copy-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.copy-btn.copied { color: #4ade80; border-color: rgba(74,222,128,.35); }
+.markdown-body pre { margin: 0; padding: 13px 14px; overflow-x: auto; background: transparent !important; }
+.markdown-body pre code { font-family: var(--cw-mono); font-size: .8rem; line-height: 1.55; color: #c9d1d9; background: transparent !important; }
 .markdown-body pre::-webkit-scrollbar { height: 6px; }
-.markdown-body pre::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,.15); border-radius: 50px;
-}
+.markdown-body pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 50px; }
 
 /* ===== EMPTY STATE ===== */
-.ios-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    text-align: center;
-    padding: 3rem 2rem;
-    animation: ayScaleIn .5s cubic-bezier(.34,1.56,.64,1);
-    position: relative;
+.cw-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 2rem 1.5rem; }
+.cw-empty-ic { width: 60px; height: 60px; border-radius: 18px; background: var(--cw-text); color: var(--cw-bg); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 1.1rem; }
+.cw-empty h4 { font-size: 1.2rem; font-weight: 700; color: var(--cw-text); margin: 0 0 .4rem; letter-spacing: -.01em; }
+.cw-empty p { color: var(--cw-text-2); font-size: .9rem; max-width: 330px; line-height: 1.5; margin: 0 0 1.4rem; }
+.cw-sugs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 420px; }
+.cw-sug {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--cw-bg); border: 1px solid var(--cw-border);
+    padding: 8px 14px; border-radius: 50px; font-size: .84rem; font-weight: 500;
+    color: var(--cw-text); cursor: pointer; transition: all .15s;
 }
-.ios-empty::before {
-    content: '';
-    position: absolute;
-    top: 20%; left: 50%;
-    width: 500px; height: 500px;
-    transform: translateX(-50%);
-    background: radial-gradient(circle, rgba(124,58,237,.10), transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-}
-.ios-empty > * { position: relative; z-index: 1; }
+.cw-sug:hover { border-color: var(--cw-accent); color: var(--cw-accent); background: var(--cw-accent-soft); }
+.cw-sug i { color: var(--cw-text-3); font-size: .9rem; }
+.cw-sug:hover i { color: var(--cw-accent); }
 
-.ios-empty-icon {
-    width: 82px; height: 82px;
-    background: var(--ay-grad);
-    background-size: 200% 200%;
-    animation: ayGradientMove 6s ease infinite, ayFloat 3s ease-in-out infinite;
-    border-radius: 24px;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 1.4rem;
-    box-shadow: 0 16px 40px rgba(124,58,237,.35);
-    position: relative;
+/* ===== INPUT ===== */
+.cw-input-area {
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--cw-border);
+    background: var(--cw-bg); position: sticky; bottom: 0; z-index: 20;
 }
-.ios-empty-icon::before,
-.ios-empty-icon::after {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 28px;
-    border: 2px solid rgba(124,58,237,.3);
-    animation: ayRing 2.4s ease-out infinite;
+.cw-input-wrap { max-width: 760px; margin: 0 auto; }
+.cw-form { display: flex; align-items: flex-end; gap: 8px; }
+.cw-input-box {
+    flex: 1; min-width: 0;
+    background: var(--cw-surface); border: 1.5px solid var(--cw-border);
+    border-radius: 24px; padding: 4px 6px 4px 8px;
+    display: flex; align-items: flex-end; gap: 4px;
+    transition: border-color .15s, box-shadow .15s;
 }
-.ios-empty-icon::after { animation-delay: 1.2s; }
-.ios-empty-icon i { font-size: 2.4rem; color: #fff; }
+.cw-input-box:focus-within { border-color: var(--cw-accent); box-shadow: 0 0 0 3px var(--cw-accent-soft); }
+.cw-attach {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--cw-text-2); cursor: pointer; position: relative; transition: all .15s;
+}
+.cw-attach:hover { background: var(--cw-surface-2); color: var(--cw-accent); }
+.cw-attach input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.cw-textarea {
+    flex: 1; border: none; background: transparent; color: var(--cw-text);
+    font-family: var(--cw-font); font-size: .93rem; line-height: 1.45;
+    resize: none; min-height: 24px; max-height: 150px; padding: 8px 4px; outline: none;
+}
+.cw-textarea::placeholder { color: var(--cw-text-3); }
+.cw-send {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; border: none;
+    background: var(--cw-send-bg); color: var(--cw-send-fg); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; transition: transform .12s, opacity .15s;
+}
+.cw-send:hover:not(:disabled) { transform: scale(1.06); }
+.cw-send:disabled { opacity: .4; cursor: not-allowed; }
+.cw-send .cw-dots span { background: var(--cw-send-fg); }
 
-.ios-empty h4 {
-    color: var(--ay-text);
-    font-weight: 800;
-    font-size: 1.35rem;
-    margin-bottom: .4rem;
-    letter-spacing: -.02em;
+/* attachment preview chips */
+.cw-previews { max-width: 760px; margin: 0 auto 6px; display: flex; flex-wrap: wrap; gap: 8px; }
+.cw-chip {
+    display: none; align-items: center; gap: 8px;
+    background: var(--cw-surface); border: 1px solid var(--cw-border);
+    border-radius: 10px; padding: 5px 6px 5px 10px; font-size: .8rem; color: var(--cw-text);
 }
-.ios-empty p {
-    color: var(--ay-text-2);
-    font-size: .92rem;
-    max-width: 340px;
-    line-height: 1.55;
-}
+.cw-chip.active { display: inline-flex; }
+.cw-chip img { width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
+.cw-chip .nm { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
+.cw-chip .rm { background: none; border: none; color: var(--cw-danger); cursor: pointer; padding: 2px; font-size: 1rem; line-height: 1; display: inline-flex; }
 
-.ios-suggestions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 1.5rem;
-}
-
-.ios-sug-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--ay-surface);
-    border: 1px solid var(--ay-border);
-    padding: 9px 16px;
-    border-radius: 50px;
-    font-size: .85rem;
-    font-weight: 500;
-    color: var(--ay-text);
-    cursor: pointer;
-    transition: all .25s;
-    box-shadow: var(--ay-shadow-sm);
-}
-.ios-sug-chip:hover {
-    background: var(--ay-grad-soft);
-    border-color: rgba(124,58,237,.3);
-    color: var(--ay-p1);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(124,58,237,.12);
-}
-.ios-sug-chip i { color: var(--ay-p1); font-size: .9rem; }
-
-/* ===== INPUT AREA ===== */
-.ay-input-area {
-    padding: 10px 14px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
-    padding-right: 84px;
-    background: var(--ay-header-bg);
-    backdrop-filter: saturate(180%) blur(20px);
-    -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-top: 1px solid var(--ay-border);
-    position: sticky;
-    bottom: 0;
-    z-index: 1101;
-}
-
-.ay-input-wrap { max-width: 860px; margin: 0 auto; }
-
-.ay-form {
-    display: flex;
-    align-items: flex-end;
-    gap: 8px;
-}
-
-.ay-input-box {
-    flex: 1;
-    background: var(--ay-input-bg);
-    border: 1.5px solid var(--ay-border);
-    border-radius: 22px;
-    padding: 6px 16px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: var(--ay-shadow-sm);
-    transition: border-color .2s, box-shadow .2s, background .2s;
-}
-.ay-input-box:focus-within {
-    border-color: var(--ay-p1);
-    box-shadow: 0 0 0 4px rgba(124,58,237,.14);
-    background: var(--ay-surface);
-}
-
-.ay-textarea {
-    width: 100%;
-    border: none;
-    background: transparent;
-    color: var(--ay-text);
-    font-size: .93rem;
-    resize: none;
-    min-height: 22px;
-    max-height: 140px;
-    line-height: 1.45;
-    font-family: var(--ay-font);
-    padding: 8px 0;
-}
-.ay-textarea::placeholder { color: var(--ay-text-3); }
-.ay-textarea:focus { outline: none; }
-
-.ay-preview {
-    margin-top: 4px;
-    display: flex;
-    align-items: center;
-}
-
-.ay-img-preview {
-    max-width: 84px;
-    max-height: 60px;
-    border-radius: 10px;
-    display: none;
-    border: 1px solid var(--ay-border);
-    object-fit: cover;
-}
-
-.ay-remove-img {
-    background: #ef4444;
-    color: #fff;
-    border: none;
-    border-radius: 50%;
-    width: 22px; height: 22px;
-    font-size: 11px;
-    cursor: pointer;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    margin-left: 6px;
-    transition: transform .15s;
-}
-.ay-remove-img:hover { transform: scale(1.15); }
-
-.ay-form-btns {
-    display: flex;
-    gap: 6px;
-    align-items: flex-end;
-    padding-bottom: 4px;
-}
-
-.ay-btn-attach {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--ay-border);
-    background: var(--ay-surface);
-    color: var(--ay-text-2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all .2s;
-    font-size: 1rem;
-    position: relative;
-}
-.ay-btn-attach:hover {
-    background: var(--ay-grad-soft);
-    color: var(--ay-p1);
-    border-color: rgba(124,58,237,.3);
-    transform: translateY(-1px);
-}
-
-.ay-file-input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.ay-btn-send {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: var(--ay-grad);
-    background-size: 200% 200%;
-    animation: ayGradientMove 5s ease infinite;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: transform .2s, box-shadow .2s;
-    font-size: 1.05rem;
-    box-shadow: 0 4px 14px rgba(124,58,237,.35);
-}
-.ay-btn-send:hover:not(:disabled) {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(124,58,237,.5);
-}
-.ay-btn-send:disabled {
-    background: var(--ay-surface-2);
-    color: var(--ay-text-3);
-    box-shadow: none;
-    cursor: not-allowed;
-    animation: none;
-}
-
-.ios-no-coins {
-    background: linear-gradient(135deg, rgba(245,158,11,.10), rgba(239,68,68,.06));
-    border: 1px solid rgba(245,158,11,.24);
-    color: #f59e0b;
-    border-radius: var(--ay-radius-md);
-    padding: 12px 16px;
-    text-align: center;
-    font-size: .88rem;
-    font-weight: 600;
+.cw-nocoin {
+    max-width: 760px; margin: 0 auto; text-align: center;
+    background: var(--cw-surface); border: 1px solid var(--cw-border);
+    border-radius: 14px; padding: 12px; font-size: .86rem; font-weight: 500; color: var(--cw-text-2);
     display: flex; align-items: center; justify-content: center; gap: 8px;
 }
+.cw-nocoin i { color: #d97706; }
+.cw-retry {
+    margin-top: 8px; display: inline-flex; align-items: center; gap: 6px;
+    background: var(--cw-surface); border: 1px solid var(--cw-border); color: var(--cw-text);
+    padding: 6px 14px; border-radius: 50px; font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .15s;
+}
+.cw-retry:hover { border-color: var(--cw-accent); color: var(--cw-accent); }
 
 /* ===== MODAL ===== */
-.ios-modal .modal-content {
-    background: var(--ay-surface);
-    border: 1px solid var(--ay-border);
-    border-radius: var(--ay-radius-lg);
-    box-shadow: var(--ay-shadow-lg);
-    overflow: hidden;
-}
-
-.ios-modal .modal-body {
-    padding: 28px 24px 18px;
-    text-align: center;
-}
-
-.ios-modal-icon {
-    width: 58px; height: 58px;
-    background: linear-gradient(135deg, rgba(239,68,68,.15), rgba(239,68,68,.06));
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 14px;
-    animation: ayFloat 3s ease-in-out infinite;
-}
-.ios-modal-icon i { font-size: 1.4rem; color: #ef4444; }
-
-.ios-modal .modal-footer {
-    border-top: 1px solid var(--ay-border);
-    padding: 0;
-    display: flex;
-}
-.ios-modal .modal-footer > * { flex: 1; }
-
-.ios-modal-btn {
-    display: block;
-    width: 100%;
-    padding: 14px;
-    border: none;
-    background: transparent;
-    font-size: .95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background .15s;
-    font-family: var(--ay-font);
-    text-align: center;
-    color: var(--ay-text);
-}
-.ios-modal-btn:hover { background: var(--ay-surface-2); }
-.ios-modal-btn.cancel { color: var(--ay-p1); font-weight: 700; }
-.ios-modal-btn.danger { color: #ef4444; font-weight: 600; }
-.ios-modal .modal-footer > *:first-child .ios-modal-btn {
-    border-right: 1px solid var(--ay-border);
-}
-
-/* Typing dots */
-.typing-dots {
-    display: flex;
-    gap: 4px;
-    padding: 6px 4px;
-    justify-content: center;
-    align-items: center;
-    min-height: 20px;
-}
-.typing-dots span {
-    width: 8px; height: 8px;
-    background: currentColor;
-    border-radius: 50%;
-    animation: ayTypingBounce 1.3s infinite ease-in-out;
-    opacity: .5;
-}
-.typing-dots span:nth-child(1) { animation-delay: -.32s; }
-.typing-dots span:nth-child(2) { animation-delay: -.16s; }
-
-.ios-msg.assistant .typing-dots span { color: var(--ay-p1); opacity: .7; }
-.ay-btn-send .typing-dots span { color: #fff; }
+.cw-modal .modal-content { background: var(--cw-bg); border: 1px solid var(--cw-border); border-radius: 18px; overflow: hidden; }
+.cw-modal .modal-body { padding: 24px 22px 14px; text-align: center; }
+.cw-modal-ic { width: 48px; height: 48px; border-radius: 50%; background: rgba(220,38,38,.1); color: var(--cw-danger); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 1.2rem; }
+.cw-modal h6 { color: var(--cw-text); font-weight: 700; margin-bottom: 5px; }
+.cw-modal p { color: var(--cw-text-2); font-size: .85rem; line-height: 1.5; margin: 0; }
+.cw-modal .modal-footer { border-top: 1px solid var(--cw-border); padding: 0; display: flex; }
+.cw-modal .modal-footer > * { flex: 1; }
+.cw-modal-btn { width: 100%; padding: 13px; border: none; background: transparent; font-size: .92rem; font-weight: 600; cursor: pointer; font-family: var(--cw-font); color: var(--cw-text); transition: background .12s; }
+.cw-modal-btn:hover { background: var(--cw-surface); }
+.cw-modal-btn.cancel { color: var(--cw-text-2); }
+.cw-modal-btn.danger { color: var(--cw-danger); }
+.cw-modal .modal-footer > *:first-child .cw-modal-btn { border-right: 1px solid var(--cw-border); }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 900px) {
-    .ay-chat { height: calc(100vh - 56px); }
-    .ay-header { padding: 10px 14px; }
-    .ay-h-title { font-size: .9rem; }
-    .ios-msg { padding: 3px 12px; }
-    .ios-msg-row { max-width: 90%; }
+@media (max-width: 768px) {
+    :root { --cw-offset: 58px; }
+    .cw-msgs { padding: 14px 10px 10px; }
+    .cw-row { margin-bottom: 15px; }
+    .cw-body { max-width: calc(100% - 36px); }
+    .cw-bubble, .cw-assistant-text, .markdown-body { font-size: .9rem; }
+    .cw-input-area { padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); }
+    .cw-img { max-width: 220px; }
 }
-
-@media (max-width: 640px) {
-    .ay-header { padding: 8px 12px; min-height: 54px; }
-    .ay-h-avatar { width: 36px; height: 36px; font-size: 1rem; }
-    .ay-h-title { font-size: .88rem; }
-    .ay-h-status { font-size: .68rem; }
-    .ay-coin-pill { padding: 5px 10px; font-size: .74rem; }
-    .ay-back, .ay-icon-btn { width: 36px; height: 36px; }
-
-    .ios-msg { padding: 3px 10px; }
-    .ios-msg-row { max-width: 92%; }
-    .ios-avatar { width: 30px; height: 30px; font-size: .72rem; }
-    .ios-bubble { padding: 10px 13px; border-radius: 16px; }
-    .ios-msg.user .ios-bubble { border-bottom-right-radius: 5px; }
-    .ios-msg.assistant .ios-bubble { border-bottom-left-radius: 5px; }
-    .ios-msg-text, .markdown-body { font-size: .88rem; }
-
-    .ay-input-area {
-        padding: 8px 10px;
-        padding-bottom: max(8px, env(safe-area-inset-bottom));
-    }
-    .ay-input-box { border-radius: 20px; padding: 4px 12px; }
-    .ay-textarea { font-size: .9rem; }
-    .ay-btn-attach, .ay-btn-send { width: 38px; height: 38px; }
-
-    .ios-empty { padding: 2rem 1.25rem; }
-    .ios-empty-icon { width: 68px; height: 68px; border-radius: 20px; }
-    .ios-empty-icon i { font-size: 1.9rem; }
-    .ios-empty h4 { font-size: 1.2rem; }
-    .ios-empty p { font-size: .88rem; }
-
-    .code-block-wrapper { border-radius: 12px; }
-    .markdown-body pre { padding: 12px; }
-    .markdown-body pre code { font-size: .78rem; }
+@media (max-width: 460px) {
+    .cw-coin { display: none; }
+    .cw-title { font-size: .88rem; }
+    .cw-body { max-width: calc(100% - 34px); }
+    .cw-empty h4 { font-size: 1.08rem; }
 }
-
-@media (max-width: 400px) {
-    .ay-coin-pill { display: none; }
-    .ay-limits { padding: 6px 10px; gap: 6px; font-size: .68rem; }
-    .ay-lim { padding: 2px 8px; }
-    .ios-msg-row { max-width: 94%; }
-    .ios-bubble { padding: 9px 12px; }
-    .ios-avatar { width: 28px; height: 28px; }
-    .markdown-body h1 { font-size: 1.15rem; }
-    .markdown-body h2 { font-size: 1.05rem; }
-    .ios-sug-chip { padding: 7px 12px; font-size: .78rem; }
-}
-
-/* iOS safe areas */
-@supports (padding: env(safe-area-inset-bottom)) {
-    .ay-input-area { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
-}
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
-}
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ay-chat">
+<div class="cw">
     {# ===== HEADER ===== #}
-    <div class="ay-header">
-        <div class="ay-h-left">
-            <a href="{% url 'ai_yordamchi:chat_home' %}" class="ay-back" title="Orqaga">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-            <div class="ay-h-title-wrap">
-                <div class="ay-h-avatar">
-                    <i class="bi bi-robot"></i>
-                </div>
-                <div class="ay-h-titles">
-                    <h2 class="ay-h-title">{{ session.title|truncatechars:28 }}</h2>
-                    <div class="ay-h-status">
-                        <span class="dot"></span> Onlayn &middot; Creative AI
-                    </div>
-                </div>
+    <div class="cw-head">
+        <a href="{% url 'ai_yordamchi:chat_home' %}" class="cw-back" title="Orqaga"><i class="bi bi-chevron-left"></i></a>
+        <div class="cw-head-id">
+            <span class="cw-avatar"><i class="bi bi-stars"></i></span>
+            <div class="cw-head-titles">
+                <h1 class="cw-title">{{ session.title|truncatechars:32 }}</h1>
+                <div class="cw-sub">Creative AI · Onlayn</div>
             </div>
         </div>
-        <div class="ay-h-right">
-            <div class="ay-coin-pill" title="Sizdagi coin">
-                <i class="bi bi-coin"></i> {{ user_coins }}
-            </div>
-            <button type="button" class="ay-icon-btn" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tozalash">
-                <i class="bi bi-trash3"></i>
-            </button>
+        <div class="cw-head-actions">
+            <span class="cw-coin" title="Sizdagi coin"><i class="bi bi-coin"></i> <span id="coinCount">{{ user_coins }}</span></span>
+            <button type="button" class="cw-iconbtn" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tarixni tozalash"><i class="bi bi-trash3"></i></button>
         </div>
     </div>
 
     {# ===== LIMITS ===== #}
-    <div class="ay-limits">
-        {% if limits.is_premium %}<span class="ay-lim premium"><i class="bi bi-star-fill"></i> Premium</span>{% endif %}
-        <span class="ay-lim{% if limits.msg_left <= 5 %} danger{% elif limits.msg_left <= 15 %} warn{% endif %}">
-            <i class="bi bi-chat-dots"></i> {{ limits.msg_left }}/{{ limits.msg_limit }} xabar
-        </span>
-        <span class="ay-lim{% if limits.img_left <= 1 %} danger{% endif %}">
-            <i class="bi bi-image"></i> {{ limits.img_left }}/{{ limits.img_limit }} rasm
-        </span>
-        <span class="ay-lim">
-            <i class="bi bi-coin"></i> {{ user_coins }} coin
-        </span>
+    <div class="cw-meta">
+        {% if limits.is_premium %}<span class="prem">PREMIUM</span><span class="sep"></span>{% endif %}
+        <span class="{% if limits.msg_left <= 5 %}danger{% elif limits.msg_left <= 15 %}warn{% endif %}"><b>{{ limits.msg_left }}</b>/{{ limits.msg_limit }} xabar</span>
+        <span class="sep"></span>
+        <span class="{% if limits.img_left <= 1 %}danger{% endif %}"><b>{{ limits.img_left }}</b>/{{ limits.img_limit }} rasm</span>
     </div>
 
     {# ===== MESSAGES ===== #}
-    <div class="ay-messages" id="messagesContainer">
+    <div class="cw-msgs" id="messages">
         {% if chat_messages %}
             {% for msg in chat_messages %}
-            <div class="ios-msg {{ msg.role }}">
-                <div class="ios-msg-row">
-                    <div class="ios-avatar">
-                        {% if msg.role == 'user' %}
-                            {{ user.first_name.0|upper }}
-                        {% else %}
-                            <i class="bi bi-robot"></i>
+            <div class="cw-row {{ msg.role }}">
+                <div class="cw-row-avatar">{% if msg.role == 'user' %}{{ user.first_name.0|upper }}{% else %}<i class="bi bi-stars"></i>{% endif %}</div>
+                <div class="cw-body">
+                    {% if msg.role == 'assistant' %}
+                        <div class="cw-assistant-text"><div class="markdown-body" id="md-{{ forloop.counter }}"></div></div>
+                        <script type="text/plain" id="src-{{ forloop.counter }}">{{ msg.content|safe }}</script>
+                    {% else %}
+                        {% if msg.content %}<div class="cw-bubble">{{ msg.content }}</div>{% endif %}
+                        {% if msg.image %}<img src="{{ msg.image.url }}" alt="Rasm" class="cw-img" onclick="window.open(this.src,'_blank')">{% endif %}
+                        {% if msg.file %}
+                        <a href="{{ msg.file.url }}" target="_blank" class="cw-file" download>
+                            <span class="cw-file-ic"><i class="bi {{ msg.file_icon }}"></i></span>
+                            <span style="min-width:0"><span class="cw-file-nm">{{ msg.file_name }}</span><br><span class="cw-file-ex">{{ msg.file_extension }} fayl</span></span>
+                        </a>
                         {% endif %}
-                    </div>
-                    <div class="ios-bubble-wrap">
-                        <div class="ios-bubble">
-                            <div class="ios-msg-text">{% if msg.role == 'assistant' %}
-                                    <div class="markdown-body" id="ai-msg-{{ forloop.counter }}"></div>
-                                    <script type="text/plain" id="ai-content-{{ forloop.counter }}">{{ msg.content|safe }}</script>
-{% else %}{{ msg.content }}{% endif %}</div>
-                            {% if msg.image %}
-                            <img src="{{ msg.image.url }}" alt="Rasm" class="ios-msg-image" onclick="window.open(this.src, '_blank')">
-                            {% endif %}
-                            {% if msg.file %}
-                            <a href="{{ msg.file.url }}" target="_blank" class="ios-file-card" download>
-                                <div class="ios-file-icon"><i class="bi {{ msg.file_icon }}"></i></div>
-                                <div class="ios-file-info">
-                                    <div class="ios-file-name">{{ msg.file_name }}</div>
-                                    <div class="ios-file-ext">{{ msg.file_extension }} fayl</div>
-                                </div>
-                            </a>
-                            {% endif %}
-                        </div>
-                        <div class="ios-msg-time">
-                            {{ msg.created_at|date:"H:i" }}
-                            {% if msg.coins_spent %}
-                            <span class="ios-coin-cost">&middot; -{{ msg.coins_spent }} coin</span>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% endif %}
+                    <div class="cw-time">{{ msg.created_at|date:"H:i" }}{% if msg.coins_spent %} · <span class="coin">-{{ msg.coins_spent }} coin</span>{% endif %}</div>
                 </div>
             </div>
             {% endfor %}
         {% else %}
-            <div class="ios-empty">
-                <div class="ios-empty-icon">
-                    <i class="bi bi-robot"></i>
-                </div>
+            <div class="cw-empty" id="emptyState">
+                <div class="cw-empty-ic"><i class="bi bi-stars"></i></div>
                 <h4>Creative AI bilan salomlashing</h4>
-                <p>Dasturlash, matematika va boshqa mavzularda savol bering. Rasmlar va fayllar yuborishingiz mumkin.</p>
-                <div class="ios-suggestions">
-                    <span class="ios-sug-chip" onclick="ay_setInput('Python asoslarini tushuntiring')">
-                        <i class="bi bi-code-slash"></i> Python
-                    </span>
-                    <span class="ios-sug-chip" onclick="ay_setInput('Django framework nima?')">
-                        <i class="bi bi-globe"></i> Django
-                    </span>
-                    <span class="ios-sug-chip" onclick="ay_setInput('HTML va CSS asoslari')">
-                        <i class="bi bi-palette"></i> HTML/CSS
-                    </span>
-                    <span class="ios-sug-chip" onclick="ay_setInput('JavaScript asoslari')">
-                        <i class="bi bi-braces"></i> JavaScript
-                    </span>
-                    <span class="ios-sug-chip" onclick="ay_setInput('SQL so\'rovlari misollari')">
-                        <i class="bi bi-database"></i> SQL
-                    </span>
+                <p>Dasturlash, matematika va boshqa mavzularda savol bering. Rasm va fayl yuborishingiz ham mumkin.</p>
+                <div class="cw-sugs">
+                    <span class="cw-sug" onclick="cwSet('Python asoslarini tushuntiring')"><i class="bi bi-code-slash"></i> Python</span>
+                    <span class="cw-sug" onclick="cwSet('Django framework nima?')"><i class="bi bi-globe"></i> Django</span>
+                    <span class="cw-sug" onclick="cwSet('HTML va CSS asoslari')"><i class="bi bi-palette"></i> HTML/CSS</span>
+                    <span class="cw-sug" onclick="cwSet('JavaScript asoslari')"><i class="bi bi-braces"></i> JavaScript</span>
                 </div>
             </div>
         {% endif %}
     </div>
 
     {# ===== INPUT ===== #}
-    <div class="ay-input-area">
-        <div class="ay-input-wrap">
-            {% if user_coins < 1 %}
-            <div class="ios-no-coins">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                Coin yetarli emas. Kamida 1 coin kerak.
-            </div>
-            {% else %}
-            <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="ay-form" id="chatForm">
-                {% csrf_token %}
-                <div class="ay-input-box">
-                    <textarea name="content" class="ay-textarea" placeholder="Xabar yozing..." rows="1" id="chatInput"></textarea>
-                    <div class="ay-preview">
-                        <img id="imagePreview" class="ay-img-preview" alt="Preview">
-                        <button type="button" id="removeImage" class="ay-remove-img" onclick="removeImagePreview()">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </div>
-                    <div class="ios-attach-preview" id="filePreview">
-                        <i class="bi bi-file-earmark" id="filePreviewIcon"></i>
-                        <span class="name" id="filePreviewName"></span>
-                        <button type="button" class="remove" onclick="removeFilePreview()"><i class="bi bi-x-circle"></i></button>
-                    </div>
-                </div>
-                <div class="ay-form-btns">
-                    <div class="ay-btn-attach" title="Rasm">
-                        <i class="bi bi-image"></i>
-                        <input type="file" name="image" accept="image/*" id="imageInput" class="ay-file-input" onchange="previewImage(this)">
-                    </div>
-                    <div class="ay-btn-attach" title="Fayl">
-                        <i class="bi bi-paperclip"></i>
-                        <input type="file" name="file" id="fileInput" class="ay-file-input" onchange="previewFile(this)">
-                    </div>
-                    <button type="submit" class="ay-btn-send" id="sendBtn" title="Yuborish">
-                        <i class="bi bi-arrow-up"></i>
-                    </button>
-                </div>
-            </form>
-            {% endif %}
+    <div class="cw-input-area">
+        {% if user_coins < 1 and not limits.is_premium %}
+        <div class="cw-nocoin"><i class="bi bi-exclamation-triangle-fill"></i> Coin yetarli emas. Kamida 1 coin kerak.</div>
+        {% else %}
+        <div class="cw-previews">
+            <span class="cw-chip" id="imgChip"><img id="imgThumb" alt=""><span class="nm" id="imgName">rasm</span><button type="button" class="rm" onclick="cwRemoveImage()"><i class="bi bi-x-circle-fill"></i></button></span>
+            <span class="cw-chip" id="fileChip"><i class="bi bi-paperclip" id="fileIco"></i><span class="nm" id="fileName">fayl</span><button type="button" class="rm" onclick="cwRemoveFile()"><i class="bi bi-x-circle-fill"></i></button></span>
         </div>
+        <div class="cw-input-wrap">
+            <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="cw-form" id="chatForm">
+                {% csrf_token %}
+                <div class="cw-input-box">
+                    <label class="cw-attach" title="Rasm">
+                        <i class="bi bi-image"></i>
+                        <input type="file" name="image" accept="image/*" id="imageInput" onchange="cwPreviewImage(this)">
+                    </label>
+                    <label class="cw-attach" title="Fayl">
+                        <i class="bi bi-paperclip"></i>
+                        <input type="file" name="file" id="fileInput" onchange="cwPreviewFile(this)">
+                    </label>
+                    <textarea name="content" class="cw-textarea" id="chatInput" placeholder="Xabar yozing…" rows="1"></textarea>
+                </div>
+                <button type="submit" class="cw-send" id="sendBtn" title="Yuborish"><i class="bi bi-arrow-up"></i></button>
+            </form>
+        </div>
+        {% endif %}
     </div>
 </div>
 
 {# Clear Modal #}
-<div class="modal fade ios-modal" id="clearModal" tabindex="-1">
+<div class="modal fade cw-modal" id="clearModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <div class="ios-modal-icon"><i class="bi bi-trash3"></i></div>
-                <h6 style="color:var(--ay-text);font-weight:700;margin-bottom:6px;letter-spacing:-.01em;">Tarixni tozalash</h6>
-                <p class="mb-0" style="color:var(--ay-text-2);font-size:.88rem;line-height:1.5;">Barcha xabarlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</p>
+                <div class="cw-modal-ic"><i class="bi bi-trash3"></i></div>
+                <h6>Tarixni tozalash</h6>
+                <p>Barcha xabarlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</p>
             </div>
             <div class="modal-footer">
-                <div>
-                    <button type="button" class="ios-modal-btn cancel" data-bs-dismiss="modal">Bekor qilish</button>
-                </div>
+                <div><button type="button" class="cw-modal-btn cancel" data-bs-dismiss="modal">Bekor qilish</button></div>
                 <div>
                     <form action="{% url 'ai_yordamchi:clear_history' pk=session.pk %}" method="post">
                         {% csrf_token %}
-                        <button type="submit" class="ios-modal-btn danger">O'chirish</button>
+                        <button type="submit" class="cw-modal-btn danger">O'chirish</button>
                     </form>
                 </div>
             </div>
@@ -1304,443 +466,326 @@ body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 <script>
-// ===== SET INPUT (from suggestion chip) =====
-function ay_setInput(text) {
-    var input = document.getElementById('chatInput');
-    if (!input) return;
-    input.value = text;
-    input.focus();
-    input.dispatchEvent(new Event('input'));
-}
-
-// ===== MARKED RENDERER (v4 API) =====
-var renderer = new marked.Renderer();
-
-renderer.code = function(code, lang, escaped) {
-    var language = (lang || 'plaintext').toLowerCase();
-    var highlighted;
-    try {
-        if (hljs.getLanguage(language)) {
-            highlighted = hljs.highlight(code, { language: language }).value;
-        } else {
-            highlighted = hljs.highlightAuto(code).value;
-        }
-    } catch(e) {
-        highlighted = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    }
-    var codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-    return '<div class="code-block-wrapper" id="' + codeId + '">'
-        + '<div class="code-header">'
-        + '<span class="code-lang">' + language + '</span>'
-        + '<button class="copy-btn" title="Nusxalash">'
-        + '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>'
-        + '</button>'
-        + '</div>'
-        + '<pre><code class="hljs language-' + language + '">' + highlighted + '</code></pre>'
-        + '</div>';
-};
-
-renderer.link = function(href, title, text) {
-    var isExternal = href && (href.startsWith('http://') || href.startsWith('https://'));
-    var target = isExternal ? ' target="_blank" rel="noopener noreferrer"' : '';
-    var titleAttr = title ? ' title="' + title + '"' : '';
-    var icon = isExternal
-        ? '<i class="bi bi-box-arrow-up-right me-1"></i>'
-        : '<i class="bi bi-link-45deg me-1"></i>';
-    return '<a href="' + href + '"' + target + titleAttr + ' class="markdown-link">' + icon + text + '</a>';
-};
-
-renderer.table = function(header, body) {
-    return '<div style="overflow-x:auto;margin:.85rem 0"><table>' + header + body + '</table></div>';
-};
-
-marked.setOptions({
-    renderer: renderer,
-    breaks: true,
-    gfm: true,
-    headerIds: false,
-    mangle: false,
-    pedantic: false,
-    sanitize: false,
-    smartLists: true,
-    smartypants: false
-});
-
-// ===== COPY CODE =====
-function copyCode(btn) {
-    var wrapper = btn.closest('.code-block-wrapper');
-    if (!wrapper) return;
-    var codeEl = wrapper.querySelector('code');
-    if (!codeEl) return;
-    var text = codeEl.textContent || codeEl.innerText;
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function() {
-            showCopySuccess(btn);
-        }).catch(function() { fallbackCopy(text, btn); });
-    } else {
-        fallbackCopy(text, btn);
-    }
-}
-function showCopySuccess(btn) {
-    var span = btn.querySelector('.copy-text');
-    var icon = btn.querySelector('i');
-    btn.classList.add('copied');
-    if (span) span.textContent = 'Nusxalandi!';
-    if (icon) icon.className = 'bi bi-check2';
-    setTimeout(function() {
-        btn.classList.remove('copied');
-        if (span) span.textContent = 'Nusxalash';
-        if (icon) icon.className = 'bi bi-clipboard';
-    }, 2000);
-}
-function fallbackCopy(text, btn) {
-    var ta = document.createElement('textarea');
-    ta.value = text;
-    ta.style.cssText = 'position:fixed;left:-9999px';
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); showCopySuccess(btn); } catch(e) {}
-    document.body.removeChild(ta);
-}
-document.addEventListener('click', function(e) {
-    var btn = e.target.closest('.copy-btn');
-    if (btn) copyCode(btn);
-});
-
-// ===== PROCESS CODE BLOCKS =====
-function processCodeBlocks(container) {
-    container.querySelectorAll('pre code').forEach(function(block) {
-        if (block.closest('.code-block-wrapper')) return;
-        var pre = block.parentElement;
-        if (!pre || pre.tagName !== 'PRE') return;
-        var wrapper = document.createElement('div');
-        wrapper.className = 'code-block-wrapper';
-        wrapper.id = 'code-' + Math.random().toString(36).substr(2, 9);
-        var langMatch = block.className.match(/language-(\w+)/);
-        var lang = langMatch ? langMatch[1] : 'plaintext';
-        var header = document.createElement('div');
-        header.className = 'code-header';
-        header.innerHTML = '<span class="code-lang">' + lang + '</span>'
-            + '<button class="copy-btn" title="Nusxalash">'
-            + '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>'
-            + '</button>';
-        pre.parentNode.insertBefore(wrapper, pre);
-        wrapper.appendChild(header);
-        wrapper.appendChild(pre);
-        hljs.highlightElement(block);
-    });
-}
-
-// ===== RENDER AI MESSAGES =====
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach(function(script) {
-        var id = script.id.replace('ai-content-', '');
-        var target = document.getElementById('ai-msg-' + id);
-        if (!target || !script.textContent) return;
+/* ============================================================
+   Markdown renderer
+   ============================================================ */
+(function () {
+    var renderer = new marked.Renderer();
+    renderer.code = function (code, lang) {
+        var language = (lang || 'plaintext').toLowerCase();
+        var html;
         try {
-            var content = script.textContent.trim();
-            var ticks = (content.match(/```/g) || []).length;
-            if (ticks % 2 !== 0) content += '\n```';
-            target.innerHTML = marked.parse(content);
-            processCodeBlocks(target);
-            target.querySelectorAll('a').forEach(function(link) {
-                var href = link.getAttribute('href');
-                if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
-                    link.setAttribute('target', '_blank');
-                    link.setAttribute('rel', 'noopener noreferrer');
-                    if (!link.querySelector('i')) {
-                        var icon = document.createElement('i');
-                        icon.className = 'bi bi-box-arrow-up-right me-1';
-                        link.insertBefore(icon, link.firstChild);
-                    }
-                }
-            });
-        } catch(e) {
-            console.error('Markdown error:', e);
-            target.textContent = script.textContent;
+            html = hljs.getLanguage(language)
+                ? hljs.highlight(code, { language: language }).value
+                : hljs.highlightAuto(code).value;
+        } catch (e) {
+            html = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         }
-    });
+        return '<div class="code-block-wrapper"><div class="code-header">'
+            + '<span class="code-lang">' + language + '</span>'
+            + '<button class="copy-btn"><i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span></button>'
+            + '</div><pre><code class="hljs language-' + language + '">' + html + '</code></pre></div>';
+    };
+    renderer.link = function (href, title, text) {
+        var ext = href && (href.indexOf('http://') === 0 || href.indexOf('https://') === 0);
+        var attrs = ext ? ' target="_blank" rel="noopener noreferrer"' : '';
+        return '<a href="' + href + '"' + attrs + (title ? ' title="' + title + '"' : '') + '>' + text + '</a>';
+    };
+    renderer.table = function (header, body) {
+        return '<div style="overflow-x:auto"><table>' + header + body + '</table></div>';
+    };
+    marked.setOptions({ renderer: renderer, breaks: true, gfm: true, headerIds: false, mangle: false });
+})();
 
-    // Auto-scroll
-    var container = document.getElementById('messagesContainer');
-    if (container) {
-        container.scrollTop = container.scrollHeight;
-        new MutationObserver(function() {
-            container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
-        }).observe(container, { childList: true, subtree: true });
+function cwRenderMarkdown(text) {
+    var t = (text || '').trim();
+    if ((t.match(/```/g) || []).length % 2 !== 0) t += '\n```';  // close open fence
+    try { return marked.parse(t); } catch (e) { return null; }
+}
+
+function cwEnhance(container) {
+    if (!container) return;
+    container.querySelectorAll('a').forEach(function (a) {
+        var href = a.getAttribute('href') || '';
+        if (href.indexOf('http') === 0) { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener noreferrer'); }
+    });
+    container.querySelectorAll('pre code').forEach(function (block) {
+        try { hljs.highlightElement(block); } catch (e) {}
+    });
+}
+
+/* Copy code (event delegation) */
+document.addEventListener('click', function (e) {
+    var btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    var wrap = btn.closest('.code-block-wrapper');
+    var code = wrap && wrap.querySelector('code');
+    if (!code) return;
+    var text = code.textContent || '';
+    var ok = function () {
+        btn.classList.add('copied');
+        var s = btn.querySelector('.copy-text'), i = btn.querySelector('i');
+        if (s) s.textContent = 'Nusxalandi';
+        if (i) i.className = 'bi bi-check2';
+        setTimeout(function () {
+            btn.classList.remove('copied');
+            if (s) s.textContent = 'Nusxalash';
+            if (i) i.className = 'bi bi-clipboard';
+        }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(ok).catch(function () {});
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = text; ta.style.cssText = 'position:fixed;left:-9999px';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); ok(); } catch (e) {}
+        document.body.removeChild(ta);
     }
 });
 
-// ===== TEXTAREA + AJAX =====
+/* Render server-side history + autoscroll */
+var messagesEl = document.getElementById('messages');
+function cwScroll() { if (messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight; }
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('script[type="text/plain"][id^="src-"]').forEach(function (src) {
+        var target = document.getElementById('md-' + src.id.replace('src-', ''));
+        if (!target) return;
+        var html = cwRenderMarkdown(src.textContent);
+        if (html === null) { target.textContent = src.textContent; return; }
+        target.innerHTML = html;
+        cwEnhance(target);
+    });
+    cwScroll();
+});
+
+/* ============================================================
+   Composer + streaming
+   ============================================================ */
 var textarea = document.getElementById('chatInput');
 var form = document.getElementById('chatForm');
 var sendBtn = document.getElementById('sendBtn');
-var messagesContainer = document.getElementById('messagesContainer');
-var pollTimer = null;
-var lastMessageId = 0;
-var isSending = false;
+var isBusy = false;
 
-function getCsrf() {
+function cwSet(text) {
+    if (!textarea) return;
+    textarea.value = text;
+    textarea.focus();
+    textarea.dispatchEvent(new Event('input'));
+}
+
+function cwCsrf() {
     var el = document.querySelector('[name=csrfmiddlewaretoken]');
     return el ? el.value : '';
 }
+function cwEscape(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function cwNow() { var d = new Date(); return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2); }
 
-function escapeHtml(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
+function cwHideEmpty() { var e = document.getElementById('emptyState'); if (e) e.remove(); }
 
-function addUserBubble(text) {
+function cwAddUserRow(text, imgUrl, fileName) {
+    cwHideEmpty();
     var initials = '{{ user.first_name.0|upper }}';
-    var now = new Date();
-    var time = ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
-    var html = '<div class="ios-msg user">'
-        + '<div class="ios-msg-row"><div class="ios-avatar">' + initials + '</div>'
-        + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
-        + escapeHtml(text).replace(/\n/g,'<br>')
-        + '</div></div><div class="ios-msg-time">' + time + '</div></div></div></div>';
-    messagesContainer.insertAdjacentHTML('beforeend', html);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    var extra = '';
+    if (imgUrl) extra += '<img src="' + imgUrl + '" class="cw-img" onclick="window.open(this.src,\'_blank\')">';
+    if (fileName) extra += '<div class="cw-file"><span class="cw-file-ic"><i class="bi bi-paperclip"></i></span><span class="cw-file-nm">' + cwEscape(fileName) + '</span></div>';
+    var bubble = text ? '<div class="cw-bubble">' + cwEscape(text) + '</div>' : '';
+    var html = '<div class="cw-row user"><div class="cw-row-avatar">' + initials + '</div>'
+        + '<div class="cw-body">' + bubble + extra + '<div class="cw-time">' + cwNow() + '</div></div></div>';
+    messagesEl.insertAdjacentHTML('beforeend', html);
+    cwScroll();
 }
 
-function addTypingIndicator() {
-    removeTypingIndicator();
-    var html = '<div class="ios-msg assistant" id="typingIndicator">'
-        + '<div class="ios-msg-row"><div class="ios-avatar"><i class="bi bi-robot"></i></div>'
-        + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
-        + '<div class="typing-dots"><span></span><span></span><span></span></div>'
-        + '</div></div></div></div></div>';
-    messagesContainer.insertAdjacentHTML('beforeend', html);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+/* Creates an assistant row and returns its markdown element */
+function cwAddAssistantRow() {
+    var id = 'stream-' + Date.now();
+    var html = '<div class="cw-row assistant"><div class="cw-row-avatar"><i class="bi bi-stars"></i></div>'
+        + '<div class="cw-body"><div class="cw-assistant-text"><div class="markdown-body" id="' + id + '">'
+        + '<div class="cw-dots"><span></span><span></span><span></span></div></div></div></div></div>';
+    messagesEl.insertAdjacentHTML('beforeend', html);
+    cwScroll();
+    return document.getElementById(id);
 }
 
-function removeTypingIndicator() {
-    var el = document.getElementById('typingIndicator');
-    if (el) el.remove();
-}
-
-function addAiBubble(content, time) {
-    removeTypingIndicator();
-    var id = 'ajax-ai-' + Date.now();
-    var html = '<div class="ios-msg assistant">'
-        + '<div class="ios-msg-row"><div class="ios-avatar"><i class="bi bi-robot"></i></div>'
-        + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
-        + '<div class="markdown-body" id="' + id + '"></div>'
-        + '</div></div><div class="ios-msg-time">' + time + '</div></div></div></div>';
-    messagesContainer.insertAdjacentHTML('beforeend', html);
-    var target = document.getElementById(id);
-    try {
-        var ticks = (content.match(/```/g) || []).length;
-        if (ticks % 2 !== 0) content += '\n```';
-        target.innerHTML = marked.parse(content);
-        processCodeBlocks(target);
-        target.querySelectorAll('a').forEach(function(link) {
-            var href = link.getAttribute('href');
-            if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
-                link.setAttribute('target', '_blank');
-                link.setAttribute('rel', 'noopener noreferrer');
-            }
-        });
-    } catch(e) {
-        target.textContent = content;
-    }
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function pollForResponse(afterId) {
-    var checkUrl = '{% url "ai_yordamchi:check_ai_response" pk=session.pk %}?after=' + afterId;
-    fetch(checkUrl)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.ready) {
-                addAiBubble(data.content, data.time);
-                lastMessageId = data.message_id;
-                resetSendState();
-            } else {
-                pollTimer = setTimeout(function() { pollForResponse(afterId); }, 1500);
-            }
-        })
-        .catch(function() {
-            pollTimer = setTimeout(function() { pollForResponse(afterId); }, 3000);
-        });
-}
-
-function resetSendState() {
-    isSending = false;
+function cwSetBusy(busy) {
+    isBusy = busy;
     if (sendBtn) {
-        sendBtn.disabled = false;
-        sendBtn.innerHTML = '<i class="bi bi-arrow-up"></i>';
+        sendBtn.disabled = busy;
+        sendBtn.innerHTML = busy
+            ? '<div class="cw-dots"><span></span><span></span><span></span></div>'
+            : '<i class="bi bi-arrow-up"></i>';
     }
-    if (textarea) {
-        textarea.readOnly = false;
-        textarea.value = '';
-        textarea.style.height = 'auto';
-        textarea.focus();
+    if (textarea) textarea.readOnly = busy;
+}
+
+function cwResetInput() {
+    if (textarea) { textarea.value = ''; textarea.style.height = 'auto'; textarea.focus(); }
+    cwRemoveImage();
+    cwRemoveFile();
+}
+
+/* Live render throttled with rAF */
+function cwStreamRender(mdEl, raw) {
+    if (mdEl._pending) return;
+    mdEl._pending = true;
+    requestAnimationFrame(function () {
+        mdEl._pending = false;
+        var html = cwRenderMarkdown(raw);
+        mdEl.innerHTML = (html === null ? cwEscape(raw) : html) + '<span class="cw-cursor"></span>';
+        cwScroll();
+    });
+}
+
+function cwFinalize(mdEl, content) {
+    var html = cwRenderMarkdown(content);
+    if (html === null) { mdEl.textContent = content; } else { mdEl.innerHTML = html; cwEnhance(mdEl); }
+    cwScroll();
+}
+
+function cwStreamError(mdEl, raw, onRetry) {
+    var base = raw ? (cwRenderMarkdown(raw) || cwEscape(raw)) : '<p>⚠️ Javob olishda xatolik yuz berdi.</p>';
+    mdEl.innerHTML = base + '<button class="cw-retry" type="button"><i class="bi bi-arrow-clockwise"></i> Qayta urinish</button>';
+    var btn = mdEl.querySelector('.cw-retry');
+    if (btn) btn.addEventListener('click', function () { btn.remove(); onRetry(mdEl); });
+    cwScroll();
+}
+
+/* Read the SSE stream for the current session */
+async function cwStream(mdEl) {
+    var url = "{% url 'ai_yordamchi:stream_response' pk=session.pk %}";
+    var raw = '';
+    var got = false;
+    try {
+        var resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!resp.ok || !resp.body) throw new Error('bad response');
+        var reader = resp.body.getReader();
+        var decoder = new TextDecoder();
+        var buf = '';
+        var finalContent = null;
+        while (true) {
+            var r = await reader.read();
+            if (r.done) break;
+            buf += decoder.decode(r.value, { stream: true });
+            var i;
+            while ((i = buf.indexOf('\n\n')) !== -1) {
+                var frame = buf.slice(0, i).trim();
+                buf = buf.slice(i + 2);
+                if (frame.indexOf('data:') !== 0) continue;
+                var data;
+                try { data = JSON.parse(frame.slice(5).trim()); } catch (e) { continue; }
+                if (data.type === 'delta' && data.text) {
+                    if (!got) { got = true; mdEl.innerHTML = ''; }
+                    raw += data.text;
+                    cwStreamRender(mdEl, raw);
+                } else if (data.type === 'done') {
+                    finalContent = (data.content != null) ? data.content : raw;
+                }
+            }
+        }
+        if (!got && !finalContent) throw new Error('empty stream');
+        cwFinalize(mdEl, finalContent != null ? finalContent : raw);
+    } catch (e) {
+        cwStreamError(mdEl, raw, function (el) { cwSetBusy(true); cwStream(el).then(function(){ cwSetBusy(false); }); });
     }
 }
 
-function sendMessageAjax() {
-    if (!textarea || !textarea.value.trim()) return;
+async function cwSend() {
+    if (isBusy || !textarea) return;
     var text = textarea.value.trim();
     var imageInput = document.getElementById('imageInput');
     var fileInput = document.getElementById('fileInput');
-    var hasFile = (imageInput && imageInput.files.length) || (fileInput && fileInput.files.length);
+    var hasImage = imageInput && imageInput.files.length;
+    var hasFile = fileInput && fileInput.files.length;
+    if (!text && !hasImage && !hasFile) return;
 
-    if (hasFile) {
-        var fd = new FormData(form);
-        isSending = true;
-        sendBtn.disabled = true;
-        textarea.readOnly = true;
-        sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    cwSetBusy(true);
 
-        addUserBubble(text);
-        addTypingIndicator();
+    var imgUrl = (hasImage && document.getElementById('imgThumb')) ? document.getElementById('imgThumb').src : '';
+    var fileName = hasFile ? fileInput.files[0].name : '';
+    cwAddUserRow(text, imgUrl, fileName);
 
-        fetch(form.action, {
-            method: 'POST',
-            body: fd,
-            headers: {'X-Requested-With': 'XMLHttpRequest'}
-        })
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-            if (data.error) {
-                removeTypingIndicator();
-                addAiBubble('⚠️ ' + data.error, new Date().getHours()+':'+('0'+new Date().getMinutes()).slice(-2));
-                resetSendState();
-            } else {
-                lastMessageId = data.user_message_id;
-                removeImagePreview();
-                removeFilePreview();
-                pollForResponse(lastMessageId);
-            }
-        })
-        .catch(function() {
-            form.removeAttribute('data-ajax');
-            form.submit();
+    var fd = new FormData(form);
+    cwResetInput();
+
+    try {
+        var resp = await fetch(form.action, {
+            method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' }
         });
-        return;
-    }
-
-    isSending = true;
-    sendBtn.disabled = true;
-    textarea.readOnly = true;
-    sendBtn.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-
-    addUserBubble(text);
-    addTypingIndicator();
-
-    var fd = new FormData();
-    fd.append('content', text);
-    fd.append('csrfmiddlewaretoken', getCsrf());
-
-    fetch(form.action, {
-        method: 'POST',
-        body: fd,
-        headers: {'X-Requested-With': 'XMLHttpRequest'}
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+        var data = await resp.json();
         if (data.error) {
-            removeTypingIndicator();
-            addAiBubble('⚠️ ' + data.error, new Date().getHours()+':'+('0'+new Date().getMinutes()).slice(-2));
-            resetSendState();
-        } else {
-            lastMessageId = data.user_message_id;
-            var coinEls = document.querySelectorAll('.ay-coin-pill');
-            coinEls.forEach(function(el) {
-                var i = el.querySelector('i');
-                el.textContent = '';
-                if (i) el.appendChild(i);
-                el.append(' ' + data.coins);
-            });
-            pollForResponse(lastMessageId);
+            var errEl = cwAddAssistantRow();
+            errEl.innerHTML = '<p>⚠️ ' + cwEscape(data.error) + '</p>';
+            cwSetBusy(false);
+            return;
         }
-    })
-    .catch(function() {
-        form.submit();
-    });
+        var coinEl = document.getElementById('coinCount');
+        if (coinEl && data.coins != null) coinEl.textContent = data.coins;
+        var mdEl = cwAddAssistantRow();
+        await cwStream(mdEl);
+    } catch (e) {
+        var el = cwAddAssistantRow();
+        cwStreamError(el, '', function (t) { cwSetBusy(true); cwStream(t).then(function(){ cwSetBusy(false); }); });
+    } finally {
+        cwSetBusy(false);
+    }
 }
 
-if (textarea) {
-    textarea.addEventListener('input', function() {
+if (textarea && form) {
+    textarea.addEventListener('input', function () {
         this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+        this.style.height = Math.min(this.scrollHeight, 150) + 'px';
     });
-
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (isSending) return;
-        sendMessageAjax();
+    form.addEventListener('submit', function (e) { e.preventDefault(); cwSend(); });
+    textarea.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cwSend(); }
     });
-    textarea.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            if (this.value.trim() && !isSending) {
-                sendMessageAjax();
-            }
-        }
-    });
-
     textarea.focus();
 }
 
-// ===== IMAGE PREVIEW =====
-function previewImage(input) {
-    if (input.files && input.files[0]) {
+/* ============================================================
+   Attachment previews
+   ============================================================ */
+function cwPreviewImage(input) {
+    if (!input.files || !input.files[0]) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        document.getElementById('imgThumb').src = e.target.result;
+        document.getElementById('imgName').textContent = input.files[0].name;
+        document.getElementById('imgChip').classList.add('active');
+    };
+    reader.readAsDataURL(input.files[0]);
+}
+function cwRemoveImage() {
+    var i = document.getElementById('imageInput'); if (i) i.value = '';
+    var c = document.getElementById('imgChip'); if (c) c.classList.remove('active');
+}
+function cwPreviewFile(input) {
+    if (!input.files || !input.files[0]) return;
+    var f = input.files[0];
+    var ext = (f.name.split('.').pop() || '').toLowerCase();
+    var imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
+    if (imgExts.indexOf(ext) !== -1) {  // route images through the image preview
         var reader = new FileReader();
-        reader.onload = function(e) {
-            document.getElementById('imagePreview').src = e.target.result;
-            document.getElementById('imagePreview').style.display = 'block';
-            document.getElementById('removeImage').style.display = 'flex';
+        reader.onload = function (e) {
+            document.getElementById('imgThumb').src = e.target.result;
+            document.getElementById('imgName').textContent = f.name;
+            document.getElementById('imgChip').classList.add('active');
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(f);
+        return;
     }
+    var map = { py: 'bi-filetype-py', js: 'bi-filetype-js', html: 'bi-filetype-html', css: 'bi-filetype-css',
+        json: 'bi-filetype-json', pdf: 'bi-filetype-pdf', doc: 'bi-filetype-doc', docx: 'bi-filetype-docx',
+        xls: 'bi-filetype-xls', xlsx: 'bi-filetype-xlsx', csv: 'bi-filetype-csv', txt: 'bi-filetype-txt',
+        md: 'bi-filetype-md', sql: 'bi-filetype-sql', zip: 'bi-file-zip', rar: 'bi-file-zip' };
+    document.getElementById('fileIco').className = 'bi ' + (map[ext] || 'bi-file-earmark');
+    document.getElementById('fileName').textContent = f.name;
+    document.getElementById('fileChip').classList.add('active');
 }
-
-function removeImagePreview() {
-    document.getElementById('imageInput').value = '';
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('removeImage').style.display = 'none';
-}
-
-// ===== FILE PREVIEW =====
-function previewFile(input) {
-    if (input.files && input.files[0]) {
-        var file = input.files[0];
-        var name = file.name;
-        var ext = name.split('.').pop().toLowerCase();
-
-        document.getElementById('filePreviewName').textContent = name;
-        document.getElementById('filePreview').classList.add('active');
-
-        var iconMap = {
-            py: 'bi-filetype-py', js: 'bi-filetype-js', ts: 'bi-filetype-tsx',
-            html: 'bi-filetype-html', css: 'bi-filetype-css', json: 'bi-filetype-json',
-            pdf: 'bi-filetype-pdf', doc: 'bi-filetype-doc', docx: 'bi-filetype-docx',
-            xls: 'bi-filetype-xls', xlsx: 'bi-filetype-xlsx', csv: 'bi-filetype-csv',
-            txt: 'bi-filetype-txt', md: 'bi-filetype-md', sql: 'bi-filetype-sql',
-            zip: 'bi-file-zip', rar: 'bi-file-zip',
-            png: 'bi-filetype-png', jpg: 'bi-filetype-jpg', jpeg: 'bi-filetype-jpg',
-            gif: 'bi-filetype-gif', svg: 'bi-filetype-svg'
-        };
-        var iconClass = iconMap[ext] || 'bi-file-earmark';
-        document.getElementById('filePreviewIcon').className = 'bi ' + iconClass;
-
-        var imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
-        if (imgExts.indexOf(ext) !== -1) {
-            var reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('imagePreview').src = e.target.result;
-                document.getElementById('imagePreview').style.display = 'block';
-                document.getElementById('removeImage').style.display = 'flex';
-            };
-            reader.readAsDataURL(file);
-        }
-    }
-}
-
-function removeFilePreview() {
-    document.getElementById('fileInput').value = '';
-    document.getElementById('filePreview').classList.remove('active');
+function cwRemoveFile() {
+    var i = document.getElementById('fileInput'); if (i) i.value = '';
+    var c = document.getElementById('fileChip'); if (c) c.classList.remove('active');
 }
 </script>
 {% endblock %}

@@ -1,28 +1,78 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse
+from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.paginator import Paginator
 from django.utils import timezone
 import base64
+import json
+import re
 
 from .models import ChatSession, ChatMessage
 from coin.models import CoinTransaction, ActivityLog
 
-# Daily limits
+# ============================================================
+#  CONFIG
+# ============================================================
 DAILY_MSG_LIMIT = {'premium': 120, 'regular': 60}
 DAILY_IMG_LIMIT = {'premium': 5, 'regular': 3}
 
+OPENAI_MODEL = "gpt-4o-mini"
+OPENAI_MAX_TOKENS = 4096
+OPENAI_TEMPERATURE = 0.2
 
+IMAGE_EXTS = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')
+TEXT_EXTS = (
+    '.py', '.js', '.ts', '.html', '.css', '.json', '.xml', '.sql', '.txt',
+    '.md', '.csv', '.java', '.php', '.rb', '.c', '.cpp', '.h', '.go', '.rs',
+    '.sh', '.bat', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.env', '.log',
+)
+
+# Single source of truth for the assistant persona + formatting rules.
+SYSTEM_PROMPT = """Siz LMS o'quv platformasining AI yordamchisisiz. Har doim O'zbek tilida javob bering.
+
+MUALLIF: Sizni Husan Suyunov Shavkat o'g'li yaratgan (husanbek-coder.uz).
+Telefon: +998975216686 | Telegram: @husanbek_coder | GitHub: https://github.com/xusanbek0039
+U IT Creative Zomin asoschisi va rahbari, Full-Stack dasturchi.
+
+RASM TAHLILI:
+Foydalanuvchi rasm yuborsa, uni ko'rib tahlil qiling. Rasmdagi matn, kod, xato xabar,
+diagramma yoki formulani o'qing va shunga asosan javob bering. HECH QACHON
+"rasmni ko'ra olmayman" demang - siz rasmlarni ko'ra olasiz.
+
+KOD YOZISH QOIDALARI (JUDA MUHIM):
+1. Har qanday kodni FAQAT markdown code block ichida yozing: ```til_nomi ... ```
+2. Kod blokini har doim ``` bilan yoping - ochiq qoldirmang.
+3. Til nomini to'g'ri yozing: python, javascript, html, css, sql, json, bash, java, php,
+   ruby, typescript, cpp, c, go, rust.
+4. Bir nechta fayl bo'lsa, har birini alohida sarlavha va alohida code block bilan bering.
+5. Kod to'liq va ishlaydigan bo'lsin; izohlarni kod tashqarisida yozing.
+
+JAVOB STRUKTURASI:
+- Avval qisqa tushuntirish (1-3 gap).
+- Keyin kod yoki misollar.
+- Oxirida qisqa "Eslatma" yoki "Qanday ishlatish" bo'limi (kerak bo'lsa).
+
+FORMATLASH:
+- Havolalarni markdown ko'rinishida bering: [matn](https://example.com).
+- Muhim so'zlar uchun **qalin**, urg'u uchun *yotiq*, qisqa kod uchun `inline`.
+- Ro'yxat va jadvallar uchun markdown ishlating.
+
+USLUB: Sodda, do'stona, boshlovchilar uchun tushunarli, qisqa va aniq."""
+
+
+# ============================================================
+#  USAGE / LIMITS
+# ============================================================
 def get_daily_usage(user):
-    """Get user's daily message and image count."""
+    """Return today's (message_count, image_count) for a user."""
     today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
     today_msgs = ChatMessage.objects.filter(
         session__user=user,
         role='user',
-        created_at__gte=today_start
+        created_at__gte=today_start,
     )
     msg_count = today_msgs.count()
     img_count = today_msgs.exclude(image='').exclude(image__isnull=True).count()
@@ -30,7 +80,7 @@ def get_daily_usage(user):
 
 
 def get_user_limits(user):
-    """Get limits and usage for a user."""
+    """Return the limit/usage snapshot used across the UI."""
     is_prem = getattr(user, 'is_premium', False)
     tier = 'premium' if is_prem else 'regular'
     msg_limit = DAILY_MSG_LIMIT[tier]
@@ -47,149 +97,223 @@ def get_user_limits(user):
     }
 
 
+# ============================================================
+#  OPENAI HELPERS
+# ============================================================
 def get_openai_client():
-    """Get OpenAI client if API key is configured."""
+    """Return a configured OpenAI client, or None when unavailable."""
     api_key = getattr(settings, 'OPENAI_API_KEY', None)
-    
-    # Check if API key exists and is not empty
     if not api_key or not api_key.strip():
         return None
-    
     try:
         from openai import OpenAI
-        client = OpenAI(api_key=api_key.strip(), timeout=30)
-        return client
+        return OpenAI(api_key=api_key.strip(), timeout=60)
     except ImportError:
-        print("ERROR: OpenAI paketi o'rnatilmagan. 'pip install openai' buyrug'ini bajaring.")
+        print("ERROR: 'openai' paketi o'rnatilmagan. `pip install openai` bajaring.")
         return None
     except Exception as e:
-        print(f"ERROR: OpenAI client yaratishda xatolik: {str(e)}")
+        print(f"ERROR: OpenAI client yaratishda xatolik: {e}")
         return None
 
 
-def validate_and_reformat_response(response_text, user_query):
-    """
-    Validate va reformat AI javobini.
-    - Kod bloklarini to'g'ri yopish
-    - Linklarni to'g'ri formatlash
-    """
+def _service_unavailable_text():
+    """User-facing message when the AI service cannot be reached."""
+    api_key = getattr(settings, 'OPENAI_API_KEY', None)
+    if not api_key or not api_key.strip():
+        return ("⚠️ AI xizmati hozircha sozlanmagan. Administrator bilan bog'laning "
+                "(OPENAI_API_KEY topilmadi).")
+    return "⚠️ AI xizmatiga ulanib bo'lmadi. Iltimos, birozdan so'ng qayta urinib ko'ring."
+
+
+def validate_and_reformat_response(response_text, user_query=""):
+    """Close any unbalanced code fences and turn bare URLs into markdown links."""
     if not response_text:
         return response_text
-    
-    import re
-    
-    # 1. Ochiq qolgan kod bloklarini yopish
-    code_block_count = len(re.findall(r'```', response_text))
-    if code_block_count % 2 != 0:
-        # Ochiq kod bloki bor - yopish
+
+    # Close an unterminated code block.
+    if len(re.findall(r'```', response_text)) % 2 != 0:
         response_text += '\n```'
-    
-    # 2. Linklarni to'g'ri formatlash
-    # Agar link oddiy matn ichida bo'lsa va markdown link emas bo'lsa
-    url_pattern = r'(?<!\[)(?<!\]\()(https?://[^\s\)\]<>]+)(?!\))'
-    def replace_url(match):
-        url = match.group(1)
-        # Agar allaqachon markdown link ichida emas bo'lsa
-        return f'[{url}]({url})'
-    
-    response_text = re.sub(url_pattern, replace_url, response_text)
-    
+
+    # Wrap bare URLs (not already inside a markdown link) as markdown links.
+    url_pattern = r'(?<!\]\()(?<!\])(https?://[^\s\)\]<>]+)'
+    response_text = re.sub(url_pattern, lambda m: f'[{m.group(1)}]({m.group(1)})', response_text)
     return response_text
 
 
+def _build_history(session):
+    """Build the OpenAI chat history from a session's stored messages."""
+    history = [{"role": "system", "content": SYSTEM_PROMPT}]
+    messages_list = list(session.messages.all())
+    total = len(messages_list)
+
+    for idx, msg in enumerate(messages_list):
+        if msg.role != 'user':
+            if msg.content:
+                history.append({"role": "assistant", "content": msg.content})
+            continue
+
+        # Reinforce formatting only on the newest user turn.
+        is_last_user = (idx == total - 1) or (
+            idx < total - 1 and messages_list[idx + 1].role == 'assistant'
+        )
+        fmt = ("\n\n⚠️ MUHIM: Kodlar faqat ```til_nomi va ``` orasida, "
+               "linklar URL formatida bo'lsin!") if is_last_user else ""
+        user_text = (msg.content or '') + fmt
+
+        # Inline the content of small text/code files.
+        if msg.file and msg.file_name and msg.file_name.lower().endswith(TEXT_EXTS):
+            try:
+                file_content = msg.file.read().decode('utf-8', errors='replace')
+                msg.file.seek(0)
+                ext = msg.file_name.rsplit('.', 1)[-1] if '.' in msg.file_name else 'txt'
+                user_text += f"\n\nFayl: {msg.file_name}\n```{ext}\n{file_content}\n```"
+            except Exception:
+                pass
+
+        if msg.image:
+            try:
+                msg.image.open('rb')
+                raw = msg.image.read()
+                msg.image.close()
+                image_data = base64.b64encode(raw).decode('utf-8')
+                name = (msg.image.name or '').lower()
+                if name.endswith('.png'):
+                    mime = 'image/png'
+                elif name.endswith('.gif'):
+                    mime = 'image/gif'
+                elif name.endswith('.webp'):
+                    mime = 'image/webp'
+                else:
+                    mime = 'image/jpeg'
+                parts = [{
+                    "type": "text",
+                    "text": user_text if user_text.strip() else "Bu rasmni tahlil qiling va tushuntiring.",
+                }, {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{image_data}", "detail": "high"},
+                }]
+                history.append({"role": "user", "content": parts})
+            except Exception as img_err:
+                print(f"IMAGE READ ERROR: {img_err}")
+                if user_text.strip():
+                    history.append({
+                        "role": "user",
+                        "content": user_text + "\n\n(Rasm yuklandi, lekin o'qishda xatolik yuz berdi)",
+                    })
+        elif user_text.strip():
+            history.append({"role": "user", "content": user_text})
+
+    return history
+
+
+def _complete_sync(session):
+    """Non-streaming completion (used as a no-JS fallback). Returns reply text."""
+    client = get_openai_client()
+    if not client:
+        return _service_unavailable_text()
+    try:
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=_build_history(session),
+            max_tokens=OPENAI_MAX_TOKENS,
+            temperature=OPENAI_TEMPERATURE,
+        )
+        return validate_and_reformat_response(response.choices[0].message.content or '')
+    except Exception as e:
+        print(f"OpenAI Error (sync): {e}")
+        return f"⚠️ AI bilan bog'lanishda xatolik: {e}"
+
+
+def _sse(payload):
+    """Serialize a dict as one Server-Sent Event frame."""
+    return "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"
+
+
+# ============================================================
+#  PAGES
+# ============================================================
 @login_required
 def chat_home(request):
-    """List user's chat sessions."""
+    """List the user's chat sessions."""
     sessions = ChatSession.objects.filter(user=request.user, is_active=True)
-    limits = get_user_limits(request.user)
     return render(request, 'ai_yordamchi/chat_home.html', {
         'sessions': sessions,
-        'limits': limits,
+        'limits': get_user_limits(request.user),
     })
 
 
 @login_required
 def new_session(request):
-    """Create a new chat session."""
+    """Create a new chat session and open it."""
     session = ChatSession.objects.create(user=request.user)
     return redirect('ai_yordamchi:chat_session', pk=session.pk)
 
 
 @login_required
 def chat_session(request, pk):
-    """Chat interface with a session."""
+    """Chat interface for a single session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
-    chat_messages = session.messages.all()
-    limits = get_user_limits(request.user)
-    
     return render(request, 'ai_yordamchi/chat_session.html', {
         'session': session,
-        'chat_messages': chat_messages,
+        'chat_messages': session.messages.all(),
         'user_coins': request.user.coins,
-        'limits': limits,
+        'limits': get_user_limits(request.user),
     })
 
 
+# ============================================================
+#  MESSAGING
+# ============================================================
 @login_required
 @require_POST
 def send_message(request, pk):
-    """Send message to AI and get response (AJAX supported)."""
+    """Persist a user's message (and spend a coin). AI reply is streamed separately.
+
+    AJAX clients receive the saved message id, then open the `stream_response`
+    endpoint to receive the reply token-by-token. Non-JS clients fall back to a
+    synchronous completion so the feature still works without JavaScript.
+    """
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
-    
     is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
-    
+
     content = request.POST.get('content', '').strip()
     image = request.FILES.get('image')
     file = request.FILES.get('file')
-    
+
+    def fail(message, status=400):
+        if is_ajax:
+            return JsonResponse({'error': message}, status=status)
+        messages.error(request, message)
+        return redirect('ai_yordamchi:chat_session', pk=pk)
+
     if not content and not image and not file:
-        if is_ajax:
-            return JsonResponse({'error': "Xabar, rasm yoki fayl yuborishingiz kerak."}, status=400)
-        messages.error(request, "Xabar, rasm yoki fayl yuborishingiz kerak.")
-        return redirect('ai_yordamchi:chat_session', pk=pk)
-    
-    # Check coins
+        return fail("Xabar, rasm yoki fayl yuborishingiz kerak.")
+
     is_premium = getattr(request.user, 'is_premium', False)
-    
     if not is_premium and request.user.coins < 1:
-        if is_ajax:
-            return JsonResponse({'error': "Sizda yetarli coin yo'q."}, status=400)
-        messages.error(request, "Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
-        return redirect('ai_yordamchi:chat_session', pk=pk)
-    
-    # Check daily limits
+        return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
+
     limits = get_user_limits(request.user)
     if limits['msg_left'] <= 0:
-        limit_text = "120" if limits['is_premium'] else "60"
-        err = "Kunlik xabar limitingiz tugadi (" + limit_text + "/" + limit_text + "). Ertaga qayta urinib ko'ring."
-        if is_ajax:
-            return JsonResponse({'error': err}, status=400)
-        messages.error(request, err)
-        return redirect('ai_yordamchi:chat_session', pk=pk)
-    
-    has_image = bool(image) or (file and file.name.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')))
+        cap = limits['msg_limit']
+        return fail(f"Kunlik xabar limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib ko'ring.")
+
+    has_image = bool(image) or (file and file.name.lower().endswith(IMAGE_EXTS))
     if has_image and limits['img_left'] <= 0:
-        img_text = "5" if limits['is_premium'] else "3"
-        err = "Kunlik rasm limitingiz tugadi (" + img_text + "/" + img_text + "). Ertaga qayta urinib ko'ring."
-        if is_ajax:
-            return JsonResponse({'error': err}, status=400)
-        messages.error(request, err)
-        return redirect('ai_yordamchi:chat_session', pk=pk)
-    
-    # Handle file - if it's an image type, save as image field too
+        cap = limits['img_limit']
+        return fail(f"Kunlik rasm limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib ko'ring.")
+
+    # An uploaded image may arrive via the image field or the generic file field.
     uploaded_image = image
     uploaded_file = None
     uploaded_file_name = ''
-    
     if file:
         uploaded_file_name = file.name
-        img_exts = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')
-        if file.name.lower().endswith(img_exts):
+        if file.name.lower().endswith(IMAGE_EXTS):
             uploaded_image = file
         else:
             uploaded_file = file
-    
-    # Save user message
+
     coin_cost = 0 if is_premium else 1
     user_message = ChatMessage.objects.create(
         session=session,
@@ -200,563 +324,109 @@ def send_message(request, pk):
         file_name=uploaded_file_name,
         coins_spent=coin_cost,
     )
-    
-    # Deduct coin (only for non-premium)
+
     if not is_premium:
         request.user.coins -= 1
-        request.user.save()
-        
+        request.user.save(update_fields=['coins'])
         CoinTransaction.objects.create(
-            user=request.user,
-            amount=1,
-            action='remove',
-            reason="AI yordamchi bilan suhbat"
+            user=request.user, amount=1, action='remove',
+            reason="AI yordamchi bilan suhbat",
         )
-    
-    # Log activity
+
     ActivityLog.objects.create(
         user=request.user,
         action_type='earn_coins',
         description="AI yordamchi bilan suhbatlashdi" + ("" if is_premium else " (-1 coin)"),
-        ip_address=get_client_ip(request)
+        ip_address=get_client_ip(request),
     )
-    
-    # Update session title if first message
+
     if session.messages.count() == 1 and content:
         session.title = content[:50] + ('...' if len(content) > 50 else '')
-        session.save()
-    
-    # AJAX mode: return immediately, process AI in background
+        session.save(update_fields=['title', 'updated_at'])
+
     if is_ajax:
-        import threading
-        session_id = session.pk
-        user_id = request.user.pk
-        
-        def _process_ai_response(session_id, user_id):
-            from django.db import connection
-            connection.close()
-            try:
-                _generate_ai_response_for_session(session_id)
-            except Exception as e:
-                print(f"Background AI chat xatolik: {e}")
-                try:
-                    sess = ChatSession.objects.get(pk=session_id)
-                    ChatMessage.objects.create(
-                        session=sess, role='assistant',
-                        content=f"⚠️ AI bilan bog'lanishda xatolik: {str(e)}"
-                    )
-                except Exception:
-                    pass
-        
-        thread = threading.Thread(target=_process_ai_response, args=(session_id, user_id), daemon=True)
-        thread.start()
-        
         return JsonResponse({
             'success': True,
             'user_message_id': user_message.pk,
-            'content': content,
             'coins': request.user.coins,
         })
-    
-    # Fallback: synchronous mode (old behavior for non-JS clients)
-    # Get AI response
-    client = get_openai_client()
-    
-    if not client:
-        api_key = getattr(settings, 'OPENAI_API_KEY', None)
-        if not api_key or not api_key.strip():
-            ai_response = """⚠️ AI xizmati sozlashmagan.
 
-**Muammo:** OPENAI_API_KEY topilmadi yoki bo'sh.
-
-**Yechim:**
-1. Loyiha ildizida `.env` faylini yarating (agar yo'q bo'lsa)
-2. Quyidagi qatorni qo'shing:
-   ```
-   OPENAI_API_KEY=sk-sizning-api-kalitingiz
-   ```
-3. OpenAI API kalitini https://platform.openai.com/api-keys dan oling
-4. Serverni qayta ishga tushiring"""
-        else:
-            # Check if openai package is installed
-            try:
-                import openai
-                ai_response = """⚠️ AI xizmati bilan bog'lanishda muammo.
-
-API kalit mavjud, lekin xizmatga ulanishda xatolik yuz berdi.
-
-**Tekshirish:**
-1. API kalitning to'g'riligini tekshiring
-2. Internet ulanishini tekshiring
-3. Keyinroq urinib ko'ring"""
-            except ImportError:
-                ai_response = """⚠️ OpenAI paketi o'rnatilmagan.
-
-**Yechim:**
-Quyidagi buyruqni bajaring:
-```
-pip install openai
-```
-
-Keyin serverni qayta ishga tushiring."""
-    else:
-        try:
-            # Build messages history
-            system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. Sizni Husan Suyunov Shavkat o'g'li yaratgan. 
-            husanbek-coder.uz Telefon raqami: +998975216686. Telegrami: @husanbek_coder
-            Husan Suyunov IT Creative Zomin asoschisi va rahbari. 
-            Husan Suyunov Full-Stack Dasturchi. https://github.com/xusanbek0039            
-
-⚠️ RASM TAHLILI:
-Agar foydalanuvchi rasm yuborsa, siz uni ko'rib, tahlil qilib javob berishingiz SHART.
-- Rasmni batafsil tavsiflang
-- Rasmdagi matn, kod, xato xabarlar, diagrammalar, formulalar yoki boshqa ma'lumotlarni o'qing
-- Agar kodning skrinshoti bo'lsa, kodni yozib bering va xatolarni tuzating
-- Agar savol bo'lsa, rasmga asosan javob bering
-- HECH QACHON "rasmni ko'ra olmayman" deb javob bermang - siz rasmlarni ko'ra olasiz!
-
-⚠️ ENG MUHIM QOIDA - KODLAR:
-Foydalanuvchi JS, HTML, Python, CSS yoki boshqa tildagi kod so'raganda, ALBATTA kodni markdown code block ichida yozing.
-Foydalanuvchi kodni ko'chirib (copy) olishi kerak, shuning uchun HECH QACHON kodni oddiy matn sifatida yozmang.
-
-FORMAT:
-```til_nomi
-kod shu yerda
-```
-
-Masalan:
-```python
-print("Salom")
-```
-
-```javascript
-console.log("Salom");
-```
-
-```html
-<h1>Salom</h1>
-```
-
-QOIDALAR:
-1. Har qanday kod FAQAT ```til_nomi va ``` orasida bo'lsin
-2. Kodni HECH QACHON oddiy matn ichiga qo'shmang
-3. Har bir kod blokini albatta ``` bilan yoping
-4. Til nomini to'g'ri yozing: python, javascript, html, css, sql, json, bash, java, php, ruby, typescript, cpp, c, go, rust
-5. Agar bir nechta fayl bo'lsa, har birini alohida kod blokida yozing
-6. Kod to'liq va ishlaydigan bo'lsin
-
-JAVOB FORMATI VA QOIDALAR:
-
-1. STRUKTURA:
-   - Avval qisqa va tushunarli tushuntirish (1-3 gap)
-   - Keyin kod bloklari yoki misollar
-   - Oxirida "Qanday ishlatish" yoki "Eslatma" bo'limi
-
-2. KOD BLOKLARI (MUHIM - BU QOIDALARNI QAT'IY BAJARING):
-   - Har doim Markdown formatda yozing va kod bloklarini to'liq yoping
-   - Format: ```til_nomi bilan boshlash va ``` bilan tugatish
-   - Til nomlari: python, javascript, html, css, sql, json, bash, shell, java, php, ruby
-   - Kod ichida faqat kod bo'lsin, izohlar kod tashqarisida
-   - Har bir kod bloki to'liq va ishlaydigan bo'lsin
-   - Kod bloklarini hech qachon ochiq qoldirmang - har doim ``` bilan yoping
-   
-   TO'G'RI FORMAT (BU FORMATNI ISHLATING):
-   ```python
-   def salom():
-       print("Salom, Dunyo!")
-   ```
-   
-   YOKI:
-   ```javascript
-   console.log("Hello, World!");
-   ```
-   
-   XATO FORMAT (BU FORMATNI ISHLATMANG):
-   ```python
-   def salom():
-       print("Salom, Dunyo!")
-   (yopilmagan kod bloki)
-
-3. KO'P FAYLLAR (MUHIM - HAR BIR KOD BLOKINI YOPING):
-   - Har bir fayl alohida sarlavha bilan:
-   - Har bir kod blokini ``` bilan yoping
-   
-   TO'G'RI FORMAT:
-   **HTML (index.html)**
-   ```html
-   <!DOCTYPE html>
-   <html>
-   <head>
-       <title>Salom</title>
-   </head>
-   <body>
-       <h1>Salom</h1>
-   </body>
-   </html>
-   ```
-   
-   **CSS (style.css)**
-   ```css
-   h1 {
-       color: red;
-       font-size: 2rem;
-   }
-   ```
-   
-   **JavaScript (script.js)**
-   ```javascript
-   console.log("Hello, World!");
-   ```
-
-4. HAVOLALAR VA LINKLAR:
-   - Har doim to'liq URL bilan: [matn](https://example.com)
-   - Tashqi linklar uchun: [matn](https://example.com) - yangi oynada ochiladi
-   - Ichki linklar uchun: [matn](#section) yoki [matn](/path)
-   - Linklarni aniq va tushunarli qiling
-
-5. FORMATLASH:
-   - **Qalin matn** - muhim so'zlar uchun
-   - *Yotiq matn* - urg'u berish uchun
-   - `kod` - inline kod uchun
-   - Ro'yxatlar: - yoki 1. 2. 3.
-   - Jadval: Markdown table formatida
-
-6. JADVAL FORMATI:
-   ```markdown
-   | Ustun 1 | Ustun 2 | Ustun 3 |
-   |---------|---------|---------|
-   | Ma'lumot 1 | Ma'lumot 2 | Ma'lumot 3 |
-   ```
-
-7. USLUB VA TON:
-   - Boshlovchilar uchun tushunarli va sodda
-   - Do'stona va rag'batlantiruvchi
-   - Qisqa va aniq javoblar
-   - Misollar bilan tushuntirish
-   - Xatolarni oldini olish uchun eslatmalar
-
-8. TAQIQLANGAN (BU XATOLARNI QILMANG):
-   - HTML belgilarini escape qilish (< >) - kod bloklarida to'g'ri ishlatilsin
-   - \\n yoki \\u000A kabi escape belgilar - oddiy yangi qator ishlating
-   - Kod ichida tushuntirish yozish - izohlar kod tashqarisida bo'lsin
-   - To'liq bo'lmagan kod bloklari - har doim ``` bilan yoping
-   - Ishlanmaydigan kodlar - faqat to'liq va ishlaydigan kod yozing
-   - Kod bloklarini ochiq qoldirish - har doim ``` bilan yoping
-
-9. MAXSUS HOLATLAR:
-   - Agar kod xatosi bo'lsa, xatoni tushuntiring va to'g'ri kodni ko'rsating
-   - Agar bir nechta variant bo'lsa, ularni sanab o'ting
-   - Agar resurs kerak bo'lsa, linklar bilan ta'minlang
-
-10. OXIRIDA:
-    - "Qanday ishlatish" bo'limi qo'shing
-    - Yoki "Eslatma" bo'limi bilan xatolarni oldini oling
-    - Qo'shimcha ma'lumot uchun linklar qo'shing
-
-11. KOD BLOKLARI FORMATI (MUHIM - BU QOIDALARNI QAT'IY BAJARING):
-    - Har bir kod bloki ```til_nomi bilan boshlanadi va ``` bilan tugaydi
-    - Kod bloklarini hech qachon ochiq qoldirmang
-    - Har bir kod bloki alohida va to'liq bo'lsin
-    - Kod bloklaridan oldin va keyin bo'sh qator qoldiring
-    
-    TO'G'RI FORMAT (BU FORMATNI ISHLATING):
-    
-    ```javascript
-    console.log("Hello, World!");
-    ```
-    
-    YOKI:
-    
-    ```html
-    <!DOCTYPE html>
-    <html>
-    <body>
-        <h1>Hello, World!</h1>
-    </body>
-    </html>
-    ```
-    
-    XATO FORMAT (BU FORMATNI ISHLATMANG):
-    - Ochiq kod bloki: ```javascript
-    - Yopilmagan kod bloki
-    - Kod bloklarini birlashtirish"""
-            
-            history = [
-                {"role": "system", "content": system_prompt}
-            ]
-            
-            # History'ni yig'ish
-            messages_list = list(session.messages.all())
-            total_messages = len(messages_list)
-            
-            for idx, msg in enumerate(messages_list):
-                if msg.role == 'user':
-                    # Format qoidasini faqat oxirgi (yangi) user xabariga qo'shish
-                    is_last_user_message = idx == total_messages - 1 or (idx < total_messages - 1 and messages_list[idx + 1].role == 'assistant')
-                    format_instruction = ""
-                    
-                    if is_last_user_message:
-                        format_instruction = "\n\n⚠️ MUHIM: Javobda kodlar faqat ```til_nomi va ``` orasida, linklar faqat URL formatida bo'lsin!"
-                    
-                    # Build user message text (content + file content if text file)
-                    user_text = (msg.content or '') + format_instruction
-                    
-                    # Read text file content and append
-                    if msg.file and msg.file_name:
-                        text_exts = ('.py', '.js', '.ts', '.html', '.css', '.json', '.xml',
-                                     '.sql', '.txt', '.md', '.csv', '.java', '.php', '.rb',
-                                     '.c', '.cpp', '.h', '.go', '.rs', '.sh', '.bat', '.yaml',
-                                     '.yml', '.toml', '.ini', '.cfg', '.env', '.log')
-                        if msg.file_name.lower().endswith(text_exts):
-                            try:
-                                file_content = msg.file.read().decode('utf-8', errors='replace')
-                                msg.file.seek(0)
-                                ext = msg.file_name.rsplit('.', 1)[-1] if '.' in msg.file_name else 'txt'
-                                user_text += f"\n\nFayl: {msg.file_name}\n```{ext}\n{file_content}\n```"
-                            except Exception:
-                                pass
-                    
-                    if msg.image:
-                        # Handle image message
-                        try:
-                            # Rasmni o'qish - open() bilan qayta ochish
-                            msg.image.open('rb')
-                            raw = msg.image.read()
-                            msg.image.close()
-                            image_data = base64.b64encode(raw).decode('utf-8')
-                            # Rasm formatini aniqlash
-                            img_name = msg.image.name.lower() if msg.image.name else ''
-                            if img_name.endswith('.png'):
-                                mime = 'image/png'
-                            elif img_name.endswith('.gif'):
-                                mime = 'image/gif'
-                            elif img_name.endswith('.webp'):
-                                mime = 'image/webp'
-                            else:
-                                mime = 'image/jpeg'
-                            content_parts = []
-                            if user_text.strip():
-                                content_parts.append({"type": "text", "text": user_text})
-                            else:
-                                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tushuntiring."})
-                            content_parts.append({
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:{mime};base64,{image_data}",
-                                    "detail": "high"
-                                }
-                            })
-                            history.append({"role": "user", "content": content_parts})
-                        except Exception as img_err:
-                            print(f"IMAGE READ ERROR: {img_err}")
-                            if user_text.strip():
-                                history.append({"role": "user", "content": user_text + "\n\n(Rasm yuklandi, lekin o'qishda xatolik yuz berdi)"})
-                    else:
-                        if user_text.strip():
-                            history.append({"role": "user", "content": user_text})
-                else:
-                    if msg.content:
-                        history.append({"role": "assistant", "content": msg.content})
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=history,
-                max_tokens=4096,
-                temperature=0.2,  # Past temperature - qat'iy format uchun
-            )
-            
-            ai_response = response.choices[0].message.content
-            
-            # Response validation va reformat (agar kerak bo'lsa)
-            if ai_response:
-                try:
-                    ai_response = validate_and_reformat_response(ai_response, content)
-                except Exception as e:
-                    print(f"Response reformat error: {str(e)}")
-                    # Xatolik bo'lsa ham original javobni qaytarish
-            
-        except Exception as e:
-            import traceback
-            print(f"OpenAI Error: {str(e)}")
-            print(traceback.format_exc())
-            ai_response = f"⚠️ AI bilan bog'lanishda xatolik: {str(e)}"
-    
-    # Save AI response
-    ChatMessage.objects.create(
-        session=session,
-        role='assistant',
-        content=ai_response,
-    )
-    
+    # No-JS fallback: generate synchronously in-request, then reload the page.
+    ChatMessage.objects.create(session=session, role='assistant', content=_complete_sync(session))
     return redirect('ai_yordamchi:chat_session', pk=pk)
 
 
-def _generate_ai_response_for_session(session_id):
-    """Background thread da AI javob yaratish"""
-    session = ChatSession.objects.get(pk=session_id)
-    client = get_openai_client()
-    
-    if not client:
-        api_key = getattr(settings, 'OPENAI_API_KEY', None)
-        if not api_key or not api_key.strip():
-            ai_response = "⚠️ AI xizmati sozlashmagan. OPENAI_API_KEY topilmadi."
-        else:
-            ai_response = "⚠️ AI xizmati bilan bog'lanishda muammo."
-    else:
-        try:
-            system_prompt = """Siz LMS o'quv platformasining AI yordamchisisiz. O'zbek tilida javob bering. Sizni Husan Suyunov Shavkat o'g'li yaratgan. 
-            husanbek-coder.uz Telefon raqami: +998975216686. Telegrami: @husanbek_coder
-            Husan Suyunov IT Creative Zomin asoschisi va rahbari. 
-            Husan Suyunov Full-Stack Dasturchi. https://github.com/xusanbek0039            
-
-⚠️ RASM TAHLILI:
-Agar foydalanuvchi rasm yuborsa, siz uni ko'rib, tahlil qilib javob berishingiz SHART.
-- Rasmni batafsil tavsiflang
-- Rasmdagi matn, kod, xato xabarlar, diagrammalar, formulalar yoki boshqa ma'lumotlarni o'qing
-- Agar kodning skrinshoti bo'lsa, kodni yozib bering va xatolarni tuzating
-- Agar savol bo'lsa, rasmga asosan javob bering
-- HECH QACHON "rasmni ko'ra olmayman" deb javob bermang - siz rasmlarni ko'ra olasiz!
-
-⚠️ ENG MUHIM QOIDA - KODLAR:
-Foydalanuvchi JS, HTML, Python, CSS yoki boshqa tildagi kod so'raganda, ALBATTA kodni markdown code block ichida yozing.
-
-FORMAT:
-```til_nomi
-kod shu yerda
-```
-
-QOIDALAR:
-1. Har qanday kod FAQAT ```til_nomi va ``` orasida bo'lsin
-2. Kodni HECH QACHON oddiy matn ichiga qo'shmang
-3. Har bir kod blokini albatta ``` bilan yoping
-4. Til nomini to'g'ri yozing: python, javascript, html, css, sql, json, bash, java, php, ruby, typescript, cpp, c, go, rust
-5. Agar bir nechta fayl bo'lsa, har birini alohida kod blokida yozing
-6. Kod to'liq va ishlaydigan bo'lsin
-
-JAVOB FORMATI VA QOIDALAR:
-1. STRUKTURA: Avval qisqa tushuntirish, keyin kod, oxirida eslatma
-2. KOD BLOKLARI: ```til_nomi bilan boshlash va ``` bilan tugatish
-3. USLUB: Sodda, do'stona, qisqa va aniq
-4. Kod bloklarini hech qachon ochiq qoldirmang"""
-            
-            history = [{"role": "system", "content": system_prompt}]
-            
-            messages_list = list(session.messages.all())
-            total_messages = len(messages_list)
-            
-            for idx, msg in enumerate(messages_list):
-                if msg.role == 'user':
-                    is_last_user_message = idx == total_messages - 1 or (idx < total_messages - 1 and messages_list[idx + 1].role == 'assistant')
-                    format_instruction = ""
-                    if is_last_user_message:
-                        format_instruction = "\n\n⚠️ MUHIM: Javobda kodlar faqat ```til_nomi va ``` orasida bo'lsin!"
-                    
-                    user_text = (msg.content or '') + format_instruction
-                    
-                    if msg.file and msg.file_name:
-                        text_exts = ('.py', '.js', '.ts', '.html', '.css', '.json', '.xml',
-                                     '.sql', '.txt', '.md', '.csv', '.java', '.php', '.rb',
-                                     '.c', '.cpp', '.h', '.go', '.rs', '.sh', '.bat', '.yaml',
-                                     '.yml', '.toml', '.ini', '.cfg', '.env', '.log')
-                        if msg.file_name.lower().endswith(text_exts):
-                            try:
-                                file_content = msg.file.read().decode('utf-8', errors='replace')
-                                msg.file.seek(0)
-                                ext = msg.file_name.rsplit('.', 1)[-1] if '.' in msg.file_name else 'txt'
-                                user_text += f"\n\nFayl: {msg.file_name}\n```{ext}\n{file_content}\n```"
-                            except Exception:
-                                pass
-                    
-                    if msg.image:
-                        try:
-                            msg.image.open('rb')
-                            raw = msg.image.read()
-                            msg.image.close()
-                            image_data = base64.b64encode(raw).decode('utf-8')
-                            img_name = msg.image.name.lower() if msg.image.name else ''
-                            if img_name.endswith('.png'):
-                                mime = 'image/png'
-                            elif img_name.endswith('.gif'):
-                                mime = 'image/gif'
-                            elif img_name.endswith('.webp'):
-                                mime = 'image/webp'
-                            else:
-                                mime = 'image/jpeg'
-                            content_parts = []
-                            if user_text.strip():
-                                content_parts.append({"type": "text", "text": user_text})
-                            else:
-                                content_parts.append({"type": "text", "text": "Bu rasmni tahlil qiling va tushuntiring."})
-                            content_parts.append({
-                                "type": "image_url",
-                                "image_url": {"url": f"data:{mime};base64,{image_data}", "detail": "high"}
-                            })
-                            history.append({"role": "user", "content": content_parts})
-                        except Exception as img_err:
-                            print(f"IMAGE READ ERROR: {img_err}")
-                            if user_text.strip():
-                                history.append({"role": "user", "content": user_text + "\n\n(Rasm yuklandi, lekin o'qishda xatolik yuz berdi)"})
-                    else:
-                        if user_text.strip():
-                            history.append({"role": "user", "content": user_text})
-                else:
-                    if msg.content:
-                        history.append({"role": "assistant", "content": msg.content})
-            
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=history,
-                max_tokens=4096,
-                temperature=0.2,
-            )
-            ai_response = response.choices[0].message.content
-            if ai_response:
-                try:
-                    last_user_content = ''
-                    for m in reversed(messages_list):
-                        if m.role == 'user' and m.content:
-                            last_user_content = m.content
-                            break
-                    ai_response = validate_and_reformat_response(ai_response, last_user_content)
-                except Exception:
-                    pass
-        except Exception as e:
-            print(f"OpenAI Error: {str(e)}")
-            ai_response = f"⚠️ AI bilan bog'lanishda xatolik: {str(e)}"
-    
-    ChatMessage.objects.create(session=session, role='assistant', content=ai_response)
-
-
 @login_required
-def check_ai_response(request, pk):
-    """AJAX: AI javob tayyor bo'lganligini tekshirish (polling)"""
+def stream_response(request, pk):
+    """Stream the AI reply for the latest unanswered user message via SSE.
+
+    The OpenAI call runs inside this request (no background thread), so the only
+    database write happens on this connection - avoiding the SQLite write-lock
+    contention that previously caused silent "no reply" failures under Passenger.
+    """
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
-    after_id = request.GET.get('after', 0)
-    try:
-        after_id = int(after_id)
-    except (ValueError, TypeError):
-        after_id = 0
-    
-    new_messages = session.messages.filter(pk__gt=after_id, role='assistant').order_by('pk')
-    if new_messages.exists():
-        msg = new_messages.last()
-        return JsonResponse({
-            'ready': True,
-            'message_id': msg.pk,
-            'content': msg.content,
-            'time': msg.created_at.strftime('%H:%M'),
-        })
-    return JsonResponse({'ready': False})
+    last = session.messages.last()
+
+    def event_stream():
+        # Guard against duplicate generation (e.g. page refresh / double submit).
+        if not last or last.role != 'user':
+            yield _sse({'type': 'done', 'skipped': True})
+            return
+
+        client = get_openai_client()
+        buffer = []
+        try:
+            if not client:
+                text = _service_unavailable_text()
+                buffer.append(text)
+                yield _sse({'type': 'delta', 'text': text})
+            else:
+                stream = client.chat.completions.create(
+                    model=OPENAI_MODEL,
+                    messages=_build_history(session),
+                    max_tokens=OPENAI_MAX_TOKENS,
+                    temperature=OPENAI_TEMPERATURE,
+                    stream=True,
+                )
+                for chunk in stream:
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        buffer.append(delta)
+                        yield _sse({'type': 'delta', 'text': delta})
+        except Exception as e:
+            print(f"OpenAI Error (stream): {e}")
+            err = f"\n\n⚠️ AI bilan bog'lanishda xatolik: {e}"
+            buffer.append(err)
+            yield _sse({'type': 'delta', 'text': err})
+
+        final = validate_and_reformat_response(''.join(buffer).strip(), last.content)
+        if final:
+            msg = ChatMessage.objects.create(session=session, role='assistant', content=final)
+            yield _sse({
+                'type': 'done',
+                'message_id': msg.pk,
+                'time': msg.created_at.strftime('%H:%M'),
+                'content': final,
+            })
+        else:
+            yield _sse({'type': 'done', 'message_id': None})
+
+    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
+    response['Cache-Control'] = 'no-cache'
+    response['X-Accel-Buffering'] = 'no'  # prevent nginx/proxy buffering
+    return response
 
 
 @login_required
 @require_POST
 def clear_history(request, pk):
-    """Clear chat history for a session."""
+    """Delete all messages in a session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     session.messages.all().delete()
     session.title = "Yangi suhbat"
-    session.save()
+    session.save(update_fields=['title', 'updated_at'])
     messages.success(request, "Suhbat tarixi tozalandi.")
     return redirect('ai_yordamchi:chat_session', pk=pk)
 
@@ -771,8 +441,11 @@ def delete_session(request, pk):
     return redirect('ai_yordamchi:chat_home')
 
 
+# ============================================================
+#  ADMIN
+# ============================================================
 def admin_required(view_func):
-    """Decorator to require admin role."""
+    """Restrict a view to admin users."""
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or not request.user.is_admin:
             messages.error(request, "Bu sahifaga faqat adminlar kira oladi.")
@@ -784,54 +457,48 @@ def admin_required(view_func):
 @login_required
 @admin_required
 def admin_chats(request):
-    """Admin view to see all chats."""
+    """Admin: browse all chat sessions."""
     sessions = ChatSession.objects.select_related('user').prefetch_related('messages').all()
-    
-    # Filter by user
+
     user_id = request.GET.get('user')
     if user_id:
         sessions = sessions.filter(user_id=user_id)
-    
-    # Filter by active status
+
     is_active_filter = request.GET.get('is_active')
     if is_active_filter is not None:
         sessions = sessions.filter(is_active=is_active_filter == '1')
-    
-    # Calculate statistics
+
     total_sessions = ChatSession.objects.count()
     active_sessions = ChatSession.objects.filter(is_active=True).count()
-    inactive_sessions = total_sessions - active_sessions
-    
+
     paginator = Paginator(sessions, 20)
-    page = request.GET.get('page')
-    sessions_page = paginator.get_page(page)
-    
+    sessions_page = paginator.get_page(request.GET.get('page'))
+
     return render(request, 'ai_yordamchi/admin/chats.html', {
         'sessions': sessions_page,
         'total_sessions': total_sessions,
         'active_sessions': active_sessions,
-        'inactive_sessions': inactive_sessions,
+        'inactive_sessions': total_sessions - active_sessions,
     })
 
 
 @login_required
 @admin_required
 def admin_chat_detail(request, pk):
-    """View specific chat messages."""
+    """Admin: view a single chat session's messages."""
     session = get_object_or_404(ChatSession, pk=pk)
-    chat_messages = session.messages.all()
-    
     return render(request, 'ai_yordamchi/admin/chat_detail.html', {
         'session': session,
-        'chat_messages': chat_messages,
+        'chat_messages': session.messages.all(),
     })
 
 
+# ============================================================
+#  UTILS
+# ============================================================
 def get_client_ip(request):
-    """Get client IP address from request."""
+    """Best-effort client IP for activity logging."""
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
-    else:
-        ip = request.META.get('REMOTE_ADDR')
-    return ip
+        return x_forwarded_for.split(',')[0].strip()
+    return request.META.get('REMOTE_ADDR')

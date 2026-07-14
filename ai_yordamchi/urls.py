@@ -8,7 +8,7 @@ urlpatterns = [
     path('new/', views.new_session, name='new_session'),
     path('session/<int:pk>/', views.chat_session, name='chat_session'),
     path('session/<int:pk>/send/', views.send_message, name='send_message'),
-    path('session/<int:pk>/check/', views.check_ai_response, name='check_ai_response'),
+    path('session/<int:pk>/stream/', views.stream_response, name='stream_response'),
     path('session/<int:pk>/clear/', views.clear_history, name='clear_history'),
     path('session/<int:pk>/delete/', views.delete_session, name='delete_session'),
     
