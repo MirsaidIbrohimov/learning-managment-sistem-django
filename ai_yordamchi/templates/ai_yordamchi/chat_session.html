@@ -66,7 +66,7 @@ body { padding: 0 !important; }
     flex-direction: column;
     height: 100dvh;            /* JS refines this for the mobile keyboard */
     background: var(--cw-bg);
-    z-index: 1200;
+    z-index: 1040;             /* above page chrome, but below Bootstrap modals (1050+) */
     overflow: hidden;
 }
 
@@ -321,6 +321,8 @@ body { padding: 0 !important; }
 .cw-retry:hover { border-color: var(--cw-accent); color: var(--cw-accent); }
 
 /* ===== MODAL ===== */
+.cw-modal.modal { z-index: 1300; }   /* keep the clear-history dialog above the full-screen chat */
+.modal-backdrop { z-index: 1290; }
 .cw-modal .modal-content { background: var(--cw-bg); border: 1px solid var(--cw-border); border-radius: 18px; overflow: hidden; }
 .cw-modal .modal-body { padding: 24px 22px 14px; text-align: center; }
 .cw-modal-ic { width: 48px; height: 48px; border-radius: 50%; background: rgba(220,38,38,.1); color: var(--cw-danger); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 1.2rem; }
