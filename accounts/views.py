@@ -3117,7 +3117,12 @@ def course_statistics(request, pk):
         messages.error(request, "Bu kursga yozilmagansiz!")
         return redirect('profession_detail', pk=pk)
 
-    group_id = _resolve_stats_group(request, profession)
+    # 'group' aniq berilgan bo'lsa (bo'sh bo'lsa ham) — o'shani ishlatamiz
+    # (bo'sh = "Barcha guruhlar"). Umuman berilmasa — o'quvchi guruhi avtomatik.
+    if 'group' in request.GET:
+        group_id = (request.GET.get('group') or '').strip()
+    else:
+        group_id = _resolve_stats_group(request, profession)
     data = _course_statistics_data(profession, group_id=group_id or None)
     return render(request, 'accounts/course_statistics.html', {
         'profession': profession,
