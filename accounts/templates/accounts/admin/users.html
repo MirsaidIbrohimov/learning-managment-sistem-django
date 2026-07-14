@@ -4,390 +4,645 @@
 
 {% block admin_content %}
 <style>
-/* All styles scoped under .au-page to avoid base_admin.css conflicts */
+/* ==== Scoped styles: .au-page ==== */
+.au-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+    --au-primary: #6366f1;
+    --au-primary-dark: #4f46e5;
+    --au-success: #10b981;
+    --au-warning: #f59e0b;
+    --au-danger: #ef4444;
+    --au-info: #0ea5e9;
+    --au-border: var(--border-color, #e5e7eb);
+    --au-card: var(--card-bg, #ffffff);
+    --au-bg: var(--bg-color, #f8fafc);
+    --au-text: var(--text-color, #111827);
+    --au-muted: var(--bs-secondary-color, #6b7280);
+}
 
-.au-page { max-width: 1100px; margin: 0 auto; padding: 1.5rem 1rem; }
+/* ===== Hero Header ===== */
+.au-hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+    border-radius: 20px;
+    padding: 1.5rem 1.75rem;
+    color: #fff;
+    margin-bottom: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 30px rgba(99,102,241,0.25);
+}
+.au-hero::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 90% 20%, rgba(255,255,255,0.15), transparent 40%);
+    pointer-events: none;
+}
+.au-hero-top {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 1rem; flex-wrap: wrap; position: relative;
+}
+.au-hero-title {
+    font-size: 1.65rem; font-weight: 800; margin: 0;
+    display: flex; align-items: center; gap: 0.65rem;
+}
+.au-hero-title i {
+    background: rgba(255,255,255,0.2);
+    width: 42px; height: 42px; border-radius: 12px;
+    display: inline-flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px);
+}
+.au-hero-sub {
+    margin: 0.35rem 0 0; opacity: 0.9; font-size: 0.92rem;
+}
 
-/* Header */
-.au-page .au-title {
-    font-size: 1.6rem; font-weight: 800;
-    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.25rem;
+/* Action menu */
+.au-actions-menu { position: relative; }
+.au-actions-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.6rem 1.1rem; border-radius: 12px;
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    color: #fff; font-weight: 700; font-size: 0.9rem;
+    border: 1px solid rgba(255,255,255,0.25);
+    cursor: pointer; transition: all 0.2s;
 }
-.au-page .au-title i { color: #6366f1; }
-.au-page .au-sub { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0 0 1.5rem 0; }
+.au-actions-btn:hover { background: rgba(255,255,255,0.3); color: #fff; }
+.au-actions-dropdown {
+    position: absolute; right: 0; top: calc(100% + 8px);
+    background: var(--au-card); color: var(--au-text);
+    border: 1px solid var(--au-border); border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    min-width: 260px; padding: 0.4rem;
+    display: none; z-index: 20;
+}
+.au-actions-dropdown.au-open { display: block; }
+.au-actions-dropdown a {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.7rem 0.85rem; border-radius: 10px;
+    color: var(--au-text); text-decoration: none;
+    font-size: 0.88rem; font-weight: 600;
+    transition: background 0.15s;
+}
+.au-actions-dropdown a:hover { background: var(--au-bg); }
+.au-actions-dropdown a i {
+    width: 32px; height: 32px; border-radius: 9px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; flex-shrink: 0;
+}
+.au-actions-dropdown a .ai-excel { background: rgba(16,185,129,0.12); color: #059669; }
+.au-actions-dropdown a .ai-teacher { background: rgba(99,102,241,0.12); color: #4f46e5; }
+.au-actions-dropdown a .ai-assist { background: rgba(245,158,11,0.12); color: #d97706; }
+.au-actions-dropdown a .ai-panel { background: rgba(139,92,246,0.12); color: #7c3aed; }
 
-/* Search */
-.au-page .au-search {
-    position: relative; margin-bottom: 1rem;
+/* ===== Stats Grid ===== */
+.au-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem; margin-top: 1.25rem; position: relative;
 }
-.au-page .au-search .au-search-icon {
-    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
-    color: var(--bs-secondary-color, #6c757d); font-size: 1.1rem; pointer-events: none;
+.au-stat {
+    background: rgba(255,255,255,0.14);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 14px;
+    padding: 0.85rem 1rem;
+    display: flex; align-items: center; gap: 0.75rem;
 }
-.au-page .au-search-input {
-    width: 100%; padding: 0.75rem 2.5rem 0.75rem 2.75rem;
-    border: 2px solid var(--border-color, #dee2e6); border-radius: 14px;
-    background: var(--card-bg, #fff); color: var(--text-color, #212529);
-    font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;
+.au-stat-icon {
+    width: 40px; height: 40px; border-radius: 11px;
+    background: rgba(255,255,255,0.22);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
 }
-.au-page .au-search-input:focus {
-    outline: none; border-color: #6366f1;
+.au-stat-val { font-size: 1.35rem; font-weight: 800; line-height: 1; }
+.au-stat-lbl { font-size: 0.75rem; opacity: 0.85; margin-top: 0.2rem; }
+
+/* ===== Toolbar (search + filter) ===== */
+.au-toolbar {
+    background: var(--au-card);
+    border: 1px solid var(--au-border);
+    border-radius: 16px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+}
+.au-toolbar-row {
+    display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;
+}
+
+.au-search {
+    flex: 1; min-width: 240px; position: relative;
+}
+.au-search .au-search-icon {
+    position: absolute; left: 0.9rem; top: 50%; transform: translateY(-50%);
+    color: var(--au-muted); font-size: 1rem; pointer-events: none;
+}
+.au-search-input {
+    width: 100%; padding: 0.65rem 2.5rem 0.65rem 2.5rem;
+    border: 1.5px solid var(--au-border); border-radius: 11px;
+    background: var(--au-bg); color: var(--au-text);
+    font-size: 0.92rem; transition: all 0.2s;
+}
+.au-search-input:focus {
+    outline: none; border-color: var(--au-primary);
+    background: var(--au-card);
     box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 }
-.au-page .au-search-input::placeholder { color: var(--bs-secondary-color, #adb5bd); }
-.au-page .au-search-clear {
+.au-search-clear {
     position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
-    background: none; border: none; color: var(--bs-secondary-color, #6c757d);
-    cursor: pointer; font-size: 1.1rem; padding: 0.25rem; display: none;
+    background: none; border: none; color: var(--au-muted);
+    cursor: pointer; font-size: 1.05rem; padding: 0.15rem; display: none;
 }
-.au-page .au-search-clear.au-show { display: block; }
+.au-search-clear.au-show { display: block; }
 
-/* Filter bar */
-.au-page .au-filter-bar {
-    display: flex; gap: 0.75rem; align-items: center;
-    flex-wrap: wrap; margin-bottom: 1.25rem;
-}
-.au-page .au-filter-toggle {
+.au-tbtn {
     display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
-    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
-    color: var(--text-color, #212529); cursor: pointer; transition: all 0.2s;
+    padding: 0.6rem 0.95rem; border-radius: 11px; font-size: 0.85rem; font-weight: 600;
+    border: 1.5px solid var(--au-border); background: var(--au-card);
+    color: var(--au-text); cursor: pointer; transition: all 0.2s;
+    white-space: nowrap;
 }
-.au-page .au-filter-toggle:hover { border-color: #6366f1; color: #6366f1; }
-.au-page .au-filter-toggle.au-active { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.06); }
-.au-page .au-filter-count {
-    background: #6366f1; color: #fff; font-size: 0.65rem; font-weight: 700;
-    width: 18px; height: 18px; border-radius: 50%;
+.au-tbtn:hover { border-color: var(--au-primary); color: var(--au-primary); }
+.au-tbtn.au-active {
+    border-color: var(--au-primary); color: #fff;
+    background: linear-gradient(135deg, var(--au-primary), var(--au-primary-dark));
+}
+.au-tbtn.au-active .au-filter-count { background: rgba(255,255,255,0.28); color: #fff; }
+.au-filter-count {
+    background: var(--au-primary); color: #fff; font-size: 0.65rem; font-weight: 700;
+    min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
     display: inline-flex; align-items: center; justify-content: center;
 }
-.au-page .au-sort-select {
-    padding: 0.5rem 0.75rem; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
-    border: 2px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
-    color: var(--text-color, #212529); cursor: pointer; min-width: 160px;
+
+.au-sort-select {
+    padding: 0.6rem 0.85rem; border-radius: 11px; font-size: 0.85rem; font-weight: 600;
+    border: 1.5px solid var(--au-border); background: var(--au-card);
+    color: var(--au-text); cursor: pointer; min-width: 160px;
 }
-.au-page .au-sort-select:focus { outline: none; border-color: #6366f1; box-shadow: none; }
-.au-page .au-result-count {
-    margin-left: auto; font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d);
-    font-weight: 500; white-space: nowrap;
+.au-sort-select:focus { outline: none; border-color: var(--au-primary); box-shadow: none; }
+
+/* View toggle */
+.au-view-toggle {
+    display: inline-flex; border: 1.5px solid var(--au-border);
+    border-radius: 11px; overflow: hidden; background: var(--au-card);
+}
+.au-view-toggle button {
+    padding: 0.55rem 0.8rem; background: none; border: none;
+    color: var(--au-muted); cursor: pointer; font-size: 0.9rem;
+    transition: all 0.15s;
+}
+.au-view-toggle button.is-active {
+    background: linear-gradient(135deg, var(--au-primary), var(--au-primary-dark));
+    color: #fff;
 }
 
 /* Filter panel */
-.au-page .au-filter-panel {
-    border: 2px solid var(--border-color, #dee2e6); border-radius: 16px;
-    padding: 1.25rem; margin-bottom: 1.25rem; background: var(--card-bg, #fff);
+.au-filter-panel {
+    border-top: 1px dashed var(--au-border);
+    padding-top: 1rem; margin-top: 0.85rem;
     display: none;
 }
-.au-page .au-filter-panel.au-show { display: block; }
-.au-page .au-filter-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
+.au-filter-panel.au-show { display: block; }
+.au-filter-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.85rem;
 }
-.au-page .au-filter-group label {
-    display: block; font-size: 0.78rem; font-weight: 700;
-    color: var(--bs-secondary-color, #6c757d);
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.4rem;
+.au-filter-group label {
+    display: block; font-size: 0.72rem; font-weight: 700;
+    color: var(--au-muted);
+    text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 0.35rem;
 }
-.au-page .au-filter-select {
+.au-filter-select {
     width: 100%; padding: 0.55rem 0.75rem; border-radius: 10px;
-    border: 2px solid var(--border-color, #dee2e6); background: var(--bg-color, #f0f2f5);
-    color: var(--text-color, #212529); font-size: 0.875rem;
+    border: 1.5px solid var(--au-border); background: var(--au-bg);
+    color: var(--au-text); font-size: 0.875rem;
 }
-.au-page .au-filter-select:focus { outline: none; border-color: #6366f1; box-shadow: none; }
-.au-page .au-filter-actions {
-    display: flex; gap: 0.75rem; margin-top: 1rem; justify-content: flex-end;
+.au-filter-select:focus { outline: none; border-color: var(--au-primary); box-shadow: none; }
+.au-filter-actions {
+    display: flex; gap: 0.6rem; margin-top: 0.9rem; justify-content: flex-end;
 }
-.au-page .au-btn-apply {
-    padding: 0.5rem 1.25rem; border-radius: 10px; font-weight: 600;
+.au-btn-apply {
+    padding: 0.55rem 1.25rem; border-radius: 10px; font-weight: 700;
     font-size: 0.85rem; border: none; cursor: pointer;
-    background: linear-gradient(135deg, #6366f1, #4f46e5); color: #fff;
+    background: linear-gradient(135deg, var(--au-primary), var(--au-primary-dark)); color: #fff;
     transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 0.35rem;
 }
-.au-page .au-btn-apply:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
-.au-page .au-btn-reset {
-    padding: 0.5rem 1.25rem; border-radius: 10px; font-weight: 600;
-    font-size: 0.85rem; border: 2px solid var(--border-color, #dee2e6); cursor: pointer;
-    background: var(--card-bg, #fff); color: var(--text-color, #212529);
-    text-decoration: none; display: inline-flex; align-items: center; gap: 0.3rem;
-    transition: all 0.2s;
-}
-.au-page .au-btn-reset:hover { background: var(--bg-color, #f0f2f5); color: var(--text-color, #212529); }
-
-/* Active filter chips */
-.au-page .au-chips {
-    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
-}
-.au-page .au-chip {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    padding: 0.3rem 0.7rem; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
-    background: rgba(99,102,241,0.08); color: #6366f1;
-    border: 1px solid rgba(99,102,241,0.15);
-}
-[data-bs-theme="dark"] .au-page .au-chip {
-    background: rgba(99,102,241,0.15); color: #a5b4fc;
-}
-.au-page .au-chip-x {
-    background: none; border: none; color: inherit; cursor: pointer;
-    font-size: 0.9rem; padding: 0; line-height: 1; opacity: 0.6;
+.au-btn-apply:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(99,102,241,0.35); }
+.au-btn-reset {
+    padding: 0.55rem 1.25rem; border-radius: 10px; font-weight: 600;
+    font-size: 0.85rem; border: 1.5px solid var(--au-border); cursor: pointer;
+    background: var(--au-card); color: var(--au-text);
     text-decoration: none;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    transition: all 0.2s;
 }
-.au-page .au-chip-x:hover { opacity: 1; color: inherit; }
+.au-btn-reset:hover { background: var(--au-bg); }
 
-/* User list */
-.au-page .au-list { display: flex; flex-direction: column; gap: 0.5rem; }
+/* Chips */
+.au-chips {
+    display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.85rem;
+    align-items: center;
+}
+.au-chips-label {
+    font-size: 0.78rem; font-weight: 600; color: var(--au-muted);
+    margin-right: 0.15rem;
+}
+.au-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.3rem 0.75rem; border-radius: 999px;
+    font-size: 0.76rem; font-weight: 600;
+    background: rgba(99,102,241,0.08); color: var(--au-primary);
+    border: 1px solid rgba(99,102,241,0.18);
+}
+[data-bs-theme="dark"] .au-chip { background: rgba(99,102,241,0.18); color: #a5b4fc; }
+.au-chip-x {
+    background: none; border: none; color: inherit; cursor: pointer;
+    font-size: 0.95rem; padding: 0; line-height: 1; opacity: 0.55;
+    text-decoration: none; margin-left: 0.1rem;
+}
+.au-chip-x:hover { opacity: 1; }
 
-.au-page .au-row {
+/* ===== User List ===== */
+.au-list { display: flex; flex-direction: column; gap: 0.55rem; }
+.au-list.au-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.85rem;
+}
+
+.au-row {
     display: grid;
-    grid-template-columns: 2.5fr 1fr 0.8fr 1.2fr 1fr;
+    grid-template-columns: 2.4fr 1.1fr 0.9fr 1.1fr 1.1fr;
     align-items: center; gap: 1rem;
-    padding: 0.875rem 1.25rem;
-    border: 1px solid var(--border-color, #dee2e6); border-radius: 14px;
-    background: var(--card-bg, #fff); transition: box-shadow 0.2s;
+    padding: 0.85rem 1.1rem;
+    border: 1px solid var(--au-border); border-radius: 14px;
+    background: var(--au-card);
+    transition: all 0.2s;
+    position: relative;
 }
-.au-page .au-row:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+.au-row::before {
+    content: ""; position: absolute; left: 0; top: 15%; bottom: 15%;
+    width: 3px; border-radius: 3px; background: transparent;
+    transition: background 0.2s;
 }
-[data-bs-theme="dark"] .au-page .au-row:hover {
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+.au-row:hover {
+    border-color: rgba(99,102,241,0.35);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06);
+    transform: translateY(-1px);
 }
+.au-row:hover::before { background: var(--au-primary); }
+[data-bs-theme="dark"] .au-row:hover { box-shadow: 0 6px 24px rgba(0,0,0,0.35); }
+
+/* Grid card mode */
+.au-list.au-grid .au-row {
+    grid-template-columns: 1fr;
+    padding: 1.1rem;
+    gap: 0.75rem;
+}
+.au-list.au-grid .au-desktop { display: none !important; }
+.au-list.au-grid .au-card-mode { display: flex !important; }
+.au-card-mode { display: none; flex-direction: column; gap: 0.8rem; }
 
 /* User identity */
-.au-page .au-identity { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
-.au-page .au-avatar {
-    width: 40px; height: 40px; border-radius: 12px; object-fit: cover; flex-shrink: 0;
+.au-identity { display: flex; align-items: center; gap: 0.75rem; min-width: 0; }
+.au-avatar-wrap { position: relative; flex-shrink: 0; }
+.au-avatar {
+    width: 42px; height: 42px; border-radius: 12px; object-fit: cover;
+    border: 2px solid var(--au-card);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
 }
-.au-page .au-avatar-ph {
-    width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0;
+.au-avatar-ph {
+    width: 42px; height: 42px; border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.85rem; color: #fff;
-    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    font-weight: 700; font-size: 0.9rem; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 2px 6px rgba(99,102,241,0.28);
 }
-.au-page .au-name {
-    font-weight: 700; font-size: 0.9rem; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis;
+.au-online-dot {
+    position: absolute; bottom: -2px; right: -2px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--au-success); border: 2px solid var(--au-card);
 }
-.au-page .au-uname {
-    font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d);
+.au-name {
+    font-weight: 700; font-size: 0.92rem; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; color: var(--au-text);
+    display: flex; align-items: center; gap: 0.3rem;
+}
+.au-uname {
+    font-size: 0.78rem; color: var(--au-muted);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+    margin-top: 2px;
 }
-.au-page .au-online {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-    background: #10b981; margin-left: 4px; vertical-align: middle;
+.au-premium {
+    font-size: 0.75rem; color: var(--au-warning);
 }
-.au-page .au-premium {
-    font-size: 0.6rem; color: #f59e0b; margin-left: 2px; vertical-align: middle;
+.au-sid {
+    background: linear-gradient(135deg,#1e1b4b,#312e81); color: #c4b5fd;
+    padding: 1px 8px; border-radius: 6px;
+    font-weight: 700; font-size: 0.7em; font-family: monospace;
+    letter-spacing: 1px; flex-shrink: 0;
 }
 
 /* Phone */
-.au-page .au-phone { font-size: 0.85rem; color: var(--bs-secondary-color, #6c757d); }
+.au-phone {
+    font-size: 0.86rem; color: var(--au-muted);
+    display: inline-flex; align-items: center; gap: 0.35rem;
+}
 
 /* Role badge */
-.au-page .au-role {
-    display: inline-flex; align-items: center; padding: 0.25rem 0.6rem;
-    border-radius: 8px; font-size: 0.75rem; font-weight: 700;
+.au-role {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 8px; font-size: 0.73rem; font-weight: 700;
+    white-space: nowrap;
 }
-.au-page .au-role.r-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
-.au-page .au-role.r-assistant { background: rgba(245,158,11,0.12); color: #d97706; }
-.au-page .au-role.r-teacher { background: rgba(16,185,129,0.1); color: #10b981; }
-.au-page .au-role.r-student { background: rgba(99,102,241,0.1); color: #6366f1; }
-[data-bs-theme="dark"] .au-page .au-role.r-admin { background: rgba(239,68,68,0.2); color: #fca5a5; }
-[data-bs-theme="dark"] .au-page .au-role.r-assistant { background: rgba(245,158,11,0.22); color: #fcd34d; }
-[data-bs-theme="dark"] .au-page .au-role.r-teacher { background: rgba(16,185,129,0.2); color: #6ee7b7; }
-[data-bs-theme="dark"] .au-page .au-role.r-student { background: rgba(99,102,241,0.2); color: #a5b4fc; }
+.au-role.r-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
+.au-role.r-assistant { background: rgba(245,158,11,0.14); color: #d97706; }
+.au-role.r-teacher { background: rgba(16,185,129,0.12); color: #059669; }
+.au-role.r-student { background: rgba(99,102,241,0.1); color: #4f46e5; }
+[data-bs-theme="dark"] .au-role.r-admin { background: rgba(239,68,68,0.22); color: #fca5a5; }
+[data-bs-theme="dark"] .au-role.r-assistant { background: rgba(245,158,11,0.22); color: #fcd34d; }
+[data-bs-theme="dark"] .au-role.r-teacher { background: rgba(16,185,129,0.22); color: #6ee7b7; }
+[data-bs-theme="dark"] .au-role.r-student { background: rgba(99,102,241,0.22); color: #a5b4fc; }
 
 /* Status */
-.au-page .au-status {
-    display: inline-flex; align-items: center; gap: 0.3rem;
+.au-status {
+    display: inline-flex; align-items: center; gap: 0.35rem;
     font-size: 0.78rem; font-weight: 600;
 }
-.au-page .au-status.s-active { color: #10b981; }
-.au-page .au-status.s-blocked { color: #ef4444; }
-.au-page .au-status-dot {
-    width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+.au-status.s-active { color: var(--au-success); }
+.au-status.s-blocked { color: var(--au-danger); }
+.au-status-dot {
+    width: 7px; height: 7px; border-radius: 50%; display: inline-block;
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.03);
 }
-.au-page .au-status.s-active .au-status-dot { background: #10b981; }
-.au-page .au-status.s-blocked .au-status-dot { background: #ef4444; }
+.au-status.s-active .au-status-dot {
+    background: var(--au-success);
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.15);
+    animation: au-pulse 2s infinite;
+}
+.au-status.s-blocked .au-status-dot {
+    background: var(--au-danger);
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.15);
+}
+@keyframes au-pulse {
+    0%,100% { box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+    50% { box-shadow: 0 0 0 6px rgba(16,185,129,0.06); }
+}
+.au-last-activity {
+    font-size: 0.72rem; color: var(--au-muted); margin-top: 3px;
+    display: flex; align-items: center; gap: 0.3rem;
+}
+
+.au-badge-finished {
+    display: inline-flex; align-items: center; gap: 0.28rem;
+    background: rgba(16,185,129,0.12); color: #059669;
+    padding: 2px 8px; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 700;
+}
 
 /* Actions */
-.au-page .au-actions { display: flex; gap: 0.35rem; justify-content: flex-end; }
-.au-page .au-act {
-    width: 32px; height: 32px; border-radius: 8px;
+.au-actions { display: flex; gap: 0.3rem; justify-content: flex-end; }
+.au-act {
+    width: 32px; height: 32px; border-radius: 9px;
     display: inline-flex; align-items: center; justify-content: center;
-    border: 1px solid var(--border-color, #dee2e6); background: var(--card-bg, #fff);
-    color: var(--text-color, #212529); cursor: pointer; text-decoration: none;
-    font-size: 0.85rem; transition: all 0.2s;
+    border: 1px solid var(--au-border); background: var(--au-card);
+    color: var(--au-text); cursor: pointer; text-decoration: none;
+    font-size: 0.85rem; transition: all 0.15s;
 }
-.au-page .au-act:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-.au-page .au-act.a-view { color: #0ea5e9; border-color: rgba(14,165,233,0.3); }
-.au-page .au-act.a-view:hover { background: rgba(14,165,233,0.06); color: #0ea5e9; }
-.au-page .au-act.a-edit { color: #6366f1; border-color: rgba(99,102,241,0.3); }
-.au-page .au-act.a-edit:hover { background: rgba(99,102,241,0.06); color: #6366f1; }
-.au-page .au-act.a-block { color: #f59e0b; border-color: rgba(245,158,11,0.3); }
-.au-page .au-act.a-block:hover { background: rgba(245,158,11,0.06); color: #f59e0b; }
-.au-page .au-act.a-delete { color: #ef4444; border-color: rgba(239,68,68,0.3); }
-.au-page .au-act.a-delete:hover { background: rgba(239,68,68,0.06); color: #ef4444; }
-.au-page .au-act.a-finish { color: #10b981; border-color: rgba(16,185,129,0.3); }
-.au-page .au-act.a-finish:hover { background: rgba(16,185,129,0.06); color: #10b981; }
-.au-page .au-act.a-finish.is-on { background: linear-gradient(135deg,#10b981,#059669); color:#fff; border-color: transparent; }
-.au-page .au-act.a-finish.is-on:hover { background: linear-gradient(135deg,#059669,#047857); color:#fff; }
-.au-page .au-badge-finished { display:inline-flex; align-items:center; gap:0.25rem; background: rgba(16,185,129,0.12); color:#059669; padding:2px 8px; border-radius:999px; font-size:0.7rem; font-weight:700; margin-left:0.4rem; }
+.au-act:hover { transform: translateY(-1px); box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+.au-act.a-view { color: var(--au-info); border-color: rgba(14,165,233,0.28); }
+.au-act.a-view:hover { background: var(--au-info); color: #fff; }
+.au-act.a-edit { color: var(--au-primary); border-color: rgba(99,102,241,0.28); }
+.au-act.a-edit:hover { background: var(--au-primary); color: #fff; }
+.au-act.a-block { color: var(--au-warning); border-color: rgba(245,158,11,0.28); }
+.au-act.a-block:hover { background: var(--au-warning); color: #fff; }
+.au-act.a-delete { color: var(--au-danger); border-color: rgba(239,68,68,0.28); }
+.au-act.a-delete:hover { background: var(--au-danger); color: #fff; }
+.au-act.a-finish { color: var(--au-success); border-color: rgba(16,185,129,0.28); }
+.au-act.a-finish:hover { background: var(--au-success); color: #fff; }
+.au-act.a-finish.is-on {
+    background: linear-gradient(135deg,#10b981,#059669); color:#fff; border-color: transparent;
+}
+.au-act.a-finish.is-on:hover { background: linear-gradient(135deg,#059669,#047857); color:#fff; }
 
 /* Empty */
-.au-page .au-empty { text-align: center; padding: 3rem 1rem; }
-.au-page .au-empty-icon {
-    width: 72px; height: 72px; border-radius: 20px; margin: 0 auto 1rem;
+.au-empty {
+    text-align: center; padding: 3.5rem 1rem;
+    background: var(--au-card); border: 1px dashed var(--au-border); border-radius: 16px;
+}
+.au-empty-icon {
+    width: 82px; height: 82px; border-radius: 22px; margin: 0 auto 1rem;
     display: flex; align-items: center; justify-content: center;
-    background: var(--bg-color, #f0f2f5); font-size: 1.75rem;
-    color: var(--bs-secondary-color, #6c757d);
+    background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.12));
+    font-size: 2rem; color: var(--au-primary);
 }
-.au-page .au-empty h5 { font-weight: 700; margin-bottom: 0.4rem; }
-.au-page .au-empty p { color: var(--bs-secondary-color, #6c757d); font-size: 0.9rem; margin: 0; }
+.au-empty h5 { font-weight: 700; margin-bottom: 0.4rem; color: var(--au-text); }
+.au-empty p { color: var(--au-muted); font-size: 0.9rem; margin: 0 0 1.25rem; }
 
-/* Add Teacher button */
-.au-page .au-add-teacher-btn {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    padding: 0.6rem 1.25rem; border-radius: 12px; font-size: 0.88rem; font-weight: 700;
-    background: linear-gradient(135deg, #10b981, #059669); color: #fff;
-    text-decoration: none; transition: all 0.2s; white-space: nowrap;
-    box-shadow: 0 2px 8px rgba(16,185,129,0.25);
-}
-.au-page .au-add-teacher-btn:hover {
-    transform: translateY(-2px); box-shadow: 0 6px 20px rgba(16,185,129,0.35); color: #fff;
-}
+/* Loading state */
+.au-row.is-loading { opacity: 0.55; pointer-events: none; }
 
 /* ===== MOBILE ===== */
+@media (max-width: 900px) {
+    .au-hero { padding: 1.25rem 1.1rem; border-radius: 16px; }
+    .au-hero-title { font-size: 1.35rem; }
+    .au-hero-title i { width: 36px; height: 36px; }
+    .au-stats { grid-template-columns: repeat(2, 1fr); gap: 0.6rem; }
+    .au-filter-grid { grid-template-columns: repeat(2, 1fr); }
+    .au-view-toggle { display: none; }
+}
 @media (max-width: 768px) {
-    .au-page { padding: 1rem 0.5rem; }
-    .au-page .au-title { font-size: 1.3rem; }
-    .au-page .au-filter-grid { grid-template-columns: 1fr; }
-    .au-page .au-filter-bar { gap: 0.5rem; }
-    .au-page .au-result-count { margin-left: 0; width: 100%; text-align: center; order: 10; }
-    .au-page .au-sort-select { min-width: 0; flex: 1; }
+    .au-page { padding: 0.85rem 0.6rem 2rem; }
+    .au-filter-grid { grid-template-columns: 1fr; }
+    .au-sort-select { min-width: 0; flex: 1; }
 
-    .au-page .au-row {
+    .au-row {
         grid-template-columns: 1fr;
-        gap: 0.6rem; padding: 1rem;
+        gap: 0.65rem; padding: 1rem;
     }
-    .au-page .au-desktop { display: none !important; }
-    .au-page .au-mobile { display: flex !important; }
+    .au-desktop { display: none !important; }
+    .au-mobile { display: flex !important; }
+    .au-list.au-grid { grid-template-columns: 1fr; }
 }
 @media (min-width: 769px) {
-    .au-page .au-mobile { display: none !important; }
+    .au-mobile { display: none !important; }
 }
 </style>
 
 <div class="au-page">
 
-    <!-- Header -->
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:0.75rem; margin-bottom:0.25rem;">
-        <div>
-            <h1 class="au-title"><i class="bi bi-people"></i> Foydalanuvchilar</h1>
-            <p class="au-sub" style="margin-bottom:0;">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
+    <!-- ===== Hero Header ===== -->
+    <div class="au-hero">
+        <div class="au-hero-top">
+            <div>
+                <h1 class="au-hero-title"><i class="bi bi-people-fill"></i> Foydalanuvchilar</h1>
+                <p class="au-hero-sub">Barcha foydalanuvchilarni boshqarish, izlash va filtrlash</p>
+            </div>
+
+            <div class="au-actions-menu">
+                <button type="button" class="au-actions-btn" id="auActionsBtn">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <span>Amallar</span>
+                    <i class="bi bi-chevron-down" style="font-size:0.75rem;opacity:0.7;"></i>
+                </button>
+                <div class="au-actions-dropdown" id="auActionsDropdown">
+                    <a href="{% url 'admin_export_students' %}{% if group_filter %}?group={{ group_filter }}{% endif %}">
+                        <i class="ai-excel bi bi-file-earmark-excel-fill"></i>
+                        <div>
+                            <div>Excel Export</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">
+                                {% if group_filter %}Guruh bo'yicha{% else %}Barchasi{% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    <a href="{% url 'admin_add_teacher' %}">
+                        <i class="ai-teacher bi bi-person-plus-fill"></i>
+                        <div>
+                            <div>O'qituvchi qo'shish</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Yangi o'qituvchi</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'admin_add_assistant_admin' %}">
+                        <i class="ai-assist bi bi-person-fill-gear"></i>
+                        <div>
+                            <div>Yordamchi admin qo'shish</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Yangi yordamchi</div>
+                        </div>
+                    </a>
+                    <a href="{% url 'assistant_admin_dashboard' %}">
+                        <i class="ai-panel bi bi-speedometer2"></i>
+                        <div>
+                            <div>Yordamchi paneli</div>
+                            <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">Boshqaruv panelini ochish</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
         </div>
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-            <a href="{% url 'admin_export_students' %}{% if group_filter %}?group={{ group_filter }}{% endif %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#28a745,#20c997);box-shadow:0 2px 8px rgba(40,167,69,0.25);">
-                <i class="bi bi-file-earmark-excel"></i>
-                <span>Excel Export{% if group_filter %} (guruh){% endif %}</span>
-            </a>
-            <a href="{% url 'admin_add_teacher' %}" class="au-add-teacher-btn">
-                <i class="bi bi-person-plus-fill"></i>
-                <span>O'qituvchi qo'shish</span>
-            </a>
-            <a href="{% url 'admin_add_assistant_admin' %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#f59e0b,#f97316);box-shadow:0 2px 8px rgba(245,158,11,0.25);">
-                <i class="bi bi-person-fill-gear"></i>
-                <span>Yordamchi admin qo'shish</span>
-            </a>
-            <a href="{% url 'assistant_admin_dashboard' %}" class="au-add-teacher-btn" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);box-shadow:0 2px 8px rgba(99,102,241,0.25);">
-                <i class="bi bi-speedometer2"></i>
-                <span>Yordamchi paneli</span>
-            </a>
+
+        <!-- Stats -->
+        <div class="au-stats">
+            <div class="au-stat">
+                <div class="au-stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div>
+                    <div class="au-stat-val">{{ total_count }}</div>
+                    <div class="au-stat-lbl">Jami foydalanuvchi</div>
+                </div>
+            </div>
+            <div class="au-stat">
+                <div class="au-stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
+                <div>
+                    <div class="au-stat-val">{{ students_count }}</div>
+                    <div class="au-stat-lbl">O'quvchilar</div>
+                </div>
+            </div>
+            <div class="au-stat">
+                <div class="au-stat-icon"><i class="bi bi-person-workspace"></i></div>
+                <div>
+                    <div class="au-stat-val">{{ teachers_count }}</div>
+                    <div class="au-stat-lbl">O'qituvchilar</div>
+                </div>
+            </div>
+            <div class="au-stat">
+                <div class="au-stat-icon"><i class="bi bi-shield-lock-fill"></i></div>
+                <div>
+                    <div class="au-stat-val">{{ blocked_count }}</div>
+                    <div class="au-stat-lbl">Bloklangan</div>
+                </div>
+            </div>
         </div>
     </div>
 
     <form method="GET" id="auForm">
 
-    <!-- Search -->
-    <div class="au-search">
-        <i class="bi bi-search au-search-icon"></i>
-        <input type="text" name="q" class="au-search-input" id="auSearchInput"
-               placeholder="Ism, username yoki telefon raqam bo'yicha izlash..."
-               value="{{ search_query }}" autocomplete="off">
-        <button type="button" class="au-search-clear {% if search_query %}au-show{% endif %}"
-                id="auSearchClear" title="Tozalash">
-            <i class="bi bi-x-circle-fill"></i>
-        </button>
-    </div>
-
-    <!-- Filter Bar -->
-    <div class="au-filter-bar">
-        <button type="button" class="au-filter-toggle {% if active_filters %}au-active{% endif %}" id="auFilterToggle">
-            <i class="bi bi-sliders"></i> Filtrlar
-            {% if active_filters %}<span class="au-filter-count">{{ active_filters }}</span>{% endif %}
-        </button>
-
-        <select name="sort" class="au-sort-select" onchange="document.getElementById('auForm').submit()">
-            <option value="">Saralash: Yangi</option>
-            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Yangi birinchi</option>
-            <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinchi</option>
-            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism (A-Z)</option>
-            <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Ism (Z-A)</option>
-            <option value="activity" {% if sort_by == 'activity' %}selected{% endif %}>Faollik bo'yicha</option>
-        </select>
-
-        <span class="au-result-count">
-            <i class="bi bi-people-fill me-1"></i>{{ total_count }} ta foydalanuvchi
-        </span>
-    </div>
-
-    <!-- Filter Panel -->
-    <div class="au-filter-panel {% if active_filters %}au-show{% endif %}" id="auFilterPanel">
-        <div class="au-filter-grid">
-            <div class="au-filter-group">
-                <label>Rol</label>
-                <select name="role" class="au-filter-select">
-                    <option value="">Barchasi</option>
-                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
-                    <option value="assistant_admin" {% if role_filter == 'assistant_admin' %}selected{% endif %}>Yordamchi admin</option>
-                    <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>O'qituvchi</option>
-                    <option value="student" {% if role_filter == 'student' %}selected{% endif %}>O'quvchi</option>
-                </select>
+    <!-- ===== Toolbar ===== -->
+    <div class="au-toolbar">
+        <div class="au-toolbar-row">
+            <div class="au-search">
+                <i class="bi bi-search au-search-icon"></i>
+                <input type="text" name="q" class="au-search-input" id="auSearchInput"
+                       placeholder="Ism, username yoki telefon raqam bo'yicha izlash..."
+                       value="{{ search_query }}" autocomplete="off">
+                <button type="button" class="au-search-clear {% if search_query %}au-show{% endif %}"
+                        id="auSearchClear" title="Tozalash">
+                    <i class="bi bi-x-circle-fill"></i>
+                </button>
             </div>
-            <div class="au-filter-group">
-                <label>Yo'nalish</label>
-                <select name="profession" class="au-filter-select">
-                    <option value="">Barchasi</option>
-                    {% for p in professions %}
-                    <option value="{{ p.id }}" {% if profession_filter == p.id|stringformat:"i" %}selected{% endif %}>
-                        {{ p.name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="au-filter-group">
-                <label>Status</label>
-                <select name="status" class="au-filter-select">
-                    <option value="">Barchasi</option>
-                    <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
-                    <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Bloklangan</option>
-                </select>
-            </div>
-            <div class="au-filter-group">
-                <label>Guruh</label>
-                <select name="group" class="au-filter-select">
-                    <option value="">Barchasi</option>
-                    {% for g in groups %}
-                    <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>
-                        {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
-                    </option>
-                    {% endfor %}
-                </select>
+
+            <button type="button" class="au-tbtn {% if active_filters %}au-active{% endif %}" id="auFilterToggle">
+                <i class="bi bi-sliders"></i>
+                <span>Filtrlar</span>
+                {% if active_filters %}<span class="au-filter-count">{{ active_filters }}</span>{% endif %}
+            </button>
+
+            <select name="sort" class="au-sort-select" onchange="document.getElementById('auForm').submit()">
+                <option value="">Yangi birinchi</option>
+                <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Yangi birinchi</option>
+                <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Eski birinchi</option>
+                <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Ism (A-Z)</option>
+                <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>Ism (Z-A)</option>
+                <option value="activity" {% if sort_by == 'activity' %}selected{% endif %}>Faollik bo'yicha</option>
+            </select>
+
+            <div class="au-view-toggle" id="auViewToggle">
+                <button type="button" data-view="list" class="is-active" title="Ro'yxat"><i class="bi bi-list-ul"></i></button>
+                <button type="button" data-view="grid" title="Kartochka"><i class="bi bi-grid-3x3-gap-fill"></i></button>
             </div>
         </div>
-        <div class="au-filter-actions">
-            <a href="{% url 'admin_users' %}" class="au-btn-reset">
-                <i class="bi bi-x-lg"></i> Tozalash
-            </a>
-            <button type="submit" class="au-btn-apply">
-                <i class="bi bi-check2 me-1"></i>Qo'llash
-            </button>
+
+        <!-- Filter panel -->
+        <div class="au-filter-panel {% if active_filters %}au-show{% endif %}" id="auFilterPanel">
+            <div class="au-filter-grid">
+                <div class="au-filter-group">
+                    <label><i class="bi bi-person-badge me-1"></i>Rol</label>
+                    <select name="role" class="au-filter-select">
+                        <option value="">Barchasi</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                        <option value="assistant_admin" {% if role_filter == 'assistant_admin' %}selected{% endif %}>Yordamchi admin</option>
+                        <option value="teacher" {% if role_filter == 'teacher' %}selected{% endif %}>O'qituvchi</option>
+                        <option value="student" {% if role_filter == 'student' %}selected{% endif %}>O'quvchi</option>
+                    </select>
+                </div>
+                <div class="au-filter-group">
+                    <label><i class="bi bi-mortarboard me-1"></i>Yo'nalish</label>
+                    <select name="profession" class="au-filter-select">
+                        <option value="">Barchasi</option>
+                        {% for p in professions %}
+                        <option value="{{ p.id }}" {% if profession_filter == p.id|stringformat:"i" %}selected{% endif %}>
+                            {{ p.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="au-filter-group">
+                    <label><i class="bi bi-shield-check me-1"></i>Status</label>
+                    <select name="status" class="au-filter-select">
+                        <option value="">Barchasi</option>
+                        <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Faol</option>
+                        <option value="blocked" {% if status_filter == 'blocked' %}selected{% endif %}>Bloklangan</option>
+                    </select>
+                </div>
+                <div class="au-filter-group">
+                    <label><i class="bi bi-people me-1"></i>Guruh</label>
+                    <select name="group" class="au-filter-select">
+                        <option value="">Barchasi</option>
+                        {% for g in groups %}
+                        <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>
+                            {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="au-filter-actions">
+                <a href="{% url 'admin_users' %}" class="au-btn-reset">
+                    <i class="bi bi-arrow-counterclockwise"></i> Tozalash
+                </a>
+                <button type="submit" class="au-btn-apply">
+                    <i class="bi bi-check2"></i> Qo'llash
+                </button>
+            </div>
         </div>
     </div>
 
@@ -396,6 +651,7 @@
     <!-- Active Filter Chips -->
     {% if search_query or role_filter or profession_filter or status_filter or group_filter %}
     <div class="au-chips">
+        <span class="au-chips-label"><i class="bi bi-funnel-fill me-1"></i>Faol filtrlar:</span>
         {% if search_query %}
         <span class="au-chip">
             <i class="bi bi-search"></i> "{{ search_query }}"
@@ -411,7 +667,7 @@
         {% endif %}
         {% if profession_filter %}
         <span class="au-chip">
-            <i class="bi bi-mortarboard"></i> Yo'nalish: {{ profession_filter }}
+            <i class="bi bi-mortarboard"></i> Yo'nalish
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
@@ -432,39 +688,44 @@
     </div>
     {% endif %}
 
-    <!-- Users List -->
+    <!-- ===== Users List ===== -->
     {% if users %}
-    <div class="au-list">
+    <div class="au-list" id="auList">
         {% for u in users %}
         <div class="au-row" data-user-id="{{ u.pk }}">
 
-            <!-- DESKTOP -->
+            <!-- DESKTOP row -->
             <div class="au-identity au-desktop">
-                {% if u.photo %}
-                <img src="{{ u.photo.url }}" class="au-avatar" alt="">
-                {% else %}
-                <div class="au-avatar-ph">{{ u.get_initials }}</div>
-                {% endif %}
+                <div class="au-avatar-wrap">
+                    {% if u.photo %}
+                    <img src="{{ u.photo.url }}" class="au-avatar" alt="">
+                    {% else %}
+                    <div class="au-avatar-ph">{{ u.get_initials }}</div>
+                    {% endif %}
+                    {% if u.is_online %}<span class="au-online-dot" title="Online"></span>{% endif %}
+                </div>
                 <div style="min-width:0;">
                     <div class="au-name">
-                        {{ u.full_name }}
-                        {% if u.is_premium %}<i class="bi bi-patch-check-fill au-premium"></i>{% endif %}
-                        {% if u.is_online %}<span class="au-online"></span>{% endif %}
+                        <span style="overflow:hidden;text-overflow:ellipsis;">{{ u.full_name }}</span>
+                        {% if u.is_premium %}<i class="bi bi-patch-check-fill au-premium" title="Premium"></i>{% endif %}
                     </div>
-                    <div class="au-uname" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
-                        @{{ u.username }}
-                        {% if u.student_id %}
-                        <span style="background:#1e1b4b;color:#c4b5fd;padding:1px 7px;border-radius:6px;font-weight:700;font-size:0.7em;font-family:monospace;letter-spacing:1px;flex-shrink:0;">#{{ u.student_id }}</span>
-                        {% endif %}
+                    <div class="au-uname">
+                        <span>@{{ u.username }}</span>
+                        {% if u.student_id %}<span class="au-sid">#{{ u.student_id }}</span>{% endif %}
                     </div>
                 </div>
             </div>
 
-            <div class="au-phone au-desktop">{{ u.phone }}</div>
+            <div class="au-phone au-desktop">
+                <i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}
+            </div>
 
             <div class="au-desktop">
                 <span class="au-role {% if u.role == 'admin' %}r-admin{% elif u.role == 'assistant_admin' %}r-assistant{% elif u.role == 'teacher' %}r-teacher{% else %}r-student{% endif %}">
-                    {% if u.role == 'admin' %}Admin{% elif u.role == 'assistant_admin' %}Yordamchi{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
+                    {% if u.role == 'admin' %}<i class="bi bi-shield-fill-check"></i>Admin
+                    {% elif u.role == 'assistant_admin' %}<i class="bi bi-person-fill-gear"></i>Yordamchi
+                    {% elif u.role == 'teacher' %}<i class="bi bi-person-workspace"></i>O'qituvchi
+                    {% else %}<i class="bi bi-mortarboard-fill"></i>O'quvchi{% endif %}
                 </span>
             </div>
 
@@ -473,10 +734,12 @@
                     <span class="au-status-dot"></span>
                     {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
                 </span>
-                {% if u.is_finished %}<span class="au-badge-finished" title="Kursni tugatgan o'quvchi"><i class="bi bi-mortarboard-fill"></i> Tugatgan</span>{% endif %}
+                {% if u.is_finished %}
+                <div style="margin-top:4px;"><span class="au-badge-finished" title="Kursni tugatgan o'quvchi"><i class="bi bi-mortarboard-fill"></i>Tugatgan</span></div>
+                {% endif %}
                 {% if u.last_activity %}
-                <div style="font-size:0.72rem; color:var(--bs-secondary-color, #6c757d); margin-top:2px;">
-                    {{ u.last_activity|timesince }} oldin
+                <div class="au-last-activity">
+                    <i class="bi bi-clock"></i>{{ u.last_activity|timesince }} oldin
                 </div>
                 {% endif %}
             </div>
@@ -491,7 +754,7 @@
                 {% if u.role == 'student' %}
                 <a href="{% url 'admin_user_finished' u.pk %}"
                    class="au-act a-finish {% if u.is_finished %}is-on{% endif %}"
-                   title="{% if u.is_finished %}Tugatgan belgisini olib tashlash{% else %}Tugatgan deb belgilash (yangi kurslarga yozila olmaydi va to'lovlarda ko'rinmaydi){% endif %}"
+                   title="{% if u.is_finished %}Tugatgan belgisini olib tashlash{% else %}Tugatgan deb belgilash{% endif %}"
                    onclick="return confirm('{% if u.is_finished %}{{ u.full_name }} dan tugatgan belgisini olib tashlaysizmi?{% else %}{{ u.full_name }} ni kursni tugatgan deb belgilaysizmi? U yangi kurslarga yozila olmaydi va to\'lovlarda ko\'rinmaydi.{% endif %}')">
                     <i class="bi bi-mortarboard{% if u.is_finished %}-fill{% endif %}"></i>
                 </a>
@@ -500,26 +763,26 @@
                 {% endif %}
             </div>
 
-            <!-- MOBILE -->
-            <div class="au-mobile" style="flex-direction:column; gap:0.6rem;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
+            <!-- CARD/MOBILE view -->
+            <div class="au-mobile au-card-mode">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:0.6rem;">
                     <div class="au-identity">
-                        {% if u.photo %}
-                        <img src="{{ u.photo.url }}" class="au-avatar" alt="">
-                        {% else %}
-                        <div class="au-avatar-ph">{{ u.get_initials }}</div>
-                        {% endif %}
+                        <div class="au-avatar-wrap">
+                            {% if u.photo %}
+                            <img src="{{ u.photo.url }}" class="au-avatar" alt="">
+                            {% else %}
+                            <div class="au-avatar-ph">{{ u.get_initials }}</div>
+                            {% endif %}
+                            {% if u.is_online %}<span class="au-online-dot"></span>{% endif %}
+                        </div>
                         <div style="min-width:0;">
                             <div class="au-name">
-                                {{ u.full_name }}
+                                <span style="overflow:hidden;text-overflow:ellipsis;">{{ u.full_name }}</span>
                                 {% if u.is_premium %}<i class="bi bi-patch-check-fill au-premium"></i>{% endif %}
-                                {% if u.is_online %}<span class="au-online"></span>{% endif %}
                             </div>
-                            <div class="au-uname" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
-                                @{{ u.username }}
-                                {% if u.student_id %}
-                                <span style="background:#1e1b4b;color:#c4b5fd;padding:1px 7px;border-radius:6px;font-weight:700;font-size:0.7em;font-family:monospace;letter-spacing:1px;flex-shrink:0;">#{{ u.student_id }}</span>
-                                {% endif %}
+                            <div class="au-uname">
+                                <span>@{{ u.username }}</span>
+                                {% if u.student_id %}<span class="au-sid">#{{ u.student_id }}</span>{% endif %}
                             </div>
                         </div>
                     </div>
@@ -527,20 +790,20 @@
                         {% if u.role == 'admin' %}Admin{% elif u.role == 'assistant_admin' %}Yordamchi{% elif u.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
                     </span>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center;">
-                    <span style="font-size:0.82rem; color:var(--bs-secondary-color, #6c757d);"><i class="bi bi-phone me-1"></i>{{ u.phone }}</span>
+                <div style="display:flex; flex-wrap:wrap; gap:0.5rem 0.8rem; align-items:center;">
+                    <span class="au-phone"><i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}</span>
                     <span class="au-status {% if u.is_blocked %}s-blocked{% else %}s-active{% endif %}">
                         <span class="au-status-dot"></span>
                         {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
                     </span>
-                    {% if u.is_finished %}<span class="au-badge-finished" title="Kursni tugatgan o'quvchi"><i class="bi bi-mortarboard-fill"></i> Tugatgan</span>{% endif %}
+                    {% if u.is_finished %}<span class="au-badge-finished"><i class="bi bi-mortarboard-fill"></i>Tugatgan</span>{% endif %}
                     {% if u.last_activity %}
-                    <span style="font-size:0.75rem; color:var(--bs-secondary-color, #6c757d);">
-                        <i class="bi bi-clock me-1"></i>{{ u.last_activity|timesince }}
+                    <span style="font-size:0.75rem; color:var(--au-muted); display:inline-flex;align-items:center;gap:0.3rem;">
+                        <i class="bi bi-clock"></i>{{ u.last_activity|timesince }}
                     </span>
                     {% endif %}
                 </div>
-                <div class="au-actions" style="justify-content:flex-start;">
+                <div class="au-actions" style="justify-content:flex-start; padding-top:0.4rem; border-top:1px dashed var(--au-border);">
                     <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Ko'rish"><i class="bi bi-eye"></i></a>
                     <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
                     {% if not u.is_admin %}
@@ -571,6 +834,11 @@
         <div class="au-empty-icon"><i class="bi bi-people"></i></div>
         <h5>Foydalanuvchilar topilmadi</h5>
         <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Filtr shartlariga mos foydalanuvchi yo'q{% endif %}</p>
+        {% if search_query or role_filter or profession_filter or status_filter or group_filter %}
+        <a href="{% url 'admin_users' %}" class="au-btn-reset" style="display:inline-flex;">
+            <i class="bi bi-arrow-counterclockwise"></i> Filtrlarni tozalash
+        </a>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -583,28 +851,70 @@
     var input = document.getElementById('auSearchInput');
     var clearBtn = document.getElementById('auSearchClear');
     var form = document.getElementById('auForm');
+    var actionsBtn = document.getElementById('auActionsBtn');
+    var actionsDrop = document.getElementById('auActionsDropdown');
+    var viewToggle = document.getElementById('auViewToggle');
+    var list = document.getElementById('auList');
     var timer = null;
 
-    toggle.addEventListener('click', function(){
-        panel.classList.toggle('au-show');
-        toggle.classList.toggle('au-active');
-    });
+    // Filter toggle
+    if (toggle && panel) {
+        toggle.addEventListener('click', function(){
+            panel.classList.toggle('au-show');
+            toggle.classList.toggle('au-active');
+        });
+    }
 
-    clearBtn.addEventListener('click', function(){
-        input.value = '';
-        clearBtn.classList.remove('au-show');
-        form.submit();
-    });
-
-    input.addEventListener('input', function(){
-        clearBtn.classList.toggle('au-show', input.value.length > 0);
-        clearTimeout(timer);
-        timer = setTimeout(function(){
+    // Search clear
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function(){
+            input.value = '';
+            clearBtn.classList.remove('au-show');
             form.submit();
-        }, 600);
-    });
+        });
+    }
 
-    // Bloklash / blokdan chiqarish - sahifani yangilamasdan (AJAX)
+    // Search debounced submit
+    if (input) {
+        input.addEventListener('input', function(){
+            clearBtn.classList.toggle('au-show', input.value.length > 0);
+            clearTimeout(timer);
+            timer = setTimeout(function(){ form.submit(); }, 600);
+        });
+    }
+
+    // Actions dropdown
+    if (actionsBtn && actionsDrop) {
+        actionsBtn.addEventListener('click', function(e){
+            e.stopPropagation();
+            actionsDrop.classList.toggle('au-open');
+        });
+        document.addEventListener('click', function(e){
+            if (!actionsDrop.contains(e.target) && e.target !== actionsBtn) {
+                actionsDrop.classList.remove('au-open');
+            }
+        });
+    }
+
+    // View toggle (list / grid)
+    if (viewToggle && list) {
+        var savedView = localStorage.getItem('auView') || 'list';
+        applyView(savedView);
+        viewToggle.querySelectorAll('button').forEach(function(b){
+            b.addEventListener('click', function(){
+                applyView(b.dataset.view);
+                localStorage.setItem('auView', b.dataset.view);
+            });
+        });
+        function applyView(view){
+            list.classList.toggle('au-grid', view === 'grid');
+            viewToggle.querySelectorAll('button').forEach(function(b){
+                b.classList.toggle('is-active', b.dataset.view === view);
+            });
+        }
+    }
+
+    // AJAX block/unblock
     function setStatusBadges(row, isBlocked){
         row.querySelectorAll('.au-status').forEach(function(badge){
             badge.classList.toggle('s-blocked', isBlocked);
@@ -630,7 +940,7 @@
         var row = btn.closest('.au-row');
         var url = btn.getAttribute('data-block-url');
         btn.dataset.loading = '1';
-        btn.style.opacity = '0.5';
+        if (row) row.classList.add('is-loading');
 
         fetch(url, {
             method: 'GET',
@@ -647,7 +957,7 @@
         .catch(function(){ alert('Tarmoq xatosi. Qayta urinib ko\'ring.'); })
         .finally(function(){
             btn.dataset.loading = '0';
-            btn.style.opacity = '';
+            if (row) row.classList.remove('is-loading');
         });
     });
 })();

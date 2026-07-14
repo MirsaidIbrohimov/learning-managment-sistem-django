@@ -6,293 +6,345 @@
 {% block extra_css %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <style>
-/* ===== iOS DESIGN SYSTEM ===== */
+/* ============================================
+   AI YORDAMCHI - CHAT SESSION (2026 Redesign)
+   ============================================ */
 :root {
-    --ios-bg: #f2f2f7;
-    --ios-card: #ffffff;
-    --ios-card-secondary: #f9f9fb;
-    --ios-border: rgba(0,0,0,.06);
-    --ios-separator: rgba(60,60,67,.12);
-    --ios-text: #1c1c1e;
-    --ios-text2: #8e8e93;
-    --ios-text3: #aeaeb2;
-    --ios-blue: #007aff;
-    --ios-green: #34c759;
-    --ios-purple: #af52de;
-    --ios-indigo: #5856d6;
-    --ios-orange: #ff9500;
-    --ios-red: #ff3b30;
-    --ios-tint: #007aff;
-    --ios-fill: rgba(120,120,128,.12);
-    --ios-fill2: rgba(120,120,128,.08);
-    --ios-user-bubble: #007aff;
-    --ios-ai-bubble: #ffffff;
-    --ios-input-bg: #ffffff;
-    --ios-header-bg: rgba(242,242,247,.92);
-    --ios-radius: 20px;
-    --ios-radius-sm: 14px;
-    --ios-radius-xs: 10px;
-    --ios-shadow: 0 1px 3px rgba(0,0,0,.06);
-    --ios-shadow-lg: 0 8px 30px rgba(0,0,0,.08);
-    --ios-font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
+    --ay-p1: #7c3aed;
+    --ay-p2: #ec4899;
+    --ay-p3: #06b6d4;
+    --ay-grad: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #f59e0b 100%);
+    --ay-grad-user: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    --ay-grad-soft: linear-gradient(135deg, rgba(124,58,237,.10), rgba(236,72,153,.08));
+
+    --ay-bg: #f6f7fb;
+    --ay-bg-2: #ffffff;
+    --ay-surface: #ffffff;
+    --ay-surface-2: #fafbff;
+    --ay-border: rgba(15,23,42,.08);
+    --ay-border-strong: rgba(15,23,42,.14);
+    --ay-text: #0f172a;
+    --ay-text-2: #475569;
+    --ay-text-3: #94a3b8;
+
+    --ay-ai-bubble: #ffffff;
+    --ay-input-bg: #ffffff;
+    --ay-header-bg: rgba(246,247,251,.82);
+
+    --ay-shadow-sm: 0 1px 3px rgba(15,23,42,.05);
+    --ay-shadow-md: 0 6px 20px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
+    --ay-shadow-lg: 0 20px 48px rgba(124,58,237,.14);
+
+    --ay-radius-lg: 22px;
+    --ay-radius-md: 16px;
+    --ay-radius-sm: 10px;
+
+    --ay-font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+    --ay-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
 }
 
 [data-bs-theme="dark"] {
-    --ios-bg: #000000;
-    --ios-card: #1c1c1e;
-    --ios-card-secondary: #2c2c2e;
-    --ios-border: rgba(255,255,255,.08);
-    --ios-separator: rgba(84,84,88,.36);
-    --ios-text: #ffffff;
-    --ios-text2: #98989f;
-    --ios-text3: #636366;
-    --ios-fill: rgba(120,120,128,.24);
-    --ios-fill2: rgba(120,120,128,.16);
-    --ios-ai-bubble: #1c1c1e;
-    --ios-input-bg: #1c1c1e;
-    --ios-header-bg: rgba(0,0,0,.92);
-    --ios-shadow: 0 1px 3px rgba(0,0,0,.2);
-    --ios-shadow-lg: 0 8px 30px rgba(0,0,0,.3);
+    --ay-bg: #0a0a12;
+    --ay-bg-2: #14141f;
+    --ay-surface: #14141f;
+    --ay-surface-2: #1a1a28;
+    --ay-border: rgba(255,255,255,.08);
+    --ay-border-strong: rgba(255,255,255,.14);
+    --ay-text: #f1f5f9;
+    --ay-text-2: #cbd5e1;
+    --ay-text-3: #64748b;
+    --ay-ai-bubble: #14141f;
+    --ay-input-bg: #14141f;
+    --ay-header-bg: rgba(10,10,18,.85);
+    --ay-grad-soft: linear-gradient(135deg, rgba(124,58,237,.18), rgba(236,72,153,.12));
+    --ay-shadow-sm: 0 1px 3px rgba(0,0,0,.4);
+    --ay-shadow-md: 0 6px 20px rgba(0,0,0,.4);
+    --ay-shadow-lg: 0 20px 48px rgba(0,0,0,.5);
 }
 
 body {
-    background: var(--ios-bg) !important;
-    font-family: var(--ios-font) !important;
+    background: var(--ay-bg) !important;
+    font-family: var(--ay-font) !important;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 /* ===== ANIMATIONS ===== */
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(12px) }
-    to { opacity: 1; transform: translateY(0) }
+@keyframes ayFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes ayRise {
+    from { opacity:0; transform: translateY(10px) }
+    to { opacity:1; transform: translateY(0) }
 }
-@keyframes slideFromLeft {
-    from { opacity: 0; transform: translateX(-10px) }
-    to { opacity: 1; transform: translateX(0) }
+@keyframes ayFromLeft {
+    from { opacity:0; transform: translateX(-14px) scale(.96) }
+    to { opacity:1; transform: translateX(0) scale(1) }
 }
-@keyframes slideFromRight {
-    from { opacity: 0; transform: translateX(10px) }
-    to { opacity: 1; transform: translateX(0) }
+@keyframes ayFromRight {
+    from { opacity:0; transform: translateX(14px) scale(.96) }
+    to { opacity:1; transform: translateX(0) scale(1) }
 }
-@keyframes breathe {
-    0%, 100% { transform: scale(1); opacity: 1 }
-    50% { transform: scale(1.2); opacity: .6 }
+@keyframes ayBreathe {
+    0%,100% { transform: scale(1); opacity: 1 }
+    50% { transform: scale(1.3); opacity: .55 }
 }
-@keyframes floatSoft {
-    0%, 100% { transform: translateY(0) }
-    50% { transform: translateY(-5px) }
+@keyframes ayFloat {
+    0%,100% { transform: translateY(0) }
+    50% { transform: translateY(-6px) }
 }
-@keyframes scaleIn {
-    from { opacity: 0; transform: scale(.92) }
-    to { opacity: 1; transform: scale(1) }
+@keyframes ayScaleIn {
+    from { opacity:0; transform: scale(.9) }
+    to { opacity:1; transform: scale(1) }
 }
-@keyframes typingBounce {
-    0%, 80%, 100% { transform: scale(.4); opacity: .4 }
+@keyframes ayTypingBounce {
+    0%,80%,100% { transform: scale(.5); opacity: .4 }
     40% { transform: scale(1); opacity: 1 }
 }
-@keyframes spin { to { transform: rotate(360deg) } }
-@keyframes shimmer {
+@keyframes aySpin { to { transform: rotate(360deg) } }
+@keyframes ayShimmer {
     0% { background-position: -200% 0 }
     100% { background-position: 200% 0 }
 }
+@keyframes ayGradientMove {
+    0% { background-position: 0% 50% }
+    50% { background-position: 100% 50% }
+    100% { background-position: 0% 50% }
+}
+@keyframes ayRing {
+    0% { transform: scale(1); opacity: .55 }
+    100% { transform: scale(1.7); opacity: 0 }
+}
 
 /* ===== LAYOUT ===== */
-.chat-app {
-    max-width: 900px;
+.ay-chat {
+    max-width: 960px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     height: calc(100vh - 70px);
-    animation: fadeIn .3s ease;
+    animation: ayFadeIn .35s ease;
+    position: relative;
 }
 
-/* ===== iOS HEADER (blur navbar) ===== */
-.ios-header {
+/* ===== HEADER ===== */
+.ay-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 10px 16px;
-    background: var(--ios-header-bg);
+    padding: 12px 18px;
+    background: var(--ay-header-bg);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: .5px solid var(--ios-separator);
+    border-bottom: 1px solid var(--ay-border);
     position: sticky;
     top: 0;
     z-index: 100;
-    min-height: 52px;
+    min-height: 60px;
 }
 
-.ios-header-left {
+.ay-h-left {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     min-width: 0;
     flex: 1;
 }
 
-.ios-back {
-    display: flex;
+.ay-back {
+    display: inline-flex;
     align-items: center;
-    gap: 3px;
-    color: var(--ios-tint);
+    justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    color: var(--ay-text);
+    background: transparent;
     text-decoration: none;
-    font-size: .95rem;
-    font-weight: 400;
-    transition: opacity .2s;
+    transition: background .2s, color .2s;
     flex-shrink: 0;
-    padding: 4px 0;
+    border: 1px solid transparent;
 }
+.ay-back:hover {
+    background: var(--ay-surface-2);
+    color: var(--ay-p1);
+    border-color: var(--ay-border);
+}
+.ay-back i { font-size: 1.15rem; }
 
-.ios-back:hover { opacity: .6; color: var(--ios-tint); }
-.ios-back i { font-size: 1.25rem; }
-
-.ios-title-group {
+.ay-h-title-wrap {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     min-width: 0;
 }
 
-.ios-status-dot {
-    width: 8px;
-    height: 8px;
-    background: var(--ios-green);
+.ay-h-avatar {
+    width: 40px; height: 40px;
     border-radius: 50%;
-    animation: breathe 2.5s ease-in-out infinite;
+    background: var(--ay-grad);
+    background-size: 200% 200%;
+    animation: ayGradientMove 6s ease infinite;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
     flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(124,58,237,.35);
+    position: relative;
+}
+.ay-h-avatar::after {
+    content: '';
+    position: absolute;
+    right: -2px; bottom: -2px;
+    width: 12px; height: 12px;
+    background: #10b981;
+    border: 2px solid var(--ay-bg);
+    border-radius: 50%;
+    animation: ayBreathe 2.4s ease-in-out infinite;
 }
 
-.ios-nav-title {
+.ay-h-titles { min-width: 0; }
+
+.ay-h-title {
     font-size: .95rem;
-    font-weight: 600;
-    color: var(--ios-text);
+    font-weight: 700;
+    color: var(--ay-text);
     margin: 0;
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     letter-spacing: -.01em;
 }
 
-.ios-header-right {
+.ay-h-status {
+    font-size: .72rem;
+    color: var(--ay-text-2);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+.ay-h-status .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #10b981;
+    animation: ayBreathe 2.4s ease-in-out infinite;
+}
+
+.ay-h-right {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     flex-shrink: 0;
 }
 
-.ios-coin-pill {
-    display: flex;
+.ay-coin-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 4px;
-    background: var(--ios-fill);
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--ios-orange);
+    gap: 5px;
+    background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(239,68,68,.10));
+    border: 1px solid rgba(245,158,11,.24);
+    padding: 6px 12px;
+    border-radius: 50px;
+    font-size: .8rem;
+    font-weight: 700;
+    color: #f59e0b;
+    transition: transform .2s;
+}
+.ay-coin-pill:hover { transform: scale(1.05); }
+.ay-coin-pill i { font-size: .95rem; }
+
+.ay-icon-btn {
+    width: 38px; height: 38px;
+    border-radius: 12px;
+    border: 1px solid var(--ay-border);
+    background: var(--ay-surface);
+    color: var(--ay-text-2);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all .2s;
+    font-size: .95rem;
+}
+.ay-icon-btn:hover {
+    background: rgba(239,68,68,.08);
+    color: #ef4444;
+    border-color: rgba(239,68,68,.2);
 }
 
-.ios-limit-pill {
+/* ===== LIMITS BAR ===== */
+.ay-limits {
     display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--ios-fill);
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: .72rem;
-    font-weight: 500;
-    color: var(--ios-text2);
-}
-
-.ios-limit-pill.warn { color: var(--ios-orange); }
-.ios-limit-pill.danger { color: var(--ios-red); }
-.ios-limit-pill i { font-size: .8rem; }
-
-.ios-limits-bar {
-    display: flex;
-    gap: 8px;
-    padding: 6px 16px;
-    background: var(--ios-fill2);
-    border-bottom: .5px solid var(--ios-separator);
-    font-size: .72rem;
-    color: var(--ios-text2);
+    gap: 10px;
+    padding: 8px 18px;
+    background: var(--ay-surface-2);
+    border-bottom: 1px solid var(--ay-border);
+    font-size: .74rem;
+    color: var(--ay-text-2);
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
 }
-
-.ios-limits-bar .lim-item {
-    display: flex;
+.ay-lim {
+    display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 50px;
+    background: var(--ay-surface);
+    border: 1px solid var(--ay-border);
+    font-weight: 500;
 }
-
-.ios-limits-bar .lim-item i { font-size: .8rem; }
-.ios-limits-bar .lim-sep { color: var(--ios-text3); }
-.ios-limits-bar .premium-badge {
-    background: linear-gradient(135deg, #ff9500, #ff6b00);
+.ay-lim i { font-size: .82rem; opacity: .8; }
+.ay-lim.warn { color: #f59e0b; border-color: rgba(245,158,11,.3); }
+.ay-lim.danger { color: #ef4444; border-color: rgba(239,68,68,.3); }
+.ay-lim.premium {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
     color: #fff;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: .65rem;
+    border: none;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: .5px;
-}
-
-.ios-icon-btn {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    border: none;
-    background: var(--ios-fill);
-    color: var(--ios-text2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all .2s;
-    font-size: .9rem;
-}
-
-.ios-icon-btn:hover {
-    background: var(--ios-fill2);
-    color: var(--ios-red);
+    font-size: .65rem;
+    padding: 3px 10px;
+    box-shadow: 0 3px 10px rgba(245,158,11,.35);
 }
 
 /* ===== MESSAGES ===== */
-.ios-messages {
+.ay-messages {
     flex: 1;
     overflow-y: auto;
-    padding: 12px 0 20px;
+    padding: 16px 0 24px;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
+    position: relative;
+}
+.ay-messages::-webkit-scrollbar { width: 6px; }
+.ay-messages::-webkit-scrollbar-track { background: transparent; }
+.ay-messages::-webkit-scrollbar-thumb {
+    background: rgba(148,163,184,.25);
+    border-radius: 50px;
+}
+.ay-messages::-webkit-scrollbar-thumb:hover {
+    background: rgba(148,163,184,.4);
 }
 
-.ios-messages::-webkit-scrollbar { width: 0; }
-
-/* Single message row */
+/* Message row */
 .ios-msg {
-    padding: 3px 16px;
+    padding: 4px 18px;
     animation-fill-mode: both;
 }
+.ios-msg.user { animation: ayFromRight .35s ease-out; }
+.ios-msg.assistant { animation: ayFromLeft .35s ease-out; }
 
-.ios-msg.user { animation: slideFromRight .35s ease-out; }
-.ios-msg.assistant { animation: slideFromLeft .35s ease-out; }
-
-.ios-msg:nth-child(1) { animation-delay: .03s }
-.ios-msg:nth-child(2) { animation-delay: .06s }
-.ios-msg:nth-child(3) { animation-delay: .09s }
-.ios-msg:nth-child(4) { animation-delay: .12s }
+.ios-msg:nth-child(1){animation-delay:.02s}
+.ios-msg:nth-child(2){animation-delay:.05s}
+.ios-msg:nth-child(3){animation-delay:.08s}
+.ios-msg:nth-child(4){animation-delay:.1s}
 
 .ios-msg-row {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     max-width: 85%;
     align-items: flex-end;
 }
-
 .ios-msg.user .ios-msg-row {
     margin-left: auto;
     flex-direction: row-reverse;
@@ -300,25 +352,25 @@ body {
 
 /* Avatar */
 .ios-avatar {
-    width: 32px;
-    height: 32px;
+    width: 34px; height: 34px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: .75rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem;
     font-weight: 700;
     flex-shrink: 0;
-    margin-bottom: 2px;
+    margin-bottom: 4px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.12);
 }
 
 .ios-msg.user .ios-avatar {
-    background: var(--ios-blue);
+    background: var(--ay-grad-user);
     color: #fff;
 }
 
 .ios-msg.assistant .ios-avatar {
-    background: linear-gradient(135deg, var(--ios-green), #28a745);
+    background: var(--ay-grad);
+    background-size: 200% 200%;
+    animation: ayGradientMove 6s ease infinite;
     color: #fff;
 }
 
@@ -327,333 +379,346 @@ body {
     display: flex;
     flex-direction: column;
     min-width: 0;
+    max-width: calc(100% - 44px);
 }
 
 .ios-bubble {
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-radius: 18px;
     position: relative;
     word-wrap: break-word;
     overflow-wrap: break-word;
+    transition: box-shadow .2s;
 }
 
 .ios-msg.user .ios-bubble {
-    background: var(--ios-user-bubble);
+    background: var(--ay-grad-user);
     color: #fff;
-    border-bottom-right-radius: 4px;
+    border-bottom-right-radius: 6px;
+    box-shadow: 0 4px 14px rgba(124,58,237,.28);
 }
 
 .ios-msg.assistant .ios-bubble {
-    background: var(--ios-ai-bubble);
-    color: var(--ios-text);
-    border: .5px solid var(--ios-separator);
-    border-bottom-left-radius: 4px;
-    box-shadow: var(--ios-shadow);
+    background: var(--ay-ai-bubble);
+    color: var(--ay-text);
+    border: 1px solid var(--ay-border);
+    border-bottom-left-radius: 6px;
+    box-shadow: var(--ay-shadow-sm);
+}
+
+.ios-msg.assistant .ios-bubble:hover {
+    box-shadow: var(--ay-shadow-md);
 }
 
 .ios-msg-text {
-    font-size: .9rem;
-    line-height: 1.45;
-    letter-spacing: -.005em;
+    font-size: .93rem;
+    line-height: 1.5;
+    letter-spacing: -.003em;
 }
 
-.ios-msg.user .ios-msg-text {
-    white-space: pre-wrap;
-}
+.ios-msg.user .ios-msg-text { white-space: pre-wrap; }
 
 /* Timestamp */
 .ios-msg-time {
     font-size: .68rem;
-    color: var(--ios-text3);
-    margin-top: 3px;
+    color: var(--ay-text-3);
+    margin-top: 4px;
     display: flex;
     align-items: center;
     gap: 4px;
+    padding: 0 4px;
 }
-
-.ios-msg.user .ios-msg-time {
-    justify-content: flex-end;
-    color: var(--ios-text3);
-}
-
-.ios-msg-time .ios-coin-cost { color: var(--ios-orange); }
+.ios-msg.user .ios-msg-time { justify-content: flex-end; }
+.ios-msg-time .ios-coin-cost { color: #f59e0b; font-weight: 600; }
 
 /* Image */
 .ios-msg-image {
     max-width: 100%;
-    max-height: 280px;
+    max-height: 300px;
     border-radius: 14px;
-    margin-top: 6px;
+    margin-top: 8px;
     cursor: pointer;
-    transition: transform .2s;
+    transition: transform .25s;
+    display: block;
 }
+.ios-msg-image:hover { transform: scale(1.02); }
 
-.ios-msg-image:hover { transform: scale(1.015); }
-
-/* File attachment */
+/* File card */
 .ios-file-card {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--ios-fill2);
-    border: .5px solid var(--ios-separator);
+    display: flex; align-items: center; gap: 10px;
+    background: var(--ay-surface-2);
+    border: 1px solid var(--ay-border);
     border-radius: 12px;
     padding: 10px 14px;
-    margin-top: 6px;
+    margin-top: 8px;
     text-decoration: none;
-    color: var(--ios-text);
-    transition: background .15s;
-    max-width: 280px;
+    color: var(--ay-text);
+    transition: background .2s, transform .2s;
+    max-width: 320px;
 }
-
-.ios-file-card:hover { background: var(--ios-fill); color: var(--ios-text); }
+.ios-file-card:hover {
+    background: var(--ay-grad-soft);
+    color: var(--ay-text);
+    transform: translateY(-1px);
+}
 
 .ios-msg.user .ios-file-card {
-    background: rgba(255,255,255,.15);
-    border-color: rgba(255,255,255,.2);
+    background: rgba(255,255,255,.18);
+    border-color: rgba(255,255,255,.22);
     color: #fff;
 }
-
 .ios-msg.user .ios-file-card:hover {
-    background: rgba(255,255,255,.22);
+    background: rgba(255,255,255,.28);
     color: #fff;
 }
 
 .ios-file-icon {
-    width: 38px;
-    height: 38px;
+    width: 40px; height: 40px;
     border-radius: 10px;
-    background: var(--ios-fill);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    color: var(--ios-tint);
+    background: var(--ay-grad-soft);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem;
+    color: var(--ay-p1);
     flex-shrink: 0;
 }
-
 .ios-msg.user .ios-file-icon {
-    background: rgba(255,255,255,.2);
+    background: rgba(255,255,255,.22);
     color: #fff;
 }
 
 .ios-file-info { min-width: 0; }
-
 .ios-file-name {
-    font-size: .82rem;
-    font-weight: 500;
+    font-size: .84rem;
+    font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 .ios-file-ext {
     font-size: .68rem;
-    color: var(--ios-text3);
+    color: var(--ay-text-3);
     text-transform: uppercase;
+    letter-spacing: .5px;
 }
+.ios-msg.user .ios-file-ext { color: rgba(255,255,255,.65); }
 
-.ios-msg.user .ios-file-ext { color: rgba(255,255,255,.6); }
-
-/* File preview in input */
+/* Attach preview inside input */
 .ios-attach-preview {
     display: none;
     align-items: center;
     gap: 8px;
-    background: var(--ios-fill2);
-    border: .5px solid var(--ios-separator);
+    background: var(--ay-surface-2);
+    border: 1px solid var(--ay-border);
     border-radius: 10px;
-    padding: 6px 10px;
+    padding: 7px 12px;
     margin-top: 6px;
-    font-size: .8rem;
-    color: var(--ios-text);
+    font-size: .82rem;
+    color: var(--ay-text);
 }
-
 .ios-attach-preview.active { display: flex; }
-
-.ios-attach-preview i { color: var(--ios-tint); font-size: 1rem; }
-
+.ios-attach-preview i { color: var(--ay-p1); font-size: 1rem; }
 .ios-attach-preview .name {
     flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     font-weight: 500;
 }
-
 .ios-attach-preview .remove {
-    background: none;
-    border: none;
-    color: var(--ios-red);
+    background: none; border: none;
+    color: #ef4444;
     cursor: pointer;
     padding: 2px;
-    font-size: .85rem;
+    font-size: .95rem;
     line-height: 1;
 }
 
 /* ===== MARKDOWN ===== */
 .markdown-body {
-    color: var(--ios-text);
-    font-size: .9rem;
-    line-height: 1.55;
-    letter-spacing: -.005em;
+    color: var(--ay-text);
+    font-size: .93rem;
+    line-height: 1.6;
+    letter-spacing: -.003em;
 }
 
-.markdown-body p { margin-bottom: .65rem; }
+.markdown-body p { margin-bottom: .7rem; }
 .markdown-body p:last-child { margin-bottom: 0; }
 
 .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-    color: var(--ios-text);
-    margin: 1rem 0 .5rem;
-    font-weight: 600;
+    color: var(--ay-text);
+    margin: 1.1rem 0 .55rem;
+    font-weight: 700;
     line-height: 1.25;
     letter-spacing: -.02em;
 }
-
 .markdown-body h1 { font-size: 1.4rem; }
 .markdown-body h2 { font-size: 1.2rem; }
-.markdown-body h3 { font-size: 1.05rem; }
-.markdown-body h4 { font-size: .95rem; }
+.markdown-body h3 { font-size: 1.06rem; }
+.markdown-body h4 { font-size: .96rem; }
 
 .markdown-body ul, .markdown-body ol {
-    margin: .5rem 0;
-    padding-left: 1.4rem;
+    margin: .55rem 0;
+    padding-left: 1.5rem;
 }
-
 .markdown-body li { margin: .3rem 0; }
 
-.markdown-body strong { font-weight: 600; color: var(--ios-text); }
-.markdown-body em { font-style: italic; color: var(--ios-text2); }
+.markdown-body strong { font-weight: 700; color: var(--ay-text); }
+.markdown-body em { font-style: italic; color: var(--ay-text-2); }
 
 .markdown-body a, .markdown-body .markdown-link {
-    color: var(--ios-tint);
+    color: var(--ay-p1);
     text-decoration: none;
-    transition: opacity .15s;
+    border-bottom: 1px dashed rgba(124,58,237,.35);
+    transition: color .2s, border-color .2s;
     display: inline-flex;
     align-items: center;
-    gap: 2px;
+    gap: 3px;
 }
-
-.markdown-body a:hover { opacity: .7; }
+.markdown-body a:hover {
+    color: var(--ay-p2);
+    border-bottom-color: var(--ay-p2);
+}
 .markdown-body a i { font-size: .75em; }
 
 .markdown-body blockquote {
-    border-left: 3px solid var(--ios-tint);
-    margin: .75rem 0;
-    padding: .4rem .85rem;
-    background: var(--ios-fill2);
-    border-radius: 0 var(--ios-radius-xs) var(--ios-radius-xs) 0;
-    color: var(--ios-text2);
+    border-left: 3px solid var(--ay-p1);
+    margin: .85rem 0;
+    padding: .55rem .95rem;
+    background: var(--ay-grad-soft);
+    border-radius: 0 var(--ay-radius-sm) var(--ay-radius-sm) 0;
+    color: var(--ay-text-2);
 }
 
 .markdown-body table {
     width: 100%;
     border-collapse: collapse;
-    margin: .75rem 0;
-    font-size: .85rem;
-    border-radius: var(--ios-radius-xs);
+    margin: .85rem 0;
+    font-size: .86rem;
+    border-radius: var(--ay-radius-sm);
     overflow: hidden;
+    border: 1px solid var(--ay-border);
 }
-
-.markdown-body table th, .markdown-body table td {
-    padding: .5rem .65rem;
-    border: .5px solid var(--ios-separator);
+.markdown-body table th,
+.markdown-body table td {
+    padding: .55rem .75rem;
+    border-bottom: 1px solid var(--ay-border);
     text-align: left;
 }
-
 .markdown-body table th {
-    background: var(--ios-fill2);
-    font-weight: 600;
+    background: var(--ay-surface-2);
+    font-weight: 700;
 }
+.markdown-body table tr:last-child td { border-bottom: none; }
 
 .markdown-body hr {
     border: none;
-    border-top: .5px solid var(--ios-separator);
+    border-top: 1px solid var(--ay-border);
     margin: 1.2rem 0;
 }
 
 /* Inline code */
-.markdown-body p code, .markdown-body li code {
-    background: var(--ios-fill);
-    padding: 2px 6px;
-    border-radius: 5px;
-    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+.markdown-body p code,
+.markdown-body li code,
+.markdown-body td code {
+    background: var(--ay-surface-2);
+    padding: 2px 7px;
+    border-radius: 6px;
+    font-family: var(--ay-mono);
     font-size: .82em;
-    color: var(--ios-purple);
+    color: var(--ay-p2);
+    border: 1px solid var(--ay-border);
+    font-weight: 500;
+}
+
+.ios-msg.user .markdown-body p code,
+.ios-msg.user .markdown-body li code {
+    background: rgba(255,255,255,.2);
+    color: #fff;
+    border-color: rgba(255,255,255,.25);
 }
 
 /* Code blocks */
 .code-block-wrapper {
-    margin: .75rem 0;
-    border-radius: var(--ios-radius-sm);
+    margin: .85rem 0;
+    border-radius: var(--ay-radius-md);
     overflow: hidden;
-    background: #161b22;
-    border: .5px solid rgba(255,255,255,.06);
-    box-shadow: 0 2px 10px rgba(0,0,0,.12);
-    transition: transform .2s, box-shadow .2s;
-}
-
-.code-block-wrapper:hover {
-    transform: translateY(-1px);
+    background: #0d1117;
+    border: 1px solid rgba(255,255,255,.06);
     box-shadow: 0 4px 16px rgba(0,0,0,.18);
+    transition: transform .2s, box-shadow .2s;
+    animation: ayScaleIn .35s ease-out;
+}
+.code-block-wrapper:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,.28);
 }
 
 .code-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 12px;
-    background: #0d1117;
-    border-bottom: .5px solid rgba(255,255,255,.06);
+    padding: 8px 14px;
+    background: #010409;
+    border-bottom: 1px solid rgba(255,255,255,.06);
 }
 
 .code-lang {
-    font-size: .65rem;
+    font-size: .68rem;
     color: #7d8590;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .5px;
-    font-family: 'SF Mono', 'Menlo', monospace;
+    letter-spacing: .8px;
+    font-family: var(--ay-mono);
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.code-lang::before {
+    content: '';
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
 }
 
 .copy-btn {
-    background: transparent;
+    background: rgba(255,255,255,.05);
     border: 1px solid rgba(255,255,255,.1);
-    color: #7d8590;
-    font-size: .65rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    transition: all .15s;
-    font-family: var(--ios-font);
-}
-
-.copy-btn:hover {
-    background: rgba(255,255,255,.08);
     color: #c9d1d9;
+    font-size: .7rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    transition: all .2s;
+    font-family: var(--ay-font);
+    font-weight: 600;
 }
-
+.copy-btn:hover {
+    background: rgba(255,255,255,.1);
+    color: #fff;
+    border-color: rgba(255,255,255,.2);
+}
 .copy-btn.copied {
-    color: var(--ios-green);
-    border-color: var(--ios-green);
+    color: #4ade80;
+    border-color: rgba(74,222,128,.35);
+    background: rgba(74,222,128,.08);
 }
 
 .markdown-body pre {
     margin: 0;
-    padding: 12px;
+    padding: 14px 16px;
     overflow-x: auto;
     background: transparent !important;
 }
-
 .markdown-body pre code {
-    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
-    font-size: .8rem;
-    line-height: 1.55;
+    font-family: var(--ay-mono);
+    font-size: .82rem;
+    line-height: 1.6;
     color: #c9d1d9;
     background: transparent !important;
+}
+
+.markdown-body pre::-webkit-scrollbar { height: 6px; }
+.markdown-body pre::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,.15); border-radius: 50px;
 }
 
 /* ===== EMPTY STATE ===== */
@@ -665,36 +730,56 @@ body {
     height: 100%;
     text-align: center;
     padding: 3rem 2rem;
-    animation: scaleIn .4s ease-out;
+    animation: ayScaleIn .5s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
 }
+.ios-empty::before {
+    content: '';
+    position: absolute;
+    top: 20%; left: 50%;
+    width: 500px; height: 500px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(124,58,237,.10), transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+}
+.ios-empty > * { position: relative; z-index: 1; }
 
 .ios-empty-icon {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(135deg, var(--ios-blue), var(--ios-purple));
-    border-radius: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 1.25rem;
-    animation: floatSoft 3s ease-in-out infinite;
-    box-shadow: 0 8px 24px rgba(0,122,255,.2);
+    width: 82px; height: 82px;
+    background: var(--ay-grad);
+    background-size: 200% 200%;
+    animation: ayGradientMove 6s ease infinite, ayFloat 3s ease-in-out infinite;
+    border-radius: 24px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1.4rem;
+    box-shadow: 0 16px 40px rgba(124,58,237,.35);
+    position: relative;
 }
-
-.ios-empty-icon i { font-size: 2rem; color: #fff; }
+.ios-empty-icon::before,
+.ios-empty-icon::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 28px;
+    border: 2px solid rgba(124,58,237,.3);
+    animation: ayRing 2.4s ease-out infinite;
+}
+.ios-empty-icon::after { animation-delay: 1.2s; }
+.ios-empty-icon i { font-size: 2.4rem; color: #fff; }
 
 .ios-empty h4 {
-    color: var(--ios-text);
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin-bottom: .3rem;
+    color: var(--ay-text);
+    font-weight: 800;
+    font-size: 1.35rem;
+    margin-bottom: .4rem;
     letter-spacing: -.02em;
 }
-
 .ios-empty p {
-    color: var(--ios-text2);
-    font-size: .88rem;
-    max-width: 300px;
+    color: var(--ay-text-2);
+    font-size: .92rem;
+    max-width: 340px;
+    line-height: 1.55;
 }
 
 .ios-suggestions {
@@ -702,231 +787,224 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     gap: 8px;
-    margin-top: 1.25rem;
+    margin-top: 1.5rem;
 }
 
 .ios-sug-chip {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    background: var(--ios-card);
-    border: .5px solid var(--ios-separator);
-    padding: 8px 14px;
-    border-radius: 20px;
-    font-size: .82rem;
-    color: var(--ios-text);
+    gap: 6px;
+    background: var(--ay-surface);
+    border: 1px solid var(--ay-border);
+    padding: 9px 16px;
+    border-radius: 50px;
+    font-size: .85rem;
+    font-weight: 500;
+    color: var(--ay-text);
     cursor: pointer;
-    transition: all .2s;
-    box-shadow: var(--ios-shadow);
+    transition: all .25s;
+    box-shadow: var(--ay-shadow-sm);
 }
-
 .ios-sug-chip:hover {
-    background: var(--ios-fill2);
-    transform: translateY(-1px);
-    box-shadow: var(--ios-shadow-lg);
+    background: var(--ay-grad-soft);
+    border-color: rgba(124,58,237,.3);
+    color: var(--ay-p1);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(124,58,237,.12);
 }
-
-.ios-sug-chip i { color: var(--ios-tint); font-size: .85rem; }
+.ios-sug-chip i { color: var(--ay-p1); font-size: .9rem; }
 
 /* ===== INPUT AREA ===== */
-.ios-input-area {
-    padding: 8px 12px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
-    padding-right: 80px;
-    background: var(--ios-header-bg);
+.ay-input-area {
+    padding: 10px 14px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-right: 84px;
+    background: var(--ay-header-bg);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border-top: .5px solid var(--ios-separator);
+    border-top: 1px solid var(--ay-border);
     position: sticky;
     bottom: 0;
     z-index: 1101;
 }
 
-.ios-input-wrap { max-width: 820px; margin: 0 auto; }
+.ay-input-wrap { max-width: 860px; margin: 0 auto; }
 
-.ios-form {
+.ay-form {
     display: flex;
     align-items: flex-end;
     gap: 8px;
 }
 
-.ios-input-box {
+.ay-input-box {
     flex: 1;
-    background: var(--ios-input-bg);
-    border: .5px solid var(--ios-separator);
+    background: var(--ay-input-bg);
+    border: 1.5px solid var(--ay-border);
     border-radius: 22px;
-    padding: 6px 14px;
+    padding: 6px 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--ios-shadow);
-    transition: border-color .2s, box-shadow .2s;
+    box-shadow: var(--ay-shadow-sm);
+    transition: border-color .2s, box-shadow .2s, background .2s;
+}
+.ay-input-box:focus-within {
+    border-color: var(--ay-p1);
+    box-shadow: 0 0 0 4px rgba(124,58,237,.14);
+    background: var(--ay-surface);
 }
 
-.ios-input-box:focus-within {
-    border-color: var(--ios-tint);
-    box-shadow: 0 0 0 3px rgba(0,122,255,.12);
-}
-
-.ios-textarea {
+.ay-textarea {
     width: 100%;
     border: none;
     background: transparent;
-    color: var(--ios-text);
-    font-size: .9rem;
+    color: var(--ay-text);
+    font-size: .93rem;
     resize: none;
-    min-height: 20px;
-    max-height: 120px;
-    line-height: 1.4;
-    font-family: var(--ios-font);
-    padding: 6px 0;
+    min-height: 22px;
+    max-height: 140px;
+    line-height: 1.45;
+    font-family: var(--ay-font);
+    padding: 8px 0;
 }
+.ay-textarea::placeholder { color: var(--ay-text-3); }
+.ay-textarea:focus { outline: none; }
 
-.ios-textarea::placeholder { color: var(--ios-text3); }
-.ios-textarea:focus { outline: none; }
-
-.ios-preview {
+.ay-preview {
     margin-top: 4px;
     display: flex;
     align-items: center;
 }
 
-.ios-img-preview {
-    max-width: 80px;
-    max-height: 56px;
+.ay-img-preview {
+    max-width: 84px;
+    max-height: 60px;
     border-radius: 10px;
     display: none;
-    border: .5px solid var(--ios-separator);
+    border: 1px solid var(--ay-border);
+    object-fit: cover;
 }
 
-.ios-remove-img {
-    background: var(--ios-red);
+.ay-remove-img {
+    background: #ef4444;
     color: #fff;
     border: none;
     border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 10px;
+    width: 22px; height: 22px;
+    font-size: 11px;
     cursor: pointer;
     display: none;
     align-items: center;
     justify-content: center;
-    margin-left: 5px;
+    margin-left: 6px;
     transition: transform .15s;
 }
+.ay-remove-img:hover { transform: scale(1.15); }
 
-.ios-remove-img:hover { transform: scale(1.15); }
-
-.ios-form-btns {
+.ay-form-btns {
     display: flex;
     gap: 6px;
     align-items: flex-end;
     padding-bottom: 4px;
 }
 
-.ios-btn-attach {
-    width: 36px;
-    height: 36px;
+.ay-btn-attach {
+    width: 40px; height: 40px;
     border-radius: 50%;
-    border: none;
-    background: var(--ios-fill);
-    color: var(--ios-text2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all .2s;
-    font-size: .95rem;
-    position: relative;
-}
-
-.ios-btn-attach:hover {
-    background: var(--ios-fill2);
-    color: var(--ios-tint);
-}
-
-.ios-file-input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.ios-btn-send {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    border: none;
-    background: var(--ios-tint);
-    color: #fff;
+    border: 1px solid var(--ay-border);
+    background: var(--ay-surface);
+    color: var(--ay-text-2);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all .2s;
     font-size: 1rem;
-    box-shadow: 0 2px 8px rgba(0,122,255,.25);
+    position: relative;
+}
+.ay-btn-attach:hover {
+    background: var(--ay-grad-soft);
+    color: var(--ay-p1);
+    border-color: rgba(124,58,237,.3);
+    transform: translateY(-1px);
 }
 
-.ios-btn-send:hover {
-    transform: scale(1.08);
-    box-shadow: 0 4px 14px rgba(0,122,255,.35);
+.ay-file-input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
 }
 
-.ios-btn-send:disabled {
-    background: var(--ios-fill);
-    color: var(--ios-text3);
+.ay-btn-send {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ay-grad);
+    background-size: 200% 200%;
+    animation: ayGradientMove 5s ease infinite;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    font-size: 1.05rem;
+    box-shadow: 0 4px 14px rgba(124,58,237,.35);
+}
+.ay-btn-send:hover:not(:disabled) {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(124,58,237,.5);
+}
+.ay-btn-send:disabled {
+    background: var(--ay-surface-2);
+    color: var(--ay-text-3);
     box-shadow: none;
     cursor: not-allowed;
-    transform: none;
+    animation: none;
 }
 
 .ios-no-coins {
-    background: rgba(255,149,0,.08);
-    border: .5px solid rgba(255,149,0,.2);
-    color: var(--ios-orange);
-    border-radius: var(--ios-radius-sm);
-    padding: 10px;
+    background: linear-gradient(135deg, rgba(245,158,11,.10), rgba(239,68,68,.06));
+    border: 1px solid rgba(245,158,11,.24);
+    color: #f59e0b;
+    border-radius: var(--ay-radius-md);
+    padding: 12px 16px;
     text-align: center;
-    font-size: .85rem;
-    font-weight: 500;
+    font-size: .88rem;
+    font-weight: 600;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
 /* ===== MODAL ===== */
 .ios-modal .modal-content {
-    background: var(--ios-card);
-    border: none;
-    border-radius: var(--ios-radius);
-    box-shadow: var(--ios-shadow-lg);
+    background: var(--ay-surface);
+    border: 1px solid var(--ay-border);
+    border-radius: var(--ay-radius-lg);
+    box-shadow: var(--ay-shadow-lg);
     overflow: hidden;
 }
 
 .ios-modal .modal-body {
-    padding: 28px 24px 16px;
+    padding: 28px 24px 18px;
     text-align: center;
 }
 
 .ios-modal-icon {
-    width: 50px;
-    height: 50px;
-    background: rgba(255,59,48,.1);
+    width: 58px; height: 58px;
+    background: linear-gradient(135deg, rgba(239,68,68,.15), rgba(239,68,68,.06));
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+    animation: ayFloat 3s ease-in-out infinite;
 }
-
-.ios-modal-icon i { font-size: 1.25rem; color: var(--ios-red); }
+.ios-modal-icon i { font-size: 1.4rem; color: #ef4444; }
 
 .ios-modal .modal-footer {
-    border-top: .5px solid var(--ios-separator);
+    border-top: 1px solid var(--ay-border);
     padding: 0;
     display: flex;
 }
-
-.ios-modal .modal-footer > * {
-    flex: 1;
-}
+.ios-modal .modal-footer > * { flex: 1; }
 
 .ios-modal-btn {
     display: block;
@@ -935,118 +1013,156 @@ body {
     border: none;
     background: transparent;
     font-size: .95rem;
-    font-weight: 400;
+    font-weight: 500;
     cursor: pointer;
     transition: background .15s;
-    font-family: var(--ios-font);
+    font-family: var(--ay-font);
     text-align: center;
+    color: var(--ay-text);
 }
-
-.ios-modal-btn:hover { background: var(--ios-fill2); }
-
-.ios-modal-btn.cancel { color: var(--ios-tint); font-weight: 600; }
-.ios-modal-btn.danger { color: var(--ios-red); }
-
+.ios-modal-btn:hover { background: var(--ay-surface-2); }
+.ios-modal-btn.cancel { color: var(--ay-p1); font-weight: 700; }
+.ios-modal-btn.danger { color: #ef4444; font-weight: 600; }
 .ios-modal .modal-footer > *:first-child .ios-modal-btn {
-    border-right: .5px solid var(--ios-separator);
+    border-right: 1px solid var(--ay-border);
 }
 
 /* Typing dots */
 .typing-dots {
     display: flex;
-    gap: 3px;
-    padding: 4px;
+    gap: 4px;
+    padding: 6px 4px;
     justify-content: center;
     align-items: center;
+    min-height: 20px;
 }
-
 .typing-dots span {
-    width: 6px;
-    height: 6px;
-    background: #fff;
+    width: 8px; height: 8px;
+    background: currentColor;
     border-radius: 50%;
-    animation: typingBounce 1.2s infinite ease-in-out;
+    animation: ayTypingBounce 1.3s infinite ease-in-out;
+    opacity: .5;
 }
+.typing-dots span:nth-child(1) { animation-delay: -.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -.16s; }
 
-.typing-dots span:nth-child(1) { animation-delay: -.3s; }
-.typing-dots span:nth-child(2) { animation-delay: -.15s; }
+.ios-msg.assistant .typing-dots span { color: var(--ay-p1); opacity: .7; }
+.ay-btn-send .typing-dots span { color: #fff; }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .chat-app { height: calc(100vh - 56px); }
-    .ios-header { padding: 8px 12px; min-height: 48px; }
-    .ios-nav-title { font-size: .88rem; }
-    .ios-back span { display: none; }
-    .ios-msg { padding: 3px 10px; }
+@media (max-width: 900px) {
+    .ay-chat { height: calc(100vh - 56px); }
+    .ay-header { padding: 10px 14px; }
+    .ay-h-title { font-size: .9rem; }
+    .ios-msg { padding: 3px 12px; }
     .ios-msg-row { max-width: 90%; }
-    .ios-avatar { width: 28px; height: 28px; font-size: .65rem; margin-bottom: 16px; }
-    .ios-bubble { padding: 9px 12px; border-radius: 16px; }
-    .ios-msg.user .ios-bubble { border-bottom-right-radius: 4px; }
-    .ios-msg.assistant .ios-bubble { border-bottom-left-radius: 4px; }
-    .ios-msg-text, .markdown-body { font-size: .86rem; }
-    .ios-input-area { padding: 6px 8px; padding-bottom: max(6px, env(safe-area-inset-bottom)); }
-    .ios-textarea { font-size: .88rem; }
-    .ios-btn-attach, .ios-btn-send { width: 34px; height: 34px; }
-    .ios-empty { padding: 2rem 1.5rem; }
-    .ios-empty-icon { width: 58px; height: 58px; border-radius: 18px; }
-    .ios-empty-icon i { font-size: 1.6rem; }
-    .code-block-wrapper { border-radius: 10px; }
 }
 
-@media (max-width: 380px) {
-    .ios-coin-pill { display: none; }
+@media (max-width: 640px) {
+    .ay-header { padding: 8px 12px; min-height: 54px; }
+    .ay-h-avatar { width: 36px; height: 36px; font-size: 1rem; }
+    .ay-h-title { font-size: .88rem; }
+    .ay-h-status { font-size: .68rem; }
+    .ay-coin-pill { padding: 5px 10px; font-size: .74rem; }
+    .ay-back, .ay-icon-btn { width: 36px; height: 36px; }
+
+    .ios-msg { padding: 3px 10px; }
     .ios-msg-row { max-width: 92%; }
-    .ios-bubble { padding: 8px 10px; }
-    .ios-avatar { width: 26px; height: 26px; }
+    .ios-avatar { width: 30px; height: 30px; font-size: .72rem; }
+    .ios-bubble { padding: 10px 13px; border-radius: 16px; }
+    .ios-msg.user .ios-bubble { border-bottom-right-radius: 5px; }
+    .ios-msg.assistant .ios-bubble { border-bottom-left-radius: 5px; }
+    .ios-msg-text, .markdown-body { font-size: .88rem; }
+
+    .ay-input-area {
+        padding: 8px 10px;
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+    .ay-input-box { border-radius: 20px; padding: 4px 12px; }
+    .ay-textarea { font-size: .9rem; }
+    .ay-btn-attach, .ay-btn-send { width: 38px; height: 38px; }
+
+    .ios-empty { padding: 2rem 1.25rem; }
+    .ios-empty-icon { width: 68px; height: 68px; border-radius: 20px; }
+    .ios-empty-icon i { font-size: 1.9rem; }
+    .ios-empty h4 { font-size: 1.2rem; }
+    .ios-empty p { font-size: .88rem; }
+
+    .code-block-wrapper { border-radius: 12px; }
+    .markdown-body pre { padding: 12px; }
+    .markdown-body pre code { font-size: .78rem; }
+}
+
+@media (max-width: 400px) {
+    .ay-coin-pill { display: none; }
+    .ay-limits { padding: 6px 10px; gap: 6px; font-size: .68rem; }
+    .ay-lim { padding: 2px 8px; }
+    .ios-msg-row { max-width: 94%; }
+    .ios-bubble { padding: 9px 12px; }
+    .ios-avatar { width: 28px; height: 28px; }
     .markdown-body h1 { font-size: 1.15rem; }
     .markdown-body h2 { font-size: 1.05rem; }
+    .ios-sug-chip { padding: 7px 12px; font-size: .78rem; }
 }
 
 /* iOS safe areas */
 @supports (padding: env(safe-area-inset-bottom)) {
-    .ios-input-area {
-        padding-bottom: max(8px, env(safe-area-inset-bottom));
-    }
+    .ay-input-area { padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="chat-app">
-    <!-- ===== iOS HEADER ===== -->
-    <div class="ios-header">
-        <div class="ios-header-left">
-            <a href="{% url 'ai_yordamchi:chat_home' %}" class="ios-back">
+<div class="ay-chat">
+    {# ===== HEADER ===== #}
+    <div class="ay-header">
+        <div class="ay-h-left">
+            <a href="{% url 'ai_yordamchi:chat_home' %}" class="ay-back" title="Orqaga">
                 <i class="bi bi-chevron-left"></i>
-                <span>Orqaga</span>
             </a>
-            <div class="ios-title-group">
-                <span class="ios-status-dot"></span>
-                <h2 class="ios-nav-title">{{ session.title|truncatechars:25 }}</h2>
+            <div class="ay-h-title-wrap">
+                <div class="ay-h-avatar">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="ay-h-titles">
+                    <h2 class="ay-h-title">{{ session.title|truncatechars:28 }}</h2>
+                    <div class="ay-h-status">
+                        <span class="dot"></span> Onlayn &middot; Creative AI
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="ios-header-right">
-            <div class="ios-coin-pill">
+        <div class="ay-h-right">
+            <div class="ay-coin-pill" title="Sizdagi coin">
                 <i class="bi bi-coin"></i> {{ user_coins }}
             </div>
-            <button type="button" class="ios-icon-btn" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tozalash">
-                <i class="bi bi-trash"></i>
+            <button type="button" class="ay-icon-btn" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tozalash">
+                <i class="bi bi-trash3"></i>
             </button>
         </div>
     </div>
 
-    <!-- ===== LIMITS BAR ===== -->
-    <div class="ios-limits-bar">
-        {% if limits.is_premium %}<span class="premium-badge">Premium</span>{% endif %}
-        <span class="lim-item"><i class="bi bi-chat-dots"></i> {{ limits.msg_left }}/{{ limits.msg_limit }}</span>
-        <span class="lim-sep">&middot;</span>
-        <span class="lim-item"><i class="bi bi-image"></i> {{ limits.img_left }}/{{ limits.img_limit }}</span>
-        <span class="lim-sep">&middot;</span>
-        <span class="lim-item"><i class="bi bi-coin"></i> {{ user_coins }} coin</span>
+    {# ===== LIMITS ===== #}
+    <div class="ay-limits">
+        {% if limits.is_premium %}<span class="ay-lim premium"><i class="bi bi-star-fill"></i> Premium</span>{% endif %}
+        <span class="ay-lim{% if limits.msg_left <= 5 %} danger{% elif limits.msg_left <= 15 %} warn{% endif %}">
+            <i class="bi bi-chat-dots"></i> {{ limits.msg_left }}/{{ limits.msg_limit }} xabar
+        </span>
+        <span class="ay-lim{% if limits.img_left <= 1 %} danger{% endif %}">
+            <i class="bi bi-image"></i> {{ limits.img_left }}/{{ limits.img_limit }} rasm
+        </span>
+        <span class="ay-lim">
+            <i class="bi bi-coin"></i> {{ user_coins }} coin
+        </span>
     </div>
 
-    <!-- ===== MESSAGES ===== -->
-    <div class="ios-messages" id="messagesContainer">
+    {# ===== MESSAGES ===== #}
+    <div class="ay-messages" id="messagesContainer">
         {% if chat_messages %}
             {% for msg in chat_messages %}
             <div class="ios-msg {{ msg.role }}">
@@ -1080,9 +1196,7 @@ body {
                         <div class="ios-msg-time">
                             {{ msg.created_at|date:"H:i" }}
                             {% if msg.coins_spent %}
-                            <span class="ios-coin-cost">
-                                &middot; -{{ msg.coins_spent }} coin
-                            </span>
+                            <span class="ios-coin-cost">&middot; -{{ msg.coins_spent }} coin</span>
                             {% endif %}
                         </div>
                     </div>
@@ -1094,42 +1208,45 @@ body {
                 <div class="ios-empty-icon">
                     <i class="bi bi-robot"></i>
                 </div>
-                <h4>Creative AI</h4>
-                <p>Dasturlash, matematika va boshqa mavzularda yordam beraman</p>
+                <h4>Creative AI bilan salomlashing</h4>
+                <p>Dasturlash, matematika va boshqa mavzularda savol bering. Rasmlar va fayllar yuborishingiz mumkin.</p>
                 <div class="ios-suggestions">
-                    <span class="ios-sug-chip" onclick="document.getElementById('chatInput').value='Python asoslarini tushuntiring';document.getElementById('chatInput').focus();">
+                    <span class="ios-sug-chip" onclick="ay_setInput('Python asoslarini tushuntiring')">
                         <i class="bi bi-code-slash"></i> Python
                     </span>
-                    <span class="ios-sug-chip" onclick="document.getElementById('chatInput').value='Django framework nima?';document.getElementById('chatInput').focus();">
+                    <span class="ios-sug-chip" onclick="ay_setInput('Django framework nima?')">
                         <i class="bi bi-globe"></i> Django
                     </span>
-                    <span class="ios-sug-chip" onclick="document.getElementById('chatInput').value='HTML va CSS asoslari';document.getElementById('chatInput').focus();">
+                    <span class="ios-sug-chip" onclick="ay_setInput('HTML va CSS asoslari')">
                         <i class="bi bi-palette"></i> HTML/CSS
                     </span>
-                    <span class="ios-sug-chip" onclick="document.getElementById('chatInput').value='JavaScript asoslari';document.getElementById('chatInput').focus();">
+                    <span class="ios-sug-chip" onclick="ay_setInput('JavaScript asoslari')">
                         <i class="bi bi-braces"></i> JavaScript
+                    </span>
+                    <span class="ios-sug-chip" onclick="ay_setInput('SQL so\'rovlari misollari')">
+                        <i class="bi bi-database"></i> SQL
                     </span>
                 </div>
             </div>
         {% endif %}
     </div>
 
-    <!-- ===== INPUT ===== -->
-    <div class="ios-input-area">
-        <div class="ios-input-wrap">
+    {# ===== INPUT ===== #}
+    <div class="ay-input-area">
+        <div class="ay-input-wrap">
             {% if user_coins < 1 %}
             <div class="ios-no-coins">
-                <i class="bi bi-exclamation-triangle me-1"></i>
+                <i class="bi bi-exclamation-triangle-fill"></i>
                 Coin yetarli emas. Kamida 1 coin kerak.
             </div>
             {% else %}
-            <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="ios-form" id="chatForm">
+            <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="ay-form" id="chatForm">
                 {% csrf_token %}
-                <div class="ios-input-box">
-                    <textarea name="content" class="ios-textarea" placeholder="Xabar yozing..." rows="1" id="chatInput"></textarea>
-                    <div class="ios-preview">
-                        <img id="imagePreview" class="ios-img-preview" alt="Preview">
-                        <button type="button" id="removeImage" class="ios-remove-img" onclick="removeImagePreview()">
+                <div class="ay-input-box">
+                    <textarea name="content" class="ay-textarea" placeholder="Xabar yozing..." rows="1" id="chatInput"></textarea>
+                    <div class="ay-preview">
+                        <img id="imagePreview" class="ay-img-preview" alt="Preview">
+                        <button type="button" id="removeImage" class="ay-remove-img" onclick="removeImagePreview()">
                             <i class="bi bi-x"></i>
                         </button>
                     </div>
@@ -1139,16 +1256,16 @@ body {
                         <button type="button" class="remove" onclick="removeFilePreview()"><i class="bi bi-x-circle"></i></button>
                     </div>
                 </div>
-                <div class="ios-form-btns">
-                    <div class="ios-btn-attach">
+                <div class="ay-form-btns">
+                    <div class="ay-btn-attach" title="Rasm">
                         <i class="bi bi-image"></i>
-                        <input type="file" name="image" accept="image/*" id="imageInput" class="ios-file-input" onchange="previewImage(this)">
+                        <input type="file" name="image" accept="image/*" id="imageInput" class="ay-file-input" onchange="previewImage(this)">
                     </div>
-                    <div class="ios-btn-attach">
+                    <div class="ay-btn-attach" title="Fayl">
                         <i class="bi bi-paperclip"></i>
-                        <input type="file" name="file" id="fileInput" class="ios-file-input" onchange="previewFile(this)">
+                        <input type="file" name="file" id="fileInput" class="ay-file-input" onchange="previewFile(this)">
                     </div>
-                    <button type="submit" class="ios-btn-send" id="sendBtn">
+                    <button type="submit" class="ay-btn-send" id="sendBtn" title="Yuborish">
                         <i class="bi bi-arrow-up"></i>
                     </button>
                 </div>
@@ -1158,16 +1275,14 @@ body {
     </div>
 </div>
 
-<!-- Clear Modal -->
+{# Clear Modal #}
 <div class="modal fade ios-modal" id="clearModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
             <div class="modal-body">
-                <div class="ios-modal-icon">
-                    <i class="bi bi-trash"></i>
-                </div>
-                <h6 style="color:var(--ios-text);font-weight:600;margin-bottom:4px;">Tarixni tozalash</h6>
-                <p class="mb-0" style="color:var(--ios-text2);font-size:.85rem;">Barcha xabarlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</p>
+                <div class="ios-modal-icon"><i class="bi bi-trash3"></i></div>
+                <h6 style="color:var(--ay-text);font-weight:700;margin-bottom:6px;letter-spacing:-.01em;">Tarixni tozalash</h6>
+                <p class="mb-0" style="color:var(--ay-text-2);font-size:.88rem;line-height:1.5;">Barcha xabarlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</p>
             </div>
             <div class="modal-footer">
                 <div>
@@ -1189,13 +1304,21 @@ body {
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
 <script>
-// ===== MARKED RENDERER (v4 API - stable) =====
+// ===== SET INPUT (from suggestion chip) =====
+function ay_setInput(text) {
+    var input = document.getElementById('chatInput');
+    if (!input) return;
+    input.value = text;
+    input.focus();
+    input.dispatchEvent(new Event('input'));
+}
+
+// ===== MARKED RENDERER (v4 API) =====
 var renderer = new marked.Renderer();
 
 renderer.code = function(code, lang, escaped) {
     var language = (lang || 'plaintext').toLowerCase();
     var highlighted;
-
     try {
         if (hljs.getLanguage(language)) {
             highlighted = hljs.highlight(code, { language: language }).value;
@@ -1205,9 +1328,7 @@ renderer.code = function(code, lang, escaped) {
     } catch(e) {
         highlighted = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-
     var codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-
     return '<div class="code-block-wrapper" id="' + codeId + '">'
         + '<div class="code-header">'
         + '<span class="code-lang">' + language + '</span>'
@@ -1230,7 +1351,7 @@ renderer.link = function(href, title, text) {
 };
 
 renderer.table = function(header, body) {
-    return '<div style="overflow-x:auto;margin:.75rem 0"><table>' + header + body + '</table></div>';
+    return '<div style="overflow-x:auto;margin:.85rem 0"><table>' + header + body + '</table></div>';
 };
 
 marked.setOptions({
@@ -1252,46 +1373,35 @@ function copyCode(btn) {
     var codeEl = wrapper.querySelector('code');
     if (!codeEl) return;
     var text = codeEl.textContent || codeEl.innerText;
-
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function() {
             showCopySuccess(btn);
-        }).catch(function() {
-            fallbackCopy(text, btn);
-        });
+        }).catch(function() { fallbackCopy(text, btn); });
     } else {
         fallbackCopy(text, btn);
     }
 }
-
 function showCopySuccess(btn) {
     var span = btn.querySelector('.copy-text');
     var icon = btn.querySelector('i');
     btn.classList.add('copied');
     if (span) span.textContent = 'Nusxalandi!';
     if (icon) icon.className = 'bi bi-check2';
-
     setTimeout(function() {
         btn.classList.remove('copied');
         if (span) span.textContent = 'Nusxalash';
         if (icon) icon.className = 'bi bi-clipboard';
     }, 2000);
 }
-
 function fallbackCopy(text, btn) {
     var ta = document.createElement('textarea');
     ta.value = text;
     ta.style.cssText = 'position:fixed;left:-9999px';
     document.body.appendChild(ta);
     ta.select();
-    try {
-        document.execCommand('copy');
-        showCopySuccess(btn);
-    } catch(e) {}
+    try { document.execCommand('copy'); showCopySuccess(btn); } catch(e) {}
     document.body.removeChild(ta);
 }
-
-// Delegated click for copy buttons
 document.addEventListener('click', function(e) {
     var btn = e.target.closest('.copy-btn');
     if (btn) copyCode(btn);
@@ -1303,21 +1413,17 @@ function processCodeBlocks(container) {
         if (block.closest('.code-block-wrapper')) return;
         var pre = block.parentElement;
         if (!pre || pre.tagName !== 'PRE') return;
-
         var wrapper = document.createElement('div');
         wrapper.className = 'code-block-wrapper';
         wrapper.id = 'code-' + Math.random().toString(36).substr(2, 9);
-
         var langMatch = block.className.match(/language-(\w+)/);
         var lang = langMatch ? langMatch[1] : 'plaintext';
-
         var header = document.createElement('div');
         header.className = 'code-header';
         header.innerHTML = '<span class="code-lang">' + lang + '</span>'
             + '<button class="copy-btn" title="Nusxalash">'
             + '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>'
             + '</button>';
-
         pre.parentNode.insertBefore(wrapper, pre);
         wrapper.appendChild(header);
         wrapper.appendChild(pre);
@@ -1331,15 +1437,12 @@ document.addEventListener('DOMContentLoaded', function() {
         var id = script.id.replace('ai-content-', '');
         var target = document.getElementById('ai-msg-' + id);
         if (!target || !script.textContent) return;
-
         try {
             var content = script.textContent.trim();
             var ticks = (content.match(/```/g) || []).length;
             if (ticks % 2 !== 0) content += '\n```';
-
             target.innerHTML = marked.parse(content);
             processCodeBlocks(target);
-
             target.querySelectorAll('a').forEach(function(link) {
                 var href = link.getAttribute('href');
                 if (href && (href.startsWith('http://') || href.startsWith('https://'))) {
@@ -1375,31 +1478,33 @@ var sendBtn = document.getElementById('sendBtn');
 var messagesContainer = document.getElementById('messagesContainer');
 var pollTimer = null;
 var lastMessageId = 0;
+var isSending = false;
 
-// Get CSRF token
 function getCsrf() {
     var el = document.querySelector('[name=csrfmiddlewaretoken]');
     return el ? el.value : '';
 }
 
-// Add user message bubble to UI instantly
+function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function addUserBubble(text) {
     var initials = '{{ user.first_name.0|upper }}';
     var now = new Date();
     var time = ('0'+now.getHours()).slice(-2) + ':' + ('0'+now.getMinutes()).slice(-2);
-    var html = '<div class="ios-msg user" style="animation:slideFromRight .25s ease">'
+    var html = '<div class="ios-msg user">'
         + '<div class="ios-msg-row"><div class="ios-avatar">' + initials + '</div>'
         + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
-        + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>')
+        + escapeHtml(text).replace(/\n/g,'<br>')
         + '</div></div><div class="ios-msg-time">' + time + '</div></div></div></div>';
     messagesContainer.insertAdjacentHTML('beforeend', html);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Add typing indicator
 function addTypingIndicator() {
     removeTypingIndicator();
-    var html = '<div class="ios-msg assistant" id="typingIndicator" style="animation:slideFromLeft .25s ease">'
+    var html = '<div class="ios-msg assistant" id="typingIndicator">'
         + '<div class="ios-msg-row"><div class="ios-avatar"><i class="bi bi-robot"></i></div>'
         + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
         + '<div class="typing-dots"><span></span><span></span><span></span></div>'
@@ -1413,17 +1518,15 @@ function removeTypingIndicator() {
     if (el) el.remove();
 }
 
-// Add AI response bubble
 function addAiBubble(content, time) {
     removeTypingIndicator();
     var id = 'ajax-ai-' + Date.now();
-    var html = '<div class="ios-msg assistant" style="animation:slideFromLeft .3s ease">'
+    var html = '<div class="ios-msg assistant">'
         + '<div class="ios-msg-row"><div class="ios-avatar"><i class="bi bi-robot"></i></div>'
         + '<div class="ios-bubble-wrap"><div class="ios-bubble"><div class="ios-msg-text">'
         + '<div class="markdown-body" id="' + id + '"></div>'
         + '</div></div><div class="ios-msg-time">' + time + '</div></div></div></div>';
     messagesContainer.insertAdjacentHTML('beforeend', html);
-
     var target = document.getElementById(id);
     try {
         var ticks = (content.match(/```/g) || []).length;
@@ -1443,7 +1546,6 @@ function addAiBubble(content, time) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-// Poll for AI response
 function pollForResponse(afterId) {
     var checkUrl = '{% url "ai_yordamchi:check_ai_response" pk=session.pk %}?after=' + afterId;
     fetch(checkUrl)
@@ -1476,7 +1578,6 @@ function resetSendState() {
     }
 }
 
-// Send message via AJAX
 function sendMessageAjax() {
     if (!textarea || !textarea.value.trim()) return;
     var text = textarea.value.trim();
@@ -1484,7 +1585,6 @@ function sendMessageAjax() {
     var fileInput = document.getElementById('fileInput');
     var hasFile = (imageInput && imageInput.files.length) || (fileInput && fileInput.files.length);
 
-    // If files attached, fallback to normal form submit (FormData with files)
     if (hasFile) {
         var fd = new FormData(form);
         isSending = true;
@@ -1520,7 +1620,6 @@ function sendMessageAjax() {
         return;
     }
 
-    // Text-only: AJAX
     isSending = true;
     sendBtn.disabled = true;
     textarea.readOnly = true;
@@ -1546,8 +1645,7 @@ function sendMessageAjax() {
             resetSendState();
         } else {
             lastMessageId = data.user_message_id;
-            // Update coin display
-            var coinEls = document.querySelectorAll('.ios-coin-pill');
+            var coinEls = document.querySelectorAll('.ay-coin-pill');
             coinEls.forEach(function(el) {
                 var i = el.querySelector('i');
                 el.textContent = '';
@@ -1558,7 +1656,6 @@ function sendMessageAjax() {
         }
     })
     .catch(function() {
-        // Fallback: normal form submit
         form.submit();
     });
 }
@@ -1566,10 +1663,9 @@ function sendMessageAjax() {
 if (textarea) {
     textarea.addEventListener('input', function() {
         this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        this.style.height = Math.min(this.scrollHeight, 140) + 'px';
     });
 
-    var isSending = false;
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         if (isSending) return;
@@ -1616,7 +1712,6 @@ function previewFile(input) {
         document.getElementById('filePreviewName').textContent = name;
         document.getElementById('filePreview').classList.add('active');
 
-        // Set icon based on extension
         var iconMap = {
             py: 'bi-filetype-py', js: 'bi-filetype-js', ts: 'bi-filetype-tsx',
             html: 'bi-filetype-html', css: 'bi-filetype-css', json: 'bi-filetype-json',
@@ -1630,7 +1725,6 @@ function previewFile(input) {
         var iconClass = iconMap[ext] || 'bi-file-earmark';
         document.getElementById('filePreviewIcon').className = 'bi ' + iconClass;
 
-        // If image file, also show image preview
         var imgExts = ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'svg'];
         if (imgExts.indexOf(ext) !== -1) {
             var reader = new FileReader();

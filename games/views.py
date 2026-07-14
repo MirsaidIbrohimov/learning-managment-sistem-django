@@ -1363,6 +1363,9 @@ def admin_competition_add(request):
             _save_competition_audience(comp, audience_type, group_ids, student_ids)
             # Telegram xabar: hammaga — guruh kanaliga, cheklangan — shaxsiy DM
             if is_active:
+                # objects.create() POST qiymatlarini instance'da str holida qoldiradi.
+                # Xabarnomada strftime ishlatilishi uchun vaqtlarni datetime qilib qayta yuklaymiz.
+                comp.refresh_from_db(fields=['start_time', 'end_time'])
                 from telegram_bot.utils import notify_competition_started
                 notify_competition_started(comp)
             messages.success(request, "Musobaqa qo'shildi!")

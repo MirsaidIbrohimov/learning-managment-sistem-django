@@ -2882,18 +2882,29 @@ def profession_detail(request, pk):
     })
 
 
-def _course_statistics_data(profession):
-    """Kurs statistikasi uchun barcha ko'rsatkichlarni hisoblaydi.
+def _course_statistics_data(profession, group_id=None):
+    """Kurs statistikasi ko'rsatkichlari (DRY — sahifa view va JSON API uchun).
 
-    JSON-serializable dict qaytaradi. Ham sahifa view (course_statistics),
-    ham JSON API (course_statistics_api) shu yagona manbadan foydalanadi (DRY)."""
+    ``group_id`` berilsa — reyting (leaderboard) faqat o'sha StudyGroup
+    a'zolari bo'yicha hisoblanadi; umumiy kurs ko'rsatkichlari (``overview``)
+    esa har doim butun kurs bo'yicha qaytariladi, shunda sahifada guruh va
+    umumiy statistika birga ko'rinadi.
+
+    ``total_score`` (umumiy ball) — 0..100 oralig'idagi kompozit foiz: test
+    o'rtacha bali va vazifa o'rtacha bahosining (10 balldan 100 ga keltirilgan)
+    o'rtachasi. Bu eski "barcha urinishlar % yig'indisi" hisobini almashtiradi
+    (u qayta urinishlarni qo'shib, 689 kabi ma'nosiz sonlar berardi)."""
     from collections import defaultdict
     from django.utils import timezone
+    from .models import StudyGroup
 
-    enrolled_students = CustomUser.objects.filter(
+    completed_statuses = [Attempt.Status.SUBMITTED, Attempt.Status.GRADED]
+
+    # ── Umumiy: butun kurs bo'yicha ko'rsatkichlar ──
+    all_enrolled = CustomUser.objects.filter(
         enrollments__profession=profession, role='student'
-    ).order_by('-coins')
-    total_students = enrolled_students.count()
+    ).distinct()
+    total_students = all_enrolled.count()
 
     lessons = Lesson.objects.filter(profession=profession)
     total_lessons = lessons.count()
@@ -2901,25 +2912,52 @@ def _course_statistics_data(profession):
     total_homeworks = lessons.filter(lesson_type='homework').count()
     total_videos = lessons.filter(lesson_type='video').count()
 
-    completed_statuses = [Attempt.Status.SUBMITTED, Attempt.Status.GRADED]
-    test_results = Attempt.objects.filter(
-        quiz__lesson__profession=profession,
-        status__in=completed_statuses,
+    course_tests = Attempt.objects.filter(
+        quiz__lesson__profession=profession, status__in=completed_statuses,
     )
-    avg_test_score = test_results.aggregate(avg=Avg('score'))['avg'] or 0
-    total_test_attempts = test_results.count()
-    passed_tests = test_results.filter(passed=True).count()
+    avg_test_score = course_tests.aggregate(a=Avg('score'))['a'] or 0
+    total_test_attempts = course_tests.count()
+    passed_tests = course_tests.filter(passed=True).count()
     pass_rate = round(passed_tests / total_test_attempts * 100, 1) if total_test_attempts else 0
 
-    hw_submissions = HomeworkSubmission.objects.filter(homework__lesson__profession=profession)
-    total_hw_submitted = hw_submissions.count()
-    graded_hw = hw_submissions.filter(status='graded')
-    avg_hw_grade = graded_hw.aggregate(avg=Avg('grade'))['avg'] or 0
+    course_hw = HomeworkSubmission.objects.filter(homework__lesson__profession=profession)
+    total_hw_submitted = course_hw.count()
+    avg_hw_grade = course_hw.filter(status='graded').aggregate(a=Avg('grade'))['a'] or 0
 
-    student_ids = list(enrolled_students.values_list('id', flat=True))
+    overview = {
+        'total_students': total_students,
+        'total_lessons': total_lessons,
+        'total_tests': total_tests,
+        'total_homeworks': total_homeworks,
+        'total_videos': total_videos,
+        'avg_test_score': round(avg_test_score, 1),
+        'pass_rate': pass_rate,
+        'total_test_attempts': total_test_attempts,
+        'total_hw_submitted': total_hw_submitted,
+        'avg_hw_grade': round(avg_hw_grade, 1),
+    }
 
-    # Bulk test statistikasi
-    test_stats = defaultdict(lambda: {'count': 0, 'passed': 0, 'total_score': 0, 'avg_score': 0})
+    # ── Guruhlar ro'yxati (tanlagich uchun) ──
+    groups_qs = StudyGroup.objects.filter(profession=profession).order_by('name')
+    groups = [
+        {'id': g.id, 'name': g.name, 'count': g.students.filter(role='student').count()}
+        for g in groups_qs
+    ]
+
+    # ── Reyting doirasi (scope): tanlangan guruh yoki butun kurs ──
+    selected_group = None
+    scope_students = all_enrolled
+    if group_id:
+        grp = groups_qs.filter(pk=group_id).first()
+        if grp:
+            selected_group = {'id': grp.id, 'name': grp.name}
+            scope_students = all_enrolled.filter(study_groups__id=grp.id)
+
+    scope_students = scope_students.order_by('-coins')
+    student_ids = list(scope_students.values_list('id', flat=True))
+
+    # Bulk test statistikasi (scope)
+    test_stats = defaultdict(lambda: {'count': 0, 'passed': 0, 'avg_score': 0})
     for row in Attempt.objects.filter(
         student_id__in=student_ids,
         quiz__lesson__profession=profession,
@@ -2927,34 +2965,32 @@ def _course_statistics_data(profession):
     ).values('student_id').annotate(
         count=Count('id'),
         passed=Count('id', filter=Q(passed=True)),
-        total_score=Sum('score'),
         avg_score=Avg('score'),
     ):
         test_stats[row['student_id']] = {
             'count': row['count'],
             'passed': row['passed'],
-            'total_score': row['total_score'] or 0,
             'avg_score': row['avg_score'] or 0,
         }
 
-    # Bulk homework statistikasi
-    hw_stats = defaultdict(lambda: {'count': 0, 'graded_avg': 0, 'graded_total': 0, 'accepted_count': 0})
+    # Bulk homework statistikasi (scope)
+    hw_stats = defaultdict(lambda: {'count': 0, 'graded_avg': 0, 'graded_count': 0, 'accepted_count': 0})
     for row in HomeworkSubmission.objects.filter(
         student_id__in=student_ids, homework__lesson__profession=profession
     ).values('student_id').annotate(
         count=Count('id'),
         graded_avg=Avg('grade', filter=Q(status='graded')),
-        graded_total=Sum('grade', filter=Q(status='graded')),
+        graded_count=Count('id', filter=Q(status='graded')),
         accepted_count=Count('id', filter=Q(status__in=['accepted', 'graded'])),
     ):
         hw_stats[row['student_id']] = {
             'count': row['count'],
             'graded_avg': row['graded_avg'] or 0,
-            'graded_total': row['graded_total'] or 0,
+            'graded_count': row['graded_count'],
             'accepted_count': row['accepted_count'],
         }
 
-    # Bulk video progress
+    # Bulk video progress (scope)
     video_stats = dict(
         VideoProgress.objects.filter(
             user_id__in=student_ids, watched=True,
@@ -2966,15 +3002,26 @@ def _course_statistics_data(profession):
 
     students = []
     distribution = {'high': 0, 'medium': 0, 'low': 0}
-    for student in enrolled_students:
+    grp_score_sum = grp_score_n = 0
+    grp_test_sum = grp_test_n = 0
+    grp_pass = grp_attempts = 0
+
+    for student in scope_students:
         sid = student.id
         ts = test_stats[sid]
         hs = hw_stats[sid]
         vw = video_stats.get(sid, 0)
 
-        completed = ts.get('passed', 0) + hs.get('accepted_count', 0) + vw
+        completed = ts['passed'] + hs['accepted_count'] + vw
         progress = min(round(completed / total_possible * 100) if total_possible else 0, 100)
-        s_total_score = ts.get('total_score', 0) + hs.get('graded_total', 0)
+
+        # ── To'g'ri umumiy ball: 0..100 kompozit ──
+        components = []
+        if ts['count'] > 0:
+            components.append(ts['avg_score'])          # test o'rtacha (0..100)
+        if hs['graded_count'] > 0:
+            components.append(hs['graded_avg'] * 10)     # vazifa o'rtacha (0..10 → 0..100)
+        overall_score = round(sum(components) / len(components)) if components else 0
 
         if progress >= 70:
             distribution['high'] += 1
@@ -2997,35 +3044,42 @@ def _course_statistics_data(profession):
             'name': full_name,
             'initial': (student.first_name[:1] or student.username[:1] or '?').upper(),
             'photo_url': photo_url,
-            'test_count': ts.get('count', 0),
-            'test_avg': round(ts.get('avg_score', 0), 1),
-            'passed_tests': ts.get('passed', 0),
-            'hw_count': hs.get('count', 0),
-            'hw_avg': round(hs.get('graded_avg', 0), 1),
+            'test_count': ts['count'],
+            'test_avg': round(ts['avg_score'], 1),
+            'passed_tests': ts['passed'],
+            'hw_count': hs['count'],
+            'hw_avg': round(hs['graded_avg'], 1),
             'videos_watched': vw,
             'progress': progress,
             'coins': student.coins,
-            'total_score': s_total_score,
+            'total_score': overall_score,
         })
 
-    students.sort(key=lambda x: x['total_score'], reverse=True)
+        grp_score_sum += overall_score
+        grp_score_n += 1
+        if ts['count']:
+            grp_test_sum += ts['avg_score']
+            grp_test_n += 1
+        grp_pass += ts['passed']
+        grp_attempts += ts['count']
+
+    students.sort(key=lambda x: (x['total_score'], x['coins']), reverse=True)
     for i, s in enumerate(students):
         s['rank'] = i + 1
 
+    group_overview = {
+        'students': len(students),
+        'avg_score': round(grp_score_sum / grp_score_n) if grp_score_n else 0,
+        'avg_test': round(grp_test_sum / grp_test_n, 1) if grp_test_n else 0,
+        'pass_rate': round(grp_pass / grp_attempts * 100, 1) if grp_attempts else 0,
+    }
+
     return {
         'profession': {'id': profession.pk, 'name': profession.name},
-        'overview': {
-            'total_students': total_students,
-            'total_lessons': total_lessons,
-            'total_tests': total_tests,
-            'total_homeworks': total_homeworks,
-            'total_videos': total_videos,
-            'avg_test_score': round(avg_test_score, 1),
-            'pass_rate': pass_rate,
-            'total_test_attempts': total_test_attempts,
-            'total_hw_submitted': total_hw_submitted,
-            'avg_hw_grade': round(avg_hw_grade, 1),
-        },
+        'overview': overview,
+        'group_overview': group_overview,
+        'groups': groups,
+        'selected_group': selected_group,
         'distribution': distribution,
         'students': students,
         'generated_at': timezone.localtime().strftime('%H:%M:%S'),
@@ -3040,6 +3094,22 @@ def _can_view_course_stats(user, profession):
     return is_enrolled or user.is_admin or user.is_teacher
 
 
+def _resolve_stats_group(request, profession):
+    """Tanlangan guruh id'sini aniqlaydi.
+
+    So'rovda ``?group=`` bo'lsa — o'sha; aks holda o'quvchi kirsa va u shu
+    kursda biror guruhga tegishli bo'lsa — avtomatik o'z guruhi tanlanadi."""
+    group_id = (request.GET.get('group') or '').strip()
+    if group_id:
+        return group_id
+    user = request.user
+    if getattr(user, 'role', None) == 'student':
+        my_group = user.study_groups.filter(profession=profession).first()
+        if my_group:
+            return str(my_group.id)
+    return ''
+
+
 @login_required
 def course_statistics(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
@@ -3047,7 +3117,8 @@ def course_statistics(request, pk):
         messages.error(request, "Bu kursga yozilmagansiz!")
         return redirect('profession_detail', pk=pk)
 
-    data = _course_statistics_data(profession)
+    group_id = _resolve_stats_group(request, profession)
+    data = _course_statistics_data(profession, group_id=group_id or None)
     return render(request, 'accounts/course_statistics.html', {
         'profession': profession,
         'overview': data['overview'],
@@ -3061,7 +3132,16 @@ def course_statistics_api(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
     if not _can_view_course_stats(request.user, profession):
         return JsonResponse({'error': "Bu kursga ruxsatingiz yo'q"}, status=403)
-    return JsonResponse(_course_statistics_data(profession))
+    # AJAX so'rovda guruh doim aniq yuboriladi: 'group' bo'sh bo'lsa —
+    # "Barcha guruhlar" (butun kurs). Faqat parametr umuman bo'lmaganda
+    # (masalan to'g'ridan-to'g'ri havola) o'quvchining guruhi avtomatik tanlanadi.
+    # Shu tufayli o'quvchi "Barcha guruhlar"ni tanlaganda o'z guruhi majburan
+    # qayta tanlanib qolmaydi.
+    if 'group' in request.GET:
+        group_id = (request.GET.get('group') or '').strip()
+    else:
+        group_id = _resolve_stats_group(request, profession)
+    return JsonResponse(_course_statistics_data(profession, group_id=group_id or None))
 
 
 @login_required
@@ -10178,7 +10258,6 @@ def admin_users(request):
     )
     
     if search_query:
-        from django.db.models import Q
         users = users.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query) |
@@ -10212,6 +10291,11 @@ def admin_users(request):
         users = users.order_by('-date_joined')
     
     total_count = users.count()
+    user_stats = CustomUser.objects.aggregate(
+        students_count=Count('id', filter=Q(role='student')),
+        teachers_count=Count('id', filter=Q(role='teacher')),
+        blocked_count=Count('id', filter=Q(is_blocked=True)),
+    )
     professions = Profession.objects.only('id', 'name')
     from .models import StudyGroup
     groups = StudyGroup.objects.select_related('profession').only(
@@ -10241,6 +10325,7 @@ def admin_users(request):
         'sort_by': sort_by,
         'total_count': total_count,
         'active_filters': active_filters,
+        **user_stats,
     })
 
 

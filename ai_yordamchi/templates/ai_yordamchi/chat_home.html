@@ -8,742 +8,878 @@
 <meta name="description" content="LMS ichida ishlovchi AI Yordamchi. Muallif: Suyunov Husan - IT Creative.">
 
 <style>
+/* ============================================
+   AI YORDAMCHI - HOME (2026 Redesign)
+   ============================================ */
 :root {
-    --ai-primary: #7c3aed;
-    --ai-primary-light: #a78bfa;
-    --ai-secondary: #2563eb;
-    --ai-accent: #10b981;
-    --ai-grad: linear-gradient(135deg, #2563eb, #7c3aed);
-    --ai-grad-soft: linear-gradient(135deg, rgba(37,99,235,.12), rgba(124,58,237,.12));
-    --ai-card: var(--card-bg, #ffffff);
-    --ai-border: var(--border, #e5e7eb);
-    --ai-text: var(--text, #1a1a2e);
-    --ai-text-muted: var(--text-muted, #6b7280);
-    --ai-surface: #f8fafc;
+    --aiy-p1: #7c3aed;
+    --aiy-p2: #ec4899;
+    --aiy-p3: #06b6d4;
+    --aiy-grad: linear-gradient(135deg, #7c3aed 0%, #ec4899 55%, #f59e0b 100%);
+    --aiy-grad-soft: linear-gradient(135deg, rgba(124,58,237,.10), rgba(236,72,153,.08));
+    --aiy-bg: #f6f7fb;
+    --aiy-surface: #ffffff;
+    --aiy-surface-2: #fafbff;
+    --aiy-border: rgba(15,23,42,.08);
+    --aiy-border-strong: rgba(15,23,42,.14);
+    --aiy-text: #0f172a;
+    --aiy-text-2: #475569;
+    --aiy-text-3: #94a3b8;
+    --aiy-shadow-sm: 0 1px 2px rgba(15,23,42,.04), 0 2px 8px rgba(15,23,42,.04);
+    --aiy-shadow-md: 0 6px 24px rgba(15,23,42,.08), 0 2px 6px rgba(15,23,42,.04);
+    --aiy-shadow-lg: 0 20px 48px rgba(124,58,237,.14), 0 8px 24px rgba(15,23,42,.06);
+    --aiy-radius-lg: 24px;
+    --aiy-radius-md: 18px;
+    --aiy-radius-sm: 12px;
 }
 
 [data-bs-theme="dark"] {
-    --ai-card: #1e1e2e;
-    --ai-border: #2d2d3f;
-    --ai-text: #e2e8f0;
-    --ai-text-muted: #94a3b8;
-    --ai-surface: #151521;
+    --aiy-bg: #0a0a12;
+    --aiy-surface: #14141f;
+    --aiy-surface-2: #1a1a28;
+    --aiy-border: rgba(255,255,255,.08);
+    --aiy-border-strong: rgba(255,255,255,.14);
+    --aiy-text: #f1f5f9;
+    --aiy-text-2: #cbd5e1;
+    --aiy-text-3: #64748b;
+    --aiy-grad-soft: linear-gradient(135deg, rgba(124,58,237,.16), rgba(236,72,153,.10));
+    --aiy-shadow-sm: 0 1px 2px rgba(0,0,0,.4), 0 2px 8px rgba(0,0,0,.3);
+    --aiy-shadow-md: 0 6px 24px rgba(0,0,0,.4), 0 2px 6px rgba(0,0,0,.3);
+    --aiy-shadow-lg: 0 20px 48px rgba(124,58,237,.28), 0 8px 24px rgba(0,0,0,.4);
 }
+
+body { background: var(--aiy-bg) !important; }
 
 /* ===== ANIMATIONS ===== */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes aiyFadeIn { from{opacity:0} to{opacity:1} }
+@keyframes aiyRise {
+    from { opacity:0; transform: translateY(18px) }
+    to { opacity:1; transform: translateY(0) }
 }
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+@keyframes aiyScaleIn {
+    from { opacity:0; transform: scale(.92) }
+    to { opacity:1; transform: scale(1) }
 }
-@keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
+@keyframes aiyFloat {
+    0%,100% { transform: translateY(0) }
+    50% { transform: translateY(-10px) }
 }
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+@keyframes aiyGradientMove {
+    0% { background-position: 0% 50% }
+    50% { background-position: 100% 50% }
+    100% { background-position: 0% 50% }
 }
-@keyframes glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,.3); }
-    50% { box-shadow: 0 0 40px rgba(124,58,237,.5), 0 0 60px rgba(37,99,235,.2); }
+@keyframes aiyPulse {
+    0%,100% { transform: scale(1); opacity: .5 }
+    50% { transform: scale(1.15); opacity: .8 }
 }
-@keyframes pulseRing {
-    0% { transform: scale(1); opacity: .6; }
-    100% { transform: scale(1.8); opacity: 0; }
+@keyframes aiyRing {
+    0% { transform: scale(1); opacity: .6 }
+    100% { transform: scale(1.8); opacity: 0 }
 }
-@keyframes particleFloat {
-    0%, 100% { transform: translate(0, 0) rotate(0deg); opacity: .6; }
-    25% { transform: translate(10px, -15px) rotate(90deg); opacity: .3; }
-    50% { transform: translate(-5px, -25px) rotate(180deg); opacity: .5; }
-    75% { transform: translate(15px, -10px) rotate(270deg); opacity: .4; }
+@keyframes aiyOrbFloat {
+    0%,100% { transform: translate(0,0) scale(1) }
+    33% { transform: translate(30px,-20px) scale(1.05) }
+    66% { transform: translate(-20px,20px) scale(.95) }
 }
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+@keyframes aiyShimmer {
+    0% { background-position: -200% 0 }
+    100% { background-position: 200% 0 }
 }
-@keyframes scaleIn {
-    from { opacity: 0; transform: scale(.85); }
-    to { opacity: 1; transform: scale(1); }
-}
-@keyframes fabPulse {
-    0%, 100% { box-shadow: 0 6px 30px rgba(124,58,237,.4); }
-    50% { box-shadow: 0 6px 40px rgba(124,58,237,.7), 0 0 60px rgba(37,99,235,.3); }
-}
+@keyframes aiySpin { to { transform: rotate(360deg) } }
 
 /* ===== LAYOUT ===== */
-.ai-home {
-    max-width: 1100px;
+.aiy-page {
+    max-width: 1180px;
     margin: 0 auto;
     padding: 1.5rem 1rem 6rem;
-    animation: fadeIn .4s ease-out;
+    animation: aiyFadeIn .4s ease-out;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    color: var(--aiy-text);
 }
 
-/* ===== HERO HEADER ===== */
-.ai-hero {
-    background: var(--ai-grad);
-    background-size: 200% 200%;
-    animation: gradientShift 6s ease infinite;
-    border-radius: 24px;
-    padding: 2rem 2rem 2.25rem;
-    color: #fff;
+/* ===== HERO ===== */
+.aiy-hero {
     position: relative;
+    padding: 2.5rem 2.25rem;
+    border-radius: var(--aiy-radius-lg);
+    background: var(--aiy-grad);
+    background-size: 200% 200%;
+    animation: aiyGradientMove 10s ease infinite;
+    color: #fff;
     overflow: hidden;
-    margin-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 20px 60px rgba(124,58,237,.28);
 }
 
-.ai-hero::before {
+/* Aurora orbs */
+.aiy-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: .55;
+    pointer-events: none;
+    animation: aiyOrbFloat 12s ease-in-out infinite;
+}
+.aiy-orb.a { width: 260px; height: 260px; background: #06b6d4; top: -80px; right: -60px; }
+.aiy-orb.b { width: 200px; height: 200px; background: #ec4899; bottom: -60px; left: -40px; animation-delay: -4s; }
+.aiy-orb.c { width: 160px; height: 160px; background: #f59e0b; top: 40%; left: 40%; animation-delay: -8s; opacity: .35; }
+
+/* Grid pattern overlay */
+.aiy-hero::before {
     content: '';
     position: absolute;
     inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background-image:
+        linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
     pointer-events: none;
 }
 
-/* Floating particles */
-.ai-hero .particle {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    background: rgba(255,255,255,.35);
-    border-radius: 50%;
-    animation: particleFloat 6s ease-in-out infinite;
-}
-.ai-hero .particle:nth-child(1) { top: 15%; left: 10%; animation-delay: 0s; animation-duration: 5s; }
-.ai-hero .particle:nth-child(2) { top: 60%; left: 25%; animation-delay: 1s; animation-duration: 7s; width: 4px; height: 4px; }
-.ai-hero .particle:nth-child(3) { top: 30%; right: 15%; animation-delay: 2s; animation-duration: 6s; width: 8px; height: 8px; }
-.ai-hero .particle:nth-child(4) { bottom: 20%; right: 30%; animation-delay: .5s; animation-duration: 8s; }
-.ai-hero .particle:nth-child(5) { top: 50%; left: 50%; animation-delay: 3s; animation-duration: 5.5s; width: 5px; height: 5px; }
-
-.hero-left {
+.aiy-hero-inner {
     position: relative;
     z-index: 2;
     display: flex;
     align-items: center;
-    gap: 1.25rem;
-}
-
-.hero-icon {
-    width: 64px;
-    height: 64px;
-    background: rgba(255,255,255,.2);
-    backdrop-filter: blur(10px);
-    border: 2px solid rgba(255,255,255,.3);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.75rem;
-    animation: float 3s ease-in-out infinite;
-    flex-shrink: 0;
-}
-
-.hero-icon::after {
-    content: '';
-    position: absolute;
-    inset: -4px;
-    border-radius: 22px;
-    border: 2px solid rgba(255,255,255,.15);
-    animation: pulseRing 2s ease-out infinite;
-    pointer-events: none;
-}
-
-.hero-title {
-    font-size: 1.75rem;
-    font-weight: 700;
-    margin: 0;
-    line-height: 1.2;
-    letter-spacing: -.02em;
-}
-
-.hero-sub {
-    margin: .35rem 0 0;
-    opacity: .85;
-    font-size: .95rem;
-    font-weight: 400;
-}
-
-.hero-right {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    position: relative;
-    z-index: 2;
+    justify-content: space-between;
+    gap: 1.5rem;
     flex-wrap: wrap;
 }
 
-.coin-chip {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    background: rgba(255,255,255,.2);
+.aiy-hero-left { display: flex; align-items: center; gap: 1.25rem; min-width: 0; }
+
+.aiy-hero-icon {
+    width: 74px; height: 74px;
+    background: rgba(255,255,255,.16);
     backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,.25);
-    padding: .6rem 1.1rem;
+    -webkit-backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,.3);
+    border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem;
+    animation: aiyFloat 3.5s ease-in-out infinite;
+    flex-shrink: 0;
+    position: relative;
+}
+.aiy-hero-icon::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 26px;
+    border: 2px solid rgba(255,255,255,.15);
+    animation: aiyRing 2.2s ease-out infinite;
+}
+
+.aiy-hero-text { min-width: 0; }
+.aiy-hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.18);
+    backdrop-filter: blur(10px);
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,.2);
+}
+.aiy-hero-badge .live {
+    width: 6px; height: 6px; background: #4ade80; border-radius: 50%;
+    box-shadow: 0 0 8px #4ade80;
+    animation: aiyPulse 1.6s ease-in-out infinite;
+}
+.aiy-hero-title {
+    font-size: 2rem; font-weight: 800;
+    margin: 0; line-height: 1.15;
+    letter-spacing: -.03em;
+}
+.aiy-hero-sub {
+    margin: .5rem 0 0;
+    opacity: .9;
+    font-size: 1rem;
+    font-weight: 400;
+    max-width: 480px;
+}
+
+.aiy-hero-right {
+    display: flex; align-items: center; gap: .65rem; flex-wrap: wrap;
+}
+
+.aiy-coin-chip {
+    display: inline-flex; align-items: center; gap: .5rem;
+    background: rgba(255,255,255,.18);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,.28);
+    padding: .65rem 1.15rem;
     border-radius: 50px;
     font-weight: 600;
     font-size: .9rem;
+    color: #fff;
     transition: all .3s;
     white-space: nowrap;
 }
-
-.coin-chip:hover {
-    background: rgba(255,255,255,.3);
+.aiy-coin-chip:hover {
+    background: rgba(255,255,255,.28);
     transform: translateY(-2px);
 }
+.aiy-coin-chip i { font-size: 1.05rem; color: #fef3c7; }
 
-.coin-chip i { font-size: 1.1rem; }
-
-.btn-new-chat {
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
+.aiy-btn-new {
+    display: inline-flex; align-items: center; gap: .55rem;
     background: #fff;
     color: #7c3aed;
-    font-weight: 600;
-    padding: .65rem 1.5rem;
+    font-weight: 700;
+    padding: .75rem 1.5rem;
     border-radius: 50px;
     text-decoration: none;
     border: none;
-    font-size: .9rem;
-    transition: all .3s cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 4px 15px rgba(0,0,0,.1);
+    font-size: .92rem;
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 6px 20px rgba(0,0,0,.15);
     white-space: nowrap;
-}
-
-.btn-new-chat:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 25px rgba(0,0,0,.15);
-    color: #6d28d9;
-}
-
-/* ===== STATS BAR ===== */
-.stats-bar {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    animation: fadeInUp .5s ease-out .1s both;
-}
-
-.stat-card {
-    flex: 1;
-    background: var(--ai-card);
-    border: 1px solid var(--ai-border);
-    border-radius: 16px;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    transition: all .3s;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,.08);
-}
-
-.stat-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    flex-shrink: 0;
-}
-
-.stat-icon.purple {
-    background: rgba(124,58,237,.12);
-    color: #7c3aed;
-}
-
-.stat-icon.blue {
-    background: rgba(37,99,235,.12);
-    color: #2563eb;
-}
-
-.stat-icon.green {
-    background: rgba(16,185,129,.12);
-    color: #10b981;
-}
-
-.stat-value {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--ai-text);
-    line-height: 1;
-}
-
-.stat-label {
-    font-size: .8rem;
-    color: var(--ai-text-muted);
-    margin-top: .15rem;
-}
-
-/* ===== SECTION TITLE ===== */
-.section-title {
-    font-size: 1.15rem;
-    font-weight: 600;
-    color: var(--ai-text);
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    animation: fadeInUp .5s ease-out .15s both;
-}
-
-.section-title i {
-    color: var(--ai-primary);
-}
-
-/* ===== SESSION GRID ===== */
-.session-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
-    gap: 1rem;
-}
-
-.session-card {
-    background: var(--ai-card);
-    border: 1px solid var(--ai-border);
-    border-radius: 18px;
-    padding: 1.25rem;
     position: relative;
     overflow: hidden;
-    transition: all .35s cubic-bezier(.4,0,.2,1);
-    animation: fadeInUp .5s ease-out both;
-    cursor: default;
+}
+.aiy-btn-new::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(124,58,237,.15) 50%, transparent 100%);
+    background-size: 200% 100%;
+    animation: aiyShimmer 2.5s infinite;
+    pointer-events: none;
+}
+.aiy-btn-new:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0,0,0,.22);
+    color: #6d28d9;
+}
+.aiy-btn-new i { font-size: 1.05rem; }
+
+/* ===== STATS ===== */
+.aiy-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    animation: aiyRise .5s ease-out .05s both;
 }
 
-.session-card::before {
+.aiy-stat {
+    background: var(--aiy-surface);
+    border: 1px solid var(--aiy-border);
+    border-radius: var(--aiy-radius-md);
+    padding: 1.1rem 1.25rem;
+    display: flex; align-items: center; gap: .9rem;
+    transition: transform .3s, box-shadow .3s, border-color .3s;
+    position: relative;
+    overflow: hidden;
+}
+.aiy-stat::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: var(--ai-grad);
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--aiy-grad);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform .4s cubic-bezier(.4,0,.2,1);
 }
-
-.session-card:hover::before {
-    transform: scaleX(1);
+.aiy-stat:hover::before { transform: scaleX(1); }
+.aiy-stat:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--aiy-shadow-md);
+    border-color: var(--aiy-border-strong);
 }
 
-.session-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 35px rgba(124,58,237,.1);
-    border-color: var(--ai-primary-light);
-}
-
-.session-card:nth-child(1) { animation-delay: .05s; }
-.session-card:nth-child(2) { animation-delay: .1s; }
-.session-card:nth-child(3) { animation-delay: .15s; }
-.session-card:nth-child(4) { animation-delay: .2s; }
-.session-card:nth-child(5) { animation-delay: .25s; }
-.session-card:nth-child(6) { animation-delay: .3s; }
-
-.session-card-link {
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    align-items: flex-start;
-    gap: .75rem;
-}
-
-.session-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--ai-grad-soft);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.aiy-stat-ic {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
     flex-shrink: 0;
-    color: var(--ai-primary);
-    font-size: 1.1rem;
-    transition: all .3s;
 }
+.aiy-stat-ic.purple { background: rgba(124,58,237,.14); color: #7c3aed; }
+.aiy-stat-ic.pink   { background: rgba(236,72,153,.14); color: #ec4899; }
+.aiy-stat-ic.cyan   { background: rgba(6,182,212,.14); color: #06b6d4; }
+.aiy-stat-ic.amber  { background: rgba(245,158,11,.14); color: #f59e0b; }
 
-.session-card:hover .session-icon {
-    background: var(--ai-grad);
-    color: #fff;
-    transform: scale(1.05);
+[data-bs-theme="dark"] .aiy-stat-ic.purple { background: rgba(124,58,237,.22); }
+[data-bs-theme="dark"] .aiy-stat-ic.pink   { background: rgba(236,72,153,.22); }
+[data-bs-theme="dark"] .aiy-stat-ic.cyan   { background: rgba(6,182,212,.22); }
+[data-bs-theme="dark"] .aiy-stat-ic.amber  { background: rgba(245,158,11,.22); }
+
+.aiy-stat-val { font-size: 1.35rem; font-weight: 800; color: var(--aiy-text); line-height: 1; }
+.aiy-stat-lb  { font-size: .78rem; color: var(--aiy-text-2); margin-top: .3rem; letter-spacing: .02em; }
+
+/* ===== SECTION HEAD ===== */
+.aiy-section-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    animation: aiyRise .5s ease-out .1s both;
+    flex-wrap: wrap;
 }
-
-.session-info { flex: 1; min-width: 0; }
-
-.session-name {
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--ai-text);
+.aiy-section-title {
+    display: inline-flex; align-items: center; gap: .55rem;
+    font-size: 1.15rem; font-weight: 700;
+    color: var(--aiy-text);
     margin: 0;
+    letter-spacing: -.01em;
+}
+.aiy-section-title i {
+    background: var(--aiy-grad);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 1.25rem;
+}
+
+/* Search */
+.aiy-search {
+    position: relative; flex: 0 1 280px; min-width: 200px;
+}
+.aiy-search input {
+    width: 100%;
+    background: var(--aiy-surface);
+    border: 1px solid var(--aiy-border);
+    color: var(--aiy-text);
+    border-radius: 50px;
+    padding: .6rem 1rem .6rem 2.4rem;
+    font-size: .88rem;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+}
+.aiy-search input:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+}
+.aiy-search input::placeholder { color: var(--aiy-text-3); }
+.aiy-search i {
+    position: absolute; left: .95rem; top: 50%;
+    transform: translateY(-50%);
+    color: var(--aiy-text-3);
+    font-size: .95rem;
+    pointer-events: none;
+}
+
+/* ===== SESSION GRID ===== */
+.aiy-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1rem;
+}
+
+.aiy-card {
+    background: var(--aiy-surface);
+    border: 1px solid var(--aiy-border);
+    border-radius: var(--aiy-radius-md);
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+    transition: transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s, border-color .3s;
+    animation: aiyRise .5s ease-out both;
+    display: flex; flex-direction: column; gap: .9rem;
+}
+.aiy-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--aiy-grad);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .45s cubic-bezier(.4,0,.2,1);
+}
+.aiy-card:hover::before { transform: scaleX(1); }
+.aiy-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--aiy-shadow-lg);
+    border-color: rgba(124,58,237,.35);
+}
+.aiy-card:nth-child(1){animation-delay:.05s} .aiy-card:nth-child(2){animation-delay:.1s}
+.aiy-card:nth-child(3){animation-delay:.15s} .aiy-card:nth-child(4){animation-delay:.2s}
+.aiy-card:nth-child(5){animation-delay:.25s} .aiy-card:nth-child(6){animation-delay:.3s}
+.aiy-card:nth-child(7){animation-delay:.35s} .aiy-card:nth-child(8){animation-delay:.4s}
+
+.aiy-card-link {
+    text-decoration: none; color: inherit;
+    display: flex; align-items: flex-start; gap: .85rem;
+    min-width: 0;
+}
+
+.aiy-card-avatar {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    background: var(--aiy-grad-soft);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: #7c3aed;
+    font-size: 1.25rem;
+    transition: all .35s;
+    position: relative;
+    overflow: hidden;
+}
+.aiy-card-avatar::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--aiy-grad);
+    opacity: 0;
+    transition: opacity .35s;
+    z-index: 0;
+}
+.aiy-card-avatar i { position: relative; z-index: 1; transition: color .35s; }
+.aiy-card:hover .aiy-card-avatar::before { opacity: 1; }
+.aiy-card:hover .aiy-card-avatar i { color: #fff; }
+.aiy-card:hover .aiy-card-avatar { transform: scale(1.06) rotate(-3deg); }
+
+.aiy-card-body { flex: 1; min-width: 0; }
+
+.aiy-card-title {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--aiy-text);
+    margin: 0 0 .3rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     transition: color .2s;
+    letter-spacing: -.01em;
+}
+.aiy-card:hover .aiy-card-title { color: #7c3aed; }
+
+.aiy-card-meta {
+    display: flex; align-items: center; gap: .7rem;
+    font-size: .78rem;
+    color: var(--aiy-text-2);
+    flex-wrap: wrap;
+}
+.aiy-card-meta span {
+    display: inline-flex; align-items: center; gap: .3rem;
+}
+.aiy-card-meta i { font-size: .82rem; opacity: .8; }
+
+.aiy-card-actions {
+    display: flex; align-items: center; gap: .5rem;
+    padding-top: .85rem;
+    border-top: 1px solid var(--aiy-border);
 }
 
-.session-card:hover .session-name {
-    color: var(--ai-primary);
-}
-
-.session-meta {
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    margin-top: .4rem;
-    font-size: .8rem;
-    color: var(--ai-text-muted);
-}
-
-.session-meta-item {
-    display: flex;
-    align-items: center;
-    gap: .3rem;
-}
-
-.session-actions {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    margin-top: .85rem;
-    padding-top: .75rem;
-    border-top: 1px solid var(--ai-border);
-}
-
-.btn-session {
+.aiy-btn {
     flex: 1;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .4rem;
-    padding: .5rem .75rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+    padding: .55rem .9rem;
     border-radius: 10px;
-    font-size: .82rem;
-    font-weight: 500;
+    font-size: .84rem;
+    font-weight: 600;
     text-decoration: none;
     transition: all .25s;
-    border: 1px solid var(--ai-border);
+    border: 1px solid var(--aiy-border);
     background: transparent;
-    color: var(--ai-text);
+    color: var(--aiy-text);
+    cursor: pointer;
 }
-
-.btn-session:hover {
-    background: var(--ai-grad-soft);
-    border-color: var(--ai-primary-light);
-    color: var(--ai-primary);
+.aiy-btn:hover {
+    background: var(--aiy-grad-soft);
+    border-color: rgba(124,58,237,.3);
+    color: #7c3aed;
     transform: translateY(-1px);
 }
-
-.btn-session.primary {
-    background: var(--ai-grad);
+.aiy-btn.primary {
+    background: var(--aiy-grad);
     color: #fff;
     border: none;
+    box-shadow: 0 4px 14px rgba(124,58,237,.28);
 }
-
-.btn-session.primary:hover {
+.aiy-btn.primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(124,58,237,.3);
+    color: #fff;
+    box-shadow: 0 8px 22px rgba(124,58,237,.4);
 }
-
-.btn-session.danger {
+.aiy-btn.danger {
+    flex: 0 0 auto;
     color: #ef4444;
     border-color: transparent;
-    flex: 0;
-    padding: .5rem .6rem;
+    padding: .55rem .7rem;
 }
-
-.btn-session.danger:hover {
+.aiy-btn.danger:hover {
     background: rgba(239,68,68,.1);
     color: #dc2626;
+    border-color: rgba(239,68,68,.15);
 }
 
 /* ===== EMPTY STATE ===== */
-.empty-state {
+.aiy-empty {
     text-align: center;
-    padding: 4rem 2rem;
-    animation: scaleIn .6s ease-out;
-}
-
-.empty-robot {
-    width: 100px;
-    height: 100px;
-    background: var(--ai-grad);
-    border-radius: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.75rem;
-    font-size: 2.75rem;
-    color: #fff;
-    animation: float 3s ease-in-out infinite, glow 3s ease-in-out infinite;
+    padding: 4rem 1.5rem;
+    background: var(--aiy-surface);
+    border: 1px solid var(--aiy-border);
+    border-radius: var(--aiy-radius-lg);
+    animation: aiyScaleIn .55s cubic-bezier(.34,1.56,.64,1);
     position: relative;
+    overflow: hidden;
+}
+.aiy-empty::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    width: 400px; height: 400px;
+    transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(124,58,237,.10) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
 }
 
-.empty-robot::after {
+.aiy-empty > * { position: relative; z-index: 1; }
+
+.aiy-empty-robot {
+    width: 110px; height: 110px;
+    background: var(--aiy-grad);
+    border-radius: 32px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.75rem;
+    font-size: 3rem;
+    color: #fff;
+    animation: aiyFloat 3s ease-in-out infinite;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(124,58,237,.35);
+}
+.aiy-empty-robot::before,
+.aiy-empty-robot::after {
     content: '';
     position: absolute;
     inset: -6px;
-    border-radius: 32px;
-    border: 2px solid rgba(124,58,237,.2);
-    animation: pulseRing 2.5s ease-out infinite;
+    border-radius: 36px;
+    border: 2px solid rgba(124,58,237,.35);
+    animation: aiyRing 2.5s ease-out infinite;
 }
+.aiy-empty-robot::after { animation-delay: 1.25s; }
 
-.empty-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--ai-text);
+.aiy-empty h3 {
+    font-size: 1.65rem;
+    font-weight: 800;
+    color: var(--aiy-text);
     margin-bottom: .5rem;
+    letter-spacing: -.02em;
 }
-
-.empty-desc {
-    color: var(--ai-text-muted);
+.aiy-empty p {
+    color: var(--aiy-text-2);
     font-size: 1rem;
     margin-bottom: 2rem;
-    max-width: 400px;
+    max-width: 440px;
     margin-left: auto;
     margin-right: auto;
+    line-height: 1.55;
 }
 
-.suggestion-chips {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: .6rem;
+.aiy-chips {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: .55rem;
     margin-bottom: 2rem;
 }
-
-.chip {
-    display: inline-flex;
-    align-items: center;
-    gap: .4rem;
-    background: var(--ai-card);
-    border: 1px solid var(--ai-border);
-    padding: .55rem 1rem;
+.aiy-chip {
+    display: inline-flex; align-items: center; gap: .45rem;
+    background: var(--aiy-surface-2);
+    border: 1px solid var(--aiy-border);
+    padding: .6rem 1.1rem;
     border-radius: 50px;
-    font-size: .85rem;
-    color: var(--ai-text);
+    font-size: .86rem;
+    font-weight: 500;
+    color: var(--aiy-text);
     cursor: pointer;
     transition: all .25s;
     text-decoration: none;
 }
-
-.chip:hover {
-    border-color: var(--ai-primary-light);
-    background: var(--ai-grad-soft);
-    color: var(--ai-primary);
+.aiy-chip:hover {
+    border-color: rgba(124,58,237,.35);
+    background: var(--aiy-grad-soft);
+    color: #7c3aed;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(124,58,237,.1);
+    box-shadow: 0 6px 16px rgba(124,58,237,.12);
 }
+.aiy-chip i { font-size: .95rem; color: #7c3aed; }
 
-.chip i { font-size: .9rem; color: var(--ai-primary); }
-
-.btn-start {
-    display: inline-flex;
-    align-items: center;
-    gap: .5rem;
-    background: var(--ai-grad);
+.aiy-btn-start {
+    display: inline-flex; align-items: center; gap: .55rem;
+    background: var(--aiy-grad);
+    background-size: 200% 100%;
     color: #fff;
-    padding: .85rem 2rem;
+    padding: .95rem 2.2rem;
     border-radius: 50px;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 1rem;
     text-decoration: none;
     border: none;
-    transition: all .3s cubic-bezier(.4,0,.2,1);
-    box-shadow: 0 6px 25px rgba(124,58,237,.3);
+    transition: all .35s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 10px 30px rgba(124,58,237,.35);
+    letter-spacing: -.01em;
 }
-
-.btn-start:hover {
+.aiy-btn-start:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 35px rgba(124,58,237,.4);
+    box-shadow: 0 16px 40px rgba(124,58,237,.5);
     color: #fff;
+    background-position: 100% 0;
 }
 
 /* ===== INFO BAR ===== */
-.info-bar {
-    margin-top: 2rem;
-    background: var(--ai-grad-soft);
-    border: 1px solid rgba(124,58,237,.15);
-    border-radius: 14px;
-    padding: 1rem 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: .75rem;
-    font-size: .9rem;
-    color: var(--ai-text-muted);
-    animation: fadeInUp .5s ease-out .3s both;
+.aiy-info {
+    margin-top: 1.75rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: .65rem;
+    animation: aiyRise .5s ease-out .3s both;
 }
 
-.info-bar i {
-    color: var(--ai-primary);
-    font-size: 1.15rem;
+.aiy-info-card {
+    background: var(--aiy-surface);
+    border: 1px solid var(--aiy-border);
+    border-radius: var(--aiy-radius-md);
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .85rem;
+    font-size: .88rem;
+    color: var(--aiy-text-2);
+    position: relative;
+    overflow: hidden;
+}
+.aiy-info-card::before {
+    content: ''; position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--aiy-grad);
+}
+.aiy-info-card strong { color: var(--aiy-text); font-weight: 600; }
+
+.aiy-info-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: var(--aiy-grad-soft);
+    display: flex; align-items: center; justify-content: center;
+    color: #7c3aed;
+    font-size: 1.05rem;
     flex-shrink: 0;
 }
 
+.aiy-premium-tag {
+    background: linear-gradient(135deg,#f59e0b,#ef4444);
+    color: #fff;
+    padding: 2px 10px;
+    border-radius: 50px;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 10px rgba(245,158,11,.35);
+    margin-left: 6px;
+}
+
+/* Limit progress bar */
+.aiy-progress {
+    flex: 1;
+    min-width: 100px;
+    height: 8px;
+    background: var(--aiy-surface-2);
+    border-radius: 50px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--aiy-border);
+}
+.aiy-progress-bar {
+    height: 100%;
+    background: var(--aiy-grad);
+    border-radius: 50px;
+    transition: width .7s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    overflow: hidden;
+}
+.aiy-progress-bar::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent);
+    background-size: 200% 100%;
+    animation: aiyShimmer 2s infinite;
+}
+
 /* ===== FAB ===== */
-.fab {
+.aiy-fab {
     position: fixed;
-    bottom: 2rem;
-    right: 5.5rem;
-    width: 58px;
-    height: 58px;
-    background: var(--ai-grad);
+    bottom: 1.75rem; right: 5.5rem;
+    width: 60px; height: 60px;
+    background: var(--aiy-grad);
+    background-size: 200% 200%;
+    animation: aiyGradientMove 6s ease infinite;
     border: none;
     border-radius: 50%;
     color: #fff;
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 1.55rem;
+    display: flex; align-items: center; justify-content: center;
     text-decoration: none;
     z-index: 1100;
-    transition: all .3s cubic-bezier(.4,0,.2,1);
-    animation: fabPulse 3s ease-in-out infinite;
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 12px 30px rgba(124,58,237,.4);
 }
-
-.fab:hover {
+.aiy-fab::before {
+    content: '';
+    position: absolute; inset: -8px;
+    border-radius: 50%;
+    border: 2px solid rgba(124,58,237,.28);
+    animation: aiyRing 2.5s ease-out infinite;
+}
+.aiy-fab:hover {
     transform: scale(1.1) rotate(90deg);
     color: #fff;
 }
 
 /* ===== RESPONSIVE ===== */
+@media (max-width: 900px) {
+    .aiy-hero { padding: 2rem 1.5rem; }
+    .aiy-hero-title { font-size: 1.65rem; }
+    .aiy-hero-sub { font-size: .92rem; }
+    .aiy-hero-icon { width: 62px; height: 62px; font-size: 1.65rem; border-radius: 18px; }
+}
+
 @media (max-width: 768px) {
-    .ai-home { padding: 1rem .75rem 5rem; }
-    .ai-hero {
-        padding: 1.5rem;
-        border-radius: 18px;
-        flex-direction: column;
-        text-align: center;
+    .aiy-page { padding: 1rem .8rem 5rem; }
+    .aiy-hero {
+        padding: 1.75rem 1.35rem;
+        border-radius: 20px;
     }
-    .hero-left { flex-direction: column; }
-    .hero-title { font-size: 1.35rem; }
-    .hero-sub { font-size: .85rem; }
-    .hero-right { justify-content: center; }
-    .stats-bar { flex-direction: column; gap: .75rem; }
-    .session-grid { grid-template-columns: 1fr; gap: .75rem; }
-    .empty-state { padding: 3rem 1.5rem; }
-    .empty-robot { width: 80px; height: 80px; font-size: 2.25rem; border-radius: 22px; }
-    .fab { bottom: 1.5rem; right: 5rem; width: 52px; height: 52px; }
+    .aiy-hero-inner { flex-direction: column; align-items: flex-start; }
+    .aiy-hero-right { width: 100%; }
+    .aiy-hero-title { font-size: 1.5rem; }
+    .aiy-orb { display: none; }
+    .aiy-orb.a { display: block; opacity: .35; }
+    .aiy-stats { grid-template-columns: repeat(2, 1fr); gap: .7rem; }
+    .aiy-grid { grid-template-columns: 1fr; gap: .8rem; }
+    .aiy-section-head { align-items: stretch; }
+    .aiy-search { flex: 1; }
+    .aiy-empty { padding: 3rem 1.25rem; border-radius: 20px; }
+    .aiy-empty-robot { width: 90px; height: 90px; font-size: 2.35rem; border-radius: 26px; }
+    .aiy-empty h3 { font-size: 1.35rem; }
+    .aiy-empty p { font-size: .92rem; }
+    .aiy-fab { bottom: 1.35rem; right: 5rem; width: 54px; height: 54px; font-size: 1.4rem; }
 }
 
 @media (max-width: 480px) {
-    .ai-hero { padding: 1.25rem; }
-    .hero-icon { width: 52px; height: 52px; font-size: 1.4rem; border-radius: 16px; }
-    .hero-title { font-size: 1.2rem; }
-    .coin-chip { padding: .5rem .85rem; font-size: .82rem; }
-    .btn-new-chat { padding: .55rem 1.1rem; font-size: .82rem; }
-    .stat-card { padding: .85rem 1rem; }
-    .session-card { padding: 1rem; border-radius: 14px; }
+    .aiy-hero { padding: 1.5rem 1.2rem; }
+    .aiy-hero-icon { width: 54px; height: 54px; font-size: 1.4rem; border-radius: 15px; }
+    .aiy-hero-title { font-size: 1.3rem; }
+    .aiy-hero-badge { font-size: .65rem; padding: 3px 10px; }
+    .aiy-coin-chip { padding: .5rem .9rem; font-size: .82rem; }
+    .aiy-btn-new { padding: .6rem 1.15rem; font-size: .85rem; }
+    .aiy-stats { grid-template-columns: 1fr 1fr; }
+    .aiy-stat { padding: .9rem 1rem; }
+    .aiy-stat-ic { width: 42px; height: 42px; font-size: 1.15rem; border-radius: 12px; }
+    .aiy-stat-val { font-size: 1.2rem; }
+    .aiy-card { padding: 1rem; border-radius: 14px; }
+    .aiy-card-avatar { width: 42px; height: 42px; font-size: 1.1rem; border-radius: 12px; }
+    .aiy-btn { font-size: .8rem; padding: .5rem .7rem; }
+    .aiy-fab { right: 4.5rem; width: 50px; height: 50px; font-size: 1.3rem; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    * { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ai-home">
+<div class="aiy-page">
 
-    <!-- ===== HERO ===== -->
-    <div class="ai-hero">
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
-        <span class="particle"></span>
+    {# ===== HERO ===== #}
+    <div class="aiy-hero">
+        <div class="aiy-orb a"></div>
+        <div class="aiy-orb b"></div>
+        <div class="aiy-orb c"></div>
 
-        <div class="hero-left">
-            <div class="hero-icon">
-                <i class="bi bi-robot"></i>
-            </div>
-            <div>
-                <h1 class="hero-title">AI Yordamchi</h1>
-                <p class="hero-sub">Sun'iy intellekt bilan dasturlashni o'rganing</p>
-            </div>
-        </div>
-
-        <div class="hero-right">
-            <div class="coin-chip">
-                <i class="bi bi-coin"></i>
-                <span>{{ user.coins }} coin</span>
-            </div>
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="btn-new-chat">
-                <i class="bi bi-plus-lg"></i> Yangi suhbat
-            </a>
-        </div>
-    </div>
-
-    <!-- ===== STATS ===== -->
-    {% if sessions %}
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div class="stat-icon purple">
-                <i class="bi bi-chat-dots"></i>
-            </div>
-            <div>
-                <div class="stat-value">{{ sessions|length }}</div>
-                <div class="stat-label">Suhbatlar</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon blue">
-                <i class="bi bi-coin"></i>
-            </div>
-            <div>
-                <div class="stat-value">{{ user.coins }}</div>
-                <div class="stat-label">Mavjud coin</div>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon green">
-                <i class="bi bi-stars"></i>
-            </div>
-            <div>
-                <div class="stat-value">AI</div>
-                <div class="stat-label">Creative AI</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== SESSIONS LIST ===== -->
-    <div class="section-title">
-        <i class="bi bi-clock-history"></i> So'nggi suhbatlar
-    </div>
-
-    <div class="session-grid">
-        {% for session in sessions %}
-        <div class="session-card">
-            <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="session-card-link">
-                <div class="session-icon">
-                    <i class="bi bi-chat-dots"></i>
+        <div class="aiy-hero-inner">
+            <div class="aiy-hero-left">
+                <div class="aiy-hero-icon">
+                    <i class="bi bi-robot"></i>
                 </div>
-                <div class="session-info">
-                    <p class="session-name">{{ session.title }}</p>
-                    <div class="session-meta">
-                        <span class="session-meta-item">
-                            <i class="bi bi-clock"></i>
-                            {{ session.updated_at|date:"d.m.Y H:i" }}
-                        </span>
-                        <span class="session-meta-item">
-                            <i class="bi bi-chat-left-text"></i>
-                            {{ session.messages.count }} xabar
-                        </span>
+                <div class="aiy-hero-text">
+                    <span class="aiy-hero-badge">
+                        <span class="live"></span> Creative AI
+                    </span>
+                    <h1 class="aiy-hero-title">AI Yordamchi</h1>
+                    <p class="aiy-hero-sub">Sun'iy intellekt bilan dasturlash, matematika va boshqa mavzularni o'rganing.</p>
+                </div>
+            </div>
+
+            <div class="aiy-hero-right">
+                <div class="aiy-coin-chip" title="Sizdagi coin miqdori">
+                    <i class="bi bi-coin"></i>
+                    <span>{{ user.coins }} coin</span>
+                </div>
+                <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-btn-new">
+                    <i class="bi bi-plus-lg"></i> Yangi suhbat
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# ===== STATS ===== #}
+    <div class="aiy-stats">
+        <div class="aiy-stat">
+            <div class="aiy-stat-ic purple"><i class="bi bi-chat-dots-fill"></i></div>
+            <div>
+                <div class="aiy-stat-val">{{ sessions|length }}</div>
+                <div class="aiy-stat-lb">Suhbatlar</div>
+            </div>
+        </div>
+        <div class="aiy-stat">
+            <div class="aiy-stat-ic amber"><i class="bi bi-coin"></i></div>
+            <div>
+                <div class="aiy-stat-val">{{ user.coins }}</div>
+                <div class="aiy-stat-lb">Mavjud coin</div>
+            </div>
+        </div>
+        <div class="aiy-stat">
+            <div class="aiy-stat-ic cyan"><i class="bi bi-envelope-paper-fill"></i></div>
+            <div>
+                <div class="aiy-stat-val">{{ limits.msg_left }}<span style="font-size:.9rem;color:var(--aiy-text-3);font-weight:500">/{{ limits.msg_limit }}</span></div>
+                <div class="aiy-stat-lb">Bugungi xabar</div>
+            </div>
+        </div>
+        <div class="aiy-stat">
+            <div class="aiy-stat-ic pink"><i class="bi bi-images"></i></div>
+            <div>
+                <div class="aiy-stat-val">{{ limits.img_left }}<span style="font-size:.9rem;color:var(--aiy-text-3);font-weight:500">/{{ limits.img_limit }}</span></div>
+                <div class="aiy-stat-lb">Bugungi rasm</div>
+            </div>
+        </div>
+    </div>
+
+    {% if sessions %}
+    {# ===== SESSIONS ===== #}
+    <div class="aiy-section-head">
+        <h3 class="aiy-section-title">
+            <i class="bi bi-clock-history"></i> So'nggi suhbatlar
+        </h3>
+        <div class="aiy-search">
+            <i class="bi bi-search"></i>
+            <input type="text" id="aiySearch" placeholder="Suhbat qidirish...">
+        </div>
+    </div>
+
+    <div class="aiy-grid" id="aiyGrid">
+        {% for session in sessions %}
+        <div class="aiy-card" data-title="{{ session.title|lower }}">
+            <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="aiy-card-link">
+                <div class="aiy-card-avatar">
+                    <i class="bi bi-chat-dots-fill"></i>
+                </div>
+                <div class="aiy-card-body">
+                    <p class="aiy-card-title">{{ session.title }}</p>
+                    <div class="aiy-card-meta">
+                        <span><i class="bi bi-clock"></i> {{ session.updated_at|date:"d.m.Y H:i" }}</span>
+                        <span><i class="bi bi-chat-left-text"></i> {{ session.messages.count }} xabar</span>
                     </div>
                 </div>
             </a>
-            <div class="session-actions">
-                <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="btn-session primary">
+            <div class="aiy-card-actions">
+                <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="aiy-btn primary">
                     <i class="bi bi-arrow-right-circle"></i> Davom etish
                 </a>
                 <form action="{% url 'ai_yordamchi:delete_session' pk=session.pk %}"
@@ -751,7 +887,7 @@
                       onsubmit="return confirm('Bu suhbatni o\'chirmoqchimisiz?')"
                       style="display:inline">
                     {% csrf_token %}
-                    <button type="submit" class="btn-session danger">
+                    <button type="submit" class="aiy-btn danger" title="O'chirish">
                         <i class="bi bi-trash3"></i>
                     </button>
                 </form>
@@ -760,57 +896,90 @@
         {% endfor %}
     </div>
 
+    <div id="aiyNoResults" style="display:none;text-align:center;padding:2rem;color:var(--aiy-text-2);">
+        <i class="bi bi-search" style="font-size:2rem;opacity:.35"></i>
+        <p style="margin-top:.5rem">Hech qanday suhbat topilmadi</p>
+    </div>
+
     {% else %}
-    <!-- ===== EMPTY STATE ===== -->
-    <div class="empty-state">
-        <div class="empty-robot">
+    {# ===== EMPTY STATE ===== #}
+    <div class="aiy-empty">
+        <div class="aiy-empty-robot">
             <i class="bi bi-robot"></i>
         </div>
-        <h3 class="empty-title">AI Yordamchi bilan boshlang!</h3>
-        <p class="empty-desc">Dasturlash, matematika va boshqa mavzularda sun'iy intellekt yordamida o'rganing</p>
+        <h3>AI Yordamchi bilan boshlang!</h3>
+        <p>Dasturlash, matematika va boshqa mavzularda sun'iy intellekt yordamida o'rganing. Har qanday savolingizga aniq javob oling.</p>
 
-        <div class="suggestion-chips">
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
-                <i class="bi bi-code-slash"></i> Python o'rganish
-            </a>
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
-                <i class="bi bi-globe"></i> Django tutorial
-            </a>
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
-                <i class="bi bi-palette"></i> HTML/CSS
-            </a>
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
-                <i class="bi bi-lightbulb"></i> Algoritm yechish
-            </a>
-            <a href="{% url 'ai_yordamchi:new_session' %}" class="chip">
-                <i class="bi bi-database"></i> SQL asoslari
-            </a>
+        <div class="aiy-chips">
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-chip"><i class="bi bi-code-slash"></i> Python o'rganish</a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-chip"><i class="bi bi-globe"></i> Django tutorial</a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-chip"><i class="bi bi-palette"></i> HTML/CSS</a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-chip"><i class="bi bi-braces"></i> JavaScript</a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-chip"><i class="bi bi-lightbulb"></i> Algoritm yechish</a>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-chip"><i class="bi bi-database"></i> SQL asoslari</a>
         </div>
 
-        <a href="{% url 'ai_yordamchi:new_session' %}" class="btn-start">
-            <i class="bi bi-plus-circle"></i> Yangi suhbat boshlash
+        <a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-btn-start">
+            <i class="bi bi-plus-circle-fill"></i> Yangi suhbat boshlash
         </a>
     </div>
     {% endif %}
 
-    <!-- ===== LIMITS INFO ===== -->
-    <div class="info-bar" style="flex-wrap:wrap;gap:.75rem;">
-        <div style="flex:1;min-width:200px;">
-            <i class="bi bi-speedometer2"></i>
-            <strong>Kunlik limit:</strong>
-            {{ limits.msg_used }}/{{ limits.msg_limit }} xabar,
-            {{ limits.img_used }}/{{ limits.img_limit }} rasm
-            {% if limits.is_premium %}<span style="background:linear-gradient(135deg,#ff9500,#ff6b00);color:#fff;padding:1px 8px;border-radius:8px;font-size:.75rem;font-weight:600;margin-left:4px;">PREMIUM</span>{% endif %}
+    {# ===== INFO ===== #}
+    <div class="aiy-info">
+        <div class="aiy-info-card">
+            <div class="aiy-info-icon"><i class="bi bi-speedometer2"></i></div>
+            <div style="flex:1;min-width:0">
+                <div style="display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-bottom:.35rem">
+                    <strong>Kunlik limit</strong>
+                    {% if limits.is_premium %}<span class="aiy-premium-tag">Premium</span>{% endif %}
+                    <span style="margin-left:auto;font-size:.82rem;color:var(--aiy-text-2)">
+                        {{ limits.msg_used }}/{{ limits.msg_limit }} xabar &middot; {{ limits.img_used }}/{{ limits.img_limit }} rasm
+                    </span>
+                </div>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                    <div class="aiy-progress" title="Xabarlar">
+                        <div class="aiy-progress-bar" style="width: {% widthratio limits.msg_used limits.msg_limit 100 %}%"></div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="info-bar" style="margin-top:.5rem;">
-        <i class="bi bi-info-circle"></i>
-        <span><strong>Eslatma:</strong> Har bir xabar uchun 1 coin. Premium: 120 xabar + 5 rasm/kun. Oddiy: 60 xabar + 3 rasm/kun.</span>
+        <div class="aiy-info-card">
+            <div class="aiy-info-icon"><i class="bi bi-info-circle-fill"></i></div>
+            <div>
+                <strong>Eslatma:</strong> Har bir xabar uchun 1 coin sarflanadi.
+                Premium: 120 xabar + 5 rasm/kun. Oddiy: 60 xabar + 3 rasm/kun.
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- FAB -->
-<a href="{% url 'ai_yordamchi:new_session' %}" class="fab" title="Yangi suhbat">
+{# FAB #}
+<a href="{% url 'ai_yordamchi:new_session' %}" class="aiy-fab" title="Yangi suhbat">
     <i class="bi bi-plus-lg"></i>
 </a>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    var search = document.getElementById('aiySearch');
+    var grid = document.getElementById('aiyGrid');
+    var noRes = document.getElementById('aiyNoResults');
+    if (!search || !grid) return;
+
+    search.addEventListener('input', function() {
+        var q = this.value.trim().toLowerCase();
+        var cards = grid.querySelectorAll('.aiy-card');
+        var visible = 0;
+        cards.forEach(function(card) {
+            var title = card.dataset.title || '';
+            var match = !q || title.indexOf(q) !== -1;
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
+    });
+})();
+</script>
 {% endblock %}
