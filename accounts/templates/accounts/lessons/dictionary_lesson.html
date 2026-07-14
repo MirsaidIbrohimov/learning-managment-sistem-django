@@ -183,6 +183,9 @@
             <div class="dict-hero-icon"><i class="bi bi-book-fill"></i></div>
             <h1>{{ lesson.title }}</h1>
             <p>{{ profession.name }}</p>
+            {% with prompt="«"|add:lesson.title|add:"» lug'at mavzusidagi so'zlarni misollar bilan tushuntiring va yodlashga yordam bering." %}
+            <div style="margin:10px 0">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}</div>
+            {% endwith %}
             <div class="dict-hero-count">
                 <i class="bi bi-hash"></i> {{ words|length }} ta so'z
             </div>

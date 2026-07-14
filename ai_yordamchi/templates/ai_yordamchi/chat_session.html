@@ -27,7 +27,6 @@
     --cw-radius: 20px;
     --cw-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     --cw-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
-    --cw-offset: 0px; /* full-screen: navbar hidden; JS still fine-tunes height at runtime */
 }
 [data-bs-theme="dark"] {
     --cw-bg: #191a1e;
@@ -47,10 +46,10 @@
 
 body { background: var(--cw-bg) !important; font-family: var(--cw-font) !important; -webkit-font-smoothing: antialiased; }
 
-/* ===== FULL-SCREEN CHAT: hide global site chrome on this page only ===== */
-#mainNavbar { display: none !important; }
-.site-footer { display: none !important; }
-body { padding: 0 !important; overflow: hidden !important; }
+/* ===== FULL-SCREEN CHAT: take over the whole viewport on this page only ===== */
+#mainNavbar, .site-footer, #announcementBar { display: none !important; }
+html, body { overflow: hidden !important; }
+body { padding: 0 !important; }
 .main-container { margin: 0 !important; padding: 0 !important; }
 
 @keyframes cwRise { from { opacity:0; transform: translateY(8px) } to { opacity:1; transform: none } }
@@ -59,13 +58,15 @@ body { padding: 0 !important; overflow: hidden !important; }
 
 /* ===== LAYOUT ===== */
 .cw {
-    max-width: 800px;
+    position: fixed;
+    top: 0; right: 0; bottom: 0; left: 0;   /* fill viewport, self-center via max-width + auto margins */
+    max-width: 820px;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - var(--cw-offset));
-    max-height: calc(100dvh - var(--cw-offset));
-    position: relative;
+    height: 100dvh;            /* JS refines this for the mobile keyboard */
+    background: var(--cw-bg);
+    z-index: 1200;
     overflow: hidden;
 }
 
@@ -333,9 +334,48 @@ body { padding: 0 !important; overflow: hidden !important; }
 .cw-modal-btn.danger { color: var(--cw-danger); }
 .cw-modal .modal-footer > *:first-child .cw-modal-btn { border-right: 1px solid var(--cw-border); }
 
+/* ===== MESSAGE TOOLS (rating / read-aloud) ===== */
+.cw-msg-tools { display: flex; align-items: center; gap: 2px; margin-top: 6px; opacity: .75; transition: opacity .15s; }
+.cw-row.assistant:hover .cw-msg-tools { opacity: 1; }
+.cw-tool {
+    width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
+    color: var(--cw-text-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    font-size: .9rem; transition: background .15s, color .15s;
+}
+.cw-tool:hover { background: var(--cw-surface-2); color: var(--cw-text); }
+.cw-tool.up.on { color: #16a34a; }
+.cw-tool.down.on { color: var(--cw-danger); }
+.cw-tool.tts.speaking { color: var(--cw-accent); }
+
+/* ===== IN-CHAT SEARCH ===== */
+.cw-search {
+    display: none; align-items: center; gap: 6px; padding: 7px 12px;
+    border-bottom: 1px solid var(--cw-border); background: var(--cw-surface);
+}
+.cw-search.open { display: flex; }
+.cw-search > i { color: var(--cw-text-3); font-size: .9rem; }
+.cw-search input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--cw-text); font-family: var(--cw-font); font-size: .9rem; outline: none; }
+.cw-search-count { font-size: .74rem; color: var(--cw-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cw-search-nav { width: 28px; height: 28px; border-radius: 7px; border: none; background: transparent; color: var(--cw-text-2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: .82rem; }
+.cw-search-nav:hover { background: var(--cw-surface-2); color: var(--cw-text); }
+.cw-row.cw-dim { opacity: .35; }
+.cw-row.cw-hit-active .cw-bubble,
+.cw-row.cw-hit-active .cw-assistant-text { box-shadow: 0 0 0 2px var(--cw-accent); border-radius: 12px; }
+
+/* ===== MIC (voice input) ===== */
+.cw-attach.listening { color: var(--cw-danger); background: rgba(220,38,38,.1); }
+@keyframes cwPulseMic { 0%,100% { transform: scale(1) } 50% { transform: scale(1.15) } }
+.cw-attach.listening i { animation: cwPulseMic 1s ease-in-out infinite; }
+
+/* ===== IMAGE QUICK ACTIONS ===== */
+.cw-img-quick { display: none; flex-wrap: wrap; gap: 6px; max-width: 760px; margin: 0 auto 6px; }
+.cw-img-quick.active { display: flex; }
+.cw-img-quick span { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; background: var(--cw-surface); border: 1px solid var(--cw-border); color: var(--cw-text-2); padding: 5px 11px; border-radius: 50px; font-size: .78rem; font-weight: 600; transition: all .15s; }
+.cw-img-quick span:hover { border-color: var(--cw-accent); color: var(--cw-accent); }
+.cw-img-quick span i { font-size: .82rem; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
-    :root { --cw-offset: 0px; }
     .cw-msgs { padding: 14px 10px 20px; }
     .cw-row { margin-bottom: 15px; }
     .cw-body { max-width: calc(100% - 36px); }
@@ -367,8 +407,19 @@ body { padding: 0 !important; overflow: hidden !important; }
         </div>
         <div class="cw-head-actions">
             <span class="cw-coin" title="Sizdagi coin"><i class="bi bi-coin"></i> <span id="coinCount">{{ user_coins }}</span></span>
+            <button type="button" class="cw-iconbtn" id="searchToggle" title="Suhbatdan qidirish"><i class="bi bi-search"></i></button>
             <button type="button" class="cw-iconbtn" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tarixni tozalash"><i class="bi bi-trash3"></i></button>
         </div>
+    </div>
+
+    {# ===== IN-CHAT SEARCH ===== #}
+    <div class="cw-search" id="cwSearch">
+        <i class="bi bi-search"></i>
+        <input type="text" id="cwSearchInput" placeholder="Suhbatdan qidirish…" autocomplete="off">
+        <span class="cw-search-count" id="cwSearchCount"></span>
+        <button type="button" class="cw-search-nav" id="cwSearchPrev" title="Oldingi"><i class="bi bi-chevron-up"></i></button>
+        <button type="button" class="cw-search-nav" id="cwSearchNext" title="Keyingi"><i class="bi bi-chevron-down"></i></button>
+        <button type="button" class="cw-search-nav" id="cwSearchClose" title="Yopish"><i class="bi bi-x-lg"></i></button>
     </div>
 
     {# ===== LIMITS ===== #}
@@ -389,6 +440,11 @@ body { padding: 0 !important; overflow: hidden !important; }
                     {% if msg.role == 'assistant' %}
                         <div class="cw-assistant-text"><div class="markdown-body" id="md-{{ forloop.counter }}"></div></div>
                         <script type="text/plain" id="src-{{ forloop.counter }}">{{ msg.content|safe }}</script>
+                        <div class="cw-msg-tools" data-mid="{{ msg.pk }}">
+                            <button type="button" class="cw-tool tts" title="Ovozda o'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>
+                            <button type="button" class="cw-tool up{% if msg.rating == 1 %} on{% endif %}" title="Foydali" onclick="cwRate(this,1)"><i class="bi bi-hand-thumbs-up{% if msg.rating == 1 %}-fill{% endif %}"></i></button>
+                            <button type="button" class="cw-tool down{% if msg.rating == -1 %} on{% endif %}" title="Foydasiz" onclick="cwRate(this,-1)"><i class="bi bi-hand-thumbs-down{% if msg.rating == -1 %}-fill{% endif %}"></i></button>
+                        </div>
                     {% else %}
                         {% if msg.content %}<div class="cw-bubble">{{ msg.content }}</div>{% endif %}
                         {% if msg.image %}<img src="{{ msg.image.url }}" alt="Rasm" class="cw-img" onclick="window.open(this.src,'_blank')">{% endif %}
@@ -427,6 +483,11 @@ body { padding: 0 !important; overflow: hidden !important; }
             <span class="cw-chip" id="imgChip"><img id="imgThumb" alt=""><span class="nm" id="imgName">rasm</span><button type="button" class="rm" onclick="cwRemoveImage()"><i class="bi bi-x-circle-fill"></i></button></span>
             <span class="cw-chip" id="fileChip"><i class="bi bi-paperclip" id="fileIco"></i><span class="nm" id="fileName">fayl</span><button type="button" class="rm" onclick="cwRemoveFile()"><i class="bi bi-x-circle-fill"></i></button></span>
         </div>
+        <div class="cw-img-quick" id="imgQuick">
+            <span onclick="cwSet('Bu rasmdagi masalani yeching va bosqichma-bosqich tushuntiring')"><i class="bi bi-calculator"></i> Yeching</span>
+            <span onclick="cwSet('Bu rasmni batafsil tushuntiring')"><i class="bi bi-chat-text"></i> Tushuntiring</span>
+            <span onclick="cwSet('Rasmdagi kodni yozib bering va xatolarini tuzating')"><i class="bi bi-code-slash"></i> Kod</span>
+        </div>
         <div class="cw-input-wrap">
             <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="cw-form" id="chatForm">
                 {% csrf_token %}
@@ -439,7 +500,8 @@ body { padding: 0 !important; overflow: hidden !important; }
                         <i class="bi bi-paperclip"></i>
                         <input type="file" name="file" id="fileInput" onchange="cwPreviewFile(this)">
                     </label>
-                    <textarea name="content" class="cw-textarea" id="chatInput" placeholder="Xabar yozing…" rows="1"></textarea>
+                    <button type="button" class="cw-attach" id="micBtn" title="Ovozli kiritish"><i class="bi bi-mic"></i></button>
+                    <textarea name="content" class="cw-textarea" id="chatInput" placeholder="Xabar yozing…" rows="1">{{ prefill }}</textarea>
                 </div>
                 <button type="submit" class="cw-send" id="sendBtn" title="Yuborish"><i class="bi bi-arrow-up"></i></button>
             </form>
@@ -568,10 +630,10 @@ function cwScroll(force) {
    floating navbar, any theme, and on resize / mobile keyboard). */
 function cwFit() {
     if (!cwEl) return;
-    var top = cwEl.getBoundingClientRect().top;
-    var pb = parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
-    var vh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-    cwEl.style.height = Math.max(vh - top - pb, 300) + 'px';
+    var vv = window.visualViewport;
+    var vh = vv ? vv.height : window.innerHeight;
+    cwEl.style.height = vh + 'px';
+    cwEl.style.top = (vv && vv.offsetTop ? vv.offsetTop : 0) + 'px';  // stay above mobile keyboard
     cwScroll(false);
 }
 
@@ -680,9 +742,22 @@ function cwStreamRender(mdEl, raw) {
     });
 }
 
-function cwFinalize(mdEl, content) {
+function cwToolsHtml(mid) {
+    return '<div class="cw-msg-tools" data-mid="' + mid + '">'
+        + '<button type="button" class="cw-tool tts" title="Ovozda o\'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>'
+        + '<button type="button" class="cw-tool up" title="Foydali" onclick="cwRate(this,1)"><i class="bi bi-hand-thumbs-up"></i></button>'
+        + '<button type="button" class="cw-tool down" title="Foydasiz" onclick="cwRate(this,-1)"><i class="bi bi-hand-thumbs-down"></i></button>'
+        + '</div>';
+}
+
+function cwFinalize(mdEl, content, msgId) {
     var html = cwRenderMarkdown(content);
     if (html === null) { mdEl.textContent = content; } else { mdEl.innerHTML = html; cwEnhance(mdEl); }
+    var body = mdEl.closest('.cw-body');
+    if (msgId && body && !body.querySelector('.cw-msg-tools')) {
+        body.insertAdjacentHTML('beforeend', cwToolsHtml(msgId));
+        if (!cwTTSsupported()) { var t = body.querySelector('.cw-tool.tts'); if (t) t.style.display = 'none'; }
+    }
     cwScroll(false);
     setTimeout(function () { cwScroll(false); }, 60);  // settle after code-block layout
 }
@@ -707,6 +782,7 @@ async function cwStream(mdEl) {
         var decoder = new TextDecoder();
         var buf = '';
         var finalContent = null;
+        var finalMsgId = null;
         while (true) {
             var r = await reader.read();
             if (r.done) break;
@@ -724,11 +800,12 @@ async function cwStream(mdEl) {
                     cwStreamRender(mdEl, raw);
                 } else if (data.type === 'done') {
                     finalContent = (data.content != null) ? data.content : raw;
+                    finalMsgId = (data.message_id != null) ? data.message_id : null;
                 }
             }
         }
         if (!got && !finalContent) throw new Error('empty stream');
-        cwFinalize(mdEl, finalContent != null ? finalContent : raw);
+        cwFinalize(mdEl, finalContent != null ? finalContent : raw, finalMsgId);
     } catch (e) {
         cwStreamError(mdEl, raw, function (el) { cwSetBusy(true); cwStream(el).then(function(){ cwSetBusy(false); }); });
     }
@@ -786,6 +863,13 @@ if (textarea && form) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cwSend(); }
     });
     textarea.focus();
+    // Pre-filled composer (from an "AI'dan so'rash" button): size it and place the cursor at the end.
+    if (textarea.value.trim()) {
+        textarea.style.height = 'auto';
+        textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+        var _end = textarea.value.length;
+        try { textarea.setSelectionRange(_end, _end); } catch (e) {}
+    }
 }
 
 /* ============================================================
@@ -798,12 +882,14 @@ function cwPreviewImage(input) {
         document.getElementById('imgThumb').src = e.target.result;
         document.getElementById('imgName').textContent = input.files[0].name;
         document.getElementById('imgChip').classList.add('active');
+        var q = document.getElementById('imgQuick'); if (q) q.classList.add('active');
     };
     reader.readAsDataURL(input.files[0]);
 }
 function cwRemoveImage() {
     var i = document.getElementById('imageInput'); if (i) i.value = '';
     var c = document.getElementById('imgChip'); if (c) c.classList.remove('active');
+    var q = document.getElementById('imgQuick'); if (q) q.classList.remove('active');
 }
 function cwPreviewFile(input) {
     if (!input.files || !input.files[0]) return;
@@ -816,6 +902,7 @@ function cwPreviewFile(input) {
             document.getElementById('imgThumb').src = e.target.result;
             document.getElementById('imgName').textContent = f.name;
             document.getElementById('imgChip').classList.add('active');
+            var q = document.getElementById('imgQuick'); if (q) q.classList.add('active');
         };
         reader.readAsDataURL(f);
         return;
@@ -832,5 +919,131 @@ function cwRemoveFile() {
     var i = document.getElementById('fileInput'); if (i) i.value = '';
     var c = document.getElementById('fileChip'); if (c) c.classList.remove('active');
 }
+
+/* ============================================================
+   Rating (👍 / 👎)
+   ============================================================ */
+function cwRate(btn, value) {
+    var tools = btn.closest('.cw-msg-tools');
+    var mid = tools && tools.getAttribute('data-mid');
+    if (!mid) return;
+    var body = new URLSearchParams({ value: value, csrfmiddlewaretoken: cwCsrf() });
+    fetch('/ai/message/' + mid + '/rate/', {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString()
+    }).then(function (r) { return r.json(); }).then(function (d) {
+        var up = tools.querySelector('.up'), down = tools.querySelector('.down');
+        if (up) { up.classList.toggle('on', d.rating === 1); up.querySelector('i').className = 'bi bi-hand-thumbs-up' + (d.rating === 1 ? '-fill' : ''); }
+        if (down) { down.classList.toggle('on', d.rating === -1); down.querySelector('i').className = 'bi bi-hand-thumbs-down' + (d.rating === -1 ? '-fill' : ''); }
+    }).catch(function () {});
+}
+
+/* ============================================================
+   Read aloud (TTS)
+   ============================================================ */
+function cwTTSsupported() { return 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined'; }
+var cwSpeakingBtn = null;
+function cwSpeak(btn) {
+    if (!cwTTSsupported()) return;
+    var synth = window.speechSynthesis;
+    var wasSame = (cwSpeakingBtn === btn);
+    if (cwSpeakingBtn) {
+        var pi = cwSpeakingBtn.querySelector('i'); if (pi) pi.className = 'bi bi-volume-up';
+        cwSpeakingBtn.classList.remove('speaking');
+    }
+    synth.cancel();
+    cwSpeakingBtn = null;
+    if (wasSame) return;  // second click = stop
+    var body = btn.closest('.cw-body');
+    var md = body && body.querySelector('.markdown-body');
+    var text = md ? (md.textContent || '').replace(/\s+/g, ' ').trim() : '';
+    if (!text) return;
+    var u = new SpeechSynthesisUtterance(text);
+    u.lang = 'uz-UZ'; u.rate = 1; u.pitch = 1;
+    var icon = btn.querySelector('i');
+    u.onend = u.onerror = function () { btn.classList.remove('speaking'); if (icon) icon.className = 'bi bi-volume-up'; cwSpeakingBtn = null; };
+    cwSpeakingBtn = btn; btn.classList.add('speaking'); if (icon) icon.className = 'bi bi-stop-fill';
+    synth.speak(u);
+}
+if (!cwTTSsupported()) {
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.cw-tool.tts').forEach(function (t) { t.style.display = 'none'; });
+    });
+}
+window.addEventListener('beforeunload', function () { if (window.speechSynthesis) window.speechSynthesis.cancel(); });
+
+/* ============================================================
+   Voice input (STT)
+   ============================================================ */
+(function () {
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var micBtn = document.getElementById('micBtn');
+    if (!micBtn) return;
+    if (!SR || !textarea) { micBtn.style.display = 'none'; return; }
+    var rec = new SR();
+    rec.lang = 'uz-UZ'; rec.interimResults = true; rec.continuous = false;
+    var listening = false, baseText = '';
+    var icon = micBtn.querySelector('i');
+    micBtn.addEventListener('click', function () {
+        if (listening) { rec.stop(); return; }
+        baseText = textarea.value ? textarea.value.replace(/\s*$/, '') + ' ' : '';
+        try { rec.start(); } catch (e) {}
+    });
+    rec.onstart = function () { listening = true; micBtn.classList.add('listening'); if (icon) icon.className = 'bi bi-mic-fill'; };
+    function stopUi() { listening = false; micBtn.classList.remove('listening'); if (icon) icon.className = 'bi bi-mic'; }
+    rec.onend = stopUi; rec.onerror = stopUi;
+    rec.onresult = function (e) {
+        var t = '';
+        for (var i = 0; i < e.results.length; i++) { t += e.results[i][0].transcript; }
+        textarea.value = baseText + t;
+        textarea.dispatchEvent(new Event('input'));
+    };
+})();
+
+/* ============================================================
+   In-chat search
+   ============================================================ */
+(function () {
+    var toggle = document.getElementById('searchToggle');
+    var bar = document.getElementById('cwSearch');
+    var input = document.getElementById('cwSearchInput');
+    var countEl = document.getElementById('cwSearchCount');
+    if (!toggle || !bar || !input) return;
+    var matches = [], idx = -1;
+    function clearMarks() {
+        document.querySelectorAll('.cw-row').forEach(function (r) { r.classList.remove('cw-dim', 'cw-hit-active'); });
+        matches = []; idx = -1; if (countEl) countEl.textContent = '';
+    }
+    function run() {
+        var q = input.value.trim().toLowerCase();
+        matches = [];
+        document.querySelectorAll('.cw-row').forEach(function (r) { r.classList.remove('cw-dim', 'cw-hit-active'); });
+        if (!q) { if (countEl) countEl.textContent = ''; return; }
+        document.querySelectorAll('.cw-row').forEach(function (r) {
+            if ((r.textContent || '').toLowerCase().indexOf(q) !== -1) { matches.push(r); }
+            else { r.classList.add('cw-dim'); }
+        });
+        idx = matches.length ? 0 : -1;
+        focusMatch();
+    }
+    function focusMatch() {
+        if (countEl) countEl.textContent = matches.length ? ((idx + 1) + '/' + matches.length) : '0';
+        matches.forEach(function (m, i) { m.classList.toggle('cw-hit-active', i === idx); });
+        if (idx >= 0 && matches[idx]) matches[idx].scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    function nav(d) { if (!matches.length) return; idx = (idx + d + matches.length) % matches.length; focusMatch(); }
+    function openBar() { bar.classList.add('open'); input.focus(); }
+    function closeBar() { bar.classList.remove('open'); input.value = ''; clearMarks(); }
+    toggle.addEventListener('click', function () { bar.classList.contains('open') ? closeBar() : openBar(); });
+    input.addEventListener('input', run);
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); nav(e.shiftKey ? -1 : 1); }
+        else if (e.key === 'Escape') { closeBar(); }
+    });
+    document.getElementById('cwSearchPrev').addEventListener('click', function () { nav(-1); });
+    document.getElementById('cwSearchNext').addEventListener('click', function () { nav(1); });
+    document.getElementById('cwSearchClose').addEventListener('click', closeBar);
+})();
 </script>
 {% endblock %}

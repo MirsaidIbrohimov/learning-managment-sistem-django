@@ -1,0 +1,17 @@
+{% comment %}
+Reusable "AI'dan so'rash" button.
+Usage:
+  {% with prompt="«"|add:lesson.title|add:"» mavzusini sodda tilda tushuntiring" %}
+    {% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}
+  {% endwith %}
+Optional: label (button text), block=1 (full-width).
+{% endcomment %}
+<a href="{% url 'ai_yordamchi:new_session' %}?q={{ prompt|urlencode }}" class="ask-ai-btn{% if block %} ask-ai-block{% endif %}" title="AI yordamchidan so'rash">
+    <i class="bi bi-stars"></i><span>{{ label|default:"AI'dan so'rash" }}</span>
+</a>
+<style>
+.ask-ai-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:600;font-size:.85rem;padding:.55rem 1.1rem;border-radius:50px;text-decoration:none;border:none;box-shadow:0 4px 14px rgba(99,102,241,.3);transition:transform .15s,box-shadow .15s;line-height:1;white-space:nowrap}
+.ask-ai-btn:hover{transform:translateY(-1px);color:#fff;box-shadow:0 7px 20px rgba(99,102,241,.45)}
+.ask-ai-btn.ask-ai-block{width:100%}
+.ask-ai-btn i{font-size:.95rem}
+</style>

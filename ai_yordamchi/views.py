@@ -5,12 +5,15 @@ from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.urls import reverse
 from django.utils import timezone
+from urllib.parse import urlencode
 import base64
 import json
 import re
 
-from .models import ChatSession, ChatMessage
+from .models import ChatSession, ChatMessage, ChatFolder
 from coin.models import CoinTransaction, ActivityLog
 
 # ============================================================
@@ -203,7 +206,34 @@ def _build_history(session):
         elif user_text.strip():
             history.append({"role": "user", "content": user_text})
 
+    _inject_rag_context(history, messages_list)
     return history
+
+
+def _inject_rag_context(history, messages_list):
+    """Ground the answer in course material when relevant (best-effort, never fatal).
+
+    No-ops when the knowledge base is empty or embeddings are unavailable, so the
+    chat keeps working even before `build_ai_knowledge` has been run.
+    """
+    try:
+        last_user = ''
+        for msg in reversed(messages_list):
+            if msg.role == 'user' and msg.content:
+                last_user = msg.content
+                break
+        if not last_user:
+            return
+        from . import rag
+        context = rag.build_context(rag.retrieve(last_user))
+        if context:
+            history.insert(1, {"role": "system", "content": (
+                "Quyida platformadagi kurs materiallaridan tegishli parchalar berilgan. "
+                "Agar savol shularga aloqador bo'lsa, javobni aynan shu materiallarga "
+                "tayangan holda bering (kerak bo'lsa dars nomini eslating). Aloqador "
+                "bo'lmasa, umumiy bilimingizdan foydalaning.\n\nKURS MATERIALLARI:\n" + context)})
+    except Exception as e:
+        print(f"RAG augment error: {e}")
 
 
 def _complete_sync(session):
@@ -229,23 +259,49 @@ def _sse(payload):
     return "data: " + json.dumps(payload, ensure_ascii=False) + "\n\n"
 
 
+def _is_ajax(request):
+    """True for fetch/XHR requests (used to choose JSON vs redirect responses)."""
+    return request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+
 # ============================================================
 #  PAGES
 # ============================================================
 @login_required
 def chat_home(request):
-    """List the user's chat sessions."""
-    sessions = ChatSession.objects.filter(user=request.user, is_active=True)
+    """List the user's chat sessions, optionally filtered by folder/pinned."""
+    active = request.GET.get('folder', 'all')
+    sessions = ChatSession.objects.filter(user=request.user, is_active=True).select_related('folder')
+
+    if active == 'pinned':
+        sessions = sessions.filter(is_pinned=True)
+    elif active.isdigit():
+        sessions = sessions.filter(folder_id=active)
+
+    folders = (ChatFolder.objects.filter(user=request.user)
+               .annotate(session_count=Count('sessions', filter=Q(sessions__is_active=True))))
+
     return render(request, 'ai_yordamchi/chat_home.html', {
         'sessions': sessions,
+        'folders': folders,
+        'active_folder': active,
+        'pinned_count': ChatSession.objects.filter(user=request.user, is_active=True, is_pinned=True).count(),
         'limits': get_user_limits(request.user),
     })
 
 
 @login_required
 def new_session(request):
-    """Create a new chat session and open it."""
+    """Create a new chat session and open it.
+
+    An optional ``?q=`` query param (e.g. from an "AI'dan so'rash" button on a
+    lesson/quiz page) pre-fills the composer so the student can review and send.
+    """
     session = ChatSession.objects.create(user=request.user)
+    q = request.GET.get('q', '').strip()
+    if q:
+        url = reverse('ai_yordamchi:chat_session', args=[session.pk])
+        return redirect(f"{url}?{urlencode({'prefill': q[:1500]})}")
     return redirect('ai_yordamchi:chat_session', pk=session.pk)
 
 
@@ -258,6 +314,7 @@ def chat_session(request, pk):
         'chat_messages': session.messages.all(),
         'user_coins': request.user.coins,
         'limits': get_user_limits(request.user),
+        'prefill': request.GET.get('prefill', ''),
     })
 
 
@@ -437,7 +494,107 @@ def delete_session(request, pk):
     """Delete a chat session."""
     session = get_object_or_404(ChatSession, pk=pk, user=request.user)
     session.delete()
+    if _is_ajax(request):
+        return JsonResponse({'success': True})
     messages.success(request, "Suhbat o'chirildi.")
+    return redirect('ai_yordamchi:chat_home')
+
+
+# ============================================================
+#  MESSAGE RATING
+# ============================================================
+@login_required
+@require_POST
+def rate_message(request, pk):
+    """Set 👍 (1) / 👎 (-1) on an assistant message; same value toggles it off."""
+    msg = get_object_or_404(ChatMessage, pk=pk, session__user=request.user, role='assistant')
+    try:
+        value = int(request.POST.get('value', 0))
+    except (TypeError, ValueError):
+        value = 0
+    msg.rating = None if value == msg.rating or value not in (1, -1) else value
+    msg.save(update_fields=['rating'])
+    return JsonResponse({'success': True, 'rating': msg.rating})
+
+
+# ============================================================
+#  SESSION ORGANIZE (rename / pin / move)
+# ============================================================
+@login_required
+@require_POST
+def rename_session(request, pk):
+    """Rename a chat session."""
+    session = get_object_or_404(ChatSession, pk=pk, user=request.user)
+    title = request.POST.get('title', '').strip()
+    if not title:
+        return JsonResponse({'error': "Nom bo'sh bo'lishi mumkin emas."}, status=400)
+    session.title = title[:200]
+    session.save(update_fields=['title'])
+    if _is_ajax(request):
+        return JsonResponse({'success': True, 'title': session.title})
+    return redirect('ai_yordamchi:chat_home')
+
+
+@login_required
+@require_POST
+def toggle_pin(request, pk):
+    """Pin / unpin a session (pinned sessions sort first)."""
+    session = get_object_or_404(ChatSession, pk=pk, user=request.user)
+    session.is_pinned = not session.is_pinned
+    session.save(update_fields=['is_pinned'])
+    return JsonResponse({'success': True, 'is_pinned': session.is_pinned})
+
+
+@login_required
+@require_POST
+def move_session(request, pk):
+    """Move a session into a folder (empty folder_id removes it from any folder)."""
+    session = get_object_or_404(ChatSession, pk=pk, user=request.user)
+    folder_id = request.POST.get('folder_id', '').strip()
+    if folder_id:
+        session.folder = get_object_or_404(ChatFolder, pk=folder_id, user=request.user)
+    else:
+        session.folder = None
+    session.save(update_fields=['folder'])
+    return JsonResponse({'success': True, 'folder_id': session.folder_id})
+
+
+# ============================================================
+#  FOLDERS
+# ============================================================
+@login_required
+@require_POST
+def create_folder(request):
+    """Create a new folder."""
+    name = request.POST.get('name', '').strip()
+    if not name:
+        return JsonResponse({'error': "Papka nomi bo'sh bo'lishi mumkin emas."}, status=400)
+    color = (request.POST.get('color', '') or '#6366f1').strip()
+    folder = ChatFolder.objects.create(user=request.user, name=name[:100], color=color[:20])
+    return JsonResponse({'success': True, 'id': folder.pk, 'name': folder.name, 'color': folder.color})
+
+
+@login_required
+@require_POST
+def rename_folder(request, pk):
+    """Rename a folder."""
+    folder = get_object_or_404(ChatFolder, pk=pk, user=request.user)
+    name = request.POST.get('name', '').strip()
+    if not name:
+        return JsonResponse({'error': "Papka nomi bo'sh bo'lishi mumkin emas."}, status=400)
+    folder.name = name[:100]
+    folder.save(update_fields=['name'])
+    return JsonResponse({'success': True, 'id': folder.pk, 'name': folder.name})
+
+
+@login_required
+@require_POST
+def delete_folder(request, pk):
+    """Delete a folder (its sessions are kept, just un-foldered)."""
+    folder = get_object_or_404(ChatFolder, pk=pk, user=request.user)
+    folder.delete()
+    if _is_ajax(request):
+        return JsonResponse({'success': True})
     return redirect('ai_yordamchi:chat_home')
 
 

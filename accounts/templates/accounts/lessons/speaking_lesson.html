@@ -234,6 +234,9 @@
             </div>
             <h1>{{ lesson.title }}</h1>
             <div class="subtitle">{{ lesson.profession.name }}</div>
+            {% with prompt="«"|add:lesson.title|add:"» mavzusida gapirishni mashq qilmoqchiman. Foydali iboralar, savollar va gapirish uchun maslahatlar bering." %}
+            <div style="margin-top:12px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}</div>
+            {% endwith %}
         </div>
 
         <!-- Task Info -->

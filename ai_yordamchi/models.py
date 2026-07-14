@@ -2,18 +2,36 @@ from django.db import models
 from django.conf import settings
 
 
+class ChatFolder(models.Model):
+    """User-defined folder to organize chat sessions."""
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chat_folders')
+    name = models.CharField(max_length=100, verbose_name="Nomi")
+    color = models.CharField(max_length=20, default='#6366f1')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = "Papka"
+        verbose_name_plural = "Papkalar"
+
+    def __str__(self):
+        return f"{self.user_id} · {self.name}"
+
+
 class ChatSession(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='chat_sessions')
     title = models.CharField(max_length=200, default="Yangi suhbat")
+    folder = models.ForeignKey(ChatFolder, on_delete=models.SET_NULL, null=True, blank=True, related_name='sessions')
+    is_pinned = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_active = models.BooleanField(default=True)
-    
+
     class Meta:
-        ordering = ['-updated_at']
+        ordering = ['-is_pinned', '-updated_at']
         verbose_name = "Suhbat"
         verbose_name_plural = "Suhbatlar"
-    
+
     def __str__(self):
         return f"{self.user.full_name} - {self.title}"
 
@@ -31,6 +49,7 @@ class ChatMessage(models.Model):
     file = models.FileField(upload_to='chat_files/', blank=True, null=True)
     file_name = models.CharField(max_length=255, blank=True, default='')
     coins_spent = models.IntegerField(default=0)
+    rating = models.SmallIntegerField(null=True, blank=True, help_text="1 = foydali, -1 = foydasiz")
     created_at = models.DateTimeField(auto_now_add=True)
 
     @property
@@ -70,3 +89,25 @@ class ChatMessage(models.Model):
     
     def __str__(self):
         return f"{self.role}: {self.content[:50]}"
+
+
+class KnowledgeChunk(models.Model):
+    """A chunk of course material (lesson text) + its embedding, for RAG.
+
+    Populated by the `build_ai_knowledge` management command. The AI chat
+    retrieves the most relevant chunks and grounds its answer in them.
+    """
+    profession_id = models.IntegerField(null=True, blank=True, db_index=True)
+    source_type = models.CharField(max_length=30, default='lesson')
+    source_id = models.IntegerField(null=True, blank=True)
+    title = models.CharField(max_length=300, blank=True, default='')
+    content = models.TextField()
+    embedding = models.TextField(blank=True, default='')  # JSON array of floats
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Bilim bo'lagi"
+        verbose_name_plural = "Bilim bazasi"
+
+    def __str__(self):
+        return f"{self.source_type}#{self.source_id} · {self.title[:40]}"

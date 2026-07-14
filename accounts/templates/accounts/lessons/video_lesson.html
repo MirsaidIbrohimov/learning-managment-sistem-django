@@ -821,6 +821,9 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
             <!-- Title + tags -->
             <div class="vl-card vl-header" style="margin-bottom:12px;">
                 <h1 class="vl-title">{{ lesson.title }}</h1>
+                {% with prompt="«"|add:lesson.title|add:"» mavzusini menga sodda tilda, misollar bilan tushuntiring." %}
+                <div style="margin:10px 0 2px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}</div>
+                {% endwith %}
                 <div class="vl-tags">
                     {% if video.is_youtube %}
                     <span class="vl-tag vl-tag-yt"><i class="bi bi-youtube"></i> YouTube</span>

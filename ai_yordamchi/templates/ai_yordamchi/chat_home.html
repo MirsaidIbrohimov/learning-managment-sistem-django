@@ -20,6 +20,7 @@
     --ah-accent: #4f46e5;
     --ah-accent-soft: rgba(79,70,229,.10);
     --ah-danger: #dc2626;
+    --ah-warn: #eab308;
     --ah-dark: #16161c;
     --ah-radius: 16px;
     --ah-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -41,13 +42,13 @@ body { background: var(--ah-bg) !important; }
 @keyframes ahRise { from { opacity:0; transform: translateY(10px) } to { opacity:1; transform: none } }
 
 .ah-page {
-    max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem 5rem;
+    max-width: 880px; margin: 0 auto; padding: 1.5rem 1rem 5rem;
     font-family: var(--ah-font); color: var(--ah-text);
     animation: ahRise .3s ease both;
 }
 
 /* ===== HEADER ===== */
-.ah-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.ah-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
 .ah-head-l { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .ah-logo {
     width: 46px; height: 46px; border-radius: 13px; flex-shrink: 0;
@@ -56,25 +57,51 @@ body { background: var(--ah-bg) !important; }
 }
 .ah-h1 { font-size: 1.4rem; font-weight: 800; margin: 0; letter-spacing: -.02em; line-height: 1.1; }
 .ah-h1-sub { font-size: .84rem; color: var(--ah-text-2); margin-top: 2px; }
-.ah-newbtn {
+.ah-head-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.ah-btn {
     display: inline-flex; align-items: center; gap: 7px;
-    background: var(--ah-dark); color: var(--ah-bg);
-    font-weight: 600; font-size: .88rem; padding: .6rem 1.15rem;
-    border-radius: 50px; text-decoration: none; border: none; white-space: nowrap;
-    transition: transform .12s, opacity .15s;
+    font-weight: 600; font-size: .86rem; padding: .58rem 1.1rem;
+    border-radius: 50px; text-decoration: none; border: 1px solid var(--ah-border);
+    background: var(--ah-surface); color: var(--ah-text); cursor: pointer; white-space: nowrap;
+    transition: transform .12s, border-color .15s, background .15s, opacity .15s;
 }
-.ah-newbtn:hover { transform: translateY(-1px); color: var(--ah-bg); opacity: .9; }
+.ah-btn:hover { transform: translateY(-1px); border-color: var(--ah-accent); color: var(--ah-accent); }
+.ah-btn.primary { background: var(--ah-dark); color: var(--ah-bg); border-color: transparent; }
+.ah-btn.primary:hover { color: var(--ah-bg); opacity: .9; }
 
 /* ===== STATS ===== */
-.ah-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin-bottom: 1.75rem; }
-.ah-stat {
-    background: var(--ah-surface); border: 1px solid var(--ah-border);
-    border-radius: 14px; padding: .9rem 1rem;
-}
+.ah-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; margin-bottom: 1.4rem; }
+.ah-stat { background: var(--ah-surface); border: 1px solid var(--ah-border); border-radius: 14px; padding: .9rem 1rem; }
 .ah-stat-v { font-size: 1.3rem; font-weight: 800; color: var(--ah-text); line-height: 1; }
 .ah-stat-v small { font-size: .82rem; color: var(--ah-text-3); font-weight: 600; }
 .ah-stat-l { font-size: .74rem; color: var(--ah-text-2); margin-top: .35rem; display: inline-flex; align-items: center; gap: 5px; }
 .ah-stat-l i { color: var(--ah-text-3); }
+
+/* ===== FOLDER FILTER BAR ===== */
+.ah-folders { display: flex; align-items: center; gap: .5rem; overflow-x: auto; padding: 2px 0 8px; margin-bottom: .4rem; scrollbar-width: none; }
+.ah-folders::-webkit-scrollbar { display: none; }
+.ah-fchip {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    background: var(--ah-surface); border: 1px solid var(--ah-border);
+    padding: .45rem .85rem; border-radius: 50px; font-size: .83rem; font-weight: 600;
+    color: var(--ah-text-2); text-decoration: none; cursor: pointer; transition: all .15s; flex-shrink: 0;
+}
+.ah-fchip:hover { border-color: var(--ah-accent); color: var(--ah-accent); }
+.ah-fchip.active { background: var(--ah-accent); border-color: var(--ah-accent); color: #fff; }
+.ah-fchip .cnt { font-size: .72rem; opacity: .75; font-weight: 700; }
+.ah-fchip .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+.ah-fchip.newf { border-style: dashed; color: var(--ah-text-3); }
+.ah-fchip.newf:hover { color: var(--ah-accent); border-color: var(--ah-accent); }
+
+.ah-folder-tools { display: flex; align-items: center; gap: .4rem; margin-bottom: .9rem; }
+.ah-folder-tools .lbl { font-size: .78rem; color: var(--ah-text-3); margin-right: auto; }
+.ah-mini {
+    display: inline-flex; align-items: center; gap: 5px; font-size: .76rem; font-weight: 600;
+    background: var(--ah-surface); border: 1px solid var(--ah-border); color: var(--ah-text-2);
+    padding: .35rem .7rem; border-radius: 50px; cursor: pointer; transition: all .15s;
+}
+.ah-mini:hover { border-color: var(--ah-accent); color: var(--ah-accent); }
+.ah-mini.danger:hover { border-color: var(--ah-danger); color: var(--ah-danger); }
 
 /* ===== SECTION ===== */
 .ah-sec { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: .9rem; flex-wrap: wrap; }
@@ -94,38 +121,53 @@ body { background: var(--ah-bg) !important; }
 .ah-item {
     display: flex; align-items: center; gap: .85rem;
     background: var(--ah-surface); border: 1px solid var(--ah-border);
-    border-radius: 14px; padding: .85rem 1rem; transition: border-color .15s, background .15s;
-    animation: ahRise .3s ease both;
+    border-radius: 14px; padding: .8rem 1rem; transition: border-color .15s;
+    animation: ahRise .3s ease both; position: relative;
 }
 .ah-item:hover { border-color: var(--ah-accent); }
+.ah-item.pinned { border-left: 3px solid var(--ah-accent); }
 .ah-item-ic {
     width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0;
     background: var(--ah-surface-2); color: var(--ah-text-2);
-    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; position: relative;
 }
 .ah-item-link { flex: 1; min-width: 0; text-decoration: none; color: inherit; }
-.ah-item-title { font-weight: 600; font-size: .94rem; color: var(--ah-text); margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ah-item-title { font-weight: 600; font-size: .94rem; color: var(--ah-text); margin: 0 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+.ah-item-title .pin-ic { color: var(--ah-accent); font-size: .82rem; }
+.ah-item-title .fbadge { font-size: .66rem; font-weight: 700; padding: 1px 7px; border-radius: 50px; color: #fff; }
 .ah-item-meta { display: flex; align-items: center; gap: .8rem; font-size: .76rem; color: var(--ah-text-2); flex-wrap: wrap; }
 .ah-item-meta span { display: inline-flex; align-items: center; gap: 4px; }
 .ah-item-meta i { font-size: .8rem; color: var(--ah-text-3); }
-.ah-item-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.ah-item-actions { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .ah-act {
-    width: 36px; height: 36px; border-radius: 10px; border: 1px solid transparent;
+    width: 34px; height: 34px; border-radius: 9px; border: 1px solid transparent;
     background: transparent; color: var(--ah-text-2); cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center; font-size: .95rem;
     text-decoration: none; transition: all .15s;
 }
-.ah-act.open:hover { background: var(--ah-accent-soft); color: var(--ah-accent); }
-.ah-act.del:hover { background: rgba(220,38,38,.1); color: var(--ah-danger); }
+.ah-act:hover { background: var(--ah-surface-2); color: var(--ah-accent); }
+.ah-act.pinned { color: var(--ah-accent); }
+
+/* dropdown */
+.ah-menu {
+    min-width: 190px; background: var(--ah-surface); border: 1px solid var(--ah-border);
+    border-radius: 12px; padding: 6px; box-shadow: 0 12px 30px rgba(0,0,0,.14);
+}
+.ah-menu .dropdown-item {
+    display: flex; align-items: center; gap: 9px; border-radius: 8px;
+    font-size: .85rem; padding: .5rem .7rem; color: var(--ah-text); cursor: pointer;
+}
+.ah-menu .dropdown-item:hover { background: var(--ah-surface-2); color: var(--ah-text); }
+.ah-menu .dropdown-item i { color: var(--ah-text-3); width: 16px; }
+.ah-menu .dropdown-item.danger { color: var(--ah-danger); }
+.ah-menu .dropdown-item.danger i { color: var(--ah-danger); }
+.ah-menu hr { margin: 5px 4px; border-color: var(--ah-border); opacity: 1; }
 
 .ah-noresult { text-align: center; padding: 2rem; color: var(--ah-text-2); display: none; }
 .ah-noresult i { font-size: 1.8rem; opacity: .35; }
 
 /* ===== EMPTY ===== */
-.ah-empty {
-    text-align: center; padding: 3.5rem 1.5rem;
-    background: var(--ah-surface); border: 1px solid var(--ah-border); border-radius: 20px;
-}
+.ah-empty { text-align: center; padding: 3.5rem 1.5rem; background: var(--ah-surface); border: 1px solid var(--ah-border); border-radius: 20px; }
 .ah-empty-ic { width: 68px; height: 68px; border-radius: 20px; background: var(--ah-dark); color: var(--ah-bg); display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 1.3rem; }
 .ah-empty h3 { font-size: 1.35rem; font-weight: 800; margin-bottom: .5rem; letter-spacing: -.02em; }
 .ah-empty p { color: var(--ah-text-2); font-size: .92rem; max-width: 400px; margin: 0 auto 1.6rem; line-height: 1.55; }
@@ -133,7 +175,6 @@ body { background: var(--ah-bg) !important; }
 .ah-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--ah-surface-2); border: 1px solid var(--ah-border); padding: .5rem 1rem; border-radius: 50px; font-size: .84rem; font-weight: 500; color: var(--ah-text); text-decoration: none; transition: all .15s; }
 .ah-chip:hover { border-color: var(--ah-accent); color: var(--ah-accent); }
 .ah-chip i { color: var(--ah-text-3); }
-.ah-chip:hover i { color: var(--ah-accent); }
 .ah-start { display: inline-flex; align-items: center; gap: 8px; background: var(--ah-dark); color: var(--ah-bg); padding: .8rem 1.8rem; border-radius: 50px; font-weight: 700; font-size: .95rem; text-decoration: none; transition: transform .12s, opacity .15s; }
 .ah-start:hover { transform: translateY(-1px); color: var(--ah-bg); opacity: .9; }
 
@@ -149,18 +190,43 @@ body { background: var(--ah-bg) !important; }
 .ah-note { display: flex; align-items: flex-start; gap: .7rem; font-size: .84rem; color: var(--ah-text-2); line-height: 1.5; }
 .ah-note i { color: var(--ah-text-3); margin-top: 2px; }
 
+/* ===== MODAL ===== */
+.ah-modal .modal-content { background: var(--ah-bg); border: 1px solid var(--ah-border); border-radius: 18px; overflow: hidden; color: var(--ah-text); }
+.ah-modal .modal-header { border-bottom: 1px solid var(--ah-border); padding: 16px 20px; }
+.ah-modal .modal-title { font-weight: 700; font-size: 1rem; }
+.ah-modal .btn-close { filter: var(--ah-close-filter, none); }
+[data-bs-theme="dark"] .ah-modal .btn-close { filter: invert(1) grayscale(1); }
+.ah-modal .modal-body { padding: 18px 20px; }
+.ah-modal label { font-size: .82rem; color: var(--ah-text-2); font-weight: 600; margin-bottom: 6px; display: block; }
+.ah-input {
+    width: 100%; background: var(--ah-surface-2); border: 1px solid var(--ah-border);
+    color: var(--ah-text); border-radius: 10px; padding: .6rem .85rem; font-size: .9rem; outline: none;
+    transition: border-color .15s, box-shadow .15s; font-family: var(--ah-font);
+}
+.ah-input:focus { border-color: var(--ah-accent); box-shadow: 0 0 0 3px var(--ah-accent-soft); }
+.ah-modal .modal-footer { border-top: 1px solid var(--ah-border); padding: 12px 20px; }
+.ah-mbtn { border: none; border-radius: 10px; padding: .55rem 1.2rem; font-size: .88rem; font-weight: 600; cursor: pointer; font-family: var(--ah-font); }
+.ah-mbtn.ghost { background: var(--ah-surface-2); color: var(--ah-text-2); }
+.ah-mbtn.solid { background: var(--ah-dark); color: var(--ah-bg); }
+.ah-radio-list { display: flex; flex-direction: column; gap: 6px; max-height: 260px; overflow-y: auto; }
+.ah-radio { display: flex; align-items: center; gap: 10px; padding: .55rem .7rem; border: 1px solid var(--ah-border); border-radius: 10px; cursor: pointer; font-size: .88rem; transition: border-color .15s; }
+.ah-radio:hover { border-color: var(--ah-accent); }
+.ah-radio input { accent-color: var(--ah-accent); }
+.ah-radio .swatch { width: 12px; height: 12px; border-radius: 50%; }
+.ah-err { color: var(--ah-danger); font-size: .8rem; margin-top: 8px; min-height: 1em; }
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 640px) {
     .ah-page { padding: 1.1rem .85rem 4.5rem; }
-    .ah-head { align-items: center; }
-    .ah-newbtn { padding: .55rem 1rem; font-size: .84rem; }
     .ah-stats { grid-template-columns: repeat(2, 1fr); }
     .ah-h1 { font-size: 1.25rem; }
     .ah-search { flex: 1 1 100%; }
     .ah-empty { padding: 2.75rem 1.25rem; }
+    .ah-btn span.lbl { display: none; }
+    .ah-btn { padding: .55rem .8rem; }
 }
 @media (max-width: 380px) {
-    .ah-item { padding: .75rem .8rem; gap: .65rem; }
+    .ah-item { padding: .7rem .75rem; gap: .6rem; }
     .ah-item-ic { width: 36px; height: 36px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
@@ -178,28 +244,42 @@ body { background: var(--ah-bg) !important; }
                 <div class="ah-h1-sub">Sun'iy intellekt yordamida o'rganing</div>
             </div>
         </div>
-        <a href="{% url 'ai_yordamchi:new_session' %}" class="ah-newbtn"><i class="bi bi-plus-lg"></i> Yangi suhbat</a>
+        <div class="ah-head-actions">
+            <button type="button" class="ah-btn" data-bs-toggle="modal" data-bs-target="#folderModal">
+                <i class="bi bi-folder-plus"></i> <span class="lbl">Yangi papka</span>
+            </button>
+            <a href="{% url 'ai_yordamchi:new_session' %}" class="ah-btn primary"><i class="bi bi-plus-lg"></i> <span class="lbl">Yangi suhbat</span></a>
+        </div>
     </div>
 
     {# ===== STATS ===== #}
     <div class="ah-stats">
-        <div class="ah-stat">
-            <div class="ah-stat-v">{{ sessions|length }}</div>
-            <div class="ah-stat-l"><i class="bi bi-chat-dots"></i> Suhbatlar</div>
-        </div>
-        <div class="ah-stat">
-            <div class="ah-stat-v">{{ user.coins }}</div>
-            <div class="ah-stat-l"><i class="bi bi-coin"></i> Coin</div>
-        </div>
-        <div class="ah-stat">
-            <div class="ah-stat-v">{{ limits.msg_left }}<small>/{{ limits.msg_limit }}</small></div>
-            <div class="ah-stat-l"><i class="bi bi-envelope"></i> Xabar</div>
-        </div>
-        <div class="ah-stat">
-            <div class="ah-stat-v">{{ limits.img_left }}<small>/{{ limits.img_limit }}</small></div>
-            <div class="ah-stat-l"><i class="bi bi-image"></i> Rasm</div>
-        </div>
+        <div class="ah-stat"><div class="ah-stat-v">{{ sessions|length }}</div><div class="ah-stat-l"><i class="bi bi-chat-dots"></i> Suhbatlar</div></div>
+        <div class="ah-stat"><div class="ah-stat-v">{{ user.coins }}</div><div class="ah-stat-l"><i class="bi bi-coin"></i> Coin</div></div>
+        <div class="ah-stat"><div class="ah-stat-v">{{ limits.msg_left }}<small>/{{ limits.msg_limit }}</small></div><div class="ah-stat-l"><i class="bi bi-envelope"></i> Xabar</div></div>
+        <div class="ah-stat"><div class="ah-stat-v">{{ limits.img_left }}<small>/{{ limits.img_limit }}</small></div><div class="ah-stat-l"><i class="bi bi-image"></i> Rasm</div></div>
     </div>
+
+    {# ===== FOLDER FILTER BAR ===== #}
+    <div class="ah-folders">
+        <a href="?folder=all" class="ah-fchip {% if active_folder == 'all' %}active{% endif %}"><i class="bi bi-collection"></i> Barchasi</a>
+        <a href="?folder=pinned" class="ah-fchip {% if active_folder == 'pinned' %}active{% endif %}"><i class="bi bi-pin-angle-fill"></i> Muhim <span class="cnt">{{ pinned_count }}</span></a>
+        {% for folder in folders %}
+        <a href="?folder={{ folder.id }}" class="ah-fchip {% if active_folder == folder.id|stringformat:'s' %}active{% endif %}">
+            <span class="dot" style="background:{{ folder.color }}"></span> {{ folder.name }} <span class="cnt">{{ folder.session_count }}</span>
+        </a>
+        {% endfor %}
+        <button type="button" class="ah-fchip newf" data-bs-toggle="modal" data-bs-target="#folderModal"><i class="bi bi-plus-lg"></i> Papka</button>
+    </div>
+
+    {# active folder tools #}
+    {% for folder in folders %}{% if active_folder == folder.id|stringformat:'s' %}
+    <div class="ah-folder-tools">
+        <span class="lbl"><i class="bi bi-folder2-open"></i> {{ folder.name }} papkasi</span>
+        <button type="button" class="ah-mini" onclick="ahRenameFolder({{ folder.id }}, '{{ folder.name|escapejs }}')"><i class="bi bi-pencil"></i> Nomini o'zgartirish</button>
+        <button type="button" class="ah-mini danger" onclick="ahDeleteFolder({{ folder.id }})"><i class="bi bi-trash3"></i> Papkani o'chirish</button>
+    </div>
+    {% endif %}{% endfor %}
 
     {% if sessions %}
     {# ===== SESSION LIST ===== #}
@@ -213,35 +293,45 @@ body { background: var(--ah-bg) !important; }
 
     <div class="ah-list" id="ahList">
         {% for session in sessions %}
-        <div class="ah-item" data-title="{{ session.title|lower }}">
+        <div class="ah-item {% if session.is_pinned %}pinned{% endif %}" data-title="{{ session.title|lower }}">
             <div class="ah-item-ic"><i class="bi bi-chat-left-text"></i></div>
             <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="ah-item-link">
-                <p class="ah-item-title">{{ session.title }}</p>
+                <p class="ah-item-title">
+                    {% if session.is_pinned %}<i class="bi bi-pin-angle-fill pin-ic"></i>{% endif %}
+                    {{ session.title }}
+                    {% if session.folder %}<span class="fbadge" style="background:{{ session.folder.color }}">{{ session.folder.name }}</span>{% endif %}
+                </p>
                 <div class="ah-item-meta">
                     <span><i class="bi bi-clock"></i> {{ session.updated_at|date:"d.m.Y H:i" }}</span>
                     <span><i class="bi bi-chat"></i> {{ session.messages.count }} xabar</span>
                 </div>
             </a>
             <div class="ah-item-actions">
-                <a href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}" class="ah-act open" title="Ochish"><i class="bi bi-arrow-right"></i></a>
-                <form action="{% url 'ai_yordamchi:delete_session' pk=session.pk %}" method="post" onsubmit="return confirm('Bu suhbatni o\'chirmoqchimisiz?')" style="display:inline">
-                    {% csrf_token %}
-                    <button type="submit" class="ah-act del" title="O'chirish"><i class="bi bi-trash3"></i></button>
-                </form>
+                <button type="button" class="ah-act {% if session.is_pinned %}pinned{% endif %}" title="{% if session.is_pinned %}Mahkamlashni olish{% else %}Mahkamlash{% endif %}" onclick="ahTogglePin({{ session.pk }})">
+                    <i class="bi {% if session.is_pinned %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}"></i>
+                </button>
+                <div class="dropdown">
+                    <button type="button" class="ah-act" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false" title="Ko'proq"><i class="bi bi-three-dots-vertical"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end ah-menu">
+                        <li><a class="dropdown-item" href="{% url 'ai_yordamchi:chat_session' pk=session.pk %}"><i class="bi bi-box-arrow-in-right"></i> Ochish</a></li>
+                        <li><button type="button" class="dropdown-item" onclick="ahRenameSession({{ session.pk }}, '{{ session.title|escapejs }}')"><i class="bi bi-pencil"></i> Nomini o'zgartirish</button></li>
+                        <li><button type="button" class="dropdown-item" onclick="ahMoveSession({{ session.pk }}, {{ session.folder_id|default:'null' }})"><i class="bi bi-folder-symlink"></i> Papkaga ko'chirish</button></li>
+                        <li><hr></li>
+                        <li><button type="button" class="dropdown-item danger" onclick="ahDeleteSession({{ session.pk }})"><i class="bi bi-trash3"></i> O'chirish</button></li>
+                    </ul>
+                </div>
             </div>
         </div>
         {% endfor %}
     </div>
 
-    <div class="ah-noresult" id="ahNoResult">
-        <i class="bi bi-search"></i>
-        <p style="margin-top:.5rem">Hech qanday suhbat topilmadi</p>
-    </div>
+    <div class="ah-noresult" id="ahNoResult"><i class="bi bi-search"></i><p style="margin-top:.5rem">Hech qanday suhbat topilmadi</p></div>
 
     {% else %}
     {# ===== EMPTY ===== #}
     <div class="ah-empty">
         <div class="ah-empty-ic"><i class="bi bi-stars"></i></div>
+        {% if active_folder == 'all' %}
         <h3>AI Yordamchi bilan boshlang</h3>
         <p>Dasturlash, matematika va boshqa mavzularda sun'iy intellekt yordamida o'rganing. Har qanday savolingizga aniq javob oling.</p>
         <div class="ah-chips">
@@ -252,6 +342,11 @@ body { background: var(--ah-bg) !important; }
             <a href="{% url 'ai_yordamchi:new_session' %}" class="ah-chip"><i class="bi bi-database"></i> SQL</a>
         </div>
         <a href="{% url 'ai_yordamchi:new_session' %}" class="ah-start"><i class="bi bi-plus-circle"></i> Yangi suhbat boshlash</a>
+        {% else %}
+        <h3>Bu yerda hali suhbat yo'q</h3>
+        <p>Bu bo'limda suhbatlar mavjud emas. Boshqa bo'limni tanlang yoki yangi suhbat boshlang.</p>
+        <a href="?folder=all" class="ah-start"><i class="bi bi-collection"></i> Barcha suhbatlar</a>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -266,9 +361,64 @@ body { background: var(--ah-bg) !important; }
             <div class="ah-bar"><div class="ah-bar-fill" style="width: {% widthratio limits.msg_used limits.msg_limit 100 %}%"></div></div>
         </div>
         <div class="ah-info-card">
-            <div class="ah-note">
-                <i class="bi bi-info-circle"></i>
-                <span>Har bir xabar uchun 1 coin sarflanadi. Premium: 120 xabar + 5 rasm/kun · Oddiy: 60 xabar + 3 rasm/kun.</span>
+            <div class="ah-note"><i class="bi bi-info-circle"></i><span>Har bir xabar uchun 1 coin sarflanadi. Premium: 120 xabar + 5 rasm/kun · Oddiy: 60 xabar + 3 rasm/kun.</span></div>
+        </div>
+    </div>
+</div>
+
+{# ===== MODALS ===== #}
+<div class="modal fade ah-modal" id="folderModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title" id="folderModalTitle">Yangi papka</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <label for="folderName">Papka nomi</label>
+                <input type="text" id="folderName" class="ah-input" maxlength="100" placeholder="Masalan: Python darslari">
+                <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" id="folderColors"></div>
+                <div class="ah-err" id="folderErr"></div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px">
+                <button type="button" class="ah-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
+                <button type="button" class="ah-mbtn solid" id="folderSave">Saqlash</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade ah-modal" id="renameModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Suhbat nomini o'zgartirish</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <label for="renameInput">Yangi nom</label>
+                <input type="text" id="renameInput" class="ah-input" maxlength="200">
+                <div class="ah-err" id="renameErr"></div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px">
+                <button type="button" class="ah-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
+                <button type="button" class="ah-mbtn solid" id="renameSave">Saqlash</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade ah-modal" id="moveModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Papkaga ko'chirish</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <div class="ah-radio-list" id="moveList">
+                    <label class="ah-radio"><input type="radio" name="moveFolder" value=""> <i class="bi bi-inbox" style="color:var(--ah-text-3)"></i> Papkasiz</label>
+                    {% for folder in folders %}
+                    <label class="ah-radio"><input type="radio" name="moveFolder" value="{{ folder.id }}"> <span class="swatch" style="background:{{ folder.color }}"></span> {{ folder.name }}</label>
+                    {% endfor %}
+                </div>
+                {% if not folders %}<p style="font-size:.82rem;color:var(--ah-text-3);margin:8px 0 0">Hali papka yo'q. Avval "Yangi papka" yarating.</p>{% endif %}
+                <div class="ah-err" id="moveErr"></div>
+            </div>
+            <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:8px">
+                <button type="button" class="ah-mbtn ghost" data-bs-dismiss="modal">Bekor</button>
+                <button type="button" class="ah-mbtn solid" id="moveSave">Ko'chirish</button>
             </div>
         </div>
     </div>
@@ -278,20 +428,151 @@ body { background: var(--ah-bg) !important; }
 {% block extra_js %}
 <script>
 (function () {
+    'use strict';
+    var CSRF = '{{ csrf_token }}';
+    var FOLDER_COLORS = ['#6366f1', '#ec4899', '#06b6d4', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#64748b'];
+
+    /* ---- search ---- */
     var search = document.getElementById('ahSearch');
     var list = document.getElementById('ahList');
     var noRes = document.getElementById('ahNoResult');
-    if (!search || !list) return;
-    search.addEventListener('input', function () {
-        var q = this.value.trim().toLowerCase();
-        var visible = 0;
-        list.querySelectorAll('.ah-item').forEach(function (item) {
-            var match = !q || (item.dataset.title || '').indexOf(q) !== -1;
-            item.style.display = match ? '' : 'none';
-            if (match) visible++;
+    if (search && list) {
+        search.addEventListener('input', function () {
+            var q = this.value.trim().toLowerCase(), visible = 0;
+            list.querySelectorAll('.ah-item').forEach(function (item) {
+                var match = !q || (item.dataset.title || '').indexOf(q) !== -1;
+                item.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+            if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
         });
-        if (noRes) noRes.style.display = visible === 0 ? 'block' : 'none';
+    }
+
+    /* ---- helpers ---- */
+    function post(url, data) {
+        var body = new URLSearchParams(data || {});
+        body.append('csrfmiddlewaretoken', CSRF);
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        }).then(function (r) { return r.json().catch(function () { return {}; }); });
+    }
+    function modal(id) { return window.bootstrap ? bootstrap.Modal.getOrCreateInstance(document.getElementById(id)) : null; }
+    function reload() { window.location.reload(); }
+    var U = {
+        pin: function (id) { return '/ai/session/' + id + '/pin/'; },
+        rename: function (id) { return '/ai/session/' + id + '/rename/'; },
+        move: function (id) { return '/ai/session/' + id + '/move/'; },
+        del: function (id) { return '/ai/session/' + id + '/delete/'; },
+        fCreate: '/ai/folders/create/',
+        fRename: function (id) { return '/ai/folders/' + id + '/rename/'; },
+        fDelete: function (id) { return '/ai/folders/' + id + '/delete/'; }
+    };
+
+    /* ---- pin ---- */
+    window.ahTogglePin = function (id) { post(U.pin(id)).then(reload); };
+
+    /* ---- delete session ---- */
+    window.ahDeleteSession = function (id) {
+        if (!confirm("Bu suhbatni o'chirmoqchimisiz?")) return;
+        post(U.del(id)).then(reload);
+    };
+
+    /* ---- rename session ---- */
+    var renameId = null;
+    window.ahRenameSession = function (id, title) {
+        renameId = id;
+        document.getElementById('renameInput').value = title;
+        document.getElementById('renameErr').textContent = '';
+        var m = modal('renameModal'); if (m) m.show();
+        setTimeout(function () { document.getElementById('renameInput').focus(); }, 250);
+    };
+    document.getElementById('renameSave').addEventListener('click', function () {
+        var title = document.getElementById('renameInput').value.trim();
+        if (!title) { document.getElementById('renameErr').textContent = "Nom bo'sh bo'lmasin."; return; }
+        post(U.rename(renameId), { title: title }).then(function (r) {
+            if (r.error) { document.getElementById('renameErr').textContent = r.error; return; }
+            reload();
+        });
     });
+
+    /* ---- move session ---- */
+    var moveId = null;
+    window.ahMoveSession = function (id, folderId) {
+        moveId = id;
+        document.getElementById('moveErr').textContent = '';
+        document.querySelectorAll('#moveList input[name=moveFolder]').forEach(function (r) {
+            r.checked = String(r.value || '') === String(folderId == null ? '' : folderId);
+        });
+        var m = modal('moveModal'); if (m) m.show();
+    };
+    document.getElementById('moveSave').addEventListener('click', function () {
+        var sel = document.querySelector('#moveList input[name=moveFolder]:checked');
+        post(U.move(moveId), { folder_id: sel ? sel.value : '' }).then(function (r) {
+            if (r.error) { document.getElementById('moveErr').textContent = r.error; return; }
+            reload();
+        });
+    });
+
+    /* ---- folder create / rename / delete ---- */
+    var folderMode = 'create', folderEditId = null, folderColor = FOLDER_COLORS[0];
+    var colorsWrap = document.getElementById('folderColors');
+    FOLDER_COLORS.forEach(function (c) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.style.cssText = 'width:26px;height:26px;border-radius:50%;border:2px solid transparent;background:' + c + ';cursor:pointer';
+        b.setAttribute('data-color', c);
+        b.addEventListener('click', function () {
+            folderColor = c;
+            colorsWrap.querySelectorAll('button').forEach(function (x) { x.style.borderColor = 'transparent'; });
+            b.style.borderColor = 'var(--ah-text)';
+        });
+        colorsWrap.appendChild(b);
+    });
+    function selectColor(c) {
+        folderColor = c;
+        colorsWrap.querySelectorAll('button').forEach(function (x) {
+            x.style.borderColor = x.getAttribute('data-color') === c ? 'var(--ah-text)' : 'transparent';
+        });
+    }
+    var folderModalEl = document.getElementById('folderModal');
+    folderModalEl.addEventListener('show.bs.modal', function () {
+        if (folderMode === 'create') {
+            document.getElementById('folderModalTitle').textContent = 'Yangi papka';
+            document.getElementById('folderName').value = '';
+            selectColor(FOLDER_COLORS[0]);
+        }
+        document.getElementById('folderErr').textContent = '';
+        setTimeout(function () { document.getElementById('folderName').focus(); }, 250);
+    });
+    window.ahRenameFolder = function (id, name) {
+        folderMode = 'rename'; folderEditId = id;
+        document.getElementById('folderModalTitle').textContent = 'Papka nomi';
+        document.getElementById('folderName').value = name;
+        var m = modal('folderModal'); if (m) m.show();
+    };
+    window.ahDeleteFolder = function (id) {
+        if (!confirm("Papkani o'chirmoqchimisiz? Suhbatlar o'chmaydi, faqat papkadan chiqadi.")) return;
+        post(U.fDelete(id)).then(function () { window.location.href = '?folder=all'; });
+    };
+    document.getElementById('folderSave').addEventListener('click', function () {
+        var name = document.getElementById('folderName').value.trim();
+        if (!name) { document.getElementById('folderErr').textContent = "Papka nomi bo'sh bo'lmasin."; return; }
+        if (folderMode === 'rename') {
+            post(U.fRename(folderEditId), { name: name }).then(function (r) {
+                if (r.error) { document.getElementById('folderErr').textContent = r.error; return; }
+                reload();
+            });
+        } else {
+            post(U.fCreate, { name: name, color: folderColor }).then(function (r) {
+                if (r.error) { document.getElementById('folderErr').textContent = r.error; return; }
+                window.location.href = '?folder=' + r.id;
+            });
+        }
+    });
+    // reset to create-mode after the folder modal closes
+    folderModalEl.addEventListener('hidden.bs.modal', function () { folderMode = 'create'; folderEditId = null; });
 })();
 </script>
 {% endblock %}
