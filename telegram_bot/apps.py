@@ -6,9 +6,6 @@ from django.apps import AppConfig
 # Premium custom emoji + stiker yordamchilari
 from telegram_bot import premium
 
-# Stiker yuboriladigan muhim voqealar (har bir xabarda emas — faqat shularda)
-_STICKER_HIGHLIGHTS = {"welcome", "success", "error", "celebrate"}
-
 _bot_started = False
 
 
@@ -562,7 +559,8 @@ class TelegramBotConfig(AppConfig):
         for msg in latest:
             icon = type_icons.get(msg.message_type, '📩')
             read_mark = "" if msg.is_read else "🔴 "
-            date_str = msg.created_at.strftime("%d.%m %H:%M")
+            from django.utils import timezone
+            date_str = timezone.localtime(msg.created_at).strftime("%d.%m %H:%M")
             lines.append(f"{read_mark}{icon} <b>{msg.title}</b>")
             # Xabar matnini qisqartirish
             content = msg.content[:80]
@@ -663,12 +661,6 @@ class TelegramBotConfig(AppConfig):
             'resize_keyboard': True,
         }
 
-    def _maybe_sticker(self, bot_token, chat_id, text):
-        """Muhim voqealarda mos premium stiker yuboradi (bezak)."""
-        event = premium.pick_sticker(text)
-        if event in _STICKER_HIGHLIGHTS:
-            premium.send_sticker(bot_token, chat_id, event, session=self._session)
-
     def _send_message_with_keyboard(self, bot_token, chat_id, text):
         keyboard = {
             'keyboard': [
@@ -679,17 +671,14 @@ class TelegramBotConfig(AppConfig):
             ],
             'resize_keyboard': True,
         }
-        self._maybe_sticker(bot_token, chat_id, text)
         premium.send_message(bot_token, chat_id, text, reply_markup=keyboard,
                              session=self._session)
 
     def _send_message_with_reply_markup(self, bot_token, chat_id, text, reply_markup):
-        self._maybe_sticker(bot_token, chat_id, text)
         premium.send_message(bot_token, chat_id, text, reply_markup=reply_markup,
                              session=self._session)
 
     def _send_message(self, bot_token, chat_id, text):
-        self._maybe_sticker(bot_token, chat_id, text)
         premium.send_message(bot_token, chat_id, text, session=self._session)
 
     def _handle_ai_chat_start(self, bot_token, chat_id, telegram_id):

@@ -5,6 +5,7 @@ Dizayn: static/certificates/cert_template.png (admin yuborgan dizayn,
 QR kod fonning bir qismi — o'zgartirilmaydi).
 Shriftlar: static/fonts/CertScript.ttf (ism), static/fonts/CertBold.ttf.
 """
+import html
 import io
 import logging
 import os
@@ -168,6 +169,43 @@ def student_passed_final_test(student, profession):
         return False
 
 
+def _notify_certificate_telegram(certificate):
+    """Sertifikat egasiga va umumiy Telegram guruhiga tabrik yuborish."""
+    from telegram_bot.utils import notify_group, notify_user
+
+    student = certificate.student
+    student_name = html.escape(certificate.recipient_display)
+    profession_name = html.escape(certificate.profession.name)
+    certificate_id = html.escape(certificate.certificate_id)
+    site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
+    verify_url = f"{site_url}/verify-certificate/?id={certificate.certificate_id}"
+
+    if student and getattr(student, 'telegram_id', None):
+        notify_user(
+            student.telegram_id,
+            f"🎓✨ <b>TABRIKLAYMIZ!</b> ✨🎓\n\n"
+            f"Hurmatli <b>{student_name}</b>!\n\n"
+            f"Siz <b>“{profession_name}”</b> yo'nalishini muvaffaqiyatli "
+            f"tamomlab, rasmiy sertifikatga ega bo'ldingiz! 🎉\n\n"
+            f"🪪 Sertifikat ID: <b>{certificate_id}</b>\n"
+            f"📅 Berilgan sana: {certificate.valid_from.strftime('%d.%m.%Y')}\n\n"
+            f"🔍 Tekshirish: {verify_url}\n"
+            f"📥 Yuklab olish: {site_url}/certificate/{certificate.pk}/download/\n\n"
+            f"🏆 Yangi marralar va ulkan muvaffaqiyatlar tilaymiz!"
+        )
+
+    notify_group(
+        f"🏆🎓 <b>YANGI YUTUQ!</b> 🎓🏆\n\n"
+        f"🎉 <b>{student_name}</b> sertifikat bilan taqdirlandi!\n\n"
+        f"📚 Yo'nalish: <b>{profession_name}</b>\n"
+        f"🪪 Sertifikat ID: <b>{certificate_id}</b>\n"
+        f"📅 Berilgan sana: {certificate.valid_from.strftime('%d.%m.%Y')}\n\n"
+        f"👏 O'quvchimizni ushbu yutug'i bilan chin qalbdan tabriklaymiz!\n"
+        f"🚀 Kelgusi faoliyatida yanada katta zafarlar tilaymiz!\n\n"
+        f"🔍 Sertifikatni tekshirish: {verify_url}"
+    )
+
+
 def issue_manual_certificate(profession, issued_by, first_name='', last_name='', student=None):
     """Admin tomonidan qo'lda sertifikat berish.
 
@@ -242,16 +280,9 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
             )
         except Exception:
             logger.exception("Manual cert xabari xatosi (cert=%s)", cert.pk)
-        if getattr(student, 'telegram_id', None):
-            from telegram_bot.utils import notify_user
-            site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
-            notify_user(
-                student.telegram_id,
-                f"🎓✨ <b>TABRIKLAYMIZ!</b>\n\n"
-                f"Sizga <b>\"{profession.name}\"</b> kursi bo'yicha sertifikat berildi! 🎉\n\n"
-                f"🏅 Seriya: <b>{cert.certificate_id}</b>\n"
-                f"🔍 Tekshirish: {site_url}/verify-certificate/?id={cert.certificate_id}"
-            )
+
+    # Platformadagi o'quvchiga shaxsiy xabar; har qanday holatda guruhga e'lon.
+    _notify_certificate_telegram(cert)
 
     return cert, None
 
@@ -259,7 +290,6 @@ def issue_manual_certificate(profession, issued_by, first_name='', last_name='',
 def issue_course_certificate(student, profession, issued_by=None):
     """Yakuniy testdan o'tgan o'quvchiga sertifikatni avtomatik berish."""
     from accounts.models import Certificate, CertificateSettings, Message
-    from telegram_bot.utils import notify_user
 
     # 1) Kursda sertifikat yoqilganmi
     if not getattr(profession, 'has_certificate', False):
@@ -336,19 +366,6 @@ def issue_course_certificate(student, profession, issued_by=None):
     except Exception:
         logger.exception("Sertifikat chat xabari xatosi (cert=%s)", cert.pk)
 
-    if getattr(student, 'telegram_id', None):
-        site_url = getattr(settings, 'SITE_URL', 'https://itcreative.uz').rstrip('/')
-        notify_user(
-            student.telegram_id,
-            f"🎓✨ <b>TABRIKLAYMIZ!</b> ✨🎓\n\n"
-            f"Siz <b>\"{profession.name}\"</b> kursini muvaffaqiyatli tugatdingiz "
-            f"va sizga rasmiy SERTIFIKAT berildi! 🎉\n\n"
-            f"🏅 Seriya: <b>{cert.certificate_id}</b>\n"
-            f"📅 Berilgan: {cert.valid_from.strftime('%d.%m.%Y')}\n"
-            f"⏳ Amal qiladi: {cert.valid_until.strftime('%d.%m.%Y')} gacha\n\n"
-            f"🔍 Tekshirish: {site_url}/verify-certificate/?id={cert.certificate_id}\n"
-            f"📥 Yuklab olish: {site_url}/certificate/{cert.pk}/download/\n\n"
-            f"🚀 Yangi cho'qqilar sari!"
-        )
+    _notify_certificate_telegram(cert)
 
     return cert, None

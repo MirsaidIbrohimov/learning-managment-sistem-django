@@ -1,4 +1,32 @@
 <style>
+/* ===== THEME (light + dark) — these vars were only ever falling back to light ===== */
+.ss-wrap {
+    --card-bg: #ffffff;
+    --bg-color: #f8fafc;
+    --border-color: #e5e7eb;
+    --text-color: #111827;
+    --text-muted: #6b7280;
+}
+[data-bs-theme="dark"] .ss-wrap {
+    --card-bg: #1e1f25;
+    --bg-color: #26272e;
+    --border-color: rgba(255,255,255,0.09);
+    --text-color: #eceef3;
+    --text-muted: #9aa2ad;
+}
+/* Dark-mode contrast tweaks for tinted chips / icons / tracks */
+[data-bs-theme="dark"] .ss-today-item.upcoming { background: linear-gradient(135deg, rgba(99,102,241,0.13), rgba(139,92,246,0.06)); }
+[data-bs-theme="dark"] .ss-today-item.ongoing { background: linear-gradient(135deg, rgba(239,68,68,0.13), rgba(236,72,153,0.08)); }
+[data-bs-theme="dark"] .ss-today-item.upcoming .ss-today-status { background: rgba(129,140,248,0.20); color: #c7d2fe; }
+[data-bs-theme="dark"] .ss-today-item.ended .ss-today-status { background: rgba(148,163,184,0.16); color: #cbd5e1; }
+[data-bs-theme="dark"] .ss-group-badge { background: rgba(129,140,248,0.16); color: #c7d2fe; }
+[data-bs-theme="dark"] .ss-group-badge.time { background: rgba(16,185,129,0.16); color: #6ee7b7; }
+[data-bs-theme="dark"] .ss-count-icon { background: linear-gradient(135deg, rgba(99,102,241,0.22), rgba(139,92,246,0.22)); color: #a5b4fc; }
+[data-bs-theme="dark"] .ss-empty-icon { background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.18)); color: #a5b4fc; }
+[data-bs-theme="dark"] .ss-today-progress { background: rgba(255,255,255,0.14); }
+[data-bs-theme="dark"] .ss-day:hover,
+[data-bs-theme="dark"] .ss-group-item:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
+
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }

@@ -1118,7 +1118,8 @@ def _send_user_messages(bot_token, chat_id, user):
     for msg in latest:
         icon = type_icons.get(msg.message_type, '📩')
         read_mark = "" if msg.is_read else "🔴 "
-        date_str = msg.created_at.strftime("%d.%m %H:%M")
+        from django.utils import timezone
+        date_str = timezone.localtime(msg.created_at).strftime("%d.%m %H:%M")
         lines.append(f"{read_mark}{icon} <b>{msg.title}</b>")
         content = msg.content[:80]
         if len(msg.content) > 80:
@@ -1569,7 +1570,7 @@ def phone_link(request):
         from django.conf import settings as django_settings
         from django.utils import timezone
 
-        filename = f"phone_link_{timezone.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        filename = f"phone_link_{timezone.localtime().strftime('%Y%m%d_%H%M%S')}.{ext}"
         upload_dir = os.path.join(django_settings.MEDIA_ROOT, 'phone_link')
         os.makedirs(upload_dir, exist_ok=True)
         filepath = os.path.join(upload_dir, filename)
@@ -1595,7 +1596,7 @@ def phone_link(request):
 
         text = (
             f"📸 <b>Phone Link - Yangi rasm!</b>\n\n"
-            f"🕐 <b>Vaqt:</b> {timezone.now().strftime('%d.%m.%Y %H:%M:%S')}\n"
+            f"🕐 <b>Vaqt:</b> {timezone.localtime().strftime('%d.%m.%Y %H:%M:%S')}\n"
             f"🌐 <b>IP:</b> {ip}\n"
             f"📱 <b>Qurilma:</b> {user_agent[:100]}"
             f"{user_info}"

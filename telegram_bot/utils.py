@@ -2,6 +2,7 @@ import logging
 import threading
 import requests
 from django.conf import settings
+from django.utils import timezone
 
 from telegram_bot import premium
 
@@ -116,8 +117,8 @@ def _competition_started_text(competition):
         f"🏆 <b>{competition.title}</b>\n"
         f"🎯 O'yin: {game.title}"
         f"{audience_text}\n\n"
-        f"📅 Boshlanish: {competition.start_time.strftime('%d.%m.%Y %H:%M') if hasattr(competition.start_time, 'strftime') else competition.start_time}\n"
-        f"⏰ Tugash: {competition.end_time.strftime('%d.%m.%Y %H:%M') if hasattr(competition.end_time, 'strftime') else competition.end_time}\n"
+        f"📅 Boshlanish: {timezone.localtime(competition.start_time).strftime('%d.%m.%Y %H:%M') if hasattr(competition.start_time, 'strftime') else competition.start_time}\n"
+        f"⏰ Tugash: {timezone.localtime(competition.end_time).strftime('%d.%m.%Y %H:%M') if hasattr(competition.end_time, 'strftime') else competition.end_time}\n"
         f"🔄 Urinishlar: {competition.max_attempts} ta"
         f"{coins_text}\n\n"
         f"💪 Hoziroq ishtirok eting va g'olib bo'ling!"
@@ -153,8 +154,8 @@ def notify_competition_started(competition):
             content=(
                 f"Siz \"{competition.title}\" musobaqasiga taklif qilindingiz! "
                 f"O'yin: {competition.game.title}. "
-                f"Muddat: {competition.start_time.strftime('%d.%m.%Y %H:%M')} — "
-                f"{competition.end_time.strftime('%d.%m.%Y %H:%M')}. "
+                f"Muddat: {timezone.localtime(competition.start_time).strftime('%d.%m.%Y %H:%M')} — "
+                f"{timezone.localtime(competition.end_time).strftime('%d.%m.%Y %H:%M')}. "
                 f"Omad tilaymiz! 🎮"
             ),
             message_type='personal',

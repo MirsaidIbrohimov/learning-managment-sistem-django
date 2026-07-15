@@ -810,7 +810,7 @@ def login_view(request):
                         f"🚨 <b>Brute-force hujumi aniqlandi!</b>\n\n"
                         f"🌐 IP: {ip_address}\n"
                         f"🔑 Token: {login_token[:16]}...\n"
-                        f"🕐 {timezone.now().strftime('%d.%m.%Y %H:%M')}\n"
+                        f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n"
                         f"📱 UA: {user_agent[:100]}\n"
                         f"⚠️ {max_attempts} marta noto'g'ri urinish — token bloklandi ({lockout_minutes} daqiqa)"
                     )
@@ -983,7 +983,7 @@ def login_view(request):
                 f"🖥 Qurilma: {device}\n"
                 f"{'🌍 Brauzer: ' + browser + chr(10) if browser else ''}"
                 f"🌐 IP: {ip_address}\n"
-                f"🕐 {timezone.now().strftime('%d.%m.%Y %H:%M')}\n\n"
+                f"🕐 {timezone.localtime().strftime('%d.%m.%Y %H:%M')}\n\n"
                 f"⚠️ Agar bu siz bo'lmasangiz, darhol parolingizni o'zgartiring!"
             )
 
@@ -3124,10 +3124,15 @@ def course_statistics(request, pk):
     else:
         group_id = _resolve_stats_group(request, profession)
     data = _course_statistics_data(profession, group_id=group_id or None)
+    my_group = None
+    if getattr(request.user, 'role', None) == 'student':
+        mg = request.user.study_groups.filter(profession=profession).first()
+        my_group = mg.id if mg else None
     return render(request, 'accounts/course_statistics.html', {
         'profession': profession,
         'overview': data['overview'],
         'stats_data': data,
+        'my_group_id': my_group,
     })
 
 

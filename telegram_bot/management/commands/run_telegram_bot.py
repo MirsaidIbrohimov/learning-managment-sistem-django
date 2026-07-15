@@ -505,7 +505,8 @@ class Command(BaseCommand):
         for msg in latest:
             icon = type_icons.get(msg.message_type, '📩')
             read_mark = "" if msg.is_read else "🔴 "
-            date_str = msg.created_at.strftime("%d.%m %H:%M")
+            from django.utils import timezone
+            date_str = timezone.localtime(msg.created_at).strftime("%d.%m %H:%M")
             lines.append(f"{read_mark}{icon} <b>{msg.title}</b>")
             content = msg.content[:80]
             if len(msg.content) > 80:
@@ -919,13 +920,6 @@ class Command(BaseCommand):
             'resize_keyboard': True,
         }
 
-    def _maybe_sticker(self, bot_token, chat_id, text):
-        """Muhim voqealarda mos premium stiker yuboradi (bezak)."""
-        from telegram_bot import premium
-        event = premium.pick_sticker(text)
-        if event in {"welcome", "success", "error", "celebrate"}:
-            premium.send_sticker(bot_token, chat_id, event)
-
     def _send_message_with_keyboard(self, bot_token, chat_id, text):
         from telegram_bot import premium
         keyboard = {
@@ -937,17 +931,14 @@ class Command(BaseCommand):
             ],
             'resize_keyboard': True,
         }
-        self._maybe_sticker(bot_token, chat_id, text)
         premium.send_message(bot_token, chat_id, text, reply_markup=keyboard)
 
     def _send_message_with_reply_markup(self, bot_token, chat_id, text, reply_markup):
         from telegram_bot import premium
-        self._maybe_sticker(bot_token, chat_id, text)
         premium.send_message(bot_token, chat_id, text, reply_markup=reply_markup)
 
     def _send_message(self, bot_token, chat_id, text):
         from telegram_bot import premium
-        self._maybe_sticker(bot_token, chat_id, text)
         premium.send_message(bot_token, chat_id, text)
 
     def _notify_admin_telegram_message(self, bot_token, tg_full, tg_username, telegram_id, text):

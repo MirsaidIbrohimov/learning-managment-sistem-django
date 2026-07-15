@@ -1,10 +1,16 @@
 from datetime import date, timedelta
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from .certificates import issue_course_certificate, student_passed_final_test
+from .certificates import (
+    _notify_certificate_telegram,
+    issue_course_certificate,
+    student_passed_final_test,
+)
 from .models import (
     Certificate,
     CourseEnrollment,
@@ -19,6 +25,33 @@ from .models import (
 )
 from .views import _passed_test_lesson_counts
 from quiz.models import Attempt, Quiz
+
+
+class CertificateTelegramNotificationTests(TestCase):
+    @patch('telegram_bot.utils.notify_group')
+    @patch('telegram_bot.utils.notify_user')
+    def test_certificate_notifies_student_and_group_with_details(
+        self, notify_user, notify_group
+    ):
+        certificate = SimpleNamespace(
+            student=SimpleNamespace(telegram_id=12345),
+            recipient_display='Ali Valiyev',
+            profession=SimpleNamespace(name='Python Backend'),
+            certificate_id='PY-26001',
+            valid_from=date(2026, 7, 15),
+            pk=77,
+        )
+
+        _notify_certificate_telegram(certificate)
+
+        notify_user.assert_called_once()
+        notify_group.assert_called_once()
+        personal_text = notify_user.call_args.args[1]
+        group_text = notify_group.call_args.args[0]
+        for text in (personal_text, group_text):
+            self.assertIn('Ali Valiyev', text)
+            self.assertIn('Python Backend', text)
+            self.assertIn('PY-26001', text)
 
 
 class CertificateFinalTestRequirementTests(TestCase):

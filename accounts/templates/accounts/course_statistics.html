@@ -36,6 +36,20 @@
   .cs-btn:hover{background:rgba(255,255,255,.28);}
   .cs-updated{font-size:.72rem;opacity:.8;display:inline-flex;align-items:center;gap:5px;}
 
+  /* ── Group filter chips (Umumiy + guruhlar) ── */
+  .cs-gfilter{position:relative;display:flex;gap:8px;margin-top:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none;}
+  .cs-gfilter::-webkit-scrollbar{display:none;}
+  .cs-gchip{flex-shrink:0;display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.26);color:#fff;text-decoration:none;padding:8px 14px;border-radius:50px;
+    font-size:.82rem;font-weight:600;backdrop-filter:blur(6px);transition:background .15s,transform .15s,box-shadow .15s;white-space:nowrap;}
+  .cs-gchip:hover{background:rgba(255,255,255,.26);color:#fff;transform:translateY(-1px);}
+  .cs-gchip.active{background:#fff;color:#4f46e5;border-color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.16);}
+  .cs-gchip i{font-size:.9rem;}
+  .cs-gchip .cnt{font-size:.72rem;font-weight:700;background:rgba(255,255,255,.2);padding:1px 8px;border-radius:50px;}
+  .cs-gchip.active .cnt{background:rgba(79,70,229,.12);color:#4f46e5;}
+  .cs-gchip .badge-mine{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.03em;
+    background:#10b981;color:#fff;padding:2px 7px;border-radius:50px;}
+
   /* ── Section labels ── */
   .cs-slabel{display:flex;align-items:center;gap:8px;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--cs-muted);margin:20px 2px 10px;}
   .cs-slabel::after{content:"";flex:1;height:1px;background:var(--cs-line);}
@@ -130,15 +144,21 @@
         <div class="sub">Kurs statistikasi — umumiy va guruh kesimida</div>
       </div>
       <div class="cs-hero-tools">
-        <select class="cs-select" id="csGroup" aria-label="Guruh tanlash" onchange="location.search='?group='+encodeURIComponent(this.value)">
-          <option value="">Barcha guruhlar (umumiy)</option>
-          {% for g in stats_data.groups %}
-          <option value="{{ g.id }}" {% if stats_data.selected_group and stats_data.selected_group.id == g.id %}selected{% endif %}>{{ g.name }} · {{ g.count }} ta</option>
-          {% endfor %}
-        </select>
         <button class="cs-btn" id="csRefresh"><i class="bi bi-arrow-clockwise"></i> Yangilash</button>
         <span class="cs-updated"><i class="bi bi-clock"></i> <span id="csUpdated">{{ stats_data.generated_at }}</span></span>
       </div>
+    </div>
+
+    {# ── Guruh filtri: Umumiy + barcha guruhlar (o'z guruhi standart) ── #}
+    <div class="cs-gfilter" aria-label="Guruh tanlash">
+      <a href="?group=" class="cs-gchip{% if not stats_data.selected_group %} active{% endif %}"><i class="bi bi-globe2"></i> Umumiy</a>
+      {% for g in stats_data.groups %}
+      <a href="?group={{ g.id }}" class="cs-gchip{% if stats_data.selected_group and stats_data.selected_group.id == g.id %} active{% endif %}">
+        <i class="bi bi-people-fill"></i> {{ g.name }}
+        <span class="cnt">{{ g.count }}</span>
+        {% if my_group_id and my_group_id == g.id %}<span class="badge-mine">Mening guruhim</span>{% endif %}
+      </a>
+      {% endfor %}
     </div>
   </div>
 

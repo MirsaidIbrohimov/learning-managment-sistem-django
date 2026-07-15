@@ -188,10 +188,11 @@ def _is_custom_emoji_error(resp):
 
 def send_message(bot_token, chat_id, text, reply_markup=None,
                  parse_mode="HTML", session=None, timeout=10, **extra):
-    """Premium emoji bilan xabar yuboradi. Xato bo'lsa oddiy emojiga qaytadi.
+    """Premium emoji va mos animatsion stiker bilan xabar yuboradi.
 
     Mavjud requests.post(.../sendMessage, json={...}) chaqiruvlarining
-    o'rnini bosadi.
+    o'rnini bosadi. Custom emoji ishlamasa oddiy emojiga qaytadi; xabarning
+    o'zi muvaffaqiyatli yuborilgandagina stiker alohida yuboriladi.
     """
     global _custom_emoji_disabled
     poster = session.post if session is not None else requests.post
@@ -217,6 +218,14 @@ def send_message(bot_token, chat_id, text, reply_markup=None,
             resp = poster(url, json=payload, timeout=timeout)
         except Exception:
             return None
+
+    try:
+        if resp.status_code == 200 and resp.json().get("ok"):
+            send_sticker(bot_token, chat_id, pick_sticker(text),
+                         session=session, timeout=timeout)
+    except Exception:
+        # Stiker bezak hisoblanadi: u xabarning yuborilish natijasini buzmasin.
+        pass
     return resp
 
 
@@ -240,15 +249,21 @@ def send_sticker(bot_token, chat_id, event_or_file_id, session=None, timeout=10)
 
 
 def pick_sticker(text):
-    """Xabar matniga qarab mos voqea stikerini tanlaydi (yoki None)."""
+    """Xabar matniga qarab mos stiker tanlaydi.
+
+    Har bir bot xabari stiker bilan borishi uchun maxsus tur topilmasa
+    ``messages`` stikeri ishlatiladi.
+    """
     if not text:
-        return None
+        return "messages"
     t = text.lower()
     if any(k in text for k in ("Tabriklaymiz", "🎉", "🎁")):
         return "celebrate"
-    if "❌" in text or "xato" in t or "topilmadi" in t or "ulanmagan" in t:
+    if ("❌" in text or "xato" in t or "topilmadi" in t or
+            "ulanmagan" in t or "hujum" in t or "bloklandi" in t or
+            "rad etildi" in t or "noto'g'ri" in t):
         return "error"
-    if "✅" in text or "muvaffaqiyat" in t:
+    if "✅" in text or "muvaffaqiyat" in t or "hisobingizga kirildi" in t:
         return "success"
     if "👋" in text or "/start" in t or "xush kelibsiz" in t:
         return "welcome"
@@ -262,4 +277,4 @@ def pick_sticker(text):
         return "messages"
     if "🤖" in text or "ai chat" in t:
         return "ai"
-    return None
+    return "messages"
