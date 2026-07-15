@@ -1766,25 +1766,36 @@ def home_view(request):
         missions_xp_earned = 0
 
     # ---- 3) learning_stats + weekly_spark ----------------------------------
+    # Each metric is computed independently so a failure in one can never zero
+    # the others (the previous single try/except zeroed ALL stats whenever the
+    # weekly-spark date/datetime comparison threw).
+    def _safe(fn, default=0):
+        try:
+            return fn()
+        except Exception:
+            return default
+
+    lessons_completed = _safe(lambda: VideoProgress.objects.filter(user=user, watched=True).count())
+    courses_completed = _safe(lambda: sum(1 for c in dashboard_courses if c.get('progress', 0) >= 100))
+    study_hours = _safe(lambda: round((user.total_online_time or 0) / 60))
+    weekly_minutes = _safe(lambda: (user.total_online_time or 0))
+    quiz_accuracy = _safe(lambda: round(TestResult.objects.filter(student=user).aggregate(a=Avg('score')).get('a') or 0))
+    certificates_earned = _safe(lambda: Certificate.objects.filter(student=user).count())
+
+    # weekly_spark — joriy hafta (Du..Ya) faollik soni
     weekly_spark = [0] * 7
     try:
-        lessons_completed = VideoProgress.objects.filter(user=user, watched=True).count()
-        courses_completed = sum(1 for c in dashboard_courses if c.get('progress', 0) >= 100)
-        study_hours = round((user.total_online_time or 0) / 60)
-        weekly_minutes = (user.total_online_time or 0)
-        acc_agg = TestResult.objects.filter(student=user).aggregate(a=Avg('score'))
-        quiz_accuracy = round(acc_agg.get('a') or 0)
-        certificates_earned = Certificate.objects.filter(student=user).count()
-
-        # weekly_spark — joriy hafta (Du..Ya) faollik soni
-        week_start = today - timedelta(days=today.weekday())  # Monday
+        week_start = today - timedelta(days=today.weekday())  # Monday (date)
         week_end = week_start + timedelta(days=6)
         spark = [0] * 7
 
         def _add_spark(dates_iter):
             for d in dates_iter:
-                if d and week_start <= d <= week_end:
-                    spark[d.weekday()] += 1
+                if not d:
+                    continue
+                dd = d.date() if hasattr(d, 'date') else d  # datetime -> date
+                if week_start <= dd <= week_end:
+                    spark[dd.weekday()] += 1
 
         _add_spark(VideoProgress.objects.filter(
             user=user, watched=True, watched_at__date__range=(week_start, week_end)
@@ -1795,15 +1806,8 @@ def home_view(request):
         _add_spark(HomeworkSubmission.objects.filter(
             student=user, submitted_at__date__range=(week_start, week_end)
         ).values_list('submitted_at', flat=True).iterator())
-        # datetime -> date konversiyasi (values_list datetime qaytaradi)
         weekly_spark = spark
     except Exception:
-        lessons_completed = 0
-        courses_completed = 0
-        study_hours = 0
-        weekly_minutes = 0
-        quiz_accuracy = 0
-        certificates_earned = 0
         weekly_spark = [0] * 7
 
     learning_stats = {
