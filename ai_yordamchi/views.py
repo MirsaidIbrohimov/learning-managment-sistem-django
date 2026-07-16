@@ -5,6 +5,7 @@ from django.http import JsonResponse, StreamingHttpResponse
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.core.paginator import Paginator
+from django.db import transaction
 from django.db.models import Count, Q
 from django.urls import reverse
 from django.utils import timezone
@@ -372,22 +373,27 @@ def send_message(request, pk):
             uploaded_file = file
 
     coin_cost = 0 if is_premium else 1
-    user_message = ChatMessage.objects.create(
-        session=session,
-        role='user',
-        content=content,
-        image=uploaded_image,
-        file=uploaded_file,
-        file_name=uploaded_file_name,
-        coins_spent=coin_cost,
-    )
+    with transaction.atomic():
+        if not is_premium:
+            locked_user = request.user.__class__.objects.select_for_update().get(pk=request.user.pk)
+            if locked_user.coins < 1:
+                return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
+            locked_user.coins -= 1
+            locked_user.save(update_fields=['coins'])
+            CoinTransaction.objects.create(
+                user=locked_user, amount=1, action='remove',
+                reason="AI yordamchi bilan suhbat",
+            )
+            request.user.coins = locked_user.coins
 
-    if not is_premium:
-        request.user.coins -= 1
-        request.user.save(update_fields=['coins'])
-        CoinTransaction.objects.create(
-            user=request.user, amount=1, action='remove',
-            reason="AI yordamchi bilan suhbat",
+        user_message = ChatMessage.objects.create(
+            session=session,
+            role='user',
+            content=content,
+            image=uploaded_image,
+            file=uploaded_file,
+            file_name=uploaded_file_name,
+            coins_spent=coin_cost,
         )
 
     ActivityLog.objects.create(

@@ -248,7 +248,12 @@ def _serialize_submission(sub: HomeworkSubmission, request) -> dict:
     }
 
 
-def _serialize_homework(hw: Homework) -> dict:
+def _serialize_homework(hw: Homework, user) -> dict:
+    resubmit_penalty = (
+        HomeworkSubmission.RESUBMIT_COIN_PENALTY // 2
+        if user.is_premium
+        else HomeworkSubmission.RESUBMIT_COIN_PENALTY
+    )
     return {
         "id":               hw.pk,
         "description":      hw.description,
@@ -261,7 +266,7 @@ def _serialize_homework(hw: Homework) -> dict:
         "is_deadline_passed": hw.is_deadline_passed,
         "allowed_formats":  hw.get_allowed_formats_list(),
         "max_coin_reward":  HomeworkSubmission.MAX_COIN_REWARD,
-        "resubmit_coin_penalty": HomeworkSubmission.RESUBMIT_COIN_PENALTY,
+        "resubmit_coin_penalty": resubmit_penalty,
     }
 
 
@@ -331,7 +336,7 @@ def hw_detail(request, lesson_pk):
     ).count()
 
     data = {
-        "homework":      _serialize_homework(hw),
+        "homework":      _serialize_homework(hw, request.user),
         "submission":    _serialize_submission(submission, request) if submission else None,
         "version_count": version_count,
         "is_teacher":    is_teacher or is_admin,
@@ -433,9 +438,14 @@ def hw_submit(request, lesson_pk):
             revision_count=prev_count,
         )
 
+    resubmit_penalty = (
+        HomeworkSubmission.RESUBMIT_COIN_PENALTY // 2
+        if request.user.is_premium
+        else HomeworkSubmission.RESUBMIT_COIN_PENALTY
+    )
     if prev_count > 0:
         request.user.remove_coins(
-            HomeworkSubmission.RESUBMIT_COIN_PENALTY,
+            resubmit_penalty,
             f"Uyga vazifa qayta topshirish: {hw.lesson.title}",
         )
 
@@ -457,7 +467,7 @@ def hw_submit(request, lesson_pk):
     return _ok(
         {"submission": _serialize_submission(sub, request)},
         message=(
-            f"Vazifa qayta topshirildi. {HomeworkSubmission.RESUBMIT_COIN_PENALTY} coin jarima yechildi!"
+            f"Vazifa qayta topshirildi. {resubmit_penalty} coin jarima yechildi!"
             if prev_count > 0
             else "Vazifa muvaffaqiyatli yuborildi!" + (" (Kech topshirildi)" if sub.is_late else "")
         ),

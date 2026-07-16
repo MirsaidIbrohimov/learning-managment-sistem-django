@@ -97,7 +97,7 @@
 
 /* ===== Stats Grid ===== */
 .au-stats {
-    display: grid; grid-template-columns: repeat(4, 1fr);
+    display: grid; grid-template-columns: repeat(5, 1fr);
     gap: 0.75rem; margin-top: 1.25rem; position: relative;
 }
 .au-stat {
@@ -271,7 +271,7 @@
 
 .au-row {
     display: grid;
-    grid-template-columns: 2.4fr 1.1fr 0.9fr 1.1fr 1.1fr;
+    grid-template-columns: 2.2fr 1fr 1.3fr 0.95fr 1fr 1.1fr;
     align-items: center; gap: 1rem;
     padding: 0.85rem 1.1rem;
     border: 1px solid var(--au-border); border-radius: 14px;
@@ -364,6 +364,34 @@
 [data-bs-theme="dark"] .au-role.r-assistant { background: rgba(245,158,11,0.22); color: #fcd34d; }
 [data-bs-theme="dark"] .au-role.r-teacher { background: rgba(16,185,129,0.22); color: #6ee7b7; }
 [data-bs-theme="dark"] .au-role.r-student { background: rgba(99,102,241,0.22); color: #a5b4fc; }
+
+/* Study group & payment badges */
+.au-groups-cell {
+    display: flex; flex-wrap: wrap; gap: 0.3rem;
+    align-items: center; min-width: 0;
+}
+.au-group-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.24rem 0.6rem; border-radius: 8px;
+    font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.au-group-badge i { font-size: 0.68rem; }
+.au-nogroup {
+    font-size: 0.75rem; color: var(--au-muted); font-style: italic;
+}
+.au-contract-badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    padding: 0.24rem 0.6rem; border-radius: 8px;
+    font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+    background: rgba(245,158,11,0.14); color: #d97706;
+    border: 1px solid rgba(245,158,11,0.35);
+}
+.au-contract-badge i { font-size: 0.68rem; }
+[data-bs-theme="dark"] .au-contract-badge {
+    background: rgba(245,158,11,0.2); color: #fcd34d;
+    border-color: rgba(245,158,11,0.4);
+}
 
 /* Status */
 .au-status {
@@ -487,12 +515,12 @@
                     <i class="bi bi-chevron-down" style="font-size:0.75rem;opacity:0.7;"></i>
                 </button>
                 <div class="au-actions-dropdown" id="auActionsDropdown">
-                    <a href="{% url 'admin_export_students' %}{% if group_filter %}?group={{ group_filter }}{% endif %}">
+                    <a href="{% url 'admin_export_students' %}{% if group_filter and group_filter != 'none' %}?group={{ group_filter }}{% endif %}">
                         <i class="ai-excel bi bi-file-earmark-excel-fill"></i>
                         <div>
                             <div>Excel Export</div>
                             <div style="font-size:0.72rem;color:var(--au-muted);font-weight:500;">
-                                {% if group_filter %}Guruh bo'yicha{% else %}Barchasi{% endif %}
+                                {% if group_filter and group_filter != 'none' %}Guruh bo'yicha{% else %}Barchasi{% endif %}
                             </div>
                         </div>
                     </a>
@@ -551,6 +579,13 @@
                     <div class="au-stat-lbl">Bloklangan</div>
                 </div>
             </div>
+            <div class="au-stat">
+                <div class="au-stat-icon"><i class="bi bi-file-earmark-text-fill"></i></div>
+                <div>
+                    <div class="au-stat-val">{{ contract_count }}</div>
+                    <div class="au-stat-lbl">Shartnoma</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -562,7 +597,7 @@
             <div class="au-search">
                 <i class="bi bi-search au-search-icon"></i>
                 <input type="text" name="q" class="au-search-input" id="auSearchInput"
-                       placeholder="Ism, username yoki telefon raqam bo'yicha izlash..."
+                       placeholder="Ism, username, ID yoki telefon bo'yicha izlash..."
                        value="{{ search_query }}" autocomplete="off">
                 <button type="button" class="au-search-clear {% if search_query %}au-show{% endif %}"
                         id="auSearchClear" title="Tozalash">
@@ -627,11 +662,20 @@
                     <label><i class="bi bi-people me-1"></i>Guruh</label>
                     <select name="group" class="au-filter-select">
                         <option value="">Barchasi</option>
+                        <option value="none" {% if group_filter == 'none' %}selected{% endif %}>Guruhsiz o'quvchilar</option>
                         {% for g in groups %}
                         <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>
                             {{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}
                         </option>
                         {% endfor %}
+                    </select>
+                </div>
+                <div class="au-filter-group">
+                    <label><i class="bi bi-cash-coin me-1"></i>To'lov turi</label>
+                    <select name="payment" class="au-filter-select">
+                        <option value="">Barchasi</option>
+                        <option value="contract" {% if payment_filter == 'contract' %}selected{% endif %}>Shartnoma</option>
+                        <option value="balance" {% if payment_filter == 'balance' %}selected{% endif %}>Oddiy (balans)</option>
                     </select>
                 </div>
             </div>
@@ -649,40 +693,47 @@
     </form>
 
     <!-- Active Filter Chips -->
-    {% if search_query or role_filter or profession_filter or status_filter or group_filter %}
+    {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter %}
     <div class="au-chips">
         <span class="au-chips-label"><i class="bi bi-funnel-fill me-1"></i>Faol filtrlar:</span>
         {% if search_query %}
         <span class="au-chip">
             <i class="bi bi-search"></i> "{{ search_query }}"
-            <a href="?{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if role_filter %}
         <span class="au-chip">
             <i class="bi bi-person-badge"></i>
             {% if role_filter == 'admin' %}Admin{% elif role_filter == 'assistant_admin' %}Yordamchi admin{% elif role_filter == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if profession_filter %}
         <span class="au-chip">
             <i class="bi bi-mortarboard"></i> Yo'nalish
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if status_filter %}
         <span class="au-chip">
             <i class="bi bi-circle-fill" style="font-size:0.4rem;"></i>
             {% if status_filter == 'active' %}Faol{% else %}Bloklangan{% endif %}
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
         {% if group_filter %}
         <span class="au-chip">
             <i class="bi bi-people-fill"></i>
-            {% for g in groups %}{% if group_filter == g.id|stringformat:"i" %}{{ g.name }}{% endif %}{% endfor %}
-            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+            {% if group_filter == 'none' %}Guruhsiz o'quvchilar{% else %}{% for g in groups %}{% if group_filter == g.id|stringformat:"i" %}{{ g.name }}{% endif %}{% endfor %}{% endif %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
+        {% if payment_filter %}
+        <span class="au-chip">
+            <i class="bi bi-cash-coin"></i>
+            {% if payment_filter == 'contract' %}Shartnoma{% else %}Oddiy (balans){% endif %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
     </div>
@@ -718,6 +769,23 @@
 
             <div class="au-phone au-desktop">
                 <i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}
+            </div>
+
+            <div class="au-groups-cell au-desktop">
+                {% for g in u.study_groups.all %}
+                {% with c=g.color|default:'#6366f1' %}
+                <span class="au-group-badge" style="background:{{ c }}1a;color:{{ c }};border:1px solid {{ c }}45;" title="Guruh: {{ g.name }}">
+                    <i class="bi bi-people-fill"></i>{{ g.name }}
+                </span>
+                {% endwith %}
+                {% empty %}
+                {% if u.role == 'student' %}<span class="au-nogroup">Guruhsiz</span>{% else %}<span style="color:var(--au-muted);">—</span>{% endif %}
+                {% endfor %}
+                {% if u.has_contract %}
+                <span class="au-contract-badge" title="To'lov turi: Shartnoma">
+                    <i class="bi bi-file-earmark-text-fill"></i>Shartnoma
+                </span>
+                {% endif %}
             </div>
 
             <div class="au-desktop">
@@ -803,6 +871,22 @@
                     </span>
                     {% endif %}
                 </div>
+                {% if u.study_groups.all or u.has_contract %}
+                <div class="au-groups-cell">
+                    {% for g in u.study_groups.all %}
+                    {% with c=g.color|default:'#6366f1' %}
+                    <span class="au-group-badge" style="background:{{ c }}1a;color:{{ c }};border:1px solid {{ c }}45;" title="Guruh: {{ g.name }}">
+                        <i class="bi bi-people-fill"></i>{{ g.name }}
+                    </span>
+                    {% endwith %}
+                    {% endfor %}
+                    {% if u.has_contract %}
+                    <span class="au-contract-badge" title="To'lov turi: Shartnoma">
+                        <i class="bi bi-file-earmark-text-fill"></i>Shartnoma
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
                 <div class="au-actions" style="justify-content:flex-start; padding-top:0.4rem; border-top:1px dashed var(--au-border);">
                     <a href="{% url 'admin_user_view' u.pk %}" class="au-act a-view" title="Ko'rish"><i class="bi bi-eye"></i></a>
                     <a href="{% url 'admin_user_edit' u.pk %}" class="au-act a-edit" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
@@ -834,7 +918,7 @@
         <div class="au-empty-icon"><i class="bi bi-people"></i></div>
         <h5>Foydalanuvchilar topilmadi</h5>
         <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Filtr shartlariga mos foydalanuvchi yo'q{% endif %}</p>
-        {% if search_query or role_filter or profession_filter or status_filter or group_filter %}
+        {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter %}
         <a href="{% url 'admin_users' %}" class="au-btn-reset" style="display:inline-flex;">
             <i class="bi bi-arrow-counterclockwise"></i> Filtrlarni tozalash
         </a>

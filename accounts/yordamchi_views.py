@@ -9,7 +9,7 @@ Granular permission tekshiruvi (`has_assistant_perm`) ham qo'llanilishi mumkin.
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, Prefetch, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -33,6 +33,7 @@ from accounts.models import (
     PasswordResetRequest,
     PremiumRequest,
     Profession,
+    StudyGroup,
     TestResult,
 )
 from accounts.permissions_registry import PERMISSIONS
@@ -340,15 +341,70 @@ def yordamchi_homework(request):
     if not _require_perm(request, 'homework.view'):
         return redirect('home')
     status = request.GET.get('status', '').strip()
-    qs = HomeworkSubmission.objects.select_related('student', 'homework__lesson')
+    profession_filter = request.GET.get('profession', '').strip()
+    group_filter = request.GET.get('group', '').strip()
+
+    qs = HomeworkSubmission.objects.select_related(
+        'student', 'homework__lesson__profession'
+    ).prefetch_related(
+        # O'quvchining guruh(lar)ini ro'yxatda ko'rsatish uchun
+        Prefetch(
+            'student__study_groups',
+            queryset=StudyGroup.objects.select_related('teacher').only(
+                'id', 'name', 'color', 'profession_id',
+                'teacher__id', 'teacher__first_name', 'teacher__last_name',
+            ),
+        )
+    )
     if status:
         qs = qs.filter(status=status)
+    if profession_filter:
+        qs = qs.filter(homework__lesson__profession_id=profession_filter)
+    if group_filter:
+        qs = qs.filter(student__study_groups__id=group_filter).distinct()
+
     paginator = Paginator(qs.order_by('-submitted_at'), 50)
     page_obj = paginator.get_page(request.GET.get('page'))
+    submissions = list(page_obj.object_list)
+
+    # Sahifadagi kurslar bo'yicha o'qituvchilarni bitta so'rovda yig'ish
+    prof_ids = {
+        s.homework.lesson.profession_id
+        for s in submissions
+        if s.homework_id and s.homework.lesson_id
+    }
+    teachers_by_prof = {}
+    if prof_ids:
+        rows = CustomUser.objects.filter(
+            role='teacher', teaching_professions__in=prof_ids
+        ).values_list('teaching_professions', 'first_name', 'last_name')
+        for prof_id, first, last in rows:
+            name = f"{first or ''} {last or ''}".strip()
+            if name:
+                teachers_by_prof.setdefault(prof_id, []).append(name)
+
+    for s in submissions:
+        lesson = s.homework.lesson if s.homework_id and s.homework.lesson_id else None
+        prof_id = lesson.profession_id if lesson else None
+        s.course_teachers = teachers_by_prof.get(prof_id, [])
+        # Avval kursga mos guruhlar; topilmasa o'quvchining barcha guruhlari
+        student_groups = list(s.student.study_groups.all())
+        matched = [g for g in student_groups if prof_id and g.profession_id == prof_id]
+        s.student_groups = matched or student_groups
+
+    professions = Profession.objects.only('id', 'name').order_by('name')
+    groups = StudyGroup.objects.filter(is_active=True).select_related('profession').only(
+        'id', 'name', 'profession__name'
+    ).order_by('profession__name', 'name')
+
     return render(request, 'accounts/yordamchi/homework_list.html', {
-        'submissions': page_obj.object_list,
+        'submissions': submissions,
         'page_obj': page_obj,
         'status': status,
+        'profession_filter': profession_filter,
+        'group_filter': group_filter,
+        'professions': professions,
+        'groups': groups,
         'total_count': paginator.count,
     })
 

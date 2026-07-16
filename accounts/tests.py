@@ -24,6 +24,7 @@ from .models import (
     UserSession,
 )
 from .views import _passed_test_lesson_counts
+from coin.models import CoinTransaction
 from quiz.models import Attempt, Quiz
 
 
@@ -156,6 +157,103 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
             HomeworkSubmission.objects.filter(homework__lesson=lesson, student=self.student).count(),
             2,
         )
+
+    def test_premium_homework_resubmission_costs_half_price(self):
+        self.student.coins = 100
+        self.student.is_premium = True
+        self.student.save(update_fields=['coins', 'is_premium'])
+        lesson = Lesson.objects.create(
+            profession=self.profession,
+            title='Premium coin jarimali vazifa',
+            lesson_type='homework',
+        )
+        Homework.objects.create(lesson=lesson, description='Premium test homework')
+        CourseEnrollment.objects.create(user=self.student, profession=self.profession)
+
+        self.client.force_login(self.student)
+        UserSession.objects.create(
+            user=self.student,
+            session_key=self.client.session.session_key,
+            expires_at=timezone.now() + timedelta(hours=2),
+        )
+        submit_url = reverse('api_hw_submit', args=[lesson.pk])
+        payload = {
+            'submission_type': 'text',
+            'text_content': 'Premium foydalanuvchining topshirilgan vazifasi',
+        }
+
+        self.client.post(submit_url, payload)
+        response = self.client.post(submit_url, payload)
+
+        self.assertEqual(response.status_code, 200)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.coins, 85)
+        self.assertIn('15 coin', response.json()['message'])
+
+
+class AdminCoinHistoryTests(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='coin-admin', password='test-password', role='admin',
+            phone='+998900000101',
+        )
+        self.student = CustomUser.objects.create_user(
+            username='coin-student', password='test-password', role='student',
+            phone='+998900000102',
+        )
+        self.client.force_login(self.admin)
+
+    @patch('accounts.views.notify_user')
+    @patch('accounts.views.notify_group')
+    @patch('accounts.views.notify_admins')
+    def test_individual_add_and_remove_are_saved_to_coin_history(
+        self, notify_admins, notify_group, notify_user
+    ):
+        url = reverse('admin_manage_coins')
+
+        self.client.post(url, {
+            'user_id': self.student.pk,
+            'amount': 25,
+            'action': 'add',
+            'reason': 'Faollik uchun',
+        })
+        self.client.post(url, {
+            'user_id': self.student.pk,
+            'amount': 7,
+            'action': 'remove',
+            'reason': 'Jarima',
+        })
+
+        self.assertTrue(CoinTransaction.objects.filter(
+            user=self.student, amount=25, action='add', reason='Faollik uchun'
+        ).exists())
+        self.assertTrue(CoinTransaction.objects.filter(
+            user=self.student, amount=7, action='remove', reason='Jarima'
+        ).exists())
+
+    @patch('accounts.views.notify_group')
+    @patch('accounts.views.notify_admins')
+    def test_bulk_coin_change_is_saved_for_every_student(
+        self, notify_admins, notify_group
+    ):
+        second_student = CustomUser.objects.create_user(
+            username='coin-student-2', password='test-password', role='student',
+            phone='+998900000103',
+        )
+
+        self.client.post(reverse('admin_manage_coins'), {
+            'bulk_user_ids': [self.student.pk, second_student.pk],
+            'amount': 10,
+            'action': 'add',
+            'reason': 'Guruh bonusi',
+        })
+
+        self.assertEqual(CoinTransaction.objects.filter(
+            user__in=[self.student, second_student],
+            amount=10,
+            action='add',
+            reason='Guruh bonusi',
+        ).count(), 2)
 
 
 class ContractStudentMonthlyPaymentsTests(TestCase):

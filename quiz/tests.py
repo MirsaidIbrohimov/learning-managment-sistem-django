@@ -742,7 +742,25 @@ class AttemptAPITests(TestCase):
         self.assertEqual(second.status_code, status.HTTP_201_CREATED)
         self.assertEqual(second.data['attempt_number'], 2)
         self.student.refresh_from_db()
-        self.assertEqual(self.student.coins, coins_before_retry - 10)  # not premium -> retry_cost=10
+        self.assertEqual(self.student.coins, coins_before_retry - 50)
+
+    def test_premium_retry_costs_half_price(self):
+        self.quiz_settings.allow_retry = True
+        self.quiz_settings.attempts_allowed = 2
+        self.quiz_settings.save()
+        self.student.is_premium = True
+        self.student.save(update_fields=['is_premium'])
+
+        first_id = self._start().data['id']
+        self.client.post(f'/api/v1/quiz/attempts/{first_id}/submit/')
+        self.student.refresh_from_db()
+        coins_before_retry = self.student.coins
+
+        second = self._start()
+
+        self.assertEqual(second.status_code, status.HTTP_201_CREATED)
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.coins, coins_before_retry - 25)
 
     def test_attempts_allowed_limit_is_enforced(self):
         self.quiz_settings.allow_retry = True
@@ -765,7 +783,7 @@ class AttemptAPITests(TestCase):
         self.student.refresh_from_db()
         self.assertEqual(self.student.coins, 1)  # one correct answer, first pass
 
-        second_id = self._start().data['id']  # retry costs 10 coins
+        second_id = self._start().data['id']  # retry costs 50 coins
         self.student.refresh_from_db()
         coins_after_retry_charge = self.student.coins
 

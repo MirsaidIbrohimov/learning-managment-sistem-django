@@ -4818,7 +4818,7 @@ def start_test(request, pk):
     
     # Qayta topshirish uchun coin yechish
     if existing_result and test.allow_retry and test.test_type != 'final':
-        retry_cost = 3 if request.user.is_premium else 10
+        retry_cost = 5 if request.user.is_premium else 10
         request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
     
     all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
@@ -5841,7 +5841,7 @@ def student_start_test(request, token):
         })
 
     if existing_result and test.allow_retry and test.test_type != 'final':
-        retry_cost = 3 if request.user.is_premium else 10
+        retry_cost = 5 if request.user.is_premium else 10
         request.user.remove_coins(retry_cost, f"Test qayta topshirish: {test.lesson.title}")
 
     all_questions = list(test.questions.all().distinct().prefetch_related('answers'))
@@ -9086,7 +9086,11 @@ def homework_chat(request, pk):
             
             if has_new_content:
                 # Qayta topshirish uchun belgilangan jarimani yechish
-                resubmit_cost = HomeworkSubmission.RESUBMIT_COIN_PENALTY
+                resubmit_cost = (
+                    HomeworkSubmission.RESUBMIT_COIN_PENALTY // 2
+                    if request.user.is_premium
+                    else HomeworkSubmission.RESUBMIT_COIN_PENALTY
+                )
                 request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
                 
                 from .models import HomeworkRevision
@@ -9171,7 +9175,11 @@ def homework_chat(request, pk):
             return redirect('homework_chat', pk=pk)
     
 
-    resubmit_cost = HomeworkSubmission.RESUBMIT_COIN_PENALTY
+    resubmit_cost = (
+        HomeworkSubmission.RESUBMIT_COIN_PENALTY // 2
+        if request.user.is_premium
+        else HomeworkSubmission.RESUBMIT_COIN_PENALTY
+    )
     return render(request, 'accounts/homework_chat.html', {
         'submission': submission,
         'chat_messages': chat_messages,
@@ -10263,22 +10271,35 @@ def admin_users(request):
     profession_filter = request.GET.get('profession', '')
     status_filter = request.GET.get('status', '')
     group_filter = request.GET.get('group', '')
+    payment_filter = request.GET.get('payment', '')
     sort_by = request.GET.get('sort', '')
+
+    from django.db.models import Exists, OuterRef, Prefetch
+    from .models import StudyGroup, StudentBalance
 
     users = CustomUser.objects.only(
         'id', 'username', 'first_name', 'last_name', 'phone', 'photo',
         'role', 'is_blocked', 'is_finished', 'is_premium', 'last_activity', 'date_joined',
-        'is_superuser',
+        'is_superuser', 'student_id',
+    ).prefetch_related(
+        # Ro'yxatda har bir o'quvchining guruh(lar)ini ko'rsatish uchun
+        Prefetch('study_groups', queryset=StudyGroup.objects.only('id', 'name', 'color'))
+    ).annotate(
+        # Shartnoma rejimidagi o'quvchilarni belgilash uchun
+        has_contract=Exists(
+            StudentBalance.objects.filter(user_id=OuterRef('pk'), is_contract=True)
+        )
     )
-    
+
     if search_query:
         users = users.filter(
             Q(first_name__icontains=search_query) |
             Q(last_name__icontains=search_query) |
             Q(username__icontains=search_query) |
-            Q(phone__icontains=search_query)
+            Q(phone__icontains=search_query) |
+            Q(student_id__icontains=search_query)
         )
-    
+
     if role_filter:
         users = users.filter(role=role_filter)
     if profession_filter:
@@ -10287,9 +10308,16 @@ def admin_users(request):
         users = users.filter(is_blocked=True)
     elif status_filter == 'active':
         users = users.filter(is_blocked=False)
-    if group_filter:
+    if group_filter == 'none':
+        # Hech qanday guruhga biriktirilmagan o'quvchilar
+        users = users.filter(role='student', study_groups__isnull=True)
+    elif group_filter:
         # Guruh a'zolari (o'quvchilar) bo'yicha filtrlash — StudyGroup.students M2M
         users = users.filter(study_groups__id=group_filter).distinct()
+    if payment_filter == 'contract':
+        users = users.filter(has_contract=True)
+    elif payment_filter == 'balance':
+        users = users.filter(role='student', has_contract=False)
     
     if sort_by == 'name':
         users = users.order_by('first_name', 'last_name')
@@ -10309,9 +10337,9 @@ def admin_users(request):
         students_count=Count('id', filter=Q(role='student')),
         teachers_count=Count('id', filter=Q(role='teacher')),
         blocked_count=Count('id', filter=Q(is_blocked=True)),
+        contract_count=Count('id', filter=Q(student_balance__is_contract=True)),
     )
     professions = Profession.objects.only('id', 'name')
-    from .models import StudyGroup
     groups = StudyGroup.objects.select_related('profession').only(
         'id', 'name', 'profession__name'
     ).order_by('profession__name', 'name')
@@ -10325,6 +10353,7 @@ def admin_users(request):
         bool(profession_filter),
         bool(status_filter),
         bool(group_filter),
+        bool(payment_filter),
     ])
 
     return render(request, 'accounts/admin/users.html', {
@@ -10336,6 +10365,7 @@ def admin_users(request):
         'profession_filter': profession_filter,
         'status_filter': status_filter,
         'group_filter': group_filter,
+        'payment_filter': payment_filter,
         'sort_by': sort_by,
         'total_count': total_count,
         'active_filters': active_filters,
@@ -11644,6 +11674,16 @@ def admin_manage_coins(request):
                         else:
                             u.coins -= amount
                         u.save(update_fields=['coins'])
+                        CoinTransaction.objects.create(
+                            user=u,
+                            amount=amount,
+                            action=action,
+                            reason=reason or (
+                                "Admin tomonidan coin berildi"
+                                if action == 'add'
+                                else "Admin tomonidan coin ayirildi"
+                            ),
+                        )
                         text = f"Sizga {amount} coin berildi! 🎉" if action == 'add' else f"Sizdan {amount} coin ayirildi."
                         if reason:
                             text += f"\n\nSabab: {reason}"
@@ -11670,6 +11710,12 @@ def admin_manage_coins(request):
                     if action == 'add':
                         user.coins += amount
                         user.save(update_fields=['coins'])
+                        CoinTransaction.objects.create(
+                            user=user,
+                            amount=amount,
+                            action='add',
+                            reason=reason or "Admin tomonidan coin berildi",
+                        )
                         text = f"Sizga {amount} coin rag'batlantirish sifatida berildi!"
                         if reason:
                             text += f"\n\nSabab: {reason}"
@@ -11690,6 +11736,12 @@ def admin_manage_coins(request):
                     elif action == 'remove':
                         user.coins -= amount
                         user.save(update_fields=['coins'])
+                        CoinTransaction.objects.create(
+                            user=user,
+                            amount=amount,
+                            action='remove',
+                            reason=reason or "Admin tomonidan coin ayirildi",
+                        )
                         text = f"Sizdan {amount} coin ayirildi."
                         if reason:
                             text += f"\n\nSabab: {reason}"

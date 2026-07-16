@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from django.utils.html import format_html
+from django.utils.html import format_html, format_html_join
 from .models import (
     CustomUser, Profession, CourseEnrollment, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
-    Certificate, Message, PaymentStatus, LoginAttempt, FinalTestPayment
+    Certificate, Message, PaymentStatus, LoginAttempt, FinalTestPayment,
+    StudyGroup
 )
 from teacher.models import TeacherSalary, TeacherAttendance
 
@@ -25,25 +26,62 @@ class TeacherAttendanceInline(admin.TabularInline):
     readonly_fields = ['created_by']
 
 
+class StudyGroupFilter(admin.SimpleListFilter):
+    title = "Guruh"
+    parameter_name = 'study_group'
+
+    def lookups(self, request, model_admin):
+        groups = StudyGroup.objects.filter(is_active=True).select_related('profession').order_by('name')
+        lookups = [(str(g.pk), f"{g.name} — {g.profession.name}") for g in groups]
+        lookups.append(('none', "Guruhsiz o'quvchilar"))
+        return lookups
+
+    def queryset(self, request, queryset):
+        value = self.value()
+        if value == 'none':
+            return queryset.filter(role='student', study_groups__isnull=True)
+        if value:
+            return queryset.filter(study_groups__pk=value)
+        return queryset
+
+
+class PaymentTypeFilter(admin.SimpleListFilter):
+    title = "To'lov turi"
+    parameter_name = 'payment_type'
+
+    def lookups(self, request, model_admin):
+        return [
+            ('contract', 'Shartnoma'),
+            ('balance', 'Oddiy (balans)'),
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value() == 'contract':
+            return queryset.filter(student_balance__is_contract=True)
+        if self.value() == 'balance':
+            return queryset.filter(role='student').exclude(student_balance__is_contract=True)
+        return queryset
+
+
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
-    list_display = ['student_id_display', 'username', 'full_name', 'phone', 'role', 'coins', 'is_blocked', 'is_online_display', 'date_joined']
-    list_filter = ['role', 'is_blocked', 'profession', 'date_joined']
-    search_fields = ['username', 'first_name', 'last_name', 'phone', 'student_id']
+    list_display = ['student_id_display', 'username', 'full_name', 'phone', 'role', 'study_groups_display', 'payment_display', 'coins', 'is_blocked', 'is_online_display', 'date_joined']
+    list_filter = [StudyGroupFilter, PaymentTypeFilter, 'role', 'is_blocked', 'profession', 'date_joined']
+    search_fields = ['username', 'first_name', 'last_name', 'phone', 'student_id', 'study_groups__name']
     ordering = ['-date_joined']
     list_editable = ['is_blocked']
     list_per_page = 25
     autocomplete_fields = ['profession']
     filter_horizontal = ['teaching_professions', 'groups', 'user_permissions']
-    
+
     def get_inlines(self, request, obj=None):
         if obj and obj.role == 'teacher':
             return [TeacherSalaryInline, TeacherAttendanceInline]
         return []
-    
+
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('profession').prefetch_related(
-            'teaching_professions', 'groups'
+        return super().get_queryset(request).select_related('profession', 'student_balance').prefetch_related(
+            'teaching_professions', 'groups', 'study_groups'
         )
     
     fieldsets = (
@@ -136,6 +174,39 @@ class CustomUserAdmin(UserAdmin):
         return format_html('<span style="color:#9ca3af;">—</span>')
     student_id_display.short_description = 'ID'
     student_id_display.admin_order_field = 'student_id'
+
+    def study_groups_display(self, obj):
+        groups = list(obj.study_groups.all())
+        if not groups:
+            if obj.role == 'student':
+                return format_html('<span style="color:#9ca3af;font-size:0.85em;font-style:italic;">Guruhsiz</span>')
+            return format_html('<span style="color:#9ca3af;">—</span>')
+        return format_html_join(
+            ' ',
+            '<span style="background:{0}18;color:{0};border:1px solid {0}55;'
+            'padding:2px 8px;border-radius:6px;font-size:0.8em;font-weight:600;'
+            'white-space:nowrap;display:inline-block;margin:1px 0;">{1}</span>',
+            ((g.color or '#6366f1', g.name) for g in groups)
+        )
+    study_groups_display.short_description = 'Guruhlar'
+
+    def payment_display(self, obj):
+        if obj.role != 'student':
+            return format_html('<span style="color:#9ca3af;">—</span>')
+        balance = getattr(obj, 'student_balance', None)
+        if balance and balance.is_contract:
+            return format_html(
+                '<span style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;'
+                'padding:2px 8px;border-radius:6px;font-weight:700;font-size:0.8em;'
+                'white-space:nowrap;">Shartnoma</span>'
+            )
+        if balance:
+            return format_html(
+                '<span style="color:#059669;font-weight:600;font-size:0.85em;white-space:nowrap;">{}</span>',
+                balance.formatted()
+            )
+        return format_html('<span style="color:#9ca3af;">—</span>')
+    payment_display.short_description = "To'lov"
 
 
 @admin.register(Profession)

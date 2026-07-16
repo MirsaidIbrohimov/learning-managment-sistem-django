@@ -279,7 +279,7 @@ class QuizTakeView(StudentRequiredMixin, TemplateView):
             'best_score': max(prior_attempts) if prior_attempts else None,
             'last_score': prior_attempts[0] if prior_attempts else None,
             'resume_attempt_id': resume_attempt_id,
-            'retry_cost': 30 if student.is_premium else 50,
+            'retry_cost': 25 if student.is_premium else 50,
             'student_name': student.get_full_name() or student.username,
             'student_coins': student.coins,
             'is_premium': student.is_premium,

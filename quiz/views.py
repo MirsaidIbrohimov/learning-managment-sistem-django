@@ -1129,7 +1129,7 @@ class AttemptViewSet(mixins.CreateModelMixin, mixins.RetrieveModelMixin, mixins.
                     raise ValidationError("Retries aren't allowed for this quiz.")
                 if settings_.attempts_allowed and prior_count >= settings_.attempts_allowed:
                     raise ValidationError("You've used all of your attempts for this quiz.")
-                retry_cost = 30 if student.is_premium else 50
+                retry_cost = 25 if student.is_premium else 50
                 student.remove_coins(retry_cost, reason=f"Qayta urinish: {quiz.title}")
 
         question_ids, option_order = _select_questions_for_attempt(quiz)

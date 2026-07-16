@@ -5,8 +5,20 @@
 {% block content %}
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white" style="border-bottom:1px solid var(--yo-border);">
-        <form method="get" class="d-flex gap-2">
-            <select name="status" class="form-select form-select-sm" style="max-width:220px;">
+        <form method="get" class="d-flex gap-2 flex-wrap">
+            <select name="profession" class="form-select form-select-sm" style="max-width:200px;">
+                <option value="">— Barcha yo'nalishlar —</option>
+                {% for p in professions %}
+                <option value="{{ p.id }}" {% if profession_filter == p.id|stringformat:"i" %}selected{% endif %}>{{ p.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="group" class="form-select form-select-sm" style="max-width:230px;">
+                <option value="">— Barcha guruhlar —</option>
+                {% for g in groups %}
+                <option value="{{ g.id }}" {% if group_filter == g.id|stringformat:"i" %}selected{% endif %}>{{ g.name }}{% if g.profession %} — {{ g.profession.name }}{% endif %}</option>
+                {% endfor %}
+            </select>
+            <select name="status" class="form-select form-select-sm" style="max-width:200px;">
                 <option value="">— Barcha holatlar —</option>
                 <option value="pending" {% if status == 'pending' %}selected{% endif %}>Kutilmoqda</option>
                 <option value="reviewing" {% if status == 'reviewing' %}selected{% endif %}>Ko'rib chiqilmoqda</option>
@@ -15,6 +27,9 @@
                 <option value="graded" {% if status == 'graded' %}selected{% endif %}>Baholangan</option>
             </select>
             <button class="btn btn-warning btn-sm"><i class="bi bi-funnel"></i> Filtrlash</button>
+            {% if status or profession_filter or group_filter %}
+            <a href="{% url 'yordamchi_homework' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-counterclockwise"></i> Tozalash</a>
+            {% endif %}
         </form>
     </div>
     <div class="card-body p-0">
@@ -22,7 +37,7 @@
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead style="background:rgba(245,158,11,0.06);">
-                    <tr><th>#</th><th>O'quvchi</th><th>Vazifa</th><th>Holat</th><th>Baho</th><th>Sana</th></tr>
+                    <tr><th>#</th><th>O'quvchi</th><th>Guruh</th><th>Vazifa</th><th>Yo'nalish</th><th>O'qituvchi</th><th>Holat</th><th>Baho</th><th>Sana</th></tr>
                 </thead>
                 <tbody>
                 {% for s in submissions %}
@@ -33,7 +48,28 @@
                                 {{ s.student.full_name }}
                             </a>
                         </td>
+                        <td>
+                            {% for g in s.student_groups %}
+                            {% with c=g.color|default:'#6366f1' %}
+                            <span class="badge" style="background:{{ c }}1a;color:{{ c }};border:1px solid {{ c }}45;font-weight:600;"{% if g.teacher %} title="Guruh o'qituvchisi: {{ g.teacher.full_name }}"{% endif %}>
+                                <i class="bi bi-people-fill"></i> {{ g.name }}
+                            </span>
+                            {% endwith %}
+                            {% empty %}
+                            <span class="text-muted fst-italic" style="font-size:.78rem;">Guruhsiz</span>
+                            {% endfor %}
+                        </td>
                         <td style="font-size:.85rem;">{{ s.homework.title|default:"—"|truncatechars:50 }}</td>
+                        <td>
+                            {% if s.homework.lesson.profession %}
+                            <span class="badge" style="background:rgba(99,102,241,0.1);color:#4f46e5;font-weight:600;">
+                                <i class="bi bi-mortarboard-fill"></i> {{ s.homework.lesson.profession.name }}
+                            </span>
+                            {% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
+                        <td style="font-size:.82rem;color:#374151;" title="Shu kurs (yo'nalish) o'qituvchilari">
+                            {% if s.course_teachers %}{{ s.course_teachers|join:", " }}{% else %}<span class="text-muted">—</span>{% endif %}
+                        </td>
                         <td><span class="badge bg-secondary">{{ s.get_status_display }}</span></td>
                         <td>{{ s.grade|default:"—" }}</td>
                         <td style="font-size:.78rem;color:#6b7280;">{{ s.submitted_at|date:"d.m.Y H:i" }}</td>
