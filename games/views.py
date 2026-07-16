@@ -891,6 +891,28 @@ def admin_game_delete(request, pk):
     return render(request, 'games/admin/game_delete.html', {'game': game})
 
 
+@login_required
+@require_POST
+def admin_game_toggle(request, pk):
+    """O'yinni bir bosishda yoqish/o'chirish.
+
+    O'chirilgan o'yin (is_active=False) o'quvchilarga butunlay yopiladi:
+    ro'yxatda chiqmaydi, detail/launch/play/submit sahifalari 404 qaytaradi.
+    """
+    if not request.user.is_admin:
+        return redirect('home')
+
+    game = get_object_or_404(Game, pk=pk)
+    game.is_active = not game.is_active
+    game.save(update_fields=['is_active'])
+
+    if game.is_active:
+        messages.success(request, f"«{game.title}» yoqildi — o'quvchilarga ochiq.")
+    else:
+        messages.warning(request, f"«{game.title}» o'chirildi — o'quvchilar kira olmaydi.")
+    return redirect('games:admin_games')
+
+
 # ---- Prompts ----
 
 VALID_PROMPT_USAGES = {'practice', 'competition', 'both'}

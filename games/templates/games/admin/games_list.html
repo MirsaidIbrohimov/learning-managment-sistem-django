@@ -144,6 +144,40 @@
     .mobile-game-cards { display: block; }
     .admin-header h2 { font-size: 1.2rem; }
 }
+
+/* ── O'yin yoqish/o'chirish switch ── */
+.gt-form { display: inline-flex; margin: 0; }
+.gt-switch {
+    --gt-w: 74px;
+    position: relative;
+    display: inline-flex; align-items: center;
+    width: var(--gt-w); height: 30px;
+    border: none; border-radius: 50px; cursor: pointer;
+    font-size: 0.66rem; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.03em;
+    transition: background 0.2s, box-shadow 0.2s;
+    outline: none; padding: 0;
+}
+.gt-switch .knob {
+    position: absolute; top: 3px;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem;
+}
+.gt-switch .lbl { width: 100%; padding: 0 8px; color: #fff; }
+.gt-switch.on { background: #16a34a; }
+.gt-switch.on:hover { box-shadow: 0 0 0 4px rgba(22,163,74,0.18); }
+.gt-switch.on .knob { left: calc(100% - 27px); color: #16a34a; }
+.gt-switch.on .lbl { text-align: left; }
+.gt-switch.off { background: #9ca3af; }
+.gt-switch.off:hover { box-shadow: 0 0 0 4px rgba(156,163,175,0.22); }
+.gt-switch.off .knob { left: 3px; color: #6b7280; }
+.gt-switch.off .lbl { text-align: right; }
+[data-bs-theme="dark"] .gt-switch.off { background: #4b5563; }
+.gt-hint { font-size: 0.66rem; color: #ef4444; font-weight: 600; display: block; margin-top: 3px; }
 </style>
 
 <div class="container-fluid py-4">
@@ -196,11 +230,15 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if game.is_active %}
-                                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
-                                {% else %}
-                                <span class="badge bg-secondary" style="border-radius: 8px;">Nofaol</span>
-                                {% endif %}
+                                <form action="{% url 'games:admin_game_toggle' game.pk %}" method="post" class="gt-form"
+                                      {% if game.is_active %}onsubmit="return confirm('«{{ game.title|escapejs }}» o\'chirilsinmi? O\'quvchilar kira olmaydi.')"{% endif %}>
+                                    {% csrf_token %}
+                                    <button type="submit" class="gt-switch {% if game.is_active %}on{% else %}off{% endif %}"
+                                            title="{% if game.is_active %}O'chirish — o'quvchilarga yopiladi{% else %}Yoqish — o'quvchilarga ochiladi{% endif %}">
+                                        <span class="lbl">{% if game.is_active %}Faol{% else %}O'chiq{% endif %}</span>
+                                        <span class="knob"><i class="bi {% if game.is_active %}bi-check-lg{% else %}bi-x-lg{% endif %}"></i></span>
+                                    </button>
+                                </form>
                             </td>
                             <td>{{ game.created_at|date:"d.m.Y" }}</td>
                             <td>
@@ -232,11 +270,15 @@
         <div class="game-card-m" style="animation-delay: {{ forloop.counter0 }}50ms;">
             <div class="card-top">
                 <span class="card-title">{{ game.title }}</span>
-                {% if game.is_active %}
-                <span class="badge bg-success" style="border-radius: 8px;">Faol</span>
-                {% else %}
-                <span class="badge bg-secondary" style="border-radius: 8px;">Nofaol</span>
-                {% endif %}
+                <form action="{% url 'games:admin_game_toggle' game.pk %}" method="post" class="gt-form"
+                      {% if game.is_active %}onsubmit="return confirm('«{{ game.title|escapejs }}» o\'chirilsinmi? O\'quvchilar kira olmaydi.')"{% endif %}>
+                    {% csrf_token %}
+                    <button type="submit" class="gt-switch {% if game.is_active %}on{% else %}off{% endif %}"
+                            title="{% if game.is_active %}O'chirish{% else %}Yoqish{% endif %}">
+                        <span class="lbl">{% if game.is_active %}Faol{% else %}O'chiq{% endif %}</span>
+                        <span class="knob"><i class="bi {% if game.is_active %}bi-check-lg{% else %}bi-x-lg{% endif %}"></i></span>
+                    </button>
+                </form>
             </div>
             <div class="card-meta text-muted">
                 <span><i class="bi bi-tag"></i> {{ game.get_game_type_display }}</span>

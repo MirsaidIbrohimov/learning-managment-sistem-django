@@ -32,6 +32,7 @@ urlpatterns = [
     path('dashboard/games/', views.admin_games, name='admin_games'),
     path('dashboard/games/add/', views.admin_game_add, name='admin_game_add'),
     path('dashboard/games/<int:pk>/edit/', views.admin_game_edit, name='admin_game_edit'),
+    path('dashboard/games/<int:pk>/toggle/', views.admin_game_toggle, name='admin_game_toggle'),
     path('dashboard/games/<int:pk>/delete/', views.admin_game_delete, name='admin_game_delete'),
     path('dashboard/games/<int:game_pk>/prompts/', views.admin_prompts, name='admin_prompts'),
     path('dashboard/games/<int:game_pk>/prompts/add/', views.admin_prompt_add, name='admin_prompt_add'),
