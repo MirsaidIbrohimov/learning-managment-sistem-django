@@ -35,6 +35,7 @@ from datetime import timedelta
 from functools import wraps
 
 from django.contrib.auth.decorators import login_required
+from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -182,21 +183,30 @@ def _homework_max_score(_hw: Homework) -> int:
 
 
 def _submission_grade_summary(sub: HomeworkSubmission) -> dict:
-    graded_attempts = list(
+    legacy_attempts = list(
         HomeworkSubmission.objects.filter(
             homework=sub.homework,
             student=sub.student,
             status='graded',
             grade__isnull=False,
-        ).order_by('submitted_at', 'pk').values('pk', 'grade', 'version', 'submitted_at')
+        ).exclude(pk=sub.pk).values('grade', 'version', 'submitted_at')
     )
-    previous = None
-    best_grade = None
-    for attempt in graded_attempts:
-        if best_grade is None or attempt['grade'] > best_grade:
-            best_grade = attempt['grade']
-        if (attempt['submitted_at'], attempt['pk']) < (sub.submitted_at, sub.pk):
-            previous = attempt
+    archived_attempts = list(
+        sub.revisions.filter(status='graded', grade__isnull=False).order_by(
+            'submitted_at'
+        ).values(
+            'grade', 'submitted_at'
+        )
+    )
+    for index, attempt in enumerate(archived_attempts, start=1):
+        attempt['version'] = index
+
+    previous_attempts = legacy_attempts + archived_attempts
+    previous = max(previous_attempts, key=lambda item: item['submitted_at'], default=None)
+    grades = [item['grade'] for item in previous_attempts]
+    if sub.grade is not None:
+        grades.append(sub.grade)
+    best_grade = max(grades) if grades else None
 
     return {
         "current_grade": sub.grade,
@@ -245,6 +255,30 @@ def _serialize_submission(sub: HomeworkSubmission, request) -> dict:
         "edit_seconds_left": sub.edit_seconds_left,
         "coin_awarded":     sub.coin_awarded,
         "coins_earned":     sub.coins_earned,
+    }
+
+
+def _serialize_revision(revision, request, version) -> dict:
+    file_url = None
+    if revision.file:
+        try:
+            file_url = request.build_absolute_uri(revision.file.url)
+        except Exception:
+            pass
+    return {
+        "id": revision.pk,
+        "status": revision.status,
+        "status_display": revision.get_status_display(),
+        "submission_type": revision.submission_type,
+        "file_url": file_url,
+        "file_name": os.path.basename(revision.file.name) if revision.file else None,
+        "text_content": revision.text_content or "",
+        "grade": revision.grade,
+        "max_score": _homework_max_score(revision.submission.homework),
+        "feedback": revision.feedback or "",
+        "is_late": False,
+        "version": version,
+        "submitted_at": revision.submitted_at.strftime("%d.%m.%Y %H:%M"),
     }
 
 
@@ -330,10 +364,7 @@ def hw_detail(request, lesson_pk):
 
     submission = _get_submission_or_none(hw, request.user)
 
-    # Count all versions if student has multiple submissions
-    version_count = HomeworkSubmission.objects.filter(
-        homework=hw, student=request.user
-    ).count()
+    version_count = submission.version if submission else 0
 
     data = {
         "homework":      _serialize_homework(hw, request.user),
@@ -356,10 +387,12 @@ def hw_detail(request, lesson_pk):
 @csrf_protect
 @rate_limited('hw_submit')
 @require_http_methods(["POST"])
+@transaction.atomic
 def hw_submit(request, lesson_pk):
     """
     POST /api/hw/<lesson_pk>/submit/
-    Submit or RE-submit homework. Creates a new HomeworkSubmission each time.
+    Submit or RE-submit homework. A retry archives the previous version and
+    updates the same HomeworkSubmission so teacher lists do not get duplicates.
     Multipart form data: submission_type (file|text), file?, text_content?
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
@@ -370,9 +403,10 @@ def hw_submit(request, lesson_pk):
 
     hw = get_object_or_404(Homework, lesson=lesson)
 
-    prev_count = HomeworkSubmission.objects.filter(
+    sub = HomeworkSubmission.objects.select_for_update().filter(
         homework=hw, student=request.user
-    ).count()
+    ).order_by('-submitted_at', '-pk').first()
+    is_resubmission = sub is not None
 
     # Deadline check
     if hw.is_deadline_passed and not hw.allow_late:
@@ -381,6 +415,8 @@ def hw_submit(request, lesson_pk):
     submission_type = request.POST.get('submission_type', 'file')
     if hw.file_only or hw.handwritten_only:
         submission_type = 'file'
+    uploaded = None
+    clean_text = ''
 
     # ── File submission ────────────────────────────────
     if submission_type == 'file':
@@ -403,19 +439,6 @@ def hw_submit(request, lesson_pk):
         # Safe filename
         uploaded.name = _safe_filename(uploaded.name)
 
-        # Is it late?
-        is_late = hw.is_deadline_passed
-
-        sub = HomeworkSubmission.objects.create(
-            homework=hw,
-            student=request.user,
-            submission_type='file',
-            file=uploaded,
-            is_late=is_late,
-            version=prev_count + 1,
-            revision_count=prev_count,
-        )
-
     # ── Text submission ────────────────────────────────
     else:
         raw_text = request.POST.get('text_content', '').strip()
@@ -427,15 +450,34 @@ def hw_submit(request, lesson_pk):
             return _err("Matn juda uzun (max 200 000 belgi)")
 
         clean_text = _sanitize_html(raw_text)
-        is_late    = hw.is_deadline_passed
+
+    is_late = hw.is_deadline_passed
+    if is_resubmission:
+        sub.archive_current_version(note=f"Versiya {sub.version}")
+        sub.submission_type = submission_type
+        sub.file = uploaded if submission_type == 'file' else None
+        sub.text_content = clean_text if submission_type == 'text' else None
+        sub.is_late = is_late
+        sub.version += 1
+        sub.revision_count += 1
+        sub.status = 'pending'
+        sub.grade = None
+        sub.feedback = ''
+        sub.feedback_file = None
+        sub.graded_by = None
+        sub.graded_at = None
+        sub.ai_feedback = None
+        sub.ai_checked = False
+        sub.submitted_at = timezone.now()
+        sub.save()
+    else:
         sub = HomeworkSubmission.objects.create(
             homework=hw,
             student=request.user,
-            submission_type='text',
-            text_content=clean_text,
+            submission_type=submission_type,
+            file=uploaded if submission_type == 'file' else None,
+            text_content=clean_text if submission_type == 'text' else None,
             is_late=is_late,
-            version=prev_count + 1,
-            revision_count=prev_count,
         )
 
     resubmit_penalty = (
@@ -443,7 +485,7 @@ def hw_submit(request, lesson_pk):
         if request.user.is_premium
         else HomeworkSubmission.RESUBMIT_COIN_PENALTY
     )
-    if prev_count > 0:
+    if is_resubmission:
         request.user.remove_coins(
             resubmit_penalty,
             f"Uyga vazifa qayta topshirish: {hw.lesson.title}",
@@ -468,7 +510,7 @@ def hw_submit(request, lesson_pk):
         {"submission": _serialize_submission(sub, request)},
         message=(
             f"Vazifa qayta topshirildi. {resubmit_penalty} coin jarima yechildi!"
-            if prev_count > 0
+            if is_resubmission
             else "Vazifa muvaffaqiyatli yuborildi!" + (" (Kech topshirildi)" if sub.is_late else "")
         ),
     )
@@ -534,18 +576,24 @@ def hw_edit(request, lesson_pk):
 def hw_history(request, lesson_pk):
     """
     GET /api/hw/<lesson_pk>/history/
-    Returns all submissions (versions) by current student.
+    Returns archived versions and the current submission by current student.
     """
     lesson, has_access, is_teacher, is_admin = _get_lesson(lesson_pk, request.user)
     if not has_access:
         return _err("Ruxsat yo'q", 403)
 
-    hw   = get_object_or_404(Homework, lesson=lesson)
-    subs = HomeworkSubmission.objects.filter(
-        homework=hw, student=request.user
-    ).order_by('submitted_at')
+    hw = get_object_or_404(Homework, lesson=lesson)
+    sub = _get_submission_or_none(hw, request.user)
+    if not sub:
+        return _ok({"history": []})
 
-    return _ok({"history": [_serialize_submission(s, request) for s in subs]})
+    revisions = list(sub.revisions.order_by('submitted_at'))
+    history = [
+        _serialize_revision(revision, request, index)
+        for index, revision in enumerate(revisions, start=1)
+    ]
+    history.append(_serialize_submission(sub, request))
+    return _ok({"history": history})
 
 
 @login_required

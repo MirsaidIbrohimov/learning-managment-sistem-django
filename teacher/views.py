@@ -1159,6 +1159,7 @@ def teacher_grade_homework(request, pk):
     
     context = {
         'submission': submission,
+        'revisions': submission.revisions.all(),
     }
     return render(request, 'teacher/grade_homework.html', context)
 

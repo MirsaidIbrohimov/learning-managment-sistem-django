@@ -1384,16 +1384,24 @@
                 <div class="gh-card-head"><i class="bi bi-clock-history"></i> Oldingi versiyalar</div>
                 {% for rev in revisions %}
                 <div class="gh-rev-item">
-                    <div>
+                    <div style="flex:1;min-width:0;">
                         <i class="bi bi-file-earmark"
                             style="color:var(--bs-secondary-color, #6c757d); margin-right:0.4rem;"></i>
                         <span style="font-weight:600; font-size:0.88rem;">{{ rev.note|default:"Oldingi versiya" }}</span>
-                        <span style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d); margin-left:0.5rem;">{{ rev.submitted_at|date:"d.m.Y H:i" }}</span>
+                        <span style="font-size:0.78rem; color:var(--bs-secondary-color, #6c757d); margin-left:0.5rem;">{{ rev.submitted_at|date:"d.m.Y H:i" }} · {{ rev.get_status_display }}{% if rev.grade %} · {{ rev.grade }}/10{% endif %}</span>
+                        {% if rev.text_content %}
+                        <div style="margin-top:.55rem;padding:.65rem;border-radius:.6rem;background:var(--bs-tertiary-bg);font-size:.82rem;">{{ rev.text_content|submission_plain }}</div>
+                        {% endif %}
+                        {% if rev.feedback %}
+                        <div style="margin-top:.4rem;font-size:.78rem;color:var(--bs-secondary-color);"><i class="bi bi-chat-quote"></i> {{ rev.feedback }}</div>
+                        {% endif %}
                     </div>
+                    {% if rev.file %}
                     <a href="{{ rev.file.url }}" target="_blank" class="gh-file-btn"
                         style="padding:0.35rem 0.7rem; font-size:0.75rem;">
                         <i class="bi bi-download"></i>
                     </a>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

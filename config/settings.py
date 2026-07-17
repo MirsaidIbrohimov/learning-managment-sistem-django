@@ -525,8 +525,9 @@ TELEGRAM_BOT_TOKEN     = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
 TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID', '').strip()
 TELEGRAM_BOT_USERNAME  = os.getenv('TELEGRAM_BOT_USERNAME', '').strip()
 
-# Premium custom emoji va stikerlar (telegram_bot/premium.py).
-# True bo'lsa, bot xabarlari premium animatsiyali emoji + stiker ishlatadi.
+# Premium custom emoji va ixtiyoriy stikerlar (telegram_bot/premium.py).
+# Botning matnli xabarlari premium animatsiyali emojilarni xabar ichida ishlatadi;
+# xabardan keyin alohida stiker avtomatik yuborilmaydi.
 # ID lar noto'g'ri bo'lsa avtomatik oddiy emojiga qaytadi (botni buzmaydi).
 TELEGRAM_USE_PREMIUM_EMOJI = os.getenv('TELEGRAM_USE_PREMIUM_EMOJI', 'true').lower() in ('1', 'true', 'yes')
 TELEGRAM_USE_STICKERS      = os.getenv('TELEGRAM_USE_STICKERS', 'true').lower() in ('1', 'true', 'yes')

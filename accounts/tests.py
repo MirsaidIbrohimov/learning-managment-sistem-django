@@ -155,8 +155,81 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
         self.assertEqual(self.student.coins, 70)
         self.assertEqual(
             HomeworkSubmission.objects.filter(homework__lesson=lesson, student=self.student).count(),
-            2,
+            1,
         )
+        submission = HomeworkSubmission.objects.get(
+            homework__lesson=lesson, student=self.student
+        )
+        self.assertEqual(submission.version, 2)
+        self.assertEqual(submission.revision_count, 1)
+        self.assertEqual(submission.revisions.count(), 1)
+
+    def test_multiple_resubmissions_keep_one_current_row_and_full_history(self):
+        self.student.coins = 100
+        self.student.save(update_fields=['coins'])
+        lesson = Lesson.objects.create(
+            profession=self.profession,
+            title='Versiyali vazifa',
+            lesson_type='homework',
+        )
+        Homework.objects.create(lesson=lesson, description='Version history homework')
+        CourseEnrollment.objects.create(user=self.student, profession=self.profession)
+        self.client.force_login(self.student)
+        UserSession.objects.create(
+            user=self.student,
+            session_key=self.client.session.session_key,
+            expires_at=timezone.now() + timedelta(hours=2),
+        )
+        submit_url = reverse('api_hw_submit', args=[lesson.pk])
+
+        self.client.post(submit_url, {
+            'submission_type': 'text',
+            'text_content': 'Birinchi yuborilgan vazifa matni',
+        })
+        submission = HomeworkSubmission.objects.get(student=self.student, homework__lesson=lesson)
+        submission.status = 'revision'
+        submission.feedback = 'Birinchi javobni tuzating'
+        submission.save(update_fields=['status', 'feedback'])
+
+        self.client.post(submit_url, {
+            'submission_type': 'text',
+            'text_content': 'Ikkinchi tuzatilgan vazifa matni',
+        })
+        submission.refresh_from_db()
+        submission.status = 'graded'
+        submission.grade = 8
+        submission.feedback = 'Yana bir marta yaxshilang'
+        submission.save(update_fields=['status', 'grade', 'feedback'])
+
+        self.client.post(submit_url, {
+            'submission_type': 'text',
+            'text_content': 'Uchinchi yakuniy vazifa matni',
+        })
+
+        submission.refresh_from_db()
+        revisions = list(submission.revisions.order_by('submitted_at'))
+        self.assertEqual(HomeworkSubmission.objects.filter(
+            student=self.student, homework__lesson=lesson
+        ).count(), 1)
+        self.assertEqual(submission.version, 3)
+        self.assertEqual(submission.revision_count, 2)
+        self.assertEqual(submission.status, 'pending')
+        self.assertIsNone(submission.grade)
+        self.assertEqual(len(revisions), 2)
+        self.assertEqual(revisions[0].status, 'revision')
+        self.assertIn('Birinchi yuborilgan', revisions[0].text_content)
+        self.assertEqual(revisions[1].status, 'graded')
+        self.assertEqual(revisions[1].grade, 8)
+        self.assertIn('Ikkinchi tuzatilgan', revisions[1].text_content)
+
+        history_response = self.client.get(
+            reverse('api_hw_history', args=[lesson.pk])
+        )
+        history = history_response.json()['history']
+        self.assertEqual(len(history), 3)
+        self.assertEqual([item['version'] for item in history], [1, 2, 3])
+        self.assertIn('Birinchi yuborilgan', history[0]['text_content'])
+        self.assertIn('Uchinchi yakuniy', history[2]['text_content'])
 
     def test_premium_homework_resubmission_costs_half_price(self):
         self.student.coins = 100

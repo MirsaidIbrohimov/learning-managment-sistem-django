@@ -129,6 +129,40 @@
         </div>
     </div>
 
+    {% if revisions %}
+    <div class="t-grade-submission">
+        <div class="t-grade-submission-head">
+            <i class="bi bi-clock-history" style="color:#8b5cf6;"></i>
+            Oldingi versiyalar ({{ revisions.count }})
+        </div>
+        <div class="t-grade-submission-body">
+            {% for rev in revisions %}
+            <div style="padding:14px 0;{% if not forloop.last %}border-bottom:1px solid var(--bs-border-color);{% endif %}">
+                <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+                    <strong>{{ rev.note|default:"Oldingi versiya" }}</strong>
+                    <span style="font-size:.8rem;color:var(--bs-secondary-color);">
+                        {{ rev.submitted_at|date:"d.m.Y H:i" }} · {{ rev.get_status_display }}
+                        {% if rev.grade %} · {{ rev.grade }}/10{% endif %}
+                    </span>
+                </div>
+                {% if rev.file %}
+                <a href="{{ rev.file.url }}" target="_blank" class="t-btn t-btn-outline">
+                    <i class="bi bi-download"></i> Oldingi faylni ochish
+                </a>
+                {% elif rev.text_content %}
+                <div class="t-grade-text-content">{{ rev.text_content|submission_plain }}</div>
+                {% endif %}
+                {% if rev.feedback %}
+                <div style="margin-top:8px;font-size:.85rem;color:var(--bs-secondary-color);">
+                    <i class="bi bi-chat-quote"></i> {{ rev.feedback }}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
     <!-- AI bilan baholash -->
     <div style="background: var(--bs-body-bg); border: 1px solid var(--bs-border-color); border-radius: 18px; margin-bottom: 1.5rem; overflow: hidden; animation: fadeInUp 0.58s ease;">
         <div style="padding: 16px 24px; border-bottom: 1px solid var(--bs-border-color); font-weight: 700; display: flex; align-items: center; gap: .5rem;">

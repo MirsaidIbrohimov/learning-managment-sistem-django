@@ -19,29 +19,27 @@ class PremiumTelegramTests(SimpleTestCase):
     def test_uncategorized_message_gets_default_sticker(self):
         self.assertEqual(premium.pick_sticker("Oddiy bildirishnoma"), "messages")
 
-    def test_successful_message_also_sends_sticker(self):
+    def test_successful_message_is_single_message_with_premium_emoji(self):
         response = Mock(status_code=200, text="")
         response.json.return_value = {"ok": True}
         session = Mock()
-        session.post.side_effect = [response, response]
+        session.post.return_value = response
+        emoji = next(iter(premium._CUSTOM_EMOJI))
 
         original_disabled = premium._custom_emoji_disabled
-        premium._custom_emoji_disabled = True
+        premium._custom_emoji_disabled = False
         try:
             result = premium.send_message(
                 "token",
                 123,
-                "Hisobingizga kirildi!",
+                f"{emoji} Hisobingizga kirildi!",
                 session=session,
             )
         finally:
             premium._custom_emoji_disabled = original_disabled
 
         self.assertIs(result, response)
-        self.assertEqual(session.post.call_count, 2)
-        sticker_call = session.post.call_args_list[1]
-        self.assertTrue(sticker_call.args[0].endswith("/sendSticker"))
-        self.assertEqual(
-            sticker_call.kwargs["json"]["sticker"],
-            premium._STICKERS["success"],
-        )
+        session.post.assert_called_once()
+        message_call = session.post.call_args
+        self.assertTrue(message_call.args[0].endswith("/sendMessage"))
+        self.assertIn("<tg-emoji", message_call.kwargs["json"]["text"])

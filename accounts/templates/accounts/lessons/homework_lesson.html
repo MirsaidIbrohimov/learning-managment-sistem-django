@@ -1545,6 +1545,8 @@ function renderHistoryCard(sub) {
   const gradeHtml = sub.grade!=null ? `<span class="sp-rev-grade">${sub.grade}/${sub.max_score}</span>` : '';
   const fileHtml  = sub.submission_type==='file'&&sub.file_url
     ? `<div style="margin-top:9px"><a class="sp-dl-btn" href="${sub.file_url}" target="_blank" download style="font-size:12.5px;padding:8px 14px"><i class="bi bi-download"></i> ${escapeHtml(sub.file_name||'fayl')}</a></div>` : '';
+  const textHtml = sub.submission_type==='text'&&sub.text_content
+    ? `<div class="sp-preview-content sp-text-answer" style="margin-top:9px">${escapeHtml(toPlainText(sub.text_content))}</div>` : '';
   const feedbackHtml = sub.feedback
     ? `<div class="sp-feedback-block" style="margin-top:9px"><div class="sp-feedback-label"><i class="bi bi-chat-quote"></i> Ustoz izohi</div>${sub.feedback}</div>` : '';
 
@@ -1562,7 +1564,7 @@ function renderHistoryCard(sub) {
           <i class="bi ${info.icon}"></i> ${info.label}
         </span>
         ${sub.is_late ? '<span class="sp-pill warn" style="font-size:11px;margin-left:4px"><i class="bi bi-clock"></i> Kech</span>' : ''}
-        ${fileHtml}${feedbackHtml}
+        ${fileHtml}${textHtml}${feedbackHtml}
       </div>
     </div>`;
 }

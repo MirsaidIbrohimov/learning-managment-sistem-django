@@ -188,11 +188,11 @@ def _is_custom_emoji_error(resp):
 
 def send_message(bot_token, chat_id, text, reply_markup=None,
                  parse_mode="HTML", session=None, timeout=10, **extra):
-    """Premium emoji va mos animatsion stiker bilan xabar yuboradi.
+    """Premium custom emojilarni matn ichiga qo'shib bitta xabar yuboradi.
 
     Mavjud requests.post(.../sendMessage, json={...}) chaqiruvlarining
-    o'rnini bosadi. Custom emoji ishlamasa oddiy emojiga qaytadi; xabarning
-    o'zi muvaffaqiyatli yuborilgandagina stiker alohida yuboriladi.
+    o'rnini bosadi. Custom emoji ishlamasa oddiy emojiga qaytadi. Alohida
+    stiker yuborilmaydi, shuning uchun foydalanuvchiga faqat bitta xabar keladi.
     """
     global _custom_emoji_disabled
     poster = session.post if session is not None else requests.post
@@ -219,13 +219,6 @@ def send_message(bot_token, chat_id, text, reply_markup=None,
         except Exception:
             return None
 
-    try:
-        if resp.status_code == 200 and resp.json().get("ok"):
-            send_sticker(bot_token, chat_id, pick_sticker(text),
-                         session=session, timeout=timeout)
-    except Exception:
-        # Stiker bezak hisoblanadi: u xabarning yuborilish natijasini buzmasin.
-        pass
     return resp
 
 

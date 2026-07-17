@@ -15,7 +15,6 @@ Ishga tushirish (soatlik cron):
 """
 import logging
 
-from django.conf import settings
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -91,12 +90,10 @@ def send_homework_reminders():
     # Import shu yerda — Django to'liq yuklangach ishlaydi
     from accounts.models import HomeworkSubmission, HomeworkReminder
     from telegram_bot.utils import notify_user, notify_group
-    from telegram_bot import premium
 
     now = timezone.now()
     teacher_sent = 0
     group_sent = 0
-    bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
 
     pending = (
         HomeworkSubmission.objects.filter(status='pending')
@@ -142,14 +139,6 @@ def send_homework_reminders():
                             course_name, student_name, lesson_title, hours,
                         )
                         notify_user(teacher.telegram_id, text)
-                        # So'nggi ogohlantirishda "error" stikeri
-                        if level >= MAX_TEACHER_LEVEL and bot_token:
-                            try:
-                                premium.send_sticker(
-                                    bot_token, teacher.telegram_id, 'error'
-                                )
-                            except Exception:
-                                pass
                     reminder.teacher_level = level
                     reminder.last_teacher_sent = now
                     reminder.save(update_fields=['teacher_level', 'last_teacher_sent'])

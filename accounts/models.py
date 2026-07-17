@@ -803,6 +803,12 @@ class HomeworkSubmission(models.Model):
     
     class Meta:
         ordering = ['-submitted_at']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['homework', 'student'],
+                name='unique_homework_submission_per_student',
+            ),
+        ]
         indexes = [
             models.Index(fields=['student', 'status']),
             models.Index(fields=['status']),
@@ -852,6 +858,24 @@ class HomeworkSubmission(models.Model):
             return max(0, int(self.grade - penalty))
         return self.grade
 
+    def archive_current_version(self, note=''):
+        """Joriy javob va tekshiruv natijasini qayta topshirish tarixiga saqlaydi."""
+        revision = HomeworkRevision.objects.create(
+            submission=self,
+            file=self.file if self.file else None,
+            text_content=self.text_content or '',
+            submission_type=self.submission_type,
+            status=self.status,
+            grade=self.grade,
+            feedback=self.feedback or '',
+            note=note or f"Versiya {self.version}",
+        )
+        HomeworkRevision.objects.filter(pk=revision.pk).update(
+            submitted_at=self.submitted_at,
+        )
+        revision.submitted_at = self.submitted_at
+        return revision
+
 
 class HomeworkMessage(models.Model):
     submission = models.ForeignKey(HomeworkSubmission, on_delete=models.CASCADE, related_name='messages')
@@ -870,7 +894,22 @@ class HomeworkMessage(models.Model):
 
 class HomeworkRevision(models.Model):
     submission = models.ForeignKey(HomeworkSubmission, on_delete=models.CASCADE, related_name='revisions')
-    file = models.FileField(upload_to='homework_revisions/')
+    file = models.FileField(upload_to='homework_revisions/', null=True, blank=True)
+    text_content = models.TextField(blank=True, default='', verbose_name="Matn javobi")
+    submission_type = models.CharField(
+        max_length=10,
+        choices=HomeworkSubmission.SUBMISSION_TYPES,
+        default='file',
+        verbose_name="Topshirish turi",
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=HomeworkSubmission.STATUS_CHOICES,
+        default='pending',
+        verbose_name="O'sha paytdagi holat",
+    )
+    grade = models.IntegerField(null=True, blank=True, verbose_name="O'sha paytdagi baho")
+    feedback = models.TextField(blank=True, default='', verbose_name="O'sha paytdagi izoh")
     submitted_at = models.DateTimeField(auto_now_add=True)
     note = models.TextField(blank=True, null=True, verbose_name="Izoh")
     

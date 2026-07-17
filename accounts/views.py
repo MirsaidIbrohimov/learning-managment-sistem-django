@@ -9093,26 +9093,28 @@ def homework_chat(request, pk):
                 )
                 request.user.remove_coins(resubmit_cost, f"Uyga vazifa qayta topshirish: {submission.homework.lesson.title}")
                 
-                from .models import HomeworkRevision
-                # Eski faylni revision sifatida saqlash (agar fayl mavjud bo'lsa)
-                if submission.file:
-                    HomeworkRevision.objects.create(
-                        submission=submission,
-                        file=submission.file,
-                        note=f"Versiya {submission.version}"
-                    )
+                submission.archive_current_version(note=f"Versiya {submission.version}")
                 
                 # Yangi kontentni yuklash
                 if new_file:
                     submission.file = new_file
+                    submission.text_content = None
                     submission.submission_type = 'file'
                 elif new_text:
                     submission.text_content = new_text
+                    submission.file = None
                     submission.submission_type = 'text'
                 
                 submission.version += 1
                 submission.revision_count += 1
                 submission.status = 'pending'
+                submission.grade = None
+                submission.feedback = ''
+                submission.feedback_file = None
+                submission.graded_by = None
+                submission.graded_at = None
+                submission.ai_feedback = None
+                submission.ai_checked = False
                 submission.submitted_at = timezone.now()
                 submission.save()
                 
