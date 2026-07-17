@@ -1,5 +1,7 @@
 from datetime import timedelta
+from importlib import import_module
 
+from django.apps import apps
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -7,7 +9,7 @@ from django.utils import timezone
 from accounts.models import CustomUser, UserSession
 from coin.models import CoinTransaction
 
-from .models import ChatSession
+from .models import ChatMessage, ChatSession
 
 
 class AiCoinHistoryTests(TestCase):
@@ -47,3 +49,24 @@ class AiCoinHistoryTests(TestCase):
         history_response = self.client.get('/api/v1/coin/transactions/?search=AI+yordamchi')
         self.assertEqual(history_response.status_code, 200)
         self.assertEqual(history_response.json()['count'], 1)
+
+    def test_missing_ai_history_is_backfilled_without_duplicates(self):
+        ChatMessage.objects.create(
+            session=self.session,
+            role='user',
+            content='Tarixi yoqolgan xabar',
+            coins_spent=1,
+        )
+        migration = import_module(
+            'ai_yordamchi.migrations.0007_backfill_ai_coin_history'
+        )
+
+        migration.backfill_ai_coin_history(apps, None)
+        migration.backfill_ai_coin_history(apps, None)
+
+        self.assertEqual(CoinTransaction.objects.filter(
+            user=self.user,
+            amount=1,
+            action='remove',
+            reason='AI yordamchi bilan suhbat',
+        ).count(), 1)
