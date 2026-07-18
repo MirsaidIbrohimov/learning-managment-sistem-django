@@ -381,12 +381,11 @@ class SectionBlockMiddleware:
 
 class DeviceLimitMiddleware:
     """
-    Ikki qoida:
-    1. Faqat 1 ta qurilmada online — boshqa joydan login bo'lsa, bu sessiya o'chiriladi
-    2. Qurilma limiti — 4-chi qurilma login qilsa, device_limit sahifasi ochiladi
+    Faqat 1 ta qurilmada online bo'ladi — boshqa joydan login bo'lsa,
+    avvalgi sessiya avtomatik chiqariladi. (Qurilma soni cheklanmagan.)
     """
     
-    EXEMPT_URLS = ['device_limit', 'force_logout_device', 'login', 'logout', 'register']
+    EXEMPT_URLS = ['login', 'logout', 'register']
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -410,10 +409,6 @@ class DeviceLimitMiddleware:
                 return self.get_response(request)
         except Exception:
             pass
-        
-        # device_limit_exceeded flag — qurilma tanlash sahifasiga yo'naltirish
-        if request.session.get('device_limit_exceeded'):
-            return redirect('device_limit')
         
         # 🔒 Faqat 1 ta online: joriy sessiya ro'yxatdan o'tganmi tekshirish
         session_key = request.session.session_key
@@ -571,7 +566,7 @@ class ProfileCompletionMiddleware:
     """
     EXEMPT_URLS = [
         'complete_profile', 'logout', 'login', 'register', 'admin',
-        'device_limit', 'force_logout_device', 'payment_wall',
+        'payment_wall',
     ]
 
     def __init__(self, get_response):

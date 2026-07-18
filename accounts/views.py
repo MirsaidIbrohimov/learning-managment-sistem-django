@@ -579,7 +579,6 @@ def _register_device_and_session(request, user):
     """Login paytida qurilma va sessiyani ro'yxatdan o'tkazish.
     
     Qoidalar:
-    - Max 3 ta qurilma saqlanadi. 4-chi bo'lsa, None qaytaradi (limit oynasi ochiladi)
     - Faqat 1 ta qurilma online bo'ladi. Boshqa sessiyalar o'chiriladi.
     """
     from django.contrib.sessions.models import Session as DjangoSession
@@ -593,13 +592,7 @@ def _register_device_and_session(request, user):
     device = UserDevice.objects.filter(user=user, device_id=device_id, is_active=True).first()
 
     if not device:
-        # Yangi qurilma — faol qurilmalar sonini tekshirish
-        active_devices = UserDevice.objects.filter(user=user, is_active=True)
-        if active_devices.count() >= 3:
-            # 4-chi qurilma — limit! Login qilingan, lekin device yaratilmaydi
-            return False
-        
-        # Yangi qurilma yaratish
+        # Yangi qurilma yaratish (qurilma soni cheklanmagan)
         device, created = UserDevice.objects.get_or_create(
             user=user,
             device_id=device_id,
@@ -926,12 +919,8 @@ def login_view(request):
             pass
 
         # 📱 Qurilma va sessiya ro'yxatdan o'tkazish
-        device_ok = _register_device_and_session(request, user)
-        if not device_ok and not user.is_admin:
-            # 4-chi qurilma — limit oynasini ko'rsatish (admin uchun cheklov yo'q)
-            request.session['device_limit_exceeded'] = True
-            return redirect('device_limit')
-        
+        _register_device_and_session(request, user)
+
         # 💎 Premium kunlik bonus: 5 coin
         today = timezone.now().date()
         if user.is_premium and user.last_daily_login != today:
@@ -1022,64 +1011,6 @@ def login_view(request):
         form = LoginForm()
 
     return _login_render(request, form, 'username')
-
-
-@login_required
-def device_limit_view(request):
-    """Qurilmalar soni limitdan oshganida ko'rsatiladigan sahifa.
-    
-    Foydalanuvchi 3 ta qurilmada ro'yxatdan o'tgan, 4-chi qurilmadan 
-    kirmoqchi — bitta qurilmani o'chirishi kerak.
-    """
-    if not request.session.get('device_limit_exceeded'):
-        return redirect('home')
-
-    # Faol qurilmalarni ko'rsatish
-    active_devices = UserDevice.objects.filter(user=request.user, is_active=True)
-
-    # Agar limit ostiga tushgan bo'lsa (admin o'chirgan bo'lishi mumkin)
-    if active_devices.count() < 3:
-        request.session.pop('device_limit_exceeded', None)
-        return redirect('home')
-
-    return render(request, 'accounts/device_limit.html', {
-        'active_devices': active_devices,
-    })
-
-
-@login_required
-def force_logout_device(request, pk):
-    """Qurilma limitdan oshganda, bitta qurilmani o'chirish va o'rniga yangisini qo'shish"""
-    if request.method != 'POST':
-        return redirect('device_limit')
-
-    from django.contrib.sessions.models import Session as DjangoSession
-
-    device_to_remove = get_object_or_404(
-        UserDevice, pk=pk, user=request.user, is_active=True
-    )
-
-    # Bu qurilmaning barcha sessiyalarini o'chirish
-    device_sessions = device_to_remove.sessions.filter(is_active=True)
-    session_keys = list(device_sessions.values_list('session_key', flat=True))
-    DjangoSession.objects.filter(session_key__in=session_keys).delete()
-    device_sessions.update(is_active=False)
-
-    # Qurilmani deaktivatsiya qilish
-    device_to_remove.is_active = False
-    device_to_remove.save(update_fields=['is_active'])
-
-    # Endi yangi qurilmani ro'yxatdan o'tkazish (hozirgi qurilma)
-    remaining_count = UserDevice.objects.filter(user=request.user, is_active=True).count()
-    if remaining_count < 3:
-        device_ok = _register_device_and_session(request, request.user)
-        if device_ok:
-            request.session.pop('device_limit_exceeded', None)
-            messages.success(request, "Qurilma muvaffaqiyatli almashtirildi! ✅")
-            return redirect('home')
-
-    messages.success(request, "Qurilma o'chirildi. Yana bitta qurilmani tanlang.")
-    return redirect('device_limit')
 
 
 def logout_view(request):
@@ -18107,53 +18038,4 @@ def attendance_report_excel(request, group_pk):
     first_data_row = header_row + 1
     for row_number, row in enumerate(report['rows'], first_data_row):
         student = row['student']
-        student_name = student.get_full_name() or student.username
-        values = [row_number - header_row, student_name]
-        values.extend(
-            status_labels.get(cell['attendance'].status, '') if cell['attendance'] else ''
-            for cell in row['cells']
-        )
-        values.extend([
-            row['totals']['present'],
-            row['totals']['absent'],
-            row['totals']['late'],
-            row['totals']['sick'],
-            row['totals']['excused'],
-            row['avg_score'],
-        ])
-        for column, value in enumerate(values, 1):
-            cell = ws.cell(row=row_number, column=column, value=value)
-            cell.border = border
-            cell.alignment = Alignment(
-                horizontal='left' if column == 2 else 'center',
-                vertical='center',
-                wrap_text=True,
-            )
-
-        for offset, attendance_cell in enumerate(row['cells'], 3):
-            attendance = attendance_cell['attendance']
-            if attendance:
-                ws.cell(row=row_number, column=offset).fill = status_fills[attendance.status]
-                if attendance.note:
-                    ws.cell(row=row_number, column=offset).comment = Comment(attendance.note, 'LMS')
-
-    ws.freeze_panes = 'C5'
-    ws.auto_filter.ref = f'A4:{last_column}{max(header_row, ws.max_row)}'
-    ws.column_dimensions['A'].width = 6
-    ws.column_dimensions['B'].width = 30
-    for column in range(3, 3 + len(report['day_dates'])):
-        ws.column_dimensions[get_column_letter(column)].width = 13
-    for column in range(3 + len(report['day_dates']), len(headers) + 1):
-        ws.column_dimensions[get_column_letter(column)].width = 12
-    ws.page_setup.orientation = 'landscape'
-    ws.page_setup.fitToWidth = 1
-    ws.sheet_properties.pageSetUpPr.fitToPage = True
-
-    response = HttpResponse(
-        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    )
-    response['Content-Disposition'] = (
-        f'attachment; filename="davomat_guruh_{group.pk}_{report["year"]}_{report["month"]:02d}.xlsx"'
-    )
-    wb.save(response)
-    return response
+        student_name = stude
