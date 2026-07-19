@@ -31,6 +31,9 @@
 /* ══════════════════════════════════════════════════
    IT SHAHARCHA — ARIZA / LANDING (v2, modern premium)
    ══════════════════════════════════════════════════ */
+/* Full-width landing: faqat shu sahifada konteyner cheklovini olib tashlaymiz
+   (base.css .main-container: max-width:1180px; margin:auto; padding:0 1rem) */
+.main-container{max-width:none!important;width:100%!important;margin:0!important;padding:0!important;}
 .az{
   --bg:#f6f7fb; --ink:#0b1020; --ink2:#3b4256; --ink3:#8b90a3;
   --card:#ffffff; --line:#e9ebf3;
@@ -99,10 +102,11 @@
 .az-code-body{padding:20px 22px;font-family:'SF Mono',ui-monospace,Menlo,Consolas,monospace;font-size:.86rem;line-height:1.85}
 .az-code-body .ln{color:#5b6488}
 .az-cd{color:#e2e8f0}.az-key{color:#c084fc}.az-fn{color:#67e8f9}.az-str{color:#86efac}.az-num{color:#fca5a5}
-.az-float{position:absolute;background:#fff;color:var(--ink);border-radius:14px;padding:12px 16px;box-shadow:0 20px 40px -16px rgba(0,0,0,.5);font-weight:700;font-size:.9rem;display:flex;align-items:center;gap:9px;z-index:3}
+.az-hero-visual{position:relative;z-index:2}
+.az-float{position:absolute;background:#fff;color:var(--ink);border-radius:14px;padding:11px 15px;box-shadow:0 20px 40px -16px rgba(0,0,0,.5);font-weight:700;font-size:.88rem;display:flex;align-items:center;gap:9px;z-index:5;white-space:nowrap}
 .az-float i{font-size:1.1rem}
-.az-float-1{top:-18px;left:-22px;animation:azFloat 4s ease-in-out infinite}
-.az-float-2{bottom:-16px;right:-14px;animation:azFloat 4.6s ease-in-out .6s infinite}
+.az-float-1{top:20px;left:-18px;animation:azFloat 4s ease-in-out infinite}
+.az-float-2{bottom:24px;right:-16px;animation:azFloat 4.6s ease-in-out .6s infinite}
 @keyframes azFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
 
 /* ══════════ MARQUEE ══════════ */
@@ -223,6 +227,7 @@ select.az-inp{appearance:none;cursor:pointer}
 @media(max-width:960px){
   .az-hero .az-wrap{grid-template-columns:1fr;gap:48px}
   .az-hero-visual{order:-1}
+  .az-float{display:none}
   .az-grid,.az-inc-grid,.az-steps{grid-template-columns:repeat(2,1fr)}
   .az-dir-grid,.az-why-grid{grid-template-columns:repeat(2,1fr)}
 }
