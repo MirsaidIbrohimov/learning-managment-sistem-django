@@ -265,11 +265,18 @@ TEMPLATES = [
                 'accounts.context_processors.unread_messages',
                 'accounts.context_processors.admin_badges',
             ],
+            # Shablon keshi FAQAT production'da: DEBUG'da keshlansa, fayl
+            # o'zgarishlari server qayta ishga tushmaguncha ko'rinmaydi.
+            # Production'da ham har deploy'dan keyin server restart SHART
+            # (cPanel/Passenger: tmp/restart.txt ga touch yoki app restart).
             'loaders': [
                 ('django.template.loaders.cached.Loader', [
                     'django.template.loaders.filesystem.Loader',
                     'django.template.loaders.app_directories.Loader',
                 ]),
+            ] if not DEBUG else [
+                'django.template.loaders.filesystem.Loader',
+                'django.template.loaders.app_directories.Loader',
             ],
         },
     },
