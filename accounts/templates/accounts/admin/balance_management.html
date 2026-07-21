@@ -139,6 +139,13 @@
     border: none; cursor: pointer; transition: .2s; text-decoration: none;
 }
 .bm-topup-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(99,102,241,.3); color: #fff; }
+.bm-deduct-btn {
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .3rem .75rem; border-radius: 8px; font-size: .78rem; font-weight: 700;
+    background: rgba(239,68,68,.12); color: #ef4444;
+    border: 1px solid rgba(239,68,68,.3); cursor: pointer; transition: .2s;
+}
+.bm-deduct-btn:hover { transform: translateY(-1px); background: #ef4444; color: #fff; }
 
 .bm-hist-btn {
     display: inline-flex; align-items: center; gap: .3rem;
@@ -388,6 +395,11 @@
                                 <button class="bm-topup-btn" onclick="openTopup({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }})">
                                     <i class="bi bi-plus-lg"></i> Balans qo'sh
                                 </button>
+                                {% if request.user.is_admin %}
+                                <button class="bm-deduct-btn" onclick="openDeduct({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.student_balance.amount|default:0 }})">
+                                    <i class="bi bi-dash-lg"></i> Balans ayir
+                                </button>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>
@@ -403,23 +415,23 @@
         {% with page_obj=students %}{% include 'accounts/admin/includes/pagination.html' %}{% endwith %}
     </div>
 
-    <!-- Recent top-ups -->
+    <!-- Recent balance changes -->
     {% if recent_topups %}
     <div class="bm-card">
         <div class="bm-card-head">
-            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans to'ldirishlar</div>
+            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans o'zgarishlari</div>
         </div>
         {% for t in recent_topups %}
         <div class="bm-topup-row">
             <div>
                 <div class="bm-topup-who">{{ t.student.full_name }}</div>
                 <div class="bm-topup-by">
-                    Qo'shdi: {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
+                    {{ t.get_operation_display }}: {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
                     {% if t.note %} · <em>{{ t.note }}</em>{% endif %}
                     {% if t.ip_address %} · IP: {{ t.ip_address }}{% endif %}
                 </div>
             </div>
-            <div class="bm-topup-amt">+{{ t.amount|space_num }} so'm</div>
+            <div class="bm-topup-amt" {% if t.operation == 'deduct' %}style="color:#ef4444;"{% endif %}>{% if t.operation == 'deduct' %}−{% else %}+{% endif %}{{ t.amount|space_num }} so'm</div>
             <div class="bm-topup-date">{{ t.created_at|date:"d.m.Y H:i" }}</div>
         </div>
         {% endfor %}
@@ -456,6 +468,32 @@
     </div>
 </div>
 
+{% if request.user.is_admin %}
+<!-- ====== DEDUCT MODAL (ADMIN ONLY) ====== -->
+<div class="bm-modal-backdrop" id="deductModal">
+    <div class="bm-modal">
+        <h4><i class="bi bi-dash-circle-fill text-danger me-2"></i>Balansdan ayirish</h4>
+        <p class="bm-modal-sub" id="deductStudentName">O'quvchi</p>
+        <form id="deductForm">
+            {% csrf_token %}
+            <label>Miqdor (so'm)</label>
+            <input type="number" id="deductAmount" name="amount" placeholder="Ayiriladigan miqdor..." min="1" max="50000000" required>
+            <div style="font-size:.78rem;color:var(--bs-secondary-color);margin-top:-.7rem;margin-bottom:1rem;">
+                Joriy balans: <strong id="deductCurrentBalance">0 so'm</strong>
+            </div>
+            <label>Ayirish sababi</label>
+            <textarea id="deductNote" name="note" placeholder="Masalan: Noto'g'ri kiritilgan to'lovni tuzatish..." required></textarea>
+            <div class="bm-modal-actions">
+                <button type="button" class="bm-btn-cancel" onclick="closeDeduct()">Bekor</button>
+                <button type="submit" class="bm-btn-confirm" id="deductSubmitBtn" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+                    <i class="bi bi-dash-lg me-1"></i>Ayirish
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <!-- ====== HISTORY MODAL ====== -->
 <div class="bm-modal-backdrop" id="histModal">
     <div class="bm-modal" style="max-width:540px;">
@@ -485,7 +523,7 @@
         <div style="display:flex;gap:4px;margin-bottom:10px;background:rgba(0,0,0,.2);border-radius:10px;padding:4px;">
             <button id="tabBtnTopup" onclick="switchHistTab('topup')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:rgba(99,102,241,.9);color:#fff;">
-                <i class="bi bi-plus-circle me-1"></i>Balans to'ldirish
+                <i class="bi bi-arrow-left-right me-1"></i>Balans o'zgarishlari
             </button>
             <button id="tabBtnMonthly" onclick="switchHistTab('monthly')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#64748b;">
@@ -586,6 +624,7 @@ function fmtNum(n) {
 
 let currentStudentId = null;
 const TOPUP_URL_TPL = '/dashboard/balans/';   // + studentId + '/topup/'
+const DEDUCT_URL_TPL = '/dashboard/balans/';  // + studentId + '/deduct/'
 const HIST_URL_TPL  = '/dashboard/balans/';   // + studentId + '/history/'
 
 /* ── TOP-UP ── */
@@ -648,6 +687,54 @@ document.getElementById('topupForm').addEventListener('submit', async function(e
     }
 });
 
+{% if request.user.is_admin %}
+/* ── DEDUCT (ADMIN ONLY) ── */
+let deductStudentId = null;
+function openDeduct(id, name, currentBalance) {
+    deductStudentId = id;
+    document.getElementById('deductStudentName').textContent = name;
+    document.getElementById('deductCurrentBalance').textContent = fmtNum(currentBalance) + ' so\'m';
+    document.getElementById('deductAmount').value = '';
+    document.getElementById('deductAmount').max = Math.min(parseInt(currentBalance) || 0, 50000000);
+    document.getElementById('deductNote').value = '';
+    document.getElementById('deductModal').classList.add('show');
+}
+function closeDeduct() {
+    document.getElementById('deductModal').classList.remove('show');
+    deductStudentId = null;
+}
+document.getElementById('deductForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    if (!deductStudentId) return;
+    const btn = document.getElementById('deductSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Saqlanmoqda...';
+    try {
+        const res = await fetch(DEDUCT_URL_TPL + deductStudentId + '/deduct/', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: new FormData(this),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+            showToast('error', data.error || 'Xatolik yuz berdi');
+            return;
+        }
+        const balEl = document.getElementById('bal-' + deductStudentId);
+        if (balEl) {
+            balEl.textContent = data.new_balance_fmt + ' so\'m';
+            balEl.className = 'bm-balance ' + (data.new_balance === 0 ? 'zero' : 'ok');
+        }
+        closeDeduct();
+        showToast('success', `${data.student_name} balansidan −${data.amount_fmt} so'm ayirildi.`);
+    } catch(err) {
+        showToast('error', 'Tarmoq xatosi');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-dash-lg me-1"></i>Ayirish';
+    }
+});
+{% endif %}
+
 /* ── HISTORY ── */
 let _histActiveTab = 'topup';
 
@@ -684,19 +771,19 @@ async function showHistory(id, name) {
         document.getElementById('histMonthlyFee').textContent = data.is_contract ? 'Shartnoma' : data.monthly_fee_fmt + ' so\'m';
         document.getElementById('histNextDate').textContent   = data.next_payment_date || '—';
 
-        // Tab 1: Balans to'ldirishlar
+        // Tab 1: Balans o'zgarishlari
         if (!data.topups.length) {
-            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;color:var(--bs-secondary-color);padding:2rem;"><i class="bi bi-inbox"></i><br>Hali to\'ldirish yo\'q</div>';
+            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;color:var(--bs-secondary-color);padding:2rem;"><i class="bi bi-inbox"></i><br>Hali balans o\'zgarishi yo\'q</div>';
         } else {
             document.getElementById('histTabTopup').innerHTML = data.topups.map(t => `
                 <div class="bm-hist-item">
                     <div class="bm-hist-lft">
-                        <div style="font-weight:600;">${t.added_by}</div>
+                        <div style="font-weight:600;">${t.operation_display} · ${t.added_by}</div>
                         <div style="font-size:.74rem;color:var(--bs-secondary-color);">
                             ${t.date}${t.note ? ' · ' + t.note : ''}${t.ip ? ' <span style="opacity:.5">· '+t.ip+'</span>' : ''}
                         </div>
                     </div>
-                    <div class="bm-hist-amt">+${t.amount_fmt} so'm</div>
+                    <div class="bm-hist-amt" style="color:${t.operation === 'deduct' ? '#ef4444' : '#22c55e'};">${t.operation === 'deduct' ? '−' : '+'}${t.amount_fmt} so'm</div>
                 </div>
             `).join('');
         }

@@ -13,6 +13,7 @@ from .certificates import (
 )
 from .models import (
     Certificate,
+    BalanceTopUp,
     CourseEnrollment,
     CustomUser,
     Homework,
@@ -433,3 +434,70 @@ class ContractStudentMonthlyPaymentsTests(TestCase):
             month=today.month,
             year=today.year,
         ).exists())
+
+
+class AdminBalanceDeductTests(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='balance-admin', password='test-password', role='admin',
+            phone='+998900000011',
+        )
+        self.assistant = CustomUser.objects.create_user(
+            username='balance-assistant', password='test-password', role='assistant_admin',
+            phone='+998900000012',
+        )
+        self.student = CustomUser.objects.create_user(
+            username='balance-student', password='test-password', role='student',
+            phone='+998900000013',
+        )
+        self.balance = StudentBalance.objects.create(user=self.student, amount=500_000)
+        self.url = reverse('admin_balance_deduct', args=[self.student.pk])
+
+    def test_admin_can_deduct_balance_and_history_is_recorded(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(self.url, {
+            'amount': '125000',
+            'note': "Noto'g'ri kiritilgan to'lovni tuzatish",
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.balance.refresh_from_db()
+        self.assertEqual(self.balance.amount, 375_000)
+        self.assertTrue(BalanceTopUp.objects.filter(
+            student=self.student,
+            amount=125_000,
+            operation='deduct',
+            added_by=self.admin,
+            note="Noto'g'ri kiritilgan to'lovni tuzatish",
+        ).exists())
+
+        history = self.client.get(
+            reverse('admin_balance_history', args=[self.student.pk])
+        ).json()
+        self.assertEqual(history['topups'][0]['operation'], 'deduct')
+
+    def test_assistant_cannot_deduct_balance(self):
+        self.client.force_login(self.assistant)
+        UserSession.objects.create(
+            user=self.assistant,
+            session_key=self.client.session.session_key,
+            expires_at=timezone.now() + timedelta(hours=2),
+        )
+
+        response = self.client.post(self.url, {'amount': '100000', 'note': 'Test'})
+
+        self.assertEqual(response.status_code, 403)
+        self.balance.refresh_from_db()
+        self.assertEqual(self.balance.amount, 500_000)
+        self.assertFalse(BalanceTopUp.objects.exists())
+
+    def test_deduction_cannot_make_balance_negative(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(self.url, {'amount': '600000', 'note': 'Tuzatish'})
+
+        self.assertEqual(response.status_code, 400)
+        self.balance.refresh_from_db()
+        self.assertEqual(self.balance.amount, 500_000)
+        self.assertFalse(BalanceTopUp.objects.exists())

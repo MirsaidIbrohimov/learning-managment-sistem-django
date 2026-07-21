@@ -2412,9 +2412,14 @@ class StudentBalance(models.Model):
 
 class BalanceTopUp(models.Model):
     """
-    Balans to'ldirish tarixi.
-    Kim, qachon, qancha, kim tomonidan to'ldirilgani yoziladi.
+    Balans o'zgarishlari tarixi.
+    Kim, qachon, qancha, kim tomonidan qo'shilgani yoki ayirilgani yoziladi.
     """
+    OPERATION_CHOICES = (
+        ('add', "Qo'shish"),
+        ('deduct', 'Ayirish'),
+    )
+
     student = models.ForeignKey(
         'CustomUser', on_delete=models.CASCADE,
         related_name='balance_topups',
@@ -2423,6 +2428,10 @@ class BalanceTopUp(models.Model):
     amount = models.DecimalField(
         max_digits=14, decimal_places=0,
         verbose_name="Miqdor (so'm)"
+    )
+    operation = models.CharField(
+        max_length=10, choices=OPERATION_CHOICES, default='add',
+        verbose_name="Amal"
     )
     added_by = models.ForeignKey(
         'CustomUser', on_delete=models.SET_NULL, null=True, blank=True,
@@ -2440,13 +2449,14 @@ class BalanceTopUp(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = "Balans to'ldirish"
-        verbose_name_plural = "Balans to'ldirish tarixi"
+        verbose_name = "Balans o'zgarishi"
+        verbose_name_plural = "Balans o'zgarishlari tarixi"
         ordering = ['-created_at']
 
     def __str__(self):
         performer = self.added_by.username if self.added_by else 'tizim'
-        return f"{self.student.full_name} +{self.amount:,.0f} so'm ({performer})"
+        sign = '-' if self.operation == 'deduct' else '+'
+        return f"{self.student.full_name} {sign}{self.amount:,.0f} so'm ({performer})"
 
     def formatted_amount(self):
         return f"{int(self.amount):,} so'm".replace(",", " ")

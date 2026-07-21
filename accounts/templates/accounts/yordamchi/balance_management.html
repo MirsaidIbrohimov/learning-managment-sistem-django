@@ -373,19 +373,19 @@
     {% if recent_topups %}
     <div class="bm-card">
         <div class="bm-card-head">
-            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans to'ldirishlar</div>
+            <div class="bm-card-title"><i class="bi bi-clock-history"></i> Oxirgi balans o'zgarishlari</div>
         </div>
         {% for t in recent_topups %}
         <div class="bm-topup-row">
             <div>
                 <div class="bm-topup-who">{{ t.student.full_name }}</div>
                 <div class="bm-topup-by">
-                    Qo'shdi: {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
+                    {{ t.get_operation_display }}: {% if t.added_by %}{{ t.added_by.full_name }}{% else %}Tizim{% endif %}
                     {% if t.note %} · <em>{{ t.note }}</em>{% endif %}
                     {% if t.ip_address %} · IP: {{ t.ip_address }}{% endif %}
                 </div>
             </div>
-            <div class="bm-topup-amt">+{{ t.amount|space_num }} so'm</div>
+            <div class="bm-topup-amt" {% if t.operation == 'deduct' %}style="color:#ef4444;"{% endif %}>{% if t.operation == 'deduct' %}−{% else %}+{% endif %}{{ t.amount|space_num }} so'm</div>
             <div class="bm-topup-date">{{ t.created_at|date:"d.m.Y H:i" }}</div>
         </div>
         {% endfor %}
@@ -447,7 +447,7 @@
         <div style="display:flex;gap:4px;margin-bottom:10px;background:rgba(0,0,0,.2);border-radius:10px;padding:4px;">
             <button id="tabBtnTopup" onclick="switchHistTab('topup')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:rgba(16,185,129,.9);color:#fff;">
-                <i class="bi bi-plus-circle me-1"></i>Balans to'ldirish
+                <i class="bi bi-arrow-left-right me-1"></i>Balans o'zgarishlari
             </button>
             <button id="tabBtnMonthly" onclick="switchHistTab('monthly')"
                 style="flex:1;padding:.45rem;border:none;border-radius:8px;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .2s;background:transparent;color:#64748b;">
@@ -635,15 +635,15 @@ async function showHistory(id, name) {
         document.getElementById('histMonthlyFee').textContent = data.is_contract ? 'Shartnoma' : data.monthly_fee_fmt + ' so\'m';
         document.getElementById('histNextDate').textContent   = data.next_payment_date || '—';
         if (!data.topups.length) {
-            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-inbox"></i><br>Hali to\'ldirish yo\'q</div>';
+            document.getElementById('histTabTopup').innerHTML = '<div style="text-align:center;padding:2rem;"><i class="bi bi-inbox"></i><br>Hali balans o\'zgarishi yo\'q</div>';
         } else {
             document.getElementById('histTabTopup').innerHTML = data.topups.map(t => `
                 <div class="bm-hist-item">
                     <div class="bm-hist-lft">
-                        <div style="font-weight:600;">${t.added_by}</div>
+                        <div style="font-weight:600;">${t.operation_display} · ${t.added_by}</div>
                         <div style="font-size:.74rem;opacity:.6;">${t.date}${t.note ? ' · ' + t.note : ''}</div>
                     </div>
-                    <div class="bm-hist-amt">+${t.amount_fmt} so'm</div>
+                    <div class="bm-hist-amt" style="color:${t.operation === 'deduct' ? '#ef4444' : '#22c55e'};">${t.operation === 'deduct' ? '−' : '+'}${t.amount_fmt} so'm</div>
                 </div>
             `).join('');
         }

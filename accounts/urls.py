@@ -350,6 +350,7 @@ urlpatterns = [
     path('tolov/', views.payment_wall, name='payment_wall'),
     path('dashboard/balans/', views.admin_balance_management, name='admin_balance_management'),
     path('dashboard/balans/<int:student_id>/topup/', views.admin_balance_topup, name='admin_balance_topup'),
+    path('dashboard/balans/<int:student_id>/deduct/', views.admin_balance_deduct, name='admin_balance_deduct'),
     path('dashboard/balans/<int:student_id>/history/', views.admin_balance_history, name='admin_balance_history'),
     path('dashboard/balans/<int:student_id>/set-fee/', views.admin_balance_set_fee, name='admin_balance_set_fee'),
     path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),

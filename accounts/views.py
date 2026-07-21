@@ -16378,7 +16378,7 @@ def _balance_management_context(request):
         is_contract=False, user__role='student', user__is_finished=False
     ).aggregate(t=Sum('amount'))['t'] or 0
     topup_today = BalanceTopUp.objects.filter(
-        created_at__date=today
+        created_at__date=today, operation='add'
     ).aggregate(t=Sum('amount'))['t'] or 0
     blocked_count = CustomUser.objects.filter(
         role='student', is_finished=False, is_blocked=True
@@ -16485,6 +16485,7 @@ def admin_balance_topup(request, student_id):
             BalanceTopUp.objects.create(
                 student=student,
                 amount=amount,
+                operation='add',
                 added_by=request.user,
                 note=note,
                 ip_address=ip[:45] if ip else None,
@@ -16539,8 +16540,69 @@ def admin_balance_topup(request, student_id):
 
 
 @login_required
+def admin_balance_deduct(request, student_id):
+    """Faqat admin o'quvchi balansidan mablag' ayirishi mumkin."""
+    from django.db import transaction
+    from django.http import JsonResponse
+    from .models import BalanceTopUp, StudentBalance
+
+    if not request.user.is_admin:
+        return JsonResponse({'error': "Faqat admin balansdan ayira oladi"}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Faqat POST'}, status=405)
+
+    student = get_object_or_404(CustomUser, pk=student_id, role='student')
+    try:
+        amount_raw = request.POST.get('amount', '0').replace(' ', '').replace(',', '')
+        amount = int(float(amount_raw))
+        if amount <= 0:
+            raise ValueError("Noto'g'ri miqdor")
+        if amount > 50_000_000:
+            raise ValueError("Maksimal miqdor 50,000,000 so'm")
+        note = request.POST.get('note', '').strip()[:500]
+        if not note:
+            raise ValueError("Ayirish sababini kiriting")
+    except (ValueError, TypeError) as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
+
+    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
+    if ',' in ip:
+        ip = ip.split(',')[0].strip()
+
+    with transaction.atomic():
+        balance, _ = StudentBalance.objects.select_for_update().get_or_create(user=student)
+        if balance.amount < amount:
+            return JsonResponse({
+                'error': (
+                    "Balansda yetarli mablag' yo'q. "
+                    f"Joriy balans: {int(balance.amount):,} so'm".replace(',', ' ')
+                )
+            }, status=400)
+
+        balance.amount -= amount
+        balance.save(update_fields=['amount', 'updated_at'])
+        BalanceTopUp.objects.create(
+            student=student,
+            amount=amount,
+            operation='deduct',
+            added_by=request.user,
+            note=note,
+            ip_address=ip[:45] if ip else None,
+        )
+
+    return JsonResponse({
+        'success': True,
+        'new_balance': int(balance.amount),
+        'new_balance_fmt': f"{int(balance.amount):,}".replace(',', ' '),
+        'student_name': student.full_name,
+        'amount': amount,
+        'amount_fmt': f"{amount:,}".replace(',', ' '),
+    })
+
+
+@login_required
 def admin_balance_history(request, student_id):
-    """O'quvchining balans to'ldirish va oylik to'lov tarixini ko'rish (AJAX)."""
+    """O'quvchining balans o'zgarishlari va oylik to'lov tarixini ko'rish (AJAX)."""
     from django.http import JsonResponse
     if not request.user.is_admin_or_assistant:
         return JsonResponse({'error': "Ruxsat yo'q"}, status=403)
@@ -16574,6 +16636,8 @@ def admin_balance_history(request, student_id):
             {
                 'amount': int(t.amount),
                 'amount_fmt': f"{int(t.amount):,}".replace(',', ' '),
+                'operation': t.operation,
+                'operation_display': t.get_operation_display(),
                 'added_by': t.added_by.full_name if t.added_by else 'Tizim',
                 'note': t.note or '',
                 'date': t.created_at.strftime('%d.%m.%Y %H:%M'),
