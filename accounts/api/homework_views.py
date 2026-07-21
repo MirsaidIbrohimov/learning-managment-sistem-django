@@ -492,10 +492,15 @@ def hw_submit(request, lesson_pk):
             f"Uyga vazifa qayta topshirish: {hw.lesson.title}",
         )
 
-    # Notify teacher
+    # Notify only after the submission transaction has committed. Starting
+    # notification DB work inside this atomic block can lock SQLite and can
+    # turn an otherwise successful resubmission into a 500 response.
     try:
         from accounts.views import _notify_homework_submitted
-        _notify_homework_submitted(request.user, hw)
+        transaction.on_commit(
+            lambda: _notify_homework_submitted(request.user, hw),
+            robust=True,
+        )
     except Exception:
         pass
 
@@ -503,7 +508,10 @@ def hw_submit(request, lesson_pk):
     if hw.ai_check and lesson.profession.ai_check_enabled:
         try:
             from accounts.views import _schedule_ai_check
-            _schedule_ai_check(sub.pk)
+            transaction.on_commit(
+                lambda: _schedule_ai_check(sub.pk),
+                robust=True,
+            )
         except Exception:
             pass
 
