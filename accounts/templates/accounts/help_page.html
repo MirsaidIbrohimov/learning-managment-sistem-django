@@ -1,1199 +1,1031 @@
 {% extends 'accounts/base.html' %}
 
-{% block title %}Yordam markazi — LMS{% endblock %}
+{% block title %}Yordam markazi — IT Shaharcha{% endblock %}
 
 {% block content %}
 <style>
-/* ────────────────────────────────────────────────────────────
-   VARIABLES
-──────────────────────────────────────────────────────────── */
-:root {
-    --hc-primary:#6366f1; --hc-primary-d:#4f46e5; --hc-primary-l:#818cf8;
-    --hc-success:#10b981; --hc-warn:#f59e0b; --hc-info:#3b82f6; --hc-danger:#ef4444;
-    --hc-muted:#6b7280;
-    --hc-bg: var(--bs-body-bg);
-    --hc-card: var(--bs-body-bg);
-    --hc-border: var(--bs-border-color);
-    --hc-text: var(--bs-body-color);
-    --hc-text-m: var(--bs-secondary-color);
-    --hc-soft:rgba(99,102,241,.07);
-    --hc-shadow:0 4px 24px rgba(0,0,0,.07);
-    --hc-radius:22px;
+/* ══════════════════════════════════════════════════════════════
+   YORDAM MARKAZI — clean, modern redesign
+   Uses site theme tokens (base.css) so light/dark work natively.
+══════════════════════════════════════════════════════════════ */
+.hlp{
+    --hlp-radius:18px;
+    --hlp-soft:rgba(99,102,241,.10);
+    --hlp-shadow:0 1px 2px rgba(15,23,42,.04),0 10px 30px rgba(15,23,42,.05);
+    --hlp-shadow-h:0 10px 34px rgba(99,102,241,.16);
+    max-width:820px;margin:0 auto;padding:1.5rem 1rem 4rem;
 }
-[data-bs-theme="dark"] {
-    --hc-soft:rgba(99,102,241,.12);
-    --hc-shadow:0 4px 24px rgba(0,0,0,.3);
+[data-bs-theme="dark"] .hlp{
+    --hlp-shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.4);
+    --hlp-shadow-h:0 12px 36px rgba(99,102,241,.28);
 }
 
-/* ────────────────────────────────────────────────────────────
-   KEYFRAMES
-──────────────────────────────────────────────────────────── */
-@keyframes hcUp   { from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);} }
-@keyframes hcFade { from{opacity:0;}to{opacity:1;} }
-@keyframes float  { 0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);} }
-@keyframes msgIn  { from{opacity:0;transform:translateX(-12px);}to{opacity:1;transform:translateX(0);} }
-@keyframes msgIn2 { from{opacity:0;transform:translateX(12px);}to{opacity:1;transform:translateX(0);} }
-@keyframes bounce { 0%,80%,100%{transform:scale(0);}40%{transform:scale(1);} }
-@keyframes emptyDash { 0%{border-color:var(--hc-border);}100%{border-color:rgba(99,102,241,.28);} }
+@keyframes hlpUp   {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes hlpFade {from{opacity:0}to{opacity:1}}
 
-/* ────────────────────────────────────────────────────────────
-   PAGE WRAPPER
-──────────────────────────────────────────────────────────── */
-.hc { max-width:880px; margin:0 auto; padding:1.5rem 1rem 4rem; }
-
-/* ────────────────────────────────────────────────────────────
-   HERO — chat window aesthetic
-──────────────────────────────────────────────────────────── */
-.hc-hero {
-    border-radius: 24px;
-    background: linear-gradient(145deg,#0f172a 0%,#1e1b4b 40%,#312e81 75%,#4c1d95 100%);
-    padding: 0;
-    overflow: hidden;
-    margin-bottom: 2rem;
-    box-shadow: 0 24px 60px rgba(0,0,0,.45);
-    animation: hcUp .6s ease;
-    position: relative;
+/* ── HERO ─────────────────────────────────────────────── */
+.hlp-hero{
+    position:relative;text-align:center;overflow:hidden;
+    padding:2.9rem 1.25rem 2.6rem;margin-bottom:1.4rem;
+    border-radius:26px;border:1px solid var(--border);
+    background:linear-gradient(160deg,#eef2ff 0%,#f4f1fe 48%,#fbf4ff 100%);
+    animation:hlpUp .5s ease both;
 }
-.hc-hero::before {
-    content:'';position:absolute;top:0;left:0;right:0;height:2px;
-    background:linear-gradient(90deg,transparent,#6366f1,#8b5cf6,transparent);
+[data-bs-theme="dark"] .hlp-hero{
+    background:linear-gradient(160deg,#161d33 0%,#1a1937 52%,#211a3c 100%);
 }
-
-/* header bar */
-.hc-hero-bar {
-    display:flex;align-items:center;gap:.75rem;
-    padding:.85rem 1.25rem;
-    background:rgba(255,255,255,.05);
-    border-bottom:1px solid rgba(255,255,255,.08);
+.hlp-hero::before{
+    content:'';position:absolute;top:-45%;left:50%;transform:translateX(-50%);
+    width:560px;height:560px;pointer-events:none;
+    background:radial-gradient(circle,rgba(99,102,241,.20),transparent 60%);
 }
-.hc-hero-bar-dots { display:flex;gap:.4rem; }
-.hc-hero-bar-dot  { width:11px;height:11px;border-radius:50%; }
-.hc-hero-bar-dot:nth-child(1){background:#ff5f57;}
-.hc-hero-bar-dot:nth-child(2){background:#ffbd2e;}
-.hc-hero-bar-dot:nth-child(3){background:#28c840;}
-.hc-hero-bar-title { color:rgba(255,255,255,.75);font-size:.78rem;font-weight:600;margin-left:.5rem; }
-.hc-hero-bar-status{
-    margin-left:auto;display:flex;align-items:center;gap:.4rem;
-    color:#34d399;font-size:.72rem;font-weight:700;
+.hlp-hero > *{position:relative;z-index:1;}
+.hlp-badge{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.35rem .9rem;border-radius:999px;margin-bottom:1rem;
+    background:rgba(99,102,241,.13);color:var(--primary);
+    font-size:.75rem;font-weight:700;letter-spacing:.2px;
 }
-.hc-hero-bar-status::before {
-    content:'';width:7px;height:7px;border-radius:50%;background:#34d399;
-    animation:bounce 1.4s ease infinite;
+.hlp-hero h1{
+    font-size:clamp(1.5rem,4.4vw,2.15rem);font-weight:800;
+    letter-spacing:-.025em;margin:0 0 .55rem;color:var(--text);
+}
+.hlp-hero p{
+    color:var(--text-muted);font-size:.95rem;line-height:1.6;
+    max-width:440px;margin:0 auto 1.6rem;
 }
 
-/* chat bubbles */
-.hc-chat { padding:1.75rem 1.5rem 1.5rem; display:flex;flex-direction:column;gap:1rem; }
-.hc-msg   { display:flex;align-items:flex-end;gap:.65rem;max-width:85%; animation:msgIn .5s ease both; }
-.hc-msg.right { flex-direction:row-reverse;align-self:flex-end;animation-name:msgIn2; }
-.hc-msg-av {
-    width:36px;height:36px;border-radius:12px;
-    display:flex;align-items:center;justify-content:center;
-    font-size:1.1rem;flex-shrink:0;
-}
-.hc-msg.left  .hc-msg-av { background:linear-gradient(135deg,#6366f1,#8b5cf6); }
-.hc-msg.right .hc-msg-av { background:linear-gradient(135deg,#1e293b,#334155); }
-.hc-msg-bubble {
-    padding:.75rem 1.05rem;border-radius:18px;font-size:.88rem;
-    line-height:1.55;color:#fff;
-}
-.hc-msg.left  .hc-msg-bubble { background:rgba(99,102,241,.22);border-bottom-left-radius:4px; }
-.hc-msg.right .hc-msg-bubble { background:rgba(255,255,255,.1);border-bottom-right-radius:4px; }
-.hc-msg-time  { font-size:.65rem;color:rgba(255,255,255,.4);margin-top:.3rem; }
-
-/* hero footer cta */
-.hc-hero-cta {
-    padding:1.25rem 1.5rem;
-    background:rgba(0,0,0,.2);
-    border-top:1px solid rgba(255,255,255,.06);
-    display:flex;align-items:center;flex-wrap:wrap;gap:.75rem;
-}
-.hc-hero-cta p { color:rgba(255,255,255,.65);font-size:.82rem;margin:0;flex:1; }
-.hc-cta-btn {
-    display:inline-flex;align-items:center;gap:.5rem;
-    padding:.6rem 1.4rem;border-radius:12px;
-    background:linear-gradient(135deg,#6366f1,#4f46e5);
-    color:#fff;border:none;font-weight:700;font-size:.88rem;
-    cursor:pointer;transition:all .25s;box-shadow:0 4px 14px rgba(99,102,241,.35);
-    flex-shrink:0;
-}
-.hc-cta-btn:hover { transform:translateY(-2px);box-shadow:0 8px 22px rgba(99,102,241,.45);color:#fff; }
-.hc-cta-btn:active{ transform:translateY(0); }
-
-/* ────────────────────────────────────────────────────────────
-   QUICK HELP CATEGORIES
-──────────────────────────────────────────────────────────── */
-.hc-cats {
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));
-    gap:.75rem;margin-bottom:2rem;
-    animation: hcUp .6s .1s ease both;
-}
-.hc-cat {
-    background:var(--hc-card);
-    border:1px solid var(--hc-border);
-    border-radius:16px;
-    padding:1.1rem 1rem;
-    cursor:pointer;
-    text-align:center;
-    transition:all .25s;
-    text-decoration:none;
-    display:flex;flex-direction:column;align-items:center;gap:.5rem;
-}
-.hc-cat:hover { border-color:var(--hc-primary); transform:translateY(-3px); box-shadow:var(--hc-shadow); }
-.hc-cat.active{ border-color:var(--hc-primary);background:var(--hc-soft); }
-.hc-cat-icon  { font-size:1.6rem; }
-.hc-cat-name  { font-size:.75rem;font-weight:700;color:var(--hc-text);line-height:1.3; }
-
-/* ────────────────────────────────────────────────────────────
-   SECTION TITLE
-──────────────────────────────────────────────────────────── */
-.hc-sec {
-    font-size:1.1rem;font-weight:800;
-    display:flex;align-items:center;gap:.55rem;
-    margin-bottom:1.1rem;color:var(--hc-text);
-}
-.hc-sec i { color:var(--hc-primary); }
-.hc-sec-sub { font-size:.78rem;font-weight:400;color:var(--hc-text-m);margin-left:auto; }
-
-/* ────────────────────────────────────────────────────────────
-   FAQ ACCORDION
-──────────────────────────────────────────────────────────── */
-.hc-faq-wrap { margin-bottom:2.5rem;animation:hcUp .6s .15s ease both; }
-
-.hc-faq-search {
-    position:relative;margin-bottom:1.25rem;
-}
-.hc-faq-search input {
-    width:100%;
-    padding:.75rem 1rem .75rem 2.75rem;
-    border-radius:14px;
-    border:1.5px solid var(--hc-border);
-    background:var(--hc-card);
-    color:var(--hc-text);
-    font-size:.9rem;
-    outline:none;
-    transition:border .2s,box-shadow .2s;
-}
-.hc-faq-search input:focus {
-    border-color:var(--hc-primary);
-    box-shadow:0 0 0 4px rgba(99,102,241,.1);
-}
-.hc-faq-search i {
-    position:absolute;left:.9rem;top:50%;transform:translateY(-50%);
-    color:var(--hc-muted);font-size:1rem;pointer-events:none;
-}
-
-/* Category tabs */
-.hc-faq-cats {
-    display:flex;gap:.45rem;flex-wrap:wrap;margin-bottom:1rem;
-}
-.hc-faq-cat {
-    display:inline-flex;align-items:center;gap:.35rem;
-    padding:.35rem .9rem;border-radius:10px;
-    font-size:.76rem;font-weight:700;cursor:pointer;
-    border:1.5px solid var(--hc-border);
-    background:transparent;color:var(--hc-text-m);
-    transition:all .2s;white-space:nowrap;
-}
-.hc-faq-cat:hover  { border-color:var(--hc-primary);color:var(--hc-primary); }
-.hc-faq-cat.active { background:var(--hc-primary);color:#fff;border-color:var(--hc-primary); }
-
-/* FAQ items */
-.hc-faq-list { display:flex;flex-direction:column;gap:.6rem; }
-.hc-faq-item {
-    border:1px solid var(--hc-border);
-    border-radius:16px;
-    overflow:hidden;
-    background:var(--hc-card);
+/* ── SEARCH ───────────────────────────────────────────── */
+.hlp-search{position:relative;max-width:520px;margin:0 auto;}
+.hlp-search input{
+    width:100%;padding:1rem 3rem 1rem 3rem;
+    border-radius:16px;border:1.5px solid var(--border);
+    background:var(--card);color:var(--text);
+    font-size:1rem;outline:none;box-shadow:var(--hlp-shadow);
     transition:border-color .2s,box-shadow .2s;
 }
-.hc-faq-item:hover { border-color:rgba(99,102,241,.3); }
-.hc-faq-item.open  { border-color:var(--hc-primary);box-shadow:0 4px 16px rgba(99,102,241,.1); }
+.hlp-search input::placeholder{color:var(--muted);}
+.hlp-search input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(99,102,241,.13);}
+.hlp-search-ic{
+    position:absolute;left:1.1rem;top:50%;transform:translateY(-50%);
+    color:var(--muted);font-size:1.15rem;pointer-events:none;
+}
+.hlp-search-clear{
+    position:absolute;right:.75rem;top:50%;transform:translateY(-50%);
+    display:none;border:none;background:transparent;color:var(--muted);
+    font-size:1.15rem;cursor:pointer;padding:.35rem;border-radius:8px;line-height:1;
+}
+.hlp-search-clear:hover{color:var(--danger);}
 
-.hc-faq-q {
-    display:flex;align-items:center;gap:.75rem;
-    padding:1rem 1.2rem;
-    cursor:pointer;
-    font-weight:700;font-size:.88rem;color:var(--hc-text);
-    list-style:none;user-select:none;
+/* popular quick searches */
+.hlp-pop{display:flex;flex-wrap:wrap;gap:.4rem;justify-content:center;align-items:center;margin-top:1.05rem;}
+.hlp-pop-lbl{font-size:.75rem;color:var(--text-muted);margin-right:.15rem;}
+.hlp-pop button{
+    border:1px solid var(--border);background:var(--card);color:var(--text-muted);
+    font-size:.74rem;font-weight:600;padding:.3rem .75rem;border-radius:999px;
+    cursor:pointer;transition:all .18s;
 }
-.hc-faq-q::-webkit-details-marker { display:none; }
-.hc-faq-q-icon {
-    width:32px;height:32px;border-radius:9px;
-    display:flex;align-items:center;justify-content:center;
-    font-size:.95rem;flex-shrink:0;
-}
-.hc-faq-q-text { flex:1; }
-.hc-faq-arrow {
-    font-size:.7rem;color:var(--hc-muted);transition:transform .25s;flex-shrink:0;
-}
-.hc-faq-item.open .hc-faq-arrow { transform:rotate(180deg); }
+.hlp-pop button:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);}
 
-.hc-faq-a {
-    padding:0 1.2rem 1.1rem 3.65rem;
-    font-size:.86rem;color:var(--hc-text-m);
-    line-height:1.7;
-    display:none;
-    animation:hcFade .25s ease;
+/* ── CATEGORY CHIPS ───────────────────────────────────── */
+.hlp-cats{
+    display:flex;gap:.45rem;flex-wrap:wrap;justify-content:center;
+    margin-bottom:1.6rem;animation:hlpUp .5s .05s ease both;
 }
-.hc-faq-item.open .hc-faq-a { display:block; }
-.hc-faq-a strong { color:var(--hc-text); }
-.hc-faq-a a { color:var(--hc-primary);text-decoration:none; }
-.hc-faq-a a:hover { text-decoration:underline; }
-.hc-faq-a code {
-    background:var(--hc-soft);color:var(--hc-primary);
-    padding:.1rem .35rem;border-radius:5px;font-size:.83rem;
+.hlp-chip{
+    display:inline-flex;align-items:center;gap:.4rem;
+    padding:.5rem 1rem;border-radius:12px;white-space:nowrap;
+    font-size:.82rem;font-weight:600;cursor:pointer;
+    border:1.5px solid var(--border);background:var(--card);color:var(--text-muted);
+    transition:all .18s;
 }
-.hc-no-result { text-align:center;padding:2rem;color:var(--hc-muted);font-size:.9rem;display:none; }
+.hlp-chip:hover{border-color:var(--primary);color:var(--primary);transform:translateY(-1px);}
+.hlp-chip.active{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 5px 16px rgba(99,102,241,.32);}
 
-/* ────────────────────────────────────────────────────────────
-   HELP REQUEST FORM
-──────────────────────────────────────────────────────────── */
-.hc-form-wrap {
-    display:grid;grid-template-rows:0fr;
-    transition:grid-template-rows .45s ease, opacity .4s ease, margin .4s ease;
-    opacity:0;margin-bottom:0;
+/* ── SECTION LABEL ────────────────────────────────────── */
+.hlp-label{
+    display:flex;align-items:center;gap:.5rem;
+    font-size:1.05rem;font-weight:800;color:var(--text);
+    margin:0 0 1rem;letter-spacing:-.01em;
 }
-.hc-form-wrap>.hc-form-inner { overflow:hidden; }
-.hc-form-wrap.open { grid-template-rows:1fr;opacity:1;margin-bottom:2rem; }
+.hlp-label i{color:var(--primary);}
+.hlp-label .hlp-count{
+    margin-left:auto;font-size:.72rem;font-weight:700;color:var(--text-muted);
+    background:var(--hlp-soft);padding:.2rem .6rem;border-radius:999px;
+}
 
-.hc-form {
-    background:var(--hc-card);
-    border:1px solid var(--hc-border);
-    border-radius:22px;padding:2rem;
-    box-shadow:var(--hc-shadow);
+/* ── FAQ ──────────────────────────────────────────────── */
+.hlp-faq{margin-bottom:2.2rem;animation:hlpUp .5s .1s ease both;}
+.hlp-faq-list{display:flex;flex-direction:column;gap:.6rem;}
+.hlp-faq-item{
+    border:1px solid var(--border);border-radius:16px;background:var(--card);
+    overflow:hidden;transition:border-color .2s,box-shadow .2s;animation:hlpFade .3s ease both;
 }
-.hc-form-title {
-    font-size:1.1rem;font-weight:700;margin-bottom:1.5rem;
-    display:flex;align-items:center;gap:.6rem;color:var(--hc-text);
+.hlp-faq-item:hover{border-color:rgba(99,102,241,.35);}
+.hlp-faq-item.open{border-color:var(--primary);box-shadow:0 6px 22px rgba(99,102,241,.11);}
+.hlp-faq-q{
+    display:flex;align-items:center;gap:.85rem;
+    padding:1.05rem 1.15rem;cursor:pointer;user-select:none;
 }
-.hc-form-title i { color:var(--hc-primary);font-size:1.25rem; }
-.hc-form .form-label { font-weight:700;font-size:.82rem;margin-bottom:.35rem;color:var(--hc-text); }
-.hc-form .form-control {
-    border-radius:14px;padding:.7rem 1rem;
-    border:1.5px solid var(--hc-border);
-    font-size:.9rem;background:var(--hc-bg);color:var(--hc-text);
-    transition:border .2s,box-shadow .2s;
+.hlp-faq-ic{
+    width:38px;height:38px;border-radius:11px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:1.05rem;
+    background:var(--hlp-soft);
 }
-.hc-form .form-control:focus {
-    border-color:var(--hc-primary);
-    box-shadow:0 0 0 4px rgba(99,102,241,.1);
-    outline:none;
+.hlp-faq-qt{flex:1;font-weight:700;font-size:.9rem;color:var(--text);line-height:1.4;}
+.hlp-faq-arrow{color:var(--muted);font-size:.8rem;flex-shrink:0;transition:transform .25s,color .25s;}
+.hlp-faq-item.open .hlp-faq-arrow{transform:rotate(180deg);color:var(--primary);}
+
+/* smooth height animation via grid trick (no magic numbers) */
+.hlp-faq-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s ease;}
+.hlp-faq-item.open .hlp-faq-a{grid-template-rows:1fr;}
+.hlp-faq-a-wrap{overflow:hidden;min-height:0;}
+.hlp-faq-a-inner{
+    padding:.1rem 1.2rem 1.2rem 3.15rem;
+    font-size:.87rem;color:var(--text-muted);line-height:1.72;
 }
+.hlp-faq-a-inner strong{color:var(--text);font-weight:700;}
+.hlp-faq-a-inner a{color:var(--primary);text-decoration:none;}
+.hlp-faq-a-inner a:hover{text-decoration:underline;}
+
+.hlp-faq-empty{
+    display:none;text-align:center;padding:2.6rem 1rem;color:var(--text-muted);
+    border:1.5px dashed var(--border);border-radius:16px;
+}
+.hlp-faq-empty i{font-size:2rem;opacity:.5;display:block;margin-bottom:.6rem;}
+.hlp-faq-empty b{color:var(--text);display:block;margin-bottom:.2rem;}
+
+/* ── CONTACT CTA ──────────────────────────────────────── */
+.hlp-contact{
+    display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+    padding:1.5rem 1.6rem;border-radius:20px;margin-bottom:1.4rem;
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+    box-shadow:0 12px 34px rgba(99,102,241,.28);animation:hlpUp .5s .15s ease both;
+}
+.hlp-contact-ic{
+    width:52px;height:52px;border-radius:14px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+    background:rgba(255,255,255,.16);color:#fff;
+}
+.hlp-contact-txt{flex:1;min-width:180px;}
+.hlp-contact-txt h3{color:#fff;font-size:1rem;font-weight:800;margin:0 0 .2rem;}
+.hlp-contact-txt p{color:rgba(255,255,255,.85);font-size:.83rem;margin:0;line-height:1.5;}
+.hlp-contact-btn{
+    display:inline-flex;align-items:center;gap:.5rem;flex-shrink:0;
+    padding:.72rem 1.4rem;border-radius:13px;border:none;cursor:pointer;
+    background:#fff;color:var(--primary);font-weight:700;font-size:.88rem;
+    transition:transform .2s,box-shadow .2s;box-shadow:0 6px 18px rgba(0,0,0,.15);
+}
+.hlp-contact-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.22);}
+.hlp-contact-btn.is-open{background:rgba(255,255,255,.2);color:#fff;}
+
+/* ── REQUEST FORM (collapsible) ───────────────────────── */
+.hlp-form-wrap{
+    display:grid;grid-template-rows:0fr;opacity:0;margin:0;
+    transition:grid-template-rows .4s ease,opacity .35s ease,margin .35s ease;
+}
+.hlp-form-wrap.open{grid-template-rows:1fr;opacity:1;margin-bottom:2.2rem;}
+.hlp-form-outer{overflow:hidden;min-height:0;}
+.hlp-form{
+    background:var(--card);border:1px solid var(--border);
+    border-radius:20px;padding:1.8rem;box-shadow:var(--hlp-shadow);
+}
+.hlp-form-title{
+    display:flex;align-items:center;gap:.6rem;
+    font-size:1.02rem;font-weight:800;color:var(--text);margin-bottom:1.3rem;
+}
+.hlp-form-title i{color:var(--primary);}
+.hlp-form label{font-weight:700;font-size:.82rem;margin-bottom:.4rem;color:var(--text);display:block;}
+.hlp-form .hlp-input{
+    width:100%;border-radius:13px;padding:.72rem 1rem;
+    border:1.5px solid var(--border);background:var(--bg);color:var(--text);
+    font-size:.92rem;outline:none;transition:border-color .2s,box-shadow .2s;
+    font-family:inherit;
+}
+.hlp-form .hlp-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(99,102,241,.12);}
+.hlp-form textarea.hlp-input{resize:vertical;min-height:110px;}
+.hlp-field{margin-bottom:1.05rem;}
+.hlp-req{color:var(--danger);}
 
 /* file upload */
-.hc-file {
-    border:2px dashed var(--hc-border);
-    border-radius:16px;padding:1.4rem;
-    text-align:center;cursor:pointer;
-    transition:all .25s;position:relative;background:var(--hc-soft);
+.hlp-file{
+    position:relative;text-align:center;cursor:pointer;
+    border:2px dashed var(--border);border-radius:15px;padding:1.4rem;
+    background:var(--hlp-soft);transition:all .22s;
 }
-.hc-file:hover { border-color:var(--hc-primary);background:rgba(99,102,241,.07); }
-.hc-file.has-f { border-color:var(--hc-success);background:rgba(16,185,129,.05); }
-.hc-file input { position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2; }
-.hc-file.has-f input { pointer-events:none; }
-.hc-file-icon  { font-size:1.8rem;color:var(--hc-primary);margin-bottom:.35rem;transition:transform .25s; }
-.hc-file:hover .hc-file-icon { transform:translateY(-3px); }
-.hc-file.has-f .hc-file-icon { color:var(--hc-success); }
-.hc-file-txt   { font-size:.8rem;color:var(--hc-muted); }
-.hc-file-prev  { display:none;margin-top:.75rem;max-width:180px;margin-left:auto;margin-right:auto;position:relative; }
-.hc-file-prev img { width:100%;border-radius:10px;display:block; }
-.hc-file-rm {
-    position:absolute;top:5px;right:5px;
-    width:26px;height:26px;border-radius:50%;
-    background:rgba(239,68,68,.9);color:#fff;border:none;
-    display:flex;align-items:center;justify-content:center;
-    font-size:.75rem;cursor:pointer;transition:transform .2s;z-index:5;
+.hlp-file:hover{border-color:var(--primary);}
+.hlp-file.has-f{border-color:var(--success);background:rgba(16,185,129,.06);}
+.hlp-file input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2;}
+.hlp-file.has-f input{pointer-events:none;}
+.hlp-file-ic{font-size:1.7rem;color:var(--primary);margin-bottom:.3rem;transition:transform .22s;}
+.hlp-file:hover .hlp-file-ic{transform:translateY(-3px);}
+.hlp-file.has-f .hlp-file-ic{color:var(--success);}
+.hlp-file-txt{font-size:.8rem;color:var(--text-muted);}
+.hlp-file-prev{display:none;margin-top:.8rem;max-width:180px;margin-left:auto;margin-right:auto;position:relative;}
+.hlp-file-prev img{width:100%;border-radius:11px;display:block;}
+.hlp-file-rm{
+    position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;
+    background:rgba(239,68,68,.92);color:#fff;border:none;cursor:pointer;z-index:5;
+    display:flex;align-items:center;justify-content:center;font-size:.75rem;transition:transform .2s;
 }
-.hc-file-rm:hover { transform:scale(1.1); }
+.hlp-file-rm:hover{transform:scale(1.12);}
 
-.hc-form-actions { display:flex;gap:.65rem;justify-content:flex-end;margin-top:1.25rem; }
-.hc-btn-send {
-    background:linear-gradient(135deg,var(--hc-primary),var(--hc-primary-d));
-    color:#fff;border:none;padding:.7rem 1.85rem;border-radius:13px;
-    font-weight:700;font-size:.9rem;display:inline-flex;align-items:center;gap:.5rem;
-    transition:all .2s;cursor:pointer;box-shadow:0 4px 14px rgba(99,102,241,.25);
+.hlp-form-actions{display:flex;gap:.65rem;justify-content:flex-end;margin-top:1.35rem;}
+.hlp-btn-send{
+    display:inline-flex;align-items:center;gap:.5rem;cursor:pointer;
+    background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;
+    padding:.72rem 1.7rem;border-radius:13px;font-weight:700;font-size:.9rem;
+    box-shadow:0 5px 16px rgba(99,102,241,.28);transition:transform .2s,box-shadow .2s;
 }
-.hc-btn-send:hover { transform:translateY(-2px);box-shadow:0 8px 22px rgba(99,102,241,.35); }
-.hc-btn-cancel {
-    padding:.7rem 1.35rem;border-radius:13px;font-weight:700;font-size:.9rem;
-    border:1.5px solid var(--hc-border);background:transparent;
-    color:var(--hc-text);cursor:pointer;transition:all .2s;
+.hlp-btn-send:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(99,102,241,.38);}
+.hlp-btn-send:disabled{opacity:.7;cursor:default;transform:none;}
+.hlp-btn-cancel{
+    padding:.72rem 1.3rem;border-radius:13px;font-weight:700;font-size:.9rem;cursor:pointer;
+    border:1.5px solid var(--border);background:transparent;color:var(--text);transition:all .2s;
 }
-.hc-btn-cancel:hover { border-color:var(--hc-danger);color:var(--hc-danger); }
+.hlp-btn-cancel:hover{border-color:var(--danger);color:var(--danger);}
+.hlp-alert{border-radius:12px;margin-top:.9rem;font-size:.85rem;}
 
-/* ────────────────────────────────────────────────────────────
-   FILTER PILLS
-──────────────────────────────────────────────────────────── */
-.hc-pills { display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem; }
-.hc-pill  {
-    display:inline-flex;align-items:center;gap:.35rem;
-    padding:.4rem 1rem;border-radius:10px;font-size:.77rem;font-weight:700;
-    cursor:pointer;border:1.5px solid var(--hc-border);
-    background:transparent;color:var(--hc-text-m);transition:all .2s;white-space:nowrap;
+/* ── MY REQUESTS ──────────────────────────────────────── */
+.hlp-pills{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.1rem;}
+.hlp-pill{
+    display:inline-flex;align-items:center;gap:.4rem;white-space:nowrap;
+    padding:.42rem 1rem;border-radius:11px;font-size:.78rem;font-weight:700;cursor:pointer;
+    border:1.5px solid var(--border);background:var(--card);color:var(--text-muted);transition:all .18s;
 }
-.hc-pill:hover  { border-color:var(--hc-primary);color:var(--hc-primary); }
-.hc-pill.active { background:var(--hc-primary);color:#fff;border-color:var(--hc-primary); }
-.hc-pill .cnt   { background:rgba(0,0,0,.1);border-radius:6px;padding:.05rem .4rem;font-size:.67rem; }
-.hc-pill.active .cnt { background:rgba(255,255,255,.22); }
+.hlp-pill:hover{border-color:var(--primary);color:var(--primary);}
+.hlp-pill.active{background:var(--primary);border-color:var(--primary);color:#fff;}
+.hlp-pill .cnt{background:rgba(0,0,0,.12);border-radius:6px;padding:.04rem .4rem;font-size:.68rem;}
+.hlp-pill.active .cnt{background:rgba(255,255,255,.25);}
 
-/* ────────────────────────────────────────────────────────────
-   REQUEST CARDS
-──────────────────────────────────────────────────────────── */
-.hc-list { display:flex;flex-direction:column;gap:.85rem; }
-.hc-card {
-    background:var(--hc-card);border:1px solid var(--hc-border);
-    border-radius:20px;padding:1.4rem;position:relative;overflow:hidden;
-    transition:all .3s;animation:hcUp .5s ease both;box-shadow:var(--hc-shadow);
+.hlp-rq-list{display:flex;flex-direction:column;gap:.85rem;}
+.hlp-rq{
+    position:relative;background:var(--card);border:1px solid var(--border);
+    border-left:3px solid var(--border);border-radius:16px;padding:1.3rem 1.4rem;
+    box-shadow:var(--hlp-shadow);transition:transform .25s,box-shadow .25s,border-color .25s;
+    animation:hlpUp .45s ease both;
 }
-.hc-card::before {
-    content:'';position:absolute;top:0;left:0;width:4px;height:100%;
+.hlp-rq:hover{transform:translateY(-2px);box-shadow:var(--hlp-shadow-h);}
+.hlp-rq[data-status="pending"]{border-left-color:var(--warning);}
+.hlp-rq[data-status="in_progress"]{border-left-color:#3b82f6;}
+.hlp-rq[data-status="resolved"]{border-left-color:var(--success);}
+.hlp-rq[data-status="closed"]{border-left-color:var(--muted);}
+.hlp-rq-top{display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:.5rem;}
+.hlp-rq-subj{font-size:.98rem;font-weight:800;color:var(--text);margin:0;line-height:1.35;}
+.hlp-badge2{
+    display:inline-flex;align-items:center;gap:.3rem;flex-shrink:0;
+    padding:.26rem .7rem;border-radius:9px;font-size:.68rem;font-weight:800;
+    text-transform:uppercase;letter-spacing:.3px;
 }
-.hc-card[data-status="pending"]   ::before { background:var(--hc-warn); }
-.hc-card[data-status="in_progress"]::before { background:var(--hc-info); }
-.hc-card[data-status="resolved"]  ::before { background:var(--hc-success); }
-.hc-card[data-status="closed"]    ::before { background:var(--hc-muted); }
-.hc-card:hover { transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,.1);border-color:rgba(99,102,241,.25); }
-
-.hc-card-top { display:flex;align-items:flex-start;justify-content:space-between;gap:.75rem;margin-bottom:.5rem; }
-.hc-card-sub { font-size:1rem;font-weight:800;color:var(--hc-text);margin:0;line-height:1.3; }
-
-.hc-badge {
-    display:inline-flex;align-items:center;gap:.28rem;
-    padding:.25rem .75rem;border-radius:9px;font-size:.7rem;font-weight:800;
-    flex-shrink:0;text-transform:uppercase;letter-spacing:.3px;
+.hlp-badge2.pending{background:rgba(245,158,11,.13);color:#d97706;}
+.hlp-badge2.in_progress{background:rgba(59,130,246,.13);color:#2563eb;}
+.hlp-badge2.resolved{background:rgba(16,185,129,.13);color:#059669;}
+.hlp-badge2.closed{background:rgba(107,114,128,.13);color:#4b5563;}
+.hlp-rq-msg{font-size:.86rem;color:var(--text-muted);line-height:1.6;margin-bottom:.75rem;}
+.hlp-rq-thumb img{
+    max-height:130px;border-radius:11px;border:1px solid var(--border);
+    cursor:pointer;transition:transform .22s,border-color .22s;margin-bottom:.75rem;
 }
-.hc-badge.pending    { background:rgba(245,158,11,.1);color:#d97706; }
-.hc-badge.in_progress{ background:rgba(59,130,246,.1);color:#2563eb; }
-.hc-badge.resolved   { background:rgba(16,185,129,.1);color:#059669; }
-.hc-badge.closed     { background:rgba(107,114,128,.1);color:#4b5563; }
-
-.hc-card-msg { font-size:.86rem;color:var(--hc-text-m);line-height:1.6;margin-bottom:.75rem; }
-.hc-card-thumb img {
-    max-height:130px;border-radius:12px;border:1px solid var(--hc-border);
-    cursor:pointer;transition:all .25s;margin-bottom:.75rem;
+.hlp-rq-thumb img:hover{transform:scale(1.02);border-color:var(--primary);}
+.hlp-reply{
+    background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);
+    border-radius:12px;padding:.85rem 1rem;margin-bottom:.75rem;
 }
-.hc-card-thumb img:hover { transform:scale(1.02);border-color:var(--hc-primary); }
-
-.hc-reply {
-    background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(16,185,129,.02));
-    border:1px solid rgba(16,185,129,.18);
-    border-radius:13px;padding:.9rem 1.1rem;margin-bottom:.75rem;
-}
-.hc-reply-lbl {
-    font-size:.68rem;font-weight:800;color:var(--hc-success);
-    text-transform:uppercase;letter-spacing:.6px;
+.hlp-reply-lbl{
     display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem;
+    font-size:.67rem;font-weight:800;color:var(--success);text-transform:uppercase;letter-spacing:.5px;
 }
-.hc-reply-txt { font-size:.85rem;line-height:1.65;white-space:pre-wrap;margin:0;color:var(--hc-text); }
+.hlp-reply-txt{font-size:.85rem;line-height:1.6;white-space:pre-wrap;margin:0;color:var(--text);}
+.hlp-rq-foot{
+    display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;
+    padding-top:.7rem;border-top:1px solid var(--border);
+    font-size:.74rem;color:var(--text-muted);
+}
+.hlp-rq-foot span{display:inline-flex;align-items:center;gap:.3rem;}
 
-.hc-card-foot {
-    display:flex;align-items:center;justify-content:space-between;
-    flex-wrap:wrap;gap:.5rem;
-    padding-top:.75rem;border-top:1px solid var(--hc-border);
-    font-size:.75rem;color:var(--hc-text-m);
+/* empty state */
+.hlp-empty{
+    text-align:center;padding:3rem 1.5rem;
+    border:1.5px dashed var(--border);border-radius:18px;
 }
-.hc-card-foot span { display:flex;align-items:center;gap:.3rem; }
+.hlp-empty i{font-size:2.6rem;opacity:.4;display:block;margin-bottom:.8rem;color:var(--primary);}
+.hlp-empty h4{font-weight:800;margin-bottom:.35rem;color:var(--text);}
+.hlp-empty p{color:var(--text-muted);font-size:.87rem;margin:0;}
 
-/* ────────────────────────────────────────────────────────────
-   EMPTY
-──────────────────────────────────────────────────────────── */
-.hc-empty {
-    text-align:center;padding:3.5rem 1.5rem;
-    border:2px dashed var(--hc-border);border-radius:22px;
-    animation:emptyDash 2s ease-in-out infinite alternate;
-}
-.hc-empty i { font-size:3rem;opacity:.35;display:block;margin-bottom:1rem; }
-.hc-empty h4 { font-weight:800;margin-bottom:.35rem; }
-.hc-empty p  { color:var(--hc-text-m);font-size:.88rem; }
+/* ── LIGHTBOX ─────────────────────────────────────────── */
+.hlp-lb{position:fixed;inset:0;z-index:1080;display:flex;align-items:center;justify-content:center;
+    padding:1.5rem;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;}
+.hlp-lb.open{opacity:1;visibility:visible;}
+.hlp-lb-bg{position:absolute;inset:0;background:rgba(2,6,23,.82);backdrop-filter:blur(8px);}
+.hlp-lb-c{position:relative;max-width:92vw;max-height:86vh;
+    transform:scale(.92) translateY(14px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);}
+.hlp-lb.open .hlp-lb-c{transform:scale(1) translateY(0);}
+.hlp-lb-c img{max-width:100%;max-height:86vh;border-radius:14px;display:block;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.hlp-lb-cls{position:absolute;top:-14px;right:-14px;width:38px;height:38px;border-radius:50%;
+    background:#fff;color:#1e293b;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    font-size:1rem;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .2s;}
+.hlp-lb-cls:hover{transform:scale(1.1) rotate(90deg);}
 
-/* ────────────────────────────────────────────────────────────
-   LIGHTBOX
-──────────────────────────────────────────────────────────── */
-.hc-lb {
-    position:fixed;inset:0;z-index:1070;
-    display:flex;align-items:center;justify-content:center;padding:1.5rem;
-    opacity:0;visibility:hidden;transition:all .3s;
-}
-.hc-lb.open { opacity:1;visibility:visible; }
-.hc-lb-bg { position:absolute;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(10px); }
-.hc-lb-c  {
-    position:relative;max-width:90vw;max-height:85vh;
-    transform:scale(.9) translateY(16px);transition:transform .35s cubic-bezier(.34,1.56,.64,1);
-}
-.hc-lb.open .hc-lb-c { transform:scale(1) translateY(0); }
-.hc-lb-c img { max-width:100%;max-height:85vh;border-radius:14px;display:block;box-shadow:0 24px 64px rgba(0,0,0,.4); }
-.hc-lb-cls {
-    position:absolute;top:-14px;right:-14px;width:38px;height:38px;border-radius:50%;
-    background:#fff;color:#1e293b;border:none;display:flex;align-items:center;justify-content:center;
-    font-size:1rem;cursor:pointer;transition:all .2s;box-shadow:0 4px 14px rgba(0,0,0,.2);
-}
-.hc-lb-cls:hover { transform:scale(1.1) rotate(90deg); }
-
-/* ────────────────────────────────────────────────────────────
-   RESPONSIVE
-──────────────────────────────────────────────────────────── */
-@media (max-width:575px) {
-    .hc { padding:1rem .75rem 3rem; }
-    .hc-cats { grid-template-columns:repeat(3,1fr);gap:.5rem; }
-    .hc-cat  { padding:.8rem .6rem; }
-    .hc-cat-icon { font-size:1.3rem; }
-    .hc-cat-name { font-size:.68rem; }
-    .hc-hero .hc-chat { padding:1.25rem 1rem; }
-    .hc-form { padding:1.35rem; }
-    .hc-form-actions { flex-direction:column-reverse; }
-    .hc-btn-send,.hc-btn-cancel { width:100%;justify-content:center; }
-    .hc-card-top { flex-direction:column; }
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media (max-width:575px){
+    .hlp{padding:1rem .8rem 3rem;}
+    .hlp-hero{padding:2.2rem 1rem 2rem;border-radius:22px;}
+    .hlp-search input{font-size:16px;} /* prevents iOS zoom */
+    .hlp-contact{padding:1.3rem;}
+    .hlp-contact-btn{width:100%;justify-content:center;}
+    .hlp-form{padding:1.35rem;}
+    .hlp-form-actions{flex-direction:column-reverse;}
+    .hlp-btn-send,.hlp-btn-cancel{width:100%;justify-content:center;}
+    .hlp-rq-top{flex-direction:column;}
 }
 </style>
 
-<div class="hc">
+<div class="hlp">
 
-<!-- ═══════════════════════════════════════════════════════
-     HERO — chat window
-═══════════════════════════════════════════════════════════ -->
-<div class="hc-hero">
-    <div class="hc-hero-bar">
-        <div class="hc-hero-bar-dots">
-            <span class="hc-hero-bar-dot"></span>
-            <span class="hc-hero-bar-dot"></span>
-            <span class="hc-hero-bar-dot"></span>
-        </div>
-        <span class="hc-hero-bar-title">IT Shaharcha — Yordam markazi</span>
-        <div class="hc-hero-bar-status">Online</div>
-    </div>
+  <!-- ═══ HERO ═══ -->
+  <section class="hlp-hero">
+      <span class="hlp-badge">🎓 IT Shaharcha yordam markazi</span>
+      <h1>Sizga qanday yordam bera olamiz?</h1>
+      <p>Savolingizga tez javob toping yoki adminlarga to'g'ridan-to'g'ri murojaat qiling.</p>
 
-    <div class="hc-chat">
-        <div class="hc-msg left" style="animation-delay:.1s;">
-            <div class="hc-msg-av">🤖</div>
-            <div>
-                <div class="hc-msg-bubble">Salom! IT Shaharcha Yordam markaziga xush kelibsiz. Savollaringizga javob berishdan mamnunman. 😊</div>
-                <div class="hc-msg-time">Bugun · 09:00</div>
-            </div>
-        </div>
-        <div class="hc-msg right" style="animation-delay:.25s;">
-            <div class="hc-msg-av">👤</div>
-            <div>
-                <div class="hc-msg-bubble">Premium obuna qanday ishlaydi?</div>
-                <div class="hc-msg-time">Bugun · 09:01</div>
-            </div>
-        </div>
-        <div class="hc-msg left" style="animation-delay:.4s;">
-            <div class="hc-msg-av">🤖</div>
-            <div>
-                <div class="hc-msg-bubble">Premium obuna sizga barcha kurslar, cheksiz o'yinlar va bepul deploy imkoniyatlarini beradi. Ko'p so'raladigan savollarni quyida ko'rishingiz mumkin! 👇</div>
-                <div class="hc-msg-time">Bugun · 09:01</div>
-            </div>
-        </div>
-    </div>
+      <div class="hlp-search">
+          <i class="bi bi-search hlp-search-ic"></i>
+          <input type="text" id="faqSearch" autocomplete="off"
+                 placeholder="Savolingizni yozing… masalan: coin, sertifikat, parol"
+                 oninput="searchFaq()">
+          <button type="button" class="hlp-search-clear" id="searchClear" onclick="clearSearch()" aria-label="Tozalash">
+              <i class="bi bi-x-lg"></i>
+          </button>
+      </div>
 
-    <div class="hc-hero-cta">
-        <p>Javob topa olmadingizmi? Adminlarga bevosita so'rov yuboring.</p>
-        <button class="hc-cta-btn" id="toggleFormBtn">
-            <i class="bi bi-plus-circle-fill"></i> Yangi so'rov
-        </button>
-    </div>
-</div>
+      <div class="hlp-pop">
+          <span class="hlp-pop-lbl">Ommabop:</span>
+          <button type="button" onclick="quickSearch('coin')">Coin</button>
+          <button type="button" onclick="quickSearch('sertifikat')">Sertifikat</button>
+          <button type="button" onclick="quickSearch('parol')">Parol</button>
+          <button type="button" onclick="quickSearch('premium')">Premium</button>
+          <button type="button" onclick="quickSearch('video')">Video dars</button>
+      </div>
+  </section>
 
-<!-- ═══════════════════════════════════════════════════════
-     HELP REQUEST FORM (collapsible)
-═══════════════════════════════════════════════════════════ -->
-<div class="hc-form-wrap" id="formWrap">
-    <div class="hc-form-inner">
-        <div class="hc-form">
-            <div class="hc-form-title">
-                <i class="bi bi-pencil-square"></i> Yangi yordam so'rovi
-            </div>
-            <form id="helpPageForm" enctype="multipart/form-data">
-                {% csrf_token %}
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label">Mavzu <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" name="subject"
-                            placeholder="Masalan: Coin hisobdan noto'g'ri yechildi" required>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Batafsil xabar <span class="text-danger">*</span></label>
-                        <textarea class="form-control" name="message" rows="4"
-                            placeholder="Muammoni to'liq yozing: nima bo'ldi, qachon, qanday holda..." required></textarea>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Skrinshot (ixtiyoriy)</label>
-                        <div class="hc-file" id="fileArea">
-                            <input type="file" name="image" accept="image/*" id="fileInput">
-                            <div class="hc-file-icon"><i class="bi bi-cloud-arrow-up"></i></div>
-                            <div class="hc-file-txt">Rasm tanlash yoki shu yerga tashlang</div>
-                            <div class="hc-file-prev" id="filePreview">
-                                <img src="" alt="Preview" id="previewImg">
-                                <button type="button" class="hc-file-rm" id="fileRemove"><i class="bi bi-x"></i></button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div id="formAlert" class="alert d-none" style="border-radius:14px;margin-top:.75rem;"></div>
-                <div class="hc-form-actions">
-                    <button type="button" class="hc-btn-cancel" id="cancelBtn">Bekor qilish</button>
-                    <button type="submit" class="hc-btn-send" id="submitBtn">
-                        <i class="bi bi-send-fill"></i> Yuborish
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
+  <!-- ═══ CATEGORY CHIPS ═══ -->
+  <div class="hlp-cats" id="faqCats">
+      <button class="hlp-chip active" data-cat="all"        onclick="filterFaq('all')">🗂️ Barchasi</button>
+      <button class="hlp-chip"        data-cat="coin"       onclick="filterFaq('coin')">🪙 Coin &amp; To'lov</button>
+      <button class="hlp-chip"        data-cat="kurs"       onclick="filterFaq('kurs')">📚 Kurslar</button>
+      <button class="hlp-chip"        data-cat="oyinlar"    onclick="filterFaq('oyinlar')">🎮 O'yinlar</button>
+      <button class="hlp-chip"        data-cat="premium"    onclick="filterFaq('premium')">💎 Premium</button>
+      <button class="hlp-chip"        data-cat="sertifikat" onclick="filterFaq('sertifikat')">🏆 Sertifikat</button>
+      <button class="hlp-chip"        data-cat="texnik"     onclick="filterFaq('texnik')">⚙️ Texnik</button>
+      <button class="hlp-chip"        data-cat="hisob"      onclick="filterFaq('hisob')">👤 Hisob</button>
+  </div>
 
-<!-- ═══════════════════════════════════════════════════════
-     QUICK CATEGORY SHORTCUTS
-═══════════════════════════════════════════════════════════ -->
-<div class="hc-sec" style="animation:hcUp .6s .08s ease both;">
-    <i class="bi bi-grid-3x3-gap-fill"></i> Yordam kategoriyalari
-</div>
-<div class="hc-cats">
-    <a class="hc-cat" href="#" onclick="filterFaq('coin');return false;">
-        <span class="hc-cat-icon">🪙</span>
-        <span class="hc-cat-name">Coin & To'lovlar</span>
-    </a>
-    <a class="hc-cat" href="#" onclick="filterFaq('kurs');return false;">
-        <span class="hc-cat-icon">📚</span>
-        <span class="hc-cat-name">Kurslar</span>
-    </a>
-    <a class="hc-cat" href="#" onclick="filterFaq('oyinlar');return false;">
-        <span class="hc-cat-icon">🎮</span>
-        <span class="hc-cat-name">O'yinlar</span>
-    </a>
-    <a class="hc-cat" href="#" onclick="filterFaq('premium');return false;">
-        <span class="hc-cat-icon">💎</span>
-        <span class="hc-cat-name">Premium</span>
-    </a>
-    <a class="hc-cat" href="#" onclick="filterFaq('sertifikat');return false;">
-        <span class="hc-cat-icon">🏆</span>
-        <span class="hc-cat-name">Sertifikat</span>
-    </a>
-    <a class="hc-cat" href="#" onclick="filterFaq('texnik');return false;">
-        <span class="hc-cat-icon">⚙️</span>
-        <span class="hc-cat-name">Texnik yordam</span>
-    </a>
-    <a class="hc-cat" href="#" onclick="filterFaq('hisob');return false;">
-        <span class="hc-cat-icon">👤</span>
-        <span class="hc-cat-name">Hisob</span>
-    </a>
-</div>
+  <!-- ═══ FAQ ═══ -->
+  <div class="hlp-faq">
+      <h2 class="hlp-label">
+          <i class="bi bi-patch-question-fill"></i> Ko'p so'raladigan savollar
+          <span class="hlp-count">27 ta</span>
+      </h2>
 
-<!-- ═══════════════════════════════════════════════════════
-     FAQ — Ko'p so'raladigan savollar
-═══════════════════════════════════════════════════════════ -->
-<div class="hc-faq-wrap">
-    <div class="hc-sec">
-        <i class="bi bi-patch-question-fill"></i> Ko'p so'raladigan savollar
-        <span class="hc-sec-sub">30+ savol</span>
-    </div>
+      <div class="hlp-faq-list" id="faqList">
+          <div class="hlp-faq-empty" id="noResult">
+              <i class="bi bi-search"></i>
+              <b>Hech narsa topilmadi</b>
+              Boshqa so'z bilan qidiring yoki quyidan bizga murojaat qiling.
+          </div>
 
-    <!-- Search -->
-    <div class="hc-faq-search">
-        <i class="bi bi-search"></i>
-        <input type="text" id="faqSearch" placeholder="Savol bo'yicha qidirish..." oninput="searchFaq()">
-    </div>
+          <!-- ══ COIN ══ -->
+          <div class="hlp-faq-item" data-cat="coin">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(245,158,11,.13);">🪙</div>
+                  <span class="hlp-faq-qt">Coin qanday qilib yig'iladi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Platforma coin tizimi orqali ishlaydi. Coin quyidagi yo'llar bilan yig'iladi:<br>
+                  • <strong>Dars yoki modul yakunlash</strong> — har bir modul uchun belgilangan coin beriladi<br>
+                  • <strong>O'yinlarda g'alaba</strong> — Shashka, Shaxmat, Xotira o'yini va boshqa o'yinlarda yutish<br>
+                  • <strong>Vazifalarni topshirish</strong> — o'qituvchi tasdiqlagan vazifalar uchun coin<br>
+                  • <strong>Musobaqalarda ishtirok etish</strong> — jonli o'yinlarda yuqori o'rinni egallash<br>
+                  • <strong>Kunlik kirishlar</strong> — har kuni tizimga kirganda bonus coinlar berilishi mumkin
+              </div></div></div>
+          </div>
 
-    <!-- Category filter -->
-    <div class="hc-faq-cats" id="faqCats">
-        <button class="hc-faq-cat active" onclick="filterFaq('all')">Barchasi</button>
-        <button class="hc-faq-cat" onclick="filterFaq('coin')">🪙 Coin</button>
-        <button class="hc-faq-cat" onclick="filterFaq('kurs')">📚 Kurs</button>
-        <button class="hc-faq-cat" onclick="filterFaq('oyinlar')">🎮 O'yinlar</button>
-        <button class="hc-faq-cat" onclick="filterFaq('premium')">💎 Premium</button>
-        <button class="hc-faq-cat" onclick="filterFaq('sertifikat')">🏆 Sertifikat</button>
-        <button class="hc-faq-cat" onclick="filterFaq('texnik')">⚙️ Texnik</button>
-        <button class="hc-faq-cat" onclick="filterFaq('hisob')">👤 Hisob</button>
-    </div>
+          <div class="hlp-faq-item" data-cat="coin">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(245,158,11,.13);">💸</div>
+                  <span class="hlp-faq-qt">Coinni qanday sarflash mumkin?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Coinlar platformada turli xizmatlarni sotib olish uchun ishlatiladi:<br>
+                  • <strong>Market</strong> — platformadagi raqamli mahsulotlar va imtiyozlarni coin evaziga olish<br>
+                  • <strong>Premium obuna</strong> — coinlar yordamida Premium statusiga o'tish<br>
+                  • <strong>Kitoblar ijarasi</strong> — "Ijaradagi kitoblar" bo'limidan kitob ijaralash<br>
+                  • <strong>Coin o'tkazma</strong> — do'stlaringizga coin yuborish imkoniyati mavjud
+              </div></div></div>
+          </div>
 
-    <!-- FAQ items -->
-    <div class="hc-faq-list" id="faqList">
-        <div class="hc-no-result" id="noResult"><i class="bi bi-search"></i>&nbsp; Hech narsa topilmadi</div>
+          <div class="hlp-faq-item" data-cat="coin">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(245,158,11,.13);">↔️</div>
+                  <span class="hlp-faq-qt">Coin o'tkazma qanday ishlaydi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Coin o'tkazma funksiyasi orqali boshqa foydalanuvchilarga coin yuborishingiz mumkin. Buning uchun:<br>
+                  1. Profilingiz yon menyusidagi <strong>"Coin o'tkazma"</strong> tugmasini bosing<br>
+                  2. Qabul qiluvchining foydalanuvchi nomini kiriting<br>
+                  3. O'tkazmoqchi bo'lgan coinlar miqdorini belgilang<br>
+                  4. Tasdiqlang<br><br>
+                  <strong>Muhim:</strong> O'tkazma uchun minimal miqdor belgilangan bo'lishi mumkin. Tasdiqlangandan keyin coin qaytarilmaydi.
+              </div></div></div>
+          </div>
 
-        <!-- ══ COIN ══ -->
-        <div class="hc-faq-item" data-cat="coin">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">🪙</div>
-                <span class="hc-faq-q-text">Coin qanday qilib yig'iladi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Platforma coin tizimi orqali ishlaydi. Coin quyidagi yo'llar bilan yig'iladi:<br>
-                • <strong>Dars yoki modul yakunlash</strong> — har bir modul uchun belgilangan coin beriladi<br>
-                • <strong>O'yinlarda g'alaba</strong> — Shashka, Shaxmat, Xotira o'yini va boshqa o'yinlarda yutish<br>
-                • <strong>Vazifalarni topshirish</strong> — o'qituvchi tasdiqlagan vazifalar uchun coin<br>
-                • <strong>Musobaqalarda ishtirok etish</strong> — jonli o'yinlarda yuqori o'rinni egallash<br>
-                • <strong>Kunlik kirishlar</strong> — har kuni tizimga kirganda bonus coinlar berilishi mumkin
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="coin">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(245,158,11,.13);">📊</div>
+                  <span class="hlp-faq-qt">Coin tarixini qayerdan ko'rish mumkin?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Menyudan <strong>"Coin tarixi"</strong> bo'limiga kiring. U yerda barcha kiruvchi va chiquvchi coinlar, sana va sabab ko'rsatilgan holda ro'yxatlanadi. Har bir tranzaksiyaning turi (o'yin, kurs, o'tkazma va h.k.) ham ko'rinadi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="coin">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">💸</div>
-                <span class="hc-faq-q-text">Coinni qanday sarflash mumkin?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Coinlar platformada turli xizmatlarni sotib olish uchun ishlatiladi:<br>
-                • <strong>Market</strong> — platformadagi raqamli mahsulotlar va imtiyozlarni coin evaziga olish<br>
-                • <strong>Premium obuna</strong> — coinlar yordamida Premium statusiga o'tish<br>
-                • <strong>Kitoblar ijarasi</strong> — "Ijaradagi kitoblar" bo'limidan kitob ijaralash<br>
-                • <strong>Coin o'tkazma</strong> — do'stlaringizga coin yuborish imkoniyati mavjud
-            </div>
-        </div>
+          <!-- ══ KURS ══ -->
+          <div class="hlp-faq-item" data-cat="kurs">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(59,130,246,.13);">📚</div>
+                  <span class="hlp-faq-qt">Kursni qanday boshlash mumkin?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Kursni boshlash uchun profilingizda <strong>Profil → Kurslar</strong> bo'limiga o'ting. Agar kurs allaqachon tayinlangan bo'lsa, u yerda ko'rinadi. Kursni ochib, birinchi darsdan boshlab ko'rishingiz mumkin. Har bir darsni yakunlagandan so'ng keyingisiga o'tishingiz mumkin.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="coin">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">↔️</div>
-                <span class="hc-faq-q-text">Coin o'tkazma qanday ishlaydi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Coin o'tkazma funksiyasi orqali boshqa foydalanuvchilarga coin yuborishingiz mumkin. Buning uchun:<br>
-                1. Profilingiz yon menyusidagi <strong>"Coin o'tkazma"</strong> tugmasini bosing<br>
-                2. Qabul qiluvchining foydalanuvchi nomini kiriting<br>
-                3. O'tkazmoqchi bo'lgan coinlar miqdorini belgilang<br>
-                4. Tasdiqlang<br><br>
-                <strong>Muhim:</strong> O'tkazma uchun minimal miqdor belgilangan bo'lishi mumkin. Tasdiqlangandan keyin coin qaytarilmaydi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="kurs">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(59,130,246,.13);">🎓</div>
+                  <span class="hlp-faq-qt">Kurs sertifikati qanday olinadi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Sertifikat olish uchun quyidagilar bajarilishi kerak:<br>
+                  • Kursning <strong>barcha darslarini</strong> yakunlash<br>
+                  • Barcha <strong>vazifalar va testlarni</strong> muvaffaqiyatli topshirish<br>
+                  • O'qituvchi tomonidan tasdiqlash (agar talab qilinsa)<br><br>
+                  Shart-sharoitlar bajarilgandan so'ng <strong>"Sertifikat"</strong> bo'limida yuklab olishingiz mumkin. Sertifikat raqami orqali tekshirish ham imkoniyati mavjud.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="coin">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">📊</div>
-                <span class="hc-faq-q-text">Coin tarixini qayerdan ko'rish mumkin?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Menyudan <strong>"Coin tarixi"</strong> bo'limiga kiring. U yerda barcha kiruvchi va chiquvchi coinlar, sana va sabab ko'rsatilgan holda ro'yxatlanadi. Har bir tranzaksiyaning turi (o'yin, kurs, o'tkazma va h.k.) ham ko'rinadi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="kurs">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(59,130,246,.13);">▶️</div>
+                  <span class="hlp-faq-qt">Video dars yuklanmayapti yoki to'xtab qolmoqda</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Videoni ko'rishda muammo bo'lsa, quyidagilarni sinab ko'ring:<br>
+                  1. <strong>Brauzer keshini tozalash</strong> (Ctrl+Shift+Delete)<br>
+                  2. <strong>Boshqa brauzer</strong> sinab ko'rish (Chrome, Firefox, Edge)<br>
+                  3. <strong>Internet ulanish tezligini</strong> tekshirish — videolar uchun kamida 5 Mbps kerak<br>
+                  4. <strong>Brauzer kengaytmalarini</strong> o'chirish (ad-blocker va h.k.)<br>
+                  5. <strong>VPN ishlatmayotgan</strong> bo'lsangiz ishonch hosil qiling<br><br>
+                  Muammo davom etsa, ushbu bo'limdan yordam so'rovi yuboring.
+              </div></div></div>
+          </div>
 
-        <!-- ══ KURS ══ -->
-        <div class="hc-faq-item" data-cat="kurs">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;">📚</div>
-                <span class="hc-faq-q-text">Kursni qanday boshlash mumkin?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Kursni boshlash uchun profilingizda <strong>Profil → Kurslar</strong> bo'limiga o'ting. Agar kurs allaqachon tayinlangan bo'lsa, u yerda ko'rinadi. Kursni ochib, birinchi darsdan boshlab ko'rishingiz mumkin. Har bir darsni yakunlagandan so'ng keyingisiga o'tishingiz mumkin.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="kurs">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(59,130,246,.13);">📝</div>
+                  <span class="hlp-faq-qt">Vazifani qanday topshirish kerak?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Menyudan <strong>"Vazifalar"</strong> bo'limini oching. Aktiv vazifalarni toping va <em>Ko'rish</em> tugmasini bosing. Topshiriq matnini o'qib, bajarilgan ishni fayl sifatida yoki link orqali yuboring. O'qituvchi tekshirgach, coin yoki baho beriladi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="kurs">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;">🎓</div>
-                <span class="hc-faq-q-text">Kurs sertifikati qanday olinadi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Sertifikat olish uchun quyidagilar bajarilishi kerak:<br>
-                • Kursning <strong>barcha darslarini</strong> yakunlash<br>
-                • Barcha <strong>vazifalar va testlarni</strong> muvaffaqiyatli topshirish<br>
-                • O'qituvchi tomonidan tasdiqlash (agar talab qilinsa)<br><br>
-                Shart-sharoitlar bajarilgandan so'ng <strong>"Sertifikat"</strong> bo'limida yuklab olishingiz mumkin. Sertifikat raqami orqali tekshirish ham imkoniyati mavjud.
-            </div>
-        </div>
+          <!-- ══ O'YINLAR ══ -->
+          <div class="hlp-faq-item" data-cat="oyinlar">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(139,92,246,.13);">🎮</div>
+                  <span class="hlp-faq-qt">O'yinlardan coin topish mumkinmi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Ha! <strong>Jonli o'yinlar</strong> (musobaqalar) va ayrim oddiy o'yinlar g'alaba uchun coin beradi. Har bir o'yin kartochkasida coinli yoki coinciz ekanligini ko'rishingiz mumkin. <strong>Jonli o'yinlar</strong> bo'limiga kiring — u yerda real vaqt musobaqalari bo'lib, g'olib coin mukofot oladi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="kurs">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;">▶️</div>
-                <span class="hc-faq-q-text">Video dars yuklanmayapti yoki to'xtab qolmoqda</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Videoni ko'rishda muammo bo'lsa, quyidagilarni sinab ko'ring:<br>
-                1. <strong>Brauzer keshini tozalash</strong> (Ctrl+Shift+Delete)<br>
-                2. <strong>Boshqa brauzer</strong> sinab ko'rish (Chrome, Firefox, Edge)<br>
-                3. <strong>Internet ulanish tezligini</strong> tekshirish — videolar uchun kamida 5 Mbps kerak<br>
-                4. <strong>Brauzer kengaytmalarini</strong> o'chirish (ad-blocker va h.k.)<br>
-                5. <strong>VPN ishlatmayotgan</strong> bo'lsangiz ishonch hosil qiling<br><br>
-                Muammo davom etsa, ushbu bo'limdan yordam so'rovi yuboring.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="oyinlar">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(139,92,246,.13);">🏆</div>
+                  <span class="hlp-faq-qt">Jonli o'yinlar qanday ishlaydi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Jonli o'yinlar — platformadagi foydalanuvchilar bilan real vaqt rejimida musobaqalashish imkoniyati. Menyudagi <strong>"Jonli o'yinlar"</strong> bo'limiga kiring. U yerda mavjud musobaqalar ro'yxati chiqadi. Ishtirok etib, raqibingizni yengib coin yoki reyting yig'ing. Musobaqalar Shashka, Shaxmat, X va O kabi o'yinlar bo'yicha o'tkaziladi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="kurs">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(59,130,246,.12);color:#3b82f6;">📝</div>
-                <span class="hc-faq-q-text">Vazifani qanday topshirish kerak?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Menyudan <strong>"Vazifalar"</strong> bo'limini oching. Aktiv vazifalarni toping va <em>Ko'rish</em> tugmasini bosing. Topshiriq matnini o'qib, bajarilgan ishni fayl sifatida yoki link orqali yuboring. O'qituvchi tekshirgach, coin yoki baho beriladi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="oyinlar">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(139,92,246,.13);">🧠</div>
+                  <span class="hlp-faq-qt">Xotira o'yini (Memory Card) qanday o'ynaladi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Memory Card o'yinida kartochkalarni ochib, juftlarini topishingiz kerak. Qiyinlik darajasini tanlang (Easy, Medium, Hard) va kategoriyani (hayvonlar, mevalar, texnologiya, o'zbek so'zlari, matematika). Maqsad — eng kam hamlada barcha juftlarni topish. G'alaba uchun aniqlik va tezlik muhim rol o'ynaydi. Yaxshi natija uchun coin beriladi.
+              </div></div></div>
+          </div>
 
-        <!-- ══ O'YINLAR ══ -->
-        <div class="hc-faq-item" data-cat="oyinlar">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;">🎮</div>
-                <span class="hc-faq-q-text">O'yinlardan coin topish mumkinmi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Ha! <strong>Jonli o'yinlar</strong> (musobaqalar) va ayrim oddiy o'yinlar g'alaba uchun coin beradi. Har bir o'yin kartochkasida coinli yoki coinciz ekanligini ko'rishingiz mumkin. <strong>Jonli o'yinlar</strong> bo'limiga kiring — u yerda real vaqt musobaqalari bo'lib, g'olib coin mukofot oladi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="oyinlar">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(139,92,246,.13);">🏗️</div>
+                  <span class="hlp-faq-qt">HTML Builder o'yini nima va u qanday ishlaydi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  HTML Builder — Drag &amp; Drop (sudrab tashlash) usuli bilan HTML sahifa yasash o'yini. Chap paneldan elementlarni (h1, paragraph, button, image va boshqalar) o'rta maydonga tashlang. O'ng paneldagi tekshirish ro'yxatiga mos keladigan elementlarni joylashtiring. Qanchalik to'liq va tez bajarsangiz, shuncha ko'p ball to'playsiz.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="oyinlar">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;">🏆</div>
-                <span class="hc-faq-q-text">Jonli o'yinlar qanday ishlaydi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Jonli o'yinlar — platformadagi foydalanuvchilar bilan real vaqt rejimida musobaqalashish imkoniyati. Menyudagi <strong>"Jonli o'yinlar"</strong> bo'limiga kiring. U yerda mavjud musobaqalar ro'yxati chiqadi. Ishtirok etib, raqibingizni yengib coin yoki reyting yig'ing. Musobaqalar Shashka, Shaxmat, X va O kabi o'yinlar bo'yicha o'tkaziladi.
-            </div>
-        </div>
+          <!-- ══ PREMIUM ══ -->
+          <div class="hlp-faq-item" data-cat="premium">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(99,102,241,.13);">💎</div>
+                  <span class="hlp-faq-qt">Premium obuna nima beradi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Premium foydalanuvchilar quyidagi imtiyozlarga ega bo'ladi:<br>
+                  • <strong>Barcha premium kurslar</strong>ga to'liq kirish imkoniyati<br>
+                  • <strong>AI suhbat</strong> — cheksiz foydalanish<br>
+                  • <strong>Sertifikatlar</strong> uchun maxsus dizayn<br>
+                  • <strong>O'yinlarda bonus</strong> — coin mukofotlari oshadi<br>
+                  • Profilda <strong>💎 Premium</strong> nishoni ko'rinadi<br>
+                  • Qo'shimcha imtiyozlar doimiy qo'shib boriladi
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="oyinlar">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;">🧠</div>
-                <span class="hc-faq-q-text">Xotira o'yini (Memory Card) qanday o'ynaladi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Memory Card o'yinida kartochkalarni ochib, juftlarini topishingiz kerak. Qiyinlik darajasini tanlang (Easy, Medium, Hard) va kategoriyani (hayvonlar, mevalar, texnologiya, o'zbek so'zlari, matematika). Maqsad — eng kam hamlada barcha juftlarni topish. G'alaba uchun aniqlik va tezlik muhim rol o'ynaydi. Yaxshi natija uchun coin beriladi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="premium">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(99,102,241,.13);">💳</div>
+                  <span class="hlp-faq-qt">Premium qanday olinadi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Premium olish uchun <strong>Market</strong> bo'limiga kiring va Premium obuna tovarini toping. Unga kerakli miqdorda coin sarflashingiz mumkin. Shuningdek, platforma ma'muriyati bilan aloqaga chiqib to'lov qilish orqali Premium olish imkoniyati ham mavjud. Batafsil ma'lumot uchun admin bilan bog'laning.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="oyinlar">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(139,92,246,.12);color:#8b5cf6;">🏗️</div>
-                <span class="hc-faq-q-text">HTML Builder o'yini nima va u qanday ishlaydi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                HTML Builder — Drag & Drop (sudrab tashlash) usuli bilan HTML sahifa yasash o'yini. Chap paneldan elementlarni (h1, paragraph, button, image va boshqalar) o'rta maydonga tashlang. O'ng paneldagi tekshirish ro'yxatiga mos keladigan elementlarni joylashtiring. Qanchalik to'liq va tez bajarsangiz, shuncha ko'p ball to'playsiz.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="premium">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(99,102,241,.13);">⏳</div>
+                  <span class="hlp-faq-qt">Premium obuna muddati tugagandan so'ng nima bo'ladi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Premium muddati tugagach, hisobingiz oddiy foydalanuvchi holatiga qaytadi. Oldingi kurslaringiz va ma'lumotlaringiz saqlanib qoladi. Faqat Premium-only kurslar va imtiyozlarga kirish cheklanadi. Obunani yangilash uchun yana Market orqali yoki admin orqali murojaat qiling.
+              </div></div></div>
+          </div>
 
-        <!-- ══ PREMIUM ══ -->
-        <div class="hc-faq-item" data-cat="premium">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(99,102,241,.12);color:#6366f1;">💎</div>
-                <span class="hc-faq-q-text">Premium obuna nima beradi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Premium foydalanuvchilar quyidagi imtiyozlarga ega bo'ladi:<br>
-                • <strong>Barcha premium kurslar</strong>ga to'liq kirish imkoniyati<br>
-                • <strong>AI suhbat</strong> — cheksiz foydalanish<br>
-                • <strong>Sertifikatlar</strong> uchun maxsus dizayn<br>
-                • <strong>O'yinlarda bonus</strong> — coin mukofotlari oshadi<br>
-                • Profilda <strong>💎 Premium</strong> nishoni ko'rinadi<br>
-                • Qo'shimcha imtiyozlar doimiy qo'shib boriladi
-            </div>
-        </div>
+          <!-- ══ SERTIFIKAT ══ -->
+          <div class="hlp-faq-item" data-cat="sertifikat">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(245,158,11,.13);">🏆</div>
+                  <span class="hlp-faq-qt">Sertifikat haqiqiymi, uni tekshirish mumkinmi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Ha, barcha sertifikatlar <strong>unikal raqam</strong> bilan beriladi. Sertifikatni platform orqali tekshirish mumkin — <strong>"Sertifikat tekshirish"</strong> bo'limiga o'ting, raqamni kiriting va natijani ko'ring. Bu ish beruvchilarga yoki boshqa insonlarga sertifikat haqiqiyligini tasdiqlash imkonini beradi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="premium">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(99,102,241,.12);color:#6366f1;">💳</div>
-                <span class="hc-faq-q-text">Premium qanday olinadi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Premium olish uchun <strong>Market</strong> bo'limiga kiring va Premium obuna tovarini toping. Unga kerakli miqdorda coin sarflashingiz mumkin. Shuningdek, platforma ma'muriyati bilan aloqaga chiqib to'lov qilish orqali Premium olish imkoniyati ham mavjud. Batafsil ma'lumot uchun admin bilan bog'laning.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="sertifikat">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(245,158,11,.13);">📥</div>
+                  <span class="hlp-faq-qt">Sertifikatni qanday yuklab olish mumkin?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Menyudagi <strong>"Sertifikat"</strong> bo'limiga kiring. U yerda kursni yakunlagan barcha sertifikatlaringiz ro'yxati ko'rinadi. <strong>Yuklab olish</strong> tugmasi orqali PDF formatda kompyuteringizga saqlang. Sertifikatni ijtimoiy tarmoqlar yoki rezyumeyingizga qo'shishingiz mumkin.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="premium">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(99,102,241,.12);color:#6366f1;">⏳</div>
-                <span class="hc-faq-q-text">Premium obuna muddati tugagandan so'ng nima bo'ladi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Premium muddati tugagach, hisobingiz oddiy foydalanuvchi holatiga qaytadi. Oldingi kurslaringiz va ma'lumotlaringiz saqlanib qoladi. Faqat Premium-only kurslar va imtiyozlarga kirish cheklanadi. Obunani yangilash uchun yana Market orqali yoki admin orqali murojaat qiling.
-            </div>
-        </div>
+          <!-- ══ TEXNIK ══ -->
+          <div class="hlp-faq-item" data-cat="texnik">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(107,114,128,.15);">🔑</div>
+                  <span class="hlp-faq-qt">Parolimni unutdim, qanday tiklash mumkin?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Kirish sahifasida <strong>"Parolni unutdim"</strong> havolasini bosing. Ro'yxatdan o'tgan email manzilingizni kiriting — parol tiklash havolasi yuboriladi. Email kelmasa:<br>
+                  • Spam yoki Junk papkasini tekshiring<br>
+                  • Email to'g'ri kiritganligingizni tekshiring<br>
+                  • Yordam so'rovi orqali admin bilan bog'laning
+              </div></div></div>
+          </div>
 
-        <!-- ══ SERTIFIKAT ══ -->
-        <div class="hc-faq-item" data-cat="sertifikat">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">🏆</div>
-                <span class="hc-faq-q-text">Sertifikat haqiqiymi, uni tekshirish mumkinmi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Ha, barcha sertifikatlar <strong>unikal raqam</strong> bilan beriladi. Sertifikatni platform orqali tekshirish mumkin — <strong>"Sertifikat tekshirish"</strong> bo'limiga o'ting, raqamni kiriting va natijani ko'ring. Bu ish beruvchilarga yoki boshqa insonlarga sertifikat haqiqiyligini tasdiqlash imkonini beradi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="texnik">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(107,114,128,.15);">📱</div>
+                  <span class="hlp-faq-qt">Qurilmalar soni chegaralangan?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Ha, platformaga bir vaqtning o'zida cheklangan qurilmalardan kirish mumkin. Agar "Qurilmalar limiti to'ldi" degan xato chiqsa, <strong>Sozlamalar → Qurilmalar</strong> bo'limiga o'ting va eski yoki keraksiz qurilmalarni o'chiring. Keyin yangi qurilmangizdan kirish imkoniyati paydo bo'ladi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="sertifikat">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(245,158,11,.12);color:#f59e0b;">📥</div>
-                <span class="hc-faq-q-text">Sertifikatni qanday yuklab olish mumkin?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Menyudagi <strong>"Sertifikat"</strong> bo'limiga kiring. U yerda kursni yakunlagan barcha sertifikatlaringiz ro'yxati ko'rinadi. <strong>Yuklab olish</strong> tugmasi orqali PDF formatda kompyuteringizga saqlang. Sertifikatni ijtimoiy tarmoqlar yoki rezyumeyingizga qo'shishingiz mumkin.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="texnik">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(107,114,128,.15);">🌙</div>
+                  <span class="hlp-faq-qt">Qorong'u rejim (Dark mode) qanday yoqiladi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Sahifaning yuqori qismidagi navigatsiyada quyosh/oy ikonkasini bosing. Yorug' va qorong'u rejim o'rtasida almashishi mumkin. Tanlangan holat keyingi kirishlarda ham saqlanib qoladi.
+              </div></div></div>
+          </div>
 
-        <!-- ══ TEXNIK ══ -->
-        <div class="hc-faq-item" data-cat="texnik">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(107,114,128,.12);color:#6b7280;">🔑</div>
-                <span class="hc-faq-q-text">Parolimni unutdim, qanday tiklash mumkin?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Kirish sahifasida <strong>"Parolni unutdim"</strong> havolasini bosing. Ro'yxatdan o'tgan email manzilingizni kiriting — parol tiklash havolasi yuboriladi. Email kelmasa: <br>
-                • Spam yoki Junk papkasini tekshiring<br>
-                • Email to'g'ri kiritganligingizni tekshiring<br>
-                • Yordam so'rovi orqali admin bilan bog'laning
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="texnik">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(107,114,128,.15);">🤖</div>
+                  <span class="hlp-faq-qt">AI suhbat nima va undan qanday foydalanish kerak?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  IT Shaharcha'dagi <strong>AI suhbat</strong> sun'iy intellekt yordamida savollaringizga javob beradigan assistant. Dasturlash bo'yicha savollar, tushuntirishlar, kod namunalari so'rashingiz mumkin. Premium foydalanuvchilar cheksiz foydalanishga ega. Menyudan <strong>"AI suhbat"</strong> bo'limini toping.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="texnik">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(107,114,128,.12);color:#6b7280;">📱</div>
-                <span class="hc-faq-q-text">Qurilmalar soni chegaralangan?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Ha, platformaga bir vaqtning o'zida cheklangan qurilmalardan kirish mumkin. Agar "Qurilmalar limiti to'ldi" degan xato chiqsa, <strong>Sozlamalar → Qurilmalar</strong> bo'limiga o'ting va eski yoki keraksiz qurilmalarni o'chiring. Keyin yangi qurilmangizdan kirish imkoniyati paydo bo'ladi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="texnik">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(107,114,128,.15);">⚠️</div>
+                  <span class="hlp-faq-qt">Sahifa xato ko'rsatmoqda yoki ochilmayapti</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Quyidagi amallarni sinab ko'ring:<br>
+                  1. <strong>Sahifani yangilash</strong> — F5 yoki Ctrl+R<br>
+                  2. <strong>Brauzer keshini tozalash</strong> — Ctrl+Shift+Delete<br>
+                  3. <strong>Inkognito rejimda</strong> brauzerda sinab ko'rish<br>
+                  4. <strong>Internet ulanishini</strong> tekshirish<br>
+                  5. <strong>Boshqa brauzer</strong> sinab ko'rish<br><br>
+                  Muammo davom etsa, xato xabari skrinshotini olib, so'rov yuboring.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="texnik">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(107,114,128,.12);color:#6b7280;">🌙</div>
-                <span class="hc-faq-q-text">Qorong'u rejim (Dark mode) qanday yoqiladi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Sahifaning yuqori qismidagi navigatsiyada quyosh/oy ikonkasini bosing. Yorug' va qorong'u rejim o'rtasida almashishi mumkin. Tanlangan holat keyingi kirishlarda ham saqlanib qoladi.
-            </div>
-        </div>
+          <!-- ══ HISOB ══ -->
+          <div class="hlp-faq-item" data-cat="hisob">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(236,72,153,.13);">👤</div>
+                  <span class="hlp-faq-qt">Profil rasmini qanday o'zgartirish mumkin?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Menyudan <strong>"Profil"</strong> bo'limiga kiring. Profil rasmi ustiga bosing yoki <em>Rasm o'zgartirish</em> havolasini toping. Yangi rasmni yuklang (JPG, PNG format, max 5 MB). Rasm saqlangandan so'ng barcha sahifalarda yangilanadi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="texnik">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(107,114,128,.12);color:#6b7280;">🤖</div>
-                <span class="hc-faq-q-text">AI suhbat nima va undan qanday foydalanish kerak?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                IT Shaharcha'dagi <strong>AI suhbat</strong> sun'iy intellekt yordamida savollaringizga javob beradigan assistant. Dasturlash bo'yicha savollar, tushuntirishlar, kod namunalari so'rashingiz mumkin. Premium foydalanuvchilar cheksiz foydalanishga ega. Menyudan <strong>"AI suhbat"</strong> bo'limini toping.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="hisob">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(236,72,153,.13);">🔔</div>
+                  <span class="hlp-faq-qt">Xabarnomalar (notifications) qanday ishlaydi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Menyudagi <strong>"Xabarlar"</strong> bo'limida platformadan keladigan barcha bildirishnomalarni ko'rishingiz mumkin: yangi vazifalar, admin javoblari, musobaqalar, coin o'zgarishlari va boshqalar. O'qilmagan xabarlar soni navigatsiyada ko'rinib turadi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="texnik">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(107,114,128,.12);color:#6b7280;">⚠️</div>
-                <span class="hc-faq-q-text">Sahifa xato ko'rsatmoqda yoki ochilmayapti</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Quyidagi amallarni sinab ko'ring:<br>
-                1. <strong>Sahifani yangilash</strong> — F5 yoki Ctrl+R<br>
-                2. <strong>Brauzer keshini tozalash</strong> — Ctrl+Shift+Delete<br>
-                3. <strong>Inkognito rejimda</strong> brauzerda sinab ko'rish<br>
-                4. <strong>Internet ulanishini</strong> tekshirish<br>
-                5. <strong>Boshqa brauzer</strong> sinab ko'rish<br><br>
-                Muammo davom etsa, xato xabari skrinshotini olib, so'rov yuboring.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="hisob">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(236,72,153,.13);">🔒</div>
+                  <span class="hlp-faq-qt">Hisobimni qanday xavfsiz saqlash kerak?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Hisobingiz xavfsizligi uchun:<br>
+                  • Kuchli va noyob parol ishlating (harf + raqam + belgi)<br>
+                  • Parolingizni hech kimga bermang<br>
+                  • Umumiy kompyuterda foydalangandan so'ng <strong>chiqish</strong> (logout) qiling<br>
+                  • <strong>Sozlamalar → Qurilmalar</strong> bo'limini muntazam tekshirib turing<br>
+                  • Shubhali faoliyat sezsangiz, darhol parolingizni o'zgartiring
+              </div></div></div>
+          </div>
 
-        <!-- ══ HISOB ══ -->
-        <div class="hc-faq-item" data-cat="hisob">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(236,72,153,.12);color:#ec4899;">👤</div>
-                <span class="hc-faq-q-text">Profil rasmini qanday o'zgartirish mumkin?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Menyudan <strong>"Profil"</strong> bo'limiga kiring. Profil rasmi ustiga bosing yoki <em>Rasm o'zgartirish</em> havolasini toping. Yangi rasmni yuklang (JPG, PNG format, max 5 MB). Rasm saqlangandan so'ng barcha sahifalarda yangilanadi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="hisob">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(236,72,153,.13);">📊</div>
+                  <span class="hlp-faq-qt">Reyting va liderlar taxtasi qanday ishlaydi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  Platforma reyting tizimi coin miqdori, kurslar yakunlanishi va o'yinlardagi natijalar asosida hisoblanadi. <strong>Liderlar taxtasi</strong> (Leaderboard) bo'limida umumiy reyting ko'rinadi. Siz yuqoriroq o'rin egallash uchun ko'proq kurs yakunlang, o'yinlarda g'alaba qozoning va vazifalarni topshirib boring.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="hisob">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(236,72,153,.12);color:#ec4899;">🔔</div>
-                <span class="hc-faq-q-text">Xabarnomalar (notifications) qanday ishlaydi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Menyudagi <strong>"Xabarlar"</strong> bo'limida platformadan keladigan barcha bildirishnomalarni ko'rishingiz mumkin: yangi vazifalar, admin javoblari, musobaqalar, coin o'zgarishlari va boshqalar. O'qilmagan xabarlar soni navigatsiyada ko'rinib turadi.
-            </div>
-        </div>
+          <div class="hlp-faq-item" data-cat="hisob">
+              <div class="hlp-faq-q" onclick="toggleFaq(this)">
+                  <div class="hlp-faq-ic" style="background:rgba(236,72,153,.13);">📖</div>
+                  <span class="hlp-faq-qt">Ijaradagi kitoblar bo'limi qanday ishlaydi?</span>
+                  <i class="bi bi-chevron-down hlp-faq-arrow"></i>
+              </div>
+              <div class="hlp-faq-a"><div class="hlp-faq-a-wrap"><div class="hlp-faq-a-inner">
+                  <strong>"Ijaradagi kitoblar"</strong> bo'limida platformadagi raqamli kitoblarni muayyan muddat uchun coin evaziga ijaralashingiz mumkin. Ijara muddati tugagach, kitob avtomatik yopiladi. Kitobni o'qish jarayonida progress saqlanadi.
+              </div></div></div>
+          </div>
 
-        <div class="hc-faq-item" data-cat="hisob">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(236,72,153,.12);color:#ec4899;">🔒</div>
-                <span class="hc-faq-q-text">Hisobimni qanday xavfsiz saqlash kerak?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Hisobingiz xavfsizligi uchun:<br>
-                • Kuchli va noyob parol ishlating (harf + raqam + belgi)<br>
-                • Parolingizni hech kimga bermang<br>
-                • Umumiy kompyuterda foydalangandan so'ng <strong>chiqish</strong> (logout) qiling<br>
-                • <strong>Sozlamalar → Qurilmalar</strong> bo'limini muntazam tekshirib turing<br>
-                • Shubhali faoliyat sezsangiz, darhol parolingizni o'zgartiring
-            </div>
-        </div>
+      </div><!-- /faq-list -->
+  </div><!-- /faq -->
 
-        <div class="hc-faq-item" data-cat="hisob">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(236,72,153,.12);color:#ec4899;">📊</div>
-                <span class="hc-faq-q-text">Reyting va liderlar taxtasi qanday ishlaydi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                Platforma reyting tizimi coin miqdori, kurslar yakunlanishi va o'yinlardagi natijalar asosida hisoblanadi. <strong>Liderlar taxtasi</strong> (Leaderboard) bo'limida umumiy reyting ko'rinadi. Siz yuqoriroq o'rin egallash uchun ko'proq kurs yakunlang, o'yinlarda g'alaba qozoning va vazifalarni topshirib boring.
-            </div>
-        </div>
+  <!-- ═══ CONTACT CTA ═══ -->
+  <section class="hlp-contact">
+      <div class="hlp-contact-ic"><i class="bi bi-headset"></i></div>
+      <div class="hlp-contact-txt">
+          <h3>Javob topa olmadingizmi?</h3>
+          <p>Adminlarga to'g'ridan-to'g'ri so'rov yuboring — tez orada javob beramiz.</p>
+      </div>
+      <button class="hlp-contact-btn" id="toggleFormBtn">
+          <i class="bi bi-plus-circle-fill"></i> Yangi so'rov
+      </button>
+  </section>
 
-        <div class="hc-faq-item" data-cat="hisob">
-            <div class="hc-faq-q" onclick="toggleFaq(this)">
-                <div class="hc-faq-q-icon" style="background:rgba(236,72,153,.12);color:#ec4899;">📖</div>
-                <span class="hc-faq-q-text">Ijaradagi kitoblar bo'limi qanday ishlaydi?</span>
-                <i class="bi bi-chevron-down hc-faq-arrow"></i>
-            </div>
-            <div class="hc-faq-a">
-                <strong>"Ijaradagi kitoblar"</strong> bo'limida platformadagi raqamli kitoblarni muayyan muddat uchun coin evaziga ijaralashingiz mumkin. Ijara muddati tugagach, kitob avtomatik yopiladi. Kitobni o'qish jarayonida progress saqlanadi.
-            </div>
-        </div>
+  <!-- ═══ REQUEST FORM (collapsible) ═══ -->
+  <div class="hlp-form-wrap" id="formWrap">
+      <div class="hlp-form-outer">
+          <div class="hlp-form">
+              <div class="hlp-form-title"><i class="bi bi-pencil-square"></i> Yangi yordam so'rovi</div>
+              <form id="helpPageForm" enctype="multipart/form-data">
+                  {% csrf_token %}
+                  <div class="hlp-field">
+                      <label>Mavzu <span class="hlp-req">*</span></label>
+                      <input type="text" class="hlp-input" name="subject"
+                             placeholder="Masalan: Coin hisobdan noto'g'ri yechildi" required>
+                  </div>
+                  <div class="hlp-field">
+                      <label>Batafsil xabar <span class="hlp-req">*</span></label>
+                      <textarea class="hlp-input" name="message" rows="4"
+                             placeholder="Muammoni to'liq yozing: nima bo'ldi, qachon, qanday holda…" required></textarea>
+                  </div>
+                  <div class="hlp-field">
+                      <label>Skrinshot (ixtiyoriy)</label>
+                      <div class="hlp-file" id="fileArea">
+                          <input type="file" name="image" accept="image/*" id="fileInput">
+                          <div class="hlp-file-ic"><i class="bi bi-cloud-arrow-up"></i></div>
+                          <div class="hlp-file-txt">Rasm tanlash yoki shu yerga tashlang</div>
+                          <div class="hlp-file-prev" id="filePreview">
+                              <img src="" alt="Preview" id="previewImg">
+                              <button type="button" class="hlp-file-rm" id="fileRemove"><i class="bi bi-x"></i></button>
+                          </div>
+                      </div>
+                  </div>
+                  <div id="formAlert" class="alert d-none hlp-alert"></div>
+                  <div class="hlp-form-actions">
+                      <button type="button" class="hlp-btn-cancel" id="cancelBtn">Bekor qilish</button>
+                      <button type="submit" class="hlp-btn-send" id="submitBtn"><i class="bi bi-send-fill"></i> Yuborish</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
 
-    </div><!-- /faq-list -->
-</div><!-- /faq-wrap -->
+  <!-- ═══ MY REQUESTS ═══ -->
+  {% if my_requests %}
+  <h2 class="hlp-label" style="animation:hlpUp .5s .2s ease both;">
+      <i class="bi bi-clock-history"></i> Mening so'rovlarim
+      <span class="hlp-count">{{ my_requests|length }} ta</span>
+  </h2>
 
-<!-- ═══════════════════════════════════════════════════════
-     MY REQUESTS
-═══════════════════════════════════════════════════════════ -->
-{% if my_requests %}
-<div class="hc-sec" style="animation:hcUp .6s .2s ease both;">
-    <i class="bi bi-clock-history"></i> Mening so'rovlarim
-    <span class="hc-sec-sub">{{ my_requests|length }} ta</span>
-</div>
+  <div class="hlp-pills">
+      <button class="hlp-pill active" data-filter="all"><i class="bi bi-layers"></i> Barchasi <span class="cnt">{{ my_requests|length }}</span></button>
+      <button class="hlp-pill" data-filter="pending"><i class="bi bi-clock"></i> Kutilmoqda</button>
+      <button class="hlp-pill" data-filter="in_progress"><i class="bi bi-arrow-repeat"></i> Ko'rilmoqda</button>
+      <button class="hlp-pill" data-filter="resolved"><i class="bi bi-check-circle"></i> Hal qilindi</button>
+      <button class="hlp-pill" data-filter="closed"><i class="bi bi-x-circle"></i> Yopildi</button>
+  </div>
 
-<div class="hc-pills">
-    <button class="hc-pill active" data-filter="all">
-        <i class="bi bi-layers"></i> Barchasi
-        <span class="cnt">{{ my_requests|length }}</span>
-    </button>
-    <button class="hc-pill" data-filter="pending">
-        <i class="bi bi-clock"></i> Kutilmoqda
-    </button>
-    <button class="hc-pill" data-filter="in_progress">
-        <i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
-    </button>
-    <button class="hc-pill" data-filter="resolved">
-        <i class="bi bi-check-circle"></i> Hal qilindi
-    </button>
-    <button class="hc-pill" data-filter="closed">
-        <i class="bi bi-x-circle"></i> Yopildi
-    </button>
-</div>
+  <div class="hlp-rq-list">
+  {% for req in my_requests %}
+      <div class="hlp-rq" data-status="{{ req.status }}" style="animation-delay:{{ forloop.counter0 }}00ms;">
+          <div class="hlp-rq-top">
+              <h5 class="hlp-rq-subj">{{ req.subject }}</h5>
+              <span class="hlp-badge2 {{ req.status }}">
+                  {% if req.status == 'pending' %}<i class="bi bi-clock-fill"></i> Kutilmoqda
+                  {% elif req.status == 'in_progress' %}<i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
+                  {% elif req.status == 'resolved' %}<i class="bi bi-check-circle-fill"></i> Hal qilindi
+                  {% elif req.status == 'closed' %}<i class="bi bi-x-circle-fill"></i> Yopildi
+                  {% endif %}
+              </span>
+          </div>
+          <p class="hlp-rq-msg">{{ req.message }}</p>
+          {% if req.image %}
+          <div class="hlp-rq-thumb">
+              <img src="{{ req.image.url }}" alt="Yuklangan rasm" onclick="openLb(this.src)">
+          </div>
+          {% endif %}
+          {% if req.admin_response %}
+          <div class="hlp-reply">
+              <div class="hlp-reply-lbl"><i class="bi bi-reply-fill"></i> Admin javobi</div>
+              <p class="hlp-reply-txt">{{ req.admin_response }}</p>
+          </div>
+          {% endif %}
+          <div class="hlp-rq-foot">
+              <span><i class="bi bi-calendar3"></i> {{ req.created_at|date:"d.m.Y H:i" }}</span>
+              {% if req.updated_at != req.created_at %}
+              <span><i class="bi bi-arrow-clockwise"></i> {{ req.updated_at|date:"d.m.Y H:i" }}</span>
+              {% endif %}
+          </div>
+      </div>
+  {% endfor %}
+  </div>
+  {% else %}
+  <div class="hlp-empty">
+      <i class="bi bi-inbox"></i>
+      <h4>So'rovlar yo'q</h4>
+      <p>Siz hali yordam so'rovi yubormagansiz. Yuqoridagi FAQ bo'limidan javob topsangiz ajoyib!</p>
+  </div>
+  {% endif %}
 
-<div class="hc-list">
-{% for req in my_requests %}
-<div class="hc-card" data-status="{{ req.status }}" style="animation-delay:{{ forloop.counter0 }}00ms;">
-    <div class="hc-card-top">
-        <h5 class="hc-card-sub">{{ req.subject }}</h5>
-        <span class="hc-badge {{ req.status }}">
-            {% if req.status == 'pending' %}<i class="bi bi-clock-fill"></i> Kutilmoqda
-            {% elif req.status == 'in_progress' %}<i class="bi bi-arrow-repeat"></i> Ko'rilmoqda
-            {% elif req.status == 'resolved' %}<i class="bi bi-check-circle-fill"></i> Hal qilindi
-            {% elif req.status == 'closed' %}<i class="bi bi-x-circle-fill"></i> Yopildi
-            {% endif %}
-        </span>
-    </div>
-    <p class="hc-card-msg">{{ req.message }}</p>
-    {% if req.image %}
-    <div class="hc-card-thumb">
-        <img src="{{ req.image.url }}" alt="Yuklangan rasm" onclick="openLb(this.src)">
-    </div>
-    {% endif %}
-    {% if req.admin_response %}
-    <div class="hc-reply">
-        <div class="hc-reply-lbl"><i class="bi bi-reply-fill"></i> Admin javobi</div>
-        <p class="hc-reply-txt">{{ req.admin_response }}</p>
-    </div>
-    {% endif %}
-    <div class="hc-card-foot">
-        <span><i class="bi bi-calendar3"></i> {{ req.created_at|date:"d.m.Y H:i" }}</span>
-        {% if req.updated_at != req.created_at %}
-        <span><i class="bi bi-arrow-clockwise"></i> {{ req.updated_at|date:"d.m.Y H:i" }}</span>
-        {% endif %}
-    </div>
-</div>
-{% endfor %}
-</div>
+</div><!-- /hlp -->
 
-{% else %}
-<div class="hc-empty">
-    <i class="bi bi-inbox"></i>
-    <h4>So'rovlar yo'q</h4>
-    <p>Siz hali yordam so'rovi yubormagansiz. Yuqoridagi FAQ bo'limidan javob topsangiz ajoyib!</p>
-</div>
-{% endif %}
-
-</div><!-- /hc -->
-
-<!-- ── LIGHTBOX ──────────────────────────────────────────── -->
-<div class="hc-lb" id="hcLb">
-    <div class="hc-lb-bg" onclick="closeLb()"></div>
-    <div class="hc-lb-c">
-        <button class="hc-lb-cls" onclick="closeLb()"><i class="bi bi-x-lg"></i></button>
+<!-- ═══ LIGHTBOX ═══ -->
+<div class="hlp-lb" id="hcLb">
+    <div class="hlp-lb-bg" onclick="closeLb()"></div>
+    <div class="hlp-lb-c">
+        <button class="hlp-lb-cls" onclick="closeLb()"><i class="bi bi-x-lg"></i></button>
         <img src="" alt="Rasm" id="lbImg">
     </div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function () {
 
     /* ── FORM TOGGLE ── */
     const formWrap = document.getElementById('formWrap');
-    const toggleBtn= document.getElementById('toggleFormBtn');
-    const cancelBtn= document.getElementById('cancelBtn');
+    const toggleBtn = document.getElementById('toggleFormBtn');
+    const cancelBtn = document.getElementById('cancelBtn');
 
-    function openForm(){
+    function openForm() {
         formWrap.classList.add('open');
-        toggleBtn.innerHTML='<i class="bi bi-x-circle"></i> Yopish';
-        setTimeout(()=>formWrap.scrollIntoView({behavior:'smooth',block:'center'}),100);
+        toggleBtn.classList.add('is-open');
+        toggleBtn.innerHTML = '<i class="bi bi-x-circle"></i> Yopish';
+        setTimeout(() => formWrap.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
     }
-    function closeForm(){
+    function closeForm() {
         formWrap.classList.remove('open');
-        toggleBtn.innerHTML='<i class="bi bi-plus-circle-fill"></i> Yangi so\'rov';
+        toggleBtn.classList.remove('is-open');
+        toggleBtn.innerHTML = '<i class="bi bi-plus-circle-fill"></i> Yangi so\'rov';
     }
-    toggleBtn.addEventListener('click',()=>formWrap.classList.contains('open')?closeForm():openForm());
-    cancelBtn.addEventListener('click',closeForm);
+    toggleBtn.addEventListener('click', () => formWrap.classList.contains('open') ? closeForm() : openForm());
+    cancelBtn.addEventListener('click', closeForm);
 
     /* ── FILE UPLOAD ── */
-    const fi=document.getElementById('fileInput');
-    const fa=document.getElementById('fileArea');
-    const fp=document.getElementById('filePreview');
-    const pi=document.getElementById('previewImg');
-    const fr=document.getElementById('fileRemove');
+    const fi = document.getElementById('fileInput');
+    const fa = document.getElementById('fileArea');
+    const fp = document.getElementById('filePreview');
+    const pi = document.getElementById('previewImg');
+    const fr = document.getElementById('fileRemove');
 
-    fi.addEventListener('change',function(){
-        if(this.files&&this.files[0]){
-            const r=new FileReader();
-            r.onload=e=>{
-                pi.src=e.target.result; fp.style.display='block';
+    function resetFile() {
+        fi.value = '';
+        fp.style.display = 'none';
+        fa.classList.remove('has-f');
+        fa.querySelector('.hlp-file-ic').innerHTML = '<i class="bi bi-cloud-arrow-up"></i>';
+        fa.querySelector('.hlp-file-txt').textContent = 'Rasm tanlash yoki shu yerga tashlang';
+    }
+    fi.addEventListener('change', function () {
+        if (this.files && this.files[0]) {
+            const r = new FileReader();
+            r.onload = e => {
+                pi.src = e.target.result;
+                fp.style.display = 'block';
                 fa.classList.add('has-f');
-                fa.querySelector('.hc-file-icon').innerHTML='<i class="bi bi-check-circle-fill"></i>';
-                fa.querySelector('.hc-file-txt').textContent=fi.files[0].name;
+                fa.querySelector('.hlp-file-ic').innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+                fa.querySelector('.hlp-file-txt').textContent = this.files[0].name;
             };
             r.readAsDataURL(this.files[0]);
         }
     });
-    fr.addEventListener('click',function(e){
-        e.stopPropagation(); fi.value=''; fp.style.display='none';
-        fa.classList.remove('has-f');
-        fa.querySelector('.hc-file-icon').innerHTML='<i class="bi bi-cloud-arrow-up"></i>';
-        fa.querySelector('.hc-file-txt').textContent='Rasm tanlash yoki shu yerga tashlang';
-    });
+    fr.addEventListener('click', function (e) { e.stopPropagation(); resetFile(); });
 
-    /* ── FILTER PILLS ── */
-    const pills=document.querySelectorAll('.hc-pill');
-    const cards=document.querySelectorAll('.hc-card');
-    pills.forEach(p=>{
-        p.addEventListener('click',function(){
-            pills.forEach(x=>x.classList.remove('active'));
+    /* ── STATUS FILTER PILLS ── */
+    const pills = document.querySelectorAll('.hlp-pill');
+    const cards = document.querySelectorAll('.hlp-rq');
+    pills.forEach(p => {
+        p.addEventListener('click', function () {
+            pills.forEach(x => x.classList.remove('active'));
             this.classList.add('active');
-            const f=this.dataset.filter;
-            cards.forEach((c,i)=>{
-                const show=f==='all'||c.dataset.status===f;
-                c.style.display=show?'':'none';
-                if(show){ c.style.animation='none'; void c.offsetHeight;
-                    c.style.animation=`hcUp .4s ease ${i*60}ms both`; }
+            const f = this.dataset.filter;
+            cards.forEach((c, i) => {
+                const show = f === 'all' || c.dataset.status === f;
+                c.style.display = show ? '' : 'none';
+                if (show) { c.style.animation = 'none'; void c.offsetHeight; c.style.animation = `hlpUp .4s ease ${i * 55}ms both`; }
             });
         });
     });
 
     /* ── FORM SUBMIT ── */
-    const form=document.getElementById('helpPageForm');
-    let sending=false;
-    form.addEventListener('submit',function(e){
-        e.preventDefault(); if(sending)return;
-        const btn=document.getElementById('submitBtn');
-        const al=document.getElementById('formAlert');
-        sending=true; btn.disabled=true;
-        btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Yuborilmoqda...';
-        fetch('{% url "submit_help_request" %}',{method:'POST',body:new FormData(this)})
-        .then(r=>r.json()).then(d=>{
-            al.classList.remove('d-none','alert-danger','alert-success');
-            if(d.success){
-                al.classList.add('alert-success');
-                al.innerHTML='<i class="bi bi-check-circle-fill me-2"></i>'+d.message;
-                form.reset(); fp.style.display='none'; fa.classList.remove('has-f');
-                fa.querySelector('.hc-file-icon').innerHTML='<i class="bi bi-cloud-arrow-up"></i>';
-                fa.querySelector('.hc-file-txt').textContent='Rasm tanlash yoki shu yerga tashlang';
-                setTimeout(()=>location.reload(),1500);
-            } else {
+    const form = document.getElementById('helpPageForm');
+    let sending = false;
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (sending) return;
+        const btn = document.getElementById('submitBtn');
+        const al = document.getElementById('formAlert');
+        sending = true; btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Yuborilmoqda…';
+        fetch('{% url "submit_help_request" %}', { method: 'POST', body: new FormData(this) })
+            .then(r => r.json())
+            .then(d => {
+                al.classList.remove('d-none', 'alert-danger', 'alert-success');
+                if (d.success) {
+                    al.classList.add('alert-success');
+                    al.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i>' + d.message;
+                    form.reset(); resetFile();
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    al.classList.add('alert-danger');
+                    al.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>' + d.error;
+                    sending = false; btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
+                }
+            })
+            .catch(() => {
+                al.classList.remove('d-none', 'alert-success');
                 al.classList.add('alert-danger');
-                al.innerHTML='<i class="bi bi-exclamation-circle me-2"></i>'+d.error;
-                sending=false; btn.disabled=false;
-                btn.innerHTML='<i class="bi bi-send-fill"></i> Yuborish';
-            }
-        }).catch(()=>{
-            al.classList.remove('d-none','alert-success');
-            al.classList.add('alert-danger');
-            al.innerHTML='<i class="bi bi-exclamation-circle me-2"></i>Xatolik yuz berdi!';
-            sending=false; btn.disabled=false;
-            btn.innerHTML='<i class="bi bi-send-fill"></i> Yuborish';
-        });
+                al.innerHTML = '<i class="bi bi-exclamation-circle me-2"></i>Xatolik yuz berdi!';
+                sending = false; btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send-fill"></i> Yuborish';
+            });
     });
 });
 
-/* ── FAQ TOGGLE ── */
-function toggleFaq(q){
-    const item=q.closest('.hc-faq-item');
-    const wasOpen=item.classList.contains('open');
-    document.querySelectorAll('.hc-faq-item.open').forEach(i=>i.classList.remove('open'));
-    if(!wasOpen) item.classList.add('open');
+/* ── FAQ ACCORDION (single-open) ── */
+function toggleFaq(q) {
+    const item = q.closest('.hlp-faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.hlp-faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
 }
 
-/* ── FAQ FILTER (category) ── */
-function filterFaq(cat){
-    /* update cat buttons */
-    document.querySelectorAll('.hc-faq-cat').forEach(b=>{
-        b.classList.toggle('active', b.textContent.toLowerCase().includes(cat)||cat==='all'&&b.textContent==='Barchasi');
+/* ── CATEGORY FILTER ── */
+function filterFaq(cat) {
+    const search = document.getElementById('faqSearch');
+    search.value = '';
+    document.getElementById('searchClear').style.display = 'none';
+    document.querySelectorAll('.hlp-chip').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+    let any = false;
+    document.querySelectorAll('.hlp-faq-item').forEach(it => {
+        const show = cat === 'all' || it.dataset.cat === cat;
+        it.style.display = show ? '' : 'none';
+        it.classList.remove('open');
+        if (show) any = true;
     });
-    /* update quick-cat links */
-    document.querySelectorAll('.hc-cat').forEach(c=>c.classList.remove('active'));
-    const items=document.querySelectorAll('.hc-faq-item[data-cat]');
-    let any=false;
-    items.forEach(item=>{
-        const show=cat==='all'||item.dataset.cat===cat;
-        item.style.display=show?'':'none';
-        if(show)any=true;
-    });
-    document.getElementById('noResult').style.display=any?'none':'block';
-    /* scroll to faq */
-    document.querySelector('.hc-faq-wrap').scrollIntoView({behavior:'smooth',block:'start'});
+    document.getElementById('noResult').style.display = any ? 'none' : 'block';
 }
 
-/* ── FAQ SEARCH ── */
-function searchFaq(){
-    const q=document.getElementById('faqSearch').value.toLowerCase().trim();
-    const items=document.querySelectorAll('.hc-faq-item');
-    let any=false;
-    items.forEach(item=>{
-        const txt=item.textContent.toLowerCase();
-        const show=!q||txt.includes(q);
-        item.style.display=show?'':'none';
-        if(show)any=true;
+/* ── SEARCH ── */
+function searchFaq() {
+    const q = document.getElementById('faqSearch').value.toLowerCase().trim();
+    document.getElementById('searchClear').style.display = q ? 'block' : 'none';
+    document.querySelectorAll('.hlp-chip').forEach(b => b.classList.toggle('active', !q && b.dataset.cat === 'all'));
+    let any = false;
+    document.querySelectorAll('.hlp-faq-item').forEach(it => {
+        const show = !q || it.textContent.toLowerCase().includes(q);
+        it.style.display = show ? '' : 'none';
+        if (show) any = true;
     });
-    document.getElementById('noResult').style.display=any?'none':'block';
-    /* reset cat filters */
-    if(q){ document.querySelectorAll('.hc-faq-cat').forEach(b=>b.classList.remove('active')); }
+    document.getElementById('noResult').style.display = any ? 'none' : 'block';
+}
+function clearSearch() {
+    document.getElementById('faqSearch').value = '';
+    filterFaq('all');
+    document.getElementById('faqSearch').focus();
+}
+function quickSearch(term) {
+    const search = document.getElementById('faqSearch');
+    search.value = term;
+    searchFaq();
+    document.querySelector('.hlp-faq').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* ── LIGHTBOX ── */
-function openLb(src){
-    document.getElementById('lbImg').src=src;
+function openLb(src) {
+    document.getElementById('lbImg').src = src;
     document.getElementById('hcLb').classList.add('open');
-    document.body.style.overflow='hidden';
+    document.body.style.overflow = 'hidden';
 }
-function closeLb(){
+function closeLb() {
     document.getElementById('hcLb').classList.remove('open');
-    document.body.style.overflow='';
+    document.body.style.overflow = '';
 }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape')closeLb(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLb(); });
 </script>
 {% endblock %}
