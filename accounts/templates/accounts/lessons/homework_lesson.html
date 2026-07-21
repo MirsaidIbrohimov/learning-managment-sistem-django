@@ -1059,6 +1059,7 @@
 ───────────────────────────────────────────── */
 const LESSON_PK  = {{ lesson.pk }};
 const CSRF_TOKEN = '{{ csrf_token }}';
+const MAX_HOMEWORK_FILE_BYTES = 5 * 1024 * 1024;
 
 const API = {
   detail:  `/api/hw/${LESSON_PK}/`,
@@ -1472,6 +1473,10 @@ async function doSubmit() {
     if (submitType === 'file') {
       const fi = document.getElementById('fileInput');
       if (!fi.files[0]) { toast('Fayl tanlanmagan','error'); return; }
+      if (fi.files[0].size > MAX_HOMEWORK_FILE_BYTES) {
+        toast(`Fayl hajmi juda katta: ${(fi.files[0].size / 1024 / 1024).toFixed(1)} MB (maksimum 5 MB)`, 'error');
+        return;
+      }
       fd.append('file', fi.files[0]);
       await uploadWithProgress(API.submit, fd);
     } else {
@@ -1500,8 +1505,9 @@ async function uploadWithProgress(url, fd) {
     xhr.onload = () => {
       document.getElementById('progressWrap').style.display = 'none';
       document.getElementById('progressBar').style.width    = '0%';
-      try { const r=JSON.parse(xhr.responseText); handleSubmitResponse(r); resolve(r); }
-      catch { toast('Server javobi noto\'g\'ri','error'); reject(new Error('Bad response')); }
+      const r = parseApiResponse(xhr.responseText, xhr.status);
+      handleSubmitResponse(r);
+      resolve(r);
     };
     xhr.onerror = () => { document.getElementById('progressWrap').style.display='none'; toast('Tarmoq xatosi','error'); reject(new Error('Network')); };
     xhr.send(fd);
@@ -1636,7 +1642,23 @@ async function api(url, method='GET', body=null) {
   const resp = await fetch(url, opts);
   if (resp.status===429) return {ok:false,error:"So'rovlar juda tez. Biroz kutib turing."};
   if (resp.status===403) return {ok:false,error:"Ruxsat yo'q (403)"};
-  return await resp.json();
+  const text = await resp.text();
+  return parseApiResponse(text, resp.status);
+}
+
+function parseApiResponse(text, status) {
+  try { return JSON.parse(text); } catch (_) {}
+
+  if (status === 413) {
+    return {ok:false, error:'Fayl hajmi juda katta. Maksimum 5 MB fayl yuklang.'};
+  }
+  if (status === 401 || (status === 200 && /<form[^>]+(?:login|kirish)/i.test(text))) {
+    return {ok:false, error:'Sessiya tugagan. Sahifani yangilang va qayta kiring.'};
+  }
+  if (status >= 500) {
+    return {ok:false, error:'Serverda xatolik yuz berdi. Birozdan so\'ng qayta urinib ko\'ring.'};
+  }
+  return {ok:false, error:`Server noto'g'ri javob qaytardi${status ? ` (${status})` : ''}. Sahifani yangilab qayta urinib ko'ring.`};
 }
 
 /* ─────────────────────────────────────────────
