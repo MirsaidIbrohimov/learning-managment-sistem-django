@@ -408,8 +408,9 @@ def hw_submit(request, lesson_pk):
     ).order_by('-submitted_at', '-pk').first()
     is_resubmission = sub is not None
 
-    # Deadline check
-    if hw.is_deadline_passed and not hw.allow_late:
+    # Deadline blocks only the first submission. A student must still be able
+    # to send corrections requested by the teacher after the original due date.
+    if not is_resubmission and hw.is_deadline_passed and not hw.allow_late:
         return _err("Topshirish muddati tugagan va kech topshirishga ruxsat yo'q.")
 
     submission_type = request.POST.get('submission_type', 'file')

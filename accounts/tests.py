@@ -231,6 +231,45 @@ class CourseProgressAndHomeworkCoinTests(TestCase):
         self.assertIn('Birinchi yuborilgan', history[0]['text_content'])
         self.assertIn('Uchinchi yakuniy', history[2]['text_content'])
 
+    def test_teacher_requested_resubmission_is_allowed_after_deadline(self):
+        lesson = Lesson.objects.create(
+            profession=self.profession,
+            title='Muddati tugagan vazifa',
+            lesson_type='homework',
+        )
+        homework = Homework.objects.create(
+            lesson=lesson,
+            description='Deadline regression homework',
+            due_date=timezone.now() - timedelta(days=1),
+            allow_late=False,
+        )
+        CourseEnrollment.objects.create(user=self.student, profession=self.profession)
+        submission = HomeworkSubmission.objects.create(
+            homework=homework,
+            student=self.student,
+            submission_type='text',
+            text_content='Deadline oldidan yuborilgan javob',
+            status='revision',
+            feedback='Javobni tuzatib qayta yuboring',
+        )
+        self.client.force_login(self.student)
+        UserSession.objects.create(
+            user=self.student,
+            session_key=self.client.session.session_key,
+            expires_at=timezone.now() + timedelta(hours=2),
+        )
+
+        response = self.client.post(reverse('api_hw_submit', args=[lesson.pk]), {
+            'submission_type': 'text',
+            'text_content': 'Deadline tugagach tuzatilgan yangi javob',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        submission.refresh_from_db()
+        self.assertEqual(submission.status, 'pending')
+        self.assertEqual(submission.version, 2)
+        self.assertIn('tuzatilgan yangi javob', submission.text_content)
+
     def test_premium_homework_resubmission_costs_half_price(self):
         self.student.coins = 100
         self.student.is_premium = True
