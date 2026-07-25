@@ -1,8 +1,10 @@
+import json
 from datetime import date, timedelta
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.core.cache import cache
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -11,6 +13,7 @@ from .certificates import (
     issue_course_certificate,
     student_passed_final_test,
 )
+from .context_processors import unread_messages
 from .models import (
     Certificate,
     BalanceTopUp,
@@ -19,14 +22,96 @@ from .models import (
     Homework,
     HomeworkSubmission,
     Lesson,
+    Message,
     PaymentRecord,
     Profession,
     StudentBalance,
     UserSession,
+    VideoLesson,
+    VideoProgress,
 )
-from .views import _passed_test_lesson_counts
+from .views import _passed_test_lesson_counts, mark_video_watched
 from coin.models import CoinTransaction
 from quiz.models import Attempt, Quiz
+
+
+class UnreadMessagesContextTests(TestCase):
+    def test_count_is_fresh_after_message_is_deleted(self):
+        student = CustomUser.objects.create_user(
+            username='message-student',
+            password='test-password',
+            role='student',
+        )
+        message = Message.objects.create(
+            title='Test xabar',
+            content='Test matni',
+            message_type='personal',
+            recipient=student,
+        )
+        request = SimpleNamespace(user=student)
+
+        self.assertEqual(unread_messages(request)['unread_messages_count'], 1)
+
+        # Eski implementatsiyadagi cache qiymati o'chirilgandan keyin ham
+        # navbar badge'ini 60 soniya noto'g'ri ko'rsatardi.
+        cache.set(f'unread_msg_{student.pk}', 1, 60)
+        message.delete()
+
+        self.assertEqual(unread_messages(request)['unread_messages_count'], 0)
+
+
+class VideoWatchCoinRewardTests(TestCase):
+    def setUp(self):
+        self.profession = Profession.objects.create(
+            name='Video coin kursi',
+            photo='professions/video-coin.jpg',
+            description='Video coin test course',
+        )
+        lesson = Lesson.objects.create(
+            profession=self.profession,
+            title='10 daqiqalik video',
+            lesson_type='video',
+        )
+        self.video = VideoLesson.objects.create(
+            lesson=lesson,
+            video_url='https://youtu.be/abcdefghijk',
+        )
+        self.factory = RequestFactory()
+
+    def _watch_video(self, *, premium=False):
+        user = CustomUser.objects.create_user(
+            username=f'video-admin-{premium}',
+            password='test-password',
+            role='admin',
+            is_premium=premium,
+        )
+        request = self.factory.post(
+            reverse('mark_video_watched', args=[self.video.pk]),
+            data=json.dumps({'duration_seconds': 600}),
+            content_type='application/json',
+        )
+        request.user = user
+        with patch('accounts.notifications.on_video_watched'):
+            response = mark_video_watched(request, self.video.pk)
+        return user, json.loads(response.content)
+
+    def test_video_awards_one_coin_per_minute(self):
+        user, payload = self._watch_video()
+
+        user.refresh_from_db()
+        self.video.refresh_from_db()
+        progress = VideoProgress.objects.get(user=user, video=self.video)
+        self.assertEqual(self.video.duration, 10)
+        self.assertEqual(payload['coin_amount'], 10)
+        self.assertEqual(user.coins, 10)
+        self.assertTrue(progress.coin_awarded)
+
+    def test_premium_video_reward_is_doubled(self):
+        user, payload = self._watch_video(premium=True)
+
+        user.refresh_from_db()
+        self.assertEqual(payload['coin_amount'], 20)
+        self.assertEqual(user.coins, 20)
 
 
 class CertificateTelegramNotificationTests(TestCase):

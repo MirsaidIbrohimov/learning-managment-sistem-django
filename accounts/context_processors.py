@@ -14,12 +14,6 @@ def unread_messages(request):
     if not user or not user.is_authenticated:
         return {"unread_messages_count": 0}
 
-    from django.core.cache import cache
-    cache_key = f'unread_msg_{user.id}'
-    count = cache.get(cache_key)
-    if count is not None:
-        return {"unread_messages_count": count}
-
     # Local import: circular import bo'lmasin
     from .models import Message
 
@@ -38,7 +32,6 @@ def unread_messages(request):
     ).count()
 
     count = personal_count + broadcast_count
-    cache.set(cache_key, count, 60)
     return {"unread_messages_count": count}
 
 

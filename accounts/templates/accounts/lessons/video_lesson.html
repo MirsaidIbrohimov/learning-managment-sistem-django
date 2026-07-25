@@ -917,7 +917,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
                             <i class="bi bi-check-circle-fill"></i>
                             <span>Ko'rdim</span>
                             <span class="vl-coin-badge">
-                                <i class="bi bi-coin"></i> +{% if request.user.is_premium %}2{% else %}1{% endif %}
+                                <i class="bi bi-coin"></i> +<span id="videoCoinAmount">{{ video_coin_amount }}</span>
                             </span>
                         </button>
                     </div>
@@ -1373,9 +1373,11 @@ const countdownEl    = document.getElementById('countdown');
 const ringFill       = document.getElementById('ringFill');
 const statusText     = document.getElementById('statusText');
 const markWatchedBtn = document.getElementById('markWatched');
+const videoCoinAmountEl = document.getElementById('videoCoinAmount');
 const timerIcon      = document.getElementById('timerIcon');
 const timerIconI     = document.getElementById('timerIconI');
 const timerLabel     = document.getElementById('timerLabel');
+const coinMultiplier = {% if request.user.is_premium %}2{% else %}1{% endif %};
 
 function formatTime(s) {
     s = Math.max(0, Math.round(s));
@@ -1455,6 +1457,8 @@ function lockDuration(seconds) {
     totalSeconds   = Math.max(1, seconds);
     requiredTime   = Math.max(1, Math.floor(totalSeconds * 0.9));
     durationLocked = true;
+    const rewardSeconds = dbSeconds >= 60 ? dbSeconds : totalSeconds;
+    videoCoinAmountEl.textContent = Math.max(1, Math.round(rewardSeconds / 60)) * coinMultiplier;
     // UI: countdown endi to'g'ri qiymatga to'ldiriladi (birinchi tikda ham darrov).
     if (!isReady) {
         const remaining = Math.max(0, requiredTime - watchedTime);
@@ -1654,7 +1658,7 @@ markWatchedBtn.addEventListener('click', function() {
     })
     .then(r => { if (!r.ok) throw new Error('Server xatosi: '+r.status); return r.json(); })
     .then(data => {
-        if (data.success) showCelebration(data.coin_amount || {% if request.user.is_premium %}2{% else %}1{% endif %}, data.is_premium);
+        if (data.success) showCelebration(data.coin_amount, data.is_premium);
         else throw new Error(data.error || 'Noma\'lum xato');
     })
     .catch(err => {

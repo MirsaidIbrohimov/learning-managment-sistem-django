@@ -3588,6 +3588,7 @@ def lesson_view(request, pk):
             threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
+        context['video_coin_amount'] = _video_watch_coin_amount(video, request.user)
         return render(request, 'accounts/lessons/video_lesson.html', context)
     
     elif lesson.lesson_type == 'homework':
@@ -3756,10 +3757,20 @@ def _autosave_video_duration(request, video):
     except Exception:
         return
     if secs and secs > 0:
-        minutes = max(1, round(secs / 60))
+        minutes = max(1, int(secs / 60 + 0.5))
         # Atomik: faqat DB'da hali 0 bo'lsa yozamiz (parallel yakunlashlarda
         # birinchi yozilgan qiymat ustidan yozib yuborilmasligi uchun).
-        VideoLesson.objects.filter(pk=video.pk, duration=0).update(duration=minutes)
+        updated = VideoLesson.objects.filter(pk=video.pk, duration=0).update(duration=minutes)
+        if updated:
+            video.duration = minutes
+        else:
+            video.refresh_from_db(fields=['duration'])
+
+
+def _video_watch_coin_amount(video, user):
+    """Har bir video daqiqasi uchun 1 coin, premium foydalanuvchiga 2x."""
+    minutes = max(1, int(video.duration or 0))
+    return minutes * (2 if user.is_premium else 1)
 
 
 @login_required
@@ -3774,7 +3785,7 @@ def mark_video_watched(request, pk):
     _autosave_video_duration(request, video)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
     
-    coin_amount = 2 if request.user.is_premium else 1
+    coin_amount = _video_watch_coin_amount(video, request.user)
     awarded = False
     
     if not progress.watched:
@@ -5420,6 +5431,7 @@ def student_lesson_view(request, token):
             threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
+        context['video_coin_amount'] = _video_watch_coin_amount(video, request.user)
         return render(request, 'accounts/lessons/video_lesson.html', context)
 
     elif lesson.lesson_type == 'homework':
@@ -5505,7 +5517,7 @@ def student_mark_video_watched(request, token):
     _autosave_video_duration(request, video)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
 
-    coin_amount = 2 if request.user.is_premium else 1
+    coin_amount = _video_watch_coin_amount(video, request.user)
     awarded = False
 
     if not progress.watched:
