@@ -934,7 +934,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
                         <p class="vl-success-desc">
                             Siz bu videoni ko'rdingiz va
                             <span class="vl-coin-pill">
-                                <i class="bi bi-coin"></i> {% if request.user.is_premium %}2{% else %}1{% endif %} coin
+                                <i class="bi bi-coin"></i> {{ video_coin_amount }} coin
                             </span>
                             oldingiz!
                         </p>
@@ -1014,6 +1014,10 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 {% if video.is_vimeo %}
 <script src="https://player.vimeo.com/api/player.js"></script>
 {% endif %}
+{% if video.is_youtube %}
+{# API oldindan yuklansa, telefondagi birinchi bosish autoplay ruxsatini yo'qotmaydi. #}
+<script id="youtubeIframeApi" src="https://www.youtube.com/iframe_api"></script>
+{% endif %}
 <script>
 {% if video.has_video %}
 
@@ -1023,6 +1027,10 @@ const iframe = document.getElementById('videoFrame');
 const isVimeo   = {{ video.is_vimeo|yesno:"true,false" }};
 const isYouTube = {{ video.is_youtube|yesno:"true,false" }};
 const videoId   = "{{ video.get_video_id|default:'' }}";
+// Sensorli qurilmada YouTube'ning native tugmalari ochiq qolishi kerak. Aks holda
+// mobil autoplay bloklanganda videoGuard native Play tugmasini ham to'sib qo'yadi.
+const useNativeMobileControls = window.matchMedia &&
+    window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
 let isVideoPlaying = false;
 let vimeoPlayer    = null;
@@ -1268,7 +1276,9 @@ if (placeholder) {
     placeholder.addEventListener('click', function() {
         placeholder.classList.add('d-none');
         iframe.classList.remove('d-none');
-        addVideoGuard();   // pleer boshqaruvini to'sadigan qatlam
+        if (!isYouTube || !useNativeMobileControls) {
+            addVideoGuard();   // desktopda pleer boshqaruvini to'sadigan qatlam
+        }
 
         if (isYouTube) {
             iframe.remove();
@@ -1281,8 +1291,19 @@ if (placeholder) {
                 window._vqYT = new YT.Player('ytPlayer', {
                     videoId: videoId,
                     // controls:0 — seek bar yo'q; disablekb:1 — klaviatura bilan
-                    // o'tkazish yo'q; fs:0 — to'liq ekran yo'q (u yerda seek bar chiqardi).
-                    playerVars: { autoplay:1, rel:0, modestbranding:1, controls:0, disablekb:1, fs:0, playsinline:1, iv_load_policy:3 },
+                    // o'tkazish yo'q. Telefonda esa autoplay bloklansa ham native
+                    // Play va fullscreen ishlashi uchun controls/fs yoqiladi.
+                    playerVars: {
+                        autoplay: 1,
+                        rel: 0,
+                        modestbranding: 1,
+                        controls: useNativeMobileControls ? 1 : 0,
+                        disablekb: useNativeMobileControls ? 0 : 1,
+                        fs: useNativeMobileControls ? 1 : 0,
+                        playsinline: 1,
+                        iv_load_policy: 3,
+                        origin: window.location.origin
+                    },
                     events: {
                         onStateChange: function(e) {
                             const s = e.data;
@@ -1298,9 +1319,14 @@ if (placeholder) {
             if (window.YT && window.YT.Player) { onYouTubeIframeAPIReady(); }
             else {
                 window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
-                const tag = document.createElement('script');
-                tag.src   = 'https://www.youtube.com/iframe_api';
-                document.head.appendChild(tag);
+                // Oldindan boshlangan yuklashni takrorlamaymiz. Bu juda tez
+                // bosilganda API callback'ining ikki marta ishlashini oldini oladi.
+                if (!document.getElementById('youtubeIframeApi')) {
+                    const tag = document.createElement('script');
+                    tag.id    = 'youtubeIframeApi';
+                    tag.src   = 'https://www.youtube.com/iframe_api';
+                    document.head.appendChild(tag);
+                }
             }
         }
 
