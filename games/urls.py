@@ -52,6 +52,7 @@ urlpatterns = [
     path('dashboard/competitions/<int:pk>/end/', views.admin_competition_end, name='admin_competition_end'),
     path('dashboard/results/', views.admin_results, name='admin_results'),
     path('dashboard/results/pdf/', views.admin_results_pdf, name='admin_results_pdf'),
+    path('dashboard/results/<int:pk>/<str:result_type>/edit/', views.admin_result_edit, name='admin_result_edit'),
     path('dashboard/results/<int:pk>/<str:result_type>/delete/', views.admin_result_delete, name='admin_result_delete'),
     path('dashboard/word-suggestions/', views.admin_word_suggestions, name='admin_word_suggestions'),
     path('dashboard/word-suggestions/<int:pk>/action/', views.admin_word_suggestion_action, name='admin_word_suggestion_action'),

@@ -1,4 +1,5 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load l10n %}
 
 {% block title %}O'yin natijalari | Admin{% endblock %}
 
@@ -101,6 +102,29 @@
 .score-cell {
     color: #6366f1;
     font-weight: 700;
+}
+
+.score-edit-form {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 125px;
+}
+
+.score-edit-form .form-control {
+    width: 78px;
+    min-width: 0;
+    border-radius: 8px;
+    font-weight: 700;
+    color: #6366f1;
+}
+
+.result-card-m .score-edit-form {
+    min-width: 0;
+}
+
+.result-card-m .score-edit-form .form-control {
+    width: 58px;
 }
 
 /* Mobile cards */
@@ -321,12 +345,24 @@
                                 {{ attempt.accuracy }}%
                                 {% endif %}
                             </td>
-                            <td class="score-cell">{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score }}{% else %}{{ attempt.score }}{% endif %}</td>
+                            <td class="score-cell">
+                                <form method="post" action="{% url 'games:admin_result_edit' attempt.pk attempt.result_type %}" class="score-edit-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <input type="number" name="score" min="0" step="0.01" class="form-control form-control-sm"
+                                           value="{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score|unlocalize }}{% else %}{{ attempt.score|unlocalize }}{% endif %}"
+                                           aria-label="Ball" required>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary" title="Ballni saqlash">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                </form>
+                            </td>
                             <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                             <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
                             <td>
                                 <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
                                     {% csrf_token %}
+                                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
                                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 2px 8px;">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -387,7 +423,16 @@
                     {% endif %}
                 </div>
                 <div class="stat-item">
-                    <div class="val" style="color: #6366f1;">{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score }}{% else %}{{ attempt.score }}{% endif %}</div>
+                    <form method="post" action="{% url 'games:admin_result_edit' attempt.pk attempt.result_type %}" class="score-edit-form justify-content-center">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                        <input type="number" name="score" min="0" step="0.01" class="form-control form-control-sm"
+                               value="{% if attempt.result_type == 'word_builder' %}{{ attempt.total_score|unlocalize }}{% else %}{{ attempt.score|unlocalize }}{% endif %}"
+                               aria-label="Ball" required>
+                        <button type="submit" class="btn btn-sm btn-outline-primary" title="Ballni saqlash">
+                            <i class="bi bi-check-lg"></i>
+                        </button>
+                    </form>
                     <div class="lbl">Ball</div>
                 </div>
             </div>
@@ -396,6 +441,7 @@
                 <span>{{ attempt.created_at|date:"d.m.Y H:i" }}</span>
                 <form method="post" action="{% url 'games:admin_result_delete' attempt.pk attempt.result_type %}" style="display:inline;" onsubmit="return confirm('O\'chirishni tasdiqlaysizmi?')">
                     {% csrf_token %}
+                    <input type="hidden" name="next" value="{{ request.get_full_path }}">
                     <button type="submit" class="btn btn-sm btn-outline-danger" style="border-radius: 8px; padding: 1px 6px; font-size: 0.75rem;">
                         <i class="bi bi-trash"></i>
                     </button>

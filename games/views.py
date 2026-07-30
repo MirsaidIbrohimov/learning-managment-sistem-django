@@ -1,4 +1,5 @@
 import json
+import math
 import random
 import time
 import hashlib
@@ -11,6 +12,7 @@ from django.utils import timezone
 from django.conf import settings
 from django.db.models import Avg, Max, Count, Q, Subquery, OuterRef
 from django.core.paginator import Paginator
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from reportlab.lib.pagesizes import A4, landscape
@@ -28,6 +30,21 @@ from . import external_api
 
 
 # ============== STUDENT VIEWS ==============
+
+RAPID_REENTRY_GRACE_SECONDS = 5
+
+
+def _is_rapid_competition_reentry(game_session, competition_id):
+    """Bir xil musobaqa tugmasining ketma-ket bosilganini aniqlaydi."""
+    if not game_session or game_session.get('used') or not competition_id:
+        return False
+    if str(game_session.get('competition_id') or '') != str(competition_id):
+        return False
+    try:
+        elapsed = time.time() - float(game_session.get('started_at', 0))
+    except (TypeError, ValueError):
+        return False
+    return 0 <= elapsed <= RAPID_REENTRY_GRACE_SECONDS
 
 @login_required
 def games_list(request):
@@ -284,7 +301,9 @@ def game_play(request, slug, competition_id=None):
     # AVVAL: tashlab ketilgan sessiyani saqlash (orqaga tugmasi himoyasi)
     session_key = f'game_session_{game.slug}'
     old_session = request.session.get(session_key)
-    if old_session and not old_session.get('used') and old_session.get('competition_id'):
+    rapid_reentry = _is_rapid_competition_reentry(old_session, competition_id)
+    if (old_session and not old_session.get('used')
+            and old_session.get('competition_id') and not rapid_reentry):
         old_prompt_id = old_session.get('prompt_id')
         old_comp_id = old_session.get('competition_id')
         old_started = old_session.get('started_at', 0)
@@ -332,37 +351,44 @@ def game_play(request, slug, competition_id=None):
             )
             return redirect('games:game_detail', slug=slug)
 
-    # Matn pooli: musobaqa — maxsus tanlangan yoki "Musobaqa" rejimidagi matnlar;
-    # mashq — faqat "Mashq" yoki "Ikkalasi" rejimidagi matnlar.
-    if competition:
-        prompts = list(competition.get_prompt_pool())
-    else:
-        prompts = list(game.practice_prompts())
-
-    if not prompts:
-        if competition:
-            messages.error(request, "Bu musobaqa uchun matnlar belgilanmagan. Administratorga murojaat qiling.")
-        else:
-            messages.error(request, "Bu o'yin uchun mashq matnlari mavjud emas!")
-        return redirect('games:game_detail', slug=slug)
-
-    prompt = random.choice(prompts)
     config = game.config or {}
 
-    game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
-    
-    # HMAC kalitini yaratish (har bir sessiya uchun unikal)
-    hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
-    
-    request.session[session_key] = {
-        'token': game_token,
-        'hmac_key': hmac_key,
-        'prompt_id': prompt.pk,
-        'prompt_word_count': len(prompt.text.split()),
-        'competition_id': competition.pk if competition else None,
-        'started_at': time.time(),
-        'used': False,
-    }
+    if rapid_reentry:
+        # Tez qayta bosilganda o'sha sessiya va matnni davom ettiramiz:
+        # urinish kamaymaydi va yangi matn tanlab olish imkoni ham bo'lmaydi.
+        prompt = get_object_or_404(Prompt, pk=old_session.get('prompt_id'), game=game)
+        game_token = old_session.get('token', '')
+        hmac_key = old_session.get('hmac_key', '')
+    else:
+        # Matn pooli: musobaqa — maxsus tanlangan yoki "Musobaqa" rejimidagi matnlar;
+        # mashq — faqat "Mashq" yoki "Ikkalasi" rejimidagi matnlar.
+        if competition:
+            prompts = list(competition.get_prompt_pool())
+        else:
+            prompts = list(game.practice_prompts())
+
+        if not prompts:
+            if competition:
+                messages.error(request, "Bu musobaqa uchun matnlar belgilanmagan. Administratorga murojaat qiling.")
+            else:
+                messages.error(request, "Bu o'yin uchun mashq matnlari mavjud emas!")
+            return redirect('games:game_detail', slug=slug)
+
+        prompt = random.choice(prompts)
+        game_token = hashlib.sha256(f'{request.user.pk}-{prompt.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
+
+        # HMAC kalitini yaratish (har bir sessiya uchun unikal)
+        hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
+
+        request.session[session_key] = {
+            'token': game_token,
+            'hmac_key': hmac_key,
+            'prompt_id': prompt.pk,
+            'prompt_word_count': len(prompt.text.split()),
+            'competition_id': competition.pk if competition else None,
+            'started_at': time.time(),
+            'used': False,
+        }
 
     return render(request, 'games/student/game_play.html', {
         'game': game,
@@ -1954,7 +1980,53 @@ def admin_word_suggestion_action(request, pk):
     return redirect('games:admin_word_suggestions')
 
 
-# ---- Admin: Natijalarni o'chirish ----
+# ---- Admin: Natijalarni tahrirlash va o'chirish ----
+
+def _admin_result_or_404(pk, result_type):
+    if result_type == 'typing':
+        return get_object_or_404(GameAttempt, pk=pk), 'score'
+    if result_type in ('word', 'word_builder'):
+        return get_object_or_404(WordGameAttempt, pk=pk), 'total_score'
+    return None, None
+
+
+def _admin_results_redirect(request):
+    next_url = request.POST.get('next', '')
+    if next_url and url_has_allowed_host_and_scheme(
+            next_url,
+            allowed_hosts={request.get_host()},
+            require_https=request.is_secure()):
+        return redirect(next_url)
+    return redirect('games:admin_results')
+
+
+@login_required
+@require_POST
+def admin_result_edit(request, pk, result_type):
+    if not request.user.is_admin:
+        return redirect('home')
+
+    attempt, score_field = _admin_result_or_404(pk, result_type)
+    if attempt is None:
+        messages.error(request, "Noto'g'ri natija turi!")
+        return _admin_results_redirect(request)
+
+    try:
+        score = float(request.POST.get('score', ''))
+    except (TypeError, ValueError):
+        score = None
+
+    if score is None or not math.isfinite(score) or score < 0:
+        messages.error(request, "Ball 0 yoki undan katta son bo'lishi kerak!")
+        return _admin_results_redirect(request)
+
+    setattr(attempt, score_field, round(score, 2))
+    attempt.save(update_fields=[score_field])
+    messages.success(
+        request,
+        f"{attempt.user.full_name} uchun ball {getattr(attempt, score_field)} ga o'zgartirildi!",
+    )
+    return _admin_results_redirect(request)
 
 @login_required
 @require_POST
@@ -1962,17 +2034,14 @@ def admin_result_delete(request, pk, result_type):
     if not request.user.is_admin:
         return redirect('home')
 
-    if result_type == 'typing':
-        attempt = get_object_or_404(GameAttempt, pk=pk)
-    elif result_type == 'word':
-        attempt = get_object_or_404(WordGameAttempt, pk=pk)
-    else:
+    attempt, _ = _admin_result_or_404(pk, result_type)
+    if attempt is None:
         messages.error(request, "Noto'g'ri tur!")
-        return redirect('games:admin_results')
+        return _admin_results_redirect(request)
 
     attempt.delete()
     messages.success(request, "Natija o'chirildi!")
-    return redirect('games:admin_results')
+    return _admin_results_redirect(request)
 
 
 # ---- Admin: Word Rounds ----
@@ -2076,7 +2145,9 @@ def word_game_play(request, slug, competition_id=None):
     # AVVAL: tashlab ketilgan sessiyani saqlash (orqaga tugmasi himoyasi)
     session_key = f'word_game_session_{game.slug}'
     old_session = request.session.get(session_key)
-    if old_session and not old_session.get('used') and old_session.get('competition_id'):
+    rapid_reentry = _is_rapid_competition_reentry(old_session, competition_id)
+    if (old_session and not old_session.get('used')
+            and old_session.get('competition_id') and not rapid_reentry):
         old_round_id = old_session.get('round_id')
         old_comp_id = old_session.get('competition_id')
         old_started = old_session.get('started_at', 0)
@@ -2114,25 +2185,29 @@ def word_game_play(request, slug, competition_id=None):
                 messages.info(request, "Urinishlaringiz tugadi!")
             return redirect('games:game_detail', slug=slug)
 
-    rounds = list(game.word_rounds.filter(is_active=True))
-    if not rounds:
-        messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
-        return redirect('games:game_detail', slug=slug)
+    if rapid_reentry:
+        word_round = get_object_or_404(WordRound, pk=old_session.get('round_id'), game=game, is_active=True)
+        game_token = old_session.get('token', '')
+        hmac_key = old_session.get('hmac_key', '')
+    else:
+        rounds = list(game.word_rounds.filter(is_active=True))
+        if not rounds:
+            messages.error(request, "Bu o'yin uchun raundlar mavjud emas!")
+            return redirect('games:game_detail', slug=slug)
 
-    word_round = random.choice(rounds)
+        word_round = random.choice(rounds)
+        game_token = hashlib.sha256(f'{request.user.pk}-{word_round.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
+        hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
 
-    game_token = hashlib.sha256(f'{request.user.pk}-{word_round.pk}-{time.time()}-{random.random()}'.encode()).hexdigest()[:32]
-    hmac_key = hashlib.sha256(f'{settings.SECRET_KEY[:16]}-{game_token}'.encode()).hexdigest()[:32]
-
-    request.session[session_key] = {
-        'token': game_token,
-        'hmac_key': hmac_key,
-        'round_id': word_round.pk,
-        'competition_id': competition.pk if competition else None,
-        'started_at': time.time(),
-        'used': False,
-        'found_words': [],
-    }
+        request.session[session_key] = {
+            'token': game_token,
+            'hmac_key': hmac_key,
+            'round_id': word_round.pk,
+            'competition_id': competition.pk if competition else None,
+            'started_at': time.time(),
+            'used': False,
+            'found_words': [],
+        }
 
     letters = list(word_round.letters.upper())
     random.shuffle(letters)

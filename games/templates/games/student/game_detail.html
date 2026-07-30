@@ -376,7 +376,7 @@
                                         <i class="bi bi-laptop"></i> Faqat kompyuterda
                                     </span>
                                     {% else %}
-                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp">
+                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
                                         <i class="bi bi-play-fill"></i> Qatnashish
                                     </a>
                                     {% endif %}
@@ -482,6 +482,19 @@
             document.querySelectorAll('.tgd-tabpane').forEach(function(c) { c.classList.remove('active'); });
             this.classList.add('active');
             document.getElementById('tab-' + this.dataset.tab).classList.add('active');
+        });
+    });
+
+    document.querySelectorAll('.js-competition-start').forEach(function(link) {
+        link.addEventListener('click', function(event) {
+            if (this.dataset.starting) {
+                event.preventDefault();
+                return;
+            }
+            this.dataset.starting = '1';
+            this.style.pointerEvents = 'none';
+            this.setAttribute('aria-disabled', 'true');
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Ochilmoqda...';
         });
     });
 
