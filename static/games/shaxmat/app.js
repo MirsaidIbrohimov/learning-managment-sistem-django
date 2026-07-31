@@ -52,6 +52,20 @@ function initThemePicker() {
 const $ = (id) => document.getElementById(id);
 // Screen-reader announcer — pushes short status text into the live region (#sr-announcer)
 function announce(text) { const el = $('sr-announcer'); if (el) el.textContent = text; }
+
+// Brauzer fetch so'roviga o'zi timeout qo'ymaydi. Javobsiz qolgan bitta polling
+// so'rovi keyingi pollingni, yurish so'rovi esa barcha server reconcile'larini
+// cheksiz to'xtatib qo'ymasligi uchun multiplayer so'rovlarini bekor qilamiz.
+async function fetchWithTimeout(url, options, timeoutMs = 6000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 // Appends a move <li>, keeping a single 'latest' highlight on the most recent entry
 function appendMoveLi(li) {
     const list = $('moves-list');
@@ -947,13 +961,19 @@ async function applyMove(m) {
     const winner = checkGameEnd();
 
     if (MODE === 'mp') {
+        let match = null;
         _localMovePending = true;
         try {
-            const match = await sendMpMove(winner);
+            match = await sendMpMove(winner);
             if (winner) scheduleEndGameDisplay((match && match.winner) || winner, 30);
         } finally {
             _localMovePending = false;
         }
+        // Timeout yoki 409 javobida birinchi so'rov serverda saqlangan bo'lishi
+        // mumkin. Saqlanmagan bo'lsa optimistik yurishni qaytaramiz; saqlangan
+        // bo'lsa serverdagi navbat/count bilan aniq moslashamiz. Buni pending=false
+        // bo'lgandan keyin qilamiz, aks holda poll reconcile'ni ataylab o'tkazadi.
+        if (!match && !_sessionExpired) await pollMatchState();
     } else if (MODE === 'ai' && !winner && currentTurn !== PLAYER_COLOR) {
         // Faqat AI yurish navbati bo'lganda — o'zini cheksiz chaqirmasin
         setTimeout(aiMove, 350);
@@ -1656,12 +1676,15 @@ function _pollDelay() {
 async function mpPingTick() {
     if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
     try {
-        const res = await fetch(URLS.mpPing, {
+        const res = await fetchWithTimeout(URLS.mpPing, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
         });
         const d = await res.json();
-        if (!d.ok) { if (res.status === 403) showSessionExpired(); return; }
+        if (!d.ok) {
+            if (res.status === 403) { showSessionExpired(); return; }
+            throw new Error(`Polling xatosi: HTTP ${res.status}`);
+        }
         mpPollFailCount = 0; hideReconnectOverlay();
         if (d.mc !== lastSeenMoveCount || d.st === 'ended' || d.ct !== currentTurn) {
             await pollMatchState();
@@ -1688,15 +1711,18 @@ async function pollMatchState() {
     // Eslatma: navbat o'zimizda bo'lsa ham so'rab turamiz — raqib taslim bo'lsa
     // yoki match yopilsa tugashni aniqlash uchun (taxta move_count bilan himoyalangan).
     try {
-        const res = await fetch(URLS.mpState, {
+        const res = await fetchWithTimeout(URLS.mpState, {
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
         });
         const data = await res.json();
-        // A response arrived — connection is fine, clear any reconnect warning
+        if (!data.ok) {
+            if (res.status === 403) { showSessionExpired(); return; }
+            throw new Error(`State xatosi: HTTP ${res.status}`);
+        }
+        // Faqat yaroqli state kelganda ulanish tiklangan deb hisoblaymiz.
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        if (!data.ok) { if (res.status === 403) showSessionExpired(); return; }
         const m = data.match;
         const isEnded = m.status === 'ended';
         // Yangi yurish(lar) — raqib yurdi.
@@ -1762,7 +1788,7 @@ async function sendMpMove(winner = null) {
     // Aks holda yurish yo'qolib, raqib "Raqib yurmoqda"da qotib qolardi.
     for (var attempt = 0; attempt < 3; attempt++) {
         try {
-            const res = await fetch(URLS.mpMove, {
+            const res = await fetchWithTimeout(URLS.mpMove, {
                 method:'POST', headers:{'Content-Type':'application/json'},
                 body: JSON.stringify({
                     token: TOKEN, game: GAME, match_id: MATCH_ID,
@@ -1771,7 +1797,7 @@ async function sendMpMove(winner = null) {
                     game_over: !!winner,
                     winner: winner || null,
                 })
-            });
+            }, 8000);
             const data = await res.json();
             if (data.ok) {
                 lastSeenMoveCount = data.match.move_count;

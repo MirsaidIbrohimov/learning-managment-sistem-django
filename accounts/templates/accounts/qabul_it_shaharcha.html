@@ -1,0 +1,460 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}IT Shaharcha - Bepul Kompyuter Savodxonligi Kursi Qabul{% endblock %}
+
+{% block canonical %}https://itcreative.uz/qabul-it-shaharcha/{% endblock %}
+
+{% block extra_css %}
+<!-- SEO and Fonts -->
+<meta name="description" content="IT Shaharcha Zomin - Bepul kompyuter savodxonligi yo'nalishi uchun ariza topshirish sahifasi. Kompyuter savodxonligi, Windows, Word, Excel va internetda xavfsiz ishlash ko'nikmalarini bepul o'rganing.">
+<meta property="og:title" content="IT Shaharcha - Bepul Kompyuter Savodxonligi Kursiga Ariza Topshirish">
+<meta property="og:description" content="Zomin IT Shaharchasida mutlaqo bepul kompyuter savodxonligi kursi. Hoziroq ariza qoldiring va o'z o'rningizni band qiling.">
+<meta property="og:type" content="website">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+.main-container { max-width: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+.its {
+  --bg: #f8fafc;
+  --ink: #0f172a;
+  --ink2: #334155;
+  --ink3: #64748b;
+  --card: #ffffff;
+  --line: #e2e8f0;
+  --brand: #2563eb;
+  --brand-grad: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  --brand-soft: rgba(37, 99, 235, 0.08);
+  --shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.1);
+  --shadow-sm: 0 8px 20px -8px rgba(15, 23, 42, 0.08);
+  --r: 20px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  line-height: 1.6;
+  background: var(--bg);
+}
+.its * { box-sizing: border-box; }
+.its-wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+.its section { position: relative; }
+.its h1, .its h2, .its h3 { margin: 0; line-height: 1.2; font-weight: 800; letter-spacing: -0.02em; }
+.its p { margin: 0; }
+.its a { text-decoration: none; color: inherit; }
+.its img { max-width: 100%; display: block; }
+.its .grad-txt { background: var(--brand-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Eyebrow badge */
+.its-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 100px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  border: 1px solid rgba(37, 99, 235, 0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+}
+
+/* Hero Section */
+.its-hero {
+  background: radial-gradient(800px 500px at 80% 20%, rgba(79, 70, 229, 0.08), transparent 60%),
+              radial-gradient(600px 400px at 10% 80%, rgba(37, 99, 235, 0.06), transparent 50%),
+              #0f172a;
+  color: #ffffff;
+  padding: 100px 0 80px;
+  overflow: hidden;
+}
+.its-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(closest-side at 50% 50%, #000, transparent);
+  opacity: 0.8;
+}
+.its-hero .its-wrap {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 60px;
+  align-items: center;
+}
+.its-hero-content { max-width: 580px; }
+.its-hero h1 { font-size: clamp(2.2rem, 5vw, 3.8rem); margin-bottom: 20px; }
+.its-hero-sub { color: #94a3b8; font-size: 1.15rem; margin-bottom: 30px; }
+
+/* Grid stats */
+.its-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px; }
+.its-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 16px;
+  backdrop-filter: blur(10px);
+}
+.its-stat-card b { display: block; font-size: 1.8rem; font-weight: 800; color: #38bdf8; }
+.its-stat-card span { font-size: 0.85rem; color: #94a3b8; }
+
+/* Hero Visual card */
+.its-hero-visual {
+  position: relative;
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 24px;
+  box-shadow: 0 30px 60px -15px rgba(0,0,0,0.5);
+  backdrop-filter: blur(12px);
+}
+.its-badge-free {
+  position: absolute;
+  top: -15px;
+  right: 25px;
+  background: #f59e0b;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 6px 16px;
+  border-radius: 100px;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  text-transform: uppercase;
+}
+
+/* Feature item lists */
+.its-features-list { display: flex; flex-direction: column; gap: 16px; margin-top: 10px; }
+.its-feat-item { display: flex; gap: 14px; align-items: flex-start; }
+.its-feat-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.its-feat-text h4 { margin: 0; font-size: 1rem; font-weight: 700; color: #f1f5f9; }
+.its-feat-text p { margin: 2px 0 0; font-size: 0.88rem; color: #94a3b8; }
+
+/* Buttons */
+.its-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 28px;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-family: inherit;
+}
+.its-btn-primary { background: var(--brand-grad); color: #ffffff; box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); }
+.its-btn-primary:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.5); filter: brightness(1.05); }
+
+/* Form Section */
+.its-form-sec { padding: 80px 0; background: #f8fafc; }
+.its-form-card {
+  max-width: 680px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: var(--shadow);
+}
+.its-form-head { text-align: center; margin-bottom: 30px; }
+.its-form-head h2 { font-size: 1.8rem; font-weight: 800; color: var(--ink); margin-bottom: 10px; }
+.its-form-head p { color: var(--ink3); font-size: 0.95rem; }
+
+/* Form Fields */
+.its-form-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+.its-field-full { grid-column: span 2; }
+.its-field { display: flex; flex-direction: column; gap: 8px; }
+.its-field label { font-size: 0.85rem; font-weight: 700; color: var(--ink2); }
+.its-inp-wrap { position: relative; display: flex; align-items: center; }
+.its-inp-wrap i { position: absolute; left: 16px; color: var(--ink3); font-size: 1.1rem; pointer-events: none; }
+.its-inp {
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ink);
+  background: #f8fafc;
+  transition: all 0.25s ease;
+}
+.its-inp:focus { outline: none; border-color: var(--brand); background: #ffffff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+.its-phone { display: flex; align-items: center; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; transition: all 0.25s ease; }
+.its-phone:focus-within { border-color: var(--brand); background: #ffffff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+.its-phone .pref { padding: 12px 0 12px 16px; font-weight: 600; color: var(--ink2); font-size: 0.95rem; user-select: none; }
+.its-phone input {
+  width: 100%;
+  border: none;
+  padding: 12px 16px 12px 8px;
+  background: transparent;
+  font-size: 0.95rem;
+  font-family: inherit;
+  color: var(--ink);
+}
+.its-phone input:focus { outline: none; }
+
+.its-btn-submit { width: 100%; padding: 14px; font-size: 1.05rem; border-radius: 12px; margin-top: 15px; }
+
+/* Success state */
+.its-success-state { text-align: center; padding: 20px 0; }
+.its-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15);
+}
+.its-success-state h2 { font-size: 2rem; color: #16a34a; margin-bottom: 12px; }
+.its-success-state p { color: var(--ink2); font-size: 1.05rem; margin-bottom: 25px; max-width: 480px; margin-left: auto; margin-right: auto; }
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+  .its-hero .its-wrap { grid-template-columns: 1fr; gap: 40px; }
+  .its-hero-visual { max-width: 500px; margin: 0 auto; }
+}
+@media (max-width: 600px) {
+  .its-form-grid { grid-template-columns: 1fr; }
+  .its-field-full { grid-column: span 1; }
+  .its-form-card { padding: 25px 20px; }
+  .its-stats { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="its">
+
+  <!-- HERO SECTION -->
+  <section class="its-hero">
+    <div class="its-wrap">
+      <div class="its-hero-content">
+        <span class="its-eyebrow">🚀 IT Shaharcha Zomin</span>
+        <h1>Bepul Kompyuter Savodxonligi Kursi</h1>
+        <p class="its-hero-sub">
+          Zomin shahrida yoshlar va maktab o'quvchilari uchun mutlaqo bepul amaliy darslar. Zamonaviy dunyoda kompyuterni mukammal o'rganish imkoniyatini boy bermang!
+        </p>
+        <a href="#qabul-form" class="its-btn its-btn-primary">
+          <i class="bi bi-send-fill"></i> Hoziroq ariza topshirish
+        </a>
+        
+        <div class="its-stats">
+          <div class="its-stat-card">
+            <b>100%</b>
+            <span>Mutlaqo Bepul</span>
+          </div>
+          <div class="its-stat-card">
+            <b>Amaliy</b>
+            <span>Darslar va Loyihalar</span>
+          </div>
+          <div class="its-stat-card">
+            <b>Sertifikat</b>
+            <span>Tugallanganlik haqida</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="its-hero-visual">
+        <span class="its-badge-free">Bepul ta'lim</span>
+        <h3 style="color:#ffffff; margin-bottom: 20px;"><i class="bi bi-laptop text-primary me-2"></i> Kurs Dasturi</h3>
+        <div class="its-features-list">
+          <div class="its-feat-item">
+            <div class="its-feat-icon"><i class="bi bi-windows"></i></div>
+            <div class="its-feat-text">
+              <h4>Kompyuter asoslari</h4>
+              <p>Windows tizimini boshqarish, fayllar bilan ishlash va operatsion tizim sozlamalari.</p>
+            </div>
+          </div>
+          <div class="its-feat-item">
+            <div class="its-feat-icon"><i class="bi bi-file-earmark-word"></i></div>
+            <div class="its-feat-text">
+              <h4>Ofis dasturlari</h4>
+              <p>Microsoft Word hujjatlar yaratish, Excel jadvallar va hisob-kitoblar, PowerPoint taqdimotlar.</p>
+            </div>
+          </div>
+          <div class="its-feat-item">
+            <div class="its-feat-icon"><i class="bi bi-globe"></i></div>
+            <div class="its-feat-text">
+              <h4>Internet va Xavfsizlik</h4>
+              <p>Internet brauzerlar, elektron pochta, axborot qidirish va kiberxavfsizlik qoidalari.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM SECTION -->
+  <section class="its-form-sec" id="qabul-form">
+    <div class="its-wrap">
+      <div class="its-form-card">
+        {% if success %}
+        <div class="its-success-state">
+          <div class="its-success-icon"><i class="bi bi-check2"></i></div>
+          <h2>Arizangiz qabul qilindi! 🎉</h2>
+          <p>Sizning arizangiz muvaffaqiyatli ro'yxatdan o'tkazildi. Tez orada yordamchi administratorlarimiz siz bilan bog'lanishadi. Telefoningizni ochiq holda tuting.</p>
+          <a href="{% url 'qabul_it_shaharcha' %}" class="its-btn its-btn-primary"><i class="bi bi-arrow-repeat"></i> Yangi ariza topshirish</a>
+        </div>
+        {% else %}
+        <div class="its-form-head">
+          <h2>Qabulga ariza yuborish</h2>
+          <p>IT Shaharcha bepul darslarida qatnashish uchun ma'lumotlaringizni kiriting va arizani yuboring.</p>
+        </div>
+        
+        <form method="POST" id="shaharchaForm" novalidate>
+          {% csrf_token %}
+          
+          <div class="its-form-grid">
+            <div class="its-field">
+              <label for="id_first_name">Ismingiz</label>
+              <div class="its-inp-wrap">
+                <i class="bi bi-person"></i>
+                <input type="text" id="id_first_name" name="first_name" class="its-inp" placeholder="Ismingizni kiriting" required autocomplete="given-name">
+              </div>
+            </div>
+            
+            <div class="its-field">
+              <label for="id_last_name">Familiyangiz</label>
+              <div class="its-inp-wrap">
+                <i class="bi bi-person"></i>
+                <input type="text" id="id_last_name" name="last_name" class="its-inp" placeholder="Familiyangizni kiriting" required autocomplete="family-name">
+              </div>
+            </div>
+            
+            <div class="its-field its-field-full">
+              <label for="id_phone">Bog'lanish uchun telefon raqam</label>
+              <div class="its-phone">
+                <span class="pref">+998</span>
+                <input type="tel" id="id_phone" name="phone" placeholder="(90) 123 45 67" maxlength="19" required autocomplete="tel-national">
+              </div>
+            </div>
+            
+            <div class="its-field">
+              <label for="id_school_number">Maktab raqami</label>
+              <div class="its-inp-wrap">
+                <i class="bi bi-building"></i>
+                <input type="text" id="id_school_number" name="school_number" class="its-inp" placeholder="Masalan: 17-maktab" required>
+              </div>
+            </div>
+            
+            <div class="its-field">
+              <label for="id_age">Yoshingiz</label>
+              <div class="its-inp-wrap">
+                <i class="bi bi-calendar-event"></i>
+                <input type="number" id="id_age" name="age" class="its-inp" placeholder="Masalan: 14" min="7" max="100" required>
+              </div>
+            </div>
+            
+            <div class="its-field its-field-full">
+              <label for="id_neighborhood">Mahalla nomi</label>
+              <div class="its-inp-wrap">
+                <i class="bi bi-geo-alt"></i>
+                <input type="text" id="id_neighborhood" name="neighborhood" class="its-inp" placeholder="Mahallangiz nomini kiriting" required>
+              </div>
+            </div>
+          </div>
+          
+          <button type="submit" class="its-btn its-btn-primary its-btn-submit" id="submitBtn">
+            <i class="bi bi-send-fill"></i> <span>Arizani yuborish</span>
+          </button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  "use strict";
+
+  // Phone input formatting mask: (90) 123 45 67
+  var phoneInput = document.getElementById('id_phone');
+  if(phoneInput) {
+    phoneInput.addEventListener('input', function() {
+      var digits = phoneInput.value.replace(/\D/g,'').slice(0,9);
+      var formatted = '';
+      if(digits.length > 0) formatted = '(' + digits.slice(0,2);
+      if(digits.length >= 2) formatted += ') ' + digits.slice(2,5);
+      if(digits.length >= 5) formatted += ' ' + digits.slice(5,7);
+      if(digits.length >= 7) formatted += ' ' + digits.slice(7,9);
+      phoneInput.value = formatted;
+    });
+  }
+
+  // Smooth scroll for anchors
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      var targetId = anchor.getAttribute('href');
+      if (targetId.length > 1) {
+        var targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          e.preventDefault();
+          targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
+  });
+
+  // Client side validation & submit state
+  var form = document.getElementById('shaharchaForm');
+  if(form) {
+    form.addEventListener('submit', function(e) {
+      var firstName = document.getElementById('id_first_name').value.trim();
+      var lastName = document.getElementById('id_last_name').value.trim();
+      var phone = document.getElementById('id_phone').value.trim();
+      var school = document.getElementById('id_school_number').value.trim();
+      var age = document.getElementById('id_age').value.trim();
+      var neighborhood = document.getElementById('id_neighborhood').value.trim();
+
+      if (!firstName || !lastName || !phone || !school || !age || !neighborhood) {
+        e.preventDefault();
+        alert("Iltimos, barcha maydonlarni to'ldiring.");
+        return;
+      }
+
+      var ageVal = parseInt(age, 10);
+      if (isNaN(ageVal) || ageVal < 5 || ageVal > 100) {
+        e.preventDefault();
+        alert("Iltimos, yoshni to'g'ri kiriting.");
+        return;
+      }
+
+      var btn = document.getElementById('submitBtn');
+      if(btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> <span>Yuborilmoqda...</span>';
+      }
+    });
+  }
+})();
+</script>
+{% endblock %}

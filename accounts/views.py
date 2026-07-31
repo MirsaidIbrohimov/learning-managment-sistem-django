@@ -15414,13 +15414,173 @@ def ariza_view(request):
     })
 
 
+def qabul_it_shaharcha_view(request):
+    """IT Shaharcha bepul ta'limda Kompyuter savodxonligi yo'nalishida qabul uchun ariza qoldirish"""
+    success = False
+    
+    if request.method == 'POST':
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        raw_phone = request.POST.get('phone', '').strip()
+        phone_digits = ''.join(c for c in raw_phone if c.isdigit())
+        if phone_digits.startswith('998') and len(phone_digits) == 12:
+            phone_digits = phone_digits[3:]
+        phone = '+998' + phone_digits if phone_digits else raw_phone
+        
+        school_number = request.POST.get('school_number', '').strip()
+        try:
+            age = int(request.POST.get('age', '0').strip())
+        except ValueError:
+            age = None
+        neighborhood = request.POST.get('neighborhood', '').strip()
+        
+        if first_name and last_name and phone and age and neighborhood:
+            application = CourseApplication.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                phone=phone,
+                course_interest="Kompyuter savodxonligi (IT Shaharcha)",
+                school_number=school_number,
+                age=age,
+                neighborhood=neighborhood,
+                is_shaharcha=True
+            )
+            
+            # Send Telegram notification to admins and assistants
+            msg_text = (
+                f"🌟 <b>IT Shaharcha: Yangi ariza!</b>\n\n"
+                f"👤 <b>Ism Familiya:</b> {first_name} {last_name}\n"
+                f"📱 <b>Telefon:</b> {phone}\n"
+                f"🏫 <b>Maktab:</b> {school_number or 'Kiritilmagan'}\n"
+                f"🎂 <b>Yoshi:</b> {age}\n"
+                f"📍 <b>Mahalla:</b> {neighborhood}\n"
+                f"📚 <b>Yo'nalish:</b> Kompyuter savodxonligi (Bepul)\n\n"
+                f"📞 Tez orada bog'laning!"
+            )
+            notify_application_recipients(msg_text)
+            success = True
+            
+    return render(request, 'accounts/qabul_it_shaharcha.html', {
+        'success': success,
+    })
+
+
+@login_required
+def export_shaharcha_applications_excel(request):
+    """IT Shaharcha arizalarini Excel formatida yuklab olish"""
+    if not (request.user.is_admin or (request.user.role == 'assistant_admin' and request.user.has_assistant_perm('applications.view'))):
+        return HttpResponse("Ruxsat etilmagan", status=403)
+        
+    applications = CourseApplication.objects.filter(is_shaharcha=True).order_by('-created_at')
+    
+    import openpyxl
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from openpyxl.utils import get_column_letter
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "IT Shaharcha"
+    
+    # Styling
+    font_title = Font(name='Calibri', size=15, bold=True, color='FFFFFF')
+    font_header = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
+    font_data = Font(name='Calibri', size=11)
+    
+    fill_title = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid')
+    fill_header = PatternFill(start_color='2F5597', end_color='2F5597', fill_type='solid')
+    
+    align_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    align_left = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    
+    border_thin = Border(
+        left=Side(style='thin', color='D9D9D9'),
+        right=Side(style='thin', color='D9D9D9'),
+        top=Side(style='thin', color='D9D9D9'),
+        bottom=Side(style='thin', color='D9D9D9')
+    )
+    
+    # Title row
+    ws.merge_cells('A1:J1')
+    ws['A1'] = "IT SHAHARCHA KOMPYUTER SAVODXONLIGI ARIZALARI"
+    ws['A1'].font = font_title
+    ws['A1'].fill = fill_title
+    ws['A1'].alignment = align_center
+    ws.row_dimensions[1].height = 40
+    
+    headers = [
+        "ID", "Ism", "Familiya", "Telefon", 
+        "Maktab raqami", "Yoshi", "Mahalla nomi", 
+        "Holat", "Kim bog'landi", "Yuborilgan sana"
+    ]
+    
+    for col_idx, header in enumerate(headers, 1):
+        cell = ws.cell(row=2, column=col_idx)
+        cell.value = header
+        cell.font = font_header
+        cell.fill = fill_header
+        cell.alignment = align_center
+        cell.border = border_thin
+    ws.row_dimensions[2].height = 25
+    
+    row_num = 3
+    for app in applications:
+        status_display = dict(CourseApplication.STATUS_CHOICES).get(app.status, app.status)
+        handled_by_display = app.handled_by.get_full_name() if app.handled_by else "—"
+        created_at_str = app.created_at.astimezone(timezone.get_current_timezone()).strftime("%d.%m.%Y %H:%M") if app.created_at else ""
+        
+        row_data = [
+            app.pk,
+            app.first_name,
+            app.last_name,
+            app.phone,
+            app.school_number or "—",
+            app.age or "—",
+            app.neighborhood or "—",
+            status_display,
+            handled_by_display,
+            created_at_str
+        ]
+        
+        for col_idx, val in enumerate(row_data, 1):
+            cell = ws.cell(row=row_num, column=col_idx)
+            cell.value = val
+            cell.font = font_data
+            cell.border = border_thin
+            if col_idx in [1, 4, 6, 8, 10]:
+                cell.alignment = align_center
+            else:
+                cell.alignment = align_left
+        ws.row_dimensions[row_num].height = 20
+        row_num += 1
+        
+    for col in ws.columns:
+        max_len = 0
+        col_letter = get_column_letter(col[0].column)
+        for cell in col:
+            if cell.row == 1:
+                continue
+            if cell.value:
+                max_len = max(max_len, len(str(cell.value)))
+        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
+        
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = f'attachment; filename=it_shaharcha_arizalar_{timezone.now().strftime("%Y%m%d_%H%M")}.xlsx'
+    wb.save(response)
+    return response
+
+
 @login_required
 def admin_applications(request):
     """Admin: Arizalar ro'yxati"""
     if not request.user.is_admin:
         return redirect('home')
     
-    applications = CourseApplication.objects.select_related('handled_by').all()
+    app_type = request.GET.get('type', 'course')
+    if app_type not in ['course', 'shaharcha']:
+        app_type = 'course'
+        
+    base_qs = CourseApplication.objects.filter(is_shaharcha=(app_type == 'shaharcha'))
+    applications = base_qs.select_related('handled_by').all()
     
     status_filter = request.GET.get('status', '')
     if status_filter:
@@ -15429,12 +15589,21 @@ def admin_applications(request):
     q = request.GET.get('q', '').strip()
     if q:
         from django.db.models import Q
-        applications = applications.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q) |
-            Q(phone__icontains=q) |
-            Q(course_interest__icontains=q)
-        )
+        if app_type == 'shaharcha':
+            applications = applications.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(phone__icontains=q) |
+                Q(neighborhood__icontains=q) |
+                Q(school_number__icontains=q)
+            )
+        else:
+            applications = applications.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(phone__icontains=q) |
+                Q(course_interest__icontains=q)
+            )
     
     from django.core.paginator import Paginator
     paginator = Paginator(applications, 20)
@@ -15445,11 +15614,12 @@ def admin_applications(request):
         'applications': applications,
         'status_filter': status_filter,
         'search': q,
-        'total_new': CourseApplication.objects.filter(status='new').count(),
-        'total_all': CourseApplication.objects.count(),
-        'total_contacted': CourseApplication.objects.filter(status='contacted').count(),
-        'total_enrolled': CourseApplication.objects.filter(status='enrolled').count(),
-        'total_rejected': CourseApplication.objects.filter(status='rejected').count(),
+        'app_type': app_type,
+        'total_new': base_qs.filter(status='new').count(),
+        'total_all': base_qs.count(),
+        'total_contacted': base_qs.filter(status='contacted').count(),
+        'total_enrolled': base_qs.filter(status='enrolled').count(),
+        'total_rejected': base_qs.filter(status='rejected').count(),
     }
     return render(request, 'accounts/admin/applications.html', context)
 
@@ -15472,7 +15642,10 @@ def admin_application_status(request, pk):
             application.handled_at = timezone.now()
             application.save()
             messages.success(request, "Ariza holati yangilandi!")
-    
+            
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return redirect(referer)
     return redirect('admin_applications')
 
 

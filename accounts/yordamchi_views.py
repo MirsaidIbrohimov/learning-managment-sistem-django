@@ -603,22 +603,39 @@ def yordamchi_help(request):
 def yordamchi_applications(request):
     if not _require_perm(request, 'applications.view'):
         return redirect('home')
+        
+    app_type = request.GET.get('type', 'course')
+    if app_type not in ['course', 'shaharcha']:
+        app_type = 'course'
+        
+    base_qs = CourseApplication.objects.filter(is_shaharcha=(app_type == 'shaharcha'))
     status = request.GET.get('status', '').strip()
     q = request.GET.get('q', '').strip()
-    qs = CourseApplication.objects.select_related('handled_by').all()
+    
+    qs = base_qs.select_related('handled_by').all()
     if status:
         qs = qs.filter(status=status)
     if q:
-        qs = qs.filter(
-            Q(first_name__icontains=q) |
-            Q(last_name__icontains=q) |
-            Q(phone__icontains=q) |
-            Q(course_interest__icontains=q)
-        )
+        from django.db.models import Q
+        if app_type == 'shaharcha':
+            qs = qs.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(phone__icontains=q) |
+                Q(neighborhood__icontains=q) |
+                Q(school_number__icontains=q)
+            )
+        else:
+            qs = qs.filter(
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(phone__icontains=q) |
+                Q(course_interest__icontains=q)
+            )
+            
     paginator = Paginator(qs.order_by('-created_at'), 50)
     page_obj = paginator.get_page(request.GET.get('page'))
 
-    base = CourseApplication.objects.all()
     can_edit = request.user.is_admin or request.user.has_assistant_perm('applications.edit')
 
     return render(request, 'accounts/yordamchi/applications_list.html', {
@@ -626,12 +643,13 @@ def yordamchi_applications(request):
         'page_obj': page_obj,
         'status': status,
         'q': q,
+        'app_type': app_type,
         'total_count': paginator.count,
-        'total_all': base.count(),
-        'total_new': base.filter(status='new').count(),
-        'total_contacted': base.filter(status='contacted').count(),
-        'total_enrolled': base.filter(status='enrolled').count(),
-        'total_rejected': base.filter(status='rejected').count(),
+        'total_all': base_qs.count(),
+        'total_new': base_qs.filter(status='new').count(),
+        'total_contacted': base_qs.filter(status='contacted').count(),
+        'total_enrolled': base_qs.filter(status='enrolled').count(),
+        'total_rejected': base_qs.filter(status='rejected').count(),
         'can_edit': can_edit,
     })
 
@@ -660,6 +678,9 @@ def yordamchi_application_status(request, pk):
             )
             messages.success(request, "Ariza holati yangilandi!")
 
+    referer = request.META.get('HTTP_REFERER')
+    if referer:
+        return redirect(referer)
     return redirect('yordamchi_applications')
 
 

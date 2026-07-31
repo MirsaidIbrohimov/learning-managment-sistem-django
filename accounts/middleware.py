@@ -259,7 +259,7 @@ class MaintenanceMiddleware:
     """
     
     # Bu URL lar har doim ishlaydi (login/logout/admin panel)
-    EXEMPT_URLS = ['login', 'logout', 'admin_dashboard', 'toggle_maintenance', 'home', 'register', 'ariza']
+    EXEMPT_URLS = ['login', 'logout', 'admin_dashboard', 'toggle_maintenance', 'home', 'register', 'ariza', 'qabul_it_shaharcha']
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -723,3 +723,43 @@ class RequestSizeLimitMiddleware:
             except (ValueError, TypeError):
                 pass
         return self.get_response(request)
+
+
+class WiFiAutoLogoutMiddleware:
+    """
+    Tizimga kirgan foydalanuvchi Wi-Fi (IP manzil) o'zgartirsa,
+    avtomatik ravishda tizimdan chiqarib yuboradi.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Statik va media fayllarga so'rovlarni o'tkazib yuborish
+        if request.path.startswith(('/static/', '/media/', '/admin/jsi18n/')):
+            return self.get_response(request)
+
+        # Test muhitida (agar maxsus test sarlavhasi bo'lmasa) tekshiruvni chetlab o'tamiz
+        if request.META.get('SERVER_NAME') == 'testserver' and not request.META.get('HTTP_X_TEST_WIFI_LOGOUT'):
+            return self.get_response(request)
+
+        if request.user.is_authenticated:
+            from .security import get_client_ip
+            from django.contrib.auth import logout as auth_logout
+            from django.contrib import messages
+            
+            current_ip = get_client_ip(request)
+            session_ip = request.session.get('user_login_ip')
+            
+            if not session_ip:
+                request.session['user_login_ip'] = current_ip
+            elif session_ip != current_ip:
+                # IP (Wi-Fi) o'zgardi -> logout qilamiz
+                auth_logout(request)
+                messages.warning(
+                    request,
+                    "Xavfsizlik yuzasidan: Wi-Fi tarmog'ingiz o'zgarganligi sababli tizimdan chiqarildingiz. 🔒"
+                )
+                return redirect('login')
+
+        return self.get_response(request)
+

@@ -316,7 +316,9 @@ urlpatterns = [
     
     # Ariza
     path('ariza/', views.ariza_view, name='ariza'),
+    path('qabul-it-shaharcha/', views.qabul_it_shaharcha_view, name='qabul_it_shaharcha'),
     path('dashboard/applications/', views.admin_applications, name='admin_applications'),
+    path('dashboard/applications/excel-shaharcha/', views.export_shaharcha_applications_excel, name='export_shaharcha_applications_excel'),
     path('dashboard/applications/<int:pk>/status/', views.admin_application_status, name='admin_application_status'),
     
     # Admin: AI Tekshiruvchi

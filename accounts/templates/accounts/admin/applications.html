@@ -610,21 +610,38 @@
     </div>
 </div>
 
+<!-- Type Switcher Tabs -->
+<div class="d-flex justify-content-between align-items-center flex-wrap mb-4 gap-3">
+    <div class="nav nav-pills">
+        <a href="?type=course" class="nav-link {% if app_type != 'shaharcha' %}active{% endif %} fw-bold px-4 py-2" style="border-radius:10px;">
+            <i class="bi bi-journal-text me-2"></i>Kurs Arizalari
+        </a>
+        <a href="?type=shaharcha" class="nav-link {% if app_type == 'shaharcha' %}active{% endif %} fw-bold px-4 py-2" style="border-radius:10px;">
+            <i class="bi bi-laptop me-2"></i>IT Shaharcha Arizalari
+        </a>
+    </div>
+    {% if app_type == 'shaharcha' %}
+    <a href="{% url 'export_shaharcha_applications_excel' %}" class="btn btn-success fw-bold px-4 py-2" style="border-radius:10px; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="bi bi-file-earmark-excel-fill" style="font-size: 1.1rem;"></i> Excel yuklab olish
+    </a>
+    {% endif %}
+</div>
+
 <!-- Filter Tabs -->
 <div class="app-filters">
-    <a href="?{% if search %}q={{ search }}{% endif %}" class="app-filter {% if not status_filter %}active{% endif %}">
+    <a href="?type={{ app_type }}{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if not status_filter %}active{% endif %}">
         <i class="bi bi-layers"></i> Hammasi
     </a>
-    <a href="?status=new{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'new' %}active-blue{% endif %}">
+    <a href="?type={{ app_type }}&status=new{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'new' %}active-blue{% endif %}">
         <i class="bi bi-star"></i> Yangi
     </a>
-    <a href="?status=contacted{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'contacted' %}active-orange{% endif %}">
+    <a href="?type={{ app_type }}&status=contacted{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'contacted' %}active-orange{% endif %}">
         <i class="bi bi-telephone"></i> Bog'lanildi
     </a>
-    <a href="?status=enrolled{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'enrolled' %}active-green{% endif %}">
+    <a href="?type={{ app_type }}&status=enrolled{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'enrolled' %}active-green{% endif %}">
         <i class="bi bi-check-circle"></i> Yozildi
     </a>
-    <a href="?status=rejected{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'rejected' %}active-red{% endif %}">
+    <a href="?type={{ app_type }}&status=rejected{% if search %}&q={{ search }}{% endif %}" class="app-filter {% if status_filter == 'rejected' %}active-red{% endif %}">
         <i class="bi bi-x-circle"></i> Rad etildi
     </a>
 </div>
@@ -632,6 +649,7 @@
 <!-- Search -->
 <div class="app-search-card">
     <form method="GET">
+        <input type="hidden" name="type" value="{{ app_type }}">
         {% if status_filter %}
         <input type="hidden" name="status" value="{{ status_filter }}">
         {% endif %}
@@ -653,7 +671,13 @@
                     <th>#</th>
                     <th>Ism Familiya</th>
                     <th>Telefon</th>
+                    {% if app_type == 'shaharcha' %}
+                    <th>Maktab</th>
+                    <th>Yoshi</th>
+                    <th>Mahalla</th>
+                    {% else %}
                     <th>Kurs</th>
+                    {% endif %}
                     <th>Holat</th>
                     <th>Kim bog'landi</th>
                     <th>Sana</th>
@@ -668,11 +692,17 @@
                         <span class="fw-semibold">{{ app.first_name }} {{ app.last_name }}</span>
                     </td>
                     <td>{{ app.phone }}</td>
+                    {% if app_type == 'shaharcha' %}
+                    <td>{{ app.school_number|default:"—" }}</td>
+                    <td><span class="badge bg-secondary px-2 py-1" style="border-radius:6px;">{{ app.age }}</span></td>
+                    <td>{{ app.neighborhood|default:"—" }}</td>
+                    {% else %}
                     <td>
                         <span class="badge bg-light text-dark" style="font-size: 0.8rem; font-weight: 600; border-radius: 8px; padding: 5px 10px;">
                             {{ app.course_interest }}
                         </span>
                     </td>
+                    {% endif %}
                     <td>
                         <span class="app-status-badge {{ app.status }}">
                             {% if app.status == 'new' %}
@@ -724,13 +754,13 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="8">
+                    <td colspan="{% if app_type == 'shaharcha' %}10{% else %}8{% endif %}">
                         <div class="app-empty">
                             <div class="app-empty-icon">
                                 <i class="bi bi-inbox"></i>
                             </div>
                             <h4>Arizalar yo'q</h4>
-                            <p>Hozircha kurs arizalari mavjud emas</p>
+                            <p>Hozircha ariza mavjud emas</p>
                         </div>
                     </td>
                 </tr>
@@ -766,10 +796,25 @@
                 <span class="app-mobile-detail-label">Telefon</span>
                 <span class="app-mobile-detail-value">{{ app.phone }}</span>
             </div>
+            {% if app_type == 'shaharcha' %}
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Maktab</span>
+                <span class="app-mobile-detail-value">{{ app.school_number|default:"—" }}</span>
+            </div>
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Yoshi</span>
+                <span class="app-mobile-detail-value">{{ app.age }}</span>
+            </div>
+            <div class="app-mobile-detail">
+                <span class="app-mobile-detail-label">Mahalla</span>
+                <span class="app-mobile-detail-value">{{ app.neighborhood|default:"—" }}</span>
+            </div>
+            {% else %}
             <div class="app-mobile-detail">
                 <span class="app-mobile-detail-label">Kurs</span>
                 <span class="app-mobile-detail-value">{{ app.course_interest }}</span>
             </div>
+            {% endif %}
             <div class="app-mobile-detail">
                 <span class="app-mobile-detail-label">Sana</span>
                 <span class="app-mobile-detail-value">{{ app.created_at|date:"d.m.Y H:i" }}</span>

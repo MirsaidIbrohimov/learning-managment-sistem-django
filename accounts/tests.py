@@ -18,6 +18,7 @@ from .models import (
     Certificate,
     BalanceTopUp,
     CourseEnrollment,
+    CourseApplication,
     CustomUser,
     Homework,
     HomeworkSubmission,
@@ -29,6 +30,7 @@ from .models import (
     UserSession,
     VideoLesson,
     VideoProgress,
+    AssistantRole,
 )
 from .views import _passed_test_lesson_counts, mark_video_watched
 from coin.models import CoinTransaction
@@ -586,3 +588,105 @@ class AdminBalanceDeductTests(TestCase):
         self.balance.refresh_from_db()
         self.assertEqual(self.balance.amount, 500_000)
         self.assertFalse(BalanceTopUp.objects.exists())
+
+
+class ITShaharchaApplicationTests(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='app-admin', password='test-password', role='admin',
+            phone='+998900000031',
+        )
+        self.assistant = CustomUser.objects.create_user(
+            username='app-assistant', password='test-password', role='assistant_admin',
+            phone='+998900000032',
+        )
+        # Give assistant view permissions via AssistantRole
+        role = AssistantRole.objects.create(
+            code='test-applications-viewer',
+            name='Test Applications Viewer',
+            permissions=["applications.view"]
+        )
+        self.assistant.assistant_role = role
+        self.assistant.save()
+
+    def test_public_application_submission(self):
+        url = reverse('qabul_it_shaharcha')
+        # Check GET request renders successfully
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        # Check POST request submits successfully and creates a CourseApplication
+        data = {
+            'first_name': 'Ali',
+            'last_name': 'Valiyev',
+            'phone': '(90) 123 45 67',
+            'school_number': '17-maktab',
+            'age': '14',
+            'neighborhood': 'Oqtepa'
+        }
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['success'])
+
+        app = CourseApplication.objects.get(first_name='Ali', last_name='Valiyev')
+        self.assertEqual(app.phone, '+998901234567')
+        self.assertEqual(app.school_number, '17-maktab')
+        self.assertEqual(app.age, 14)
+        self.assertEqual(app.neighborhood, 'Oqtepa')
+        self.assertTrue(app.is_shaharcha)
+        self.assertEqual(app.course_interest, 'Kompyuter savodxonligi (IT Shaharcha)')
+
+    def test_admin_applications_filtering(self):
+        # Create normal application
+        CourseApplication.objects.create(
+            first_name='Norm', last_name='User', phone='+998901111111',
+            course_interest='Python', is_shaharcha=False
+        )
+        # Create shaharcha application
+        CourseApplication.objects.create(
+            first_name='Shaharcha', last_name='User', phone='+998902222222',
+            course_interest='Kompyuter savodxonligi (IT Shaharcha)',
+            school_number='10-maktab', age=15, neighborhood='Birlik',
+            is_shaharcha=True
+        )
+
+        self.client.force_login(self.admin)
+        
+        # Default view (course type) should exclude shaharcha applications
+        url = reverse('admin_applications')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        apps = response.context['applications']
+        self.assertTrue(any(a.first_name == 'Norm' for a in apps))
+        self.assertFalse(any(a.first_name == 'Shaharcha' for a in apps))
+
+        # Shaharcha type view should show only shaharcha applications
+        response = self.client.get(url + '?type=shaharcha')
+        self.assertEqual(response.status_code, 200)
+        apps = response.context['applications']
+        self.assertFalse(any(a.first_name == 'Norm' for a in apps))
+        self.assertTrue(any(a.first_name == 'Shaharcha' for a in apps))
+
+    def test_excel_export_access_and_format(self):
+        CourseApplication.objects.create(
+            first_name='Shaharcha', last_name='User', phone='+998902222222',
+            course_interest='Kompyuter savodxonligi (IT Shaharcha)',
+            school_number='10-maktab', age=15, neighborhood='Birlik',
+            is_shaharcha=True
+        )
+        url = reverse('export_shaharcha_applications_excel')
+        
+        # Unauthorized client cannot export
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302) # Redirects to login
+
+        # Assistant admin with view permission can export
+        self.client.force_login(self.assistant)
+        UserSession.objects.create(
+            user=self.assistant,
+            session_key=self.client.session.session_key,
+            expires_at=timezone.now() + timedelta(hours=2),
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')

@@ -243,6 +243,10 @@ MIDDLEWARE = [
     'accounts.middleware.BlockedUserMiddleware',
     'accounts.middleware.SessionTimeoutMiddleware',
     'accounts.middleware.DeviceLimitMiddleware',
+    'accounts.middleware.WiFiAutoLogoutMiddleware',
+
+
+
     'accounts.middleware.ProfileCompletionMiddleware',
     'accounts.middleware.SectionBlockMiddleware',
     'accounts.middleware.UpdateLastActivityMiddleware',
