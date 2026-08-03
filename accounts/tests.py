@@ -26,15 +26,88 @@ from .models import (
     Message,
     PaymentRecord,
     Profession,
+    StudyGroup,
     StudentBalance,
     UserSession,
     VideoLesson,
     VideoProgress,
     AssistantRole,
 )
-from .views import _passed_test_lesson_counts, mark_video_watched
+from .views import _passed_test_lesson_counts, course_statistics_api, mark_video_watched
 from coin.models import CoinTransaction
 from quiz.models import Attempt, Quiz
+
+
+class CourseStatisticsGroupTests(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.profession = Profession.objects.create(
+            name='Statistika kursi',
+            photo='professions/statistics.jpg',
+            description='Guruh statistikasi testi',
+        )
+        self.group = StudyGroup.objects.create(
+            name='Bir xil guruh',
+            profession=self.profession,
+            start_time='09:00',
+            end_time='11:00',
+        )
+        self.other_group = StudyGroup.objects.create(
+            name='Boshqa guruh',
+            profession=self.profession,
+            start_time='14:00',
+            end_time='16:00',
+        )
+        self.students = []
+        for index in range(2):
+            student = CustomUser.objects.create_user(
+                username=f'stats-student-{index}',
+                password='test-password',
+                phone=f'+99890000000{index}',
+                role='student',
+                profession=self.profession,
+            )
+            if index == 0:
+                CourseEnrollment.objects.create(user=student, profession=self.profession)
+            self.group.students.add(student)
+            self.students.append(student)
+
+        other_student = CustomUser.objects.create_user(
+            username='other-stats-student',
+            password='test-password',
+            phone='+998900000009',
+            role='student',
+        )
+        self.other_group.students.add(other_student)
+
+    def test_same_group_students_receive_same_scope_even_with_different_query(self):
+        url = reverse('course_statistics_api', args=[self.profession.pk])
+
+        first_request = self.factory.get(url, {'group': self.other_group.pk})
+        first_request.user = self.students[0]
+        first = json.loads(course_statistics_api(first_request, self.profession.pk).content)
+
+        second_request = self.factory.get(url, {'group': ''})
+        second_request.user = self.students[1]
+        second = json.loads(course_statistics_api(second_request, self.profession.pk).content)
+
+        self.assertEqual(first['selected_group']['id'], self.group.pk)
+        self.assertEqual(second['selected_group']['id'], self.group.pk)
+        self.assertEqual(first['group_overview'], second['group_overview'])
+        self.assertEqual(first['students'], second['students'])
+
+    def test_group_scope_includes_member_without_course_enrollment(self):
+        url = reverse('course_statistics_api', args=[self.profession.pk])
+        request = self.factory.get(url)
+        request.user = self.students[0]
+
+        payload = json.loads(course_statistics_api(request, self.profession.pk).content)
+
+        self.assertEqual(payload['group_overview']['students'], 2)
+        self.assertEqual(
+            {student['id'] for student in payload['students']},
+            {student.pk for student in self.students},
+        )
 
 
 class UnreadMessagesContextTests(TestCase):

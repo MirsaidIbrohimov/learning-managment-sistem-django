@@ -2886,7 +2886,10 @@ def _course_statistics_data(profession, group_id=None):
         grp = groups_qs.filter(pk=group_id).first()
         if grp:
             selected_group = {'id': grp.id, 'name': grp.name}
-            scope_students = all_enrolled.filter(study_groups__id=grp.id)
+            # Guruhga biriktirishning o'zi shu statistika uchun manba hisoblanadi.
+            # Eski/qo'lda biriktirilgan o'quvchida CourseEnrollment bo'lmasligi
+            # mumkin; all_enrolled bilan kesishish bunday a'zolarni yashirardi.
+            scope_students = grp.students.filter(role='student').distinct()
 
     scope_students = scope_students.order_by('-coins')
     student_ids = list(scope_students.values_list('id', flat=True))
@@ -3032,17 +3035,17 @@ def _can_view_course_stats(user, profession):
 def _resolve_stats_group(request, profession):
     """Tanlangan guruh id'sini aniqlaydi.
 
-    So'rovda ``?group=`` bo'lsa — o'sha; aks holda o'quvchi kirsa va u shu
-    kursda biror guruhga tegishli bo'lsa — avtomatik o'z guruhi tanlanadi."""
-    group_id = (request.GET.get('group') or '').strip()
-    if group_id:
-        return group_id
+    O'quvchi uchun URL'dagi ``?group=`` ga ishonilmaydi: doim uning shu
+    kursdagi guruhi olinadi. Shunda bir guruh a'zolari aynan bir xil statistik
+    doirani ko'radi. O'qituvchi/admin esa guruh filtrini erkin tanlay oladi.
+    """
     user = request.user
     if getattr(user, 'role', None) == 'student':
         my_group = user.study_groups.filter(profession=profession).first()
         if my_group:
             return str(my_group.id)
-    return ''
+        return ''
+    return (request.GET.get('group') or '').strip()
 
 
 @login_required
@@ -3052,12 +3055,7 @@ def course_statistics(request, pk):
         messages.error(request, "Bu kursga yozilmagansiz!")
         return redirect('profession_detail', pk=pk)
 
-    # 'group' aniq berilgan bo'lsa (bo'sh bo'lsa ham) — o'shani ishlatamiz
-    # (bo'sh = "Barcha guruhlar"). Umuman berilmasa — o'quvchi guruhi avtomatik.
-    if 'group' in request.GET:
-        group_id = (request.GET.get('group') or '').strip()
-    else:
-        group_id = _resolve_stats_group(request, profession)
+    group_id = _resolve_stats_group(request, profession)
     data = _course_statistics_data(profession, group_id=group_id or None)
     my_group = None
     if getattr(request.user, 'role', None) == 'student':
@@ -3077,15 +3075,7 @@ def course_statistics_api(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
     if not _can_view_course_stats(request.user, profession):
         return JsonResponse({'error': "Bu kursga ruxsatingiz yo'q"}, status=403)
-    # AJAX so'rovda guruh doim aniq yuboriladi: 'group' bo'sh bo'lsa —
-    # "Barcha guruhlar" (butun kurs). Faqat parametr umuman bo'lmaganda
-    # (masalan to'g'ridan-to'g'ri havola) o'quvchining guruhi avtomatik tanlanadi.
-    # Shu tufayli o'quvchi "Barcha guruhlar"ni tanlaganda o'z guruhi majburan
-    # qayta tanlanib qolmaydi.
-    if 'group' in request.GET:
-        group_id = (request.GET.get('group') or '').strip()
-    else:
-        group_id = _resolve_stats_group(request, profession)
+    group_id = _resolve_stats_group(request, profession)
     return JsonResponse(_course_statistics_data(profession, group_id=group_id or None))
 
 
