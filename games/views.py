@@ -24,6 +24,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion
+from . import jumanji
 from accounts.models import CustomUser
 from accounts.security import get_user_agent, is_mobile_device
 from . import external_api
@@ -78,6 +79,13 @@ def games_list(request):
         elif comp.game.game_type == 'external':
             comp.play_url = reverse('games:game_launch', args=[comp.game.slug])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
+        elif comp.game.game_type == 'jumanji':
+            # Jumanji jonli o'yin: lobby boshqaruvchi tomonidan ochiladi.
+            live = comp.jumanji_live_session()
+            comp.jumanji_live = live
+            comp.play_url = reverse('games:jumanji_room', args=[live.pk]) if live else ''
+            comp.can_play = bool(live) and comp.is_user_allowed(request.user)
+            comp.leaderboard_url = ''
         else:
             comp.play_url = reverse('games:game_play_competition', args=[comp.game.slug, comp.pk])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
@@ -110,6 +118,16 @@ def game_detail(request, slug):
         comp.can_play = comp.can_user_play(request.user)
         comp.used_attempts = comp.user_attempts_count(request.user)
         comp.remaining_attempts = max(0, comp.max_attempts - comp.used_attempts)
+
+    if game.game_type == 'jumanji':
+        # Jumanji'da urinish yozuvi yo'q — o'yin jonli sessiyada kechadi.
+        for comp in competitions:
+            comp.live_session = comp.jumanji_live_session()
+        return render(request, 'games/student/jumanji_detail.html', {
+            'game': game,
+            'competitions': competitions,
+            'can_control': jumanji.can_control(request.user),
+        })
 
     if game.game_type == 'word_builder':
         user_attempts = WordGameAttempt.objects.filter(user=request.user, game=game).select_related('word_round').order_by('-created_at')[:10]
@@ -1371,7 +1389,15 @@ def admin_competitions(request):
         typing_participants=Count('attempts__user', distinct=True),
         word_participants=Count('word_attempts__user', distinct=True),
     )
-    return render(request, 'games/admin/competitions_list.html', {'competitions': competitions})
+    for comp in competitions:
+        if comp.game.game_type == 'jumanji':
+            comp.live_session = comp.jumanji_live_session()
+
+    from accounts.models import Profession
+    return render(request, 'games/admin/competitions_list.html', {
+        'competitions': competitions,
+        'professions': Profession.objects.all(),
+    })
 
 
 @login_required

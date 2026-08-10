@@ -1500,7 +1500,7 @@ def home_view(request):
         quick_courses = list(request.user.teaching_professions.all()[:3])
     elif request.user.is_admin:
         quick_courses = list(Profession.objects.all()[:3])
-    if request.user.is_student or request.user.is_admin:
+    if request.user.is_learner or request.user.is_admin:
         my_enrollments = request.user.enrollments.select_related('profession').all()[:4]
         if my_enrollments:
             prof_ids = [e.profession_id for e in my_enrollments]
@@ -2262,7 +2262,7 @@ def global_search(request):
 def professions_view(request):
     professions = Profession.objects.prefetch_related('teachers').all()
     enrolled_ids = []
-    if request.user.is_authenticated and request.user.is_student:
+    if request.user.is_authenticated and request.user.is_learner:
         enrolled_ids = list(request.user.enrollments.values_list('profession_id', flat=True))
         # Sort: enrolled courses first, then the rest
         professions = sorted(professions, key=lambda p: (p.pk not in enrolled_ids, p.pk))
@@ -2304,7 +2304,7 @@ def professions_view(request):
 
     # O'quvchilar uchun kurs tokenlarini yaratish
     course_token_map = {}
-    if request.user.is_authenticated and request.user.is_student:
+    if request.user.is_authenticated and request.user.is_learner:
         for p in page_obj:
             ct = StudentCourseToken.get_or_create(request.user, p)
             course_token_map[p.pk] = ct.token
@@ -2443,7 +2443,7 @@ def profession_detail(request, pk):
     profession = get_object_or_404(Profession, pk=pk)
 
     # O'quvchilar uchun PK orqali kirishni bloklash — token URL ga yo'naltirish
-    if request.user.is_authenticated and request.user.is_student and not request.user.is_admin:
+    if request.user.is_authenticated and request.user.is_learner and not request.user.is_admin:
         from .models import StudentCourseToken
         ct = StudentCourseToken.get_or_create(request.user, profession)
         return redirect('student_course_view', token=ct.token)
@@ -2458,7 +2458,7 @@ def profession_detail(request, pk):
         return redirect('professions')
     
     is_teaching = False
-    if request.user.is_student:
+    if request.user.is_learner:
         is_enrolled = CourseEnrollment.objects.filter(user=request.user, profession=profession).exists() or request.user.profession == profession
         if is_enrolled:
             unenroll_request = CourseUnenrollRequest.objects.filter(user=request.user, profession=profession, status='pending').first()
@@ -2482,7 +2482,7 @@ def profession_detail(request, pk):
         sections = profession.sections.filter(is_active=True).prefetch_related('lessons')
         lessons_without_section = profession.lessons.filter(section__isnull=True)
         
-        if request.user.is_student and is_enrolled:
+        if request.user.is_learner and is_enrolled:
             StudentLessonToken.ensure_for_profession(request.user, profession)
             token_map = {
                 t.lesson_id: t
@@ -2889,9 +2889,9 @@ def _course_statistics_data(profession, group_id=None):
             # Guruhga biriktirishning o'zi shu statistika uchun manba hisoblanadi.
             # Eski/qo'lda biriktirilgan o'quvchida CourseEnrollment bo'lmasligi
             # mumkin; all_enrolled bilan kesishish bunday a'zolarni yashirardi.
-            scope_students = grp.students.filter(role='student').distinct()
+            scope_students = grp.students.filter(role='student')
 
-    scope_students = scope_students.order_by('-coins')
+    scope_students = scope_students.order_by('-coins').distinct()
     student_ids = list(scope_students.values_list('id', flat=True))
 
     # Bulk test statistikasi (scope)
@@ -2944,8 +2944,12 @@ def _course_statistics_data(profession, group_id=None):
     grp_test_sum = grp_test_n = 0
     grp_pass = grp_attempts = 0
 
+    seen_student_ids = set()
     for student in scope_students:
         sid = student.id
+        if sid in seen_student_ids:
+            continue
+        seen_student_ids.add(sid)
         ts = test_stats[sid]
         hs = hw_stats[sid]
         vw = video_stats.get(sid, 0)
@@ -3081,10 +3085,10 @@ def course_statistics_api(request, pk):
 
 @login_required
 def enroll_course(request, pk):
-    if not request.user.is_student:
+    if not request.user.is_learner:
         messages.error(request, "Faqat o'quvchilar kursga yozilishi mumkin!")
         return redirect('professions')
-    
+
     # Kursni tugatgan o'quvchilar yangi kurslarga yozila olmaydi
     if request.user.is_finished:
         messages.warning(request, "Siz kursni tugatgan o'quvchi sifatida belgilangansiz. Yangi kurslarga yozila olmaysiz. Iltimos, admin bilan bog'laning.")
@@ -3152,7 +3156,7 @@ def enroll_course(request, pk):
 
 @login_required
 def unenroll_course(request, pk):
-    if not request.user.is_student:
+    if not request.user.is_learner:
         messages.error(request, "Faqat o'quvchilar kursdan chiqishi mumkin!")
         return redirect('professions')
     
@@ -3205,7 +3209,7 @@ def unenroll_course(request, pk):
 @login_required
 def request_certificate(request, pk):
     """O'quvchi: Kursni tugatdim - sertifikat so'rovi yuborish"""
-    if not request.user.is_student:
+    if not request.user.is_learner:
         messages.error(request, "Faqat o'quvchilar sertifikat so'rovi yuborishi mumkin!")
         return redirect('profession_detail', pk=pk)
     
@@ -3484,7 +3488,7 @@ def admin_certificate_regenerate(request, pk):
 # Lesson views
 def _is_section_locked_for_student(user, section, profession):
     """O'quvchi uchun bo'lim qulflanganmi - oldingi bo'limdagi barcha darslar bajarilganmi"""
-    if not user.is_student or user.is_teacher or user.is_admin:
+    if not user.is_learner or user.is_teacher or user.is_admin:
         return False
     sections = profession.sections.filter(is_active=True).prefetch_related('lessons').order_by('order')
     sections_list = list(sections)
@@ -4905,7 +4909,7 @@ def submit_test(request, pk):
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
 
         # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
-        if test.test_type == 'final' and request.user.is_student:
+        if test.test_type == 'final' and request.user.is_learner:
             try:
                 from .certificates import issue_course_certificate
                 _cert, _cert_err = issue_course_certificate(
@@ -5921,7 +5925,7 @@ def student_submit_test(request, token):
             messages.success(request, f"Tabriklaymiz! Test muvaffaqiyatli!")
 
         # 🎓 Yakuniy testdan o'tdi — sertifikatni avtomatik berish
-        if test.test_type == 'final' and request.user.is_student:
+        if test.test_type == 'final' and request.user.is_learner:
             try:
                 from .certificates import issue_course_certificate
                 _cert, _cert_err = issue_course_certificate(
@@ -10006,7 +10010,9 @@ def admin_professions(request):
         student_count=Count('enrollments', filter=Q(enrollments__user__role='student')),
         teacher_count=Count('students', filter=Q(students__role='teacher'))
     )
-    all_students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
+    all_students = CustomUser.objects.filter(
+        role__in=('student', 'assistant_admin')
+    ).order_by('first_name', 'last_name')
     return render(request, 'accounts/admin/professions.html', {'professions': professions, 'all_students': all_students})
 
 
@@ -10181,7 +10187,9 @@ def admin_add_student_to_course(request, profession_pk):
     if request.method == 'POST':
         user_pk = request.POST.get('user_pk')
         if user_pk:
-            student = get_object_or_404(CustomUser, pk=user_pk, role='student')
+            student = get_object_or_404(
+                CustomUser, pk=user_pk, role__in=('student', 'assistant_admin')
+            )
             if CourseEnrollment.objects.filter(user=student, profession=profession).exists():
                 messages.info(request, f"{student.full_name} allaqachon '{profession.name}' kursiga yozilgan!")
             else:

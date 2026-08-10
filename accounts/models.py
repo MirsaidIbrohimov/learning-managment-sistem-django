@@ -304,6 +304,12 @@ class CustomUser(AbstractUser):
         return self.role == 'student'
 
     @property
+    def is_learner(self):
+        """Kursga yozilib o'qiy oladigan rollar. Yordamchi adminlar boshqaruv
+        ishidan tashqari o'quvchi sifatida ham kurs o'tishi mumkin."""
+        return self.role in ('student', 'assistant_admin')
+
+    @property
     def is_online(self):
         if not self.last_activity:
             return False

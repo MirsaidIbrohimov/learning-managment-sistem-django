@@ -1005,7 +1005,7 @@
             </a>
             {% endif %}
 
-            {% if user.is_student %}
+            {% if user.is_learner %}
                 {% if is_enrolled %}
                     <div class="cd-enrolled-badge">
                         <i class="bi bi-check-circle-fill"></i> Kursga yozilgansiz
@@ -1206,7 +1206,7 @@
                 </div>
                 {% for lesson in section.lessons.all %}
                     {% if lesson.lesson_type == 'dictionary' %}
-                    {% if request.user.is_student and token_map %}
+                    {% if request.user.is_learner and token_map %}
                     <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
                     {% else %}
                     <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
@@ -1276,7 +1276,7 @@
                         </div>
                     </div>
                     {% else %}
-                    {% if request.user.is_student and token_map %}
+                    {% if request.user.is_learner and token_map %}
                     <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
                     {% else %}
                     <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
@@ -1424,7 +1424,7 @@
                 {% else %}
                 {% for lesson in lessons_without_section %}
                 {% if lesson.lesson_type == 'test' and lesson.test.test_type == 'final' %}{% else %}
-                {% if request.user.is_student and token_map %}
+                {% if request.user.is_learner and token_map %}
                 <a href="{% url 'student_lesson_view' token_map|get_token:lesson.pk %}" class="lesson-item">
                 {% else %}
                 <a href="{% url 'lesson_view' lesson.pk %}" class="lesson-item">
@@ -1573,7 +1573,7 @@
                 {% with lesson=item.lesson test=item.test payment_status=item.payment_status progress=item.progress %}
                 {% if item.locked %}
                 <div style="text-decoration:none;opacity:0.58;cursor:not-allowed;">
-                {% elif request.user.is_student and item.token %}
+                {% elif request.user.is_learner and item.token %}
                 <a href="{% url 'student_lesson_view' item.token.token %}" style="text-decoration:none;">
                 {% else %}
                 <a href="{% url 'lesson_view' lesson.pk %}" style="text-decoration:none;">
@@ -1668,7 +1668,7 @@
 </div><!-- /cd-main -->
 
 <!-- ── Certificate card ─────────────────────────────── -->
-{% if is_enrolled and user.is_student %}
+{% if is_enrolled and user.is_learner %}
 <div class="cd-cert-card">
     <div class="p-4">
         {% if not profession.has_certificate %}

@@ -235,6 +235,19 @@
                                 {% endif %}
                             </td>
                             <td>
+                                {% if comp.game.game_type == 'jumanji' %}
+                                    {% if comp.live_session %}
+                                    <a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="btn btn-sm btn-success action-btn" title="Jonli xonaga kirish">
+                                        🎲 Xona
+                                    </a>
+                                    {% else %}
+                                    <button type="button" class="btn btn-sm btn-outline-success action-btn js-open-lobby"
+                                            data-action="{% url 'games:jumanji_open_lobby' comp.pk %}"
+                                            data-title="{{ comp.title }}" title="Jumanji lobbysini ochish">
+                                        🎲 Lobby
+                                    </button>
+                                    {% endif %}
+                                {% endif %}
                                 {% if comp.status != 'ended' %}
                                 <form method="post" action="{% url 'games:admin_competition_end' comp.pk %}" style="display:inline;" onsubmit="return confirm('Bu musobaqani tugatmoqchimisiz?')">
                                     {% csrf_token %}
@@ -307,6 +320,15 @@
                     {% endif %}
                 </div>
                 <div class="d-flex gap-1">
+                    {% if comp.game.game_type == 'jumanji' %}
+                        {% if comp.live_session %}
+                        <a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="btn btn-sm btn-success action-btn" title="Jonli xona">🎲</a>
+                        {% else %}
+                        <button type="button" class="btn btn-sm btn-outline-success action-btn js-open-lobby"
+                                data-action="{% url 'games:jumanji_open_lobby' comp.pk %}"
+                                data-title="{{ comp.title }}" title="Lobby ochish">🎲</button>
+                        {% endif %}
+                    {% endif %}
                     {% if comp.status != 'ended' %}
                     <form method="post" action="{% url 'games:admin_competition_end' comp.pk %}" style="display:inline;" onsubmit="return confirm('Bu musobaqani tugatmoqchimisiz?')">
                         {% csrf_token %}
@@ -332,4 +354,53 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- Jumanji lobby ochish -->
+<div class="modal fade" id="jumanjiLobbyModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" id="jumanjiLobbyForm" class="modal-content" style="border-radius: 18px;">
+            {% csrf_token %}
+            <div class="modal-header" style="background: linear-gradient(135deg, #15803d, #65a30d); color:#fff; border:none; border-radius: 18px 18px 0 0;">
+                <h5 class="modal-title">🎲 Jumanji lobbysini ochish</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small">
+                    <strong id="jumanjiLobbyTitle"></strong> uchun lobby ochiladi. O'quvchilar xonaga
+                    kirib qo'shila boshlaydi, o'yinni admin yoki o'qituvchi boshlaydi.
+                </p>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Yo'nalish (kurs)</label>
+                    <select name="profession" class="form-select" style="border-radius: 12px;">
+                        <option value="">Umumiy — barcha savollar</option>
+                        {% for p in professions %}
+                        <option value="{{ p.pk }}">{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <small class="text-muted">Savollar shu yo'nalishdan tanlanadi.</small>
+                </div>
+                <div class="mb-1">
+                    <label class="form-label fw-semibold small">Doska kattaligi (katak)</label>
+                    <input type="number" name="board_size" class="form-control" style="border-radius: 12px;"
+                           value="30" min="10" max="100">
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" style="border-radius: 12px;" data-bs-dismiss="modal">Bekor qilish</button>
+                <button type="submit" class="btn btn-success" style="border-radius: 12px;">Lobbyni ochish</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.js-open-lobby').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+        var form = document.getElementById('jumanjiLobbyForm');
+        form.action = btn.dataset.action;
+        document.getElementById('jumanjiLobbyTitle').textContent = btn.dataset.title;
+        new bootstrap.Modal(document.getElementById('jumanjiLobbyModal')).show();
+    });
+});
+</script>
 {% endblock %}

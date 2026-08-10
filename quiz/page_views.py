@@ -207,7 +207,7 @@ class StudentRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     this page is exam-taking only, same boundary as AttemptViewSet."""
 
     def test_func(self):
-        return bool(self.request.user.is_student)
+        return bool(self.request.user.is_learner)
 
 
 class QuizTakeView(StudentRequiredMixin, TemplateView):

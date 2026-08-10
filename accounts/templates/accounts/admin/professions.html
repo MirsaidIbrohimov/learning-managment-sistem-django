@@ -548,7 +548,7 @@
                         <select name="user_pk" class="form-select" id="studentSelect{{ profession.pk }}" 
                                 style="border-radius: 12px;" size="6" required>
                             {% for student in all_students %}
-                            <option value="{{ student.pk }}">{{ student.full_name }} — {{ student.phone }}</option>
+                            <option value="{{ student.pk }}">{{ student.full_name }} — {{ student.phone }}{% if student.is_assistant_admin %} (Yordamchi admin){% endif %}</option>
                             {% endfor %}
                         </select>
                     </div>

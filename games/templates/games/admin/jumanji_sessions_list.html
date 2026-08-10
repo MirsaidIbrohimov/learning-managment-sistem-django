@@ -1,0 +1,92 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Jumanji sessiyalari | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes livePulse { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.5); } 50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); } }
+
+.admin-card { border: none; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); overflow: hidden; animation: fadeInUp 0.5s ease-out both; }
+[data-bs-theme="dark"] .admin-card { background: #1e1e2e; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+.admin-card .table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 700; padding: 0.85rem 1rem; white-space: nowrap; }
+.admin-card .table td { padding: 0.8rem 1rem; vertical-align: middle; }
+
+.st { border-radius: 8px; font-size: 0.72rem; font-weight: 700; padding: 0.3rem 0.65rem; white-space: nowrap; }
+.st.lobby { background: rgba(59,130,246,0.14); color: #2563eb; }
+.st.running { background: rgba(239,68,68,0.14); color: #dc2626; animation: livePulse 2s infinite; }
+.st.finished { background: rgba(16,185,129,0.14); color: #059669; }
+.st.cancelled { background: rgba(100,116,139,0.15); color: #475569; }
+[data-bs-theme="dark"] .st.lobby { color: #93c5fd; }
+[data-bs-theme="dark"] .st.running { color: #fca5a5; }
+[data-bs-theme="dark"] .st.finished { color: #6ee7b7; }
+[data-bs-theme="dark"] .st.cancelled { color: #cbd5e1; }
+
+.btn-open { border-radius: 11px; font-weight: 600; padding: 0.4rem 0.9rem; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-0">🎲 Jumanji sessiyalari</h2>
+            <p class="text-muted mb-0 small">Ochilgan lobbylar, ketayotgan va tugagan o'yinlar</p>
+        </div>
+        <a href="{% url 'games:admin_competitions' %}" class="btn btn-outline-secondary" style="border-radius: 12px;">
+            <i class="bi bi-trophy"></i> Musobaqalar
+        </a>
+    </div>
+
+    <div class="admin-card card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Musobaqa</th>
+                            <th>Holat</th>
+                            <th>O'yinchilar</th>
+                            <th>Doska</th>
+                            <th>G'olib</th>
+                            <th>Ochildi</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for s in sessions %}
+                        <tr>
+                            <td class="text-muted">{{ s.pk }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ s.competition.title }}</div>
+                                <small class="text-muted">{{ s.game.title }}{% if s.profession %} · {{ s.profession.name }}{% endif %}</small>
+                            </td>
+                            <td><span class="st {{ s.status }}">{{ s.get_status_display }}</span></td>
+                            <td>{{ s.players.count }}</td>
+                            <td class="text-muted small">{{ s.board_size }} katak</td>
+                            <td>
+                                {% if s.winner %}<span class="fw-semibold">🏆 {{ s.winner.get_full_name|default:s.winner.username }}</span>
+                                {% else %}<span class="text-muted">—</span>{% endif %}
+                            </td>
+                            <td class="text-muted small">{{ s.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                <a href="{% url 'games:jumanji_room' s.pk %}" class="btn btn-sm btn-outline-success btn-open">
+                                    <i class="bi bi-box-arrow-in-right"></i> Kirish
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5 text-muted">
+                                <div style="font-size: 2.2rem; opacity: 0.4;">🎲</div>
+                                <p class="mt-2 mb-1">Hali sessiya ochilmagan</p>
+                                <small>Musobaqalar sahifasida Jumanji musobaqasini tanlab lobby oching</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

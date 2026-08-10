@@ -1,0 +1,129 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}{{ title_page }} | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+
+.form-card {
+    border: none; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    animation: fadeInUp 0.5s ease-out both; overflow: hidden;
+}
+[data-bs-theme="dark"] .form-card { background: #1e1e2e; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+.form-card .card-header {
+    background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff;
+    border: none; padding: 1.1rem 1.3rem;
+}
+.form-label { font-weight: 600; font-size: 0.85rem; }
+.form-control, .form-select { border-radius: 12px; }
+.form-control:focus, .form-select:focus { border-color: #22c55e; box-shadow: 0 0 0 0.2rem rgba(34,197,94,0.15); }
+
+.answer-box { background: rgba(22,163,74,0.06); border: 1px solid rgba(22,163,74,0.25); border-radius: 14px; padding: 1rem; }
+[data-bs-theme="dark"] .answer-box { background: rgba(22,163,74,0.1); }
+
+.opt-hint { background: rgba(99,102,241,0.06); border-radius: 12px; padding: 0.7rem 0.9rem; font-size: 0.8rem; color: #64748b; }
+[data-bs-theme="dark"] .opt-hint { background: rgba(99,102,241,0.12); color: #a5b4fc; }
+
+.btn-save { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; border-radius: 12px; font-weight: 600; padding: 0.6rem 1.6rem; transition: all 0.3s; }
+.btn-save:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22,163,74,0.35); }
+.preview-img { max-height: 130px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <h2 class="fw-bold mb-0">🎲 {{ title_page }}</h2>
+                    <p class="text-muted mb-0 small">{{ game.title }}</p>
+                </div>
+                <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-outline-secondary" style="border-radius: 12px;">
+                    <i class="bi bi-arrow-left"></i> Orqaga
+                </a>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="card form-card">
+                {% csrf_token %}
+                <div class="card-header">
+                    <strong><i class="bi bi-patch-question"></i> Savol ma'lumotlari</strong>
+                </div>
+                <div class="card-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label">Savol matni <span class="text-danger">*</span></label>
+                        <textarea name="text" class="form-control" rows="3" required
+                                  placeholder="Masalan: HTML da havola yaratish uchun qaysi teg ishlatiladi?">{{ question.text|default:'' }}</textarea>
+                    </div>
+
+                    <div class="answer-box mb-3">
+                        <label class="form-label mb-1">
+                            <i class="bi bi-shield-lock text-success"></i>
+                            To'g'ri javob <span class="text-danger">*</span>
+                        </label>
+                        <textarea name="correct_text" class="form-control" rows="2" required
+                                  placeholder="Masalan: &lt;a&gt; tegi">{{ question.correct_text|default:'' }}</textarea>
+                        <small class="text-muted">
+                            Bu matn faqat boshqaruvchiga (admin/o'qituvchi) ko'rinadi — o'quvchining ekraniga hech qachon yuborilmaydi.
+                        </small>
+                    </div>
+
+                    <div class="opt-hint mb-3">
+                        <i class="bi bi-info-circle"></i>
+                        Jumanji <strong>test emas</strong>: o'quvchi savolni ko'radi va javobni
+                        <strong>og'zaki</strong> aytadi, boshqaruvchi esa "To'g'ri / Noto'g'ri" tugmasi bilan baholaydi.
+                        Har bir savolga <strong>60 soniya</strong> beriladi.
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label">Yo'nalish (kurs)</label>
+                            <select name="profession" class="form-select">
+                                <option value="">Umumiy (yo'nalishsiz)</option>
+                                {% for p in professions %}
+                                <option value="{{ p.pk }}" {% if question.profession_id == p.pk %}selected{% endif %}>{{ p.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Qiyinlik</label>
+                            <select name="difficulty" class="form-select">
+                                <option value="easy" {% if question.difficulty == 'easy' %}selected{% endif %}>Oson</option>
+                                <option value="medium" {% if question.difficulty == 'medium' or not question %}selected{% endif %}>O'rta</option>
+                                <option value="hard" {% if question.difficulty == 'hard' %}selected{% endif %}>Qiyin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Tartib</label>
+                            <input type="number" name="order" class="form-control" value="{{ question.order|default:0 }}">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Rasm (ixtiyoriy)</label>
+                        <input type="file" name="image" class="form-control" accept="image/*">
+                        {% if question.image %}
+                        <div class="mt-2 d-flex align-items-center gap-3">
+                            <img src="{{ question.image.url }}" alt="Savol rasmi" class="preview-img">
+                            <div class="form-check">
+                                <input type="checkbox" name="remove_image" class="form-check-input" id="removeImage">
+                                <label class="form-check-label small" for="removeImage">Rasmni o'chirish</label>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-check form-switch">
+                        <input type="checkbox" name="is_active" class="form-check-input" id="isActive"
+                               {% if question.is_active or not question %}checked{% endif %}>
+                        <label class="form-check-label fw-semibold" for="isActive">Faol (o'yinda chiqadi)</label>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 p-4 pt-0 d-flex gap-2 justify-content-end">
+                    <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-outline-secondary" style="border-radius: 12px;">Bekor qilish</a>
+                    <button type="submit" class="btn btn-save"><i class="bi bi-check-lg"></i> Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

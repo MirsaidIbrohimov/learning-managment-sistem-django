@@ -1,0 +1,102 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}🎲 {{ game.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+@keyframes jdIn { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes jdLive { 0%,100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.55); } 50% { box-shadow: 0 0 0 8px rgba(34,197,94,0); } }
+
+.jd-wrap { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+.jd-hero {
+    border-radius: 22px; padding: 1.8rem 1.6rem; color: #f0fdf4;
+    background: linear-gradient(140deg, #052e16 0%, #15803d 55%, #4d7c0f 100%);
+    box-shadow: 0 14px 40px rgba(5,46,22,0.35);
+    animation: jdIn 0.5s ease-out both;
+}
+.jd-hero h1 { font-weight: 800; font-size: 1.7rem; margin: 0; }
+.jd-hero p { color: #bbf7d0; margin: 0.4rem 0 0; font-size: 0.92rem; }
+
+.jd-rules { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.1rem; }
+.jd-rules span {
+    background: rgba(255,255,255,0.14); border: 1px solid rgba(190,242,100,0.3);
+    border-radius: 999px; padding: 0.35rem 0.8rem; font-size: 0.78rem; font-weight: 600;
+}
+
+.jd-card {
+    border: none; border-radius: 18px; margin-top: 1rem; overflow: hidden;
+    box-shadow: 0 4px 22px rgba(0,0,0,0.08); animation: jdIn 0.5s ease-out both;
+}
+[data-bs-theme="dark"] .jd-card { background: #1e1e2e; box-shadow: 0 4px 22px rgba(0,0,0,0.3); }
+
+.jd-live { border-radius: 999px; font-size: 0.72rem; font-weight: 700; padding: 0.3rem 0.7rem;
+    background: rgba(34,197,94,0.16); color: #16a34a; animation: jdLive 2s infinite; }
+.jd-wait { border-radius: 999px; font-size: 0.72rem; font-weight: 700; padding: 0.3rem 0.7rem;
+    background: rgba(100,116,139,0.15); color: #64748b; }
+
+.jd-enter {
+    background: linear-gradient(135deg, #15803d, #65a30d); border: none; color: #fff;
+    border-radius: 12px; font-weight: 700; padding: 0.55rem 1.3rem; transition: all 0.25s;
+}
+.jd-enter:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 8px 22px rgba(21,128,61,0.4); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="jd-wrap">
+    <div class="jd-hero">
+        <h1>🎲 {{ game.title }}</h1>
+        <p>{{ game.description|default:"Savolga to'g'ri javob bering, nard toshini yumalating va doskada oldinga siljing." }}</p>
+        <div class="jd-rules">
+            <span>🎤 Og'zaki javob</span>
+            <span>⏱ Har savolga vaqt</span>
+            <span>🎲 To'g'ri javob → zarba</span>
+            <span>❄️ 🐍 🪜 ⭐ katak effektlari</span>
+            <span>🏆 FINISH ga birinchi yetgan g'olib</span>
+        </div>
+    </div>
+
+    <div class="card jd-card">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3"><i class="bi bi-trophy"></i> Musobaqalar</h5>
+
+            {% for comp in competitions %}
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 py-3
+                        {% if not forloop.last %}border-bottom{% endif %}">
+                <div>
+                    <div class="fw-semibold">{{ comp.title }}</div>
+                    <small class="text-muted">
+                        {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}
+                        {% if comp.coin_1st %} · 🪙 1-o'rin {{ comp.coin_1st }}{% endif %}
+                    </small>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    {% if comp.live_session %}
+                        <span class="jd-live">● Jonli</span>
+                        <a href="{% url 'games:jumanji_room' comp.live_session.pk %}" class="btn jd-enter">
+                            Xonaga kirish
+                        </a>
+                    {% else %}
+                        <span class="jd-wait">Lobby ochilmagan</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 text-muted">
+                <div style="font-size: 2.2rem; opacity: 0.4;">🎲</div>
+                <p class="mt-2 mb-0">Hozircha Jumanji musobaqasi yo'q</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if can_control %}
+    <div class="text-end mt-3">
+        <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-outline-success" style="border-radius:12px;">
+            <i class="bi bi-list-check"></i> Savollar bazasi
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

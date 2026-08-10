@@ -1,0 +1,1359 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+{% load l10n %}
+
+{% block title %}🎲 Jumanji — {{ competition.title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ============================================================
+   JUMANJI — "Jungle Trail"
+   Chapda o'yinchilar, o'rtada o'rmon so'qmog'i, o'ngda topshiriq
+   paneli. Kataklar jadval emas — egri-bugri so'qmoq bo'ylab tizilgan.
+   ============================================================ */
+
+.jm-page {
+    --jm-gold: #f0b429;
+    --jm-green: #16a34a;
+    --jm-panel: rgba(7, 30, 20, 0.78);
+    max-width: 1560px;
+    margin: 0 auto;
+    padding: 1rem 0.9rem 3rem;
+    color: #e8f5ee;
+}
+
+/* --- O'rmon foni --- */
+.jm-jungle {
+    position: fixed; inset: 0; z-index: -1;
+    background:
+        radial-gradient(1100px 700px at 12% -10%, rgba(34,197,94,0.20), transparent 60%),
+        radial-gradient(900px 600px at 92% 6%, rgba(13,148,136,0.18), transparent 60%),
+        radial-gradient(900px 800px at 50% 118%, rgba(240,180,41,0.10), transparent 60%),
+        linear-gradient(168deg, #051710 0%, #072116 45%, #041310 100%);
+}
+.jm-jungle::after {
+    content: ''; position: absolute; inset: -20%;
+    background-image:
+        radial-gradient(circle at 20% 30%, rgba(132,204,22,0.06) 0 3px, transparent 4px),
+        radial-gradient(circle at 70% 60%, rgba(132,204,22,0.05) 0 2px, transparent 3px),
+        radial-gradient(circle at 45% 85%, rgba(34,197,94,0.05) 0 3px, transparent 4px);
+    background-size: 340px 340px, 260px 260px, 420px 420px;
+    animation: jmDrift 44s linear infinite;
+    will-change: transform;
+}
+@keyframes jmDrift { to { transform: translate3d(-340px, -260px, 0); } }
+
+/* --- Yuqori panel --- */
+.jm-top {
+    display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+    margin-bottom: 0.9rem;
+}
+.jm-back { color: #86efac; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: transform 0.2s; }
+.jm-back:hover { color: #bbf7d0; transform: translateX(-3px); }
+
+.jm-logo {
+    margin: 0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight: 900;
+    letter-spacing: 2px; line-height: 1;
+    background: linear-gradient(180deg, #fde68a 0%, #f0b429 55%, #b45309 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    -webkit-text-stroke: 1px rgba(69,26,3,0.55);
+    filter: drop-shadow(0 3px 10px rgba(240,180,41,0.35));
+}
+.jm-sub { font-size: 0.76rem; color: #86efac; font-weight: 600; }
+
+.jm-pill {
+    border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.75rem;
+    font-weight: 800; letter-spacing: 0.3px; white-space: nowrap;
+    border: 1px solid transparent;
+}
+.jm-pill.lobby { background: rgba(59,130,246,0.18); color: #93c5fd; border-color: rgba(59,130,246,0.35); }
+.jm-pill.running { background: rgba(239,68,68,0.18); color: #fca5a5; border-color: rgba(239,68,68,0.35); animation: jmLive 2s infinite; }
+.jm-pill.finished { background: rgba(16,185,129,0.18); color: #6ee7b7; border-color: rgba(16,185,129,0.35); }
+.jm-pill.cancelled { background: rgba(100,116,139,0.2); color: #cbd5e1; border-color: rgba(100,116,139,0.35); }
+.jm-pill.paused { background: rgba(240,180,41,0.18); color: #fcd34d; border-color: rgba(240,180,41,0.35); }
+.jm-pill.count { background: rgba(255,255,255,0.07); color: #d1fae5; border-color: rgba(255,255,255,0.14); }
+@keyframes jmLive { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.45); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+
+.jm-sound {
+    margin-left: auto; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16);
+    color: #d1fae5; border-radius: 999px; width: 38px; height: 38px; cursor: pointer;
+    font-size: 1rem; transition: all 0.2s; flex-shrink: 0;
+}
+.jm-sound:hover { background: rgba(255,255,255,0.16); transform: scale(1.08); }
+.jm-sound.off { opacity: 0.5; }
+
+/* --- Uch ustunli tartib --- */
+.jm-grid {
+    display: grid;
+    grid-template-columns: 272px minmax(0, 1fr) 350px;
+    gap: 0.9rem; align-items: start;
+}
+@media (max-width: 1400px) { .jm-grid { grid-template-columns: 240px minmax(0, 1fr) 310px; } }
+@media (max-width: 1150px) {
+    .jm-grid { grid-template-columns: minmax(0, 1fr) 320px; }
+    .jm-side { grid-column: 1 / -1; order: 3; }
+}
+@media (max-width: 860px) {
+    .jm-grid { grid-template-columns: minmax(0, 1fr); }
+    .jm-quest { order: 1; }
+    .jm-boardcol { order: 2; }
+    .jm-side { order: 3; }
+}
+
+.jm-card {
+    background: var(--jm-panel);
+    backdrop-filter: blur(9px);
+    border: 1px solid rgba(132,204,22,0.16);
+    border-radius: 18px;
+    padding: 0.85rem 0.9rem;
+    margin-bottom: 0.8rem;
+}
+.jm-card h6 {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px;
+    color: #86efac; font-weight: 800; margin-bottom: 0.6rem;
+}
+
+/* ============================================================
+   DOSKA — o'rmon so'qmog'i
+   ============================================================ */
+.jm-board {
+    position: relative;
+    width: 100%;
+    border-radius: 26px;
+    background:
+        radial-gradient(120% 90% at 50% 0%, rgba(21,94,58,0.55), transparent 65%),
+        linear-gradient(158deg, #0a3021 0%, #06231a 55%, #041a13 100%);
+    border: 1px solid rgba(132,204,22,0.22);
+    box-shadow: inset 0 0 110px rgba(0,0,0,0.6), 0 24px 60px rgba(0,0,0,0.5);
+    overflow: hidden;
+}
+.jm-board::before, .jm-board::after {
+    content: '🌿'; position: absolute; font-size: 2.8rem; opacity: 0.15; pointer-events: none; z-index: 1;
+}
+.jm-board::before { top: -8px; left: 8px; transform: rotate(-25deg); }
+.jm-board::after { bottom: -10px; right: 10px; transform: rotate(155deg); }
+
+.jm-board-inner { position: absolute; inset: 0; }
+
+.jm-trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.jm-trail .rope { fill: none; stroke: rgba(124,74,33,0.75); stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; }
+.jm-trail .rope-in { fill: none; stroke: rgba(180,120,60,0.35); stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
+.jm-trail .dash { fill: none; stroke: rgba(240,180,41,0.4); stroke-width: 2.5; stroke-dasharray: 6 11; stroke-linecap: round; }
+.jm-trail .arc-snake { fill: none; stroke: rgba(248,113,113,0.75); stroke-width: 3.5; stroke-dasharray: 11 7; stroke-linecap: round; }
+.jm-trail .arc-ladder { fill: none; stroke: rgba(250,204,21,0.75); stroke-width: 3.5; stroke-dasharray: 3 9; stroke-linecap: round; }
+
+.jm-cell {
+    position: absolute;
+    width: var(--jm-cell); aspect-ratio: 1 / 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 38% 30%, #1d6b3f 0%, #12482b 55%, #0a2e1c 100%);
+    border: 2px solid rgba(240,180,41,0.28);
+    box-shadow: inset 0 2px 6px rgba(255,255,255,0.12), 0 5px 14px rgba(0,0,0,0.5);
+    z-index: 3;
+    transition: box-shadow 0.3s, border-color 0.3s;
+}
+.jm-cell .num {
+    position: absolute; top: 4%; font-size: 0.55rem; font-weight: 800;
+    color: rgba(226,232,240,0.4);
+}
+.jm-cell .fx { font-size: clamp(0.8rem, 2.1vw, 1.45rem); line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)); }
+.jm-cell .fx-steps { font-size: 0.55rem; font-weight: 800; color: rgba(226,232,240,0.62); margin-top: 1px; }
+.jm-cell .cap { font-size: 0.5rem; font-weight: 900; letter-spacing: 0.8px; color: rgba(255,255,255,0.9); }
+
+.jm-cell[data-tone="good"] { border-color: rgba(74,222,128,0.7); box-shadow: inset 0 0 16px rgba(34,197,94,0.35), 0 5px 14px rgba(0,0,0,0.5); }
+.jm-cell[data-tone="bad"] { border-color: rgba(248,113,113,0.7); box-shadow: inset 0 0 16px rgba(239,68,68,0.35), 0 5px 14px rgba(0,0,0,0.5); }
+.jm-cell[data-tone="neutral"] { border-color: rgba(240,180,41,0.75); box-shadow: inset 0 0 16px rgba(240,180,41,0.32), 0 5px 14px rgba(0,0,0,0.5); }
+
+.jm-cell.start { background: radial-gradient(circle at 42% 32%, #22c55e, #064e3b 78%); border-color: rgba(187,247,208,0.8); }
+.jm-cell.finish {
+    background: radial-gradient(circle at 42% 32%, #fde68a, #b45309 80%);
+    border-color: rgba(254,243,199,0.9);
+    animation: jmFinishGlow 2.8s ease-in-out infinite;
+}
+@keyframes jmFinishGlow {
+    0%,100% { box-shadow: inset 0 0 20px rgba(255,255,255,0.3), 0 0 0 0 rgba(240,180,41,0.55); }
+    50%     { box-shadow: inset 0 0 20px rgba(255,255,255,0.45), 0 0 0 14px rgba(240,180,41,0); }
+}
+.jm-cell.spotlight {
+    border-color: #fde68a;
+    box-shadow: 0 0 0 4px rgba(253,230,138,0.45), inset 0 0 22px rgba(253,230,138,0.3);
+}
+.jm-cell.pop { animation: jmCellPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+@keyframes jmCellPop {
+    0% { transform: translate(-50%,-50%) scale(1); }
+    45% { transform: translate(-50%,-50%) scale(1.28); }
+    100% { transform: translate(-50%,-50%) scale(1); }
+}
+
+/* --- O'yinchi toshlari (doska ustida suzadi) --- */
+.jm-token {
+    position: absolute;
+    width: calc(var(--jm-cell) * 0.52); aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 900; color: #052e16;
+    border: 2px solid rgba(255,255,255,0.9);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+    background-size: cover; background-position: center;
+    z-index: 6;
+    transform: translate(-50%, -50%);
+    transition: left 0.28s cubic-bezier(0.4,0,0.2,1), top 0.28s cubic-bezier(0.4,0,0.2,1);
+    will-change: left, top;
+}
+.jm-token.turn { z-index: 8; box-shadow: 0 0 0 3px rgba(253,230,138,0.75), 0 4px 10px rgba(0,0,0,0.6); }
+.jm-token.hop { animation: jmHop 0.28s ease-out; }
+@keyframes jmHop {
+    0% { transform: translate(-50%,-50%) scale(1); }
+    50% { transform: translate(-50%,-85%) scale(1.2); }
+    100% { transform: translate(-50%,-50%) scale(1); }
+}
+
+/* --- O'rtadagi zarba (nard toshi) --- */
+.jm-dice-orb {
+    position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) scale(0.4);
+    width: clamp(84px, 16%, 132px); aspect-ratio: 1 / 1;
+    border-radius: 22%;
+    background: linear-gradient(150deg, #fffbeb 0%, #fde68a 60%, #f0b429 100%);
+    color: #7c2d12;
+    display: flex; align-items: center; justify-content: center;
+    font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 900;
+    box-shadow: 0 20px 46px rgba(0,0,0,0.65), inset 0 -6px 0 rgba(124,45,18,0.28);
+    z-index: 20; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.jm-dice-orb.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.jm-dice-orb.rolling { animation: jmRoll 0.9s cubic-bezier(0.36,0.07,0.19,0.97); }
+@keyframes jmRoll {
+    0%   { transform: translate(-50%,-50%) rotate(0deg) scale(0.75); }
+    35%  { transform: translate(-50%,-50%) rotate(320deg) scale(1.22); }
+    70%  { transform: translate(-50%,-50%) rotate(610deg) scale(0.92); }
+    100% { transform: translate(-50%,-50%) rotate(720deg) scale(1); }
+}
+.jm-dice-orb .who { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%);
+    font-size: 0.72rem; font-weight: 800; color: #fde68a; white-space: nowrap; text-shadow: 0 2px 8px #000; }
+
+/* --- Katak belgilari --- */
+.jm-legend { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.8rem; }
+.jm-lg {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 999px; padding: 0.22rem 0.6rem; font-size: 0.72rem; color: #cbd5e1;
+}
+
+/* ============================================================
+   TOPSHIRIQ PANELI (o'ng ustun)
+   ============================================================ */
+.jm-quest {
+    background: linear-gradient(165deg, #1a7a45 0%, #12603a 45%, #0b3f27 100%);
+    border: 1px solid rgba(190,242,100,0.3);
+    border-radius: 22px;
+    box-shadow: 0 22px 55px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.14);
+    overflow: hidden;
+    position: sticky; top: 14px;
+}
+@media (max-width: 860px) { .jm-quest { position: static; } }
+.jm-quest-head {
+    background: rgba(0,0,0,0.24);
+    padding: 0.6rem 1rem;
+    display: flex; align-items: center; gap: 0.5rem;
+    border-bottom: 1px solid rgba(190,242,100,0.22);
+}
+.jm-quest-head .t {
+    font-size: 0.74rem; font-weight: 900; letter-spacing: 2px; color: #fde68a; text-transform: uppercase;
+}
+.jm-quest-body { padding: 1rem; }
+
+.jm-who { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 0.75rem; }
+.jm-who .av {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; color: #052e16; background-size: cover; background-position: center;
+    border: 2px solid rgba(255,255,255,0.5);
+}
+.jm-who .nm { font-weight: 800; font-size: 0.95rem; line-height: 1.2; }
+.jm-who .sub { font-size: 0.72rem; color: #bbf7d0; }
+
+.jm-qtext {
+    font-size: clamp(1rem, 1.35vw, 1.22rem); font-weight: 700; line-height: 1.5;
+    background: rgba(0,0,0,0.2); border-radius: 14px; padding: 0.85rem 0.95rem;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.jm-qimg { width: 100%; max-height: 190px; object-fit: contain; border-radius: 12px; margin-top: 0.6rem; background: rgba(0,0,0,0.25); }
+
+.jm-speak {
+    margin-top: 0.8rem; text-align: center; border-radius: 14px; padding: 0.75rem;
+    background: rgba(240,180,41,0.16); border: 1px dashed rgba(253,230,138,0.6);
+    font-weight: 800; color: #fde68a; font-size: 0.9rem;
+}
+.jm-speak .big { display: block; font-size: 1.5rem; margin-bottom: 0.2rem; }
+
+.jm-answer {
+    margin-top: 0.8rem; background: rgba(2,20,12,0.5);
+    border: 1px dashed rgba(134,239,172,0.6); border-radius: 14px;
+    padding: 0.65rem 0.85rem; font-size: 0.92rem; word-break: break-word;
+}
+.jm-answer .lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1px; color: #86efac; font-weight: 800; display: block; margin-bottom: 0.2rem; }
+
+/* Taymer halqasi */
+.jm-timer { margin-left: auto; position: relative; width: 54px; height: 54px; flex-shrink: 0; }
+.jm-ring { width: 54px; height: 54px; transform: rotate(-90deg); }
+.jm-ring circle { fill: none; stroke-width: 6; stroke-linecap: round; }
+.jm-ring .bg { stroke: rgba(0,0,0,0.3); }
+.jm-ring .fg { stroke: #bef264; transition: stroke-dashoffset 0.95s linear, stroke 0.4s; }
+.jm-ring.warn .fg { stroke: #fbbf24; }
+.jm-ring.danger .fg { stroke: #f87171; }
+.jm-ring-num {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 1.05rem; color: #ecfdf5;
+}
+.jm-timer.danger .jm-ring-num { color: #fca5a5; animation: jmTick 1s infinite; }
+@keyframes jmTick { 0%,100% { transform: scale(1); } 50% { transform: scale(1.16); } }
+
+/* Effekt banneri */
+.jm-fx {
+    display: flex; align-items: center; gap: 0.7rem;
+    border-radius: 14px; padding: 0.8rem 0.9rem; margin-top: 0.8rem;
+    animation: jmFxIn 0.45s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes jmFxIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
+.jm-fx .ic { font-size: 1.8rem; }
+.jm-fx.good { background: rgba(34,197,94,0.2); border: 1px solid rgba(134,239,172,0.5); }
+.jm-fx.bad { background: rgba(239,68,68,0.2); border: 1px solid rgba(248,113,113,0.5); }
+.jm-fx.neutral { background: rgba(240,180,41,0.2); border: 1px solid rgba(253,230,138,0.5); }
+
+/* ============================================================
+   TUGMALAR
+   ============================================================ */
+.jm-controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.9rem; }
+.jm-btn {
+    border: none; border-radius: 13px; font-weight: 800; font-size: 0.9rem;
+    padding: 0.65rem 1.1rem; color: #fff; cursor: pointer;
+    transition: transform 0.18s, box-shadow 0.18s, filter 0.18s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+}
+.jm-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
+.jm-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
+.jm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.jm-btn.ok { background: linear-gradient(135deg, #15803d, #22c55e); box-shadow: 0 6px 18px rgba(22,163,74,0.45); }
+.jm-btn.no { background: linear-gradient(135deg, #b91c1c, #ef4444); box-shadow: 0 6px 18px rgba(220,38,38,0.45); }
+.jm-btn.go { background: linear-gradient(135deg, #b45309, #f0b429); box-shadow: 0 6px 18px rgba(240,180,41,0.4); color: #431407; }
+.jm-btn.ghost { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22); }
+.jm-btn.sm { padding: 0.42rem 0.8rem; font-size: 0.78rem; border-radius: 10px; }
+.jm-btn.big { flex: 1 1 46%; padding: 0.85rem 1rem; font-size: 1rem; }
+
+/* ============================================================
+   O'YINCHILAR RO'YXATI
+   ============================================================ */
+.jm-roster { display: flex; flex-direction: column; gap: 0.45rem; max-height: 440px; overflow-y: auto; }
+.jm-rp {
+    display: flex; align-items: center; gap: 0.55rem;
+    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px; padding: 0.45rem 0.55rem; transition: background 0.25s, border-color 0.25s;
+}
+.jm-rp.turn { background: rgba(253,230,138,0.15); border-color: rgba(253,230,138,0.55); }
+.jm-rp.gone { opacity: 0.42; }
+.jm-rp .av {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; position: relative;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 900; font-size: 0.82rem; color: #052e16;
+    background-size: cover; background-position: center;
+    border: 2px solid rgba(255,255,255,0.35);
+}
+.jm-rp .av .dot {
+    position: absolute; right: -2px; bottom: -2px; width: 10px; height: 10px;
+    border-radius: 50%; border: 2px solid #072016; background: #64748b;
+}
+.jm-rp .av .dot.on { background: #22c55e; }
+.jm-rp .info { min-width: 0; flex: 1; }
+.jm-rp .nm { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jm-rp .meta { font-size: 0.68rem; color: #94a3b8; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.jm-rp .bar { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-top: 3px; overflow: hidden; }
+.jm-rp .bar i { display: block; height: 100%; background: linear-gradient(90deg, #22c55e, #bef264); transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+.jm-rp .pos { font-weight: 900; font-size: 1rem; color: #fde68a; flex-shrink: 0; }
+.jm-rp .badges { font-size: 0.8rem; }
+.jm-kick {
+    flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; line-height: 1;
+    border: 1px solid rgba(248,113,113,0.4); background: rgba(248,113,113,0.12);
+    color: #fca5a5; font-weight: 800; cursor: pointer; transition: all 0.2s;
+}
+.jm-kick:hover { background: rgba(248,113,113,0.3); color: #fff; transform: scale(1.1); }
+
+.jm-feed { display: flex; flex-direction: column; gap: 0.35rem; max-height: 260px; overflow-y: auto; }
+.jm-ev {
+    font-size: 0.78rem; padding: 0.42rem 0.6rem; border-radius: 10px;
+    background: rgba(255,255,255,0.045); border-left: 3px solid rgba(132,204,22,0.5);
+    animation: jmEvIn 0.3s ease-out;
+}
+@keyframes jmEvIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
+.jm-ev.hot { border-left-color: #f0b429; background: rgba(240,180,41,0.1); }
+.jm-ev.bad { border-left-color: #ef4444; background: rgba(239,68,68,0.1); }
+
+/* G'olib pardasi */
+.jm-win {
+    position: fixed; inset: 0; z-index: 3000; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(2,10,6,0.9); backdrop-filter: blur(6px); padding: 1rem;
+}
+.jm-win.show { display: flex; animation: jmFade 0.4s; }
+@keyframes jmFade { from { opacity: 0; } to { opacity: 1; } }
+.jm-win-card {
+    background: linear-gradient(160deg, #15653c, #052e16);
+    border: 1px solid rgba(253,230,138,0.45);
+    border-radius: 26px; padding: 2rem 1.7rem; text-align: center;
+    max-width: 440px; width: 100%; color: #ecfdf5;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.75);
+    animation: jmWinIn 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes jmWinIn { from { opacity: 0; transform: scale(0.7) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.jm-win-card .cup { font-size: 4rem; animation: jmCup 1.7s ease-in-out infinite; }
+@keyframes jmCup { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-12px) rotate(6deg); } }
+.jm-standings { text-align: left; margin-top: 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.jm-standings div { display: flex; justify-content: space-between; background: rgba(255,255,255,0.07); border-radius: 10px; padding: 0.42rem 0.7rem; font-size: 0.86rem; }
+
+.jm-toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(80px);
+    background: #111827; color: #fff; border-radius: 14px; padding: 0.7rem 1.15rem;
+    font-weight: 600; font-size: 0.88rem; z-index: 3200; opacity: 0;
+    transition: all 0.32s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.15); max-width: 90vw;
+}
+.jm-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.jm-toast.err { background: #7f1d1d; border-color: rgba(248,113,113,0.5); }
+
+@media (prefers-reduced-motion: reduce) {
+    .jm-jungle::after, .jm-cell.finish, .jm-pill.running { animation: none; }
+    .jm-token { transition: none; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="jm-jungle"></div>
+
+<div class="jm-page"
+     data-session="{{ session.pk }}"
+     data-state-url="{% url 'games:jumanji_state' session.pk %}"
+     data-control-url="{% url 'games:jumanji_control' session.pk %}"
+     data-join-url="{% url 'games:jumanji_join' session.pk %}"
+     data-leave-url="{% url 'games:jumanji_leave' session.pk %}"
+     data-controller="{{ is_controller|yesno:'1,0' }}"
+     data-min-players="{{ min_players }}"
+     data-board-size="{{ session.board_size }}"
+     data-seconds="{{ question_seconds }}">
+
+    <div class="jm-top">
+        <a href="{% url 'games:games_list' %}" class="jm-back"><i class="bi bi-arrow-left"></i> O'yinlar</a>
+        <div>
+            <h1 class="jm-logo">JUMANJI</h1>
+            <div class="jm-sub">{{ competition.title }}</div>
+        </div>
+        <span class="jm-pill {{ session.status }}" id="jmStatus">{{ session.get_status_display }}</span>
+        <span class="jm-pill paused d-none" id="jmPaused">⏸ Pauza</span>
+        <span class="jm-pill count" id="jmCount">👥 {{ session.players.count }}</span>
+        <button type="button" class="jm-sound" id="jmSound" title="Ovozni yoqish/o'chirish">🔊</button>
+    </div>
+
+    <div class="jm-grid">
+        <!-- ===== CHAP: o'yinchilar ===== -->
+        <aside class="jm-side">
+            <div class="jm-card">
+                <h6>O'yinchilar</h6>
+                <div class="jm-roster" id="jmRoster">
+                    <div class="text-muted small">Yuklanmoqda…</div>
+                </div>
+                {% if can_join %}
+                <button class="jm-btn ok w-100 mt-3" id="jmJoinBtn">
+                    <i class="bi bi-box-arrow-in-right"></i> O'yinga qo'shilish
+                </button>
+                {% elif player and session.status == 'lobby' %}
+                <button class="jm-btn ghost sm w-100 mt-3" id="jmLeaveBtn">Lobbydan chiqish</button>
+                {% endif %}
+            </div>
+
+            <div class="jm-card">
+                <h6>Jonli lenta</h6>
+                <div class="jm-feed" id="jmFeed"></div>
+            </div>
+        </aside>
+
+        <!-- ===== MARKAZ: doska ===== -->
+        <main class="jm-boardcol">
+            {{ links|json_script:"jmLinks" }}
+            {{ geometry.points|json_script:"jmPoints" }}
+
+            {# uz lokali kasrni vergul bilan yozadi ("10,92%") — CSS buni tushunmaydi #}
+            {% localize off %}
+            <div class="jm-board" id="jmBoard"
+                 style="--jm-cell: {{ geometry.cell }}%; padding-top: {{ geometry.aspect }}%;">
+                <div class="jm-board-inner">
+                    <svg class="jm-trail" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path class="rope" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
+                        <path class="rope-in" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
+                        <path class="dash" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
+                        <g id="jmArcs"></g>
+                    </svg>
+
+                    {% for cell in cells %}
+                    <div class="jm-cell{% if cell.is_start %} start{% endif %}{% if cell.is_finish %} finish{% endif %}"
+                         data-index="{{ cell.index }}"
+                         style="left: {{ cell.x }}%; top: {{ cell.y }}%;"
+                         {% if cell.effect %}data-tone="{{ cell.effect.tone }}" title="{{ cell.effect.label }}"{% endif %}>
+                        <span class="num">{{ cell.index }}</span>
+                        {% if cell.is_start %}
+                            <span class="fx">🏁</span><span class="cap">START</span>
+                        {% elif cell.is_finish %}
+                            <span class="fx">🏆</span><span class="cap">FINISH</span>
+                        {% elif cell.effect %}
+                            <span class="fx">{{ cell.effect.icon }}</span>
+                            {% if cell.steps %}<span class="fx-steps">{{ cell.steps }}</span>{% endif %}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    <div id="jmTokens"></div>
+
+                    <div class="jm-dice-orb" id="jmDice">
+                        <span id="jmDiceFace">🎲</span>
+                        <span class="who" id="jmDiceWho"></span>
+                    </div>
+                </div>
+            </div>
+            {% endlocalize %}
+
+            <div class="jm-legend">
+                {% for fx in effect_legend %}
+                <span class="jm-lg"><span>{{ fx.icon }}</span> {{ fx.label }}</span>
+                {% endfor %}
+            </div>
+        </main>
+
+        <!-- ===== O'NG: topshiriq paneli ===== -->
+        <section class="jm-quest">
+            <div class="jm-quest-head">
+                <span class="t">Topshiriq</span>
+                <span class="jm-pill count ms-auto" id="jmPhase">—</span>
+            </div>
+            <div class="jm-quest-body" id="jmStage">
+                <div class="text-center py-3" style="color:#bbf7d0;">
+                    <div class="spinner-border spinner-border-sm"></div>
+                    <div class="mt-2 small">Holat yuklanmoqda…</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+<div class="jm-win" id="jmWin">
+    <div class="jm-win-card">
+        <div class="cup">🏆</div>
+        <h3 class="fw-bold mt-2 mb-1" id="jmWinName">—</h3>
+        <p style="color:#86efac;" class="mb-0">Jumanji g'olibi!</p>
+        <div class="jm-standings" id="jmStandings"></div>
+        <a href="{% url 'games:games_list' %}" class="jm-btn go mt-4 d-inline-flex">O'yinlarga qaytish</a>
+    </div>
+</div>
+
+<div class="jm-toast" id="jmToast"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    var root = document.querySelector('.jm-page');
+    if (!root) { return; }
+
+    var CFG = {
+        state: root.dataset.stateUrl,
+        control: root.dataset.controlUrl,
+        join: root.dataset.joinUrl,
+        leave: root.dataset.leaveUrl,
+        isController: root.dataset.controller === '1',
+        minPlayers: parseInt(root.dataset.minPlayers, 10) || 2,
+        boardSize: parseInt(root.dataset.boardSize, 10) || 30,
+        seconds: parseInt(root.dataset.seconds, 10) || 60
+    };
+
+    var el = {
+        stage: document.getElementById('jmStage'),
+        phase: document.getElementById('jmPhase'),
+        roster: document.getElementById('jmRoster'),
+        feed: document.getElementById('jmFeed'),
+        status: document.getElementById('jmStatus'),
+        paused: document.getElementById('jmPaused'),
+        count: document.getElementById('jmCount'),
+        win: document.getElementById('jmWin'),
+        winName: document.getElementById('jmWinName'),
+        standings: document.getElementById('jmStandings'),
+        toast: document.getElementById('jmToast'),
+        board: document.getElementById('jmBoard'),
+        tokens: document.getElementById('jmTokens'),
+        arcs: document.getElementById('jmArcs'),
+        dice: document.getElementById('jmDice'),
+        diceFace: document.getElementById('jmDiceFace'),
+        diceWho: document.getElementById('jmDiceWho'),
+        soundBtn: document.getElementById('jmSound')
+    };
+
+    var POINTS = JSON.parse(document.getElementById('jmPoints').textContent);
+    var LINKS = JSON.parse(document.getElementById('jmLinks').textContent);
+
+    var version = -1;
+    var lastEventSeq = 0;
+    var turnSeq = 0;
+    var busy = false;
+    var timerId = null;
+    var seenWinner = false;
+    var boardPainted = LINKS.length > 0;
+    var needFull = false;
+    var primed = false;      // birinchi javobdan keyin animatsiya/ovoz yoqiladi
+    var walkers = {};        // o'yinchi id → yurish taymeri
+    var starters = {};       // o'yinchi id → yurishni boshlash kechikishi
+    var tokenNodes = {};
+    var polling = false;     // bir vaqtda faqat bitta so'rov — navbat yig'ilmaydi
+    var pollTimer = null;
+    var idleRounds = 0;      // ketma-ket o'zgarishsiz javoblar soni
+    var diceUntil = 0;       // zarba animatsiyasi shu vaqtgacha davom etadi
+
+    // ============================================================
+    // OVOZ — fayl yuklanmaydi, WebAudio to'lqinlari sintez qilinadi.
+    // Shu tufayli sahifa og'irlashmaydi va 404 xavfi yo'q.
+    // ============================================================
+    var audio = (function () {
+        var ctx = null;
+        var on = localStorage.getItem('jmSound') !== '0';
+
+        function context() {
+            if (!ctx) {
+                var Ctor = window.AudioContext || window.webkitAudioContext;
+                if (!Ctor) { return null; }
+                ctx = new Ctor();
+            }
+            if (ctx.state === 'suspended') { ctx.resume(); }
+            return ctx;
+        }
+
+        function blip(opts) {
+            if (!on) { return; }
+            var c = context();
+            if (!c) { return; }
+            var now = c.currentTime + (opts.delay || 0);
+            var osc = c.createOscillator();
+            var gain = c.createGain();
+            osc.type = opts.type || 'sine';
+            osc.frequency.setValueAtTime(opts.from, now);
+            if (opts.to) { osc.frequency.exponentialRampToValueAtTime(opts.to, now + opts.dur); }
+            gain.gain.setValueAtTime(0.0001, now);
+            gain.gain.exponentialRampToValueAtTime(opts.vol || 0.16, now + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + opts.dur);
+            osc.connect(gain).connect(c.destination);
+            osc.start(now);
+            osc.stop(now + opts.dur + 0.02);
+        }
+
+        function chord(freqs, step, type, vol) {
+            freqs.forEach(function (f, i) {
+                blip({ from: f, dur: 0.24, type: type || 'triangle', vol: vol || 0.15, delay: i * (step || 0.09) });
+            });
+        }
+
+        return {
+            get enabled() { return on; },
+            toggle: function () {
+                on = !on;
+                localStorage.setItem('jmSound', on ? '1' : '0');
+                if (on) { blip({ from: 660, to: 990, dur: 0.16, type: 'triangle' }); }
+                return on;
+            },
+            unlock: function () { if (on) { context(); } },
+            dice: function () {
+                for (var i = 0; i < 7; i++) {
+                    blip({ from: 180 + i * 26, dur: 0.05, type: 'square', vol: 0.07, delay: i * 0.075 });
+                }
+                blip({ from: 520, to: 180, dur: 0.3, type: 'triangle', vol: 0.18, delay: 0.6 });
+            },
+            step: function () { blip({ from: 720, to: 940, dur: 0.07, type: 'triangle', vol: 0.1 }); },
+            correct: function () { chord([523, 659, 784, 1046], 0.08); },
+            wrong: function () { blip({ from: 240, to: 110, dur: 0.42, type: 'sawtooth', vol: 0.14 }); },
+            good: function () { chord([784, 1046], 0.08, 'sine', 0.14); },
+            bad: function () { blip({ from: 320, to: 90, dur: 0.5, type: 'square', vol: 0.12 }); },
+            neutral: function () { blip({ from: 440, to: 620, dur: 0.22, type: 'triangle', vol: 0.13 }); },
+            tick: function () { blip({ from: 1300, dur: 0.05, type: 'square', vol: 0.06 }); },
+            open: function () { blip({ from: 400, to: 800, dur: 0.2, type: 'triangle', vol: 0.13 }); },
+            win: function () { chord([523, 659, 784, 1046, 1318], 0.13, 'triangle', 0.19); }
+        };
+    })();
+
+    el.soundBtn.textContent = audio.enabled ? '🔊' : '🔇';
+    el.soundBtn.classList.toggle('off', !audio.enabled);
+    el.soundBtn.addEventListener('click', function () {
+        var on = audio.toggle();
+        el.soundBtn.textContent = on ? '🔊' : '🔇';
+        el.soundBtn.classList.toggle('off', !on);
+    });
+    // Brauzerlar ovozni faqat foydalanuvchi harakatidan keyin ochadi.
+    document.addEventListener('click', function once() {
+        audio.unlock();
+        document.removeEventListener('click', once);
+    });
+
+    // ---------- yordamchilar ----------
+    function csrf() {
+        var m = document.cookie.match(/(?:^|;\s*)csrftoken=([^;]+)/);
+        return m ? decodeURIComponent(m[1]) : '';
+    }
+
+    function esc(value) {
+        var d = document.createElement('div');
+        d.textContent = value == null ? '' : String(value);
+        return d.innerHTML;
+    }
+
+    var toastTimer = null;
+    function toast(message, isError) {
+        el.toast.textContent = message;
+        el.toast.className = 'jm-toast show' + (isError ? ' err' : '');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { el.toast.className = 'jm-toast'; }, 3600);
+    }
+
+    function avatarStyle(player) {
+        if (player.avatar) { return 'background-image:url(' + encodeURI(player.avatar) + ')'; }
+        var hues = [140, 165, 45, 200, 280, 15, 320, 95];
+        return 'background:hsl(' + hues[player.id % hues.length] + ',65%,58%)';
+    }
+
+    function point(index) {
+        return POINTS[Math.max(0, Math.min(POINTS.length - 1, index))];
+    }
+
+    // ---------- doska ----------
+    function paintCells(cells) {
+        cells.forEach(function (cell) {
+            var node = el.board.querySelector('.jm-cell[data-index="' + cell.index + '"]');
+            if (!node || cell.is_start || cell.is_finish) { return; }
+            var fx = node.querySelector('.fx');
+            var steps = node.querySelector('.fx-steps');
+            if (!cell.effect) {
+                node.removeAttribute('data-tone');
+                node.removeAttribute('title');
+                if (fx) { fx.remove(); }
+                if (steps) { steps.remove(); }
+                return;
+            }
+            node.dataset.tone = cell.effect.tone;
+            node.title = cell.effect.label;
+            if (!fx) {
+                fx = document.createElement('span');
+                fx.className = 'fx';
+                node.appendChild(fx);
+            }
+            fx.textContent = cell.effect.icon;
+            if (cell.steps) {
+                if (!steps) {
+                    steps = document.createElement('span');
+                    steps.className = 'fx-steps';
+                    node.appendChild(steps);
+                }
+                steps.textContent = cell.steps;
+            } else if (steps) {
+                steps.remove();
+            }
+        });
+    }
+
+    // Ilon/narvon yoylari — koordinatalar serverdan kelgani uchun
+    // o'lchov (getBoundingClientRect) kerak emas, resize'da qayta chizilmaydi.
+    function drawArcs() {
+        el.arcs.innerHTML = LINKS.map(function (link) {
+            var a = point(link.from);
+            var b = point(link.to);
+            if (!a || !b) { return ''; }
+            var mx = (a.x + b.x) / 2;
+            var my = (a.y + b.y) / 2 - Math.max(6, Math.abs(a.x - b.x) * 0.3);
+            return '<path class="arc-' + (link.effect === 'snake' ? 'snake' : 'ladder') + '" ' +
+                'vector-effect="non-scaling-stroke" d="M' + a.x + ' ' + a.y +
+                ' Q' + mx.toFixed(2) + ' ' + my.toFixed(2) + ' ' + b.x + ' ' + b.y + '"/>';
+        }).join('');
+    }
+
+    function placeToken(node, index) {
+        var p = point(index);
+        node.style.left = p.x + '%';
+        node.style.top = p.y + '%';
+    }
+
+    function spotlight(index) {
+        el.board.querySelectorAll('.jm-cell.spotlight').forEach(function (c) { c.classList.remove('spotlight'); });
+        var cell = el.board.querySelector('.jm-cell[data-index="' + index + '"]');
+        if (cell) { cell.classList.add('spotlight'); }
+    }
+
+    function popCell(index) {
+        var cell = el.board.querySelector('.jm-cell[data-index="' + index + '"]');
+        if (!cell) { return; }
+        cell.classList.remove('pop');
+        void cell.offsetWidth;
+        cell.classList.add('pop');
+    }
+
+    /* Toshni katakma-katak yurgizadi. Har yurish alohida CSS o'tishi —
+       shu tufayli brauzer layout'ni qayta hisoblamaydi va o'yin qotmaydi.
+       `delay` — zarba animatsiyasi tugashini kutish uchun (avval tosh
+       tushadi, keyin o'yinchi yuradi). */
+    function walkToken(node, from, to, delay) {
+        clearInterval(walkers[node.dataset.player]);
+        clearTimeout(starters[node.dataset.player]);
+        var distance = Math.abs(to - from);
+        if (distance === 0) { return; }
+
+        function begin() {
+            if (distance > 8) {  // 💥 almashuv / 🐍 uzoq sirg'alish — sakrab o'tadi
+                node.style.transitionDuration = '0.8s';
+                placeToken(node, to);
+                node.dataset.at = to;
+                return;
+            }
+
+            node.style.transitionDuration = '0.24s';
+            var step = to > from ? 1 : -1;
+            var at = from;
+            walkers[node.dataset.player] = setInterval(function () {
+                at += step;
+                placeToken(node, at);
+                node.dataset.at = at;
+                node.classList.remove('hop');
+                void node.offsetWidth;
+                node.classList.add('hop');
+                if (primed) { audio.step(); }
+                if (at === to) { clearInterval(walkers[node.dataset.player]); }
+            }, 250);
+        }
+
+        if (delay > 0) {
+            starters[node.dataset.player] = setTimeout(begin, delay);
+        } else {
+            begin();
+        }
+    }
+
+    function renderTokens(players) {
+        var seen = {};
+        // bir katakda bir nechta tosh bo'lsa — yelpig'ich shaklida suriladi
+        var stack = {};
+        players.forEach(function (p) {
+            stack[p.position] = (stack[p.position] || 0) + 1;
+        });
+        var used = {};
+
+        players.forEach(function (p) {
+            seen[p.id] = true;
+            var node = tokenNodes[p.id];
+            if (!node) {
+                node = document.createElement('span');
+                node.className = 'jm-token';
+                node.dataset.player = p.id;
+                node.dataset.at = p.position;
+                // DOM'ga qo'shishdan oldin joylashtiriladi — aks holda tosh
+                // burchakdan sirg'alib kelayotgandek ko'rinadi.
+                placeToken(node, p.position);
+                el.tokens.appendChild(node);
+                tokenNodes[p.id] = node;
+            }
+            node.title = p.name + ' — ' + p.position + '-katak';
+            node.style.backgroundImage = '';
+            node.style.background = '';
+            if (p.avatar) {
+                node.style.backgroundImage = 'url(' + encodeURI(p.avatar) + ')';
+                node.textContent = '';
+            } else {
+                var hues = [140, 165, 45, 200, 280, 15, 320, 95];
+                node.style.background = 'hsl(' + hues[p.id % hues.length] + ',65%,58%)';
+                node.textContent = p.initials;
+            }
+            node.classList.toggle('turn', !!p.is_current);
+
+            var count = stack[p.position] || 1;
+            used[p.position] = (used[p.position] || 0) + 1;
+            var offset = count > 1 ? (used[p.position] - (count + 1) / 2) * 55 : 0;
+            node.style.marginLeft = offset.toFixed(0) + '%';
+
+            var at = parseInt(node.dataset.at, 10);
+            if (at !== p.position) {
+                if (primed) {
+                    // Zarba endi tashlangan bo'lsa — tosh tushib bo'lgach yuriladi
+                    walkToken(node, at, p.position, Math.max(0, diceUntil - Date.now()));
+                } else {
+                    placeToken(node, p.position);
+                    node.dataset.at = p.position;
+                }
+            }
+        });
+
+        Object.keys(tokenNodes).forEach(function (id) {
+            if (!seen[id]) {
+                tokenNodes[id].remove();
+                delete tokenNodes[id];
+            }
+        });
+    }
+
+    // Zarba animatsiyasi shu vaqtgacha davom etadi — tosh tushmasdan yurish boshlanmaydi.
+    var DICE_ROLL_MS = 950;
+
+    function rollDice(value, who) {
+        el.diceFace.textContent = value;
+        el.diceWho.textContent = who ? who + ' tosh tashladi!' : '';
+        el.dice.classList.add('show');
+        el.dice.classList.remove('rolling');
+        void el.dice.offsetWidth;
+        el.dice.classList.add('rolling');
+        diceUntil = Date.now() + DICE_ROLL_MS;
+        if (primed) { audio.dice(); }
+        clearTimeout(rollDice.timer);
+        rollDice.timer = setTimeout(function () {
+            el.dice.classList.remove('show', 'rolling');
+        }, 2200);
+    }
+
+    // ---------- o'yinchilar ro'yxati ----------
+    function renderRoster(players, status) {
+        if (!players.length) {
+            el.roster.innerHTML = '<div class="text-muted small">Hali hech kim qo\'shilmagan.</div>';
+            return;
+        }
+        var canKick = CFG.isController && status === 'lobby';
+        el.roster.innerHTML = players.map(function (p) {
+            var badges = '';
+            if (p.has_shield) { badges += '🛡'; }
+            if (p.skip_turns > 0) { badges += '❄️' + (p.skip_turns > 1 ? p.skip_turns : ''); }
+            if (p.multiplier > 1) { badges += '🎯'; }
+            if (p.finished) { badges += '🏁'; }
+            var pct = Math.min(100, Math.round(p.position * 100 / CFG.boardSize));
+            return '' +
+                '<div class="jm-rp' + (p.is_current ? ' turn' : '') + (p.is_online ? '' : ' gone') + '">' +
+                    '<span class="av" style="' + avatarStyle(p) + '">' +
+                        (p.avatar ? '' : esc(p.initials)) +
+                        '<i class="dot' + (p.is_online ? ' on' : '') + '"></i>' +
+                    '</span>' +
+                    '<span class="info">' +
+                        '<div class="nm">' + esc(p.name) + ' <span class="badges">' + badges + '</span></div>' +
+                        '<div class="meta"><span>✅ ' + p.correct + '</span><span>❌ ' + p.wrong + '</span>' +
+                            (p.rank ? '<span>🏅 ' + p.rank + '-o\'rin</span>' : '') + '</div>' +
+                        '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+                    '</span>' +
+                    (canKick
+                        ? '<button class="jm-kick" data-act="kick" data-player="' + p.id + '" ' +
+                          'title="Lobbydan chiqarish">✕</button>'
+                        : '<span class="pos">' + p.position + '</span>') +
+                '</div>';
+        }).join('');
+    }
+
+    // ---------- jonli lenta va animatsiya ----------
+    var EVENT_TEXT = {
+        lobby_open: function (p) { return '🚪 Lobby ochildi (' + esc(p.by || '') + ')'; },
+        join: function (p) { return '➕ ' + esc(p.player) + ' qo\'shildi'; },
+        leave: function (p) { return '➖ ' + esc(p.player) + ' chiqdi'; },
+        kicked: function (p) { return '🚫 ' + esc(p.player) + ' chiqarildi'; },
+        start: function (p) { return '🎬 O\'yin boshlandi — ' + (p.players || []).length + ' o\'yinchi'; },
+        question: function (p) { return '❓ ' + esc(p.player) + ' uchun savol ochildi'; },
+        dice: function (p) { return '🎲 ' + esc(p.player) + ' — ' + p.dice + ' → ' + p.to + '-katak'; },
+        verdict: function (p) { return (p.verdict === 'wrong' ? '❌ ' : '⏭ ') + esc(p.player); },
+        effect: function (p) { return (p.icon || '✨') + ' ' + esc(p.player) + ' — ' + esc(p.label || ''); },
+        shield_block: function (p) { return '🛡 ' + esc(p.player) + ' qalqon bilan himoyalandi'; },
+        task_result: function (p) { return '🃏 ' + esc(p.player) + ' — shart ' + (p.completed ? 'bajarildi' : 'bajarilmadi'); },
+        skipped: function (p) { return '❄️ ' + esc(p.player) + ' navbatini o\'tkazdi'; },
+        paused: function () { return '⏸ O\'yin pauzaga olindi'; },
+        resumed: function () { return '▶️ O\'yin davom etmoqda'; },
+        cancelled: function (p) { return '🛑 O\'yin bekor qilindi (' + esc(p.by || '') + ')'; },
+        finish: function (p) { return '🏆 G\'olib: ' + esc(p.winner); }
+    };
+
+    /* Animatsiya va ovoz hodisalar oqimidan boshqariladi: har bir hodisa
+       `seq` bilan kelgani uchun hech narsa ikki marta ijro etilmaydi va
+       barcha ekranlarda bir xil ketma-ketlik ko'rinadi. */
+    function playEvent(kind, p) {
+        if (kind === 'dice') {
+            rollDice(p.dice, p.player);
+        } else if (kind === 'verdict' && p.verdict === 'wrong') {
+            audio.wrong();
+        } else if (kind === 'question') {
+            audio.open();
+        } else if (kind === 'effect') {
+            // Katak effekti tosh yetib borgandan keyin porillaydi
+            var wait = Math.max(0, diceUntil - Date.now());
+            setTimeout(function () {
+                popCell(p.to);
+                if (p.tone === 'good') { audio.good(); }
+                else if (p.tone === 'bad') { audio.bad(); }
+                else { audio.neutral(); }
+            }, wait);
+        } else if (kind === 'shield_block') {
+            audio.good();
+        } else if (kind === 'finish') {
+            audio.win();
+        } else if (kind === 'start') {
+            audio.correct();
+        }
+    }
+
+    function pushEvents(events) {
+        events.forEach(function (event) {
+            if (event.seq <= lastEventSeq) { return; }
+            lastEventSeq = event.seq;
+            var fn = EVENT_TEXT[event.kind];
+            if (!fn) { return; }
+            var payload = event.payload || {};
+            var node = document.createElement('div');
+            var hot = event.kind === 'dice' || event.kind === 'finish' || event.kind === 'effect';
+            var bad = event.kind === 'cancelled' || (event.kind === 'verdict' && payload.verdict === 'wrong');
+            node.className = 'jm-ev' + (bad ? ' bad' : (hot ? ' hot' : ''));
+            node.innerHTML = fn(payload);
+            el.feed.insertBefore(node, el.feed.firstChild);
+            while (el.feed.children.length > 40) { el.feed.removeChild(el.feed.lastChild); }
+            if (primed) { playEvent(event.kind, payload); }
+        });
+    }
+
+    // ---------- topshiriq paneli ----------
+    var PHASE_TEXT = {
+        lobby: 'Lobby', waiting_turn: 'Navbat', question: 'Savol',
+        dice: 'Zarba', effect: 'Katak', finished: 'Yakun'
+    };
+
+    function renderStage(data) {
+        clearInterval(timerId);
+        el.phase.textContent = PHASE_TEXT[data.status === 'lobby' ? 'lobby' : data.phase] || '—';
+
+        if (data.status === 'lobby') { return renderLobby(data); }
+        if (data.status === 'cancelled') {
+            el.stage.innerHTML = '<div class="text-center py-4"><div style="font-size:2.4rem;">🛑</div>' +
+                '<h5 class="fw-bold mt-2">O\'yin bekor qilindi</h5></div>';
+            return;
+        }
+        if (data.status === 'finished') { return renderFinished(data); }
+
+        var current = data.players.filter(function (p) { return p.is_current; })[0];
+        if (current) { spotlight(current.position); }
+
+        if (data.phase === 'question' && data.question) { return renderQuestion(data, current); }
+        if (data.phase === 'effect' && data.turn && data.turn.effect === 'task') { return renderTask(data, current); }
+        return renderWaiting(data, current);
+    }
+
+    function whoBlock(player, subtitle, timer) {
+        if (!player) {
+            return '<div class="jm-who"><span class="sub">Navbat aniqlanmoqda…</span></div>';
+        }
+        return '<div class="jm-who">' +
+            '<span class="av" style="' + avatarStyle(player) + '">' + (player.avatar ? '' : esc(player.initials)) + '</span>' +
+            '<span><div class="nm">' + esc(player.name) + '</div>' +
+            '<div class="sub">' + subtitle + '</div></span>' +
+            (timer || '') +
+            '</div>';
+    }
+
+    function renderLobby(data) {
+        var enough = data.players.length >= CFG.minPlayers;
+        var html = '<div class="text-center py-2">' +
+            '<div style="font-size:2.6rem;">🎲</div>' +
+            '<h5 class="fw-bold mt-2 mb-1">O\'yinchilar kutilmoqda</h5>' +
+            '<p style="color:#bbf7d0;font-size:0.88rem;" class="mb-0">' + data.players.length + ' ta o\'yinchi' +
+            (enough ? '' : ' — kamida ' + CFG.minPlayers + ' ta kerak') + '</p></div>';
+
+        if (CFG.isController) {
+            html += '<div class="jm-controls">' +
+                '<button class="jm-btn ok big" data-act="start"' + (enough ? '' : ' disabled') + '>▶️ Boshlash</button>' +
+                '<button class="jm-btn no big" data-act="cancel">🛑 Bekor</button>' +
+                '</div>';
+        } else {
+            html += '<p class="text-center mb-0 mt-2" style="color:#bbf7d0;font-size:0.85rem;">' +
+                'O\'qituvchi o\'yinni boshlashini kuting…</p>';
+        }
+        el.stage.innerHTML = html;
+    }
+
+    function renderWaiting(data, current) {
+        var html = whoBlock(current, 'Navbat shu o\'yinchida');
+
+        if (CFG.isController) {
+            html += '<div class="jm-controls">' +
+                '<button class="jm-btn go big" data-act="open_question"' + (data.is_paused ? ' disabled' : '') + '>❓ Savolni ochish</button>' +
+                '<button class="jm-btn ghost big" data-act="next_turn">⏭ Keyingi</button>' +
+                (data.is_paused
+                    ? '<button class="jm-btn ok sm" data-act="resume">▶️ Davom</button>'
+                    : '<button class="jm-btn ghost sm" data-act="pause">⏸ Pauza</button>') +
+                '<button class="jm-btn go sm" data-act="finish">🏁 Yakunlash</button>' +
+                '<button class="jm-btn no sm" data-act="cancel">🛑 Bekor</button>' +
+                '</div>';
+        } else {
+            html += '<div class="jm-speak"><span class="big">' + (data.me.is_current ? '✋' : '⏳') + '</span>' +
+                (data.me.is_current
+                    ? 'Sizning navbatingiz — o\'qituvchi savolni ochadi'
+                    : 'Savol ochilishini kuting…') +
+                '</div>';
+        }
+        el.stage.innerHTML = html;
+    }
+
+    function renderQuestion(data, current) {
+        var q = data.question;
+        var timer = '<span class="jm-timer" id="jmTimer">' +
+            '<svg class="jm-ring" id="jmRing" viewBox="0 0 60 60">' +
+                '<circle class="bg" cx="30" cy="30" r="26"></circle>' +
+                '<circle class="fg" cx="30" cy="30" r="26" stroke-dasharray="163.4" stroke-dashoffset="0"></circle>' +
+            '</svg><span class="jm-ring-num" id="jmRingNum">' + q.remaining + '</span></span>';
+
+        var html = whoBlock(current, 'og\'zaki javob bermoqda', timer);
+        html += '<div class="jm-qtext">' + esc(q.text) + '</div>';
+        if (q.image) { html += '<img src="' + encodeURI(q.image) + '" class="jm-qimg" alt="Savol rasmi">'; }
+
+        if (CFG.isController) {
+            if (q.correct_text) {
+                html += '<div class="jm-answer"><span class="lbl">To\'g\'ri javob — faqat siz ko\'rasiz</span>' +
+                    esc(q.correct_text) + '</div>';
+            }
+            html += '<div class="jm-controls">' +
+                '<button class="jm-btn ok big" data-act="verdict" data-verdict="correct">✅ To\'g\'ri</button>' +
+                '<button class="jm-btn no big" data-act="verdict" data-verdict="wrong">❌ Noto\'g\'ri</button>' +
+                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="timeout">⏱ Vaqt tugadi</button>' +
+                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="skipped">⏭ O\'tkazish</button>' +
+                '</div>';
+        } else if (data.me.is_current) {
+            html += '<div class="jm-speak"><span class="big">🎤</span>Javobni ovoz chiqarib ayting!</div>';
+        } else {
+            html += '<div class="jm-speak"><span class="big">🤫</span>' +
+                esc(current ? current.name : 'O\'yinchi') + ' javob bermoqda</div>';
+        }
+
+        el.stage.innerHTML = html;
+        startTimer(q.remaining, q.time_limit || CFG.seconds);
+    }
+
+    function renderTask(data, current) {
+        var html = whoBlock(current, '🃏 Shart bajarishi kerak');
+        html += '<div class="jm-fx neutral"><span class="ic">🃏</span>' +
+            '<span><strong>Shart katagi!</strong><br><span style="font-size:0.82rem;color:#fde68a;">' +
+            'Boshqaruvchi og\'zaki shart beradi. Bajarilsa +2 katak.</span></span></div>';
+
+        if (CFG.isController) {
+            html += '<input type="text" class="form-control mt-3" id="jmTaskNote" maxlength="200" ' +
+                'placeholder="Shart matni (ixtiyoriy)" ' +
+                'style="border-radius:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.18);color:#ecfdf5;">';
+            html += '<div class="jm-controls">' +
+                '<button class="jm-btn ok big" data-act="resolve_task" data-completed="1">✅ Bajardi</button>' +
+                '<button class="jm-btn no big" data-act="resolve_task" data-completed="0">❌ Bajarmadi</button>' +
+                '</div>';
+        }
+        el.stage.innerHTML = html;
+    }
+
+    function standingsHtml(players) {
+        var medals = ['🥇', '🥈', '🥉'];
+        return players.map(function (p, i) {
+            return '<div><span>' + (medals[i] || (i + 1) + '.') + ' ' + esc(p.name) + '</span>' +
+                '<span>' + p.position + '-katak</span></div>';
+        }).join('');
+    }
+
+    function renderFinished(data) {
+        var ranked = data.players.slice().sort(function (a, b) {
+            return (a.rank || 99) - (b.rank || 99);
+        });
+        el.stage.innerHTML = '<div class="text-center py-2">' +
+            '<div style="font-size:2.6rem;">🏆</div>' +
+            '<h5 class="fw-bold mt-2 mb-1">O\'yin yakunlandi</h5>' +
+            '<p style="color:#bbf7d0;">G\'olib: <strong>' + esc(data.winner ? data.winner.name : '—') + '</strong></p>' +
+            '<div class="jm-standings">' + standingsHtml(ranked) + '</div></div>';
+
+        if (!seenWinner) {
+            seenWinner = true;
+            el.winName.textContent = data.winner ? data.winner.name : '—';
+            el.standings.innerHTML = standingsHtml(ranked);
+            el.win.classList.add('show');
+            setTimeout(function () { el.win.classList.remove('show'); }, 9000);
+        }
+    }
+
+    function startTimer(remaining, total) {
+        var ring = document.getElementById('jmRing');
+        var num = document.getElementById('jmRingNum');
+        var wrap = document.getElementById('jmTimer');
+        if (!ring || !num) { return; }
+        var fg = ring.querySelector('.fg');
+        var left = remaining;
+
+        function tick() {
+            num.textContent = left;
+            var ratio = total > 0 ? Math.max(0, left / total) : 0;
+            fg.style.strokeDashoffset = (163.4 * (1 - ratio)).toFixed(1);
+            ring.classList.toggle('warn', ratio <= 0.5 && ratio > 0.2);
+            ring.classList.toggle('danger', ratio <= 0.2);
+            wrap.classList.toggle('danger', ratio <= 0.2);
+            if (left <= 5 && left > 0 && primed) { audio.tick(); }
+            if (left <= 0) { clearInterval(timerId); return; }
+            left -= 1;
+        }
+        tick();
+        timerId = setInterval(tick, 1000);
+    }
+
+    // ---------- tarmoq ----------
+    function apply(data) {
+        version = data.v;
+        turnSeq = data.turn_seq;
+        CFG.boardSize = data.board_size;
+
+        el.status.className = 'jm-pill ' + data.status;
+        el.status.textContent = {
+            lobby: 'Lobby', running: 'Ketmoqda', finished: 'Tugadi', cancelled: 'Bekor qilindi'
+        }[data.status] || data.status;
+        el.paused.classList.toggle('d-none', !data.is_paused);
+        el.count.textContent = '👥 ' + data.players.length;
+
+        if (data.cells) {
+            paintCells(data.cells);
+            LINKS = data.links || [];
+            boardPainted = true;
+            drawArcs();
+        } else if (data.status === 'running' && !boardPainted) {
+            needFull = true;
+        }
+
+        pushEvents(data.events || []);
+        renderRoster(data.players, data.status);
+        renderTokens(data.players);
+        renderStage(data);
+        primed = true;
+    }
+
+    /* Doimiy 2s interval o'rniga o'zini qayta rejalashtiruvchi tsikl: sekin
+       tarmoqda so'rovlar ustma-ust yig'ilmaydi (aynan shu narsa "qotish"ga
+       olib keladi), harakat bo'lganda esa yangilanish deyarli darhol keladi. */
+    function pollDelay() {
+        if (document.hidden) { return 6000; }
+        if (idleRounds < 4) { return 700; }     // yaqinda o'zgarish bo'ldi — tez tekshir
+        if (idleRounds < 15) { return 1400; }
+        return 2500;                            // uzoq tinchlik (savol o'qilmoqda)
+    }
+
+    function schedule(delay) {
+        clearTimeout(pollTimer);
+        pollTimer = setTimeout(poll, delay === undefined ? pollDelay() : delay);
+    }
+
+    function poll(full) {
+        if (polling) { return; }
+        polling = true;
+        var wantFull = full === true || needFull;
+        needFull = false;
+        var url = CFG.state + '?v=' + version + '&since=' + lastEventSeq + (wantFull ? '&full=1' : '');
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (data && data.changed) { idleRounds = 0; apply(data); }
+                else { idleRounds += 1; }
+            })
+            .catch(function () { idleRounds += 1; })
+            .finally(function () {
+                polling = false;
+                schedule();
+            });
+    }
+
+    function send(action, extra) {
+        if (busy) { return; }
+        busy = true;
+        var body = new FormData();
+        body.append('action', action);
+        body.append('turn_seq', turnSeq);
+        body.append('since', lastEventSeq);
+        Object.keys(extra || {}).forEach(function (key) { body.append(key, extra[key]); });
+
+        fetch(CFG.control, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            body: body
+        })
+            .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+            .then(function (res) {
+                if (res.data.ok) { apply(res.data); }
+                else {
+                    toast(res.data.error || 'Amal bajarilmadi', true);
+                }
+                // Bosishdan keyin holat o'zgardi — boshqa ekranlar tez ilg'ashi uchun
+                idleRounds = 0;
+                schedule(250);
+            })
+            .catch(function () { toast('Tarmoq xatosi — qayta urinib ko\'ring', true); })
+            .finally(function () { busy = false; });
+    }
+
+    // ---------- hodisalar ----------
+    el.stage.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-act]');
+        if (!button || button.disabled) { return; }
+        var action = button.dataset.act;
+
+        if (action === 'cancel' && !confirm("O'yin bekor qilinsinmi? Bu amalni qaytarib bo'lmaydi.")) { return; }
+        if (action === 'finish' && !confirm("O'yin hozir yakunlansinmi? Natijalar va coinlar shu holat bo'yicha beriladi.")) { return; }
+
+        var extra = {};
+        if (action === 'verdict') { extra.verdict = button.dataset.verdict; }
+        if (action === 'resolve_task') {
+            extra.completed = button.dataset.completed;
+            var note = document.getElementById('jmTaskNote');
+            if (note) { extra.note = note.value; }
+        }
+        send(action, extra);
+    });
+
+    el.roster.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-act="kick"]');
+        if (!button || button.disabled) { return; }
+        if (!confirm("Bu o'yinchi lobbydan chiqarilsinmi?")) { return; }
+        send('kick', { player_id: button.dataset.player });
+    });
+
+    var joinBtn = document.getElementById('jmJoinBtn');
+    if (joinBtn) {
+        joinBtn.addEventListener('click', function () {
+            joinBtn.disabled = true;
+            fetch(CFG.join, { method: 'POST', headers: { 'X-CSRFToken': csrf() } })
+                .then(function (r) { return r.json(); })
+                .then(function (d) {
+                    if (d.ok) { toast("O'yinga qo'shildingiz!"); joinBtn.remove(); poll(); }
+                    else { toast(d.error || "Qo'shilib bo'lmadi", true); joinBtn.disabled = false; }
+                })
+                .catch(function () { joinBtn.disabled = false; });
+        });
+    }
+
+    var leaveBtn = document.getElementById('jmLeaveBtn');
+    if (leaveBtn) {
+        leaveBtn.addEventListener('click', function () {
+            if (!confirm('Lobbydan chiqasizmi?')) { return; }
+            fetch(CFG.leave, { method: 'POST', headers: { 'X-CSRFToken': csrf() } })
+                .then(function () { window.location.reload(); });
+        });
+    }
+
+    el.win.addEventListener('click', function () { el.win.classList.remove('show'); });
+
+    // ---------- ishga tushirish ----------
+    drawArcs();
+    poll(true);
+
+    // Boshqa oynadan qaytganda darhol yangilanadi — ekran eskirgan qolmaydi.
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) { idleRounds = 0; schedule(0); }
+    });
+    window.addEventListener('online', function () { idleRounds = 0; schedule(0); });
+})();
+</script>
+{% endblock %}

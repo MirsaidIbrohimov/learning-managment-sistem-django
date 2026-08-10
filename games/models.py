@@ -9,6 +9,7 @@ class Game(models.Model):
         ('quiz', 'Quiz'),
         ('word_builder', 'Word Builder'),
         ('external', 'Tashqi o\'yin (External)'),
+        ('jumanji', 'Jumanji (jonli musobaqa)'),
     )
 
     title = models.CharField(max_length=200, verbose_name="O'yin nomi")
@@ -213,6 +214,10 @@ class Competition(models.Model):
         word_count = self.word_attempts.filter(user=user).count()
         return typing_count + word_count
 
+    def jumanji_live_session(self):
+        """Shu musobaqaning hozir ochiq (lobby yoki running) sessiyasi."""
+        return self.jumanji_sessions.filter(status__in=('lobby', 'running')).first()
+
     def can_user_play(self, user):
         if self.status != 'active':
             return False
@@ -257,6 +262,12 @@ class Competition(models.Model):
         from telegram_bot.utils import notify_user, notify_group
 
         # Reyting aniqlash
+        if self.game.game_type == 'jumanji':
+            # Jumanji coinlari har bir sessiya tugaganda darhol beriladi
+            # (JumanjiSession.award_coins) — bu yerda takror berilmasligi kerak.
+            self.coins_awarded = True
+            self.save(update_fields=['coins_awarded'])
+            return
         if self.game.game_type == 'word_builder':
             all_attempts = WordGameAttempt.objects.filter(
                 competition=self
@@ -311,7 +322,10 @@ class Competition(models.Model):
                     f"🎉 Zo'r natija! Davom eting!"
                 )
 
-            score_text = str(attempt.total_score) if self.game.game_type == 'word_builder' else str(attempt.score)
+            if self.game.game_type == 'word_builder':
+                score_text = str(attempt.total_score)
+            else:
+                score_text = str(attempt.score)
             winners_info.append(f"{place} — <b>{user.full_name}</b> ({score_text} ball, +{coin_amount} coin)")
 
         if winners_info:
@@ -665,3 +679,338 @@ class UserAchievement(models.Model):
 
     def __str__(self):
         return f"{self.user} · {self.game.slug} · {self.code}"
+
+
+# ============================================================
+# JUMANJI — jonli (real-time) sinf musobaqasi.
+#
+# Oqim: admin savollarni yuklaydi → musobaqa yaratadi → boshqaruvchi
+# (admin/o'qituvchi) lobby ochadi → o'quvchilar qo'shiladi → boshqaruvchi
+# o'yinni boshlaydi. Har navbatda savol ochiladi, navbatdagi o'quvchi
+# og'zaki javob beradi, boshqaruvchi to'g'ri/noto'g'ri deb baholaydi.
+# To'g'ri bo'lsa server zarba tashlaydi va o'yinchi shuncha katak yuradi.
+#
+# Channels (WebSocket) yo'q — sinxronlash polling orqali: client
+# `state_version` bilan so'raydi, o'zgarmagan bo'lsa server qisqa javob
+# qaytaradi. BoardMatch bilan bir xil yondashuv.
+# ============================================================
+
+JUMANJI_EFFECTS = (
+    ('safe', '🏝 Neytral'),
+    ('freeze', '❄️ Muzlash'),
+    ('snake', '🐍 Ilon'),
+    ('ladder', '🪜 Narvon'),
+    ('bonus', '⭐ Bonus zarba'),
+    ('double', '🎯 Qo\'sh zarba'),
+    ('task', '🃏 Shart'),
+    ('shield', '🛡 Qalqon'),
+    ('swap', '💥 Almashuv'),
+)
+
+
+class JumanjiQuestion(models.Model):
+    """Jumanji savol bazasi. Yo'nalish (Profession) bo'yicha filtrlanadi."""
+
+    DIFFICULTY_CHOICES = (
+        ('easy', 'Oson'),
+        ('medium', "O'rta"),
+        ('hard', 'Qiyin'),
+    )
+
+    game = models.ForeignKey(
+        Game, on_delete=models.CASCADE, related_name='jumanji_questions', verbose_name="O'yin",
+    )
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='jumanji_questions', verbose_name="Yo'nalish (kurs)",
+        help_text="Masalan: HTML asoslari. Bo'sh qolsa — umumiy savol.",
+    )
+    text = models.TextField(verbose_name="Savol matni")
+    image = models.ImageField(upload_to='games/jumanji/', blank=True, null=True, verbose_name="Rasm")
+    correct_text = models.TextField(
+        verbose_name="To'g'ri javob",
+        help_text="Faqat boshqaruvchi (admin/o'qituvchi) ko'radi.",
+    )
+    difficulty = models.CharField(
+        max_length=10, choices=DIFFICULTY_CHOICES, default='medium', verbose_name="Qiyinlik",
+    )
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    order = models.IntegerField(default=0, verbose_name="Tartib")
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='jumanji_questions_created', verbose_name="Kim qo'shdi",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+        verbose_name = "Jumanji savoli"
+        verbose_name_plural = "Jumanji savollari"
+        indexes = [
+            models.Index(fields=['game', 'is_active']),
+            models.Index(fields=['profession', 'is_active']),
+        ]
+
+    def __str__(self):
+        return self.text[:60]
+
+
+class JumanjiSession(models.Model):
+    """Bitta Jumanji partiyasi (lobby → o'yin → yakun)."""
+
+    STATUS_CHOICES = (
+        ('lobby', "Lobby (o'yinchilar kutilmoqda)"),
+        ('running', 'Ketmoqda'),
+        ('finished', 'Tugadi'),
+        ('cancelled', 'Bekor qilindi'),
+    )
+
+    # Navbat ichidagi bosqichlar. UI shu qiymatga qarab nima ko'rsatishni biladi.
+    PHASE_CHOICES = (
+        ('waiting_turn', 'Navbat kutilmoqda'),
+        ('question', 'Savol ochiq'),
+        ('dice', 'Zarba tashlandi'),
+        ('effect', 'Katak effekti'),
+        ('finished', 'Yakunlandi'),
+    )
+
+    competition = models.ForeignKey(
+        Competition, on_delete=models.CASCADE, related_name='jumanji_sessions',
+        verbose_name="Musobaqa",
+    )
+    game = models.ForeignKey(
+        Game, on_delete=models.CASCADE, related_name='jumanji_sessions', verbose_name="O'yin",
+    )
+    profession = models.ForeignKey(
+        'accounts.Profession', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='jumanji_sessions', verbose_name="Yo'nalish (kurs)",
+        help_text="Savollar shu yo'nalishdan olinadi. Bo'sh — barcha savollar.",
+    )
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='lobby', verbose_name="Holat")
+    phase = models.CharField(max_length=15, choices=PHASE_CHOICES, default='waiting_turn', verbose_name="Bosqich")
+    is_paused = models.BooleanField(default=False, verbose_name="Pauza")
+
+    board_size = models.PositiveIntegerField(default=30, verbose_name="Doska o'lchami (katak)")
+    board_layout = models.JSONField(
+        default=dict, blank=True, verbose_name="Doska effektlari",
+        help_text='O\'yin boshlanganda bir marta muhrlanadi: {"7": {"effect": "freeze"}}',
+    )
+
+    question_pool = models.JSONField(default=list, blank=True, verbose_name="Savollar navbati (ID)")
+    pool_cursor = models.PositiveIntegerField(default=0, verbose_name="Navbatdagi savol indeksi")
+
+    current_player = models.ForeignKey(
+        'JumanjiPlayer', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Navbatdagi o'yinchi",
+    )
+    current_turn = models.ForeignKey(
+        'JumanjiTurn', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name="Joriy navbat",
+    )
+
+    # Har bir boshqaruv amali turn_seq ni oshiradi. Client shu tokenni
+    # qaytaradi — ikki boshqaruvchi bir vaqtda bosса, ikkinchisi rad etiladi.
+    turn_seq = models.PositiveIntegerField(default=0, verbose_name="Navbat tokeni")
+    # Polling uchun: o'zgarmagan bo'lsa server qisqa javob qaytaradi.
+    state_version = models.PositiveIntegerField(default=0, verbose_name="Holat versiyasi")
+    event_seq = models.PositiveIntegerField(default=0, verbose_name="Oxirgi hodisa raqami")
+
+    winner = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='jumanji_wins', verbose_name="G'olib",
+    )
+    coins_awarded = models.BooleanField(default=False, verbose_name="Coinlar berilgan")
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='jumanji_sessions_created', verbose_name="Kim ochdi",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    started_at = models.DateTimeField(null=True, blank=True, verbose_name="Boshlangan vaqt")
+    ended_at = models.DateTimeField(null=True, blank=True, verbose_name="Tugagan vaqt")
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Jumanji sessiyasi"
+        verbose_name_plural = "Jumanji sessiyalari"
+        indexes = [
+            models.Index(fields=['competition', 'status']),
+            models.Index(fields=['status', '-created_at']),
+        ]
+
+    def __str__(self):
+        return f"Jumanji #{self.pk} — {self.competition.title} ({self.get_status_display()})"
+
+    @property
+    def is_live(self):
+        return self.status in ('lobby', 'running')
+
+    def bump(self):
+        """Holat o'zgardi — pollingdagi clientlar yangilanishni oladi."""
+        self.state_version += 1
+
+    def cell_effect(self, position):
+        """Berilgan katakdagi effekt ma'lumoti (yo'q bo'lsa None)."""
+        return (self.board_layout or {}).get(str(position))
+
+    def next_question(self):
+        """Navbatdagi savol. Pool tugasa boshidan aylanadi."""
+        pool = self.question_pool or []
+        if not pool:
+            return None
+        if self.pool_cursor >= len(pool):
+            self.pool_cursor = 0
+        qid = pool[self.pool_cursor]
+        return JumanjiQuestion.objects.filter(pk=qid).first()
+
+    def ordered_players(self):
+        return self.players.select_related('user').order_by('seat_order', 'pk')
+
+    def leaderboard(self):
+        """Joriy reyting — oldinda ketgani birinchi."""
+        return self.players.select_related('user').order_by(
+            '-position', 'finished_at', 'seat_order',
+        )
+
+
+class JumanjiPlayer(models.Model):
+    """Sessiyadagi bitta ishtirokchi va uning holati."""
+
+    session = models.ForeignKey(
+        JumanjiSession, on_delete=models.CASCADE, related_name='players', verbose_name="Sessiya",
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='jumanji_plays', verbose_name="O'quvchi",
+    )
+    position = models.PositiveIntegerField(default=0, verbose_name="Katak")
+    seat_order = models.PositiveIntegerField(default=0, verbose_name="Navbat tartibi")
+
+    skip_turns = models.PositiveIntegerField(default=0, verbose_name="O'tkaziladigan navbatlar (❄️)")
+    has_shield = models.BooleanField(default=False, verbose_name="Qalqon (🛡)")
+    next_multiplier = models.PositiveIntegerField(default=1, verbose_name="Keyingi zarba ko'paytiruvchisi (🎯)")
+
+    correct_count = models.PositiveIntegerField(default=0, verbose_name="To'g'ri javoblar")
+    wrong_count = models.PositiveIntegerField(default=0, verbose_name="Noto'g'ri javoblar")
+
+    rank = models.PositiveIntegerField(null=True, blank=True, verbose_name="O'rin")
+    finished_at = models.DateTimeField(null=True, blank=True, verbose_name="FINISH vaqti")
+
+    last_seen_at = models.DateTimeField(default=timezone.now, verbose_name="Oxirgi faollik")
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['seat_order', 'pk']
+        verbose_name = "Jumanji o'yinchisi"
+        verbose_name_plural = "Jumanji o'yinchilari"
+        unique_together = ['session', 'user']
+        indexes = [
+            models.Index(fields=['session', 'seat_order']),
+        ]
+
+    def __str__(self):
+        return f"{self.user} — {self.position}-katak"
+
+    @property
+    def is_finished(self):
+        return self.finished_at is not None
+
+    @property
+    def display_name(self):
+        return self.user.get_full_name() or self.user.username
+
+    @property
+    def progress_percent(self):
+        size = self.session.board_size or 1
+        return min(100, round(self.position * 100 / size))
+
+    @property
+    def is_online(self):
+        """O'quvchi hali sahifada ekanmi (polling heartbeat'iga qarab)."""
+        if not self.last_seen_at:
+            return False
+        from . import jumanji
+        elapsed = (timezone.now() - self.last_seen_at).total_seconds()
+        return elapsed <= jumanji.OFFLINE_AFTER_SECONDS
+
+
+class JumanjiTurn(models.Model):
+    """Bitta navbat jurnali — audit va animatsiya manbai."""
+
+    VERDICT_CHOICES = (
+        ('pending', 'Kutilmoqda'),
+        ('correct', "To'g'ri"),
+        ('wrong', "Noto'g'ri"),
+        ('skipped', "O'tkazib yuborildi"),
+        ('timeout', 'Vaqt tugadi'),
+    )
+
+    session = models.ForeignKey(
+        JumanjiSession, on_delete=models.CASCADE, related_name='turns', verbose_name="Sessiya",
+    )
+    player = models.ForeignKey(
+        JumanjiPlayer, on_delete=models.CASCADE, related_name='turns', verbose_name="O'yinchi",
+    )
+    question = models.ForeignKey(
+        JumanjiQuestion, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='turns', verbose_name="Savol",
+    )
+    seq = models.PositiveIntegerField(default=0, verbose_name="Navbat raqami")
+    verdict = models.CharField(max_length=10, choices=VERDICT_CHOICES, default='pending', verbose_name="Natija")
+
+    dice_value = models.PositiveIntegerField(null=True, blank=True, verbose_name="Zarba")
+    from_position = models.PositiveIntegerField(default=0, verbose_name="Qayerdan")
+    to_position = models.PositiveIntegerField(default=0, verbose_name="Qayerga")
+
+    effect_code = models.CharField(max_length=20, blank=True, choices=JUMANJI_EFFECTS, verbose_name="Katak effekti")
+    effect_note = models.TextField(blank=True, verbose_name="Shart matni (🃏)")
+
+    question_started_at = models.DateTimeField(null=True, blank=True, verbose_name="Savol ochilgan vaqt")
+    judged_at = models.DateTimeField(null=True, blank=True, verbose_name="Baholangan vaqt")
+    judged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='jumanji_judgements', verbose_name="Kim baholadi",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-seq']
+        verbose_name = "Jumanji navbati"
+        verbose_name_plural = "Jumanji navbatlari"
+        indexes = [
+            models.Index(fields=['session', '-seq']),
+        ]
+
+    def __str__(self):
+        return f"#{self.seq} {self.player.user} — {self.get_verdict_display()}"
+
+    def seconds_left(self):
+        """Savol uchun qolgan vaqt (server hisoblaydi — client soatiga ishonilmaydi)."""
+        if not self.question_started_at or not self.question:
+            return 0
+        from . import jumanji
+        elapsed = (timezone.now() - self.question_started_at).total_seconds()
+        return max(0, int(jumanji.QUESTION_SECONDS - elapsed))
+
+
+class JumanjiEvent(models.Model):
+    """Jonli lenta — client oxirgi ko'rgan seq dan keyingilarini oladi."""
+
+    session = models.ForeignKey(
+        JumanjiSession, on_delete=models.CASCADE, related_name='events', verbose_name="Sessiya",
+    )
+    seq = models.PositiveIntegerField(default=0, verbose_name="Tartib raqami")
+    kind = models.CharField(max_length=20, verbose_name="Turi")
+    payload = models.JSONField(default=dict, blank=True, verbose_name="Ma'lumot")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['seq']
+        verbose_name = "Jumanji hodisasi"
+        verbose_name_plural = "Jumanji hodisalari"
+        indexes = [
+            models.Index(fields=['session', 'seq']),
+        ]
+
+    def __str__(self):
+        return f"#{self.seq} {self.kind}"

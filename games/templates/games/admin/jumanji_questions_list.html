@@ -1,0 +1,278 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Jumanji savollari - {{ game.title }} | Admin{% endblock %}
+
+{% block admin_content %}
+<style>
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(25px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+.admin-header { animation: fadeInDown 0.5s ease-out; }
+
+.pstat-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.1rem; animation: fadeInUp 0.5s ease-out both; }
+.pstat {
+    flex: 1; min-width: 130px; background: #fff;
+    border: 1px solid rgba(15, 23, 42, 0.07); border-radius: 16px;
+    padding: 0.9rem 1.1rem; display: flex; align-items: center; gap: 0.8rem;
+}
+[data-bs-theme="dark"] .pstat { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+.pstat .ic { width: 42px; height: 42px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; font-size: 1.15rem; }
+.pstat .num { font-size: 1.3rem; font-weight: 800; line-height: 1.1; }
+.pstat .lbl { font-size: 0.72rem; color: #64748b; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.pstat.total .ic { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
+.pstat.active .ic { background: rgba(16, 185, 129, 0.12); color: #10b981; }
+.pstat.image .ic { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
+.pstat.prof .ic { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+
+.filter-bar {
+    background: #fff; border: 1px solid rgba(15, 23, 42, 0.07); border-radius: 16px;
+    padding: 0.85rem 1rem; margin-bottom: 1.1rem; display: flex; gap: 0.6rem;
+    flex-wrap: wrap; align-items: center; animation: fadeInUp 0.5s ease-out 0.05s both;
+}
+[data-bs-theme="dark"] .filter-bar { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+.filter-bar .form-select, .filter-bar .form-control { border-radius: 11px; font-size: 0.85rem; }
+
+.admin-card { border: none; border-radius: 18px; box-shadow: 0 4px 24px rgba(0,0,0,0.07); overflow: hidden; animation: fadeInUp 0.6s ease-out 0.1s both; }
+[data-bs-theme="dark"] .admin-card { background: #1e1e2e; box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
+.admin-card .table th { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.3px; font-weight: 700; padding: 0.85rem 1rem; white-space: nowrap; }
+.admin-card .table td { padding: 0.8rem 1rem; vertical-align: middle; }
+.admin-card .table tbody tr:hover { background: rgba(16, 185, 129, 0.05); }
+
+.btn-add { background: linear-gradient(135deg, #16a34a, #22c55e); border: none; color: #fff; border-radius: 12px; font-weight: 600; padding: 0.55rem 1.3rem; transition: all 0.3s; }
+.btn-add:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35); }
+.btn-xlsx { border-radius: 12px; font-weight: 600; padding: 0.55rem 1.1rem; border: 1px solid rgba(16,185,129,0.4); color: #059669; background: rgba(16,185,129,0.06); transition: all 0.3s; }
+.btn-xlsx:hover { background: #10b981; border-color: #10b981; color: #fff; transform: translateY(-2px); }
+.btn-back { border-radius: 12px; font-weight: 600; transition: all 0.3s; }
+.btn-back:hover { transform: translateX(-3px); }
+.action-btn { border-radius: 10px; padding: 0.35rem 0.65rem; transition: all 0.25s; }
+.action-btn:hover { transform: scale(1.1); }
+
+.prof-chip { border-radius: 8px; font-size: 0.72rem; font-weight: 700; padding: 0.3rem 0.6rem; background: rgba(59,130,246,0.12); color: #2563eb; white-space: nowrap; }
+[data-bs-theme="dark"] .prof-chip { color: #93c5fd; }
+.answer-cell { font-size: 0.82rem; color: #059669; font-weight: 600; }
+[data-bs-theme="dark"] .answer-cell { color: #34d399; }
+
+.import-drop { border: 2px dashed rgba(22,163,74,0.35); border-radius: 14px; padding: 1.4rem; text-align: center; background: rgba(22,163,74,0.04); transition: all 0.3s; cursor: pointer; }
+.import-drop:hover { border-color: #16a34a; background: rgba(22,163,74,0.08); }
+.import-drop input { display: none; }
+.import-file-name { font-weight: 700; color: #16a34a; }
+
+.mobile-q-cards { display: none; }
+.q-card-m { background: #fff; border: 1px solid rgba(0,0,0,0.06); border-radius: 16px; padding: 1.1rem; margin-bottom: 0.75rem; box-shadow: 0 2px 12px rgba(0,0,0,0.06); animation: fadeInUp 0.4s ease-out both; }
+[data-bs-theme="dark"] .q-card-m { background: #1e1e2e; border-color: rgba(255,255,255,0.07); }
+
+@media (max-width: 768px) {
+    .desktop-table { display: none; }
+    .mobile-q-cards { display: block; }
+    .admin-header h2 { font-size: 1.15rem; }
+    .admin-header { flex-direction: column; gap: 0.75rem; align-items: flex-start !important; }
+    .pstat { min-width: calc(50% - 0.4rem); flex: none; }
+}
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 admin-header flex-wrap gap-2">
+        <div>
+            <h2 class="fw-bold mb-0">🎲 Jumanji savollari</h2>
+            <p class="text-muted mb-0 small">{{ game.title }} — og'zaki javob uchun savol bazasi</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'games:admin_games' %}" class="btn btn-outline-secondary btn-back">
+                <i class="bi bi-arrow-left"></i> O'yinlar
+            </a>
+            <button type="button" class="btn btn-xlsx" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bi bi-file-earmark-excel"></i> Excel import
+            </button>
+            <a href="{% url 'games:jumanji_admin_questions_export' game.pk %}" class="btn btn-xlsx">
+                <i class="bi bi-download"></i> Export
+            </a>
+            <a href="{% url 'games:jumanji_admin_question_add' game.pk %}" class="btn btn-add">
+                <i class="bi bi-plus-lg"></i> Yangi savol
+            </a>
+        </div>
+    </div>
+
+    <div class="pstat-row">
+        <div class="pstat total">
+            <span class="ic"><i class="bi bi-collection"></i></span>
+            <span><span class="num">{{ stats.total }}</span><div class="lbl">Jami savol</div></span>
+        </div>
+        <div class="pstat active">
+            <span class="ic"><i class="bi bi-check-circle"></i></span>
+            <span><span class="num">{{ stats.active }}</span><div class="lbl">Faol</div></span>
+        </div>
+        <div class="pstat image">
+            <span class="ic"><i class="bi bi-image"></i></span>
+            <span><span class="num">{{ stats.with_image }}</span><div class="lbl">Rasmli</div></span>
+        </div>
+        <div class="pstat prof">
+            <span class="ic"><i class="bi bi-diagram-3"></i></span>
+            <span><span class="num">{{ stats.professions }}</span><div class="lbl">Yo'nalish</div></span>
+        </div>
+    </div>
+
+    <form method="get" class="filter-bar">
+        <select name="profession" class="form-select" style="width: auto;" onchange="this.form.submit()">
+            <option value="">Yo'nalish: hammasi</option>
+            <option value="none" {% if selected_profession == 'none' %}selected{% endif %}>Umumiy (yo'nalishsiz)</option>
+            {% for p in professions %}
+            <option value="{{ p.pk }}" {% if selected_profession == p.pk|stringformat:'s' %}selected{% endif %}>{{ p.name }}</option>
+            {% endfor %}
+        </select>
+        <div class="d-flex gap-2 flex-grow-1" style="min-width: 200px;">
+            <input type="text" name="q" class="form-control" placeholder="Savol matni bo'yicha qidirish…" value="{{ search }}">
+            <button type="submit" class="btn btn-outline-success" style="border-radius: 11px;"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+
+    <div class="admin-card card desktop-table">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Savol</th>
+                            <th>To'g'ri javob</th>
+                            <th>Yo'nalish</th>
+                            <th>Qiyinlik</th>
+                            <th>Holat</th>
+                            <th>Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for q in questions %}
+                        <tr>
+                            <td class="text-muted">{{ q.order }}</td>
+                            <td title="{{ q.text }}">
+                                {% if q.image %}<i class="bi bi-image text-warning me-1"></i>{% endif %}
+                                {{ q.text|truncatewords:10 }}
+                            </td>
+                            <td class="answer-cell">{{ q.correct_text|truncatechars:40 }}</td>
+                            <td>{% if q.profession %}<span class="prof-chip">{{ q.profession.name }}</span>{% else %}<span class="text-muted small">—</span>{% endif %}</td>
+                            <td>
+                                {% if q.difficulty == 'easy' %}<span class="badge bg-success" style="border-radius:8px;">Oson</span>
+                                {% elif q.difficulty == 'medium' %}<span class="badge bg-warning text-dark" style="border-radius:8px;">O'rta</span>
+                                {% else %}<span class="badge bg-danger" style="border-radius:8px;">Qiyin</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if q.is_active %}<span class="badge bg-success" style="border-radius:8px;">Faol</span>
+                                {% else %}<span class="badge bg-secondary" style="border-radius:8px;">Nofaol</span>{% endif %}
+                            </td>
+                            <td class="d-flex gap-1">
+                                <a href="{% url 'games:jumanji_admin_question_edit' q.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="post" action="{% url 'games:jumanji_admin_question_delete' q.pk %}"
+                                      onsubmit="return confirm('Savol o\'chirilsinmi?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <div style="font-size: 2rem; opacity: 0.4;">🎲</div>
+                                <p class="mt-2 mb-1">Savollar topilmadi</p>
+                                <small>Excel import orqali bir vaqtda ko'plab savol qo'shishingiz mumkin</small>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-q-cards">
+        {% for q in questions %}
+        <div class="q-card-m">
+            <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-1">
+                <span class="text-muted small">#{{ q.order }}</span>
+                <div class="d-flex gap-1 flex-wrap">
+                    {% if q.profession %}<span class="prof-chip">{{ q.profession.name }}</span>{% endif %}
+                    {% if q.difficulty == 'easy' %}<span class="badge bg-success" style="border-radius:8px;font-size:0.7rem;">Oson</span>
+                    {% elif q.difficulty == 'medium' %}<span class="badge bg-warning text-dark" style="border-radius:8px;font-size:0.7rem;">O'rta</span>
+                    {% else %}<span class="badge bg-danger" style="border-radius:8px;font-size:0.7rem;">Qiyin</span>{% endif %}
+                    {% if not q.is_active %}<span class="badge bg-secondary" style="border-radius:8px;font-size:0.7rem;">Nofaol</span>{% endif %}
+                </div>
+            </div>
+            <div style="font-size: 0.88rem; line-height: 1.5;" class="mb-1">{{ q.text|truncatewords:18 }}</div>
+            <div class="answer-cell mb-2"><i class="bi bi-check2"></i> {{ q.correct_text|truncatechars:60 }}</div>
+            <div class="d-flex justify-content-end gap-1">
+                <a href="{% url 'games:jumanji_admin_question_edit' q.pk %}" class="btn btn-sm btn-outline-warning action-btn">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{% url 'games:jumanji_admin_question_delete' q.pk %}"
+                      onsubmit="return confirm('Savol o\'chirilsinmi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash"></i></button>
+                </form>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-4 text-muted">
+            <div style="font-size: 2rem; opacity: 0.4;">🎲</div>
+            <p class="mt-2 mb-0">Savollar topilmadi</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius: 18px; border: none;">
+            <form method="post" action="{% url 'games:jumanji_admin_questions_import' game.pk %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-excel text-success"></i> Excel'dan import</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Yopish"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Ustunlar: <strong>Savol</strong> · <strong>To'g'ri javob</strong> ·
+                        Qiyinlik (Oson/O'rta/Qiyin) · Yo'nalish.
+                        Faqat <strong>Savol</strong> va <strong>To'g'ri javob</strong> majburiy.
+                        O'quvchi javobni og'zaki aytadi — variantlar yo'q.
+                        <a href="{% url 'games:jumanji_admin_questions_template' game.pk %}">Tayyor shablonni yuklab oling</a>.
+                    </p>
+                    <label class="import-drop d-block mb-3">
+                        <input type="file" name="file" id="importFile" accept=".xlsx" required>
+                        <i class="bi bi-cloud-arrow-up" style="font-size: 1.8rem; color: #16a34a;"></i>
+                        <div class="mt-1 import-file-name" id="importFileName">.xlsx faylni tanlang</div>
+                        <small class="text-muted">Maksimal 5 MB · 2000 tagacha savol</small>
+                    </label>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Yo'nalish topilmasa qaysisiga biriktirilsin?</label>
+                        <select name="profession" class="form-select" style="border-radius: 11px;">
+                            <option value="">Biriktirilmasin (umumiy savol)</option>
+                            {% for p in professions %}
+                            <option value="{{ p.pk }}">{{ p.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" name="replace_all" class="form-check-input" id="replaceAll">
+                        <label class="form-check-label small" for="replaceAll">
+                            Eski savollarni o'chirib, faqat fayldan import qilish
+                            <span class="text-danger">(ehtiyot bo'ling!)</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary" style="border-radius: 11px;" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-add"><i class="bi bi-upload"></i> Import qilish</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('importFile').addEventListener('change', function () {
+    var name = this.files && this.files[0] ? this.files[0].name : '.xlsx faylni tanlang';
+    document.getElementById('importFileName').textContent = name;
+});
+</script>
+{% endblock %}

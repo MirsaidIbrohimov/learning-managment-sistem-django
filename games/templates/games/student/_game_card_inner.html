@@ -1,74 +1,199 @@
 {# Per-game card. Vars: game, theme, pattern, type_label, type_icon #}
 <div class="col-12 col-sm-6 col-lg-3 game-card-wrapper" data-name="{{ game.title|lower }}" data-category="{{ type_label }}" style="animation-delay: {{ forloop.counter0|default:0 }}00ms;">
-    <div class="game-card">
+    <div class="game-card" data-theme="{{ theme }}">
         <div class="game-cover {{ theme }} {{ pattern }}">
+            <span class="scanlines"></span>
+            <span class="beam"></span>
             <div class="corner-badge"><i class="bi {{ type_icon }}"></i> {{ type_label }}</div>
 
             {% if game.slug == 'shashka' %}
-                {# Checkers piece illustration #}
+                {# Shashka: taxlangan doiralar #}
                 <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <ellipse cx="50" cy="62" rx="38" ry="10" fill="#000" opacity="0.25"/>
-                    <ellipse cx="50" cy="55" rx="38" ry="14" fill="#fde68a"/>
-                    <ellipse cx="50" cy="48" rx="38" ry="14" fill="#fbbf24"/>
-                    <ellipse cx="50" cy="48" rx="30" ry="10" fill="#f59e0b" opacity="0.55"/>
-                    <circle cx="50" cy="48" r="4" fill="#92400e"/>
+                    <ellipse cx="50" cy="80" rx="33" ry="8" fill="#000" opacity=".22"/>
+                    <ellipse cx="50" cy="68" rx="33" ry="12" fill="#fde68a"/>
+                    <ellipse cx="50" cy="62" rx="33" ry="12" fill="#fbbf24"/>
+                    <ellipse cx="50" cy="50" rx="33" ry="12" fill="#fde68a"/>
+                    <ellipse cx="50" cy="44" rx="33" ry="12" fill="#fbbf24"/>
+                    <ellipse cx="50" cy="44" rx="23" ry="8" fill="#f59e0b" opacity=".65"/>
+                    <circle cx="50" cy="44" r="4.5" fill="#78350f"/>
                 </svg>
+
             {% elif game.slug == 'shaxmat' %}
-                {# Chess king silhouette #}
+                {# Shaxmat: shoh figurasi #}
                 <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="42" y="6" width="16" height="6" rx="2" fill="#fff"/>
-                    <rect x="46" y="0" width="8" height="14" rx="1.5" fill="#fff"/>
-                    <path d="M30 30 Q50 16 70 30 L66 46 Q50 56 34 46 Z" fill="#fff"/>
-                    <path d="M28 50 H72 V58 H28 Z" fill="#fff"/>
-                    <path d="M34 58 L36 88 H64 L66 58 Z" fill="#fff"/>
-                    <rect x="24" y="86" width="52" height="10" rx="2" fill="#fff"/>
+                    <rect x="42" y="8" width="16" height="6" rx="2" fill="#fff"/>
+                    <rect x="46" y="2" width="8" height="14" rx="1.5" fill="#fff"/>
+                    <path d="M30 32 Q50 18 70 32 L66 48 Q50 58 34 48 Z" fill="#fff"/>
+                    <path d="M28 52 H72 V60 H28 Z" fill="#fff"/>
+                    <path d="M34 60 L36 86 H64 L66 60 Z" fill="#fff"/>
+                    <rect x="24" y="84" width="52" height="10" rx="2.5" fill="#fff"/>
+                    <path d="M43 66 H57 M43 74 H57" stroke="#374151" stroke-width="2.5" stroke-linecap="round" opacity=".45"/>
                 </svg>
+
+            {% elif game.slug == 'xo' %}
+                {# X va O: 3x3 katak #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".5">
+                        <path d="M37 10V90M63 10V90M10 37H90M10 63H90"/>
+                    </g>
+                    <g stroke="#fff" stroke-width="6.5" stroke-linecap="round">
+                        <path d="M17 17L30 30M30 17L17 30"/>
+                        <path d="M70 70L83 83M83 70L70 83"/>
+                    </g>
+                    <circle cx="50" cy="50" r="9.5" stroke="#fff" stroke-width="6.5"/>
+                    <circle cx="76" cy="24" r="7.5" stroke="#fff" stroke-width="5" opacity=".75"/>
+                </svg>
+
+            {% elif game.slug == 'memory-card' %}
+                {# Xotira: ochilgan va yopiq kartalar #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g transform="rotate(-9 28 52)">
+                        <rect x="9" y="26" width="37" height="52" rx="7" fill="#fff" opacity=".9"/>
+                        <g fill="#1d4ed8" opacity=".35">
+                            <circle cx="20" cy="40" r="3"/><circle cx="34" cy="40" r="3"/>
+                            <circle cx="20" cy="52" r="3"/><circle cx="34" cy="52" r="3"/>
+                            <circle cx="20" cy="64" r="3"/><circle cx="34" cy="64" r="3"/>
+                        </g>
+                    </g>
+                    <rect x="53" y="24" width="38" height="54" rx="7" fill="#fff"/>
+                    <polygon points="72,36 75.8,45.6 86,46 78,52.6 80.8,62.6 72,57 63.2,62.6 66,52.6 58,46 68.2,45.6"
+                             fill="#1d4ed8"/>
+                </svg>
+
+            {% elif game.slug == 'html-builder' %}
+                {# HTML Builder: teg va drag bloklari #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="8" y="16" width="84" height="68" rx="9" fill="#fff" opacity=".95"/>
+                    <rect x="8" y="16" width="84" height="15" rx="9" fill="#059669"/>
+                    <rect x="8" y="26" width="84" height="5" fill="#059669"/>
+                    <g fill="#fff" opacity=".85">
+                        <circle cx="18" cy="23.5" r="2.6"/><circle cx="27" cy="23.5" r="2.6"/><circle cx="36" cy="23.5" r="2.6"/>
+                    </g>
+                    <rect x="16" y="38" width="30" height="18" rx="4" fill="#34d399"/>
+                    <rect x="52" y="38" width="32" height="8" rx="3" fill="#a7f3d0"/>
+                    <rect x="52" y="50" width="24" height="6" rx="3" fill="#a7f3d0"/>
+                    <rect x="16" y="62" width="68" height="6" rx="3" fill="#d1fae5"/>
+                    <rect x="16" y="72" width="44" height="6" rx="3" fill="#d1fae5"/>
+                    <text x="31" y="51" font-family="'JetBrains Mono',monospace" font-size="11" font-weight="800"
+                          text-anchor="middle" fill="#064e3b">&lt;/&gt;</text>
+                </svg>
+
+            {% elif game.slug == 'bilim-arena' %}
+                {# Bilim Arena: globus + bilim nuri #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="34" fill="#fff" opacity=".95"/>
+                    <g stroke="#4338ca" stroke-width="2.6" opacity=".65" fill="none">
+                        <ellipse cx="50" cy="50" rx="34" ry="13"/>
+                        <ellipse cx="50" cy="50" rx="14" ry="34"/>
+                        <path d="M16 50H84"/>
+                    </g>
+                    <circle cx="50" cy="50" r="34" stroke="#4338ca" stroke-width="3.4" fill="none"/>
+                    <path d="M50 6 L54.6 17 L66 18 L57 25.6 L59.6 37 L50 31 L40.4 37 L43 25.6 L34 18 L45.4 17 Z"
+                          fill="#fbbf24" stroke="#fff" stroke-width="1.6"/>
+                </svg>
+
             {% elif game.game_type == 'word_builder' %}
-                {# Letter blocks #}
+                {# Word Builder: harf bloklari #}
                 <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="8"  y="32" width="26" height="32" rx="5" fill="#fff" opacity="0.95"/>
-                    <rect x="37" y="22" width="26" height="42" rx="5" fill="#fff" opacity="0.85"/>
-                    <rect x="66" y="32" width="26" height="32" rx="5" fill="#fff" opacity="0.95"/>
-                    <text x="21" y="55" font-family="Inter,sans-serif" font-size="20" font-weight="800" text-anchor="middle" fill="#0e7490">A</text>
-                    <text x="50" y="52" font-family="Inter,sans-serif" font-size="26" font-weight="800" text-anchor="middle" fill="#0e7490">B</text>
-                    <text x="79" y="55" font-family="Inter,sans-serif" font-size="20" font-weight="800" text-anchor="middle" fill="#0e7490">C</text>
+                    <g transform="rotate(-7 22 58)">
+                        <rect x="6" y="40" width="28" height="34" rx="6" fill="#fff" opacity=".95"/>
+                        <text x="20" y="64" font-family="Inter,sans-serif" font-size="21" font-weight="800"
+                              text-anchor="middle" fill="#0e7490">S</text>
+                    </g>
+                    <rect x="36" y="28" width="28" height="46" rx="6" fill="#fff"/>
+                    <text x="50" y="60" font-family="Inter,sans-serif" font-size="27" font-weight="800"
+                          text-anchor="middle" fill="#0e7490">O</text>
+                    <g transform="rotate(7 78 58)">
+                        <rect x="66" y="40" width="28" height="34" rx="6" fill="#fff" opacity=".95"/>
+                        <text x="80" y="64" font-family="Inter,sans-serif" font-size="21" font-weight="800"
+                              text-anchor="middle" fill="#0e7490">Z</text>
+                    </g>
+                    <g fill="#fff" opacity=".75">
+                        <circle cx="24" cy="22" r="2.6"/><circle cx="50" cy="14" r="3.2"/><circle cx="76" cy="22" r="2.6"/>
+                    </g>
                 </svg>
+
             {% elif game.game_type == 'typing' %}
-                {# Keyboard illustration #}
+                {# Yozish tezligi: klaviatura + tezlik chizig'i #}
                 <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="6" y="32" width="88" height="42" rx="6" fill="#fff" opacity="0.95"/>
-                    <rect x="12" y="38" width="10" height="8" rx="2" fill="#15803d"/>
-                    <rect x="24" y="38" width="10" height="8" rx="2" fill="#15803d"/>
-                    <rect x="36" y="38" width="10" height="8" rx="2" fill="#15803d"/>
-                    <rect x="48" y="38" width="10" height="8" rx="2" fill="#15803d"/>
-                    <rect x="60" y="38" width="10" height="8" rx="2" fill="#15803d"/>
-                    <rect x="72" y="38" width="16" height="8" rx="2" fill="#15803d"/>
-                    <rect x="12" y="50" width="14" height="8" rx="2" fill="#15803d"/>
-                    <rect x="28" y="50" width="44" height="8" rx="2" fill="#15803d"/>
-                    <rect x="74" y="50" width="14" height="8" rx="2" fill="#15803d"/>
-                    <rect x="30" y="62" width="40" height="8" rx="2" fill="#15803d"/>
+                    <g stroke="#fff" stroke-width="3.4" stroke-linecap="round" opacity=".8">
+                        <path d="M6 20H30M38 20H58"/>
+                    </g>
+                    <rect x="6" y="34" width="88" height="46" rx="8" fill="#fff" opacity=".96"/>
+                    <g fill="#15803d">
+                        <rect x="13" y="41" width="11" height="9" rx="2.5"/><rect x="26" y="41" width="11" height="9" rx="2.5"/>
+                        <rect x="39" y="41" width="11" height="9" rx="2.5"/><rect x="52" y="41" width="11" height="9" rx="2.5"/>
+                        <rect x="65" y="41" width="11" height="9" rx="2.5"/><rect x="78" y="41" width="9" height="9" rx="2.5"/>
+                        <rect x="13" y="53" width="15" height="9" rx="2.5"/>
+                        <rect x="30" y="53" width="40" height="9" rx="2.5" opacity=".55"/>
+                        <rect x="72" y="53" width="15" height="9" rx="2.5"/>
+                        <rect x="30" y="65" width="40" height="9" rx="2.5"/>
+                    </g>
                 </svg>
+
             {% elif game.game_type == 'quiz' %}
-                {# Question mark in circle #}
+                {# Test: savol belgisi #}
                 <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="50" cy="50" r="40" fill="#fff" opacity="0.95"/>
-                    <text x="50" y="68" font-family="Inter,sans-serif" font-size="56" font-weight="900" text-anchor="middle" fill="#be123c">?</text>
+                    <circle cx="50" cy="50" r="38" fill="#fff" opacity=".96"/>
+                    <circle cx="50" cy="50" r="38" stroke="#fff" stroke-width="4" opacity=".5" fill="none"/>
+                    <text x="50" y="69" font-family="Inter,sans-serif" font-size="54" font-weight="900"
+                          text-anchor="middle" fill="#be123c">?</text>
                 </svg>
+
+            {% elif game.game_type == 'jumanji' %}
+                {# Jumanji: nard toshi + liana yo'li #}
+                <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 84 Q28 66 22 46 Q18 28 38 18" stroke="#bef264" stroke-width="3.4"
+                          stroke-linecap="round" fill="none" opacity=".6" stroke-dasharray="7 8"/>
+                    <path d="M94 82 Q74 70 80 50 Q84 34 66 22" stroke="#bef264" stroke-width="3.4"
+                          stroke-linecap="round" fill="none" opacity=".4" stroke-dasharray="7 8"/>
+                    <rect x="28" y="28" width="44" height="44" rx="11" fill="#fff" transform="rotate(-11 50 50)"/>
+                    <g fill="#166534" transform="rotate(-11 50 50)">
+                        <circle cx="39" cy="39" r="4.4"/><circle cx="61" cy="39" r="4.4"/>
+                        <circle cx="50" cy="50" r="4.4"/>
+                        <circle cx="39" cy="61" r="4.4"/><circle cx="61" cy="61" r="4.4"/>
+                    </g>
+                </svg>
+
             {% else %}
-                <i class="bi {{ game.icon }} cover-art" style="font-size: 4.5rem;"></i>
+                <i class="bi {{ game.icon }} cover-art bi-art"></i>
             {% endif %}
         </div>
 
         <div class="game-body">
             <h3>{{ game.title }}</h3>
             <div class="game-meta-row">
-                <span class="meta-pill"><i class="bi bi-people"></i> Multiplayer</span>
-                {% if game.slug == 'shashka' or game.slug == 'shaxmat' %}
-                    <span class="meta-pill"><i class="bi bi-robot"></i> AI</span>
+                {% if game.slug == 'shashka' or game.slug == 'shaxmat' or game.slug == 'xo' %}
+                    <span class="meta-pill"><i class="bi bi-robot"></i> AI raqib</span>
+                    <span class="meta-pill"><i class="bi bi-people"></i> 1v1</span>
                     <span class="meta-pill"><i class="bi bi-coin"></i> Coin</span>
+                {% elif game.slug == 'memory-card' %}
+                    <span class="meta-pill"><i class="bi bi-lightbulb"></i> Xotira</span>
+                    <span class="meta-pill"><i class="bi bi-stopwatch"></i> Vaqtga qarshi</span>
+                {% elif game.slug == 'html-builder' %}
+                    <span class="meta-pill"><i class="bi bi-hand-index-thumb"></i> Drag &amp; Drop</span>
+                    <span class="meta-pill"><i class="bi bi-code-slash"></i> HTML</span>
+                {% elif game.slug == 'bilim-arena' %}
+                    <span class="meta-pill"><i class="bi bi-mortarboard"></i> Bilim testi</span>
+                    <span class="meta-pill"><i class="bi bi-trophy"></i> Reyting</span>
+                {% elif game.game_type == 'word_builder' %}
+                    <span class="meta-pill"><i class="bi bi-alphabet"></i> So'z yasash</span>
+                    <span class="meta-pill"><i class="bi bi-graph-up-arrow"></i> Ball</span>
+                {% elif game.game_type == 'typing' %}
+                    <span class="meta-pill"><i class="bi bi-speedometer2"></i> WPM</span>
+                    <span class="meta-pill"><i class="bi bi-bullseye"></i> Aniqlik</span>
+                {% elif game.game_type == 'quiz' %}
+                    <span class="meta-pill"><i class="bi bi-patch-question"></i> Savollar</span>
+                    <span class="meta-pill"><i class="bi bi-stopwatch"></i> Vaqtli</span>
+                {% elif game.game_type == 'jumanji' %}
+                    <span class="meta-pill"><i class="bi bi-dice-5"></i> Jonli doska</span>
+                    <span class="meta-pill"><i class="bi bi-people"></i> Guruh</span>
+                    <span class="meta-pill"><i class="bi bi-coin"></i> Coin</span>
+                {% else %}
+                    <span class="meta-pill"><i class="bi bi-controller"></i> {{ type_label }}</span>
                 {% endif %}
             </div>
-            <p>{{ game.description|truncatewords:18|default:"O'yinni boshlang va eng yuqori ballni qo'lga kiriting!" }}</p>
+            <p>{{ game.description|truncatewords:16|default:"O'yinni boshlang va eng yuqori ballni qo'lga kiriting!" }}</p>
             <div class="game-actions">
                 {% if game.game_type == 'external' %}
                     <a href="{% url 'games:game_launch' game.slug %}" class="btn-play">
@@ -78,7 +203,7 @@
                     <a href="{% url 'games:game_detail' game.slug %}" class="btn-play">
                         <i class="bi bi-play-circle-fill"></i> O'ynash
                     </a>
-                    <a href="{% url 'games:game_detail' game.slug %}" class="btn-details">
+                    <a href="{% url 'games:game_detail' game.slug %}" class="btn-details" aria-label="{{ game.title }} haqida batafsil">
                         <i class="bi bi-info-circle"></i>
                     </a>
                 {% endif %}
@@ -86,3 +211,4 @@
         </div>
     </div>
 </div>
+

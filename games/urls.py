@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import jumanji_views
 
 app_name = 'games'
 
@@ -15,6 +16,13 @@ urlpatterns = [
     path('live/', views.live_games, name='live_games'),
     path('live/<int:match_id>/', views.spectate_match, name='spectate_match'),
     path('live/<int:match_id>/state/', views.spectate_state, name='spectate_state'),
+
+    # Jumanji jonli o'yin — slug dan OLDIN bo'lishi shart
+    path('jumanji/<int:session_id>/', jumanji_views.room, name='jumanji_room'),
+    path('jumanji/<int:session_id>/state/', jumanji_views.state, name='jumanji_state'),
+    path('jumanji/<int:session_id>/join/', jumanji_views.join, name='jumanji_join'),
+    path('jumanji/<int:session_id>/leave/', jumanji_views.leave, name='jumanji_leave'),
+    path('jumanji/<int:session_id>/control/', jumanji_views.control, name='jumanji_control'),
 
     # Game detail & launch — slug catchall (oxirda)
     path('<slug:slug>/', views.game_detail, name='game_detail'),
@@ -56,4 +64,15 @@ urlpatterns = [
     path('dashboard/results/<int:pk>/<str:result_type>/delete/', views.admin_result_delete, name='admin_result_delete'),
     path('dashboard/word-suggestions/', views.admin_word_suggestions, name='admin_word_suggestions'),
     path('dashboard/word-suggestions/<int:pk>/action/', views.admin_word_suggestion_action, name='admin_word_suggestion_action'),
+
+    # Jumanji — admin
+    path('dashboard/games/<int:game_pk>/jumanji/', jumanji_views.admin_questions, name='jumanji_admin_questions'),
+    path('dashboard/games/<int:game_pk>/jumanji/add/', jumanji_views.admin_question_add, name='jumanji_admin_question_add'),
+    path('dashboard/games/<int:game_pk>/jumanji/export/', jumanji_views.admin_questions_export, name='jumanji_admin_questions_export'),
+    path('dashboard/games/<int:game_pk>/jumanji/import/', jumanji_views.admin_questions_import, name='jumanji_admin_questions_import'),
+    path('dashboard/games/<int:game_pk>/jumanji/template/', jumanji_views.admin_questions_template, name='jumanji_admin_questions_template'),
+    path('dashboard/jumanji-questions/<int:pk>/edit/', jumanji_views.admin_question_edit, name='jumanji_admin_question_edit'),
+    path('dashboard/jumanji-questions/<int:pk>/delete/', jumanji_views.admin_question_delete, name='jumanji_admin_question_delete'),
+    path('dashboard/jumanji-sessions/', jumanji_views.admin_sessions, name='jumanji_admin_sessions'),
+    path('dashboard/competitions/<int:pk>/jumanji/open/', jumanji_views.admin_open_lobby, name='jumanji_open_lobby'),
 ]

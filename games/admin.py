@@ -1,5 +1,9 @@
 from django.contrib import admin
-from .models import Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt, WordSuggestion, BoardMatch
+from .models import (
+    Game, Prompt, Competition, GameAttempt, WordRound, WordGameAttempt,
+    WordSuggestion, BoardMatch,
+    JumanjiQuestion, JumanjiSession, JumanjiPlayer, JumanjiTurn, JumanjiEvent,
+)
 
 
 class PromptInline(admin.TabularInline):
@@ -86,3 +90,61 @@ class WordSuggestionAdmin(admin.ModelAdmin):
     list_filter = ['status', 'created_at']
     search_fields = ['word', 'user__username', 'user__first_name']
     readonly_fields = ['user', 'word_round', 'word', 'created_at', 'reviewed_at', 'reviewed_by']
+
+
+# ===================== JUMANJI =====================
+
+@admin.register(JumanjiQuestion)
+class JumanjiQuestionAdmin(admin.ModelAdmin):
+    list_display = ['text_short', 'game', 'profession', 'difficulty', 'order', 'is_active']
+    list_filter = ['game', 'profession', 'difficulty', 'is_active']
+    search_fields = ['text', 'correct_text']
+    list_editable = ['is_active', 'order']
+    autocomplete_fields = ['profession']
+
+    def text_short(self, obj):
+        return obj.text[:60] + '...' if len(obj.text) > 60 else obj.text
+    text_short.short_description = "Savol"
+
+
+class JumanjiPlayerInline(admin.TabularInline):
+    model = JumanjiPlayer
+    extra = 0
+    fields = ['user', 'seat_order', 'position', 'skip_turns', 'has_shield',
+              'correct_count', 'wrong_count', 'rank']
+    readonly_fields = fields
+    can_delete = False
+
+
+@admin.register(JumanjiSession)
+class JumanjiSessionAdmin(admin.ModelAdmin):
+    list_display = ['id', 'competition', 'status', 'phase', 'board_size',
+                    'player_count', 'winner', 'created_at', 'ended_at']
+    list_filter = ['status', 'phase', 'game', 'created_at']
+    search_fields = ['competition__title', 'winner__username']
+    readonly_fields = ['competition', 'game', 'board_layout', 'question_pool', 'pool_cursor',
+                       'current_player', 'current_turn', 'turn_seq', 'state_version',
+                       'event_seq', 'winner', 'created_by', 'created_at', 'started_at', 'ended_at']
+    inlines = [JumanjiPlayerInline]
+
+    @admin.display(description="O'yinchilar")
+    def player_count(self, obj):
+        return obj.players.count()
+
+
+@admin.register(JumanjiTurn)
+class JumanjiTurnAdmin(admin.ModelAdmin):
+    list_display = ['seq', 'session', 'player', 'verdict', 'dice_value',
+                    'from_position', 'to_position', 'effect_code', 'judged_by']
+    list_filter = ['verdict', 'effect_code', 'created_at']
+    search_fields = ['player__user__username', 'session__competition__title']
+    readonly_fields = ['session', 'player', 'question', 'seq', 'verdict', 'dice_value',
+                       'from_position', 'to_position', 'effect_code', 'effect_note',
+                       'question_started_at', 'judged_at', 'judged_by', 'created_at']
+
+
+@admin.register(JumanjiEvent)
+class JumanjiEventAdmin(admin.ModelAdmin):
+    list_display = ['seq', 'session', 'kind', 'created_at']
+    list_filter = ['kind', 'created_at']
+    readonly_fields = ['session', 'seq', 'kind', 'payload', 'created_at']

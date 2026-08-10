@@ -32,7 +32,7 @@ class IsStudent(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return bool(user.is_authenticated and user.is_student)
+        return bool(user.is_authenticated and user.is_learner)
 
 
 def can_take_quiz(student, quiz):

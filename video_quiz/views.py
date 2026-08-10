@@ -804,7 +804,7 @@ def api_player_quizzes(request, video_id):
         ).values_list('quiz_id', flat=True)
     )
     return JsonResponse({
-        'is_student': request.user.role == 'student',
+        'is_student': request.user.is_learner,
         'quizzes': [
             {
                 'id': q.pk,
@@ -825,7 +825,7 @@ def api_player_quizzes(request, video_id):
 @require_POST
 def api_player_submit(request):
     """Javob topshirish — atomik: urinish + coin + tranzaksiya bitta blokda."""
-    if request.user.role != 'student':
+    if not request.user.is_learner:
         return JsonResponse({'error': "Faqat o'quvchilar javob beradi"}, status=403)
 
     # 🛡️ Rate limit — spam himoyasi

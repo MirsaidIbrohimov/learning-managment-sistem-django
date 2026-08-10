@@ -216,6 +216,10 @@
                                 <a href="{% url 'games:admin_word_rounds' game.pk %}" class="btn btn-sm btn-outline-info action-btn">
                                     <i class="bi bi-puzzle"></i> {{ game.word_rounds.count }}
                                 </a>
+                                {% elif game.game_type == 'jumanji' %}
+                                <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-sm btn-outline-success action-btn">
+                                    🎲 {{ game.jumanji_questions.count }}
+                                </a>
                                 {% else %}
                                 <a href="{% url 'games:admin_prompts' game.pk %}" class="btn btn-sm btn-outline-primary action-btn">
                                     <i class="bi bi-card-text"></i> {{ game.prompts.count }}
@@ -225,6 +229,8 @@
                             <td>
                                 {% if game.game_type == 'word_builder' %}
                                 {{ game.word_attempts.count }}
+                                {% elif game.game_type == 'jumanji' %}
+                                {{ game.jumanji_sessions.count }}
                                 {% else %}
                                 {{ game.attempts.count }}
                                 {% endif %}
@@ -285,6 +291,9 @@
                 {% if game.game_type == 'word_builder' %}
                 <span><i class="bi bi-puzzle"></i> {{ game.word_rounds.count }} raund</span>
                 <span><i class="bi bi-bar-chart"></i> {{ game.word_attempts.count }} natija</span>
+                {% elif game.game_type == 'jumanji' %}
+                <span>🎲 {{ game.jumanji_questions.count }} savol</span>
+                <span><i class="bi bi-bar-chart"></i> {{ game.jumanji_sessions.count }} sessiya</span>
                 {% else %}
                 <span><i class="bi bi-card-text"></i> {{ game.prompts.count }} topshiriq</span>
                 <span><i class="bi bi-bar-chart"></i> {{ game.attempts.count }} natija</span>
@@ -295,6 +304,10 @@
                 {% if game.game_type == 'word_builder' %}
                 <a href="{% url 'games:admin_word_rounds' game.pk %}" class="btn btn-sm btn-outline-info action-btn">
                     <i class="bi bi-puzzle"></i>
+                </a>
+                {% elif game.game_type == 'jumanji' %}
+                <a href="{% url 'games:jumanji_admin_questions' game.pk %}" class="btn btn-sm btn-outline-success action-btn">
+                    🎲
                 </a>
                 {% else %}
                 <a href="{% url 'games:admin_prompts' game.pk %}" class="btn btn-sm btn-outline-primary action-btn">
