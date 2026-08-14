@@ -488,6 +488,7 @@ def state(request, session_id):
     want_full = request.GET.get('full') == '1'
 
     jumanji.touch_player(session, request.user)
+    _auto_advance(session)
 
     if not want_full and client_version == session.state_version:
         return JsonResponse({'v': session.state_version, 'changed': False})
@@ -497,6 +498,61 @@ def state(request, session_id):
         since=_int_or(request.GET.get('since'), 0),
         want_full=want_full,
     ))
+
+
+def _auto_advance(session):
+    """Server soati bo'yicha o'zi davom etadigan qadamlar.
+
+    Boshqaruvchi "Savolni ochish"ni bosib o'tirmasligi kerak, va o'quvchi
+    uzilib qolsa o'yin `dice` bosqichida muzlab qolmasligi kerak. Vaqt FAQAT
+    serverdan olinadi — client soati o'zgartirilishi mumkin.
+
+    Har polling shu funksiyadan o'tadi, shuning uchun avval qulfsiz arzon
+    tekshiruv, keyin qulf ostida qaytadan tekshirish (bir necha client bir
+    vaqtda kirsa qadam ikki marta bajarilmasligi uchun).
+    """
+    if session.status != 'running' or session.is_paused:
+        return False
+
+    phase = session.phase
+    if phase == 'waiting_turn':
+        delay = jumanji.AUTO_OPEN_DELAY_SECONDS
+        if session.current_turn_id or not session.current_player_id:
+            return False
+    elif phase == 'dice':
+        delay = jumanji.AUTO_ROLL_AFTER_SECONDS
+    else:
+        return False
+
+    if session.phase_age() < delay:
+        return False
+
+    with transaction.atomic():
+        locked = (
+            JumanjiSession.objects.select_for_update()
+            .select_related('competition', 'game', 'current_player', 'current_turn')
+            .filter(pk=session.pk)
+            .first()
+        )
+        if locked is None:
+            return False
+        # Qulfni kutib turgan vaqtda boshqa so'rov ulgurgan bo'lishi mumkin.
+        if (locked.status != 'running' or locked.is_paused
+                or locked.phase != phase or locked.phase_age() < delay):
+            return False
+
+        if phase == 'waiting_turn':
+            if locked.current_turn_id or not locked.current_player_id:
+                return False
+            if jumanji.open_question(locked) is None:
+                # Savol bazasi bo'sh — har pollingda urinib qotib qolmaslik uchun yakunlaymiz.
+                jumanji.finish_session(locked, jumanji.check_winner(locked))
+                jumanji.award_coins(locked)
+        else:
+            _resolve_dice(locked)
+
+    session.refresh_from_db()
+    return True
 
 
 def _state_payload(session, user, is_controller, since=0, want_full=False):
@@ -525,7 +581,19 @@ def _state_payload(session, user, is_controller, since=0, want_full=False):
         'is_player': me is not None,
         'player_id': me.pk if me else None,
         'is_current': bool(me and session.current_player_id == me.pk),
+        # Lobby tugmalari clientda chiziladi — sahifani yangilamasdan yangilanishi uchun.
+        'can_join': bool(
+            session.status == 'lobby' and not is_controller and me is None
+            and len(players) < jumanji.MAX_PLAYERS
+            and session.competition.is_user_allowed(user)
+        ),
+        'can_leave': bool(session.status == 'lobby' and me is not None),
     }
+
+    if session.phase == 'dice':
+        payload['dice_wait'] = max(0, round(jumanji.AUTO_ROLL_AFTER_SECONDS - session.phase_age()))
+    elif session.phase == 'waiting_turn' and session.status == 'running' and not session.current_turn_id:
+        payload['open_in'] = max(0, round(jumanji.AUTO_OPEN_DELAY_SECONDS - session.phase_age()))
 
     turn = session.current_turn
     if turn:
@@ -560,6 +628,7 @@ def _cells_json(session):
             'is_finish': cell['is_finish'],
             'effect': cell['effect'],
             'steps': cell['steps'],
+            'steps_label': cell['steps_label'],
         }
         for cell in jumanji.board_cells(session)
     ]
@@ -654,9 +723,55 @@ def leave(request, session_id):
         name = player.display_name
         player.delete()
         jumanji.add_event(session, 'leave', player=name)
-        session.bump()
-        session.save(update_fields=['state_version'])
     return JsonResponse({'ok': True})
+
+
+@login_required
+@require_POST
+def roll(request, session_id):
+    """Toshni aylantirish — buni O'QUVCHINING O'ZI bosadi.
+
+    Qiymat serverda hisoblanadi (`jumanji.throw_dice`), client faqat "bosdim"
+    deb xabar beradi. Boshqaruvchi ham bosa oladi: o'quvchining aloqasi uzilsa
+    o'yin qotib qolmasligi uchun.
+    """
+    since = _int_or(request.POST.get('since'), 0)
+    is_controller = jumanji.can_control(request.user)
+
+    with transaction.atomic():
+        session = (
+            JumanjiSession.objects.select_for_update()
+            .select_related('competition', 'game', 'current_player', 'current_turn', 'winner')
+            .filter(pk=session_id)
+            .first()
+        )
+        if session is None:
+            return JsonResponse({'ok': False, 'error': 'Sessiya topilmadi.'}, status=404)
+        if not is_controller and not session.competition.is_user_allowed(request.user):
+            return JsonResponse({'ok': False, 'error': 'Ruxsat yo‘q.'}, status=403)
+
+        # Bosqich tekshiruvi ruxsatdan OLDIN: ikki marta bosilganda navbat
+        # allaqachon o'tgan bo'ladi va "navbatingiz emas" degan xato chalg'itardi.
+        if session.phase != 'dice' or not session.current_turn_id:
+            return JsonResponse({
+                'ok': False, 'stale': True,
+                'error': 'Tosh allaqachon tashlangan.',
+            }, status=409)
+
+        if not is_controller:
+            me = session.players.filter(user=request.user).first()
+            if not me or session.current_player_id != me.pk:
+                return JsonResponse({'ok': False, 'error': 'Hozir sizning navbatingiz emas.'}, status=403)
+        if session.is_paused:
+            return JsonResponse({'ok': False, 'error': "O'yin pauzada."}, status=400)
+
+        _resolve_dice(session)
+
+        session.refresh_from_db()
+        payload = _state_payload(session, request.user, is_controller, since=since)
+
+    payload['ok'] = True
+    return JsonResponse(payload)
 
 
 # ============================================================
@@ -741,7 +856,7 @@ def _act_cancel(request, session):
     if session.status not in ('lobby', 'running'):
         return "O'yin allaqachon yakunlangan."
     session.status = 'cancelled'
-    session.phase = 'finished'
+    session.enter_phase('finished')
     session.ended_at = timezone.now()
     session.current_turn = None
     session.turn_seq += 1
@@ -766,11 +881,10 @@ def _act_open_question(request, session):
 
 
 def _act_verdict(request, session):
-    """Bitta bosish = to'liq zanjir: baho → zarba → harakat → katak → navbat.
+    """Baho beradi. To'g'ri javobda zanjir `dice` bosqichida ATAYIN to'xtaydi.
 
-    Zanjirni serverda bajarish shart: aks holda ikki boshqaruvchi oralig'ida
-    o'yin yarim holatda qolib ketishi mumkin. Client hodisalar lentasini
-    ketma-ket animatsiya qiladi.
+    Toshni o'quvchining o'zi aylantiradi (`roll` view), shuning uchun bu yerda
+    zarba tashlanmaydi. Noto'g'ri javobda navbat darhol keyingisiga o'tadi.
     """
     verdict = _norm(request.POST.get('verdict'))
     if verdict not in ('correct', 'wrong', 'skipped', 'timeout'):
@@ -780,16 +894,22 @@ def _act_verdict(request, session):
 
     jumanji.judge_turn(session, verdict, request.user)
 
-    if verdict == 'correct':
-        outcome = jumanji.apply_cell_effect(session)
-        if outcome and outcome.get('awaiting_task'):
-            # 🃏 — boshqaruvchi shart natijasini alohida tasdiqlaydi
-            return None
-        if _settle_if_finished(session):
-            return None
-
-    jumanji.advance_turn(session)
+    if verdict != 'correct':
+        jumanji.advance_turn(session)
     return None
+
+
+def _resolve_dice(session):
+    """Tosh tashlangandan keyingi zanjir: zarba → katak effekti → navbat."""
+    jumanji.throw_dice(session)
+
+    outcome = jumanji.apply_cell_effect(session)
+    if outcome and outcome.get('awaiting_task'):
+        # 🃏 — boshqaruvchi shart natijasini alohida tasdiqlaydi
+        return
+    if _settle_if_finished(session):
+        return
+    jumanji.advance_turn(session)
 
 
 def _act_resolve_task(request, session):

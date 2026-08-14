@@ -24,16 +24,51 @@ from .models import JumanjiEvent, JumanjiPlayer, JumanjiQuestion, JumanjiTurn
 
 # `weight` — doskaga tushish ehtimoli. `safe` bu yerda yo'q: effektsiz
 # kataklar layout'ga umuman yozilmaydi.
-# `tone` — UI ranglash va 🛡 qalqon mantiqi uchun (good/bad/neutral).
+# `tone` — UI ranglash va qalqon mantiqi uchun (good/bad/neutral).
+# `icon` — Bootstrap Icons klassi (emoji emas: shrift bo'yicha bir xil ko'rinadi).
+# `short` — katak ustidagi qisqa yozuv, `hint` — legendadagi izoh,
+# `shout` — katakka tushganda ekranga chiqadigan baqiriq.
 EFFECT_SPECS = {
-    'freeze': {'label': 'Muzlash', 'icon': '❄️', 'tone': 'bad', 'weight': 14},
-    'snake': {'label': 'Ilon', 'icon': '🐍', 'tone': 'bad', 'weight': 16},
-    'ladder': {'label': 'Narvon', 'icon': '🪜', 'tone': 'good', 'weight': 16},
-    'bonus': {'label': 'Bonus zarba', 'icon': '⭐', 'tone': 'good', 'weight': 12},
-    'double': {'label': "Qo'sh zarba", 'icon': '🎯', 'tone': 'good', 'weight': 12},
-    'task': {'label': 'Shart', 'icon': '🃏', 'tone': 'neutral', 'weight': 14},
-    'shield': {'label': 'Qalqon', 'icon': '🛡', 'tone': 'good', 'weight': 8},
-    'swap': {'label': 'Almashuv', 'icon': '💥', 'tone': 'neutral', 'weight': 8},
+    'freeze': {
+        'label': 'Muzlash', 'icon': 'bi-snow', 'tone': 'bad', 'weight': 14,
+        'short': 'Muz', 'shout': 'MUZLADINGIZ!',
+        'hint': "Bir navbat o'tkazib yuboriladi",
+    },
+    'snake': {
+        'label': 'Ilon', 'icon': 'bi-rewind-circle-fill', 'tone': 'bad', 'weight': 16,
+        'short': 'Ilon', 'shout': 'ILON CHAQDI!',
+        'hint': "Bir necha katak orqaga sirg'aladi",
+    },
+    'ladder': {
+        'label': 'Narvon', 'icon': 'bi-fast-forward-circle-fill', 'tone': 'good', 'weight': 16,
+        'short': 'Narvon', 'shout': 'NARVONGA CHIQDINGIZ!',
+        'hint': "Bir necha katak oldinga ko'tariladi",
+    },
+    'bonus': {
+        'label': 'Bonus zarba', 'icon': 'bi-star-fill', 'tone': 'good', 'weight': 12,
+        'short': 'Bonus', 'shout': 'BONUS ZARBA!',
+        'hint': "Savolsiz qo'shimcha tosh tashlanadi",
+    },
+    'double': {
+        'label': "Qo'sh zarba", 'icon': 'bi-2-circle-fill', 'tone': 'good', 'weight': 12,
+        'short': 'x2', 'shout': "QO'SH ZARBA!",
+        'hint': 'Keyingi tosh ikki barobar hisoblanadi',
+    },
+    'task': {
+        'label': 'Shart', 'icon': 'bi-lightning-charge-fill', 'tone': 'neutral', 'weight': 14,
+        'short': 'Shart', 'shout': 'SHART KATAGI!',
+        'hint': "Boshqaruvchi shart beradi — bajarsa +2 katak",
+    },
+    'shield': {
+        'label': 'Qalqon', 'icon': 'bi-shield-fill-check', 'tone': 'good', 'weight': 8,
+        'short': 'Qalqon', 'shout': 'QALQON OLDINGIZ!',
+        'hint': 'Keyingi salbiy katakdan himoya qiladi',
+    },
+    'swap': {
+        'label': 'Bomba', 'icon': 'bi-fire', 'tone': 'neutral', 'weight': 8,
+        'short': 'Bomba', 'shout': 'PORTLADINGIZ!',
+        'hint': "Oldinda ketayotgan o'yinchi bilan o'rin almashadi",
+    },
 }
 
 # Doskaning necha foiz katagida effekt bo'ladi.
@@ -57,13 +92,33 @@ OFFLINE_AFTER_SECONDS = 90
 # Heartbeat shu oraliqdan tez-tez bazaga yozilmaydi (SQLite qulfini kamaytiradi).
 HEARTBEAT_INTERVAL_SECONDS = 25
 
+# Navbat almashgach savol shuncha soniyadan keyin O'ZI ochiladi — boshqaruvchi
+# tugma bosmaydi. Kechikish kerak: o'yinchilar oldingi yurish va katak
+# effektini ko'rib ulgurishsin.
+AUTO_OPEN_DELAY_SECONDS = 5
+
+# O'quvchi toshni shuncha vaqt aylantirmasa server o'zi tashlaydi — o'yin
+# ulanish uzilgani yoki chalg'igani sababli qotib qolmaydi.
+AUTO_ROLL_AFTER_SECONDS = 20
+
 
 def effect_info(code):
     """Effekt kodidan UI uchun ma'lumot (noma'lum kod ham xavfsiz qaytadi)."""
     spec = EFFECT_SPECS.get(code)
     if not spec:
-        return {'code': code or 'safe', 'label': '', 'icon': '', 'tone': 'neutral'}
-    return {'code': code, 'label': spec['label'], 'icon': spec['icon'], 'tone': spec['tone']}
+        return {
+            'code': code or 'safe', 'label': '', 'icon': '', 'tone': 'neutral',
+            'short': '', 'hint': '', 'shout': '',
+        }
+    return {
+        'code': code,
+        'label': spec['label'],
+        'icon': spec['icon'],
+        'tone': spec['tone'],
+        'short': spec['short'],
+        'hint': spec['hint'],
+        'shout': spec['shout'],
+    }
 
 
 # ============================================================
@@ -89,29 +144,45 @@ def build_board(board_size, rng=None):
     candidates = list(range(first_cell, board_size))
     rng.shuffle(candidates)
 
-    target = int(len(candidates) * EFFECT_DENSITY)
     codes = list(EFFECT_SPECS)
     weights = [EFFECT_SPECS[c]['weight'] for c in codes]
 
-    for cell in candidates[:target]:
-        code = rng.choices(codes, weights=weights, k=1)[0]
+    # O'yin boshlangach BARCHA o'yinchilar har bir effekt turini ko'rsin.
+    # Shuning uchun avval har bir effekt turiga (Muzlash, Ilon, Narvon,
+    # Bonus zarba, Qo'sh zarba, Shart, Qalqon, Bomba) kamida bittadan katak
+    # kafolatlanadi, qolgan kataklar esa tasodifiy effektlar bilan to'ldiriladi.
+    used_cells = set()
 
+    def place(code, cell):
+        """Katakka effekt joylaydi. Joylab bo'lmasa False qaytaradi."""
+        if cell in used_cells:
+            return False
         if code == 'snake' and cell >= board_size - 2:
-            code = 'ladder'
-
+            return False
+        if code == 'ladder' and board_size - 1 - cell <= 0:
+            return False
         entry = {'effect': code}
-
         if code == 'snake':
             # Orqaga sirg'alish START dan pastga tushmaydi.
             entry['steps'] = min(rng.randint(3, 5), cell)
         elif code == 'ladder':
             # Narvon FINISH ga olib chiqmaydi — g'alaba savol orqali kelsin.
-            room = board_size - 1 - cell
-            if room <= 0:
-                continue
-            entry['steps'] = min(rng.randint(3, 5), room)
-
+            entry['steps'] = min(rng.randint(3, 5), board_size - 1 - cell)
         layout[str(cell)] = entry
+        used_cells.add(cell)
+        return True
+
+    # 1) Har bir effekt turi kamida bir marta joylanadi.
+    for code in codes:
+        for cell in candidates:
+            if place(code, cell):
+                break
+
+    # 2) Qolgan kataklarni tasodifiy effektlar bilan to'ldiramiz.
+    target = int(len(candidates) * EFFECT_DENSITY)
+    free = [c for c in candidates if c not in used_cells]
+    for cell in free[:max(0, target - len(used_cells))]:
+        place(rng.choices(codes, weights=weights, k=1)[0], cell)
 
     return layout
 
@@ -129,14 +200,22 @@ def board_cells(session):
     for index in range(session.board_size + 1):
         entry = layout.get(str(index)) or {}
         point = points[index]
+        code = entry.get('effect')
+        steps = entry.get('steps')
+        # Katak raqami yonida turgani uchun qadam soni yo'nalish belgisi bilan
+        # yoziladi: "Ilon -4" orqaga, "Narvon +4" oldinga.
+        steps_label = None
+        if steps:
+            steps_label = f"-{steps}" if code == 'snake' else f"+{steps}"
         cells.append({
             'index': index,
             'x': point['x'],
             'y': point['y'],
             'is_start': index == 0,
             'is_finish': index == session.board_size,
-            'effect': effect_info(entry.get('effect')) if entry.get('effect') else None,
-            'steps': entry.get('steps'),
+            'effect': effect_info(code) if code else None,
+            'steps': steps,
+            'steps_label': steps_label,
             'players': by_position.get(index, []),
         })
     return cells
@@ -151,8 +230,13 @@ TRAIL_MARGIN = 8.0
 
 
 def _row_layout(total):
-    """Katak sonidan qator/ustun o'lchamini tanlaydi (kvadratga yaqin doska)."""
-    per_row = max(5, min(8, math.ceil(math.sqrt(total * 1.35))))
+    """Katak sonidan qator/ustun o'lchamini tanlaydi.
+
+    Doska baland emas, keng bo'lishi kerak: bitta qatorga ko'proq katak
+    sig'sa ekranning gorizontal joyi to'liq ishlatiladi va kataklar yirik
+    ko'rinadi (o'quvchiga uzoqdan ham o'qiladi).
+    """
+    per_row = max(6, min(10, math.ceil(math.sqrt(total * 2.1))))
     rows = math.ceil(total / per_row)
     return per_row, rows
 
@@ -217,7 +301,10 @@ def board_geometry(board_size):
     return {
         'points': points,
         'aspect': round(aspect * 100, 2),
-        'cell': round(min(gap * 0.78, 14.0), 3),
+        # Kataklar aylana emas, gorizontal yog'och lavha — kenglik bo'yicha
+        # o'lchanadi (balandligi CSS'da 0.88 nisbatda kesiladi), shu tufayli
+        # yozuvga joy bo'lsin deb aylanadagidan kengroq olinadi.
+        'cell': round(min(gap * 0.82, 15.0), 3),
         'trail': _trail_path(points),
     }
 
@@ -257,17 +344,22 @@ def board_links(session):
 # ============================================================
 
 def add_event(session, kind, **payload):
-    """Sessiyaga hodisa yozadi va `event_seq` ni darhol saqlaydi.
+    """Sessiyaga hodisa yozadi, `event_seq` va `state_version` ni saqlaydi.
 
     Saqlash shu yerda: aks holda faqat `add_event` chaqirgan (lekin sessiyani
     saqlamagan) oqimlarda seq qaytib ketib, hodisalar takrorlanardi.
+
+    `state_version` ham shu yerda oshiriladi — har qanday hodisa (qo'shilish,
+    chiqish, ...) boshqa ekranlarga darhol yetib borishi kerak, aks holda
+    polling `changed: false` olib, sahifani qo'lda yangilash talab qilinadi.
     """
     session.event_seq += 1
+    session.bump()
     JumanjiEvent.objects.create(
         session=session, seq=session.event_seq, kind=kind, payload=payload,
     )
     if session.pk:
-        session.save(update_fields=['event_seq'])
+        session.save(update_fields=['event_seq', 'state_version'])
 
 
 # ============================================================
@@ -310,7 +402,7 @@ def start_session(session, rng=None):
     session.pool_cursor = 0
     session.board_layout = build_board(session.board_size, rng=rng)
     session.status = 'running'
-    session.phase = 'waiting_turn'
+    session.enter_phase('waiting_turn')
     session.started_at = timezone.now()
     session.current_player = players[0] if players else None
     session.current_turn = None
@@ -330,7 +422,7 @@ def start_session(session, rng=None):
 # Navbat oqimi
 # ============================================================
 
-def open_question(session, controller):
+def open_question(session, controller=None):
     """Navbatdagi o'yinchi uchun savolni ochadi."""
     question = session.next_question()
     if question is None:
@@ -349,7 +441,7 @@ def open_question(session, controller):
     )
 
     session.current_turn = turn
-    session.phase = 'question'
+    session.enter_phase('question')
     session.pool_cursor += 1
     session.turn_seq += 1
     session.bump()
@@ -371,51 +463,72 @@ def roll_dice(rng=None):
 
 
 def judge_turn(session, verdict, controller, rng=None):
-    """Boshqaruvchi bahosini qo'llaydi: to'g'ri bo'lsa zarba + harakat.
+    """Boshqaruvchi bahosini qo'llaydi.
 
-    Qaytaradi: natija dict (UI animatsiyasi uchun).
+    To'g'ri javobda tosh SHU YERDA tashlanmaydi — navbat `dice` bosqichiga
+    o'tadi va toshni o'quvchining o'zi aylantiradi (`throw_dice`). Noto'g'ri
+    javobda navbat darhol keyingi o'yinchiga o'tadi.
     """
-    rng = rng or random
     turn = session.current_turn
     player = turn.player
 
     turn.verdict = verdict
     turn.judged_at = timezone.now()
     turn.judged_by = controller
-
-    result = {'verdict': verdict, 'dice': None, 'effect': None}
+    turn.to_position = player.position
 
     if verdict == 'correct':
         player.correct_count += 1
-        dice = roll_dice(rng) * player.next_multiplier
-        turn.dice_value = dice
-        result['dice'] = dice
-
-        # 🎯 ko'paytiruvchi bir marta ishlaydi
-        player.next_multiplier = 1
-
-        moved_to = min(player.position + dice, session.board_size)
-        turn.to_position = moved_to
-        player.position = moved_to
-
-        add_event(
-            session, 'dice',
-            player=player.display_name, dice=dice, to=moved_to,
-        )
+        session.enter_phase('dice')
     else:
         if verdict == 'wrong':
             player.wrong_count += 1
-        turn.to_position = player.position
-        add_event(session, 'verdict', player=player.display_name, verdict=verdict)
+        session.enter_phase('waiting_turn')
 
     player.save()
     turn.save()
 
-    session.phase = 'dice' if verdict == 'correct' else 'waiting_turn'
+    add_event(session, 'verdict', player=player.display_name, verdict=verdict)
+
     session.turn_seq += 1
     session.bump()
     session.save()
-    return result
+    return {'verdict': verdict, 'dice': None, 'effect': None}
+
+
+def throw_dice(session, rng=None):
+    """Toshni aylantiradi va o'yinchini oldinga suradi.
+
+    Qiymat FAQAT shu yerda hisoblanadi: client hech qachon o'zi tanlamaydi,
+    aks holda o'quvchi javob paketini o'zgartirib 6 chiqarardi. Tosh
+    aylanishining animatsiyasi hodisadan boshqa ekranlarga ham yetadi.
+    """
+    turn = session.current_turn
+    player = turn.player
+
+    dice = roll_dice(rng) * player.next_multiplier
+    # 🎯 ko'paytiruvchi bir marta ishlaydi
+    player.next_multiplier = 1
+
+    moved_to = min(player.position + dice, session.board_size)
+    player.position = moved_to
+    player.save()
+
+    turn.dice_value = dice
+    turn.to_position = moved_to
+    turn.save(update_fields=['dice_value', 'to_position'])
+
+    add_event(
+        session, 'dice',
+        player=player.display_name, dice=dice,
+        **{'from': turn.from_position, 'to': moved_to},
+    )
+
+    session.enter_phase('effect')
+    session.turn_seq += 1
+    session.bump()
+    session.save()
+    return dice
 
 
 def apply_cell_effect(session, rng=None):
@@ -433,17 +546,19 @@ def apply_cell_effect(session, rng=None):
     entry = session.cell_effect(player.position) or {}
     code = entry.get('effect')
 
-    session.phase = 'effect'
-
     if not code or player.position >= session.board_size:
-        session.phase = 'waiting_turn'
+        session.enter_phase('waiting_turn')
         session.turn_seq += 1
         session.bump()
         session.save()
         return None
 
     info = effect_info(code)
-    outcome = {'code': code, 'label': info['label'], 'icon': info['icon'], 'tone': info['tone']}
+    outcome = {
+        'code': code, 'label': info['label'], 'icon': info['icon'],
+        'tone': info['tone'], 'shout': info['shout'], 'hint': info['hint'],
+        'at': player.position,
+    }
 
     # 🛡 Qalqon salbiy effektni yeydi
     if info['tone'] == 'bad' and player.has_shield:
@@ -483,8 +598,7 @@ def apply_cell_effect(session, rng=None):
         else:
             outcome['swapped_with'] = None
     elif code == 'task':
-        # 🃏 boshqaruvchi shart beradi — bajarilishi alohida tasdiqlanadi
-        session.phase = 'effect'
+        # boshqaruvchi shart beradi — bajarilishi alohida tasdiqlanadi
         outcome['awaiting_task'] = True
 
     player.save()
@@ -495,7 +609,9 @@ def apply_cell_effect(session, rng=None):
     add_event(session, 'effect', player=player.display_name, **outcome)
 
     if not outcome.get('awaiting_task'):
-        session.phase = 'waiting_turn'
+        session.enter_phase('waiting_turn')
+    else:
+        session.enter_phase('effect')
     session.turn_seq += 1
     session.bump()
     session.save()
@@ -531,7 +647,7 @@ def resolve_task(session, completed, controller, note=''):
         to=player.position,
     )
 
-    session.phase = 'waiting_turn'
+    session.enter_phase('waiting_turn')
     session.turn_seq += 1
     session.bump()
     session.save()
@@ -584,7 +700,7 @@ def advance_turn(session):
             continue
         session.current_player = candidate
         session.current_turn = None
-        session.phase = 'waiting_turn'
+        session.enter_phase('waiting_turn')
         session.turn_seq += 1
         session.bump()
         session.save()
@@ -593,7 +709,7 @@ def advance_turn(session):
     # Hamma muzlagan edi — muzlashlar yechildi, birinchisiga navbat.
     session.current_player = players[0]
     session.current_turn = None
-    session.phase = 'waiting_turn'
+    session.enter_phase('waiting_turn')
     session.turn_seq += 1
     session.bump()
     session.save()
@@ -614,7 +730,7 @@ def finish_session(session, winner_player=None):
 
     session.winner = winner_player.user if winner_player else (ranked[0].user if ranked else None)
     session.status = 'finished'
-    session.phase = 'finished'
+    session.enter_phase('finished')
     session.ended_at = timezone.now()
     session.current_turn = None
     session.turn_seq += 1

@@ -19,23 +19,45 @@ import os
 
 load_dotenv(BASE_DIR / '.env')
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+# Video davomiyligini SERVER tomonda aniqlash uchun (anti-cheat asosi). Bo'sh
+# bo'lsa zaxira manbalar sinaladi; ular ham ishlamasa admin qo'lda kiritadi.
+YOUTUBE_API_KEY = os.getenv("YOUTUBE_API_KEY", "")
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
+
+def _env_bool(name, default=False):
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    return raw.strip().lower() in ('1', 'true', 'yes', 'on')
+
+
 # SECURITY WARNING: don't run with debug turned on in production!
+# Default False — DEBUG yoqilishi uchun .env da ATAYLAB DEBUG=True yozilishi shart.
 DEBUG = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-)fxm1vrhjd!nfp46v$6v2*_bx&*7t8=mg&ic(6w8#ubez4y+&u')
-if not os.getenv('DJANGO_SECRET_KEY') and not DEBUG:
-    import warnings
-    warnings.warn("⚠️ DJANGO_SECRET_KEY o'rnatilmagan! Production uchun .env faylda SECRET_KEY qo'shing.", stacklevel=1)
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY') or ''
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-dev-only-key-not-for-production'
+    else:
+        from django.core.exceptions import ImproperlyConfigured
+        raise ImproperlyConfigured(
+            "DJANGO_SECRET_KEY o'rnatilmagan! Production uchun .env faylga "
+            "DJANGO_SECRET_KEY qo'shing (tasodifiy 50+ belgi)."
+        )
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv(
-    'ALLOWED_HOSTS',
-    'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1'
-).split(',') if h.strip()]
+_DEFAULT_HOSTS = 'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1'
+ALLOWED_HOSTS = ["*"]
+# Production'da '*' Host sarlavhasi tekshiruvini butunlay o'chiradi (Host header
+# poisoning: parol tiklash havolalarini soxta domenga yo'naltirish mumkin).
+if not DEBUG and '*' in ALLOWED_HOSTS:
+    ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h != '*'] or [
+        h.strip() for h in _DEFAULT_HOSTS.split(',') if h.strip()
+    ]
 
 
 # Application definition
@@ -83,8 +105,8 @@ JAZZMIN_SETTINGS = {
     "site_title": "IT Shaharcha Zomin Admin",
     "site_header": "IT Shaharcha Zomin 🚀",
     "site_brand": "IT Shaharcha Zomin",
-    "welcome_sign": "Xush kelibsiz, Developer 😎",
-    "copyright": "Suyunov Husan | IT Shaharcha Zomin",
+    "welcome_sign": "Xush kelibsiz!",
+    "copyright": "IT Shaharcha Zomin",
 
     # LOGO (agar static/images/logo.png bo‘lsa)
     "site_logo": "images/logo.png",
@@ -222,6 +244,9 @@ MIDDLEWARE = [
     # ── 1. Xavfsizlik (eng birinchi — hamma narsadan oldin) ───────────────
     'django.middleware.security.SecurityMiddleware',
     'accounts.middleware.RequestSizeLimitMiddleware',    # Katta body (>20MB) bloklash
+    # Django admin login'i accounts.login_view rate-limitidan o'tmaydi, shuning
+    # uchun /admin/ uchun alohida (faqat POST) brute-force limiti.
+    'accounts.middleware.AdminLoginRateLimitMiddleware',
     # Global IP rate-limit o'chirilgan: bitta tarmoqdagi ko'p o'quvchini 429 bilan
     # noto'g'ri bloklar edi. Login/register/parol va muhim API limitlari saqlanadi.
     # O'CHIRILDI: noto'g'ri (false-positive) ravishda Market, to'lovlar filtri kabi
@@ -389,7 +414,18 @@ LOGIN_REDIRECT_URL = 'home'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Django 5.1 dan STATICFILES_STORAGE olib tashlangan — STORAGES ishlatiladi.
+# (Eski STATICFILES_STORAGE qatori e'tiborsiz qolib, WhiteNoise siqishi ishlamay
+#  turgan edi.) Manifest emas: collectstatic esdan chiqsa sayt 500 bermaydi.
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+    },
+}
 
 # ══════════════════════════════════════════════════════════════════
 # KENG QAMROVLI XAVFSIZLIK SOZLAMALARI
@@ -417,7 +453,8 @@ except Exception:
 SECURE_HSTS_SECONDS            = 0 if DEBUG else 31536000   # 1 yil (production)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD            = not DEBUG
-SECURE_SSL_REDIRECT            = not DEBUG
+# DEBUG=False bilan lokal sinash uchun .env da SECURE_SSL_REDIRECT=False qilish mumkin.
+SECURE_SSL_REDIRECT            = _env_bool('SECURE_SSL_REDIRECT', not DEBUG)
 SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # ── Browser xavfsizlik headerlari ────────────────────────────────
@@ -529,12 +566,47 @@ GAME_MAX_SCORE_MULTI = 10
 
 
 # ══════════════════════════════════════════════════════════════════
+# ONLAYN TO'LOV (Payme / Click)
+# ══════════════════════════════════════════════════════════════════
+# MUHIM: bu kalitlar ilgari settings'ga ulanmagan edi. Natijada
+# payment_views.py dagi getattr(settings, 'PAYME_KEY', '') bo'sh satr
+# qaytarib, imzo/parol tekshiruvi bo'sh kalit bilan MOS kelardi —
+# ya'ni istalgan odam to'lovni "tasdiqlab" balansni tekinga to'ldira olardi.
+# Endi kalit bo'lmasa endpoint'lar butunlay ishlamaydi (fail-closed).
+PAYME_KEY              = os.getenv('PAYME_KEY', '').strip()
+PAYME_ID               = os.getenv('PAYME_ID', '').strip()
+CLICK_SERVICE_ID       = os.getenv('CLICK_SERVICE_ID', '').strip()
+CLICK_MERCHANT_ID      = os.getenv('CLICK_MERCHANT_ID', '').strip()
+CLICK_SECRET_KEY       = os.getenv('CLICK_SECRET_KEY', '').strip()
+CLICK_MERCHANT_USER_ID = os.getenv('CLICK_MERCHANT_USER_ID', '').strip()
+
+# ══════════════════════════════════════════════════════════════════
+# ADMIN PANEL YO'LI
+# ══════════════════════════════════════════════════════════════════
+# Standart '/admin/' — botlar birinchi navbatda shu manzilni urib ko'radi.
+# .env da ADMIN_URL=maxfiy-panel/ qo'yib yo'lni o'zgartirish tavsiya etiladi.
+ADMIN_URL = (os.getenv('ADMIN_URL', 'admin/').strip().lstrip('/') or 'admin/')
+if not ADMIN_URL.endswith('/'):
+    ADMIN_URL += '/'
+
+# Admin login uchun brute-force limiti (AdminLoginRateLimitMiddleware)
+ADMIN_LOGIN_MAX_ATTEMPTS = int(os.getenv('ADMIN_LOGIN_MAX_ATTEMPTS', '10'))
+ADMIN_LOGIN_WINDOW       = int(os.getenv('ADMIN_LOGIN_WINDOW', '900'))   # soniya
+
+
+# ══════════════════════════════════════════════════════════════════
 # TELEGRAM BOT (.env dan o'qiladi — ilgari settings'ga ulanmagan edi,
 # shuning uchun bot ishga tushmasdi)
 # ══════════════════════════════════════════════════════════════════
 TELEGRAM_BOT_TOKEN     = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
 TELEGRAM_GROUP_CHAT_ID = os.getenv('TELEGRAM_GROUP_CHAT_ID', '').strip()
 TELEGRAM_BOT_USERNAME  = os.getenv('TELEGRAM_BOT_USERNAME', '').strip()
+
+# /telegrambotlms/health/ ochiq turganda har bir so'rov musobaqa/vazifa/to'lov
+# eslatmalarini yuborib, Telegram'ga spam qilish vositasiga aylanadi.
+# Cron uchun: https://.../telegrambotlms/health/?token=<TELEGRAM_HEALTH_TOKEN>
+# Bo'sh qoldirilsa SECRET_KEY dan olinadi (hech qachon ochiq qolmaydi).
+TELEGRAM_HEALTH_TOKEN  = os.getenv('TELEGRAM_HEALTH_TOKEN', '').strip()
 
 # Premium custom emoji va ixtiyoriy stikerlar (telegram_bot/premium.py).
 # Botning matnli xabarlari premium animatsiyali emojilarni xabar ichida ishlatadi;

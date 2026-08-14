@@ -1391,6 +1391,46 @@ const SEEK_LOCK_MS    = 800;   // revert o'rnashguncha qayta tetiklamaymiz
 
 let watchedTime = 0;      // erishilgan MAKS qonuniy pleer sekundi (monoton o'suvchi)
 let isReady     = false;  // 90% ga yetdi
+
+/* ── Server tomonlama tasdiqlash (anti-cheat) ──────────────────────────────
+ * Bu yerdagi watchedTime/isReady faqat KO'RSATUV uchun: konsoldan o'zgartirsa
+ * ham "Ko'rdim" server tomonda rad etiladi. Haqiqiy hisob serverda: har
+ * BEAT_INTERVAL_MS da pozitsiya yuboriladi, server O'Z SOATI bilan o'tgan
+ * vaqtni o'lchab kredit beradi. Tugma serverdan can_complete kelganda yonadi.
+ */
+const BEAT_INTERVAL_MS = 15000;
+const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
+let serverCanComplete = false;
+let serverRemaining   = null;
+let beatInFlight      = false;
+
+function sendBeat() {
+    if (beatInFlight || serverCanComplete) return;
+    getPlayerTime(function(t) {
+        if (t == null || !isFinite(t)) return;
+        beatInFlight = true;
+        fetch(BEAT_URL, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ position: t })
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+            beatInFlight = false;
+            if (!data || !data.ok) return;
+            serverRemaining   = data.remaining;
+            serverCanComplete = !!data.can_complete;
+            // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
+            if (data.seek_blocked && data.resume_at != null) {
+                seekPlayerTo(data.resume_at);
+                statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
+            }
+            updateTimerUI();
+        })
+        .catch(() => { beatInFlight = false; });
+    });
+}
+setInterval(sendBeat, BEAT_INTERVAL_MS);
 let seekLock    = false;  // revert davomida tetiklamaslik
 let lastPos     = null;   // oldingi tikdagi pleer pozitsiyasi (soniya)
 let lastWall    = null;   // oldingi tik vaqti (ms) — real vaqt hisobi uchun
@@ -1430,6 +1470,9 @@ function resumeTimer() {
     setTimerState('running');
     timerLabel.textContent = 'Qolgan vaqt';
     statusText.textContent = 'Video ijro etilmoqda…';
+    // Ijro boshlangan zahoti boshlang'ich nuqtani qayd etamiz: serverdagi
+    // hisob shu nuqtadan boshlanadi.
+    sendBeat();
 }
 
 /* ── Pleer bilan aloqa (YouTube + Vimeo) ──────────── */
@@ -1520,7 +1563,15 @@ function updateTimerUI() {
     const progress  = Math.min(1, watchedTime / requiredTime);
     countdownEl.textContent = formatTime(remaining);
     ringFill.style.strokeDashoffset = circumference * (1 - progress);
+    // Tugma FAQAT server tasdiqlaganda yonadi. Mahalliy watchedTime yetgan
+    // bo'lsa ham server hisobi yetmasa — kutamiz (va buni ekranda ko'rsatamiz).
     if (watchedTime >= requiredTime) {
+        if (!serverCanComplete) {
+            countdownEl.textContent = serverRemaining != null ? formatTime(serverRemaining) : '…';
+            timerLabel.textContent  = 'Tekshirilmoqda';
+            statusText.textContent  = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
+            return;
+        }
         isReady = true;
         setTimerState('ready');
         countdownEl.textContent = '✓';
@@ -1556,6 +1607,9 @@ function completeOnEnded() {
         return;
     }
     watchedTime = requiredTime;
+    // Oxirgi pozitsiyani serverga yetkazamiz, aks holda serverdagi hisob
+    // oxirgi beatdan keyingi qismni ko'rmay qolardi.
+    sendBeat();
     updateTimerUI();
 }
 

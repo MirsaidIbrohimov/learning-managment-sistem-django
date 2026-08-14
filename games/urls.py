@@ -22,6 +22,7 @@ urlpatterns = [
     path('jumanji/<int:session_id>/state/', jumanji_views.state, name='jumanji_state'),
     path('jumanji/<int:session_id>/join/', jumanji_views.join, name='jumanji_join'),
     path('jumanji/<int:session_id>/leave/', jumanji_views.leave, name='jumanji_leave'),
+    path('jumanji/<int:session_id>/roll/', jumanji_views.roll, name='jumanji_roll'),
     path('jumanji/<int:session_id>/control/', jumanji_views.control, name='jumanji_control'),
 
     # Game detail & launch — slug catchall (oxirda)

@@ -17,6 +17,42 @@ from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, Co
 logger = logging.getLogger(__name__)
 
 
+def _health_token():
+    """Cron endpointlari uchun maxfiy token.
+
+    TELEGRAM_HEALTH_TOKEN bo'sh bo'lsa SECRET_KEY dan barqaror qiymat olinadi —
+    shunday qilib endpoint hech qachon tokensiz ochiq qolmaydi.
+    """
+    import hashlib
+    from django.conf import settings
+
+    token = (getattr(settings, 'TELEGRAM_HEALTH_TOKEN', '') or '').strip()
+    if token:
+        return token
+    return hashlib.sha256(
+        f"telegram-health:{settings.SECRET_KEY}".encode('utf-8')
+    ).hexdigest()[:32]
+
+
+def _cron_authorized(request):
+    """Tokenni ?token=... yoki X-Health-Token sarlavhasidan tekshiradi.
+
+    Kirgan staff foydalanuvchiga ham ruxsat beriladi (qo'lda ishga tushirish uchun).
+    """
+    import hmac
+
+    user = getattr(request, 'user', None)
+    if user is not None and user.is_authenticated and user.is_staff:
+        return True
+
+    provided = (
+        request.GET.get('token')
+        or request.headers.get('X-Health-Token')
+        or ''
+    ).strip()
+    return bool(provided) and hmac.compare_digest(provided, _health_token())
+
+
 def _resolve_bot_username():
     """Bot username'ni aniqlash.
 
@@ -166,7 +202,10 @@ def confirm_unlink_telegram(request):
 
 
 def set_webhook(request):
-    """Telegram webhook ni o'rnatish"""
+    """Telegram webhook ni o'rnatish (faqat staff yoki maxfiy token bilan)."""
+    if not _cron_authorized(request):
+        return JsonResponse({'ok': False, 'error': 'Ruxsat yo\'q'}, status=403)
+
     try:
         import requests as http_requests
         from django.conf import settings
@@ -190,7 +229,15 @@ def set_webhook(request):
 
 
 def bot_health(request):
-    """Health check — serverni uyg'oq tutish uchun + musobaqa eslatmalari + vazifa eslatmalari"""
+    """Health check — serverni uyg'oq tutish uchun + musobaqa/vazifa/to'lov eslatmalari.
+
+    Tokensiz ochiq qolganda har bir so'rov eslatma yuborishni ishga tushirib,
+    Telegram'ga spam qilish vositasiga aylanardi. Cron uchun:
+    /telegrambotlms/health/?token=<TELEGRAM_HEALTH_TOKEN>
+    """
+    if not _cron_authorized(request):
+        return JsonResponse({'ok': False, 'error': 'Ruxsat yo\'q'}, status=403)
+
     try:
         from telegram_bot.utils import notify_competition_reminder
         notify_competition_reminder()

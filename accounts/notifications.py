@@ -90,6 +90,51 @@ def _notify_admin_progress(user, profession, milestone):
     notify_admins(bot_text)
 
 
+def notify_admin_video_duration_unknown(video):
+    """Video davomiyligi serverda aniqlanmadi — dars yopilmaydi, admin aralashishi kerak.
+
+    Davomiylik bo'lmasa ko'rish talabini hisoblab bo'lmaydi va "Ko'rdim" bloklanadi
+    (mijoz aytgan davomiylikka ishonish — anti-cheat teshigi). Shuning uchun admin
+    darhol xabardor qilinadi: kurs bo'limida `duration` (daqiqa) qo'lda kiritilsa
+    dars yana ishlaydi.
+    """
+    title = f"⚠️ Video davomiyligi aniqlanmadi: {video.lesson.title}"
+    if Message.objects.filter(message_type='system', title=title).exists():
+        return
+
+    lesson = video.lesson
+    content = (
+        f"Dars: {lesson.title}\n"
+        f"Kurs: {lesson.profession.name if lesson.profession_id else '—'}\n"
+        f"Havola: {video.youtube_url or video.video_url or '—'}\n\n"
+        "Server YouTube/Vimeo'dan video davomiyligini olishga urinib ko'rdi, lekin "
+        "aniqlay olmadi. Davomiylik bo'lmasa ko'rish vaqtini tekshirib bo'lmaydi, "
+        "shuning uchun o'quvchilar bu darsni YOPA OLMAYDI.\n\n"
+        "Yechim: darsni tahrirlab \"Davomiyligi (daqiqa)\" maydonini to'ldiring."
+    )
+
+    for admin in CustomUser.objects.filter(role='admin'):
+        Message.objects.create(
+            recipient=admin,
+            sender=None,
+            title=title,
+            content=content,
+            message_type='system',
+        )
+
+    try:
+        from telegram_bot.utils import notify_admins
+        notify_admins(
+            f"⚠️ <b>Video davomiyligi aniqlanmadi</b>\n\n"
+            f"📚 Dars: <b>{lesson.title}</b>\n"
+            f"🔗 {video.youtube_url or video.video_url or '—'}\n\n"
+            f"O'quvchilar bu darsni yopa olmaydi. Darsdagi "
+            f"\"Davomiyligi (daqiqa)\" maydonini to'ldiring."
+        )
+    except Exception:
+        pass
+
+
 def check_course_progress_milestones(user, profession):
     """Kurs progressi bosqichlarini tekshirish (25%, 50%, 75%, 90%)"""
     # Umumiy darslar

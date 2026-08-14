@@ -367,9 +367,21 @@ class VideoLessonForm(forms.Form):
         }),
         label="YouTube havolasi"
     )
-    # `duration` (davomiylik) maydoni olib tashlandi — video davomiyligi endi
-    # pleer (YouTube/Vimeo) haqiqiy vaqtidan avtomatik aniqlanadi va o'quvchi
-    # videoni ko'rib bo'lgach DB'ga yoziladi (mark_video_watched).
+    # Davomiylikni server o'zi YouTube/Vimeo'dan aniqlaydi (anti-cheat: mijoz
+    # aytgan qiymatga ishonib bo'lmaydi). Bu maydon — ZAXIRA: server aniqlay
+    # olmasa (private video, kvota tugagan) admin qo'lda kiritadi, aks holda
+    # ko'rish talabi hisoblanmay dars yopilmaydi.
+    duration = forms.IntegerField(
+        required=False,
+        min_value=0,
+        max_value=1440,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control',
+            'placeholder': "Bo'sh qoldiring — avtomatik aniqlanadi",
+        }),
+        label="Davomiyligi (daqiqa)",
+        help_text="Faqat server davomiylikni aniqlay olmagan holatda to'ldiring.",
+    )
 
     def clean(self):
         cleaned_data = super().clean()

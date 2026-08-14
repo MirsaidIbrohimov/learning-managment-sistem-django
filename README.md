@@ -840,3 +840,5 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 <p align="center">
   <sub>© 2024-2026 Suyunov Husan | IT Shaharcha Zomin. Barcha huquqlar himoyalangan.</sub>
 </p>
+
+Claude edit test

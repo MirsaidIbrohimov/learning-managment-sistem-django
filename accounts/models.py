@@ -478,7 +478,18 @@ class CourseEnrollment(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='enrollments')
     profession = models.ForeignKey(Profession, on_delete=models.CASCADE, related_name='enrollments')
     enrolled_at = models.DateTimeField(auto_now_add=True)
-    
+    daily_limit_override = models.BooleanField(
+        null=True, blank=True, default=None,
+        verbose_name="Kunlik cheklov (shaxsiy)",
+        help_text="Bo'sh = kurs sozlamasi; Ha = majburan yoqilgan; Yo'q = majburan o'chirilgan.",
+    )
+
+    @property
+    def daily_limit_effective(self):
+        if self.daily_limit_override is None:
+            return self.profession.daily_section_limit
+        return self.daily_limit_override
+
     class Meta:
         unique_together = ['user', 'profession']
         verbose_name = "Kursga yozilish"
@@ -543,6 +554,19 @@ class CourseUnenrollRequest(models.Model):
         return f"{self.user.full_name} - {self.profession.name} ({self.get_status_display()})"
 
 
+def daily_limit_active(user, profession):
+    """Shu o'quvchi uchun kunlik cheklov kuchdami.
+
+    O'quvchi darajasidagi override kurs sozlamasidan ustun turadi.
+    """
+    override = CourseEnrollment.objects.filter(
+        user=user, profession=profession
+    ).values_list('daily_limit_override', flat=True).first()
+    if override is None:
+        return profession.daily_section_limit
+    return override
+
+
 class DailySectionAccess(models.Model):
     """O'quvchi bir kunda faqat bitta bo'limga kirishi mumkin"""
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_section_accesses')
@@ -592,7 +616,29 @@ class VideoLesson(models.Model):
     video_url = models.URLField(verbose_name="Video havolasi", blank=True, null=True, help_text="YouTube yoki Vimeo havolasi")
     youtube_url = models.URLField(verbose_name="YouTube havolasi", blank=True, null=True)
     duration = models.IntegerField(default=0, verbose_name="Davomiyligi (daqiqa)")
-    
+
+    # ── Serverda tasdiqlangan davomiylik (anti-cheat) ──
+    # Ko'rish talabini mijozdan kelgan davomiylikka asoslab bo'lmaydi: konsoldan
+    # kichik qiymat yuborib talabni bir soniyaga tushirish mumkin edi. Bu maydonga
+    # FAQAT server o'zi YouTube/Vimeo'dan olgan qiymat yoziladi.
+    verified_duration_seconds = models.IntegerField(
+        default=0, verbose_name="Tasdiqlangan davomiylik (soniya)"
+    )
+    duration_checked_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def gating_duration_seconds(self):
+        """Ko'rish talabini hisoblash uchun ishonchli davomiylik (0 = noma'lum).
+
+        Faqat server aniqlagan qiymat yoki admin qo'lda kiritgan `duration`
+        ishlatiladi — mijozdan kelgan qiymat hech qachon bu yerga tushmaydi.
+        """
+        if self.verified_duration_seconds:
+            return self.verified_duration_seconds
+        if self.duration and self.duration > 0:
+            return self.duration * 60
+        return 0
+
     @property
     def has_video(self):
         return bool(self.video_url) or bool(self.youtube_url)
@@ -694,12 +740,43 @@ class VideoProgress(models.Model):
     watched = models.BooleanField(default=False, db_index=True)
     watched_at = models.DateTimeField(null=True, blank=True)
     coin_awarded = models.BooleanField(default=False)
-    
+
+    # ── Server tomonlama ko'rish hisobi (anti-cheat) ──
+    # Brauzerdagi timer/tugma holatiga ishonmaymiz: konsoldan o'zgartirib
+    # yuborish mumkin. Shu maydonlar FAQAT server o'z soati bilan tasdiqlagan
+    # vaqtni yig'adi, shuning uchun ularni mijoz oshirib yubora olmaydi.
+    verified_seconds = models.FloatField(
+        default=0, verbose_name="Tasdiqlangan ko'rish vaqti (soniya)"
+    )
+    max_position = models.FloatField(
+        default=0, verbose_name="Eng uzoq ko'rilgan nuqta (soniya)"
+    )
+    last_beat_at = models.DateTimeField(null=True, blank=True)
+    # Oxirgi marta KREDIT berilgan payt (beat kelgan payt emas). Foydalanuvchining
+    # barcha videolari bo'yicha umumiy kreditni real vaqt bilan cheklash uchun:
+    # bir vaqtda bir necha videoga beat yuborib vaqtni ko'paytirib bo'lmaydi.
+    last_credit_at = models.DateTimeField(null=True, blank=True)
+    required_seconds = models.IntegerField(
+        default=0, verbose_name="Talab qilinadigan vaqt (soniya)"
+    )
+    cheat_attempts = models.IntegerField(
+        default=0, verbose_name="Chetlab o'tish urinishlari"
+    )
+
     class Meta:
         unique_together = ['user', 'video']
         indexes = [
             models.Index(fields=['user', 'watched']),
         ]
+
+    @property
+    def is_requirement_met(self):
+        """Server tasdiqlagan vaqt talabga yetdimi."""
+        if self.watched:
+            return True
+        if not self.required_seconds:
+            return False
+        return self.verified_seconds >= self.required_seconds
 
 
 class Homework(models.Model):

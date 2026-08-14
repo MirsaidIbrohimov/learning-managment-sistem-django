@@ -6,9 +6,15 @@ from django.conf.urls.static import static
 from django.views.static import serve
 from django.urls import re_path
 
+from .views import robots_txt, security_txt, sitemap_xml
+
 urlpatterns = [
     path("ai/", include("ai_yordamchi.urls")),
-    path('admin/', admin.site.urls),
+    path(settings.ADMIN_URL, admin.site.urls),
+    path('robots.txt', robots_txt, name='robots_txt'),
+    path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
+    path('.well-known/security.txt', security_txt, name='security_txt'),
+    path('security.txt', security_txt),
     path('api/v1/', include('api.urls')),
     path('quiz/', include('quiz.page_urls')),
     path('video-quiz/', include('video_quiz.urls')),

@@ -769,7 +769,7 @@ class JumanjiSession(models.Model):
     PHASE_CHOICES = (
         ('waiting_turn', 'Navbat kutilmoqda'),
         ('question', 'Savol ochiq'),
-        ('dice', 'Zarba tashlandi'),
+        ('dice', "Tosh tashlash kutilmoqda"),
         ('effect', 'Katak effekti'),
         ('finished', 'Yakunlandi'),
     )
@@ -788,6 +788,9 @@ class JumanjiSession(models.Model):
     )
     status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='lobby', verbose_name="Holat")
     phase = models.CharField(max_length=15, choices=PHASE_CHOICES, default='waiting_turn', verbose_name="Bosqich")
+    # Bosqichga kirilgan vaqt. Savolni avtomatik ochish va toshni avtomatik
+    # tashlash shu vaqtga tayanadi (client soatiga emas).
+    phase_started_at = models.DateTimeField(null=True, blank=True, verbose_name="Bosqich boshlangan vaqt")
     is_paused = models.BooleanField(default=False, verbose_name="Pauza")
 
     board_size = models.PositiveIntegerField(default=30, verbose_name="Doska o'lchami (katak)")
@@ -848,6 +851,21 @@ class JumanjiSession(models.Model):
     def bump(self):
         """Holat o'zgardi — pollingdagi clientlar yangilanishni oladi."""
         self.state_version += 1
+
+    def enter_phase(self, phase):
+        """Bosqichni almashtiradi va sanoqni noldan boshlaydi.
+
+        Avtomatik ochilish/tashlash taymerlari shu vaqtdan hisoblanadi,
+        shuning uchun bosqich har almashganda yangilanishi shart.
+        """
+        self.phase = phase
+        self.phase_started_at = timezone.now()
+
+    def phase_age(self):
+        """Joriy bosqich necha soniyadan beri davom etmoqda."""
+        if not self.phase_started_at:
+            return 0.0
+        return (timezone.now() - self.phase_started_at).total_seconds()
 
     def cell_effect(self, position):
         """Berilgan katakdagi effekt ma'lumoti (yo'q bo'lsa None)."""

@@ -2083,19 +2083,23 @@
             }
         }
         
-        if (!message) {
-            message = `<i class="bi bi-info-circle"></i> Sayt sinov rejimida ishlamoqda. Xatolik topsangiz <strong>Alt+Enter</strong> tugmasini bosing va bizga xabar bering! Ushbu saytdan foydalanish vaqtida coice fayllar tizimga xar soniyada yuklab boriladi!`;
-        }
-        
         const bar = document.getElementById('announcementBar');
         const text1 = document.getElementById('announcementText');
         const text2 = document.getElementById('announcementText2');
-        
+
+        // Bayram bo'lmasa e'lon paneli ko'rsatilmaydi. (Ilgari bu yerda
+        // "Sayt sinov rejimida ishlamoqda" yozuvi turib, saytni ishonchsiz
+        // ko'rsatar va uni sinov muhiti sifatida oshkor qilardi.)
+        if (!message) {
+            if (bar) bar.style.display = 'none';
+            return;
+        }
+
         if (text1 && text2) {
             text1.innerHTML = message;
             text2.innerHTML = message;
         }
-        
+
         if (isHoliday && bar) {
             bar.classList.add('holiday');
         }

@@ -700,6 +700,61 @@ class SuspiciousRequestMiddleware:
         return self.get_response(request)
 
 
+class AdminLoginRateLimitMiddleware:
+    """
+    Django admin login sahifasi uchun brute-force limiti.
+
+    Sayt login'i (accounts.views.login_view) o'zining rate-limitiga ega, lekin
+    /admin/login/ undan o'tmaydi — global IP limiti esa o'quvchilarni noto'g'ri
+    bloklaganligi uchun o'chirilgan. Shu sabab bu middleware FAQAT admin
+    login'iga yuborilgan POST so'rovlarni sanaydi: oddiy sahifalar,
+    o'quvchilar va bir tarmoqdagi ko'p foydalanuvchi ta'sirlanmaydi.
+    """
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+        from django.conf import settings
+        admin_url = getattr(settings, 'ADMIN_URL', 'admin/')
+        self._login_paths = {
+            f"/{admin_url}login/",
+            f"/{admin_url}",
+        }
+        self.max_attempts = getattr(settings, 'ADMIN_LOGIN_MAX_ATTEMPTS', 10)
+        self.window = getattr(settings, 'ADMIN_LOGIN_WINDOW', 900)
+
+    def __call__(self, request):
+        if request.method != 'POST' or request.path not in self._login_paths:
+            return self.get_response(request)
+
+        from .security import (
+            get_client_ip, is_rate_limited, is_ip_blocked,
+            _add_strike, _log_security_event,
+        )
+
+        ip = get_client_ip(request)
+
+        if is_ip_blocked(ip):
+            _log_security_event('blocked_ip_request', ip=ip, detail='admin login', severity='high')
+            return HttpResponse(
+                "<h2>429 — Kirish vaqtincha cheklangan</h2>",
+                status=429, content_type='text/html',
+            )
+
+        if is_rate_limited(f"adminlogin:ip:{ip}", self.max_attempts, self.window):
+            _add_strike(ip, 'admin_login_bruteforce')
+            _log_security_event(
+                'rate_limit_hit', ip=ip,
+                detail=f'admin login {self.max_attempts}/{self.window}s',
+                severity='high',
+            )
+            return HttpResponse(
+                "<h2>429 — Juda ko'p urinish</h2><p>Biroz kutib qayta urinib ko'ring.</p>",
+                status=429, content_type='text/html',
+            )
+
+        return self.get_response(request)
+
+
 class RequestSizeLimitMiddleware:
     """
     Juda katta so'rov tanasini (body) bloklash.

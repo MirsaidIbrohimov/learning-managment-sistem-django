@@ -2,41 +2,55 @@
 {% load static %}
 {% load l10n %}
 
-{% block title %}🎲 Jumanji — {{ competition.title }}{% endblock %}
+{% block title %}Jumanji — {{ competition.title }}{% endblock %}
 
 {% block extra_css %}
 <style>
 /* ============================================================
-   JUMANJI — "Jungle Trail"
-   Chapda o'yinchilar, o'rtada o'rmon so'qmog'i, o'ngda topshiriq
-   paneli. Kataklar jadval emas — egri-bugri so'qmoq bo'ylab tizilgan.
+   JUMANJI — "Modern Glass Trail"
+   Dark glassmorphism uslubi: to'q ko'k-fuşya gradiyent fon,
+   shisha (frosted) panellar, neon aksentlar va silliq soyalar.
+   Kataklar yog'och lavha emas — toza shisha kartalar.
    ============================================================ */
 
 .jm-page {
-    --jm-gold: #f0b429;
-    --jm-green: #16a34a;
-    --jm-panel: rgba(7, 30, 20, 0.78);
-    max-width: 1560px;
+    --jm-gold: #fbbf24;
+    --jm-green: #34d399;
+    --jm-violet: #a78bfa;
+    --jm-panel: rgba(20, 22, 40, 0.55);
+    max-width: 1720px;
     margin: 0 auto;
     padding: 1rem 0.9rem 3rem;
-    color: #e8f5ee;
+    color: #e9ebff;
+    font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.2px;
 }
 
-/* --- O'rmon foni --- */
+/* base.css dagi .main-container sahifani 1180px bilan bo'g'adi va faqat
+   1921px'dan keng ekranda kengayadi — ya'ni 1600/1920px monitorda ham doskaga
+   ~470px qolardi. Jumanji doskasi asosiy narsa, shuning uchun bu sahifada
+   cheklovni olib tashlaymiz (ariza.html va qabul sahifasida ham shunday). */
+.main-container {
+    max-width: none !important;
+    margin: 0.6rem auto !important;
+    padding: 0 !important;
+}
+
+/* --- Modrn ko'k-fuşya fon --- */
 .jm-jungle {
     position: fixed; inset: 0; z-index: -1;
     background:
-        radial-gradient(1100px 700px at 12% -10%, rgba(34,197,94,0.20), transparent 60%),
-        radial-gradient(900px 600px at 92% 6%, rgba(13,148,136,0.18), transparent 60%),
-        radial-gradient(900px 800px at 50% 118%, rgba(240,180,41,0.10), transparent 60%),
-        linear-gradient(168deg, #051710 0%, #072116 45%, #041310 100%);
+        radial-gradient(1100px 700px at 12% -10%, rgba(139,92,246,0.26), transparent 60%),
+        radial-gradient(900px 600px at 92% 6%, rgba(45,212,191,0.22), transparent 60%),
+        radial-gradient(1000px 700px at 50% 118%, rgba(249,115,22,0.14), transparent 60%),
+        linear-gradient(165deg, #0b0f2a 0%, #13173a 48%, #0a0d24 100%);
 }
 .jm-jungle::after {
     content: ''; position: absolute; inset: -20%;
     background-image:
-        radial-gradient(circle at 20% 30%, rgba(132,204,22,0.06) 0 3px, transparent 4px),
-        radial-gradient(circle at 70% 60%, rgba(132,204,22,0.05) 0 2px, transparent 3px),
-        radial-gradient(circle at 45% 85%, rgba(34,197,94,0.05) 0 3px, transparent 4px);
+        radial-gradient(circle at 20% 30%, rgba(167,139,250,0.08) 0 3px, transparent 4px),
+        radial-gradient(circle at 70% 60%, rgba(45,212,191,0.07) 0 2px, transparent 3px),
+        radial-gradient(circle at 45% 85%, rgba(249,115,22,0.06) 0 3px, transparent 4px);
     background-size: 340px 340px, 260px 260px, 420px 420px;
     animation: jmDrift 44s linear infinite;
     will-change: transform;
@@ -47,39 +61,46 @@
 .jm-top {
     display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
     margin-bottom: 0.9rem;
+    padding: 0.6rem 0.9rem;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 18px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
 }
-.jm-back { color: #86efac; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: transform 0.2s; }
-.jm-back:hover { color: #bbf7d0; transform: translateX(-3px); }
+.jm-back { color: #c4b5fd; text-decoration: none; font-size: 0.85rem; font-weight: 700; transition: transform 0.2s, color 0.2s; }
+.jm-back:hover { color: #e9d5ff; transform: translateX(-3px); }
 
 .jm-logo {
-    margin: 0; font-size: clamp(1.3rem, 3vw, 2rem); font-weight: 900;
-    letter-spacing: 2px; line-height: 1;
-    background: linear-gradient(180deg, #fde68a 0%, #f0b429 55%, #b45309 100%);
+    margin: 0; font-size: clamp(1.35rem, 3vw, 2rem); font-weight: 900;
+    letter-spacing: 3px; line-height: 1;
+    background: linear-gradient(135deg, #e9d5ff 0%, #c4b5fd 30%, #818cf8 55%, #22d3ee 100%);
     -webkit-background-clip: text; background-clip: text; color: transparent;
-    -webkit-text-stroke: 1px rgba(69,26,3,0.55);
-    filter: drop-shadow(0 3px 10px rgba(240,180,41,0.35));
+    filter: drop-shadow(0 4px 14px rgba(139,92,246,0.5));
 }
-.jm-sub { font-size: 0.76rem; color: #86efac; font-weight: 600; }
+.jm-sub { font-size: 0.76rem; color: #a5f3fc; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 
 .jm-pill {
     border-radius: 999px; padding: 0.3rem 0.85rem; font-size: 0.75rem;
     font-weight: 800; letter-spacing: 0.3px; white-space: nowrap;
     border: 1px solid transparent;
+    backdrop-filter: blur(8px);
 }
-.jm-pill.lobby { background: rgba(59,130,246,0.18); color: #93c5fd; border-color: rgba(59,130,246,0.35); }
-.jm-pill.running { background: rgba(239,68,68,0.18); color: #fca5a5; border-color: rgba(239,68,68,0.35); animation: jmLive 2s infinite; }
-.jm-pill.finished { background: rgba(16,185,129,0.18); color: #6ee7b7; border-color: rgba(16,185,129,0.35); }
-.jm-pill.cancelled { background: rgba(100,116,139,0.2); color: #cbd5e1; border-color: rgba(100,116,139,0.35); }
-.jm-pill.paused { background: rgba(240,180,41,0.18); color: #fcd34d; border-color: rgba(240,180,41,0.35); }
-.jm-pill.count { background: rgba(255,255,255,0.07); color: #d1fae5; border-color: rgba(255,255,255,0.14); }
-@keyframes jmLive { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.45); } 50% { box-shadow: 0 0 0 8px rgba(239,68,68,0); } }
+.jm-pill.lobby { background: rgba(96,165,250,0.2); color: #93c5fd; border-color: rgba(96,165,250,0.4); }
+.jm-pill.running { background: rgba(244,63,94,0.2); color: #fda4af; border-color: rgba(244,63,94,0.45); animation: jmLive 2s infinite; }
+.jm-pill.finished { background: rgba(52,211,153,0.18); color: #6ee7b7; border-color: rgba(52,211,153,0.4); }
+.jm-pill.cancelled { background: rgba(148,163,184,0.2); color: #cbd5e1; border-color: rgba(148,163,184,0.4); }
+.jm-pill.paused { background: rgba(251,191,36,0.18); color: #fcd34d; border-color: rgba(251,191,36,0.4); }
+.jm-pill.count { background: rgba(255,255,255,0.08); color: #e0e7ff; border-color: rgba(255,255,255,0.16); }
+@keyframes jmLive { 0%,100% { box-shadow: 0 0 0 0 rgba(244,63,94,0.45); } 50% { box-shadow: 0 0 0 8px rgba(244,63,94,0); } }
 
 .jm-sound {
-    margin-left: auto; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.16);
-    color: #d1fae5; border-radius: 999px; width: 38px; height: 38px; cursor: pointer;
+    margin-left: auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.18);
+    color: #e0e7ff; border-radius: 999px; width: 38px; height: 38px; cursor: pointer;
     font-size: 1rem; transition: all 0.2s; flex-shrink: 0;
 }
-.jm-sound:hover { background: rgba(255,255,255,0.16); transform: scale(1.08); }
+.jm-sound:hover { background: rgba(255,255,255,0.18); transform: scale(1.08); }
 .jm-sound.off { opacity: 0.5; }
 
 /* --- Uch ustunli tartib --- */
@@ -101,90 +122,213 @@
 }
 
 .jm-card {
-    background: var(--jm-panel);
-    backdrop-filter: blur(9px);
-    border: 1px solid rgba(132,204,22,0.16);
-    border-radius: 18px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 20px;
     padding: 0.85rem 0.9rem;
     margin-bottom: 0.8rem;
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 14px 34px rgba(0,0,0,0.35);
 }
 .jm-card h6 {
-    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.2px;
-    color: #86efac; font-weight: 800; margin-bottom: 0.6rem;
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.4px;
+    color: #c4b5fd; font-weight: 800; margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.4rem;
+}
+.jm-card h6::before {
+    content: ''; width: 4px; height: 14px; border-radius: 2px;
+    background: linear-gradient(180deg, #a78bfa, #22d3ee);
+    display: inline-block;
+    box-shadow: 0 0 8px rgba(139,92,246,0.7);
 }
 
 /* ============================================================
-   DOSKA — o'rmon so'qmog'i
+   DOSKA — neon so'qmoq
    ============================================================ */
 .jm-board {
     position: relative;
     width: 100%;
-    border-radius: 26px;
+    /* Doska bo'yi = kenglik × aspect (42–71%). Kenglikni cheklab, doska
+       to'liq ekranga sig'ib turishini kafolatlaymiz — pastini ko'rish uchun
+       o'qituvchi sahifani aylantirmasin. */
+    max-width: calc(68vh * 100 / var(--jm-aspect, 60));
+    margin-inline: auto;
+    border-radius: 28px;
     background:
-        radial-gradient(120% 90% at 50% 0%, rgba(21,94,58,0.55), transparent 65%),
-        linear-gradient(158deg, #0a3021 0%, #06231a 55%, #041a13 100%);
-    border: 1px solid rgba(132,204,22,0.22);
-    box-shadow: inset 0 0 110px rgba(0,0,0,0.6), 0 24px 60px rgba(0,0,0,0.5);
+        radial-gradient(130% 100% at 18% -8%, rgba(139,92,246,0.32), transparent 60%),
+        radial-gradient(110% 90% at 90% 8%, rgba(34,211,238,0.28), transparent 55%),
+        radial-gradient(120% 120% at 50% 118%, rgba(251,191,36,0.16), transparent 60%),
+        linear-gradient(158deg, #161a3e 0%, #101330 55%, #0a0d24 100%);
+    border: 1px solid rgba(139,92,246,0.35);
+    box-shadow:
+        inset 0 0 120px rgba(0,0,0,0.5),
+        inset 0 1px 0 rgba(255,255,255,0.12),
+        0 0 60px rgba(139,92,246,0.25),
+        0 28px 70px rgba(0,0,0,0.55);
     overflow: hidden;
 }
-.jm-board::before, .jm-board::after {
-    content: '🌿'; position: absolute; font-size: 2.8rem; opacity: 0.15; pointer-events: none; z-index: 1;
+/* Yuqoridan sekin o'tib turadigan nur — doska "jonli" ko'rinadi.
+   Kataklar va toshlar ustiga chiqmasligi uchun .jm-board-inner ichida
+   past z-index bilan turadi (kataklar z-index:3, toshlar z-index:6). */
+.jm-board-inner::before {
+    content: '';
+    position: absolute; inset: -40%;
+    background: linear-gradient(115deg, transparent 42%, rgba(255,255,255,0.07) 50%, transparent 58%);
+    animation: jmSheen 9s ease-in-out infinite;
+    pointer-events: none; z-index: 1;
 }
-.jm-board::before { top: -8px; left: 8px; transform: rotate(-25deg); }
-.jm-board::after { bottom: -10px; right: 10px; transform: rotate(155deg); }
+@keyframes jmSheen {
+    0%, 100% { transform: translateX(-35%) rotate(6deg); opacity: 0; }
+    50% { transform: translateX(35%) rotate(6deg); opacity: 1; }
+}
+.jm-board::before, .jm-board::after {
+    content: ''; position: absolute; width: 200px; height: 200px; border-radius: 50%;
+    pointer-events: none; z-index: 1;
+}
+.jm-board::before {
+    top: -74px; left: -54px;
+    background: radial-gradient(circle, rgba(139,92,246,0.28), transparent 68%);
+}
+.jm-board::after {
+    bottom: -74px; right: -54px;
+    background: radial-gradient(circle, rgba(34,211,238,0.24), transparent 68%);
+}
 
 .jm-board-inner { position: absolute; inset: 0; }
 
+/* Neon yo'l chizig'i */
 .jm-trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-.jm-trail .rope { fill: none; stroke: rgba(124,74,33,0.75); stroke-width: 22; stroke-linecap: round; stroke-linejoin: round; }
-.jm-trail .rope-in { fill: none; stroke: rgba(180,120,60,0.35); stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; }
-.jm-trail .dash { fill: none; stroke: rgba(240,180,41,0.4); stroke-width: 2.5; stroke-dasharray: 6 11; stroke-linecap: round; }
-.jm-trail .arc-snake { fill: none; stroke: rgba(248,113,113,0.75); stroke-width: 3.5; stroke-dasharray: 11 7; stroke-linecap: round; }
-.jm-trail .arc-ladder { fill: none; stroke: rgba(250,204,21,0.75); stroke-width: 3.5; stroke-dasharray: 3 9; stroke-linecap: round; }
+.jm-trail .rope { fill: none; stroke: rgba(139,92,246,0.55); stroke-width: 16; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(139,92,246,0.6)); }
+.jm-trail .rope-in { fill: none; stroke: rgba(34,211,238,0.5); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(34,211,238,0.6)); }
+.jm-trail .rope-twist { fill: none; stroke: rgba(255,255,255,0.18); stroke-width: 4; stroke-dasharray: 1.6 5.4; stroke-linecap: round; }
+.jm-trail .dash { fill: none; stroke: rgba(167,139,250,0.4); stroke-width: 2; stroke-dasharray: 4 12; stroke-linecap: round; }
+.jm-trail .arc-snake { fill: none; stroke: rgba(244,63,94,0.85); stroke-width: 3.5; stroke-dasharray: 11 7; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(244,63,94,0.7)); }
+.jm-trail .arc-ladder { fill: none; stroke: rgba(251,191,36,0.85); stroke-width: 3.5; stroke-dasharray: 3 9; stroke-linecap: round; filter: drop-shadow(0 0 4px rgba(251,191,36,0.7)); }
 
+/* ------------------------------------------------------------
+   KATAK — shisha karta.
+   Effekt ohangi shisha chetining porlashi va ikonka rangidan bilinadi.
+   ------------------------------------------------------------ */
 .jm-cell {
+    --w1: #eef2ff; --w2: #e0e7ff; --w3: #c7d2fe;
+    --accent: rgba(129,140,248,0.5);
+    --edge: rgba(255,255,255,0.35);
+    --tilt: 0deg;
     position: absolute;
-    width: var(--jm-cell); aspect-ratio: 1 / 1;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    background: radial-gradient(circle at 38% 30%, #1d6b3f 0%, #12482b 55%, #0a2e1c 100%);
-    border: 2px solid rgba(240,180,41,0.28);
-    box-shadow: inset 0 2px 6px rgba(255,255,255,0.12), 0 5px 14px rgba(0,0,0,0.5);
+    width: var(--jm-cell); aspect-ratio: 1 / 0.88;
+    transform: translate(-50%, -50%) rotate(var(--tilt));
+    border-radius: 15% / 17%;
+    overflow: hidden;
+    background:
+        linear-gradient(160deg, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0.12) 45%, rgba(255,255,255,0.05) 100%);
+    border: 1px solid var(--edge);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        inset 0 -2px 6px rgba(0,0,0,0.2),
+        0 6px 13px rgba(0,0,0,0.45);
     z-index: 3;
-    transition: box-shadow 0.3s, border-color 0.3s;
+    transition: box-shadow 0.3s, filter 0.3s, border-color 0.3s;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
 }
+/* Har karta bir oz qiyshiq — tabiiy his */
+.jm-cell:nth-child(3n)   { --tilt: -2.2deg; }
+.jm-cell:nth-child(3n+1) { --tilt: 1.7deg; }
+.jm-cell:nth-child(4n+2) { --tilt: -1deg; }
+
+/* Shisha ichki yorqinlik */
+.jm-cell::before {
+    content: ''; position: absolute; inset: 4%;
+    pointer-events: none; z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(160deg, rgba(255,255,255,0.5) 0%, transparent 55%);
+}
+/* Shisha cheti va pastki nur */
+.jm-cell::after {
+    content: ''; position: absolute; inset: 0; z-index: 1;
+    border-radius: inherit; pointer-events: none;
+    box-shadow: inset 0 -8px 18px var(--accent);
+    opacity: 0.45;
+}
+
+.jm-cell .num, .jm-cell .fx, .jm-cell .lbl, .jm-cell .cap { z-index: 2; }
 .jm-cell .num {
-    position: absolute; top: 4%; font-size: 0.55rem; font-weight: 800;
-    color: rgba(226,232,240,0.4);
+    position: absolute; top: 3%; left: 50%; transform: translateX(-50%);
+    font-size: clamp(0.4rem, 0.7vw, 0.56rem); font-weight: 900; letter-spacing: 0.5px;
+    color: rgba(30,27,75,0.8); text-shadow: 0 1px 0 rgba(255,255,255,0.6);
 }
-.jm-cell .fx { font-size: clamp(0.8rem, 2.1vw, 1.45rem); line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.7)); }
-.jm-cell .fx-steps { font-size: 0.55rem; font-weight: 800; color: rgba(226,232,240,0.62); margin-top: 1px; }
-.jm-cell .cap { font-size: 0.5rem; font-weight: 900; letter-spacing: 0.8px; color: rgba(255,255,255,0.9); }
+/* Bo'sh kartada raqam markazda va yirik */
+.jm-cell.plain .num {
+    top: 50%; transform: translate(-50%, -50%);
+    font-size: clamp(0.6rem, 1.15vw, 1.05rem);
+    color: rgba(30,27,75,0.85);
+}
+.jm-cell .fx {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: clamp(0.55rem, 1.15vw, 0.95rem); line-height: 1;
+    filter: drop-shadow(0 1px 0 rgba(255,255,255,0.4)) drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    display: flex; align-items: center; justify-content: center;
+}
+/* Yozuv — to'q, shisha ustida o'qiladi */
+.jm-cell .lbl, .jm-cell .cap {
+    position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+    font-weight: 900; line-height: 1.05; text-transform: uppercase;
+    max-width: 94%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.jm-cell .lbl {
+    font-size: clamp(0.34rem, 0.62vw, 0.5rem); letter-spacing: 0.2px;
+    color: rgba(30,27,75,0.95); text-shadow: 0 1px 0 rgba(255,255,255,0.5);
+}
+.jm-cell .cap {
+    font-size: clamp(0.36rem, 0.64vw, 0.5rem); letter-spacing: 0.7px;
+    color: rgba(30,27,75,0.95); text-shadow: 0 1px 0 rgba(255,255,255,0.55);
+}
 
-.jm-cell[data-tone="good"] { border-color: rgba(74,222,128,0.7); box-shadow: inset 0 0 16px rgba(34,197,94,0.35), 0 5px 14px rgba(0,0,0,0.5); }
-.jm-cell[data-tone="bad"] { border-color: rgba(248,113,113,0.7); box-shadow: inset 0 0 16px rgba(239,68,68,0.35), 0 5px 14px rgba(0,0,0,0.5); }
-.jm-cell[data-tone="neutral"] { border-color: rgba(240,180,41,0.75); box-shadow: inset 0 0 16px rgba(240,180,41,0.32), 0 5px 14px rgba(0,0,0,0.5); }
+/* Lavha o'lchami doska kattaligiga qarab o'zgaradi — yozuvlar ham
+   ekran emas, lavha balandligiga (cqh) bog'lansa mutanosib qoladi. */
+@supports (container-type: size) {
+    .jm-cell { container-type: size; }
+    .jm-cell .num        { font-size: clamp(0.42rem, 21cqh, 0.72rem); }
+    .jm-cell.plain .num  { font-size: clamp(0.6rem, 40cqh, 1.6rem); }
+    .jm-cell .fx         { font-size: clamp(0.6rem, 40cqh, 1.5rem); }
+    .jm-cell .lbl        { font-size: clamp(0.34rem, 22cqh, 0.62rem); }
+    .jm-cell .cap        { font-size: clamp(0.36rem, 22cqh, 0.62rem); }
+}
 
-.jm-cell.start { background: radial-gradient(circle at 42% 32%, #22c55e, #064e3b 78%); border-color: rgba(187,247,208,0.8); }
+/* Effekt ohangi — neon porlash */
+.jm-cell[data-tone="good"]    { --accent: rgba(52,211,153,0.65); border-color: rgba(52,211,153,0.55); }
+.jm-cell[data-tone="bad"]     { --accent: rgba(244,63,94,0.65); border-color: rgba(244,63,94,0.55); }
+.jm-cell[data-tone="neutral"] { --accent: rgba(251,191,36,0.65); border-color: rgba(251,191,36,0.55); }
+
+.jm-cell[data-tone="good"] .fx    { color: #065f46; }
+.jm-cell[data-tone="bad"] .fx     { color: #881337; }
+.jm-cell[data-tone="neutral"] .fx { color: #713f12; }
+.jm-cell.start .fx, .jm-cell.finish .fx { color: #1e1b4b; }
+
+.jm-cell.start  { border-color: rgba(45,212,191,0.7); --accent: rgba(45,212,191,0.8); }
 .jm-cell.finish {
-    background: radial-gradient(circle at 42% 32%, #fde68a, #b45309 80%);
-    border-color: rgba(254,243,199,0.9);
+    border-color: rgba(251,191,36,0.8); --accent: rgba(251,191,36,0.9);
     animation: jmFinishGlow 2.8s ease-in-out infinite;
 }
 @keyframes jmFinishGlow {
-    0%,100% { box-shadow: inset 0 0 20px rgba(255,255,255,0.3), 0 0 0 0 rgba(240,180,41,0.55); }
-    50%     { box-shadow: inset 0 0 20px rgba(255,255,255,0.45), 0 0 0 14px rgba(240,180,41,0); }
+    0%,100% { filter: drop-shadow(0 0 0 rgba(251,191,36,0)); }
+    50%     { filter: drop-shadow(0 0 14px rgba(253,230,138,0.8)); }
 }
 .jm-cell.spotlight {
-    border-color: #fde68a;
-    box-shadow: 0 0 0 4px rgba(253,230,138,0.45), inset 0 0 22px rgba(253,230,138,0.3);
+    box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.5),
+        0 0 0 3px rgba(129,140,248,0.85),
+        0 0 22px rgba(129,140,248,0.6),
+        0 8px 20px rgba(0,0,0,0.6);
 }
 .jm-cell.pop { animation: jmCellPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
 @keyframes jmCellPop {
-    0% { transform: translate(-50%,-50%) scale(1); }
-    45% { transform: translate(-50%,-50%) scale(1.28); }
-    100% { transform: translate(-50%,-50%) scale(1); }
+    0%   { transform: translate(-50%,-50%) rotate(var(--tilt)) scale(1); }
+    45%  { transform: translate(-50%,-50%) rotate(calc(var(--tilt) * -2.4)) scale(1.26); }
+    100% { transform: translate(-50%,-50%) rotate(var(--tilt)) scale(1); }
 }
 
 /* --- O'yinchi toshlari (doska ustida suzadi) --- */
@@ -193,7 +337,7 @@
     width: calc(var(--jm-cell) * 0.52); aspect-ratio: 1 / 1;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.6rem; font-weight: 900; color: #052e16;
+    font-size: 0.6rem; font-weight: 900; color: #fff;
     border: 2px solid rgba(255,255,255,0.9);
     box-shadow: 0 4px 10px rgba(0,0,0,0.6);
     background-size: cover; background-position: center;
@@ -202,7 +346,7 @@
     transition: left 0.28s cubic-bezier(0.4,0,0.2,1), top 0.28s cubic-bezier(0.4,0,0.2,1);
     will-change: left, top;
 }
-.jm-token.turn { z-index: 8; box-shadow: 0 0 0 3px rgba(253,230,138,0.75), 0 4px 10px rgba(0,0,0,0.6); }
+.jm-token.turn { z-index: 8; box-shadow: 0 0 0 3px rgba(253,230,138,0.75), 0 0 16px rgba(251,191,36,0.6), 0 4px 10px rgba(0,0,0,0.6); }
 .jm-token.hop { animation: jmHop 0.28s ease-out; }
 @keyframes jmHop {
     0% { transform: translate(-50%,-50%) scale(1); }
@@ -210,59 +354,186 @@
     100% { transform: translate(-50%,-50%) scale(1); }
 }
 
-/* --- O'rtadagi zarba (nard toshi) --- */
-.jm-dice-orb {
-    position: absolute; left: 50%; top: 50%;
-    transform: translate(-50%, -50%) scale(0.4);
-    width: clamp(84px, 16%, 132px); aspect-ratio: 1 / 1;
-    border-radius: 22%;
-    background: linear-gradient(150deg, #fffbeb 0%, #fde68a 60%, #f0b429 100%);
-    color: #7c2d12;
+/* ============================================================
+   O'RTADAGI ZAR — rune portal ichida dumalaydigan 3D kub.
+   Kub 6 yuzli haqiqiy geometriya (preserve-3d), shu tufayli
+   qiymat "aylanib to'xtadi" degan taassurot beradi. Qo'sh zarbada
+   (qiymat 6 dan katta) kub asl toshda to'xtaydi, jami esa lavhada
+   ×2 belgisi bilan ko'rsatiladi.
+   ============================================================ */
+.jm-dicestage {
+    position: absolute; inset: 0; z-index: 20;
     display: flex; align-items: center; justify-content: center;
-    font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 900;
-    box-shadow: 0 20px 46px rgba(0,0,0,0.65), inset 0 -6px 0 rgba(124,45,18,0.28);
-    z-index: 20; opacity: 0; pointer-events: none;
-    transition: opacity 0.3s, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.3s ease;
 }
-.jm-dice-orb.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-.jm-dice-orb.rolling { animation: jmRoll 0.9s cubic-bezier(0.36,0.07,0.19,0.97); }
-@keyframes jmRoll {
-    0%   { transform: translate(-50%,-50%) rotate(0deg) scale(0.75); }
-    35%  { transform: translate(-50%,-50%) rotate(320deg) scale(1.22); }
-    70%  { transform: translate(-50%,-50%) rotate(610deg) scale(0.92); }
-    100% { transform: translate(-50%,-50%) rotate(720deg) scale(1); }
+.jm-dicestage.show { opacity: 1; visibility: visible; }
+
+.jm-dice-veil {
+    position: absolute; inset: 0;
+    background: radial-gradient(closest-side at 50% 50%, rgba(20,16,50,0.45) 0%, rgba(8,8,30,0.9) 78%);
+    transition: opacity 0.45s ease;
 }
-.jm-dice-orb .who { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%);
-    font-size: 0.72rem; font-weight: 800; color: #fde68a; white-space: nowrap; text-shadow: 0 2px 8px #000; }
+/* Kub to'xtagach parda va halqalar ochiladi — o'yinchi toshining
+   katakma-katak yurishi natija lavhasi ostida ko'rinib turadi. */
+.jm-dicestage.land .jm-dice-veil { opacity: 0; }
+
+.jm-dice-portal {
+    --die: clamp(34px, 8.6vw, 92px);
+    --dz: calc(var(--die) / 2);
+    position: relative;
+    display: flex; flex-direction: column; align-items: center;
+}
+/* Doska juda pasak bo'lishi mumkin (masalan 30 katak 9 ustunda) — o'sha holda
+   portal doskadan chiqib ketmasin, shuning uchun kub doska balandligiga
+   bog'lanadi. Butun portal ~2.9 × --die, ya'ni balandlikning ~93 %'i. */
+@supports (container-type: size) {
+    .jm-board-inner { container-type: size; }
+    .jm-dice-portal { --die: clamp(34px, min(8.6vw, 32cqh), 92px); }
+}
+
+.jm-dice-scene {
+    position: relative;
+    width: calc(var(--die) * 2.5); height: calc(var(--die) * 2.5);
+    display: flex; align-items: center; justify-content: center;
+    perspective: 780px;
+}
+
+/* Qarshi yo'nalishda aylanuvchi rune halqalar */
+.jm-dice-runes { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; transition: opacity 0.5s ease; }
+.jm-dicestage.land .jm-dice-runes { opacity: 0; }
+.jm-dice-runes circle {
+    fill: none; stroke-linecap: round;
+    transform-box: fill-box; transform-origin: center;
+}
+.jm-dice-runes .r1 { stroke: rgba(167,139,250,0.7); stroke-width: 2.5; stroke-dasharray: 9 15; animation: jmRuneSpin 11s linear infinite; filter: drop-shadow(0 0 3px rgba(167,139,250,0.7)); }
+.jm-dice-runes .r2 { stroke: rgba(45,212,191,0.45); stroke-width: 1.6; stroke-dasharray: 2.5 11; animation: jmRuneSpin 7s linear infinite reverse; }
+.jm-dice-runes .r3 { stroke: rgba(253,230,138,0.25); stroke-width: 7; stroke-dasharray: 1 22; animation: jmRuneSpin 17s linear infinite; }
+@keyframes jmRuneSpin { to { transform: rotate(360deg); } }
+
+/* Tosh tushgan zahoti tarqaladigan zarba to'lqini */
+.jm-dice-wave {
+    position: absolute; left: 50%; top: 50%;
+    width: calc(var(--die) * 2.5); height: calc(var(--die) * 2.5);
+    margin: calc(var(--die) * -1.25) 0 0 calc(var(--die) * -1.25);
+    border-radius: 50%; border: 3px solid rgba(167,139,250,0.85);
+    opacity: 0; transform: scale(0.12); pointer-events: none;
+}
+.jm-dicestage.land .jm-dice-wave.w1 { animation: jmDiceWave 0.8s cubic-bezier(0.16,1,0.3,1); }
+.jm-dicestage.land .jm-dice-wave.w2 { animation: jmDiceWave 0.95s cubic-bezier(0.16,1,0.3,1) 0.1s; border-color: rgba(45,212,191,0.55); }
+@keyframes jmDiceWave {
+    0%   { transform: scale(0.12); opacity: 0.95; border-width: 6px; }
+    100% { transform: scale(1.6); opacity: 0; border-width: 1px; }
+}
+
+.jm-die {
+    position: relative; width: var(--die); height: var(--die);
+    transform-style: preserve-3d;
+    transform: rotateX(0deg) rotateY(0deg);
+    transition: transform 1.15s cubic-bezier(0.2, 0.86, 0.2, 1);
+}
+.jm-die .face {
+    position: absolute; inset: 0;
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+    padding: 13%; gap: 5%;
+    border-radius: 17%;
+    background: linear-gradient(148deg, #eef2ff 0%, #e0e7ff 45%, #c7d2fe 100%);
+    box-shadow:
+        inset 0 0 0 2px rgba(99,102,241,0.35),
+        inset 0 -9px 16px rgba(99,102,241,0.2),
+        inset 0 7px 11px rgba(255,255,255,0.65);
+    backface-visibility: hidden;
+}
+.jm-die .face i { border-radius: 50%; }
+.jm-die .face i.pip {
+    background: radial-gradient(circle at 34% 28%, #4338ca 0%, #312e81 62%, #1e1b4b 100%);
+    box-shadow: inset 0 -1px 2px rgba(167,139,250,0.3), 0 1px 1px rgba(255,255,255,0.45);
+}
+.jm-die .f1 { transform: translateZ(var(--dz)); }
+.jm-die .f2 { transform: rotateX(-90deg) translateZ(var(--dz)); }
+.jm-die .f3 { transform: rotateY(90deg) translateZ(var(--dz)); }
+.jm-die .f4 { transform: rotateY(-90deg) translateZ(var(--dz)); }
+.jm-die .f5 { transform: rotateX(90deg) translateZ(var(--dz)); }
+.jm-die .f6 { transform: rotateY(180deg) translateZ(var(--dz)); }
+
+.jm-die-shadow {
+    position: absolute; left: 50%; top: 50%;
+    margin-top: calc(var(--die) * 0.6);
+    width: calc(var(--die) * 1.2); height: calc(var(--die) * 0.26);
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(0,0,0,0.62), transparent 74%);
+}
+
+.jm-dice-plate {
+    position: relative;
+    margin-top: calc(var(--die) * -0.5);
+    display: inline-flex; align-items: center; gap: calc(var(--die) * 0.1);
+    padding: calc(var(--die) * 0.05) calc(var(--die) * 0.16);
+    border-radius: 13px;
+    background: linear-gradient(168deg, rgba(30,27,75,0.94), rgba(10,12,35,0.96));
+    border: 1px solid rgba(167,139,250,0.6);
+    box-shadow: 0 10px 26px rgba(0,0,0,0.7), inset 0 1px 0 rgba(233,213,255,0.25);
+}
+.jm-dice-plate .val {
+    font-size: calc(var(--die) * 0.42); font-weight: 900; line-height: 1.15;
+    color: #fde68a; text-shadow: 0 0 18px rgba(251,191,36,0.55);
+    font-variant-numeric: tabular-nums; min-width: 2ch; text-align: center;
+}
+.jm-dice-plate .mult {
+    display: none; font-size: calc(var(--die) * 0.17); font-weight: 900; letter-spacing: 0.4px;
+    color: #1e1b4b; background: linear-gradient(135deg, #67e8f9, #22d3ee);
+    border-radius: 999px; padding: calc(var(--die) * 0.03) calc(var(--die) * 0.09);
+}
+.jm-dice-plate .mult.on { display: inline-block; }
+.jm-dicestage.land .jm-dice-plate { animation: jmPlatePop 0.55s cubic-bezier(0.34,1.6,0.64,1); }
+@keyframes jmPlatePop {
+    0%   { transform: scale(0.6); }
+    55%  { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+
+.jm-dice-who {
+    margin-top: calc(var(--die) * 0.08);
+    font-size: clamp(0.6rem, calc(var(--die) * 0.19), 0.85rem); font-weight: 800;
+    color: #fde68a; white-space: nowrap; text-shadow: 0 2px 8px #000;
+}
 
 /* --- Katak belgilari --- */
 .jm-legend { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.8rem; }
 .jm-lg {
-    display: inline-flex; align-items: center; gap: 0.3rem;
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
-    border-radius: 999px; padding: 0.22rem 0.6rem; font-size: 0.72rem; color: #cbd5e1;
+    display: inline-flex; align-items: center; gap: 0.32rem;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 999px; padding: 0.22rem 0.62rem; font-size: 0.72rem; color: #cbd5e1;
+    cursor: help; backdrop-filter: blur(8px);
 }
+.jm-lg i { font-size: 0.95rem; }
+.jm-lg .tone-good { color: #6ee7b7; }
+.jm-lg .tone-bad { color: #fda4af; }
+.jm-lg .tone-neutral { color: #fcd34d; }
 
 /* ============================================================
    TOPSHIRIQ PANELI (o'ng ustun)
    ============================================================ */
 .jm-quest {
-    background: linear-gradient(165deg, #1a7a45 0%, #12603a 45%, #0b3f27 100%);
-    border: 1px solid rgba(190,242,100,0.3);
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(167,139,250,0.35);
     border-radius: 22px;
-    box-shadow: 0 22px 55px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.14);
+    box-shadow: 0 22px 55px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
     overflow: hidden;
     position: sticky; top: 14px;
 }
 @media (max-width: 860px) { .jm-quest { position: static; } }
 .jm-quest-head {
-    background: rgba(0,0,0,0.24);
+    background: rgba(0,0,0,0.25);
     padding: 0.6rem 1rem;
     display: flex; align-items: center; gap: 0.5rem;
-    border-bottom: 1px solid rgba(190,242,100,0.22);
+    border-bottom: 1px solid rgba(167,139,250,0.3);
 }
 .jm-quest-head .t {
-    font-size: 0.74rem; font-weight: 900; letter-spacing: 2px; color: #fde68a; text-transform: uppercase;
+    font-size: 0.74rem; font-weight: 900; letter-spacing: 2px; color: #c4b5fd; text-transform: uppercase;
 }
 .jm-quest-body { padding: 1rem; }
 
@@ -270,44 +541,45 @@
 .jm-who .av {
     width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; color: #052e16; background-size: cover; background-position: center;
-    border: 2px solid rgba(255,255,255,0.5);
+    font-weight: 900; color: #fff; background-size: cover; background-position: center;
+    border: 2px solid rgba(255,255,255,0.6);
+    box-shadow: 0 0 0 2px rgba(139,92,246,0.4);
 }
 .jm-who .nm { font-weight: 800; font-size: 0.95rem; line-height: 1.2; }
-.jm-who .sub { font-size: 0.72rem; color: #bbf7d0; }
+.jm-who .sub { font-size: 0.72rem; color: #a5f3fc; }
 
 .jm-qtext {
     font-size: clamp(1rem, 1.35vw, 1.22rem); font-weight: 700; line-height: 1.5;
-    background: rgba(0,0,0,0.2); border-radius: 14px; padding: 0.85rem 0.95rem;
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(0,0,0,0.25); border-radius: 14px; padding: 0.85rem 0.95rem;
+    border: 1px solid rgba(167,139,250,0.25);
 }
 .jm-qimg { width: 100%; max-height: 190px; object-fit: contain; border-radius: 12px; margin-top: 0.6rem; background: rgba(0,0,0,0.25); }
 
 .jm-speak {
     margin-top: 0.8rem; text-align: center; border-radius: 14px; padding: 0.75rem;
-    background: rgba(240,180,41,0.16); border: 1px dashed rgba(253,230,138,0.6);
-    font-weight: 800; color: #fde68a; font-size: 0.9rem;
+    background: rgba(167,139,250,0.16); border: 1px dashed rgba(196,181,253,0.6);
+    font-weight: 800; color: #ddd6fe; font-size: 0.9rem;
 }
 .jm-speak .big { display: block; font-size: 1.5rem; margin-bottom: 0.2rem; }
 
 .jm-answer {
-    margin-top: 0.8rem; background: rgba(2,20,12,0.5);
-    border: 1px dashed rgba(134,239,172,0.6); border-radius: 14px;
+    margin-top: 0.8rem; background: rgba(30,27,75,0.5);
+    border: 1px dashed rgba(110,231,183,0.6); border-radius: 14px;
     padding: 0.65rem 0.85rem; font-size: 0.92rem; word-break: break-word;
 }
-.jm-answer .lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1px; color: #86efac; font-weight: 800; display: block; margin-bottom: 0.2rem; }
+.jm-answer .lbl { font-size: 0.64rem; text-transform: uppercase; letter-spacing: 1px; color: #6ee7b7; font-weight: 800; display: block; margin-bottom: 0.2rem; }
 
 /* Taymer halqasi */
 .jm-timer { margin-left: auto; position: relative; width: 54px; height: 54px; flex-shrink: 0; }
 .jm-ring { width: 54px; height: 54px; transform: rotate(-90deg); }
 .jm-ring circle { fill: none; stroke-width: 6; stroke-linecap: round; }
 .jm-ring .bg { stroke: rgba(0,0,0,0.3); }
-.jm-ring .fg { stroke: #bef264; transition: stroke-dashoffset 0.95s linear, stroke 0.4s; }
+.jm-ring .fg { stroke: #c4b5fd; transition: stroke-dashoffset 0.95s linear, stroke 0.4s; filter: drop-shadow(0 0 4px rgba(167,139,250,0.6)); }
 .jm-ring.warn .fg { stroke: #fbbf24; }
 .jm-ring.danger .fg { stroke: #f87171; }
 .jm-ring-num {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 1.05rem; color: #ecfdf5;
+    font-weight: 900; font-size: 1.05rem; color: #eef2ff;
 }
 .jm-timer.danger .jm-ring-num { color: #fca5a5; animation: jmTick 1s infinite; }
 @keyframes jmTick { 0%,100% { transform: scale(1); } 50% { transform: scale(1.16); } }
@@ -317,12 +589,13 @@
     display: flex; align-items: center; gap: 0.7rem;
     border-radius: 14px; padding: 0.8rem 0.9rem; margin-top: 0.8rem;
     animation: jmFxIn 0.45s cubic-bezier(0.34,1.56,0.64,1);
+    backdrop-filter: blur(8px);
 }
 @keyframes jmFxIn { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
 .jm-fx .ic { font-size: 1.8rem; }
-.jm-fx.good { background: rgba(34,197,94,0.2); border: 1px solid rgba(134,239,172,0.5); }
-.jm-fx.bad { background: rgba(239,68,68,0.2); border: 1px solid rgba(248,113,113,0.5); }
-.jm-fx.neutral { background: rgba(240,180,41,0.2); border: 1px solid rgba(253,230,138,0.5); }
+.jm-fx.good { background: rgba(52,211,153,0.2); border: 1px solid rgba(110,231,183,0.5); }
+.jm-fx.bad { background: rgba(244,63,94,0.2); border: 1px solid rgba(253,164,175,0.5); }
+.jm-fx.neutral { background: rgba(251,191,36,0.2); border: 1px solid rgba(253,230,138,0.5); }
 
 /* ============================================================
    TUGMALAR
@@ -337,9 +610,9 @@
 .jm-btn:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
 .jm-btn:active:not(:disabled) { transform: translateY(0) scale(0.97); }
 .jm-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.jm-btn.ok { background: linear-gradient(135deg, #15803d, #22c55e); box-shadow: 0 6px 18px rgba(22,163,74,0.45); }
-.jm-btn.no { background: linear-gradient(135deg, #b91c1c, #ef4444); box-shadow: 0 6px 18px rgba(220,38,38,0.45); }
-.jm-btn.go { background: linear-gradient(135deg, #b45309, #f0b429); box-shadow: 0 6px 18px rgba(240,180,41,0.4); color: #431407; }
+.jm-btn.ok { background: linear-gradient(135deg, #6d28d9, #8b5cf6); box-shadow: 0 6px 18px rgba(139,92,246,0.45); }
+.jm-btn.no { background: linear-gradient(135deg, #e11d48, #f43f5e); box-shadow: 0 6px 18px rgba(244,63,94,0.45); }
+.jm-btn.go { background: linear-gradient(135deg, #0891b2, #22d3ee); box-shadow: 0 6px 18px rgba(34,211,238,0.4); color: #082f49; }
 .jm-btn.ghost { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.22); }
 .jm-btn.sm { padding: 0.42rem 0.8rem; font-size: 0.78rem; border-radius: 10px; }
 .jm-btn.big { flex: 1 1 46%; padding: 0.85rem 1rem; font-size: 1rem; }
@@ -350,82 +623,235 @@
 .jm-roster { display: flex; flex-direction: column; gap: 0.45rem; max-height: 440px; overflow-y: auto; }
 .jm-rp {
     display: flex; align-items: center; gap: 0.55rem;
-    background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
     border-radius: 14px; padding: 0.45rem 0.55rem; transition: background 0.25s, border-color 0.25s;
+    backdrop-filter: blur(8px);
 }
-.jm-rp.turn { background: rgba(253,230,138,0.15); border-color: rgba(253,230,138,0.55); }
+.jm-rp.turn { background: rgba(139,92,246,0.22); border-color: rgba(196,181,253,0.6); }
 .jm-rp.gone { opacity: 0.42; }
 .jm-rp .av {
     width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; position: relative;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 900; font-size: 0.82rem; color: #052e16;
+    font-weight: 900; font-size: 0.82rem; color: #fff;
     background-size: cover; background-position: center;
-    border: 2px solid rgba(255,255,255,0.35);
+    border: 2px solid rgba(255,255,255,0.45);
 }
 .jm-rp .av .dot {
     position: absolute; right: -2px; bottom: -2px; width: 10px; height: 10px;
-    border-radius: 50%; border: 2px solid #072016; background: #64748b;
+    border-radius: 50%; border: 2px solid #101330; background: #64748b;
 }
-.jm-rp .av .dot.on { background: #22c55e; }
+.jm-rp .av .dot.on { background: #34d399; box-shadow: 0 0 6px rgba(52,211,153,0.8); }
 .jm-rp .info { min-width: 0; flex: 1; }
 .jm-rp .nm { font-weight: 700; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.jm-rp .meta { font-size: 0.68rem; color: #94a3b8; display: flex; gap: 0.35rem; flex-wrap: wrap; }
-.jm-rp .bar { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.1); margin-top: 3px; overflow: hidden; }
-.jm-rp .bar i { display: block; height: 100%; background: linear-gradient(90deg, #22c55e, #bef264); transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
-.jm-rp .pos { font-weight: 900; font-size: 1rem; color: #fde68a; flex-shrink: 0; }
+.jm-rp .meta { font-size: 0.68rem; color: #a5b4fc; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.jm-rp .bar { height: 4px; border-radius: 3px; background: rgba(255,255,255,0.12); margin-top: 3px; overflow: hidden; }
+.jm-rp .bar i { display: block; height: 100%; background: linear-gradient(90deg, #22d3ee, #a78bfa); transition: width 0.7s cubic-bezier(0.4,0,0.2,1); }
+.jm-rp .pos { font-weight: 900; font-size: 1rem; color: #fcd34d; flex-shrink: 0; }
 .jm-rp .badges { font-size: 0.8rem; }
 .jm-kick {
     flex-shrink: 0; width: 26px; height: 26px; border-radius: 8px; line-height: 1;
-    border: 1px solid rgba(248,113,113,0.4); background: rgba(248,113,113,0.12);
-    color: #fca5a5; font-weight: 800; cursor: pointer; transition: all 0.2s;
+    border: 1px solid rgba(244,63,94,0.4); background: rgba(244,63,94,0.15);
+    color: #fda4af; font-weight: 800; cursor: pointer; transition: all 0.2s;
 }
-.jm-kick:hover { background: rgba(248,113,113,0.3); color: #fff; transform: scale(1.1); }
+.jm-kick:hover { background: rgba(244,63,94,0.35); color: #fff; transform: scale(1.1); }
 
 .jm-feed { display: flex; flex-direction: column; gap: 0.35rem; max-height: 260px; overflow-y: auto; }
 .jm-ev {
     font-size: 0.78rem; padding: 0.42rem 0.6rem; border-radius: 10px;
-    background: rgba(255,255,255,0.045); border-left: 3px solid rgba(132,204,22,0.5);
+    background: rgba(255,255,255,0.06); border-left: 3px solid rgba(167,139,250,0.6);
     animation: jmEvIn 0.3s ease-out;
 }
 @keyframes jmEvIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
-.jm-ev.hot { border-left-color: #f0b429; background: rgba(240,180,41,0.1); }
-.jm-ev.bad { border-left-color: #ef4444; background: rgba(239,68,68,0.1); }
+.jm-ev.hot { border-left-color: #fcd34d; background: rgba(251,191,36,0.12); }
+.jm-ev.bad { border-left-color: #f43f5e; background: rgba(244,63,94,0.12); }
 
 /* G'olib pardasi */
 .jm-win {
     position: fixed; inset: 0; z-index: 3000; display: none;
     align-items: center; justify-content: center;
-    background: rgba(2,10,6,0.9); backdrop-filter: blur(6px); padding: 1rem;
+    background: rgba(8,8,30,0.85); backdrop-filter: blur(10px); padding: 1rem;
 }
 .jm-win.show { display: flex; animation: jmFade 0.4s; }
 @keyframes jmFade { from { opacity: 0; } to { opacity: 1; } }
 .jm-win-card {
-    background: linear-gradient(160deg, #15653c, #052e16);
-    border: 1px solid rgba(253,230,138,0.45);
+    background: rgba(255,255,255,0.09);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(251,191,36,0.5);
     border-radius: 26px; padding: 2rem 1.7rem; text-align: center;
-    max-width: 440px; width: 100%; color: #ecfdf5;
+    max-width: 440px; width: 100%; color: #eef2ff;
     box-shadow: 0 30px 80px rgba(0,0,0,0.75);
     animation: jmWinIn 0.6s cubic-bezier(0.34,1.56,0.64,1);
 }
 @keyframes jmWinIn { from { opacity: 0; transform: scale(0.7) translateY(30px); } to { opacity: 1; transform: scale(1) translateY(0); } }
-.jm-win-card .cup { font-size: 4rem; animation: jmCup 1.7s ease-in-out infinite; }
+.jm-win-card .cup { font-size: 4rem; animation: jmCup 1.7s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(251,191,36,0.7)); }
 @keyframes jmCup { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-12px) rotate(6deg); } }
 .jm-standings { text-align: left; margin-top: 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
-.jm-standings div { display: flex; justify-content: space-between; background: rgba(255,255,255,0.07); border-radius: 10px; padding: 0.42rem 0.7rem; font-size: 0.86rem; }
+.jm-standings div { display: flex; justify-content: space-between; background: rgba(255,255,255,0.09); border-radius: 10px; padding: 0.42rem 0.7rem; font-size: 0.86rem; }
 
 .jm-toast {
     position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(80px);
-    background: #111827; color: #fff; border-radius: 14px; padding: 0.7rem 1.15rem;
+    background: rgba(30,27,75,0.92); color: #fff; border-radius: 14px; padding: 0.7rem 1.15rem;
     font-weight: 600; font-size: 0.88rem; z-index: 3200; opacity: 0;
     transition: all 0.32s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none;
-    border: 1px solid rgba(255,255,255,0.15); max-width: 90vw;
+    border: 1px solid rgba(196,181,253,0.35); max-width: 90vw;
+    backdrop-filter: blur(12px);
 }
 .jm-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-.jm-toast.err { background: #7f1d1d; border-color: rgba(248,113,113,0.5); }
+.jm-toast.err { background: rgba(136,19,55,0.92); border-color: rgba(244,63,94,0.5); }
+
+/* ============================================================
+   TO'LIQ EKRAN
+   ============================================================ */
+.jm-page:fullscreen, .jm-page:-webkit-full-screen {
+    max-width: none; width: 100vw; height: 100vh;
+    overflow-y: auto; padding: 0.8rem 1.2rem 1.5rem;
+    background:
+        radial-gradient(1100px 700px at 12% -10%, rgba(139,92,246,0.26), transparent 60%),
+        linear-gradient(165deg, #0b0f2a 0%, #13173a 48%, #0a0d24 100%);
+}
+.jm-page:fullscreen .jm-grid { grid-template-columns: 260px minmax(0, 1fr) 340px; }
+.jm-page:fullscreen .jm-logo { font-size: 1.5rem; }
+.jm-page:fullscreen .jm-roster { max-height: 52vh; }
+
+/* ============================================================
+   EFFEKT BILDIRGISI — ekran o'rtasida katta xabar
+   ============================================================ */
+.jm-shout {
+    position: fixed; inset: 0; z-index: 2600;
+    display: none; align-items: center; justify-content: center;
+    pointer-events: none; padding: 1rem;
+}
+.jm-shout.show { display: flex; }
+.jm-shout-card {
+    text-align: center; border-radius: 26px; padding: 1.5rem 2.2rem;
+    background: rgba(16, 16, 45, 0.86);
+    backdrop-filter: blur(14px);
+    border: 2px solid rgba(251,191,36,0.6);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+    animation: jmShoutIn 0.55s cubic-bezier(0.34,1.72,0.6,1);
+    max-width: 92vw;
+}
+@keyframes jmShoutIn {
+    0%   { opacity: 0; transform: scale(0.55) rotate(-7deg); }
+    55%  { opacity: 1; transform: scale(1.12) rotate(2deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+.jm-shout-card.out { animation: jmShoutOut 0.4s ease-in forwards; }
+@keyframes jmShoutOut { to { opacity: 0; transform: scale(0.8) translateY(-24px); } }
+
+.jm-shout-card .ic {
+    font-size: clamp(3rem, 9vw, 5.4rem); line-height: 1; display: block;
+    filter: drop-shadow(0 6px 18px rgba(0,0,0,0.8));
+    animation: jmShoutIcon 0.9s ease-out;
+}
+@keyframes jmShoutIcon {
+    0% { transform: scale(0.3) rotate(-180deg); }
+    60% { transform: scale(1.3) rotate(12deg); }
+    100% { transform: scale(1) rotate(0deg); }
+}
+.jm-shout-card .big {
+    font-size: clamp(1.3rem, 4.4vw, 2.4rem); font-weight: 900;
+    letter-spacing: 1.5px; margin-top: 0.5rem; line-height: 1.15;
+}
+.jm-shout-card .who { font-size: 0.95rem; font-weight: 800; color: #fde68a; }
+.jm-shout-card .hint { font-size: 0.9rem; color: #cbd5e1; margin-top: 0.4rem; }
+
+.jm-shout-card.good { border-color: rgba(110,231,183,0.7); }
+.jm-shout-card.good .ic, .jm-shout-card.good .big { color: #6ee7b7; }
+.jm-shout-card.bad { border-color: rgba(244,63,94,0.7); }
+.jm-shout-card.bad .ic, .jm-shout-card.bad .big { color: #fda4af; }
+.jm-shout-card.neutral { border-color: rgba(253,230,138,0.7); }
+.jm-shout-card.neutral .ic, .jm-shout-card.neutral .big { color: #fcd34d; }
+
+/* Bomba — portlash */
+.jm-shout-card.boom { border-color: rgba(251,146,60,0.85); animation: jmBoomShake 0.6s ease-out; }
+.jm-shout-card.boom .ic, .jm-shout-card.boom .big { color: #fb923c; }
+@keyframes jmBoomShake {
+    0% { transform: scale(0.5); }
+    25% { transform: scale(1.25) translate(-9px, 5px) rotate(-4deg); }
+    45% { transform: scale(1.1) translate(9px, -5px) rotate(4deg); }
+    65% { transform: scale(1.05) translate(-5px, 3px) rotate(-2deg); }
+    100% { transform: scale(1) translate(0,0) rotate(0deg); }
+}
+.jm-boom-ring {
+    position: absolute; left: 50%; top: 50%; width: 40px; height: 40px;
+    margin: -20px 0 0 -20px; border-radius: 50%; pointer-events: none;
+    border: 5px solid rgba(251,146,60,0.9);
+    animation: jmBoomRing 0.85s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+@keyframes jmBoomRing {
+    to { width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax; border-width: 2px; opacity: 0; }
+}
+/* Portlashda faqat panellar silkinadi — .jm-page ning o'zi qimirlasa,
+   uning ichidagi position:fixed qoplamalar joyidan siljib ketardi. */
+.jm-grid.shake { animation: jmPageShake 0.5s ease-out; }
+@keyframes jmPageShake {
+    0%,100% { transform: translate(0,0); }
+    20% { transform: translate(-8px, 4px); }
+    40% { transform: translate(7px, -4px); }
+    60% { transform: translate(-5px, 3px); }
+    80% { transform: translate(4px, -2px); }
+}
+
+/* ============================================================
+   O'QUVCHINING TOSH AYLANTIRISH TUGMASI — o'rtadagi kub bilan
+   bir xil suyak-oq yuza va nuqtalar, shu tufayli bosgan tosh
+   doska o'rtasida dumalayotgani darhol tushunarli bo'ladi.
+   ============================================================ */
+.jm-rollbox { text-align: center; padding: 0.3rem 0 0.2rem; }
+.jm-rollbox .cue { font-size: 0.86rem; color: #a5f3fc; font-weight: 700; margin-bottom: 0.7rem; }
+.jm-pipface {
+    display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+    width: 100%; height: 100%; padding: 15%; gap: 6%;
+}
+.jm-pipface i { border-radius: 50%; }
+.jm-pipface i.pip {
+    background: radial-gradient(circle at 34% 28%, #4338ca 0%, #312e81 62%, #1e1b4b 100%);
+    box-shadow: inset 0 -1px 2px rgba(167,139,250,0.3), 0 1px 1px rgba(255,255,255,0.45);
+}
+.jm-cube {
+    width: 118px; height: 118px; margin: 0 auto 0.9rem; border-radius: 20%;
+    background: linear-gradient(148deg, #eef2ff 0%, #e0e7ff 45%, #c7d2fe 100%);
+    border: none; cursor: pointer; padding: 0; display: flex;
+    box-shadow:
+        inset 0 0 0 2px rgba(99,102,241,0.35),
+        inset 0 -10px 18px rgba(99,102,241,0.25),
+        inset 0 8px 12px rgba(255,255,255,0.65),
+        0 16px 34px rgba(0,0,0,0.55);
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: jmCubeIdle 2.2s ease-in-out infinite;
+}
+.jm-cube:hover:not(:disabled) { transform: scale(1.07) rotate(-5deg); box-shadow: inset 0 0 0 2px rgba(99,102,241,0.35), 0 22px 46px rgba(139,92,246,0.6); }
+.jm-cube:active:not(:disabled) { transform: scale(0.94); }
+.jm-cube:disabled { cursor: default; animation: none; }
+@keyframes jmCubeIdle {
+    0%,100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-9px) rotate(3deg); }
+}
+.jm-cube.spin { animation: jmCubeSpin 0.95s cubic-bezier(0.36,0.07,0.19,0.97); }
+@keyframes jmCubeSpin {
+    0%   { transform: rotate(0deg) scale(1); }
+    30%  { transform: rotate(400deg) scale(1.18); }
+    60%  { transform: rotate(760deg) scale(0.9); }
+    100% { transform: rotate(1080deg) scale(1); }
+}
+.jm-cube-wait {
+    width: 118px; height: 118px; margin: 0 auto 0.9rem; border-radius: 20%; display: flex;
+    background: rgba(255,255,255,0.06); border: 2px dashed rgba(167,139,250,0.5);
+    animation: jmCubeIdle 2.6s ease-in-out infinite;
+}
+.jm-cube-wait .jm-pipface i.pip {
+    background: rgba(167,139,250,0.4);
+    box-shadow: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
-    .jm-jungle::after, .jm-cell.finish, .jm-pill.running { animation: none; }
-    .jm-token { transition: none; }
+    .jm-jungle::after, .jm-board-inner::before, .jm-cell.finish, .jm-pill.running,
+    .jm-cube, .jm-cube-wait, .jm-shout-card .ic,
+    .jm-dice-runes circle, .jm-dice-wave, .jm-dicestage.land .jm-dice-plate { animation: none; }
+    .jm-token, .jm-die { transition: none; }
+    .jm-grid.shake { animation: none; }
 }
 </style>
 {% endblock %}
@@ -439,6 +865,7 @@
      data-control-url="{% url 'games:jumanji_control' session.pk %}"
      data-join-url="{% url 'games:jumanji_join' session.pk %}"
      data-leave-url="{% url 'games:jumanji_leave' session.pk %}"
+     data-roll-url="{% url 'games:jumanji_roll' session.pk %}"
      data-controller="{{ is_controller|yesno:'1,0' }}"
      data-min-players="{{ min_players }}"
      data-board-size="{{ session.board_size }}"
@@ -451,12 +878,13 @@
             <div class="jm-sub">{{ competition.title }}</div>
         </div>
         <span class="jm-pill {{ session.status }}" id="jmStatus">{{ session.get_status_display }}</span>
-        <span class="jm-pill paused d-none" id="jmPaused">⏸ Pauza</span>
-        <span class="jm-pill count" id="jmCount">👥 {{ session.players.count }}</span>
-        <button type="button" class="jm-sound" id="jmSound" title="Ovozni yoqish/o'chirish">🔊</button>
+        <span class="jm-pill paused d-none" id="jmPaused"><i class="bi bi-pause-fill"></i> Pauza</span>
+        <span class="jm-pill count" id="jmCount"><i class="bi bi-people-fill"></i> {{ session.players.count }}</span>
+        <button type="button" class="jm-sound" id="jmSound" title="Ovozni yoqish/o'chirish"><i class="bi bi-volume-up-fill"></i></button>
+        <button type="button" class="jm-sound ms-2" id="jmFull" title="To'liq ekran (F)"><i class="bi bi-arrows-fullscreen"></i></button>
     </div>
 
-    <div class="jm-grid">
+    <div class="jm-grid" id="jmGrid">
         <!-- ===== CHAP: o'yinchilar ===== -->
         <aside class="jm-side">
             <div class="jm-card">
@@ -464,13 +892,8 @@
                 <div class="jm-roster" id="jmRoster">
                     <div class="text-muted small">Yuklanmoqda…</div>
                 </div>
-                {% if can_join %}
-                <button class="jm-btn ok w-100 mt-3" id="jmJoinBtn">
-                    <i class="bi bi-box-arrow-in-right"></i> O'yinga qo'shilish
-                </button>
-                {% elif player and session.status == 'lobby' %}
-                <button class="jm-btn ghost sm w-100 mt-3" id="jmLeaveBtn">Lobbydan chiqish</button>
-                {% endif %}
+                {# Tugmalar clientda chiziladi: qo'shilish/chiqish sahifani yangilamasdan ko'rinsin #}
+                <div id="jmLobbyBtns"></div>
             </div>
 
             <div class="jm-card">
@@ -487,37 +910,55 @@
             {# uz lokali kasrni vergul bilan yozadi ("10,92%") — CSS buni tushunmaydi #}
             {% localize off %}
             <div class="jm-board" id="jmBoard"
-                 style="--jm-cell: {{ geometry.cell }}%; padding-top: {{ geometry.aspect }}%;">
+                 style="--jm-cell: {{ geometry.cell }}%; --jm-aspect: {{ geometry.aspect }}; padding-top: {{ geometry.aspect }}%;">
                 <div class="jm-board-inner">
                     <svg class="jm-trail" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <path class="rope" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
                         <path class="rope-in" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
+                        <path class="rope-twist" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
                         <path class="dash" d="{{ geometry.trail }}" vector-effect="non-scaling-stroke"/>
                         <g id="jmArcs"></g>
                     </svg>
 
                     {% for cell in cells %}
-                    <div class="jm-cell{% if cell.is_start %} start{% endif %}{% if cell.is_finish %} finish{% endif %}"
+                    <div class="jm-cell{% if cell.is_start %} start{% elif cell.is_finish %} finish{% elif not cell.effect %} plain{% endif %}"
                          data-index="{{ cell.index }}"
                          style="left: {{ cell.x }}%; top: {{ cell.y }}%;"
-                         {% if cell.effect %}data-tone="{{ cell.effect.tone }}" title="{{ cell.effect.label }}"{% endif %}>
+                         {% if cell.effect %}data-tone="{{ cell.effect.tone }}" title="{{ cell.effect.label }} — {{ cell.effect.hint }}"{% endif %}>
                         <span class="num">{{ cell.index }}</span>
                         {% if cell.is_start %}
-                            <span class="fx">🏁</span><span class="cap">START</span>
+                            <span class="fx"><i class="bi bi-flag-fill"></i></span><span class="cap">START</span>
                         {% elif cell.is_finish %}
-                            <span class="fx">🏆</span><span class="cap">FINISH</span>
+                            <span class="fx"><i class="bi bi-trophy-fill"></i></span><span class="cap">FINISH</span>
                         {% elif cell.effect %}
-                            <span class="fx">{{ cell.effect.icon }}</span>
-                            {% if cell.steps %}<span class="fx-steps">{{ cell.steps }}</span>{% endif %}
+                            <span class="fx"><i class="bi {{ cell.effect.icon }}"></i></span>
+                            <span class="lbl">{{ cell.effect.short }}{% if cell.steps_label %} {{ cell.steps_label }}{% endif %}</span>
                         {% endif %}
                     </div>
                     {% endfor %}
 
                     <div id="jmTokens"></div>
 
-                    <div class="jm-dice-orb" id="jmDice">
-                        <span id="jmDiceFace">🎲</span>
-                        <span class="who" id="jmDiceWho"></span>
+                    <div class="jm-dicestage" id="jmDice">
+                        <span class="jm-dice-veil"></span>
+                        <div class="jm-dice-portal">
+                            <div class="jm-dice-scene">
+                                <svg class="jm-dice-runes" viewBox="0 0 200 200" aria-hidden="true">
+                                    <circle class="r1" cx="100" cy="100" r="94"/>
+                                    <circle class="r2" cx="100" cy="100" r="80"/>
+                                    <circle class="r3" cx="100" cy="100" r="66"/>
+                                </svg>
+                                <span class="jm-dice-wave w1"></span>
+                                <span class="jm-dice-wave w2"></span>
+                                <span class="jm-die-shadow"></span>
+                                <div class="jm-die" id="jmDie"></div>
+                            </div>
+                            <div class="jm-dice-plate">
+                                <span class="val" id="jmDiceVal">?</span>
+                                <span class="mult" id="jmDiceMult">&times;2</span>
+                            </div>
+                            <div class="jm-dice-who" id="jmDiceWho"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -525,7 +966,7 @@
 
             <div class="jm-legend">
                 {% for fx in effect_legend %}
-                <span class="jm-lg"><span>{{ fx.icon }}</span> {{ fx.label }}</span>
+                <span class="jm-lg" title="{{ fx.hint }}"><i class="bi {{ fx.icon }} tone-{{ fx.tone }}"></i> {{ fx.label }}</span>
                 {% endfor %}
             </div>
         </main>
@@ -544,19 +985,29 @@
             </div>
         </section>
     </div>
-</div>
 
-<div class="jm-win" id="jmWin">
-    <div class="jm-win-card">
-        <div class="cup">🏆</div>
-        <h3 class="fw-bold mt-2 mb-1" id="jmWinName">—</h3>
-        <p style="color:#86efac;" class="mb-0">Jumanji g'olibi!</p>
-        <div class="jm-standings" id="jmStandings"></div>
-        <a href="{% url 'games:games_list' %}" class="jm-btn go mt-4 d-inline-flex">O'yinlarga qaytish</a>
+    {# Qoplamalar .jm-page ichida: to'liq ekran rejimida ham ko'rinib turadi #}
+    <div class="jm-win" id="jmWin">
+        <div class="jm-win-card">
+            <div class="cup"><i class="bi bi-trophy-fill"></i></div>
+            <h3 class="fw-bold mt-2 mb-1" id="jmWinName">—</h3>
+            <p style="color:#86efac;" class="mb-0">Jumanji g'olibi!</p>
+            <div class="jm-standings" id="jmStandings"></div>
+            <a href="{% url 'games:games_list' %}" class="jm-btn go mt-4 d-inline-flex">O'yinlarga qaytish</a>
+        </div>
     </div>
-</div>
 
-<div class="jm-toast" id="jmToast"></div>
+    <div class="jm-shout" id="jmShout">
+        <div class="jm-shout-card" id="jmShoutCard">
+            <i class="ic bi bi-stars" id="jmShoutIcon"></i>
+            <div class="who" id="jmShoutWho"></div>
+            <div class="big" id="jmShoutBig">—</div>
+            <div class="hint" id="jmShoutHint"></div>
+        </div>
+    </div>
+
+    <div class="jm-toast" id="jmToast"></div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -572,6 +1023,7 @@
         control: root.dataset.controlUrl,
         join: root.dataset.joinUrl,
         leave: root.dataset.leaveUrl,
+        roll: root.dataset.rollUrl,
         isController: root.dataset.controller === '1',
         minPlayers: parseInt(root.dataset.minPlayers, 10) || 2,
         boardSize: parseInt(root.dataset.boardSize, 10) || 30,
@@ -591,12 +1043,23 @@
         standings: document.getElementById('jmStandings'),
         toast: document.getElementById('jmToast'),
         board: document.getElementById('jmBoard'),
+        grid: document.getElementById('jmGrid'),
         tokens: document.getElementById('jmTokens'),
         arcs: document.getElementById('jmArcs'),
         dice: document.getElementById('jmDice'),
-        diceFace: document.getElementById('jmDiceFace'),
+        die: document.getElementById('jmDie'),
+        diceVal: document.getElementById('jmDiceVal'),
+        diceMult: document.getElementById('jmDiceMult'),
         diceWho: document.getElementById('jmDiceWho'),
-        soundBtn: document.getElementById('jmSound')
+        soundBtn: document.getElementById('jmSound'),
+        fullBtn: document.getElementById('jmFull'),
+        lobbyBtns: document.getElementById('jmLobbyBtns'),
+        shout: document.getElementById('jmShout'),
+        shoutCard: document.getElementById('jmShoutCard'),
+        shoutIcon: document.getElementById('jmShoutIcon'),
+        shoutWho: document.getElementById('jmShoutWho'),
+        shoutBig: document.getElementById('jmShoutBig'),
+        shoutHint: document.getElementById('jmShoutHint')
     };
 
     var POINTS = JSON.parse(document.getElementById('jmPoints').textContent);
@@ -608,12 +1071,18 @@
     var busy = false;
     var timerId = null;
     var seenWinner = false;
+    var answerHidden = false;   // boshqaruvchi doskani o'quvchilarga ko'rsatganda
+                                // to'g'ri javob yashirin turishi uchun
+    var lastStatus = null;      // status o'zgarishini aniqlash uchun
     var boardPainted = LINKS.length > 0;
     var needFull = false;
     var primed = false;      // birinchi javobdan keyin animatsiya/ovoz yoqiladi
     var walkers = {};        // o'yinchi id → yurish taymeri
     var starters = {};       // o'yinchi id → yurishni boshlash kechikishi
     var tokenNodes = {};
+    var nameId = {};         // hodisadagi ism → o'yinchi id (yurish uchun)
+    var walking = {};        // o'yinchi id → hozir yuryapti (toshga tegmaslik)
+    var pendingEffect = {};  // o'yinchi id → zarba yurishidan keyin qo'llanadigan effekt
     var polling = false;     // bir vaqtda faqat bitta so'rov — navbat yig'ilmaydi
     var pollTimer = null;
     var idleRounds = 0;      // ketma-ket o'zgarishsiz javoblar soni
@@ -684,15 +1153,44 @@
             neutral: function () { blip({ from: 440, to: 620, dur: 0.22, type: 'triangle', vol: 0.13 }); },
             tick: function () { blip({ from: 1300, dur: 0.05, type: 'square', vol: 0.06 }); },
             open: function () { blip({ from: 400, to: 800, dur: 0.2, type: 'triangle', vol: 0.13 }); },
+            /* Portlash: shovqin portlashi + pastga tushuvchi past ton.
+               Bomba katagida o'quvchi darhol sezishi uchun ataylab baland. */
+            boom: function () {
+                if (!on) { return; }
+                var c = context();
+                if (!c) { return; }
+                var now = c.currentTime;
+                var len = Math.floor(c.sampleRate * 0.55);
+                var buf = c.createBuffer(1, len, c.sampleRate);
+                var data = buf.getChannelData(0);
+                for (var i = 0; i < len; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4);
+                }
+                var noise = c.createBufferSource();
+                noise.buffer = buf;
+                var lp = c.createBiquadFilter();
+                lp.type = 'lowpass';
+                lp.frequency.setValueAtTime(1800, now);
+                lp.frequency.exponentialRampToValueAtTime(180, now + 0.5);
+                var ng = c.createGain();
+                ng.gain.setValueAtTime(0.34, now);
+                ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+                noise.connect(lp).connect(ng).connect(c.destination);
+                noise.start(now);
+                blip({ from: 180, to: 40, dur: 0.5, type: 'sawtooth', vol: 0.26 });
+            },
             win: function () { chord([523, 659, 784, 1046, 1318], 0.13, 'triangle', 0.19); }
         };
     })();
 
-    el.soundBtn.textContent = audio.enabled ? '🔊' : '🔇';
+    var SOUND_ON_ICON = '<i class="bi bi-volume-up-fill"></i>';
+    var SOUND_OFF_ICON = '<i class="bi bi-volume-mute-fill"></i>';
+
+    el.soundBtn.innerHTML = audio.enabled ? SOUND_ON_ICON : SOUND_OFF_ICON;
     el.soundBtn.classList.toggle('off', !audio.enabled);
     el.soundBtn.addEventListener('click', function () {
         var on = audio.toggle();
-        el.soundBtn.textContent = on ? '🔊' : '🔇';
+        el.soundBtn.innerHTML = on ? SOUND_ON_ICON : SOUND_OFF_ICON;
         el.soundBtn.classList.toggle('off', !on);
     });
     // Brauzerlar ovozni faqat foydalanuvchi harakatidan keyin ochadi.
@@ -737,32 +1235,29 @@
             var node = el.board.querySelector('.jm-cell[data-index="' + cell.index + '"]');
             if (!node || cell.is_start || cell.is_finish) { return; }
             var fx = node.querySelector('.fx');
-            var steps = node.querySelector('.fx-steps');
+            var lbl = node.querySelector('.lbl');
             if (!cell.effect) {
                 node.removeAttribute('data-tone');
                 node.removeAttribute('title');
                 if (fx) { fx.remove(); }
-                if (steps) { steps.remove(); }
+                if (lbl) { lbl.remove(); }
                 return;
             }
             node.dataset.tone = cell.effect.tone;
-            node.title = cell.effect.label;
+            // Sarlavhada nomi ham, izohi ham — o'quvchi katakda nima borligini biladi
+            node.title = cell.effect.label + ' — ' + cell.effect.hint;
             if (!fx) {
                 fx = document.createElement('span');
                 fx.className = 'fx';
                 node.appendChild(fx);
             }
-            fx.textContent = cell.effect.icon;
-            if (cell.steps) {
-                if (!steps) {
-                    steps = document.createElement('span');
-                    steps.className = 'fx-steps';
-                    node.appendChild(steps);
-                }
-                steps.textContent = cell.steps;
-            } else if (steps) {
-                steps.remove();
+            fx.innerHTML = '<i class="bi ' + esc(cell.effect.icon) + '"></i>';
+            if (!lbl) {
+                lbl = document.createElement('span');
+                lbl.className = 'lbl';
+                node.appendChild(lbl);
             }
+            lbl.textContent = cell.effect.short + (cell.steps_label ? ' ' + cell.steps_label : '');
         });
     }
 
@@ -804,25 +1299,39 @@
     /* Toshni katakma-katak yurgizadi. Har yurish alohida CSS o'tishi —
        shu tufayli brauzer layout'ni qayta hisoblamaydi va o'yin qotmaydi.
        `delay` — zarba animatsiyasi tugashini kutish uchun (avval tosh
-       tushadi, keyin o'yinchi yuradi). */
-    function walkToken(node, from, to, delay) {
-        clearInterval(walkers[node.dataset.player]);
-        clearTimeout(starters[node.dataset.player]);
+       tushadi, keyin o'yinchi yuradi). `done` — yurish tugagach chaqiriladi
+       (ilon/narvon/bomba effekti yurishini zanjirlash uchun).
+
+       Avval tosh ZARBA tushgan katakka boradi, keyin effekt (agar bo'lsa)
+       uni yakuniy katakka sudraydi. Shu tufayli o'yinchi "14 ga keldi-yu
+       12 ga tushdi" deb adashmaydi — harakat ketma-ket ko'rinadi.
+    */
+    function walkPlayer(pid, to, delay, done) {
+        clearInterval(walkers[pid]);
+        clearTimeout(starters[pid]);
+        var node = tokenNodes[pid];
+        if (!node) { if (done) { done(); } return; }
+        var from = parseInt(node.dataset.at, 10);
+        if (from === to) { if (done) { done(); } return; }
+
+        walking[pid] = true;
         var distance = Math.abs(to - from);
-        if (distance === 0) { return; }
 
         function begin() {
-            if (distance > 8) {  // 💥 almashuv / 🐍 uzoq sirg'alish — sakrab o'tadi
+            if (distance > 8) {  // Bomba almashuvi / uzun ilon - sakrab otadi
                 node.style.transitionDuration = '0.8s';
                 placeToken(node, to);
                 node.dataset.at = to;
+                node.style.transitionDuration = '0.28s';
+                walking[pid] = false;
+                if (done) { done(); }
                 return;
             }
 
             node.style.transitionDuration = '0.24s';
             var step = to > from ? 1 : -1;
             var at = from;
-            walkers[node.dataset.player] = setInterval(function () {
+            walkers[pid] = setInterval(function () {
                 at += step;
                 placeToken(node, at);
                 node.dataset.at = at;
@@ -830,14 +1339,29 @@
                 void node.offsetWidth;
                 node.classList.add('hop');
                 if (primed) { audio.step(); }
-                if (at === to) { clearInterval(walkers[node.dataset.player]); }
+                if (at === to) {
+                    clearInterval(walkers[pid]);
+                    delete walkers[pid];
+                    walking[pid] = false;
+                    if (done) { done(); }
+                }
             }, 250);
         }
 
         if (delay > 0) {
-            starters[node.dataset.player] = setTimeout(begin, delay);
+            starters[pid] = setTimeout(begin, delay);
         } else {
             begin();
+        }
+    }
+
+    /* Effekt yurishi: bomba (o'rin almashuv)da qurbon ham alohida yuradi. */
+    function doEffectWalk(pid, p) {
+        var to = p.to != null ? p.to : (p.at != null ? p.at : null);
+        if (to != null) { walkPlayer(pid, to, 0); }
+        if (p.swapped_with) {
+            var tpid = nameId[p.swapped_with];
+            if (tpid != null) { walkPlayer(tpid, p.at != null ? p.at : p.to, 0); }
         }
     }
 
@@ -879,18 +1403,33 @@
 
             var count = stack[p.position] || 1;
             used[p.position] = (used[p.position] || 0) + 1;
-            var offset = count > 1 ? (used[p.position] - (count + 1) / 2) * 55 : 0;
-            node.style.marginLeft = offset.toFixed(0) + '%';
+            // Yelpig'ich surilishi cheksiz o'smasin: aks holda bitta katakdagi
+            // ko'p tosh boshqa kataklar ustiga tushib, toshlar doskadan
+            // "chiqib ketayotgandek" ko'rinardi.
+            var px = point(p.position).x;
+            // Tosh va katak o'lchami (doska kengligi %'ida) — fan-out qadami
+            // katak o'lchamiga bog'lanadi, shunda toshlar katak doirasida
+            // yelpig'ich bo'lib tarqaladi (doska kengligi emas).
+            var cellPct = parseFloat(getComputedStyle(el.board).getPropertyValue('--jm-cell')) || 8;
+            var tokenPct = cellPct * 0.52;
+            var step = cellPct * 0.28; // har bir qo'shimcha tosh uchun siljish
+            var offset = (count > 1 ? (used[p.position] - (count + 1) / 2) : 0) * step;
+            offset = Math.max(-tokenPct * 1.5, Math.min(tokenPct * 1.5, offset));
+            // Tosh to'liq doska ichida qolsin: markaz [radius, 100-radius].
+            var tr = tokenPct / 2;
+            var minOff = tr - px;
+            var maxOff = (100 - tr) - px;
+            offset = Math.max(minOff, Math.min(maxOff, offset));
+            node.style.marginLeft = offset.toFixed(1) + '%';
 
+            // Hozir yurib turgan toshga tegmaymiz — harakat hodisalar oqimi
+            // orqali boshqariladi. Aks holda render yakuniy holatni oraliq
+            // holatning ustiga yozib, tosh "orqaga tushayotgandek" ko'rinardi.
+            if (walking[p.id]) { return; }
             var at = parseInt(node.dataset.at, 10);
             if (at !== p.position) {
-                if (primed) {
-                    // Zarba endi tashlangan bo'lsa — tosh tushib bo'lgach yuriladi
-                    walkToken(node, at, p.position, Math.max(0, diceUntil - Date.now()));
-                } else {
-                    placeToken(node, p.position);
-                    node.dataset.at = p.position;
-                }
+                placeToken(node, p.position);
+                node.dataset.at = p.position;
             }
         });
 
@@ -902,22 +1441,143 @@
         });
     }
 
-    // Zarba animatsiyasi shu vaqtgacha davom etadi — tosh tushmasdan yurish boshlanmaydi.
-    var DICE_ROLL_MS = 950;
+    /* ============================================================
+       3D KUB — 6 yuzli haqiqiy geometriya.
+       Kub aylanishi jamlanib boradi (spinX/spinY faqat o'sadi), shu
+       tufayli har tashlashda qayta o'rnatish kerak emas: brauzer
+       o'zi bir necha to'liq aylanishdan keyin kerakli yuzda to'xtatadi.
+       ============================================================ */
+    var PIP_MAP = {
+        1: [5], 2: [1, 9], 3: [1, 5, 9],
+        4: [1, 3, 7, 9], 5: [1, 3, 5, 7, 9], 6: [1, 3, 4, 6, 7, 9]
+    };
+
+    function pipCells(value) {
+        var pips = PIP_MAP[value] || PIP_MAP[1];
+        var html = '';
+        for (var slot = 1; slot <= 9; slot++) {
+            html += '<i class="' + (pips.indexOf(slot) >= 0 ? 'pip' : 'blank') + '"></i>';
+        }
+        return html;
+    }
+
+    // Kubning qaysi yuzi ko'rinishi uchun kerakli burilish (rotateX, rotateY).
+    var DIE_FACE_ROT = { 1: [0, 0], 2: [90, 0], 3: [0, -90], 4: [0, 90], 5: [-90, 0], 6: [0, 180] };
+    var spinX = 0, spinY = 0;
+
+    function buildDie() {
+        var html = '';
+        for (var value = 1; value <= 6; value++) {
+            html += '<span class="face f' + value + '">' + pipCells(value) + '</span>';
+        }
+        el.die.innerHTML = html;
+    }
+
+    // Kub dumalab to'xtaguncha shu vaqt ketadi — tosh tushmasdan o'yinchi yurmaydi.
+    var DICE_ROLL_MS = 1150;
+    var DICE_HOLD_MS = 1250;   // natija lavhasi shuncha vaqt ko'rinib turadi
+    var skipDiceSound = false; // toshni o'zi bosganda ovoz takrorlanmasin
 
     function rollDice(value, who) {
-        el.diceFace.textContent = value;
-        el.diceWho.textContent = who ? who + ' tosh tashladi!' : '';
+        var total = Math.max(1, parseInt(value, 10) || 1);
+        // Qo'sh zarbada server jamini yuboradi (asl tosh × 2) — kub asl
+        // toshda to'xtaydi, jami esa lavhada ×2 belgisi bilan ko'rsatiladi.
+        var doubled = total > 6;
+        var face = Math.min(6, Math.max(1, doubled ? Math.round(total / 2) : total));
+
+        el.diceWho.textContent = who ? who + ' — +' + total + ' katak' : '';
+        el.diceMult.classList.toggle('on', doubled);
+        el.dice.classList.remove('land');
         el.dice.classList.add('show');
-        el.dice.classList.remove('rolling');
-        void el.dice.offsetWidth;
-        el.dice.classList.add('rolling');
-        diceUntil = Date.now() + DICE_ROLL_MS;
-        if (primed) { audio.dice(); }
+
+        spinX += 360 * 3;
+        spinY += 360 * 4;
+        el.die.style.transform =
+            'rotateX(' + (spinX + DIE_FACE_ROT[face][0]) + 'deg) ' +
+            'rotateY(' + (spinY + DIE_FACE_ROT[face][1]) + 'deg)';
+
+        // Kub dumalayotganda raqam ham chalkashib turadi — natija oxirida qulflanadi.
+        var ceiling = doubled ? 12 : 6;
+        clearInterval(rollDice.scramble);
+        rollDice.scramble = setInterval(function () {
+            el.diceVal.textContent = 1 + Math.floor(Math.random() * ceiling);
+        }, 70);
+
+        diceUntil = Date.now() + DICE_ROLL_MS + 250;
+        if (primed && !skipDiceSound) { audio.dice(); }
+        skipDiceSound = false;
+
+        clearTimeout(rollDice.landTimer);
+        rollDice.landTimer = setTimeout(function () {
+            clearInterval(rollDice.scramble);
+            el.diceVal.textContent = total;
+            el.dice.classList.add('land');
+        }, DICE_ROLL_MS);
+
         clearTimeout(rollDice.timer);
         rollDice.timer = setTimeout(function () {
-            el.dice.classList.remove('show', 'rolling');
-        }, 2200);
+            el.dice.classList.remove('show', 'land');
+        }, DICE_ROLL_MS + DICE_HOLD_MS);
+    }
+
+    /* ============================================================
+       EFFEKT BILDIRGISI — o'quvchi katak effektini sezmay qolmasligi
+       uchun ekran o'rtasida katta xabar + ovoz. Bomba katagida
+       qo'shimcha portlash to'lqini va sahifa silkinishi bo'ladi.
+       ============================================================ */
+    var shoutTimers = [];
+    function shout(p) {
+        shoutTimers.forEach(clearTimeout);
+        shoutTimers = [];
+
+        var boom = p.code === 'swap' && !p.blocked_by_shield;
+        var tone = boom ? 'boom' : (p.blocked_by_shield ? 'good' : (p.tone || 'neutral'));
+
+        el.shoutIcon.className = 'ic bi ' + (p.blocked_by_shield ? 'bi-shield-fill-check' : (p.icon || 'bi-stars'));
+        // Bomba (o'rin almashuv)da qurbon ham birdan orqaga tushayotgani
+        // xato emasligi tushunarli bo'lsin — ikki ism ham ko'rsatiladi.
+        var isSwap = p.code === 'swap' && p.swapped_with && !p.blocked_by_shield;
+        el.shoutWho.textContent = isSwap
+            ? (p.player + ' \u2194 ' + p.swapped_with)
+            : (p.player || '');
+        el.shoutBig.textContent = isSwap
+            ? 'O\'RIN ALMASHILDI!'
+            : (p.blocked_by_shield
+                ? 'QALQON HIMOYA QILDI!'
+                : (p.shout || p.label || ''));
+        el.shoutHint.textContent = isSwap
+            ? ('Bomba! ' + p.player + ' va ' + p.swapped_with + ' o\'rin almashdi.')
+            : (p.blocked_by_shield
+                ? (p.label || '') + " ta'sir qilmadi — qalqon ishlatildi."
+                : (p.hint || ''));
+
+        el.shoutCard.className = 'jm-shout-card ' + tone;
+        el.shout.classList.add('show');
+        // qayta ishga tushirish uchun animatsiyani majburan tiklaymiz
+        void el.shoutCard.offsetWidth;
+        el.shoutCard.className = 'jm-shout-card ' + tone;
+
+        if (boom) {
+            var ring = document.createElement('span');
+            ring.className = 'jm-boom-ring';
+            el.shout.appendChild(ring);
+            shoutTimers.push(setTimeout(function () { ring.remove(); }, 900));
+            el.grid.classList.remove('shake');
+            void el.grid.offsetWidth;
+            el.grid.classList.add('shake');
+            shoutTimers.push(setTimeout(function () { el.grid.classList.remove('shake'); }, 600));
+            audio.boom();
+        } else if (p.blocked_by_shield || p.tone === 'good') { audio.good(); }
+        else if (p.tone === 'bad') { audio.bad(); }
+        else { audio.neutral(); }
+
+        shoutTimers.push(setTimeout(function () {
+            el.shoutCard.classList.add('out');
+        }, 2100));
+        shoutTimers.push(setTimeout(function () {
+            el.shout.classList.remove('show');
+            el.shoutCard.classList.remove('out');
+        }, 2550));
     }
 
     // ---------- o'yinchilar ro'yxati ----------
@@ -929,10 +1589,10 @@
         var canKick = CFG.isController && status === 'lobby';
         el.roster.innerHTML = players.map(function (p) {
             var badges = '';
-            if (p.has_shield) { badges += '🛡'; }
-            if (p.skip_turns > 0) { badges += '❄️' + (p.skip_turns > 1 ? p.skip_turns : ''); }
-            if (p.multiplier > 1) { badges += '🎯'; }
-            if (p.finished) { badges += '🏁'; }
+            if (p.has_shield) { badges += '<i class="bi bi-shield-fill-check"></i> '; }
+            if (p.skip_turns > 0) { badges += '<i class="bi bi-snow"></i>' + (p.skip_turns > 1 ? p.skip_turns : '') + ' '; }
+            if (p.multiplier > 1) { badges += '<i class="bi bi-2-circle-fill"></i> '; }
+            if (p.finished) { badges += '<i class="bi bi-trophy-fill"></i> '; }
             var pct = Math.min(100, Math.round(p.position * 100 / CFG.boardSize));
             return '' +
                 '<div class="jm-rp' + (p.is_current ? ' turn' : '') + (p.is_online ? '' : ' gone') + '">' +
@@ -942,13 +1602,14 @@
                     '</span>' +
                     '<span class="info">' +
                         '<div class="nm">' + esc(p.name) + ' <span class="badges">' + badges + '</span></div>' +
-                        '<div class="meta"><span>✅ ' + p.correct + '</span><span>❌ ' + p.wrong + '</span>' +
-                            (p.rank ? '<span>🏅 ' + p.rank + '-o\'rin</span>' : '') + '</div>' +
+                        '<div class="meta"><span><i class="bi bi-check-circle-fill" style="color:#86efac;"></i> ' + p.correct + '</span>' +
+                            '<span><i class="bi bi-x-circle-fill" style="color:#fca5a5;"></i> ' + p.wrong + '</span>' +
+                            (p.rank ? '<span><i class="bi bi-award-fill" style="color:#fde68a;"></i> ' + p.rank + '-o\'rin</span>' : '') + '</div>' +
                         '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
                     '</span>' +
                     (canKick
                         ? '<button class="jm-kick" data-act="kick" data-player="' + p.id + '" ' +
-                          'title="Lobbydan chiqarish">✕</button>'
+                          'title="Lobbydan chiqarish"><i class="bi bi-x-lg"></i></button>'
                         : '<span class="pos">' + p.position + '</span>') +
                 '</div>';
         }).join('');
@@ -956,22 +1617,28 @@
 
     // ---------- jonli lenta va animatsiya ----------
     var EVENT_TEXT = {
-        lobby_open: function (p) { return '🚪 Lobby ochildi (' + esc(p.by || '') + ')'; },
-        join: function (p) { return '➕ ' + esc(p.player) + ' qo\'shildi'; },
-        leave: function (p) { return '➖ ' + esc(p.player) + ' chiqdi'; },
-        kicked: function (p) { return '🚫 ' + esc(p.player) + ' chiqarildi'; },
-        start: function (p) { return '🎬 O\'yin boshlandi — ' + (p.players || []).length + ' o\'yinchi'; },
-        question: function (p) { return '❓ ' + esc(p.player) + ' uchun savol ochildi'; },
-        dice: function (p) { return '🎲 ' + esc(p.player) + ' — ' + p.dice + ' → ' + p.to + '-katak'; },
-        verdict: function (p) { return (p.verdict === 'wrong' ? '❌ ' : '⏭ ') + esc(p.player); },
-        effect: function (p) { return (p.icon || '✨') + ' ' + esc(p.player) + ' — ' + esc(p.label || ''); },
-        shield_block: function (p) { return '🛡 ' + esc(p.player) + ' qalqon bilan himoyalandi'; },
-        task_result: function (p) { return '🃏 ' + esc(p.player) + ' — shart ' + (p.completed ? 'bajarildi' : 'bajarilmadi'); },
-        skipped: function (p) { return '❄️ ' + esc(p.player) + ' navbatini o\'tkazdi'; },
-        paused: function () { return '⏸ O\'yin pauzaga olindi'; },
-        resumed: function () { return '▶️ O\'yin davom etmoqda'; },
-        cancelled: function (p) { return '🛑 O\'yin bekor qilindi (' + esc(p.by || '') + ')'; },
-        finish: function (p) { return '🏆 G\'olib: ' + esc(p.winner); }
+        lobby_open: function (p) { return '<i class="bi bi-door-open-fill"></i> Lobby ochildi (' + esc(p.by || '') + ')'; },
+        join: function (p) { return '<i class="bi bi-plus-circle-fill" style="color:#86efac;"></i> ' + esc(p.player) + ' qo\'shildi'; },
+        leave: function (p) { return '<i class="bi bi-dash-circle-fill" style="color:#fca5a5;"></i> ' + esc(p.player) + ' chiqdi'; },
+        kicked: function (p) { return '<i class="bi bi-x-octagon-fill" style="color:#fca5a5;"></i> ' + esc(p.player) + ' chiqarildi'; },
+        start: function (p) { return '<i class="bi bi-play-fill"></i> O\'yin boshlandi — ' + (p.players || []).length + ' o\'yinchi'; },
+        question: function (p) { return '<i class="bi bi-question-circle-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' uchun savol ochildi'; },
+        dice: function (p) { return '<i class="bi bi-dice-5-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' — ' + p.dice + ' → ' + p.to + '-katak'; },
+        verdict: function (p) { return (p.verdict === 'wrong'
+            ? '<i class="bi bi-x-circle-fill" style="color:#fca5a5;"></i> '
+            : '<i class="bi bi-skip-forward-fill"></i> ') + esc(p.player); },
+        effect: function (p) {
+            return '<i class="bi ' + esc(p.icon || 'bi-stars') + '"></i> ' +
+                esc(p.player) + ' — ' + esc(p.label || '') +
+                (p.blocked_by_shield ? ' <span style="color:#86efac;">(qalqon)</span>' : '');
+        },
+        shield_block: function (p) { return '<i class="bi bi-shield-fill-check" style="color:#86efac;"></i> ' + esc(p.player) + ' qalqon bilan himoyalandi'; },
+        task_result: function (p) { return '<i class="bi bi-lightning-charge-fill" style="color:#fde68a;"></i> ' + esc(p.player) + ' — shart ' + (p.completed ? 'bajarildi' : 'bajarilmadi'); },
+        skipped: function (p) { return '<i class="bi bi-snow" style="color:#93c5fd;"></i> ' + esc(p.player) + ' navbatini o\'tkazdi'; },
+        paused: function () { return '<i class="bi bi-pause-fill"></i> O\'yin pauzaga olindi'; },
+        resumed: function () { return '<i class="bi bi-play-fill"></i> O\'yin davom etmoqda'; },
+        cancelled: function (p) { return '<i class="bi bi-stop-fill" style="color:#fca5a5;"></i> O\'yin bekor qilindi (' + esc(p.by || '') + ')'; },
+        finish: function (p) { return '<i class="bi bi-trophy-fill" style="color:#fde68a;"></i> G\'olib: ' + esc(p.winner); }
     };
 
     /* Animatsiya va ovoz hodisalar oqimidan boshqariladi: har bir hodisa
@@ -980,6 +1647,20 @@
     function playEvent(kind, p) {
         if (kind === 'dice') {
             rollDice(p.dice, p.player);
+            // Tosh yerga tushgach zarba katagiga yuradi. Agar bu o'yinchida
+            // keyin effekt (ilon/narvon/bomba) bo'lsa, u shu yurish tugagach
+            // zanjirlanadi — shu tufayli "14 ga yetib, keyin 12 ga" ko'rinadi.
+            var pid = nameId[p.player];
+            if (pid != null) {
+                var delay = Math.max(0, diceUntil - Date.now());
+                walkPlayer(pid, p.to, delay, function () {
+                    var fx = pendingEffect[pid];
+                    if (fx) {
+                        delete pendingEffect[pid];
+                        doEffectWalk(pid, fx);
+                    }
+                });
+            }
         } else if (kind === 'verdict' && p.verdict === 'wrong') {
             audio.wrong();
         } else if (kind === 'question') {
@@ -988,13 +1669,20 @@
             // Katak effekti tosh yetib borgandan keyin porillaydi
             var wait = Math.max(0, diceUntil - Date.now());
             setTimeout(function () {
-                popCell(p.to);
-                if (p.tone === 'good') { audio.good(); }
-                else if (p.tone === 'bad') { audio.bad(); }
-                else { audio.neutral(); }
+                popCell(p.at != null ? p.at : p.to);
+                shout(p);
             }, wait);
-        } else if (kind === 'shield_block') {
-            audio.good();
+            var pid2 = nameId[p.player];
+            if (pid2 != null) {
+                // Zarba yurishi davom etayotgan bo'lsa — keyin zanjirlaymiz,
+                // aks holda darhol yakuniy katakka yuramiz. (walkPlayer
+                // `walking` bayrog'ini o'zi boshqaradi.)
+                if (walking[pid2]) {
+                    pendingEffect[pid2] = p;
+                } else {
+                    doEffectWalk(pid2, p);
+                }
+            }
         } else if (kind === 'finish') {
             audio.win();
         } else if (kind === 'start') {
@@ -1032,7 +1720,7 @@
 
         if (data.status === 'lobby') { return renderLobby(data); }
         if (data.status === 'cancelled') {
-            el.stage.innerHTML = '<div class="text-center py-4"><div style="font-size:2.4rem;">🛑</div>' +
+            el.stage.innerHTML = '<div class="text-center py-4"><div style="font-size:2.4rem;color:#fca5a5;"><i class="bi bi-stop-circle-fill"></i></div>' +
                 '<h5 class="fw-bold mt-2">O\'yin bekor qilindi</h5></div>';
             return;
         }
@@ -1043,7 +1731,92 @@
 
         if (data.phase === 'question' && data.question) { return renderQuestion(data, current); }
         if (data.phase === 'effect' && data.turn && data.turn.effect === 'task') { return renderTask(data, current); }
+        if (data.phase === 'dice') { return renderDice(data, current); }
         return renderWaiting(data, current);
+    }
+
+    /* Zarba bosqichi — toshni O'QUVCHINING O'ZI aylantiradi.
+       Qiymat serverda hisoblanadi, bu tugma faqat "bosdim" deb yuboradi;
+       natija esa hodisalar oqimi orqali barcha ekranlarda (o'qituvchida ham)
+       bir xil ko'rinadi. */
+    function renderDice(data, current) {
+        var mine = data.me.is_current;
+        var wait = data.dice_wait;
+        var html = whoBlock(current, mine ? 'Tosh sizda — aylantiring!' : 'tosh tashlashini kutmoqda');
+
+        html += '<div class="jm-rollbox">';
+        if (mine) {
+            html += '<div class="cue">Toshni bosing va aylantiring</div>' +
+                '<button type="button" class="jm-cube" id="jmCube">' +
+                '<span class="jm-pipface">' + pipCells(5) + '</span></button>';
+        } else {
+            html += '<div class="cue">' + esc(current ? current.name : "O'yinchi") +
+                ' toshni aylantirmoqda…</div>' +
+                '<div class="jm-cube-wait"><span class="jm-pipface">' + pipCells(3) + '</span></div>';
+        }
+        if (wait != null && wait > 0) {
+            html += '<div style="font-size:0.8rem;color:#94a3b8;">' +
+                (mine ? 'Avtomatik tashlanadi: ' : 'Kutish: ') + wait + ' s</div>';
+        }
+        html += '</div>';
+
+        if (CFG.isController) {
+            html += '<div class="jm-controls">' +
+                '<button class="jm-btn ghost sm" id="jmCubeForce"><i class="bi bi-dice-5-fill"></i> O\'zim tashlayman</button>' +
+                (data.is_paused
+                    ? '<button class="jm-btn ok sm" data-act="resume"><i class="bi bi-play-fill"></i> Davom</button>'
+                    : '<button class="jm-btn ghost sm" data-act="pause"><i class="bi bi-pause-fill"></i> Pauza</button>') +
+                '</div>';
+        }
+        el.stage.innerHTML = html;
+    }
+
+    /* Toshni aylantirish so'rovi. Bosilgan zahoti animatsiya boshlanadi —
+       tarmoq javobini kutib turmaydi, shu tufayli "qotdi" degan his bo'lmaydi. */
+    var rolling = false;
+    var SPIN_MS = 950;   // .jm-cube.spin animatsiyasi bilan bir xil
+    function sendRoll(button) {
+        if (rolling) { return; }
+        rolling = true;
+        var spunAt = Date.now();
+        if (button) {
+            button.disabled = true;
+            button.classList.remove('spin');
+            void button.offsetWidth;
+            button.classList.add('spin');
+        }
+        skipDiceSound = true;
+        audio.dice();
+
+        var body = new FormData();
+        body.append('since', lastEventSeq);
+        fetch(CFG.roll, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf(), 'X-Requested-With': 'XMLHttpRequest' },
+            body: body
+        })
+            .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
+            .then(function (res) {
+                // 409 — tosh allaqachon tashlangan (ikki marta bosildi yoki
+                // avtomatik tashlandi). Bu xato emas, shunchaki holatni yangilaymiz.
+                if (!res.data.ok && res.status !== 409) {
+                    toast(res.data.error || 'Tosh tashlanmadi', true);
+                }
+                // Tosh aylanib bo'lgach natija ko'rsatiladi — server javobi tez
+                // kelsa ham animatsiya yarim yo'lda uzilib qolmaydi.
+                var left = Math.max(0, spunAt + SPIN_MS - Date.now());
+                setTimeout(function () {
+                    rolling = false;
+                    if (res.data.ok) { apply(res.data); }
+                    idleRounds = 0;
+                    schedule(250);
+                }, left);
+            })
+            .catch(function () {
+                rolling = false;
+                toast('Tarmoq xatosi — qayta urinib ko\'ring', true);
+                schedule(500);
+            });
     }
 
     function whoBlock(player, subtitle, timer) {
@@ -1061,15 +1834,15 @@
     function renderLobby(data) {
         var enough = data.players.length >= CFG.minPlayers;
         var html = '<div class="text-center py-2">' +
-            '<div style="font-size:2.6rem;">🎲</div>' +
+            '<div style="font-size:2.6rem;color:#fde68a;"><i class="bi bi-dice-5-fill"></i></div>' +
             '<h5 class="fw-bold mt-2 mb-1">O\'yinchilar kutilmoqda</h5>' +
             '<p style="color:#bbf7d0;font-size:0.88rem;" class="mb-0">' + data.players.length + ' ta o\'yinchi' +
             (enough ? '' : ' — kamida ' + CFG.minPlayers + ' ta kerak') + '</p></div>';
 
         if (CFG.isController) {
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn ok big" data-act="start"' + (enough ? '' : ' disabled') + '>▶️ Boshlash</button>' +
-                '<button class="jm-btn no big" data-act="cancel">🛑 Bekor</button>' +
+                '<button class="jm-btn ok big" data-act="start"' + (enough ? '' : ' disabled') + '><i class="bi bi-play-fill"></i> Boshlash</button>' +
+                '<button class="jm-btn no big" data-act="cancel"><i class="bi bi-stop-fill"></i> Bekor</button>' +
                 '</div>';
         } else {
             html += '<p class="text-center mb-0 mt-2" style="color:#bbf7d0;font-size:0.85rem;">' +
@@ -1079,23 +1852,32 @@
     }
 
     function renderWaiting(data, current) {
+        var soon = data.open_in;
         var html = whoBlock(current, 'Navbat shu o\'yinchida');
+
+        if (soon != null) {
+            html += '<div class="jm-speak"><span class="big"><i class="bi bi-hourglass-split"></i></span>' +
+                'Savol avtomatik ochiladi' + (soon > 0 ? ' — ' + soon + ' s' : '…') + '</div>';
+        }
 
         if (CFG.isController) {
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn go big" data-act="open_question"' + (data.is_paused ? ' disabled' : '') + '>❓ Savolni ochish</button>' +
-                '<button class="jm-btn ghost big" data-act="next_turn">⏭ Keyingi</button>' +
+                '<button class="jm-btn go big" data-act="open_question"' + (data.is_paused ? ' disabled' : '') + '><i class="bi bi-question-circle-fill"></i> Hozir ochish</button>' +
+                '<button class="jm-btn ghost big" data-act="next_turn"><i class="bi bi-skip-forward-fill"></i> Keyingi</button>' +
                 (data.is_paused
-                    ? '<button class="jm-btn ok sm" data-act="resume">▶️ Davom</button>'
-                    : '<button class="jm-btn ghost sm" data-act="pause">⏸ Pauza</button>') +
-                '<button class="jm-btn go sm" data-act="finish">🏁 Yakunlash</button>' +
-                '<button class="jm-btn no sm" data-act="cancel">🛑 Bekor</button>' +
+                    ? '<button class="jm-btn ok sm" data-act="resume"><i class="bi bi-play-fill"></i> Davom</button>'
+                    : '<button class="jm-btn ghost sm" data-act="pause"><i class="bi bi-pause-fill"></i> Pauza</button>') +
+                '<button class="jm-btn go sm" data-act="finish"><i class="bi bi-flag-fill"></i> Yakunlash</button>' +
+                '<button class="jm-btn no sm" data-act="cancel"><i class="bi bi-stop-fill"></i> Bekor</button>' +
                 '</div>';
-        } else {
-            html += '<div class="jm-speak"><span class="big">' + (data.me.is_current ? '✋' : '⏳') + '</span>' +
+        } else if (soon == null) {
+            html += '<div class="jm-speak"><span class="big">' +
                 (data.me.is_current
-                    ? 'Sizning navbatingiz — o\'qituvchi savolni ochadi'
-                    : 'Savol ochilishini kuting…') +
+                    ? '<i class="bi bi-hand-index-thumb-fill"></i>'
+                    : '<i class="bi bi-hourglass-split"></i>') + '</span>' +
+                (data.me.is_current
+                    ? 'Sizning navbatingiz'
+                    : 'Navbatingizni kuting…') +
                 '</div>';
         }
         el.stage.innerHTML = html;
@@ -1115,19 +1897,27 @@
 
         if (CFG.isController) {
             if (q.correct_text) {
-                html += '<div class="jm-answer"><span class="lbl">To\'g\'ri javob — faqat siz ko\'rasiz</span>' +
+                // To'g'ri javob boshqaruvchiga ko'rinadi, lekin o'qituvchi doskani
+                // o'quvchilarga to'liq ekranda ochganida javob yashirin tursin.
+                // Tugma orqali ko'rsatiladi/yashiriladi.
+                html += '<div class="jm-answer" id="jmAnswer"' +
+                    (answerHidden ? ' style="display:none;"' : '') + '>' +
+                    '<span class="lbl">To\'g\'ri javob — faqat siz ko\'rasiz</span>' +
                     esc(q.correct_text) + '</div>';
+                html += '<button type="button" class="jm-btn ghost sm" id="jmAnswerToggle" style="margin-top:0.6rem;">' +
+                    '<i class="bi bi-' + (answerHidden ? 'eye' : 'eye-slash') + '-fill"></i> ' +
+                    (answerHidden ? 'Ko\'rsatish' : 'Yashirish') + '</button>';
             }
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn ok big" data-act="verdict" data-verdict="correct">✅ To\'g\'ri</button>' +
-                '<button class="jm-btn no big" data-act="verdict" data-verdict="wrong">❌ Noto\'g\'ri</button>' +
-                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="timeout">⏱ Vaqt tugadi</button>' +
-                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="skipped">⏭ O\'tkazish</button>' +
+                '<button class="jm-btn ok big" data-act="verdict" data-verdict="correct"><i class="bi bi-check-lg"></i> To\'g\'ri</button>' +
+                '<button class="jm-btn no big" data-act="verdict" data-verdict="wrong"><i class="bi bi-x-lg"></i> Noto\'g\'ri</button>' +
+                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="timeout"><i class="bi bi-stopwatch-fill"></i> Vaqt tugadi</button>' +
+                '<button class="jm-btn ghost sm" data-act="verdict" data-verdict="skipped"><i class="bi bi-skip-forward-fill"></i> O\'tkazish</button>' +
                 '</div>';
         } else if (data.me.is_current) {
-            html += '<div class="jm-speak"><span class="big">🎤</span>Javobni ovoz chiqarib ayting!</div>';
+            html += '<div class="jm-speak"><span class="big"><i class="bi bi-mic-fill"></i></span>Javobni ovoz chiqarib ayting!</div>';
         } else {
-            html += '<div class="jm-speak"><span class="big">🤫</span>' +
+            html += '<div class="jm-speak"><span class="big"><i class="bi bi-volume-mute-fill"></i></span>' +
                 esc(current ? current.name : 'O\'yinchi') + ' javob bermoqda</div>';
         }
 
@@ -1136,8 +1926,8 @@
     }
 
     function renderTask(data, current) {
-        var html = whoBlock(current, '🃏 Shart bajarishi kerak');
-        html += '<div class="jm-fx neutral"><span class="ic">🃏</span>' +
+        var html = whoBlock(current, 'Shart bajarishi kerak');
+        html += '<div class="jm-fx neutral"><span class="ic"><i class="bi bi-lightning-charge-fill"></i></span>' +
             '<span><strong>Shart katagi!</strong><br><span style="font-size:0.82rem;color:#fde68a;">' +
             'Boshqaruvchi og\'zaki shart beradi. Bajarilsa +2 katak.</span></span></div>';
 
@@ -1146,15 +1936,17 @@
                 'placeholder="Shart matni (ixtiyoriy)" ' +
                 'style="border-radius:12px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.18);color:#ecfdf5;">';
             html += '<div class="jm-controls">' +
-                '<button class="jm-btn ok big" data-act="resolve_task" data-completed="1">✅ Bajardi</button>' +
-                '<button class="jm-btn no big" data-act="resolve_task" data-completed="0">❌ Bajarmadi</button>' +
+                '<button class="jm-btn ok big" data-act="resolve_task" data-completed="1"><i class="bi bi-check-lg"></i> Bajardi</button>' +
+                '<button class="jm-btn no big" data-act="resolve_task" data-completed="0"><i class="bi bi-x-lg"></i> Bajarmadi</button>' +
                 '</div>';
         }
         el.stage.innerHTML = html;
     }
 
     function standingsHtml(players) {
-        var medals = ['🥇', '🥈', '🥉'];
+        var medals = ['<i class="bi bi-1-circle-fill" style="color:#fde68a;"></i>',
+            '<i class="bi bi-2-circle-fill" style="color:#cbd5e1;"></i>',
+            '<i class="bi bi-3-circle-fill" style="color:#fdba74;"></i>'];
         return players.map(function (p, i) {
             return '<div><span>' + (medals[i] || (i + 1) + '.') + ' ' + esc(p.name) + '</span>' +
                 '<span>' + p.position + '-katak</span></div>';
@@ -1166,7 +1958,7 @@
             return (a.rank || 99) - (b.rank || 99);
         });
         el.stage.innerHTML = '<div class="text-center py-2">' +
-            '<div style="font-size:2.6rem;">🏆</div>' +
+            '<div style="font-size:2.6rem;color:#fde68a;"><i class="bi bi-trophy-fill"></i></div>' +
             '<h5 class="fw-bold mt-2 mb-1">O\'yin yakunlandi</h5>' +
             '<p style="color:#bbf7d0;">G\'olib: <strong>' + esc(data.winner ? data.winner.name : '—') + '</strong></p>' +
             '<div class="jm-standings">' + standingsHtml(ranked) + '</div></div>';
@@ -1214,18 +2006,30 @@
             lobby: 'Lobby', running: 'Ketmoqda', finished: 'Tugadi', cancelled: 'Bekor qilindi'
         }[data.status] || data.status;
         el.paused.classList.toggle('d-none', !data.is_paused);
-        el.count.textContent = '👥 ' + data.players.length;
+        el.count.innerHTML = '<i class="bi bi-people-fill"></i> ' + data.players.length;
+
+        // O'yin boshlangach server doska effektlarini (ilon/narvon) muhrlaydi.
+        // Bu o'zgarish FAQAT `full=1` so'rovida keladi, shuning uchun status
+        // 'lobby' -> 'running' ga o'tganda albatta to'liq doskani so'raymiz —
+        // aks holda effektlar sahifani qo'lda yangilamaguncha ko'rinmas edi.
+        var statusChanged = lastStatus !== data.status;
+        lastStatus = data.status;
 
         if (data.cells) {
             paintCells(data.cells);
             LINKS = data.links || [];
             boardPainted = true;
             drawArcs();
-        } else if (data.status === 'running' && !boardPainted) {
+        } else if (data.status === 'running' && (!boardPainted || statusChanged)) {
             needFull = true;
         }
 
+        // Hodisalardagi ismni o'yinchi id'iga bog'laymiz (tosh harakati uchun).
+        nameId = {};
+        data.players.forEach(function (pl) { nameId[pl.name] = pl.id; });
+
         pushEvents(data.events || []);
+        renderLobbyButtons(data.me, data.status);
         renderRoster(data.players, data.status);
         renderTokens(data.players);
         renderStage(data);
@@ -1249,6 +2053,9 @@
 
     function poll(full) {
         if (polling) { return; }
+        // Tosh aylanayotganda holat almashtirilmaydi — aks holda tugma
+        // animatsiya o'rtasida yo'qolib qolardi.
+        if (rolling) { schedule(300); return; }
         polling = true;
         var wantFull = full === true || needFull;
         needFull = false;
@@ -1296,6 +2103,24 @@
 
     // ---------- hodisalar ----------
     el.stage.addEventListener('click', function (event) {
+        // To'g'ri javobni ko'rsatish/yashirish — doskani o'quvchilarga ochganda
+        // javob tasodifan ko'rinib qolmasligi uchun.
+        var answerToggle = event.target.closest('#jmAnswerToggle');
+        if (answerToggle) {
+            answerHidden = !answerHidden;
+            var answer = document.getElementById('jmAnswer');
+            if (answer) { answer.style.display = answerHidden ? 'none' : ''; }
+            answerToggle.innerHTML = '<i class="bi bi-' + (answerHidden ? 'eye' : 'eye-slash') + '-fill"></i> ' +
+                (answerHidden ? 'Ko\'rsatish' : 'Yashirish');
+            return;
+        }
+
+        var cube = event.target.closest('#jmCube, #jmCubeForce');
+        if (cube) {
+            if (!cube.disabled) { sendRoll(cube.id === 'jmCube' ? cube : null); }
+            return;
+        }
+
         var button = event.target.closest('[data-act]');
         if (!button || button.disabled) { return; }
         var action = button.dataset.act;
@@ -1320,32 +2145,94 @@
         send('kick', { player_id: button.dataset.player });
     });
 
-    var joinBtn = document.getElementById('jmJoinBtn');
-    if (joinBtn) {
-        joinBtn.addEventListener('click', function () {
-            joinBtn.disabled = true;
-            fetch(CFG.join, { method: 'POST', headers: { 'X-CSRFToken': csrf() } })
-                .then(function (r) { return r.json(); })
-                .then(function (d) {
-                    if (d.ok) { toast("O'yinga qo'shildingiz!"); joinBtn.remove(); poll(); }
-                    else { toast(d.error || "Qo'shilib bo'lmadi", true); joinBtn.disabled = false; }
-                })
-                .catch(function () { joinBtn.disabled = false; });
-        });
+    /* Lobby tugmalari serverda emas, shu yerda chiziladi: o'quvchi qo'shilgan
+       yoki chiqib ketgan zahoti sahifani yangilamasdan ko'rinadi. */
+    var lobbyState = '';
+    function renderLobbyButtons(me, status) {
+        var want = status === 'lobby'
+            ? (me.can_join ? 'join' : (me.can_leave ? 'leave' : ''))
+            : '';
+        if (want === lobbyState) { return; }
+        lobbyState = want;
+        if (want === 'join') {
+            el.lobbyBtns.innerHTML = '<button type="button" class="jm-btn ok" data-lobby="join">' +
+                '<i class="bi bi-box-arrow-in-right"></i> O\'yinga qo\'shilish</button>';
+        } else if (want === 'leave') {
+            el.lobbyBtns.innerHTML = '<button type="button" class="jm-btn ghost" data-lobby="leave">' +
+                '<i class="bi bi-box-arrow-left"></i> Lobbydan chiqish</button>';
+        } else {
+            el.lobbyBtns.innerHTML = '';
+        }
     }
 
-    var leaveBtn = document.getElementById('jmLeaveBtn');
-    if (leaveBtn) {
-        leaveBtn.addEventListener('click', function () {
-            if (!confirm('Lobbydan chiqasizmi?')) { return; }
-            fetch(CFG.leave, { method: 'POST', headers: { 'X-CSRFToken': csrf() } })
-                .then(function () { window.location.reload(); });
-        });
+    el.lobbyBtns.addEventListener('click', function (event) {
+        var button = event.target.closest('[data-lobby]');
+        if (!button || button.disabled) { return; }
+        var kind = button.dataset.lobby;
+        if (kind === 'leave' && !confirm('Lobbydan chiqasizmi?')) { return; }
+        button.disabled = true;
+
+        fetch(kind === 'join' ? CFG.join : CFG.leave, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrf(), 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(function (r) { return r.json().catch(function () { return {}; }); })
+            .then(function (d) {
+                if (d.ok === false) {
+                    toast(d.error || 'Amal bajarilmadi', true);
+                    button.disabled = false;
+                    return;
+                }
+                toast(kind === 'join' ? "O'yinga qo'shildingiz!" : 'Lobbydan chiqdingiz.');
+                lobbyState = '';   // holat o'zgardi — tugma qayta chizilsin
+                idleRounds = 0;
+                poll(true);
+            })
+            .catch(function () {
+                toast('Tarmoq xatosi — qayta urinib ko\'ring', true);
+                button.disabled = false;
+            });
+    });
+
+    // ---------- to'liq ekran ----------
+    function isFull() {
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
     }
+
+    function toggleFullscreen() {
+        if (isFull()) {
+            (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+            return;
+        }
+        var req = root.requestFullscreen || root.webkitRequestFullscreen;
+        if (req) { req.call(root); }
+    }
+
+    function syncFullIcon() {
+        el.fullBtn.innerHTML = isFull()
+            ? '<i class="bi bi-fullscreen-exit"></i>'
+            : '<i class="bi bi-arrows-fullscreen"></i>';
+        el.fullBtn.title = isFull() ? "To'liq ekrandan chiqish (F)" : "To'liq ekran (F)";
+    }
+
+    el.fullBtn.addEventListener('click', toggleFullscreen);
+    document.addEventListener('fullscreenchange', syncFullIcon);
+    document.addEventListener('webkitfullscreenchange', syncFullIcon);
+
+    // F — to'liq ekran, S — ovoz. Matn kiritilayotganda ishlamaydi.
+    document.addEventListener('keydown', function (event) {
+        if (event.ctrlKey || event.altKey || event.metaKey) { return; }
+        var tag = (event.target.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select' || event.target.isContentEditable) { return; }
+        var key = event.key.toLowerCase();
+        if (key === 'f') { event.preventDefault(); toggleFullscreen(); }
+        else if (key === 's') { event.preventDefault(); el.soundBtn.click(); }
+    });
 
     el.win.addEventListener('click', function () { el.win.classList.remove('show'); });
 
     // ---------- ishga tushirish ----------
+    buildDie();
     drawArcs();
     poll(true);
 

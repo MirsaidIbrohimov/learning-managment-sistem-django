@@ -186,6 +186,27 @@
 .uv-stuck-check.not-done{background:rgba(239,68,68,.12);color:#ef4444}
 .uv-stuck-check.na{background:var(--bs-tertiary-bg, var(--border-color));color:var(--bs-secondary-color, #6c757d)}
 
+/* ===== Daily limit ===== */
+.uv-limit-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:9px;font-weight:700;font-size:.76rem}
+.uv-limit-badge.on{background:rgba(239,68,68,.12);color:#ef4444}
+.uv-limit-badge.off{background:rgba(34,197,94,.12);color:#22c55e}
+.uv-limit-info{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.uv-limit-info-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:.82rem}
+.uv-limit-info-label{color:var(--bs-secondary-color, #6c757d);font-weight:500}
+.uv-limit-info-value{font-weight:700;color:var(--text-color)}
+.uv-limit-info-value.on{color:#ef4444}
+.uv-limit-info-value.off{color:#22c55e}
+.uv-limit-info-value.muted{color:var(--bs-secondary-color, #6c757d);font-weight:500}
+.uv-limit-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;border-top:1px solid var(--border-color)}
+.uv-limit-form{margin:0}
+.uv-limit-btn{padding:8px 16px;border-radius:10px;border:1px solid var(--border-color);background:var(--bg-color, var(--bs-tertiary-bg));color:var(--text-color);font-weight:600;font-size:.79rem;cursor:pointer;transition:.2s}
+.uv-limit-btn:hover{border-color:#6366f1;color:#6366f1}
+.uv-limit-btn.active{background:#6366f1;border-color:#6366f1;color:#fff}
+.uv-limit-btn.on:hover{border-color:#ef4444;color:#ef4444}
+.uv-limit-btn.on.active{background:#ef4444;border-color:#ef4444;color:#fff}
+.uv-limit-btn.off:hover{border-color:#22c55e;color:#22c55e}
+.uv-limit-btn.off.active{background:#22c55e;border-color:#22c55e;color:#fff}
+
 /* ===== Certificates ===== */
 .uv-cert-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border-color);transition:.2s}
 .uv-cert-item:last-child{border-bottom:none}
@@ -310,6 +331,9 @@
         <div class="uv-tab" data-tab="documents"><i class="bi bi-file-earmark-fill" style="color:#f59e0b"></i> Hujjatlar</div>
         {% if user_obj.role == 'student' and analysis_data %}
         <div class="uv-tab" data-tab="analysis"><i class="bi bi-graph-up-arrow" style="color:#8b5cf6"></i> Tahlil</div>
+        {% endif %}
+        {% if daily_limit_courses %}
+        <div class="uv-tab" data-tab="daily-limit"><i class="bi bi-clock-history" style="color:#ef4444"></i> Kunlik limit <span class="cnt">{{ daily_limit_courses|length }}</span></div>
         {% endif %}
         {% if certificates %}
         <div class="uv-tab" data-tab="certificates"><i class="bi bi-award" style="color:#f59e0b"></i> Sertifikatlar <span class="cnt">{{ certificates|length }}</span></div>
@@ -685,6 +709,69 @@
                     </div>
                 </div>
                 {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- ====== TAB: KUNLIK LIMIT ====== -->
+    {% if daily_limit_courses %}
+    <div class="uv-section" id="tab-daily-limit">
+        {% for item in daily_limit_courses %}
+        <div class="uv-course-card">
+            <div class="uv-course-header">
+                <div class="uv-course-title">
+                    <div class="uv-course-ico" style="background:linear-gradient(135deg,#ef4444,#f97316)"><i class="bi bi-clock-history"></i></div>
+                    <div>
+                        <div class="uv-course-name">{{ item.profession.name }}</div>
+                        <div class="uv-course-date">Yozilgan: {{ item.enrollment.enrolled_at|date:"d.m.Y" }}</div>
+                    </div>
+                </div>
+                <div class="uv-limit-status">
+                    <span class="uv-limit-badge {% if item.is_active %}on{% else %}off{% endif %}">
+                        <i class="bi {% if item.is_active %}bi-lock-fill{% else %}bi-unlock-fill{% endif %}"></i>
+                        {% if item.is_active %}Kunlik limit YOQILGAN{% else %}Kunlik limit O'CHIRILGAN{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="uv-course-body">
+                <div class="uv-limit-info">
+                    <div class="uv-limit-info-row">
+                        <span class="uv-limit-info-label">Kurs sozlamasi:</span>
+                        <span class="uv-limit-info-value {% if item.course_default %}on{% else %}off{% endif %}">
+                            {% if item.course_default %}Yoqilgan (kuniga 1 bo'lim){% else %}O'chirilgan{% endif %}
+                        </span>
+                    </div>
+                    {% if item.today_section %}
+                    <div class="uv-limit-info-row">
+                        <span class="uv-limit-info-label">Bugun ochilgan bo'lim:</span>
+                        <span class="uv-limit-info-value">{{ item.today_section.title }}</span>
+                    </div>
+                    {% else %}
+                    <div class="uv-limit-info-row">
+                        <span class="uv-limit-info-label">Bugun ochilgan bo'lim:</span>
+                        <span class="uv-limit-info-value muted">Hali yo'q</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="uv-limit-actions">
+                    <form method="POST" action="{% url 'admin_user_daily_limit' user_pk=user_obj.pk profession_pk=item.profession.pk %}" class="uv-limit-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="mode" value="inherit">
+                        <button type="submit" class="uv-limit-btn {% if item.mode == 'inherit' %}active{% endif %}" title="Kurs sozlamasi asosida">Kurs bo'yicha</button>
+                    </form>
+                    <form method="POST" action="{% url 'admin_user_daily_limit' user_pk=user_obj.pk profession_pk=item.profession.pk %}" class="uv-limit-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="mode" value="on">
+                        <button type="submit" class="uv-limit-btn on {% if item.mode == 'on' %}active{% endif %}" title="Bu o'quvchi uchun majburan yoqish">Yoqish</button>
+                    </form>
+                    <form method="POST" action="{% url 'admin_user_daily_limit' user_pk=user_obj.pk profession_pk=item.profession.pk %}" class="uv-limit-form">
+                        {% csrf_token %}
+                        <input type="hidden" name="mode" value="off">
+                        <button type="submit" class="uv-limit-btn off {% if item.mode == 'off' %}active{% endif %}" title="Bu o'quvchi uchun majburan o'chirish">O'chirish</button>
+                    </form>
+                </div>
             </div>
         </div>
         {% endfor %}

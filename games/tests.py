@@ -67,6 +67,7 @@ class JumanjiBoardTests(TestCase):
         self.assertEqual(jumanji.build_board(4), {})
 
 
+
 class JumanjiGeometryTests(TestCase):
     """So'qmoq koordinatalari doska ichida va ustma-ust tushmasligi kerak."""
 
@@ -168,6 +169,20 @@ class JumanjiStartTests(JumanjiSessionTestCase):
         ok, _ = jumanji.can_start(self.refresh())
         self.assertFalse(ok)
 
+    def test_cell_step_label_shows_direction(self):
+        """Katak raqami yonida turgani uchun qadam soni belgi bilan ko'rsatiladi."""
+        jumanji.start_session(self.session, rng=random.Random(3))
+        cells = jumanji.board_cells(self.refresh())
+        labelled = 0
+        for cell in cells:
+            if not cell['steps']:
+                self.assertIsNone(cell['steps_label'], cell['index'])
+                continue
+            sign = '-' if cell['effect']['code'] == 'snake' else '+'
+            self.assertEqual(cell['steps_label'], f"{sign}{cell['steps']}")
+            labelled += 1
+        self.assertGreater(labelled, 0, 'ilon/narvon kataklari topilmadi')
+
 
 class JumanjiTurnFlowTests(JumanjiSessionTestCase):
     def setUp(self):
@@ -182,15 +197,31 @@ class JumanjiTurnFlowTests(JumanjiSessionTestCase):
         self.assertIsNotNone(turn.question_started_at)
         self.assertEqual(session.pool_cursor, 1)
 
-    def test_correct_answer_moves_player(self):
+    def test_correct_answer_waits_for_student_to_roll(self):
+        """To'g'ri javob toshni O'ZI tashlamaydi — o'quvchi bosishini kutadi."""
         turn = jumanji.open_question(self.session, self.teacher)
         start_position = turn.player.position
-        result = jumanji.judge_turn(self.session, 'correct', self.teacher, rng=random.Random(5))
+        result = jumanji.judge_turn(self.session, 'correct', self.teacher)
+        turn.player.refresh_from_db()
+
+        self.assertIsNone(result['dice'])
+        self.assertEqual(self.refresh().phase, 'dice')
+        self.assertEqual(turn.player.position, start_position)
+        self.assertEqual(turn.player.correct_count, 1)
+
+    def test_throw_dice_moves_player(self):
+        turn = jumanji.open_question(self.session, self.teacher)
+        start_position = turn.player.position
+        jumanji.judge_turn(self.session, 'correct', self.teacher)
+
+        dice = jumanji.throw_dice(self.session, rng=random.Random(5))
         turn.refresh_from_db()
         turn.player.refresh_from_db()
-        self.assertIn(result['dice'], range(1, 7))
-        self.assertEqual(turn.player.position, start_position + result['dice'])
-        self.assertEqual(turn.player.correct_count, 1)
+
+        self.assertIn(dice, range(1, 7))
+        self.assertEqual(turn.dice_value, dice)
+        self.assertEqual(turn.player.position, start_position + dice)
+        self.assertEqual(self.refresh().phase, 'effect')
 
     def test_wrong_answer_keeps_position(self):
         turn = jumanji.open_question(self.session, self.teacher)
@@ -205,7 +236,8 @@ class JumanjiTurnFlowTests(JumanjiSessionTestCase):
         turn = jumanji.open_question(self.session, self.teacher)
         turn.player.position = self.session.board_size - 1
         turn.player.save()
-        jumanji.judge_turn(self.session, 'correct', self.teacher, rng=random.Random(9))
+        jumanji.judge_turn(self.session, 'correct', self.teacher)
+        jumanji.throw_dice(self.session, rng=random.Random(9))
         turn.player.refresh_from_db()
         self.assertEqual(turn.player.position, self.session.board_size)
 
@@ -280,8 +312,9 @@ class JumanjiEffectTests(JumanjiSessionTestCase):
         next_turn.player = turn.player
         next_turn.save()
         self.session.current_turn = next_turn
-        result = jumanji.judge_turn(self.session, 'correct', self.teacher, rng=random.Random(4))
-        self.assertEqual(result['dice'] % 2, 0)
+        jumanji.judge_turn(self.session, 'correct', self.teacher)
+        dice = jumanji.throw_dice(self.session, rng=random.Random(4))
+        self.assertEqual(dice % 2, 0)
         turn.player.refresh_from_db()
         self.assertEqual(turn.player.next_multiplier, 1)
 
@@ -465,6 +498,7 @@ class JumanjiViewTests(JumanjiSessionTestCase):
             'state': reverse('games:jumanji_state', args=[pk]),
             'join': reverse('games:jumanji_join', args=[pk]),
             'leave': reverse('games:jumanji_leave', args=[pk]),
+            'roll': reverse('games:jumanji_roll', args=[pk]),
             'control': reverse('games:jumanji_control', args=[pk]),
         }
 
@@ -510,6 +544,32 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         size = re.search(r'--jm-cell: ([^;]+); padding-top: ([^;]+);', html)
         self.assertIsNotNone(size)
         self.assertNotIn(',', size.group(0))
+
+    def test_room_shows_cell_contents_with_icons_not_emoji(self):
+        """O'quvchi katakda nima borligini ikonka + qisqa nomdan ko'radi."""
+        jumanji.start_session(self.session, rng=random.Random(5))
+        self.client.force_login(self.players[0].user)
+        html = self.client.get(self.urls()['room']).content.decode()
+
+        # Effektli kataklarda ikonka va qisqa nom bor
+        self.assertRegex(html, r'<span class="fx"><i class="bi bi-[a-z0-9-]+">')
+        self.assertRegex(html, r'<span class="lbl">[^<]+</span>')
+
+        # Effekt nomlari emoji bilan emas, ikonka bilan ko'rsatiladi
+        for spec in jumanji.EFFECT_SPECS.values():
+            self.assertTrue(spec['icon'].startswith('bi-'), spec)
+            for char in spec['label'] + spec['short'] + spec['shout']:
+                self.assertLess(ord(char), 0x2100, f"{spec['label']}: emoji")
+
+    def test_room_has_fullscreen_shout_and_dice_widgets(self):
+        """To'liq ekran tugmasi, bildirgi oynasi va tosh joyi sahifada bor."""
+        jumanji.start_session(self.session, rng=random.Random(5))
+        self.client.force_login(self.players[0].user)
+        html = self.client.get(self.urls()['room']).content.decode()
+
+        for marker in ('id="jmFull"', 'id="jmShout"', 'id="jmLobbyBtns"',
+                       'id="jmDice"', 'id="jmDie"', 'id="jmDiceVal"'):
+            self.assertIn(marker, html, marker)
 
     def test_room_hides_correct_answer_from_student_html(self):
         jumanji.start_session(self.session, rng=random.Random(5))
@@ -687,16 +747,86 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         self.assertNotEqual(session.current_player_id, before)
         self.assertTrue(data['ok'])
 
-    def test_correct_verdict_rolls_dice_and_moves(self):
+    def test_correct_verdict_stops_at_dice_phase(self):
+        """Tosh o'quvchiniki — baho bergan zahoti o'yinchi surilmasligi kerak."""
         self.client.force_login(self.teacher)
         self.control('start')
         self.control('open_question')
         mover = self.refresh().current_player
         self.control('verdict', verdict='correct')
 
+        session = self.refresh()
         mover.refresh_from_db()
-        self.assertGreater(mover.position, 0)
+        self.assertEqual(session.phase, 'dice')
+        self.assertEqual(session.current_player_id, mover.pk)
+        self.assertEqual(mover.position, 0)
         self.assertEqual(mover.correct_count, 1)
+
+    def test_student_rolls_own_dice(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('open_question')
+        mover = self.refresh().current_player
+        self.control('verdict', verdict='correct')
+
+        self.client.force_login(mover.user)
+        data = self.client.post(self.urls()['roll']).json()
+        mover.refresh_from_db()
+
+        self.assertTrue(data['ok'])
+        self.assertGreater(mover.position, 0)
+        self.assertNotEqual(self.refresh().phase, 'dice')
+
+    def test_other_student_cannot_roll(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('open_question')
+        mover = self.refresh().current_player
+        self.control('verdict', verdict='correct')
+
+        other = self.session.players.exclude(pk=mover.pk).first()
+        self.client.force_login(other.user)
+        response = self.client.post(self.urls()['roll'])
+
+        mover.refresh_from_db()
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(mover.position, 0)
+
+    def test_roll_value_is_not_taken_from_client(self):
+        """Client 99 deb yuborsa ham server o'z toshini tashlaydi."""
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('open_question')
+        mover = self.refresh().current_player
+        self.control('verdict', verdict='correct')
+
+        self.client.force_login(mover.user)
+        self.client.post(self.urls()['roll'], {'dice': 99, 'value': 99})
+
+        mover.refresh_from_db()
+        self.assertIn(mover.turns.order_by('-seq').first().dice_value, range(1, 7))
+
+    def test_double_roll_is_rejected_as_stale(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('open_question')
+        mover = self.refresh().current_player
+        self.control('verdict', verdict='correct')
+
+        self.client.force_login(mover.user)
+        self.assertTrue(self.client.post(self.urls()['roll']).json()['ok'])
+        second = self.client.post(self.urls()['roll'])
+        self.assertEqual(second.status_code, 409)
+        self.assertTrue(second.json()['stale'])
+
+    def test_roll_is_rejected_outside_dice_phase(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('open_question')
+        mover = self.refresh().current_player
+
+        self.client.force_login(mover.user)
+        self.assertEqual(self.client.post(self.urls()['roll']).status_code, 409)
 
     def test_invalid_verdict_is_rejected(self):
         self.client.force_login(self.teacher)
@@ -755,10 +885,92 @@ class JumanjiViewTests(JumanjiSessionTestCase):
         mover.save(update_fields=['position'])
 
         self.control('verdict', verdict='correct')
+        self.client.force_login(mover.user)
+        self.client.post(self.urls()['roll'])
+
         session = self.refresh()
         self.assertEqual(session.status, 'finished')
         self.assertEqual(session.winner_id, mover.user_id)
         self.assertTrue(session.coins_awarded)
+
+    # ---------- avtomatik qadamlar ----------
+
+    def _age_phase(self, seconds):
+        """Bosqich boshlanishini orqaga suradi — server soatini imitatsiya qiladi."""
+        JumanjiSession.objects.filter(pk=self.session.pk).update(
+            phase_started_at=timezone.now() - timezone.timedelta(seconds=seconds),
+        )
+
+    def test_question_opens_automatically_without_controller_click(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.assertIsNone(self.refresh().current_turn_id)
+
+        self._age_phase(jumanji.AUTO_OPEN_DELAY_SECONDS + 1)
+        self.client.get(self.urls()['state'])
+
+        session = self.refresh()
+        self.assertEqual(session.phase, 'question')
+        self.assertIsNotNone(session.current_turn_id)
+
+    def test_question_does_not_open_before_delay(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.client.get(self.urls()['state'])
+        self.assertEqual(self.refresh().phase, 'waiting_turn')
+
+    def test_auto_open_is_blocked_while_paused(self):
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('pause')
+        self._age_phase(jumanji.AUTO_OPEN_DELAY_SECONDS + 5)
+        self.client.get(self.urls()['state'])
+        self.assertEqual(self.refresh().phase, 'waiting_turn')
+
+    def test_dice_rolls_automatically_if_student_never_presses(self):
+        """O'quvchining aloqasi uzilsa o'yin `dice` bosqichida qotib qolmaydi."""
+        self.client.force_login(self.teacher)
+        self.control('start')
+        self.control('open_question')
+        mover = self.refresh().current_player
+        self.control('verdict', verdict='correct')
+
+        self._age_phase(jumanji.AUTO_ROLL_AFTER_SECONDS + 1)
+        self.client.get(self.urls()['state'])
+
+        mover.refresh_from_db()
+        self.assertGreater(mover.position, 0)
+        self.assertNotEqual(self.refresh().phase, 'dice')
+
+    def test_state_reports_join_ability_for_live_lobby(self):
+        """Lobby tugmalari clientda chiziladi — sahifani yangilash shart emas."""
+        outsider = self.players[0].user
+        self.players[0].delete()
+
+        self.client.force_login(outsider)
+        me = self.client.get(self.urls()['state']).json()['me']
+        self.assertTrue(me['can_join'])
+        self.assertFalse(me['can_leave'])
+
+        self.client.post(self.urls()['join'])
+        me = self.client.get(self.urls()['state']).json()['me']
+        self.assertFalse(me['can_join'])
+        self.assertTrue(me['can_leave'])
+
+    def test_join_bumps_state_version_for_other_clients(self):
+        outsider = self.players[0].user
+        self.players[0].delete()
+
+        self.client.force_login(self.teacher)
+        before = self.client.get(self.urls()['state']).json()['v']
+
+        self.client.force_login(outsider)
+        self.client.post(self.urls()['join'])
+
+        self.client.force_login(self.teacher)
+        after = self.client.get(self.urls()['state'], {'v': before}).json()
+        self.assertTrue(after['changed'])
+        self.assertGreater(after['v'], before)
 
 
 @modify_settings(MIDDLEWARE={'remove': [

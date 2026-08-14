@@ -17,7 +17,9 @@ Kerakli sozlamalar (settings.py yoki .env):
 
 import base64
 import hashlib
+import hmac
 import json
+import logging
 import time as time_module
 from datetime import datetime, date
 
@@ -28,6 +30,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import CustomUser, PaymeTransaction, ClickTransaction, PaymentRecord, PaymentStatus
+
+security_logger = logging.getLogger('security')
 
 
 # ══════════════════════���═════════════════════════════════��══════════
@@ -43,8 +47,11 @@ def _get_student(student_id_str):
     """Return CustomUser by student_id string or None."""
     try:
         sid = int(student_id_str)
+    except (TypeError, ValueError):
+        return None
+    try:
         return CustomUser.objects.get(student_id=sid, role='student')
-    except (ValueError, CustomUser.DoesNotExist):
+    except CustomUser.DoesNotExist:
         return None
 
 
@@ -119,15 +126,33 @@ PAYME_ERR_ALREADY_DONE      = -31060
 
 
 def _payme_check_auth(request):
+    """
+    Payme so'rovini Basic auth orqali tekshiradi.
+
+    XAVFSIZLIK: kalit sozlanmagan bo'lsa HAR QANDAY so'rov rad etiladi.
+    Ilgari bo'sh kalit bo'sh parol bilan mos kelib, istalgan odam
+    PerformTransaction chaqirib balansni tekinga to'ldira olardi.
+    """
+    expected_key = (getattr(settings, 'PAYME_KEY', '') or '').strip()
+    if not expected_key:
+        security_logger.warning(
+            "Payme so'rovi rad etildi: PAYME_KEY sozlanmagan (.env)"
+        )
+        return False
+
     auth = request.META.get('HTTP_AUTHORIZATION', '')
     if not auth.startswith('Basic '):
         return False
     try:
         decoded = base64.b64decode(auth[6:]).decode('utf-8')
-        _, key = decoded.split(':', 1)
-        return key == getattr(settings, 'PAYME_KEY', '')
+        _login, key = decoded.split(':', 1)
     except Exception:
         return False
+
+    if not key:
+        return False
+    # Doimiy vaqtli solishtirish — timing hujumidan himoya
+    return hmac.compare_digest(key, expected_key)
 
 
 def _payme_error(code, message, rpc_id=None):
@@ -362,9 +387,48 @@ def payme_endpoint(request):
 #                  merchant_trans_id + amount + action + sign_time)
 
 def _click_sign(click_trans_id, service_id, merchant_trans_id, amount, action, sign_time):
-    secret = getattr(settings, 'CLICK_SECRET_KEY', '')
+    secret = (getattr(settings, 'CLICK_SECRET_KEY', '') or '').strip()
     raw = f"{click_trans_id}{service_id}{secret}{merchant_trans_id}{amount}{action}{sign_time}"
     return hashlib.md5(raw.encode('utf-8')).hexdigest()
+
+
+def _click_verify(data, default_action):
+    """
+    Click so'rovining imzosini tekshiradi.
+
+    XAVFSIZLIK: CLICK_SECRET_KEY sozlanmagan bo'lsa so'rov rad etiladi —
+    aks holda imzo bo'sh kalit bilan hisoblanadi va uni istalgan odam
+    o'zi yasab, tekinga balans to'ldira oladi.
+
+    Returns (ok: bool, error_response: dict | None).
+    """
+    secret = (getattr(settings, 'CLICK_SECRET_KEY', '') or '').strip()
+    if not secret:
+        security_logger.warning("Click so'rovi rad etildi: CLICK_SECRET_KEY sozlanmagan (.env)")
+        return False, {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
+
+    expected = _click_sign(
+        data.get('click_trans_id', ''),
+        data.get('service_id', ''),
+        data.get('merchant_trans_id', ''),
+        data.get('amount', '0'),
+        data.get('action', default_action),
+        data.get('sign_time', ''),
+    )
+    provided = (data.get('sign_string', '') or '').strip().lower()
+    if not provided or not hmac.compare_digest(expected, provided):
+        security_logger.warning(
+            "Click imzosi mos kelmadi (trans_id=%s)", str(data.get('click_trans_id', ''))[:40]
+        )
+        return False, {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
+
+    # service_id ham bizning kassamizga tegishli bo'lishi shart
+    expected_service = (getattr(settings, 'CLICK_SERVICE_ID', '') or '').strip()
+    if expected_service and str(data.get('service_id', '')).strip() != expected_service:
+        security_logger.warning("Click: noto'g'ri service_id=%s", str(data.get('service_id', ''))[:40])
+        return False, {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
+
+    return True, None
 
 
 def _click_error(error_code, error_note):
@@ -378,18 +442,18 @@ def click_prepare(request):
     data = request.POST
 
     click_trans_id    = data.get('click_trans_id', '')
-    service_id        = data.get('service_id', '')
     merchant_trans_id = data.get('merchant_trans_id', '')  # our student_id
     amount            = data.get('amount', '0')
-    action            = data.get('action', '0')
     sign_time         = data.get('sign_time', '')
-    sign_string       = data.get('sign_string', '')
 
-    # Verify signature
-    expected = _click_sign(click_trans_id, service_id, merchant_trans_id, amount, action, sign_time)
-    if expected != sign_string:
-        resp = {'error': -1, 'error_note': 'SIGN CHECK FAILED!'}
-        return JsonResponse(resp)
+    ok, err = _click_verify(data, '0')
+    if not ok:
+        return JsonResponse(err)
+
+    try:
+        click_trans_id_int = int(click_trans_id)
+    except (TypeError, ValueError):
+        return JsonResponse({'error': -8, 'error_note': "Noto'g'ri so'rov"})
 
     student = _get_student(merchant_trans_id)
     if not student:
@@ -398,7 +462,7 @@ def click_prepare(request):
 
     # Save prepare record
     tx, created = ClickTransaction.objects.get_or_create(
-        click_trans_id=int(click_trans_id),
+        click_trans_id=click_trans_id_int,
         defaults={
             'student': student,
             'merchant_trans_id': merchant_trans_id,
@@ -408,7 +472,7 @@ def click_prepare(request):
     )
 
     return JsonResponse({
-        'click_trans_id': int(click_trans_id),
+        'click_trans_id': click_trans_id_int,
         'merchant_trans_id': merchant_trans_id,
         'merchant_prepare_id': tx.pk,
         'error': 0,
@@ -423,29 +487,33 @@ def click_complete(request):
     data = request.POST
 
     click_trans_id     = data.get('click_trans_id', '')
-    service_id         = data.get('service_id', '')
     merchant_trans_id  = data.get('merchant_trans_id', '')
-    merchant_prepare_id= data.get('merchant_prepare_id', '')
     amount             = data.get('amount', '0')
-    action             = data.get('action', '1')
     sign_time          = data.get('sign_time', '')
-    sign_string        = data.get('sign_string', '')
-    error_code         = int(data.get('error', 0))
     click_paydoc_id    = data.get('click_paydoc_id', None)
 
-    # Verify signature
-    expected = _click_sign(click_trans_id, service_id, merchant_trans_id, amount, action, sign_time)
-    if expected != sign_string:
-        return JsonResponse({'error': -1, 'error_note': 'SIGN CHECK FAILED!'})
+    ok, err = _click_verify(data, '1')
+    if not ok:
+        return JsonResponse(err)
 
     try:
-        tx = ClickTransaction.objects.get(click_trans_id=int(click_trans_id))
+        error_code = int(data.get('error', 0))
+    except (TypeError, ValueError):
+        error_code = 0
+
+    try:
+        click_trans_id_int = int(click_trans_id)
+    except (TypeError, ValueError):
+        return JsonResponse({'error': -8, 'error_note': "Noto'g'ri so'rov"})
+
+    try:
+        tx = ClickTransaction.objects.get(click_trans_id=click_trans_id_int)
     except ClickTransaction.DoesNotExist:
         return JsonResponse({'error': -6, 'error_note': 'Tranzaksiya topilmadi'})
 
     if tx.is_confirmed:
         return JsonResponse({
-            'click_trans_id': int(click_trans_id),
+            'click_trans_id': click_trans_id_int,
             'merchant_trans_id': merchant_trans_id,
             'merchant_confirm_id': tx.pk,
             'error': 0,
@@ -458,16 +526,37 @@ def click_complete(request):
         tx.error_note = 'Cancelled by Click'
         tx.save(update_fields=['error', 'error_note'])
         return JsonResponse({
-            'click_trans_id': int(click_trans_id),
+            'click_trans_id': click_trans_id_int,
             'merchant_trans_id': merchant_trans_id,
             'merchant_confirm_id': tx.pk,
             'error': 0,
             'error_note': 'Cancelled',
         })
 
+    # Summa prepare bosqichida qayd etilgani bilan bir xil bo'lishi shart
+    try:
+        amount_som = int(float(amount))
+    except (TypeError, ValueError):
+        return JsonResponse({'error': -2, 'error_note': "Noto'g'ri summa"})
+
+    try:
+        prepared_som = int(float(tx.amount))
+    except (TypeError, ValueError):
+        prepared_som = None
+
+    if prepared_som is not None and prepared_som != amount_som:
+        security_logger.warning(
+            "Click: summa mos kelmadi (trans_id=%s prepare=%s complete=%s)",
+            click_trans_id_int, prepared_som, amount_som,
+        )
+        return JsonResponse({'error': -2, 'error_note': "Noto'g'ri summa"})
+
     # Confirm
     if click_paydoc_id:
-        tx.click_paydoc_id = int(click_paydoc_id)
+        try:
+            tx.click_paydoc_id = int(click_paydoc_id)
+        except (TypeError, ValueError):
+            pass
     tx.is_confirmed = True
     tx.sign_time = sign_time
     tx.save(update_fields=['click_paydoc_id', 'is_confirmed', 'sign_time'])
@@ -475,13 +564,17 @@ def click_complete(request):
     # Record payment
     if tx.student:
         try:
-            amount_som = int(float(amount))
-            _record_payment(tx.student, amount_som, 'Click', str(click_trans_id))
+            _record_payment(tx.student, amount_som, 'Click', str(click_trans_id_int))
         except Exception:
-            pass
+            # Click'ga xato qaytarsak pul ikki marta yechilishi mumkin, shuning
+            # uchun success qaytaramiz — lekin balans to'lmagani jurnalga tushadi.
+            security_logger.exception(
+                "Click to'lovi qabul qilindi, lekin balansga yozilmadi (trans_id=%s, summa=%s)",
+                click_trans_id_int, amount_som,
+            )
 
     return JsonResponse({
-        'click_trans_id': int(click_trans_id),
+        'click_trans_id': click_trans_id_int,
         'merchant_trans_id': merchant_trans_id,
         'merchant_confirm_id': tx.pk,
         'error': 0,

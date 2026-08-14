@@ -28,12 +28,20 @@ from .models import (
     Profession,
     StudyGroup,
     StudentBalance,
+    StudentLessonToken,
     UserSession,
     VideoLesson,
     VideoProgress,
     AssistantRole,
 )
-from .views import _passed_test_lesson_counts, course_statistics_api, mark_video_watched
+from .views import (
+    _passed_test_lesson_counts,
+    course_statistics_api,
+    mark_video_watched,
+    student_mark_video_watched,
+    student_video_watch_beat,
+    video_watch_beat,
+)
 from coin.models import CoinTransaction
 from quiz.models import Attempt, Quiz
 
@@ -150,6 +158,9 @@ class VideoWatchCoinRewardTests(TestCase):
         self.video = VideoLesson.objects.create(
             lesson=lesson,
             video_url='https://youtu.be/abcdefghijk',
+            # Serverda tasdiqlangan davomiylik — testlar YouTube'ga chiqmasligi
+            # uchun oldindan beriladi (aniqlash mantiqi alohida sinaladi).
+            verified_duration_seconds=600,
         )
         self.factory = RequestFactory()
 
@@ -159,6 +170,15 @@ class VideoWatchCoinRewardTests(TestCase):
             password='test-password',
             role='admin',
             is_premium=premium,
+        )
+        # Server tomonlama talab bajarilgan holatni tayyorlaymiz (10 daqiqalik
+        # video to'liq ko'rilgan). Heartbeat mantiqi alohida sinaladi.
+        VideoProgress.objects.create(
+            user=user,
+            video=self.video,
+            required_seconds=540,
+            verified_seconds=600,
+            max_position=600,
         )
         request = self.factory.post(
             reverse('mark_video_watched', args=[self.video.pk]),
@@ -174,9 +194,7 @@ class VideoWatchCoinRewardTests(TestCase):
         user, payload = self._watch_video()
 
         user.refresh_from_db()
-        self.video.refresh_from_db()
         progress = VideoProgress.objects.get(user=user, video=self.video)
-        self.assertEqual(self.video.duration, 10)
         self.assertEqual(payload['coin_amount'], 10)
         self.assertEqual(user.coins, 10)
         self.assertTrue(progress.coin_awarded)
@@ -187,6 +205,288 @@ class VideoWatchCoinRewardTests(TestCase):
         user.refresh_from_db()
         self.assertEqual(payload['coin_amount'], 20)
         self.assertEqual(user.coins, 20)
+
+
+class VideoWatchAntiCheatTests(TestCase):
+    """Konsoldan timerni chetlab o'tish urinishlari serverda to'xtatilishi."""
+
+    def setUp(self):
+        profession = Profession.objects.create(
+            name='Anti-cheat kursi',
+            photo='professions/anti-cheat.jpg',
+            description='Anti-cheat test course',
+        )
+        lesson = Lesson.objects.create(
+            profession=profession,
+            title='1 soatlik video',
+            lesson_type='video',
+        )
+        self.video = VideoLesson.objects.create(
+            lesson=lesson,
+            video_url='https://youtu.be/abcdefghijk',
+            # Server 1 soatlik davomiylikni tasdiqlagan holat.
+            verified_duration_seconds=3600,
+        )
+        self.factory = RequestFactory()
+        self.user = CustomUser.objects.create_user(
+            username='anti-cheat-student',
+            password='test-password',
+            role='admin',
+        )
+
+    def _beat(self, position, duration_seconds=3600):
+        request = self.factory.post(
+            reverse('video_watch_beat', args=[self.video.pk]),
+            data=json.dumps({
+                'position': position,
+                'duration_seconds': duration_seconds,
+            }),
+            content_type='application/json',
+        )
+        request.user = self.user
+        return json.loads(video_watch_beat(request, self.video.pk).content)
+
+    def _mark_watched(self):
+        request = self.factory.post(
+            reverse('mark_video_watched', args=[self.video.pk]),
+            data=json.dumps({'duration_seconds': 3600}),
+            content_type='application/json',
+        )
+        request.user = self.user
+        with patch('accounts.notifications.on_video_watched'):
+            response = mark_video_watched(request, self.video.pk)
+        return response, json.loads(response.content)
+
+    def _rewind_last_beat(self, seconds):
+        """Server soatini orqaga surib, o'tgan real vaqtni simulyatsiya qiladi.
+
+        `last_credit_at` ham suriladi: u umumiy kredit chegarasi uchun ishlatiladi,
+        shuning uchun faqat `last_beat_at` surilsa kredit nolga tushib qolardi.
+        """
+        moment = timezone.now() - timedelta(seconds=seconds)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            last_beat_at=moment, last_credit_at=moment
+        )
+
+    def test_direct_request_without_watching_is_rejected(self):
+        """Konsoldan to'g'ridan-to'g'ri fetch() — dars yopilmaydi."""
+        response, payload = self._mark_watched()
+
+        self.assertFalse(payload['success'])
+        self.assertEqual(response.status_code, 403)
+        # Beat yubormagan bo'lsa ham talab shu yerda hisoblanadi — o'quvchi
+        # "davomiylik aniqlanmadi" emas, aniq sababni ko'radi.
+        self.assertEqual(payload['verified_seconds'], 0)
+        self.assertEqual(payload['required_seconds'], 3225)
+        self.assertFalse(
+            VideoProgress.objects.filter(
+                user=self.user, video=self.video, watched=True
+            ).exists()
+        )
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.coins, 0)
+
+    def test_beat_spam_cannot_inflate_watch_time(self):
+        """Tez-tez beat yuborish vaqtni oshirmaydi — server soati chegara."""
+        self._beat(0)
+        for position in range(100, 4000, 100):
+            self._beat(position)
+
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertEqual(progress.required_seconds, 3225)   # 3600*0.9 - 15s grace
+        # Real vaqt o'tmagani uchun hech qanday kredit berilmaydi.
+        self.assertLess(progress.verified_seconds, 1)
+
+        response, payload = self._mark_watched()
+        self.assertFalse(payload['success'])
+        self.assertEqual(response.status_code, 403)
+
+    def test_seek_forward_is_blocked_and_recorded(self):
+        """Videoni oldinga o'tkazish kredit bermaydi va qayd etiladi."""
+        self._beat(0)
+        self._rewind_last_beat(10)
+        result = self._beat(3500)
+
+        self.assertTrue(result['seek_blocked'])
+        self.assertEqual(result['resume_at'], 0)
+
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertEqual(progress.verified_seconds, 0)
+        self.assertEqual(progress.max_position, 0)
+        self.assertEqual(progress.cheat_attempts, 1)
+
+    def test_credit_is_capped_by_server_elapsed_time(self):
+        """Pozitsiyani katta qadam bilan yuborsa ham kredit real vaqt bilan cheklanadi."""
+        self._beat(0)
+        self._rewind_last_beat(10)
+        # 5 soniya oldinga (tolerance ichida), lekin real vaqt 10 sekund
+        self._beat(5)
+
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertLessEqual(progress.verified_seconds, 20)   # 10s * 2x chegara
+        self.assertGreater(progress.verified_seconds, 0)
+
+    def test_full_watch_over_real_time_unlocks_completion(self):
+        """Haqiqiy ko'rish: yetarli real vaqt o'tgach dars yopiladi."""
+        self._beat(0)
+        position = 0
+        # Har qadamda 30 soniya real vaqt + 30 soniya video pozitsiyasi
+        while position < 3300:
+            self._rewind_last_beat(30)
+            position += 30
+            result = self._beat(position)
+
+        self.assertTrue(result['can_complete'])
+
+        response, payload = self._mark_watched()
+        self.assertTrue(payload['success'])
+        self.assertEqual(response.status_code, 200)
+
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertTrue(progress.watched)
+
+    def test_required_seconds_cannot_be_lowered_by_later_beats(self):
+        """Keyingi beatlarda kichik davomiylik yuborib talabni pasaytirish ishlamaydi."""
+        self._beat(0, duration_seconds=3600)
+        self._beat(1, duration_seconds=10)
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertEqual(progress.required_seconds, 3225)
+
+    def test_parallel_videos_cannot_multiply_watch_time(self):
+        """Bir vaqtda bir necha videoga beat yuborib vaqtni ko'paytirib bo'lmaydi.
+
+        Odam bir vaqtda bitta videoni ko'radi: 30 soniya real vaqt ikkinchi
+        videoga ham to'liq hisoblanib ketmasligi kerak.
+        """
+        other_video = VideoLesson.objects.create(
+            lesson=Lesson.objects.create(
+                profession=self.video.lesson.profession,
+                title='Ikkinchi video',
+                lesson_type='video',
+            ),
+            video_url='https://youtu.be/bbbbbbbbbbb',
+            verified_duration_seconds=3600,
+        )
+
+        def beat(video, position):
+            request = self.factory.post(
+                reverse('video_watch_beat', args=[video.pk]),
+                data=json.dumps({'position': position}),
+                content_type='application/json',
+            )
+            request.user = self.user
+            return json.loads(video_watch_beat(request, video.pk).content)
+
+        beat(self.video, 0)
+        beat(other_video, 0)
+
+        # 30 soniya real vaqt o'tdi — ikkala videoga ham 30 soniya talab qilamiz.
+        moment = timezone.now() - timedelta(seconds=30)
+        VideoProgress.objects.filter(user=self.user).update(
+            last_beat_at=moment, last_credit_at=moment
+        )
+        beat(self.video, 30)
+        beat(other_video, 30)
+
+        total = sum(
+            VideoProgress.objects.filter(user=self.user).values_list(
+                'verified_seconds', flat=True
+            )
+        )
+        self.assertLessEqual(total, 30 * 1.15 + 0.5)
+
+
+class StudentTokenWatchAntiCheatTests(TestCase):
+    """O'quvchining haqiqiy yo'li — `/s/<token>/` URL'lari ham himoyalangan.
+
+    O'quvchi `pk` bo'yicha view'larga kira olmaydi, shuning uchun himoya
+    faqat tokenli view'larda sinalganida ishonchli hisoblanadi.
+    """
+
+    def setUp(self):
+        cache.clear()
+        profession = Profession.objects.create(
+            name='Tokenli kurs',
+            photo='professions/token.jpg',
+            description='Token anti-cheat test',
+        )
+        self.lesson = Lesson.objects.create(
+            profession=profession,
+            title='1 soatlik video',
+            lesson_type='video',
+        )
+        self.video = VideoLesson.objects.create(
+            lesson=self.lesson,
+            video_url='https://youtu.be/ccccccccccc',
+            verified_duration_seconds=3600,
+        )
+        self.factory = RequestFactory()
+        self.user = CustomUser.objects.create_user(
+            username='token-student',
+            password='test-password',
+            role='student',
+        )
+        self.token = StudentLessonToken.objects.create(
+            student=self.user, lesson=self.lesson
+        )
+
+    def _beat(self, position):
+        url = reverse('student_video_watch_beat', args=[self.token.token])
+        request = self.factory.post(
+            url, data=json.dumps({'position': position}),
+            content_type='application/json',
+        )
+        request.user = self.user
+        return json.loads(
+            student_video_watch_beat(request, self.token.token).content
+        )
+
+    def _mark_watched(self):
+        url = reverse('student_mark_video_watched', args=[self.token.token])
+        request = self.factory.post(url, data='{}', content_type='application/json')
+        request.user = self.user
+        with patch('accounts.notifications.on_video_watched'):
+            response = student_mark_video_watched(request, self.token.token)
+        return response, json.loads(response.content)
+
+    def test_pk_url_is_closed_for_students(self):
+        """O'quvchi `pk` bo'yicha yopishga urinsa — tokenli yo'lga yuboriladi."""
+        request = self.factory.post(
+            reverse('mark_video_watched', args=[self.video.pk]),
+            data='{}', content_type='application/json',
+        )
+        request.user = self.user
+        response = mark_video_watched(request, self.video.pk)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(json.loads(response.content).get('use_token'))
+
+    def test_token_url_rejects_completion_without_watching(self):
+        """Konsoldan tokenli URL'ga so'rov — dars yopilmaydi."""
+        response, payload = self._mark_watched()
+
+        self.assertFalse(payload['success'])
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(payload['required_seconds'], 3225)
+        self.user.refresh_from_db()
+        self.assertEqual(self.user.coins, 0)
+
+    def test_token_beat_blocks_seek_and_credits_real_time_only(self):
+        """Tokenli beat ham sakrashni bloklaydi va faqat real vaqt beradi."""
+        self._beat(0)
+
+        jumped = self._beat(3000)
+        self.assertTrue(jumped['seek_blocked'])
+        self.assertEqual(jumped['resume_at'], 0)
+
+        moment = timezone.now() - timedelta(seconds=20)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            last_beat_at=moment, last_credit_at=moment
+        )
+        honest = self._beat(20)
+        self.assertFalse(honest['seek_blocked'])
+        self.assertLessEqual(honest['verified_seconds'], 20 * 1.15 + 0.5)
+        self.assertFalse(honest['can_complete'])
 
 
 class CertificateTelegramNotificationTests(TestCase):
