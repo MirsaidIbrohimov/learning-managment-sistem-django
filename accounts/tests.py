@@ -29,6 +29,10 @@ from .models import (
     StudyGroup,
     StudentBalance,
     StudentLessonToken,
+    SurveyAnswer,
+    SurveyForm,
+    SurveyQuestion,
+    SurveyResponse,
     UserSession,
     VideoLesson,
     VideoProgress,
@@ -36,6 +40,7 @@ from .models import (
 )
 from .views import (
     _passed_test_lesson_counts,
+    admin_survey_responses_excel,
     course_statistics_api,
     mark_video_watched,
     student_mark_video_watched,
@@ -372,6 +377,50 @@ class VideoWatchAntiCheatTests(TestCase):
         self._beat(1, duration_seconds=10)
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
         self.assertEqual(progress.required_seconds, 3225)
+
+    def test_verified_duration_replaces_stale_manual_duration_and_requirement(self):
+        """35 daqiqalik video eski 61 daqiqalik timer bilan ochilmasligi kerak."""
+        self.video.duration = 61
+        self.video.verified_duration_seconds = 0
+        self.video.duration_checked_at = None
+        self.video.save(update_fields=[
+            'duration', 'verified_duration_seconds', 'duration_checked_at',
+        ])
+        VideoProgress.objects.create(
+            user=self.user,
+            video=self.video,
+            required_seconds=3279,  # eski 61 daqiqalik qiymatdan hisoblangan
+        )
+
+        from accounts.video_duration import resolve_verified_duration
+
+        with patch('accounts.video_duration._fetch_duration', return_value=35 * 60):
+            resolve_verified_duration(self.video)
+        result = self._beat(0)
+
+        self.video.refresh_from_db()
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertEqual(self.video.verified_duration_seconds, 35 * 60)
+        self.assertEqual(self.video.duration, 35)
+        self.assertEqual(progress.required_seconds, 1875)
+        self.assertEqual(result['remaining'], 1875)
+
+    def test_duration_resolution_is_deduplicated_before_background_start(self):
+        """Ko'p heartbeat bir video uchun ko'p tashqi HTTP thread boshlamasligi kerak."""
+        self.video.verified_duration_seconds = 0
+        self.video.duration_checked_at = None
+        self.video.save(update_fields=['verified_duration_seconds', 'duration_checked_at'])
+
+        from accounts.video_duration import schedule_verified_duration
+
+        with patch('accounts.video_duration.threading.Thread') as thread:
+            first = schedule_verified_duration(self.video)
+            second = schedule_verified_duration(self.video)
+
+        self.assertTrue(first)
+        self.assertFalse(second)
+        thread.assert_called_once()
+        thread.return_value.start.assert_called_once()
 
     def test_parallel_videos_cannot_multiply_watch_time(self):
         """Bir vaqtda bir necha videoga beat yuborib vaqtni ko'paytirib bo'lmaydi.
@@ -1439,3 +1488,67 @@ class ITShaharchaApplicationTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+class SurveyResponsesExcelTests(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='survey-admin', password='test-password', role='admin',
+            phone='+998900000041',
+        )
+        self.student = CustomUser.objects.create_user(
+            username='survey-student', password='test-password', role='student',
+            phone='+998900000042', first_name='Ali', last_name='Valiyev',
+        )
+        self.survey = SurveyForm.objects.create(title="Kurs bo'yicha so'rovnoma")
+        self.first_question = SurveyQuestion.objects.create(
+            survey=self.survey, question_text='Kurs sizga yoqdimi?', order=0,
+        )
+        self.second_question = SurveyQuestion.objects.create(
+            survey=self.survey, question_text='Taklifingiz', order=1,
+        )
+        survey_response = SurveyResponse.objects.create(
+            survey=self.survey, user=self.student,
+        )
+        SurveyAnswer.objects.create(
+            response=survey_response,
+            question=self.first_question,
+            answer_text='Ha',
+        )
+
+    def test_admin_can_download_responses_as_excel_table(self):
+        from io import BytesIO
+        from openpyxl import load_workbook
+
+        self.client.force_login(self.admin)
+        response = self.client.get(
+            reverse('admin_survey_responses_excel', args=[self.survey.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        workbook = load_workbook(BytesIO(response.content))
+        worksheet = workbook.active
+        self.assertEqual(
+            [cell.value for cell in worksheet[1]],
+            ["Ism", "Familiya", "To'ldirgan vaqti", 'Kurs sizga yoqdimi?', 'Taklifingiz'],
+        )
+        self.assertEqual(
+            [worksheet.cell(row=2, column=column).value for column in (1, 2, 4, 5)],
+            ['Ali', 'Valiyev', 'Ha', None],
+        )
+        self.assertIsNotNone(worksheet.cell(row=2, column=3).value)
+
+    def test_student_cannot_download_responses(self):
+        request = RequestFactory().get(
+            reverse('admin_survey_responses_excel', args=[self.survey.pk])
+        )
+        request.user = self.student
+
+        response = admin_survey_responses_excel(request, self.survey.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))
