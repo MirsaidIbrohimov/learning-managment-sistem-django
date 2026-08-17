@@ -29,6 +29,10 @@ from .models import (
     StudyGroup,
     StudentBalance,
     StudentLessonToken,
+    SurveyAnswer,
+    SurveyForm,
+    SurveyQuestion,
+    SurveyResponse,
     UserSession,
     VideoLesson,
     VideoProgress,
@@ -36,6 +40,7 @@ from .models import (
 )
 from .views import (
     _passed_test_lesson_counts,
+    admin_survey_responses_excel,
     course_statistics_api,
     mark_video_watched,
     student_mark_video_watched,
@@ -1439,3 +1444,67 @@ class ITShaharchaApplicationTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+
+class SurveyResponsesExcelTests(TestCase):
+    def setUp(self):
+        self.admin = CustomUser.objects.create_user(
+            username='survey-admin', password='test-password', role='admin',
+            phone='+998900000041',
+        )
+        self.student = CustomUser.objects.create_user(
+            username='survey-student', password='test-password', role='student',
+            phone='+998900000042', first_name='Ali', last_name='Valiyev',
+        )
+        self.survey = SurveyForm.objects.create(title="Kurs bo'yicha so'rovnoma")
+        self.first_question = SurveyQuestion.objects.create(
+            survey=self.survey, question_text='Kurs sizga yoqdimi?', order=0,
+        )
+        self.second_question = SurveyQuestion.objects.create(
+            survey=self.survey, question_text='Taklifingiz', order=1,
+        )
+        survey_response = SurveyResponse.objects.create(
+            survey=self.survey, user=self.student,
+        )
+        SurveyAnswer.objects.create(
+            response=survey_response,
+            question=self.first_question,
+            answer_text='Ha',
+        )
+
+    def test_admin_can_download_responses_as_excel_table(self):
+        from io import BytesIO
+        from openpyxl import load_workbook
+
+        self.client.force_login(self.admin)
+        response = self.client.get(
+            reverse('admin_survey_responses_excel', args=[self.survey.pk])
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response['Content-Type'],
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        )
+        workbook = load_workbook(BytesIO(response.content))
+        worksheet = workbook.active
+        self.assertEqual(
+            [cell.value for cell in worksheet[1]],
+            ["Ism", "Familiya", "To'ldirgan vaqti", 'Kurs sizga yoqdimi?', 'Taklifingiz'],
+        )
+        self.assertEqual(
+            [worksheet.cell(row=2, column=column).value for column in (1, 2, 4, 5)],
+            ['Ali', 'Valiyev', 'Ha', None],
+        )
+        self.assertIsNotNone(worksheet.cell(row=2, column=3).value)
+
+    def test_student_cannot_download_responses(self):
+        request = RequestFactory().get(
+            reverse('admin_survey_responses_excel', args=[self.survey.pk])
+        )
+        request.user = self.student
+
+        response = admin_survey_responses_excel(request, self.survey.pk)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse('home'))

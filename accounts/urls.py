@@ -342,6 +342,7 @@ urlpatterns = [
     path('dashboard/surveys/<int:pk>/edit/', views.admin_survey_edit, name='admin_survey_edit'),
     path('dashboard/surveys/<int:pk>/delete/', views.admin_survey_delete, name='admin_survey_delete'),
     path('dashboard/surveys/<int:pk>/responses/', views.admin_survey_responses, name='admin_survey_responses'),
+    path('dashboard/surveys/<int:pk>/responses/excel/', views.admin_survey_responses_excel, name='admin_survey_responses_excel'),
     path('dashboard/surveys/<int:pk>/toggle/', views.admin_survey_toggle, name='admin_survey_toggle'),
     
     # So'rovnomani to'ldirish

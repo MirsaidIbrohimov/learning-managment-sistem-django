@@ -16902,6 +16902,78 @@ def admin_survey_responses(request, pk):
 
 
 @login_required
+def admin_survey_responses_excel(request, pk):
+    if not request.user.is_admin_or_assistant:
+        return redirect('home')
+
+    import openpyxl
+    from openpyxl.styles import Alignment, Font, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    survey = get_object_or_404(SurveyForm, pk=pk)
+    questions = list(survey.questions.all())
+    responses = survey.responses.select_related('user').prefetch_related('answers').order_by('-submitted_at')
+
+    workbook = openpyxl.Workbook()
+    worksheet = workbook.active
+    worksheet.title = "Javoblar"
+    worksheet.freeze_panes = 'A2'
+
+    headers = ["Ism", "Familiya", "To'ldirgan vaqti"] + [
+        question.question_text for question in questions
+    ]
+    header_fill = PatternFill(fill_type='solid', fgColor='6366F1')
+    header_font = Font(color='FFFFFF', bold=True)
+
+    for column, header in enumerate(headers, 1):
+        cell = worksheet.cell(row=1, column=column, value=header)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+
+    def excel_safe(value):
+        value = value or ''
+        if isinstance(value, str) and value.startswith(('=', '+', '-', '@')):
+            return "'" + value
+        return value
+
+    for row, survey_response in enumerate(responses, 2):
+        answers = {
+            answer.question_id: answer.answer_text or ''
+            for answer in survey_response.answers.all()
+        }
+        submitted_at = timezone.localtime(survey_response.submitted_at).replace(tzinfo=None)
+        values = [
+            survey_response.user.first_name,
+            survey_response.user.last_name,
+            submitted_at,
+            *[answers.get(question.pk, '') for question in questions],
+        ]
+        for column, value in enumerate(values, 1):
+            cell = worksheet.cell(row=row, column=column, value=excel_safe(value))
+            cell.alignment = Alignment(vertical='top', wrap_text=True)
+        worksheet.cell(row=row, column=3).number_format = 'dd.mm.yyyy hh:mm'
+
+    worksheet.auto_filter.ref = worksheet.dimensions
+    for column, header in enumerate(headers, 1):
+        max_length = max(
+            len(str(worksheet.cell(row=row, column=column).value or ''))
+            for row in range(1, worksheet.max_row + 1)
+        )
+        worksheet.column_dimensions[get_column_letter(column)].width = min(max(max_length + 2, 12), 50)
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M')
+    response['Content-Disposition'] = (
+        f'attachment; filename="survey_{survey.pk}_responses_{timestamp}.xlsx"'
+    )
+    workbook.save(response)
+    return response
+
+
+@login_required
 def admin_survey_toggle(request, pk):
     if request.user.role != 'admin':
         return redirect('home')

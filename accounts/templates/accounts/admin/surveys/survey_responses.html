@@ -19,6 +19,12 @@
         background: rgba(99, 102, 241, 0.12); color: #6366f1;
         padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 0.88rem;
     }
+    .sr-download {
+        margin-left: auto; display: inline-flex; align-items: center; gap: 0.45rem;
+        padding: 9px 16px; border-radius: 10px; background: #10b981; color: #fff;
+        text-decoration: none; font-size: 0.88rem; font-weight: 700; transition: all 0.2s;
+    }
+    .sr-download:hover { background: #059669; color: #fff; }
 
     .sr-response-card {
         background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
@@ -65,6 +71,9 @@
         <a href="{% url 'admin_surveys' %}" class="sr-back"><i class="bi bi-arrow-left"></i></a>
         <h3><i class="bi bi-chat-square-text" style="color:#6366f1;"></i> {{ survey.title }}</h3>
         <span class="sr-count">{{ responses|length }} ta javob</span>
+        <a href="{% url 'admin_survey_responses_excel' survey.pk %}" class="sr-download">
+            <i class="bi bi-download"></i> Yuklab olish
+        </a>
     </div>
 
     {% if survey.description %}

@@ -1402,6 +1402,10 @@ const BEAT_INTERVAL_MS = 15000;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
 let serverRemaining   = null;
+// Server javobi kelgan paytdagi mahalliy ko'rish nuqtasi. Ikki heartbeat
+// orasida countdown shu nuqtadan boshlab faqat qonuniy ijro qilingan vaqtga
+// kamayadi; yakunlash huquqini esa baribir faqat server beradi.
+let serverRemainingAtWatchedTime = null;
 let beatInFlight      = false;
 let beatNonce         = '';
 let presencePrompting = false;
@@ -1443,6 +1447,7 @@ function sendBeat(presenceToken) {
             if (!data || !data.ok) return;
             beatNonce         = data.nonce || '';
             serverRemaining   = data.remaining;
+            serverRemainingAtWatchedTime = watchedTime;
             serverCanComplete = !!data.can_complete;
             // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
             if (data.seek_blocked && data.resume_at != null) {
@@ -1485,6 +1490,10 @@ function setTimerState(state) {
 
 function pauseTimer(reason) {
     if (isReady) return;
+    // Pauzadan keyingi birinchi tik eski wall-clock oralig'ini ijro vaqti deb
+    // qabul qilmasligi uchun kuzatuv bazasini tozalaymiz.
+    lastPos = null;
+    lastWall = null;
     setTimerState('paused');
     timerLabel.textContent = reason || "To'xtatildi";
     statusText.textContent = reason || "To'xtatildi";
@@ -1492,6 +1501,10 @@ function pauseTimer(reason) {
 
 function resumeTimer() {
     if (isReady) return;
+    // Qayta play bosilganda pleerning joriy nuqtasidan yangi o'lchov boshlanadi.
+    // Keyingi tick bazani o'rnatadi, undan keyingi ticklar timerni davom ettiradi.
+    lastPos = null;
+    lastWall = null;
     setTimerState('running');
     timerLabel.textContent = 'Qolgan vaqt';
     statusText.textContent = 'Video ijro etilmoqda…';
@@ -1584,10 +1597,14 @@ setTimeout(function() {
 function updateTimerUI() {
     if (!durationLocked || isReady) return;
     // Birinchi heartbeat javobidan keyin countdownning yagona haqiqat manbai
-    // server bo'ladi. Shu sabab video oxirida mahalliy JS timeridan server
-    // timeriga o'tib, birdan qo'shimcha vaqt paydo bo'lmaydi.
+    // server bo'ladi. Heartbeatlar orasida esa UI qotib qolmasligi uchun server
+    // qiymatidan faqat shu oraliqda qonuniy ko'rilgan vaqtni ayiramiz. Bu faqat
+    // ko'rsatish uchun: tugma serverCanComplete bo'lmasa hech qachon yoqilmaydi.
+    const locallyPlayedSinceBeat = serverRemainingAtWatchedTime == null
+        ? 0
+        : Math.max(0, watchedTime - serverRemainingAtWatchedTime);
     const remaining = serverRemaining != null
-        ? Math.max(0, serverRemaining)
+        ? Math.max(0, serverRemaining - locallyPlayedSinceBeat)
         : Math.max(0, requiredTime - watchedTime);
     const progress = Math.min(1, (requiredTime - remaining) / requiredTime);
     countdownEl.textContent = formatTime(remaining);
