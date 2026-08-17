@@ -1403,27 +1403,116 @@ const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" studen
 let serverCanComplete = false;
 let serverRemaining   = null;
 let beatInFlight      = false;
+let serverNonce       = '';   // server bergan bir martalik nonce — keyingi beatda aynan shu qaytariladi
+let presenceReply     = '';   // "Men bu yerda" bosilganda yuboriladigan javob tokeni
+let presencePromptEl  = null; // tiriklik tekshiruvi oynasi
+
+/* ── Tiriklik tekshiruvi (presence check) ─────────────────────────────
+ * Server tasodifiy vaqtda tugma bosishni talab qiladi. Javob
+ * kelguncha server kredit bermaydi — shuning uchun prompt'ni darhol
+ * ko'rsatib, bosilganda beat'ni kutmasdan yuboramiz.
+ */
+function hidePresencePrompt() {
+    if (presencePromptEl) { presencePromptEl.remove(); presencePromptEl = null; }
+}
+function showPresencePrompt(token) {
+    if (presencePromptEl) return;
+    presencePromptEl = document.createElement('div');
+    presencePromptEl.style.cssText =
+        'position:fixed;inset:0;z-index:99980;background:rgba(3,7,18,.72);' +
+        'display:flex;align-items:center;justify-content:center;padding:1rem;';
+    const box = document.createElement('div');
+    box.style.cssText =
+        'max-width:400px;width:100%;text-align:center;border-radius:22px;padding:2rem 1.5rem;' +
+        'background:linear-gradient(165deg,#101828,#0b1120);border:1px solid rgba(129,140,248,.3);' +
+        'box-shadow:0 40px 100px -30px rgba(0,0,0,.9);color:#e2e8f0;';
+    box.innerHTML =
+        '<div style="font-size:2.6rem;margin-bottom:.6rem;">👋</div>' +
+        '<h4 style="font-weight:900;margin:0 0 .5rem;">Tiriklik tekshiruvi</h4>' +
+        '<p style="font-size:.85rem;color:rgba(148,163,184,.9);margin:0 0 1.2rem;">' +
+        'Davom etish uchun tugmani bosing. Vaqt hisobi shu tugma bosilgach tiklanadi.</p>';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = "Men bu yerda";
+    btn.style.cssText =
+        'width:100%;padding:.9rem;border:none;border-radius:14px;cursor:pointer;font-weight:800;' +
+        'font-size:.95rem;color:#fff;background:linear-gradient(90deg,#6366f1,#38bdf8);' +
+        'box-shadow:0 14px 34px -12px rgba(99,102,241,.75);';
+    btn.addEventListener('click', function() {
+        presenceReply = token;
+        hidePresencePrompt();
+        sendBeat();   // javobni darhol yuboramiz — 15 soniyani kutmaymiz
+    });
+    box.appendChild(btn);
+    presencePromptEl.appendChild(box);
+    document.body.appendChild(presencePromptEl);
+}
+
+/* Serverning "blocked" sabablarini o'quvchi tili lug'ati. 'nonce' va
+ * 'stale_client' o'tish holatlaridir — keyingi beat o'zi tiklaydi. */
+const BEAT_BLOCK_REASONS = {
+    'paused':   'Video pauzada — vaqt hisoblanmaydi',
+    'hidden':   "Sahifa ko'rinmaydi — vaqt hisoblanmaydi",
+    'quiz':     'Video ichidagi savolga javob bering',
+    'presence': 'Tiriklik tekshiruviga javob bering',
+};
 
 function sendBeat() {
     if (beatInFlight || serverCanComplete) return;
     getPlayerTime(function(t) {
         if (t == null || !isFinite(t)) return;
         beatInFlight = true;
+        const reply = presenceReply;
         fetch(BEAT_URL, {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ position: t })
+            // Server protokoli: playing/hidden/nonce bo'lmasa kredit BERILMAYDI
+            // ('stale_client'/'nonce' bloki) va presence_challenge'ga javob
+            // yuborilmasa ham kredit to'xtaydi.
+            body: JSON.stringify({
+                position: t,
+                playing:  isVideoPlaying,
+                hidden:   document.hidden,
+                nonce:    serverNonce,
+                presence_token: reply
+            })
         })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
             beatInFlight = false;
             if (!data || !data.ok) return;
+            if (data.nonce) serverNonce = data.nonce;   // keyingi beatda qaytaramiz
+            if (reply) presenceReply = '';              // javob yetkazildi
             serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
+
+            // Server o'zi aniqlagan talabni (anti-cheat manbasi) lokal timerga
+            // ham tushiramiz — bu pleer getDuration() bermasa countdown
+            // "—:—" da qotib qolishini oldini oladi.
+            if (!durationLocked && data.required_seconds) {
+                lockDuration(Math.max(2, Math.ceil(data.required_seconds / 0.9) + 15));
+            }
+            // Server talabni tasdiqladi — lokal hisob qolgan bo'lsa ham tugatamiz
+            // (server hukmi asosiy).
+            if (serverCanComplete && durationLocked && !isReady) {
+                watchedTime = Math.max(watchedTime, requiredTime);
+            }
+
             // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
             if (data.seek_blocked && data.resume_at != null) {
                 seekPlayerTo(data.resume_at);
                 statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
+            }
+            // Tiriklik tekshiruvi: challenge keldi — prompt ko'rsatamiz.
+            if (data.presence && data.presence.token) {
+                showPresencePrompt(data.presence.token);
+            } else {
+                hidePresencePrompt();
+            }
+            // Kredit to'xtatilgan sababni o'quvchiga tushuntiramiz.
+            if (!serverCanComplete && !isReady && data.blocked &&
+                BEAT_BLOCK_REASONS[data.blocked] && !data.presence) {
+                statusText.textContent = BEAT_BLOCK_REASONS[data.blocked];
             }
             updateTimerUI();
         })
