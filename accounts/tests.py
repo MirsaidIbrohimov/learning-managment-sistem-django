@@ -378,6 +378,30 @@ class VideoWatchAntiCheatTests(TestCase):
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
         self.assertEqual(progress.required_seconds, 3225)
 
+    def test_verified_duration_replaces_stale_manual_duration_and_requirement(self):
+        """35 daqiqalik video eski 61 daqiqalik timer bilan ochilmasligi kerak."""
+        self.video.duration = 61
+        self.video.verified_duration_seconds = 0
+        self.video.duration_checked_at = None
+        self.video.save(update_fields=[
+            'duration', 'verified_duration_seconds', 'duration_checked_at',
+        ])
+        VideoProgress.objects.create(
+            user=self.user,
+            video=self.video,
+            required_seconds=3279,  # eski 61 daqiqalik qiymatdan hisoblangan
+        )
+
+        with patch('accounts.video_duration._fetch_duration', return_value=35 * 60):
+            result = self._beat(0)
+
+        self.video.refresh_from_db()
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertEqual(self.video.verified_duration_seconds, 35 * 60)
+        self.assertEqual(self.video.duration, 35)
+        self.assertEqual(progress.required_seconds, 1875)
+        self.assertEqual(result['remaining'], 1875)
+
     def test_parallel_videos_cannot_multiply_watch_time(self):
         """Bir vaqtda bir necha videoga beat yuborib vaqtni ko'paytirib bo'lmaydi.
 

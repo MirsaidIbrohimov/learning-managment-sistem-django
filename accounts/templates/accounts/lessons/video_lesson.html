@@ -1359,13 +1359,10 @@ if (placeholder) {
  *     shuning uchun watchedTime ham to'xtaydi.
  */
 
-// DB'dagi `duration` (daqiqa) endi qo'lda kiritilmaydi — u faqat oldin ko'rilgan
-// videolar uchun avtomatik yozib qo'yilgan zaxira (fallback) qiymat. 0 bo'lsa
-// (hali hech kim ko'rmagan) DB'ga TUSHMAYMIZ — pleer getDuration() ni kutamiz,
-// chunki u har doim (biroz kechikib bo'lsa ham) haqiqiy davomiylikni beradi.
-// Shu bilan noto'g'ri/eskirgan qiymatdan kelib chiqadigan "timer qotib qolishi"
-// muammosi bartaraf etiladi.
-const dbSeconds     = {{ video.duration|default:0 }} * 60;   // 0 = noma'lum
+// Fallback uchun faqat server YouTube/Vimeo'dan tasdiqlagan davomiylik ishlaydi.
+// Oddiy `duration` eski yoki qo'lda noto'g'ri kiritilgan bo'lishi mumkin; masalan
+// 35 daqiqalik videoga 61 daqiqa yozilsa countdown 55 daqiqadan boshlanardi.
+const dbSeconds     = {{ video.verified_duration_seconds|default:0 }};
 const DB_FALLBACK_DELAY_MS = 12000;  // pleer 12 sek ichida getDuration bermasa VA DB'da haqiqiy qiymat bo'lsa — DB'ga tushamiz
 const circumference = 2 * Math.PI * 18;
 

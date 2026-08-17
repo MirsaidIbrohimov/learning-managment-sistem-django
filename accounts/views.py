@@ -3900,8 +3900,11 @@ def _ensure_gating_duration(video):
 
     Tashqi HTTP so'rovi bor — DB tranzaksiyasidan TASHQARIDA chaqirilishi shart.
     """
-    if video.gating_duration_seconds:
-        return video.gating_duration_seconds
+    # Faqat provider'dan server tasdiqlagan qiymatni yakuniy deb bilamiz.
+    # `duration` qo'lda kiritilgan eski qiymat bo'lishi mumkin; u mavjud bo'lsa
+    # ham YouTube/Vimeo'dan haqiqiy davomiylikni aniqlashga urinib ko'ramiz.
+    if video.verified_duration_seconds:
+        return video.verified_duration_seconds
 
     checked_before = video.duration_checked_at
     resolve_verified_duration(video)
@@ -3913,22 +3916,24 @@ def _ensure_gating_duration(video):
 
 
 def _resolve_required_seconds(progress, video):
-    """Talab qilinadigan vaqtni bir marta belgilab, DB'da qulflaydi.
+    """Talab vaqtini server tasdiqlagan joriy davomiylik bilan sinxronlaydi.
 
     Davomiylik FAQAT ishonchli manbadan olinadi (server YouTube/Vimeo'dan
     aniqlagan yoki admin kiritgan). Mijoz yuborgan davomiylik bu hisobga
     kirmaydi — aks holda konsoldan kichik qiymat yuborib talabni bir soniyaga
     tushirib qo'yish mumkin edi.
     """
-    if progress.required_seconds:
-        return progress.required_seconds
-
     secs = video.gating_duration_seconds
     if not secs:
-        return 0
+        return progress.required_seconds
 
     required = max(1, int(secs * WATCH_REQUIRED_RATIO) - WATCH_GRACE_SECONDS)
-    VideoProgress.objects.filter(pk=progress.pk, required_seconds=0).update(
+    if progress.required_seconds == required:
+        return required
+
+    # Provider keyinroq haqiqiy davomiylikni aniqlasa, eski qo'lda kiritilgan
+    # qiymatdan (masalan 61 daqiqa) qulflangan talab ham tuzatilishi kerak.
+    VideoProgress.objects.filter(pk=progress.pk).update(
         required_seconds=required
     )
     progress.refresh_from_db(fields=['required_seconds'])

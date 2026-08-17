@@ -178,9 +178,10 @@ def resolve_verified_duration(video):
     fields = {'duration_checked_at': now}
     if seconds:
         fields['verified_duration_seconds'] = seconds
-        if not video.duration:
-            # `duration` (daqiqa) coin miqdori va statistika uchun ishlatiladi.
-            fields['duration'] = max(1, round(seconds / 60))
+        # `duration` (daqiqa) coin miqdori, statistika va eski sahifalarda
+        # ishlatiladi. Qo'lda kiritilgan eski qiymat haqiqiy provider
+        # davomiyligidan farq qilishi mumkin, shuning uchun uni ham yangilaymiz.
+        fields['duration'] = max(1, round(seconds / 60))
 
     VideoLesson.objects.filter(pk=video.pk).update(**fields)
     for name, value in fields.items():
