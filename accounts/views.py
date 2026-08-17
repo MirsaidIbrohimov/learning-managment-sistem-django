@@ -3754,8 +3754,7 @@ def _video_watch_coin_amount(video, user):
 # va faqat shuncha kredit beradi. Shuning uchun 1 soatlik videoni yopish uchun
 # rostdan ham ~1 soat kerak; so'rovlarni tez-tez yuborish yordam bermaydi.
 
-from .video_duration import resolve_verified_duration
-from .notifications import notify_admin_video_duration_unknown
+from .video_duration import schedule_verified_duration
 
 WATCH_REQUIRED_RATIO = 0.9   # video davomiyligining shuncha qismi ko'rilishi shart
 # Kredit real vaqtdan tez o'smaydi: 1.15 — faqat tarmoq/timer jitteri uchun zapas.
@@ -3906,13 +3905,11 @@ def _ensure_gating_duration(video):
     if video.verified_duration_seconds:
         return video.verified_duration_seconds
 
-    checked_before = video.duration_checked_at
-    resolve_verified_duration(video)
-    seconds = video.gating_duration_seconds
-    # Urinish bo'ldi-yu natija chiqmadi — admin qo'lda kiritishi kerak.
-    if not seconds and video.duration_checked_at != checked_before:
-        notify_admin_video_duration_unknown(video)
-    return seconds
+    # Tashqi YouTube/Vimeo so'rovi heartbeat workerini 6–18 soniya band qilib,
+    # hosting navbatini to'ldirmasligi kerak. DB claim bir video uchun faqat bitta
+    # fon tekshiruvini boshlaydi; hozircha mavjud fallback qiymatini qaytaramiz.
+    schedule_verified_duration(video)
+    return video.gating_duration_seconds
 
 
 def _resolve_required_seconds(progress, video):

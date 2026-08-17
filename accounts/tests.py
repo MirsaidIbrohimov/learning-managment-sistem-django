@@ -392,8 +392,11 @@ class VideoWatchAntiCheatTests(TestCase):
             required_seconds=3279,  # eski 61 daqiqalik qiymatdan hisoblangan
         )
 
+        from accounts.video_duration import resolve_verified_duration
+
         with patch('accounts.video_duration._fetch_duration', return_value=35 * 60):
-            result = self._beat(0)
+            resolve_verified_duration(self.video)
+        result = self._beat(0)
 
         self.video.refresh_from_db()
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
@@ -401,6 +404,23 @@ class VideoWatchAntiCheatTests(TestCase):
         self.assertEqual(self.video.duration, 35)
         self.assertEqual(progress.required_seconds, 1875)
         self.assertEqual(result['remaining'], 1875)
+
+    def test_duration_resolution_is_deduplicated_before_background_start(self):
+        """Ko'p heartbeat bir video uchun ko'p tashqi HTTP thread boshlamasligi kerak."""
+        self.video.verified_duration_seconds = 0
+        self.video.duration_checked_at = None
+        self.video.save(update_fields=['verified_duration_seconds', 'duration_checked_at'])
+
+        from accounts.video_duration import schedule_verified_duration
+
+        with patch('accounts.video_duration.threading.Thread') as thread:
+            first = schedule_verified_duration(self.video)
+            second = schedule_verified_duration(self.video)
+
+        self.assertTrue(first)
+        self.assertFalse(second)
+        thread.assert_called_once()
+        thread.return_value.start.assert_called_once()
 
     def test_parallel_videos_cannot_multiply_watch_time(self):
         """Bir vaqtda bir necha videoga beat yuborib vaqtni ko'paytirib bo'lmaydi.

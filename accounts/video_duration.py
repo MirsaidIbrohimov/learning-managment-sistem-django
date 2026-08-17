@@ -8,10 +8,13 @@ DB'da qulflaydi — mijoz bu qiymatga ta'sir qila olmaydi.
 """
 
 import re
+import threading
 from datetime import timedelta
 
 import requests
 from django.conf import settings
+from django.db import close_old_connections
+from django.db.models import Q
 from django.utils import timezone
 
 FETCH_TIMEOUT = 6          # soniya — so'rov yo'lida turgani uchun qisqa
@@ -154,28 +157,28 @@ def _fetch_duration(video):
     return 0
 
 
-def resolve_verified_duration(video):
-    """Serverda tasdiqlangan davomiylikni (soniya) qaytaradi; 0 — aniqlanmadi.
-
-    Muvaffaqiyatli natija DB'da qulflanadi, shuning uchun tashqi so'rov har bir
-    video uchun amalda bir marta ketadi. Xatolikda `duration_checked_at` yoziladi
-    va `RETRY_AFTER` o'tmaguncha qayta urinilmaydi (har heartbeat'da YouTube'ga
-    chiqib so'rovni sekinlashtirmaslik uchun).
-
-    DIQQAT: tashqi HTTP so'rovi bor — DB tranzaksiyasi ichida chaqirmang.
-    """
+def _claim_duration_check(video):
+    """Tekshiruvni bitta workerga atomik biriktiradi; vaqtni yoki None qaytaradi."""
     from .models import VideoLesson
 
-    if video.verified_duration_seconds:
-        return video.verified_duration_seconds
-
     now = timezone.now()
-    if video.duration_checked_at and now - video.duration_checked_at < RETRY_AFTER:
-        return 0
+    retry_before = now - RETRY_AFTER
+    claimed = VideoLesson.objects.filter(
+        pk=video.pk,
+        verified_duration_seconds=0,
+    ).filter(
+        Q(duration_checked_at__isnull=True) | Q(duration_checked_at__lte=retry_before)
+    ).update(duration_checked_at=now)
+    if not claimed:
+        return None
+    video.duration_checked_at = now
+    return now
 
-    seconds = _fetch_duration(video)
 
-    fields = {'duration_checked_at': now}
+def _save_duration_result(video, seconds, checked_at):
+    from .models import VideoLesson
+
+    fields = {'duration_checked_at': checked_at}
     if seconds:
         fields['verified_duration_seconds'] = seconds
         # `duration` (daqiqa) coin miqdori, statistika va eski sahifalarda
@@ -186,4 +189,51 @@ def resolve_verified_duration(video):
     VideoLesson.objects.filter(pk=video.pk).update(**fields)
     for name, value in fields.items():
         setattr(video, name, value)
+
+
+def resolve_verified_duration(video):
+    """Davomiylikni hozir aniqlaydi; oddiy HTTP request ichida chaqirmang.
+
+    Muvaffaqiyatli natija DB'da qulflanadi, shuning uchun tashqi so'rov har bir
+    video uchun amalda bir marta ketadi. Xatolikda `duration_checked_at` yoziladi
+    va `RETRY_AFTER` o'tmaguncha qayta urinilmaydi (har heartbeat'da YouTube'ga
+    chiqib so'rovni sekinlashtirmaslik uchun).
+
+    DIQQAT: tashqi HTTP so'rovi bor — DB tranzaksiyasi ichida chaqirmang.
+    """
+    if video.verified_duration_seconds:
+        return video.verified_duration_seconds
+
+    checked_at = _claim_duration_check(video)
+    if checked_at is None:
+        return 0
+
+    seconds = _fetch_duration(video)
+    _save_duration_result(video, seconds, checked_at)
     return seconds
+
+
+def schedule_verified_duration(video):
+    """Tashqi davomiylik tekshiruvini requestni bloklamasdan bir marta boshlaydi."""
+    if video.verified_duration_seconds:
+        return False
+
+    checked_at = _claim_duration_check(video)
+    if checked_at is None:
+        return False
+
+    video_id = video.pk
+
+    def _resolve():
+        from .models import VideoLesson
+
+        close_old_connections()
+        try:
+            fresh_video = VideoLesson.objects.get(pk=video_id)
+            seconds = _fetch_duration(fresh_video)
+            _save_duration_result(fresh_video, seconds, checked_at)
+        finally:
+            close_old_connections()
+
+    threading.Thread(target=_resolve, daemon=True).start()
+    return True
