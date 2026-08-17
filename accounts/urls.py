@@ -125,6 +125,7 @@ urlpatterns = [
     path('chat/u/<int:pk>/', views.direct_chat_view, name='direct_chat'),
     path('dashboard/group-chats/', views.admin_group_chats, name='admin_group_chats'),
     path('dashboard/direct-chats/', views.admin_direct_chats, name='admin_direct_chats'),
+    path('dashboard/direct-chats/ai/', views.admin_direct_chats_ai, name='admin_direct_chats_ai'),
     path('dashboard/direct-chats/<int:u1_pk>/<int:u2_pk>/', views.admin_direct_chat_detail, name='admin_direct_chat_detail'),
     # Chat API (polling)
     path('api/chat/group/<int:profession_pk>/messages/', chat_api.group_messages, name='api_chat_group_messages'),

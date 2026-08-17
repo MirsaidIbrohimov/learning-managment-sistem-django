@@ -6,40 +6,121 @@
 
 {% block extra_css %}
 <style>
-.adcd-page { max-width: 760px; margin: 0 auto; }
+.adcd-page { max-width: 800px; margin: 0 auto; }
+
+/* ── Sarlavha ─────────────────────────────────────── */
 .adcd-header {
-    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;
-    padding: 1rem 1.25rem; border-radius: 16px;
+    display: flex; align-items: center; gap: 0.85rem; margin-bottom: .85rem;
+    padding: 1rem 1.25rem; border-radius: 18px;
     background: var(--card-bg, #fff); border: 1px solid var(--border-color, rgba(0,0,0,.08));
 }
 .adcd-back { color: var(--bs-secondary-color, #6c757d); font-size: 1.3rem; text-decoration: none; flex: 0 0 auto; }
 .adcd-back:hover { color: #6366f1; }
-.adcd-title { font-weight: 700; font-size: 1rem; }
-.adcd-sub { font-size: 0.8rem; color: var(--bs-secondary-color, #6c757d); }
+.adcd-avas { position: relative; width: 56px; height: 40px; flex: 0 0 56px; }
+.adcd-ava {
+    width: 38px; height: 38px; border-radius: 50%; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    font-weight: 700; font-size: .8rem; border: 2.5px solid var(--card-bg, #fff);
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+}
+.adcd-avas .adcd-ava:last-child { position: absolute; left: 20px; top: 0; background: linear-gradient(135deg,#0ea5e9,#38bdf8); }
+.adcd-ava img { width: 100%; height: 100%; object-fit: cover; }
+.adcd-title { font-weight: 700; font-size: .98rem; }
+.adcd-sub { font-size: 0.78rem; color: var(--bs-secondary-color, #6c757d); }
+.adcd-role { font-size: .62rem; font-weight: 700; padding: .08rem .4rem; border-radius: 10px; }
+.adcd-role.student { background: rgba(16,185,129,.12); color: #059669; }
+.adcd-role.teacher { background: rgba(245,158,11,.14); color: #d97706; }
+
+.adcd-stats { display: flex; gap: .4rem; flex-wrap: wrap; margin-left: auto; }
+.adcd-chip {
+    font-size: .7rem; font-weight: 700; border-radius: 12px; padding: .22rem .6rem;
+    display: inline-flex; align-items: center; gap: .3rem; white-space: nowrap;
+}
+.adcd-chip.total { background: rgba(99,102,241,.1); color: #4f46e5; }
+.adcd-chip.del { background: rgba(220,38,38,.1); color: #dc2626; }
+.adcd-chip.edt { background: rgba(245,158,11,.12); color: #d97706; }
+
 .adcd-notice {
     display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem;
-    color: #d97706; background: rgba(245,158,11,0.1); border-radius: 10px;
-    padding: 0.5rem 0.9rem; margin-bottom: 1.25rem;
+    color: #d97706; background: rgba(245,158,11,0.1); border-radius: 12px;
+    padding: 0.55rem 0.9rem; margin-bottom: .85rem;
 }
 
-.adcd-thread { display: flex; flex-direction: column; gap: 0.5rem; }
-.adcd-msg {
-    max-width: 78%; padding: 0.6rem 0.9rem; border-radius: 14px;
-    border: 1px solid var(--border-color, rgba(0,0,0,.06));
+/* ── Qidiruv ──────────────────────────────────────── */
+.adcd-find { position: relative; margin-bottom: 1rem; }
+.adcd-find i { position: absolute; left: .9rem; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+.adcd-find input {
+    width: 100%; padding: .6rem 2.6rem .6rem 2.4rem; border-radius: 13px; font-size: .87rem;
+    border: 2px solid var(--border-color, #e5e7eb); background: var(--card-bg, #fff); color: inherit;
 }
-.adcd-msg.from-u1 { align-self: flex-start; background: var(--card-bg, #fff); }
-.adcd-msg.from-u2 { align-self: flex-end; background: rgba(99,102,241,0.07); }
-.adcd-msg-sender { font-size: 0.74rem; font-weight: 700; color: #6366f1; margin-bottom: 2px; }
+.adcd-find input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+.adcd-find .cnt {
+    position: absolute; right: .8rem; top: 50%; transform: translateY(-50%);
+    font-size: .72rem; font-weight: 700; color: #6366f1;
+}
+
+/* ── Sana ajratgich ───────────────────────────────── */
+.adcd-day { display: flex; align-items: center; gap: .8rem; margin: 1rem 0 .6rem; }
+.adcd-day::before, .adcd-day::after { content: ''; flex: 1; height: 1px; background: var(--border-color, rgba(0,0,0,.1)); }
+.adcd-day span {
+    font-size: .7rem; font-weight: 700; color: var(--bs-secondary-color, #6c757d);
+    background: var(--card-bg, #fff); border: 1px solid var(--border-color, rgba(0,0,0,.08));
+    padding: .18rem .7rem; border-radius: 14px;
+}
+
+/* ── Xabarlar ─────────────────────────────────────── */
+.adcd-thread { display: flex; flex-direction: column; gap: 0.45rem; }
+.adcd-msg {
+    max-width: 80%; padding: 0.55rem 0.85rem; border-radius: 15px;
+    border: 1px solid var(--border-color, rgba(0,0,0,.06));
+    background: var(--card-bg, #fff);
+}
+.adcd-msg.from-u1 { align-self: flex-start; border-bottom-left-radius: 5px; }
+.adcd-msg.from-u2 { align-self: flex-end; border-bottom-right-radius: 5px; background: rgba(99,102,241,.06); }
+.adcd-msg.is-del {
+    border: 1.5px dashed rgba(220,38,38,.45); background: rgba(220,38,38,.045);
+}
+.adcd-msg-sender { font-size: 0.72rem; font-weight: 700; color: #6366f1; margin-bottom: 2px; }
 .adcd-msg-reply {
     font-size: 0.74rem; color: var(--bs-secondary-color, #6c757d);
     border-left: 3px solid #6366f1; padding: 2px 8px; margin-bottom: 4px;
     background: rgba(99,102,241,0.05); border-radius: 4px;
 }
-.adcd-msg-text { font-size: 0.9rem; white-space: pre-wrap; word-break: break-word; }
+.adcd-msg-text { font-size: 0.89rem; white-space: pre-wrap; word-break: break-word; }
+.adcd-msg.is-del .adcd-msg-text { color: #7f1d1d; }
 .adcd-msg-file { font-size: 0.85rem; margin-top: 4px; }
-.adcd-msg-meta { font-size: 0.7rem; color: var(--bs-secondary-color, #6c757d); margin-top: 3px; display: flex; gap: 6px; }
+.adcd-msg-meta { font-size: 0.68rem; color: var(--bs-secondary-color, #6c757d); margin-top: 3px; display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+.adcd-flag-del { color: #dc2626; font-weight: 700; }
+.adcd-flag-edt { color: #d97706; font-weight: 700; cursor: pointer; }
+.adcd-flag-edt:hover { text-decoration: underline; }
+
+/* ── Tahrir tarixi ────────────────────────────────── */
+.adcd-history {
+    display: none; margin-top: .45rem; border-top: 1px dashed rgba(217,119,6,.4);
+    padding-top: .4rem;
+}
+.adcd-history.open { display: block; animation: histIn .2s ease; }
+@keyframes histIn { from { opacity: 0; transform: translateY(-4px);} to { opacity: 1; transform: none;} }
+.adcd-history-title { font-size: .68rem; font-weight: 700; color: #d97706; margin-bottom: .3rem; }
+.adcd-history-item {
+    font-size: .78rem; padding: .35rem .55rem; border-radius: 8px; margin-bottom: .3rem;
+    background: rgba(245,158,11,.07); border-left: 3px solid #f59e0b;
+}
+.adcd-history-item .old { color: #92400e; white-space: pre-wrap; word-break: break-word; }
+.adcd-history-item .when { font-size: .65rem; color: var(--bs-secondary-color, #6c757d); display: block; margin-top: 2px; }
+
+/* ── Reaksiyalar ──────────────────────────────────── */
+.adcd-reactions { display: flex; gap: .3rem; margin-top: .35rem; flex-wrap: wrap; }
+.adcd-react {
+    font-size: .72rem; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.18);
+    border-radius: 14px; padding: .05rem .5rem; color: #4338ca;
+}
+.adcd-react small { color: var(--bs-secondary-color, #6c757d); }
+
+.adcd-hidden-by-filter { display: none !important; }
 .adcd-empty { text-align: center; padding: 60px 20px; color: var(--bs-secondary-color, #6c757d); }
 .adcd-empty i { font-size: 3rem; opacity: .4; display: block; margin-bottom: 12px; }
+mark { background: #fde68a; border-radius: 3px; padding: 0 1px; }
 </style>
 {% endblock %}
 
@@ -47,20 +128,44 @@
 <div class="adcd-page">
     <div class="adcd-header">
         <a href="{% url 'admin_direct_chats' %}" class="adcd-back"><i class="bi bi-arrow-left"></i></a>
+        <div class="adcd-avas">
+            <div class="adcd-ava">{% if u1.photo %}<img src="{{ u1.photo.url }}" alt="">{% else %}{{ u1.full_name|slice:":1"|upper }}{% endif %}</div>
+            <div class="adcd-ava">{% if u2.photo %}<img src="{{ u2.photo.url }}" alt="">{% else %}{{ u2.full_name|slice:":1"|upper }}{% endif %}</div>
+        </div>
         <div>
-            <div class="adcd-title">{{ u1.full_name }} <i class="bi bi-arrow-left-right text-muted" style="font-size:0.75rem;"></i> {{ u2.full_name }}</div>
+            <div class="adcd-title">
+                {{ u1.full_name }} <span class="adcd-role {{ u1.role }}">{% if u1.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}</span>
+                <i class="bi bi-arrow-left-right text-muted" style="font-size:0.72rem;"></i>
+                {{ u2.full_name }} <span class="adcd-role {{ u2.role }}">{% if u2.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}</span>
+            </div>
             <div class="adcd-sub">@{{ u1.username }} &middot; @{{ u2.username }}</div>
+        </div>
+        <div class="adcd-stats">
+            <span class="adcd-chip total"><i class="bi bi-chat-dots"></i> {{ thread_stats.total }}</span>
+            {% if thread_stats.deleted %}<span class="adcd-chip del" title="Foydalanuvchilar o'chirgan xabarlar"><i class="bi bi-trash3"></i> {{ thread_stats.deleted }}</span>{% endif %}
+            {% if thread_stats.edited %}<span class="adcd-chip edt" title="Tahrirlangan xabarlar"><i class="bi bi-pencil"></i> {{ thread_stats.edited }}</span>{% endif %}
         </div>
     </div>
 
     <div class="adcd-notice">
-        <i class="bi bi-eye"></i> Faqat ko'rish rejimi — bu yerdan xabar yuborish, tahrirlash yoki o'chirish mumkin emas.
+        <i class="bi bi-eye"></i>
+        <span>Faqat ko'rish rejimi. <b>O'chirilgan</b> va <b>tahrirlangan</b> xabarlar ham asl holicha ko'rsatiladi (foydalanuvchilarga ko'rinmaydi).</span>
     </div>
 
     {% if messages_chrono %}
-    <div class="adcd-thread">
+    <div class="adcd-find">
+        <i class="bi bi-search"></i>
+        <input type="text" id="threadFind" placeholder="Suhbat ichidan izlash..." autocomplete="off">
+        <span class="cnt" id="findCnt"></span>
+    </div>
+
+    <div class="adcd-thread" id="thread">
         {% for m in messages_chrono %}
-        <div class="adcd-msg {% if m.sender_id == u1.pk %}from-u1{% else %}from-u2{% endif %}">
+        {% ifchanged m.created_at.date %}
+        <div class="adcd-day"><span>{{ m.created_at|date:"d E Y" }}</span></div>
+        {% endifchanged %}
+        <div class="adcd-msg {% if m.sender_id == u1.pk %}from-u1{% else %}from-u2{% endif %}{% if m.is_deleted %} is-del{% endif %}"
+             data-text="{{ m.message|lower }}">
             <div class="adcd-msg-sender">{{ m.sender.full_name }}</div>
             {% if m.reply_to %}
             <div class="adcd-msg-reply">
@@ -78,8 +183,33 @@
             {% endif %}
             <div class="adcd-msg-meta">
                 <span>{{ m.created_at|date:"d.m.Y H:i" }}</span>
-                {% if m.is_edited %}<span><i class="bi bi-pencil"></i> tahrirlangan</span>{% endif %}
+                {% if m.is_deleted %}
+                <span class="adcd-flag-del"><i class="bi bi-trash3"></i> o'chirilgan{% if m.deleted_at %} ({{ m.deleted_at|date:"d.m.Y H:i" }}){% endif %}</span>
+                {% endif %}
+                {% if m.is_edited %}
+                <span class="adcd-flag-edt" onclick="toggleHistory(this)">
+                    <i class="bi bi-pencil"></i> tahrirlangan{% if m.edit_history.all %} — asl matnni ko'rish{% endif %}
+                </span>
+                {% endif %}
             </div>
+            {% if m.edit_history.all %}
+            <div class="adcd-history">
+                <div class="adcd-history-title"><i class="bi bi-clock-history"></i> Tahrir tarixi (eski variantlar):</div>
+                {% for h in m.edit_history.all %}
+                <div class="adcd-history-item">
+                    <div class="old">{{ h.old_text }}</div>
+                    <span class="when"><i class="bi bi-pencil-square"></i> {{ h.edited_at|date:"d.m.Y H:i" }} da tahrirlangan</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% if m.reactions.all %}
+            <div class="adcd-reactions">
+                {% for r in m.reactions.all %}
+                <span class="adcd-react">{{ r.emoji }} <small>{{ r.user.first_name|default:r.user.username }}</small></span>
+                {% endfor %}
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
@@ -89,8 +219,37 @@
     {% else %}
     <div class="adcd-empty">
         <i class="bi bi-chat-square"></i>
-        Bu ikki o'quvchi o'rtasida hali xabar yo'q.
+        Bu ikki foydalanuvchi o'rtasida hali xabar yo'q.
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleHistory(el) {
+    const box = el.closest('.adcd-msg').querySelector('.adcd-history');
+    if (box) box.classList.toggle('open');
+}
+
+/* Suhbat ichidan matn bo'yicha jonli qidiruv */
+(function () {
+    const input = document.getElementById('threadFind');
+    const cnt = document.getElementById('findCnt');
+    if (!input) return;
+    input.addEventListener('input', () => {
+        const q = input.value.trim().toLowerCase();
+        const msgs = document.querySelectorAll('#thread .adcd-msg');
+        const days = document.querySelectorAll('#thread .adcd-day');
+        let found = 0;
+        msgs.forEach(m => {
+            const ok = !q || (m.dataset.text || '').includes(q);
+            m.classList.toggle('adcd-hidden-by-filter', !ok);
+            if (ok && q) found++;
+        });
+        days.forEach(d => d.classList.toggle('adcd-hidden-by-filter', !!q));
+        cnt.textContent = q ? (found + ' ta topildi') : '';
+    });
+})();
+</script>
 {% endblock %}

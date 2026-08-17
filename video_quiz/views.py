@@ -888,6 +888,14 @@ def api_player_submit(request):
     except IntegrityError:
         return JsonResponse({'error': "Siz bu savolga allaqachon javob bergansiz."}, status=400)
 
+    # Savolga javob berish tiriklik tekshiruvini ham qondiradi — o'quvchini
+    # ketma-ket ikki marta ("Davom etish" + savol) to'xtatib qo'ymaymiz.
+    try:
+        from accounts.views import mark_presence_satisfied
+        mark_presence_satisfied(request.user.pk, quiz.video_id)
+    except Exception as e:
+        print(f"Presence reset xatolik: {e}")
+
     request.user.refresh_from_db(fields=['coins'])
     return JsonResponse({
         'ok': True,

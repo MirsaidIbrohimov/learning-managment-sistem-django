@@ -211,6 +211,7 @@ class VideoWatchAntiCheatTests(TestCase):
     """Konsoldan timerni chetlab o'tish urinishlari serverda to'xtatilishi."""
 
     def setUp(self):
+        cache.clear()   # rate-limit hisobi testlar orasida oqib ketmasin
         profession = Profession.objects.create(
             name='Anti-cheat kursi',
             photo='professions/anti-cheat.jpg',
@@ -233,18 +234,38 @@ class VideoWatchAntiCheatTests(TestCase):
             password='test-password',
             role='admin',
         )
+        self._nonce = ''
+        self._presence_token = ''
 
-    def _beat(self, position, duration_seconds=3600):
+    def _beat(self, position, duration_seconds=3600, playing=True, hidden=False,
+              nonce=None, answer_presence=True):
+        """Halol mijoz kabi beat yuboradi: nonce zanjiri + tiriklik javobi.
+
+        Rate-limit hisobi har chaqiruvda tozalanadi: testlar server soatini
+        orqaga surib vaqt o'tishini simulyatsiya qiladi, cache oynasi esa real
+        60 soniya — aks holda halol sikl 429 ga urilardi. Cheklovning o'zi
+        `VideoWatchLivenessTests.test_beat_flood_is_rate_limited` da sinaladi.
+        """
+        cache.delete(f'rl:video_watch_beat:{self.user.pk}:{self.video.pk}')
+        body = {
+            'position': position,
+            'duration_seconds': duration_seconds,
+            'playing': playing,
+            'hidden': hidden,
+            'nonce': self._nonce if nonce is None else nonce,
+        }
+        if answer_presence and self._presence_token:
+            body['presence_token'] = self._presence_token
         request = self.factory.post(
             reverse('video_watch_beat', args=[self.video.pk]),
-            data=json.dumps({
-                'position': position,
-                'duration_seconds': duration_seconds,
-            }),
+            data=json.dumps(body),
             content_type='application/json',
         )
         request.user = self.user
-        return json.loads(video_watch_beat(request, self.video.pk).content)
+        result = json.loads(video_watch_beat(request, self.video.pk).content)
+        self._nonce = result.get('nonce', '')
+        self._presence_token = (result.get('presence') or {}).get('token', '')
+        return result
 
     def _mark_watched(self):
         request = self.factory.post(
@@ -368,14 +389,24 @@ class VideoWatchAntiCheatTests(TestCase):
             verified_duration_seconds=3600,
         )
 
+        nonces = {}
+
         def beat(video, position):
+            cache.delete(f'rl:video_watch_beat:{self.user.pk}:{video.pk}')
             request = self.factory.post(
                 reverse('video_watch_beat', args=[video.pk]),
-                data=json.dumps({'position': position}),
+                data=json.dumps({
+                    'position': position,
+                    'playing': True,
+                    'hidden': False,
+                    'nonce': nonces.get(video.pk, ''),
+                }),
                 content_type='application/json',
             )
             request.user = self.user
-            return json.loads(video_watch_beat(request, video.pk).content)
+            result = json.loads(video_watch_beat(request, video.pk).content)
+            nonces[video.pk] = result.get('nonce', '')
+            return result
 
         beat(self.video, 0)
         beat(other_video, 0)
@@ -429,17 +460,30 @@ class StudentTokenWatchAntiCheatTests(TestCase):
         self.token = StudentLessonToken.objects.create(
             student=self.user, lesson=self.lesson
         )
+        self._nonce = ''
+        self._presence_token = ''
 
-    def _beat(self, position):
+    def _beat(self, position, playing=True, hidden=False):
         url = reverse('student_video_watch_beat', args=[self.token.token])
+        cache.delete(f'rl:video_watch_beat:{self.user.pk}:{self.token.token}')
+        body = {
+            'position': position,
+            'playing': playing,
+            'hidden': hidden,
+            'nonce': self._nonce,
+        }
+        if self._presence_token:
+            body['presence_token'] = self._presence_token
         request = self.factory.post(
-            url, data=json.dumps({'position': position}),
-            content_type='application/json',
+            url, data=json.dumps(body), content_type='application/json',
         )
         request.user = self.user
-        return json.loads(
+        result = json.loads(
             student_video_watch_beat(request, self.token.token).content
         )
+        self._nonce = result.get('nonce', '')
+        self._presence_token = (result.get('presence') or {}).get('token', '')
+        return result
 
     def _mark_watched(self):
         url = reverse('student_mark_video_watched', args=[self.token.token])
@@ -487,6 +531,338 @@ class StudentTokenWatchAntiCheatTests(TestCase):
         self.assertFalse(honest['seek_blocked'])
         self.assertLessEqual(honest['verified_seconds'], 20 * 1.15 + 0.5)
         self.assertFalse(honest['can_complete'])
+
+
+class VideoWatchLivenessTests(TestCase):
+    """Vaqt o'tishi yetarli emas — ROSTDAN ko'rilgani isbotlanishi shart.
+
+    Konsoldan soxta pozitsiya yuboruvchi skript videoni umuman o'ynatmasdan
+    ham "real vaqt" tezligida kredit yig'ib ketardi. Bu testlar shu yo'lni
+    yopadigan to'rt qatlamni sinaydi: ijro isboti, nonce zanjiri, tasodifiy
+    tiriklik tekshiruvi va video ichidagi testlar.
+
+    Har bir tekshiruvda ikki narsa birga sinaladi: (1) hiyla kredit olmaydi,
+    (2) halol o'quvchi QULFLANIB QOLMAYDI — yig'ilgan vaqt saqlanadi va
+    keyingi to'g'ri beat kreditni davom ettiradi.
+    """
+
+    def setUp(self):
+        cache.clear()
+        profession = Profession.objects.create(
+            name='Tiriklik kursi',
+            photo='professions/liveness.jpg',
+            description='Liveness test course',
+        )
+        self.lesson = Lesson.objects.create(
+            profession=profession,
+            title='1 soatlik video',
+            lesson_type='video',
+        )
+        self.video = VideoLesson.objects.create(
+            lesson=self.lesson,
+            video_url='https://youtu.be/ddddddddddd',
+            verified_duration_seconds=3600,
+        )
+        self.factory = RequestFactory()
+        self.user = CustomUser.objects.create_user(
+            username='liveness-student',
+            password='test-password',
+            role='student',
+        )
+        self.token = StudentLessonToken.objects.create(
+            student=self.user, lesson=self.lesson
+        )
+        self._nonce = ''
+        self._presence_token = ''
+
+    # ── yordamchilar ──
+
+    def _post(self, body, reset_rate_limit=True):
+        url = reverse('student_video_watch_beat', args=[self.token.token])
+        if reset_rate_limit:
+            cache.delete(f'rl:video_watch_beat:{self.user.pk}:{self.token.token}')
+        request = self.factory.post(
+            url, data=json.dumps(body), content_type='application/json',
+        )
+        request.user = self.user
+        return student_video_watch_beat(request, self.token.token)
+
+    def _beat(self, position, playing=True, hidden=False, nonce=None,
+              answer_presence=True, extra=None):
+        body = {
+            'position': position,
+            'playing': playing,
+            'hidden': hidden,
+            'nonce': self._nonce if nonce is None else nonce,
+        }
+        if answer_presence and self._presence_token:
+            body['presence_token'] = self._presence_token
+        if extra:
+            body.update(extra)
+        result = json.loads(self._post(body).content)
+        self._nonce = result.get('nonce', '')
+        self._presence_token = (result.get('presence') or {}).get('token', '')
+        return result
+
+    def _elapse(self, seconds):
+        """Server soatini orqaga surib o'tgan real vaqtni simulyatsiya qiladi."""
+        moment = timezone.now() - timedelta(seconds=seconds)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            last_beat_at=moment, last_credit_at=moment
+        )
+
+    def _progress(self):
+        return VideoProgress.objects.get(user=self.user, video=self.video)
+
+    def _mark_watched(self):
+        url = reverse('student_mark_video_watched', args=[self.token.token])
+        request = self.factory.post(url, data='{}', content_type='application/json')
+        request.user = self.user
+        with patch('accounts.notifications.on_video_watched'):
+            response = student_mark_video_watched(request, self.token.token)
+        return response, json.loads(response.content)
+
+    def _quiz(self, trigger_second):
+        from video_quiz.models import VideoQuiz
+
+        return VideoQuiz.objects.create(
+            video=self.video,
+            trigger_second=trigger_second,
+            question='2 + 2 = ?',
+            option_a='3', option_b='4', option_c='5', option_d='6',
+            correct_option='B',
+        )
+
+    # ── ijro isboti ──
+
+    def test_paused_or_hidden_beats_earn_no_credit(self):
+        """Pauzada va fon tabda kredit berilmaydi, lekin qaytgach davom etadi.
+
+        Interfeys o'quvchiga "Sahifadan chiqdingiz — timer to'xtadi" deb
+        allaqachon yozadi; bu test shu va'dani server majburlashini tekshiradi.
+        """
+        self._beat(0)
+
+        self._elapse(30)
+        paused = self._beat(30, playing=False)
+        self.assertEqual(paused['blocked'], 'paused')
+        self.assertEqual(paused['credited'], 0)
+
+        self._elapse(30)
+        backgrounded = self._beat(60, hidden=True)
+        self.assertEqual(backgrounded['blocked'], 'hidden')
+        self.assertEqual(backgrounded['credited'], 0)
+        self.assertEqual(self._progress().verified_seconds, 0)
+
+        # Halol o'quvchi qaytdi — kredit qayta ishlaydi.
+        self._elapse(30)
+        watching = self._beat(90)
+        self.assertIsNone(watching['blocked'])
+        self.assertGreater(watching['credited'], 0)
+
+    def test_stale_client_gets_no_credit_and_is_told_to_reload(self):
+        """Eski (keshdagi) mijoz `playing` yubormaydi — kredit to'xtaydi.
+
+        Uni "ijroda" deb hisoblab bo'lmaydi: aks holda sahifani yangilamaslikning
+        o'zi tekshiruvni chetlab o'tish yo'liga aylanardi.
+        """
+        self._beat(0)
+        self._elapse(30)
+        result = json.loads(self._post({'position': 30}).content)
+
+        self.assertEqual(result['blocked'], 'stale_client')
+        self.assertEqual(result['credited'], 0)
+        self.assertEqual(self._progress().verified_seconds, 0)
+
+    # ── nonce zanjiri ──
+
+    def test_stale_nonce_blocks_credit_without_locking_out(self):
+        """Eski nonce'ni qayta ishlatish (replay) kredit bermaydi."""
+        self._beat(0)
+        self._elapse(30)
+        first = self._beat(30)
+        self.assertGreater(first['credited'], 0)
+        earned = self._progress().verified_seconds
+
+        # Xuddi shu (allaqachon ishlatilgan) nonce bilan yana yuboramiz.
+        self._elapse(30)
+        replayed = self._beat(60, nonce=first['nonce'])
+        self.assertEqual(replayed['blocked'], 'nonce')
+        self.assertEqual(replayed['credited'], 0)
+        self.assertEqual(self._progress().verified_seconds, earned)
+        self.assertGreaterEqual(self._progress().suspicion_score, 3)
+
+        # Yangi nonce javobda berildi — halol o'quvchi davom etadi.
+        self._elapse(30)
+        resumed = self._beat(90)
+        self.assertIsNone(resumed['blocked'])
+        self.assertGreater(resumed['credited'], 0)
+
+    def test_empty_nonce_after_reload_is_not_counted_as_cheating(self):
+        """Sahifa yangilanganda mijozda nonce yo'q — bu halol holat."""
+        self._beat(0)
+        self._elapse(30)
+        self._beat(30)
+
+        self._elapse(30)
+        reloaded = self._beat(60, nonce='')
+        self.assertEqual(reloaded['blocked'], 'nonce')      # kredit to'xtadi
+        self.assertEqual(self._progress().suspicion_score, 0)   # lekin ayblanmadi
+
+    # ── tiriklik tekshiruvi ──
+
+    def test_presence_challenge_pauses_credit_until_answered(self):
+        """Tugma bosilmasa kredit to'xtaydi; kechikkan javob ham qabul qilinadi."""
+        self._beat(0)
+        # Birinchi tekshiruv 2–4 daqiqadan keyin chiqadi — testda yaqinlashtiramiz.
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            next_check_seconds=1
+        )
+
+        self._elapse(30)
+        challenged = self._beat(30)
+        self.assertIn('presence', challenged)
+        self.assertEqual(challenged['presence']['deadline'], 30)
+        self.assertGreater(challenged['credited'], 0)   # tekshiruv kreditni yemaydi
+        earned = self._progress().verified_seconds
+
+        # Javob bermay 40 soniya o'tdi.
+        self._elapse(30)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            presence_sent_at=timezone.now() - timedelta(seconds=40)
+        )
+        ignored = self._beat(60, answer_presence=False)
+        self.assertEqual(ignored['blocked'], 'presence')
+        self.assertEqual(ignored['credited'], 0)
+        self.assertEqual(self._progress().presence_failures, 1)
+        self.assertEqual(self._progress().verified_seconds, earned)
+
+        # Yana javob yo'q — bal va hisob ikki marta yozilmaydi.
+        self._elapse(30)
+        still_ignored = self._beat(90, answer_presence=False)
+        self.assertEqual(still_ignored['blocked'], 'presence')
+        self.assertEqual(self._progress().presence_failures, 1)
+
+        # Kech bo'lsa ham javob berdi — kredit davom etadi, jazo yo'q.
+        self._elapse(30)
+        answered = self._beat(120)
+        self.assertIsNone(answered['blocked'])
+        self.assertGreater(answered['credited'], 0)
+        self.assertGreater(self._progress().verified_seconds, earned)
+
+    def test_quiz_answer_satisfies_presence_check(self):
+        """Video testiga javob berish tiriklik isboti — ikki marta bezovta qilmaymiz."""
+        from accounts.views import mark_presence_satisfied
+
+        self._beat(0)
+        progress = self._progress()
+        progress.presence_token = 'kutilayotgan-token'
+        progress.presence_sent_at = timezone.now()
+        progress.save(update_fields=['presence_token', 'presence_sent_at'])
+
+        mark_presence_satisfied(self.user.pk, self.video.pk)
+
+        progress = self._progress()
+        self.assertEqual(progress.presence_token, '')
+        self.assertIsNone(progress.presence_sent_at)
+        self.assertGreater(progress.next_check_seconds, progress.verified_seconds)
+
+    # ── video ichidagi testlar ──
+
+    def test_unanswered_quiz_stops_credit_at_its_second(self):
+        """Javob berilmagan test kreditni o'z soniyasida to'xtatadi."""
+        quiz = self._quiz(trigger_second=60)
+
+        self._beat(0)
+        self._elapse(30)
+        self._beat(30)
+        self._elapse(30)
+        self._beat(60)
+        self.assertAlmostEqual(self._progress().max_position, 60, delta=0.5)
+
+        # Test soniyasiga yetildi — skript undan oldinga o'tolmaydi.
+        self._elapse(30)
+        blocked = self._beat(90)
+        self.assertEqual(blocked['blocked'], 'quiz')
+        self.assertEqual(blocked['credited'], 0)
+        self.assertEqual(blocked['quiz_required']['trigger_second'], 60)
+        self.assertAlmostEqual(self._progress().max_position, 60, delta=0.5)
+
+        from video_quiz.models import VideoQuizAttempt
+        VideoQuizAttempt.objects.create(
+            quiz=quiz, student=self.user, selected_option='B', is_correct=True
+        )
+
+        self._elapse(30)
+        resumed = self._beat(120)
+        self.assertIsNone(resumed['blocked'])
+        self.assertGreater(resumed['credited'], 0)
+
+    def test_completion_blocked_while_required_quiz_unanswered(self):
+        """Talab bajarilsa ham javobsiz test darsni yopishga to'sqinlik qiladi."""
+        self._beat(0)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            required_seconds=3225, verified_seconds=3300
+        )
+        self._quiz(trigger_second=600)
+
+        response, payload = self._mark_watched()
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(payload['quiz_pending'], 1)
+        self.assertFalse(self._progress().watched)
+        # Yig'ilgan vaqt saqlanadi — o'quvchi javob bergach darhol yopiladi.
+        self.assertEqual(self._progress().verified_seconds, 3300)
+
+    def test_quiz_after_required_part_does_not_block_completion(self):
+        """Talabdan keyingi (oxirgi 10% dagi) test halol o'quvchini qulflamaydi."""
+        self._beat(0)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            required_seconds=3225, verified_seconds=3300
+        )
+        self._quiz(trigger_second=3500)
+
+        response, payload = self._mark_watched()
+        self.assertTrue(payload['success'], payload)
+        self.assertTrue(self._progress().watched)
+
+    def test_completed_lesson_is_not_reblocked_by_new_quiz(self):
+        """Yopilgan darsga keyin qo'shilgan test uni qayta bloklamaydi."""
+        self._beat(0)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            required_seconds=3225, verified_seconds=3300, watched=True
+        )
+        self._quiz(trigger_second=600)
+
+        response, payload = self._mark_watched()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(payload['success'], payload)
+
+    # ── oqim cheklovi ──
+
+    def test_beat_flood_is_rate_limited(self):
+        """Beat toshqini 429 bilan to'xtatiladi (normal mijoz 15 sekundda bitta)."""
+        self._beat(0)
+        statuses = {
+            self._post({'position': 1, 'playing': True, 'hidden': False},
+                       reset_rate_limit=False).status_code
+            for _ in range(60)
+        }
+        self.assertIn(429, statuses)
+
+    def test_sub_second_spam_cannot_advance_the_credit_line(self):
+        """1 soniyadan tez beat oqimi `max_position` ni ham surmaydi.
+
+        Ilgari kredit berilmasa ham `max_position = position` bajarilardi:
+        bu seek himoyasini o'chirib, o'quvchini yetib bo'lmaydigan talab bilan
+        qulflab qo'yish xavfini tug'dirardi.
+        """
+        self._beat(0)
+        for position in range(5, 200, 5):
+            self._beat(position)
+
+        progress = self._progress()
+        self.assertLess(progress.verified_seconds, 1)
+        self.assertLess(progress.max_position, 1)
 
 
 class CertificateTelegramNotificationTests(TestCase):

@@ -751,6 +751,14 @@ class VideoProgress(models.Model):
     max_position = models.FloatField(
         default=0, verbose_name="Eng uzoq ko'rilgan nuqta (soniya)"
     )
+    # Oxirgi beat'da xabar qilingan pozitsiya. Sakrash (seek) ANIQLASH shu
+    # qiymatga nisbatan o'lchanadi, `max_position`ga emas. Sabab: kredit biror
+    # sababga ko'ra to'xtatilganda (pauza, fon tab, javob berilmagan test)
+    # `max_position` joyida qoladi — agar sakrash ham shunga qarab o'lchansa,
+    # halol ijro "sakrash" deb qabul qilinib video orqaga tashlanardi.
+    last_position = models.FloatField(
+        default=0, verbose_name="Oxirgi xabar qilingan pozitsiya (soniya)"
+    )
     last_beat_at = models.DateTimeField(null=True, blank=True)
     # Oxirgi marta KREDIT berilgan payt (beat kelgan payt emas). Foydalanuvchining
     # barcha videolari bo'yicha umumiy kreditni real vaqt bilan cheklash uchun:
@@ -762,6 +770,31 @@ class VideoProgress(models.Model):
     cheat_attempts = models.IntegerField(
         default=0, verbose_name="Chetlab o'tish urinishlari"
     )
+
+    # ── Beat butunligi (integrity) ──
+    # Har javobda yangi bir martalik nonce beriladi va keyingi beat aynan shuni
+    # qaytarishi shart. Shu bilan javobni takrorlash (replay) va bir videoga
+    # parallel bir necha oqim yuborish kredit bermaydi.
+    beat_nonce = models.CharField(max_length=32, blank=True, default='')
+
+    # ── Tiriklik tekshiruvi (presence check) ──
+    # Vaqt o'tishining o'zi yetarli emas: skript soxta pozitsiya yuborib fon
+    # tabda kredit yig'ib ketishi mumkin edi. Server tasodifiy vaqtda tugma
+    # bosishni talab qiladi — javob kelmaguncha kredit to'xtaydi (yig'ilgan
+    # vaqt esa hech qachon kamaymaydi).
+    presence_token = models.CharField(max_length=32, blank=True, default='')
+    presence_sent_at = models.DateTimeField(null=True, blank=True)
+    next_check_seconds = models.FloatField(
+        default=0, verbose_name="Keyingi tekshiruv (tasdiqlangan soniyada)"
+    )
+    presence_failures = models.IntegerField(
+        default=0, verbose_name="O'tkazib yuborilgan tekshiruvlar"
+    )
+    suspicion_score = models.IntegerField(
+        default=0, db_index=True, verbose_name="Shubha bali"
+    )
+    # Adminga shubha haqida xabar bir marta yuboriladi.
+    suspicion_notified = models.BooleanField(default=False)
 
     class Meta:
         unique_together = ['user', 'video']
@@ -2690,6 +2723,7 @@ class DirectMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     is_read = models.BooleanField(default=False, verbose_name="O'qilgan")
     is_deleted = models.BooleanField(default=False, verbose_name="O'chirilgan")
+    deleted_at = models.DateTimeField(null=True, blank=True, verbose_name="O'chirilgan vaqti")
 
     # ── Delivery / Reply / Edit / Forward (Phase 1 chat upgrade) ──
     is_delivered = models.BooleanField(default=False, verbose_name="Yetkazilgan")
@@ -2716,6 +2750,27 @@ class DirectMessage(models.Model):
 
     def __str__(self):
         return f"{self.sender.username} -> {self.recipient.username}: {self.message[:30]}"
+
+
+class DirectMessageEditHistory(models.Model):
+    """Shaxsiy xabar tahrir tarixi — har tahrirda ESKI matn shu yerga saqlanadi.
+
+    Admin panel (investigatsiya) uchun: foydalanuvchi xabarni tahrirlagach,
+    asl matn yo'qolmaydi. Tahrirlar xronologik tartibda saqlanadi."""
+    message = models.ForeignKey(
+        DirectMessage, on_delete=models.CASCADE,
+        related_name='edit_history', verbose_name="Xabar"
+    )
+    old_text = models.TextField(verbose_name="Eski matn")
+    edited_at = models.DateTimeField(auto_now_add=True, verbose_name="Tahrirlangan vaqti")
+
+    class Meta:
+        verbose_name = "Shaxsiy xabar tahrir tarixi"
+        verbose_name_plural = "Shaxsiy xabarlar tahrir tarixi"
+        ordering = ['edited_at']
+
+    def __str__(self):
+        return f"#{self.message_id} tahriri @ {self.edited_at:%d.%m.%Y %H:%M}"
 
 
 class MessageReaction(models.Model):

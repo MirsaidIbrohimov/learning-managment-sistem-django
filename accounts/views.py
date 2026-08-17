@@ -11,6 +11,7 @@ from django.utils import timezone
 from datetime import timedelta, date
 import json
 import random
+import secrets
 import time
 from .forms import (
     RegisterForm, LoginForm, ProfessionForm, UserProfileForm, 
@@ -30,7 +31,7 @@ from .models import (
     final_test_prerequisites_met, daily_limit_active,
 )
 from django.contrib.auth.hashers import make_password
-from .security import get_client_ip, check_rate_limit
+from .security import get_client_ip, check_rate_limit, is_rate_limited
 from coin.models import ActivityLog, CoinTransaction
 from blog.models import Post
 from quiz.models import Attempt, Quiz, QuizSettings
@@ -3775,6 +3776,111 @@ BEAT_SEEK_TOLERANCE  = 5.0   # max_position'dan shuncha oldinga o'tish kechirila
 # bo'lmaydigan" bo'lib qolmasligi uchun shu qadar chegirma beramiz.
 WATCH_GRACE_SECONDS  = 15
 
+# ── Tiriklik tekshiruvi (presence check) ──
+# Vaqt o'tishining o'zi yetarli emas edi: konsoldan soxta pozitsiya yuboruvchi
+# skript videoni umuman o'ynatmasdan, tabni fonda qoldirib kredit yig'ib
+# ketardi. Shuning uchun server tasodifiy vaqtda tugma bosishni talab qiladi.
+PRESENCE_FIRST_MIN    = 120   # birinchi tekshiruv (tasdiqlangan soniyada)
+PRESENCE_FIRST_MAX    = 240
+PRESENCE_INTERVAL_MIN = 300   # keyingilari: 5–9 daqiqa
+PRESENCE_INTERVAL_MAX = 540
+PRESENCE_DEADLINE     = 30    # javob berish muddati (soniya)
+
+# Shubha bali shu chegaradan oshsa adminga BIR MARTA xabar beriladi.
+# Progress hech qachon avtomatik o'chirilmaydi — qarorni odam qabul qiladi.
+SUSPICION_NOTIFY_AT = 20
+
+
+def _new_token():
+    """Bir martalik nonce/presence tokeni."""
+    return secrets.token_urlsafe(18)[:24]
+
+
+def _schedule_next_presence(progress):
+    progress.next_check_seconds = progress.verified_seconds + random.uniform(
+        PRESENCE_INTERVAL_MIN, PRESENCE_INTERVAL_MAX
+    )
+
+
+def mark_presence_satisfied(user_id, video_id):
+    """Tiriklik tekshiruvini bajarilgan deb belgilaydi va navbatdagisini suradi.
+
+    Video testiga javob berish — tirikligning eng ishonchli isboti: 35 soniyalik
+    muddat ichida video mazmuni bo'yicha savolga javob berilgan. Shu sababli
+    o'quvchi ikki marta bezovta qilinmaydi.
+    `video_quiz.views.api_player_submit` dan chaqiriladi.
+    """
+    with transaction.atomic():
+        progress = (
+            VideoProgress.objects.select_for_update()
+            .filter(user_id=user_id, video_id=video_id)
+            .first()
+        )
+        if progress is None:
+            return
+        progress.presence_token = ''
+        progress.presence_sent_at = None
+        _schedule_next_presence(progress)
+        progress.save(update_fields=[
+            'presence_token', 'presence_sent_at', 'next_check_seconds',
+        ])
+
+
+def _pending_mid_quiz(user_id, video):
+    """Javob berilmagan eng erta faol video-test (yoki None).
+
+    Skript video mazmunini bilmaydi, shuning uchun testga javob berolmaydi —
+    kredit shu nuqtada to'xtaydi. `api_player_quizzes` to'g'ri javobni mijozga
+    yubormaydi, ya'ni javobni oldindan bilib olishning yo'li yo'q.
+    """
+    from video_quiz.models import VideoQuiz, VideoQuizAttempt
+
+    answered = VideoQuizAttempt.objects.filter(
+        student_id=user_id, quiz__video=video
+    ).values_list('quiz_id', flat=True)
+    return (
+        VideoQuiz.objects.filter(video=video, is_active=True)
+        .exclude(pk__in=answered)
+        .order_by('trigger_second')
+        .first()
+    )
+
+
+def _unanswered_mid_quiz_count(user_id, video, required_seconds):
+    """Ko'rilishi SHART bo'lgan qismdagi javob berilmagan testlar soni.
+
+    `required_seconds`dan keyingi (video oxiridagi) testlar hisobga olinmaydi:
+    talab davomiylikning 90% i, shuning uchun oxirgi 10% dagi test darsni
+    yopishga to'sqinlik qilsa halol o'quvchi qulflanib qolardi.
+    """
+    from video_quiz.models import VideoQuiz, VideoQuizAttempt
+
+    answered = VideoQuizAttempt.objects.filter(
+        student_id=user_id, quiz__video=video
+    ).values_list('quiz_id', flat=True)
+    qs = VideoQuiz.objects.filter(video=video, is_active=True).exclude(pk__in=answered)
+    if required_seconds:
+        qs = qs.filter(trigger_second__lte=required_seconds)
+    return qs.count()
+
+
+def _notify_admin_watch_suspicion(progress, video):
+    """Chetlab o'tish urinishlari haqida adminlarga xabar (bir marta)."""
+    try:
+        notify_admins(
+            f"🚨 <b>Video timerni chetlab o'tish urinishi</b>\n\n"
+            f"👤 O'quvchi: {progress.user.get_full_name() or progress.user.username}\n"
+            f"📖 Dars: {video.lesson.title}\n"
+            f"⚠️ Shubha bali: {progress.suspicion_score}\n"
+            f"⏭ Sakrash urinishlari: {progress.cheat_attempts}\n"
+            f"🙈 O'tkazib yuborilgan tekshiruvlar: {progress.presence_failures}\n"
+            f"⏱ Tasdiqlangan vaqt: {int(progress.verified_seconds)}/"
+            f"{progress.required_seconds} sek\n\n"
+            f"Dars avtomatik yopilmadi — tekshirib ko'ring."
+        )
+    except Exception as e:
+        print(f"Watch suspicion notify xatolik: {e}")
+
 
 def _clean_seconds(value, limit=86400):
     """Mijozdan kelgan soniya qiymatini xavfsiz float'ga aylantiradi."""
@@ -3852,78 +3958,218 @@ def _global_credit_cap(progress, now):
 
 
 def _process_watch_beat(request, video, progress_pk):
-    """Bitta heartbeat'ni qayd etadi va server tasdiqlagan holatni qaytaradi."""
+    """Bitta heartbeat'ni qayd etadi va server tasdiqlagan holatni qaytaradi.
+
+    Kredit berilishi uchun bir necha shart BIR VAQTDA bajarilishi kerak:
+      1) server soati bilan real vaqt o'tgan bo'lsin (beat spam yordam bermaydi),
+      2) mijoz videoning ROSTDAN ijro etilayotganini bildirsin (`playing`,
+         `hidden`) va navbatdagi bir martalik `nonce` ni qaytarsin,
+      3) tasodifiy tiriklik tekshiruvi va video ichidagi testlar javobsiz
+         qolmasin.
+
+    Hech bir tekshiruv darsni YOPMAYDI va yig'ilgan `verified_seconds` hech
+    qachon kamaymaydi — eng yomon holatda kredit vaqtincha to'xtaydi.
+    """
     try:
         payload = json.loads(request.body.decode('utf-8') or '{}')
     except (ValueError, UnicodeDecodeError):
         payload = {}
 
-    position = _clean_seconds(payload.get('position'))
-    now      = timezone.now()
-    _ensure_gating_duration(video)
+    position       = _clean_seconds(payload.get('position'))
+    client_nonce   = str(payload.get('nonce') or '')[:32]
+    presence_reply = str(payload.get('presence_token') or '')[:32]
+    # Eski (brauzer keshida qolgan) mijoz bu maydonlarni yubormaydi. Uni "ijroda"
+    # deb hisoblab bo'lmaydi — aks holda sahifani yangilamaslikning o'zi
+    # tekshiruvni chetlab o'tish yo'liga aylanardi. Kredit to'xtaydi, lekin
+    # yig'ilgani saqlanadi: sahifa yangilanishi bilan hammasi tiklanadi.
+    stale_client = 'playing' not in payload
+    playing      = payload.get('playing') is True
+    hidden       = payload.get('hidden') is True
+
+    # Video ichidagi test modali FAQAT o'quvchida ishlaydi
+    # (`video_quiz/player_widget.html` → `is_student: request.user.is_learner`).
+    # Shuning uchun test gate'i ham faqat o'quvchiga qo'llanadi, aks holda
+    # admin/o'qituvchi ko'rib chiqayotganda modal chiqmay kredit to'xtab qolardi.
+    gate_quizzes = getattr(request.user, 'is_learner', False)
+
+    now = timezone.now()
+    _ensure_gating_duration(video)   # tashqi HTTP — tranzaksiyadan TASHQARIDA
+
+    notify_admin = False
 
     with transaction.atomic():
         progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
         required = _resolve_required_seconds(progress, video)
 
-        credited = 0.0
-        cheated  = False
+        credited   = 0.0
+        cheated    = False
+        suspicion  = 0
+        blocked_by = None
 
-        if position is None:
-            progress.last_beat_at = now
-            progress.save(update_fields=['last_beat_at'])
-        else:
-            wall = (now - progress.last_beat_at).total_seconds() if progress.last_beat_at else None
-            pos_delta = position - progress.max_position
+        # ── 1. Tiriklik tekshiruvi (presence) ──
+        if progress.presence_token and presence_reply == progress.presence_token:
+            # Kechikkan javob ham qabul qilinadi: muddat o'tgani uchun qo'shimcha
+            # jazo yo'q — kredit shunchaki javob kelmaguncha to'xtab turgan edi.
+            progress.presence_token = ''
+            progress.presence_sent_at = None
+            _schedule_next_presence(progress)
+        elif progress.presence_token:
+            if progress.presence_sent_at is None:
+                blocked_by = 'presence'      # muddat o'tgan va allaqachon sanalgan
+            elif (now - progress.presence_sent_at).total_seconds() > PRESENCE_DEADLINE:
+                # `presence_sent_at = None` — "bu o'tkazib yuborish sanaldi"
+                # belgisi; aks holda har beatda bal oshib ketardi.
+                progress.presence_failures += 1
+                progress.presence_sent_at = None
+                suspicion += 2
+                blocked_by = 'presence'
 
-            # Pozitsiya beatlar orasida o'tgan REAL vaqtdan ko'p oldinga
-            # ketolmaydi. Shundan oshsa — o'tkazib yuborish (seek/skip).
+        # ── 2. Nonce zanjiri ──
+        # Har javobda yangi bir martalik nonce beriladi: eski javobni qayta
+        # ishlatish (replay) yoki ikkinchi tab'dan yozish kredit bermaydi.
+        if progress.beat_nonce and client_nonce != progress.beat_nonce:
+            if client_nonce:
+                suspicion += 3   # bo'sh nonce — sahifa yangilangan, bu halol
+            blocked_by = blocked_by or 'nonce'
+
+        # ── 3. Ijro isboti ──
+        if stale_client:
+            blocked_by = 'stale_client'      # mijoz buni ko'rib o'zini yangilaydi
+        elif not playing:
+            blocked_by = blocked_by or 'paused'
+        elif hidden:
+            blocked_by = blocked_by or 'hidden'
+
+        # ── 4. Javob berilmagan video-test kreditni to'xtatadi ──
+        pending_quiz = _pending_mid_quiz(progress.user_id, video) if gate_quizzes else None
+        if pending_quiz is not None and pending_quiz.trigger_second <= progress.max_position:
+            blocked_by = blocked_by or 'quiz'
+
+        # ── 5. Kredit ──
+        wall = (now - progress.last_beat_at).total_seconds() if progress.last_beat_at else None
+        if position is not None:
+            # Sakrash oxirgi XABAR QILINGAN pozitsiyaga nisbatan o'lchanadi:
+            # `max_position` (kredit chizig'i) kredit to'xtagan paytlarda orqada
+            # qoladi, unga nisbatan o'lchansa halol o'quvchi "sakradi" deb
+            # videosi boshiga tashlanardi.
+            advance = position - progress.last_position
             allowed_advance = (
                 (wall * BEAT_MAX_RATE + BEAT_SEEK_TOLERANCE)
                 if wall is not None and wall <= BEAT_MAX_GAP
                 else BEAT_SEEK_TOLERANCE
             )
 
-            if pos_delta > allowed_advance:
-                # Sakrash: kredit bermaymiz VA max_position'ni yangilamaymiz —
-                # aks holda sakragan nuqta keyingi beatlar uchun "qonuniy"
-                # bazaga aylanib, cheklovni butunlay chetlab o'tish mumkin edi.
+            if advance > allowed_advance:
+                # Sakrash: `last_position` yangilanmaydi, aks holda sakragan nuqta
+                # keyingi beatlar uchun "qonuniy" bazaga aylanardi.
                 cheated = True
                 progress.cheat_attempts += 1
+                suspicion += 2
             else:
-                if wall is not None and BEAT_MIN_GAP <= wall <= BEAT_MAX_GAP and pos_delta > 0:
-                    # Pozitsiyaning o'sishi — ko'rilganlikning ISBOTI. Kredit
-                    # ikkisidan KICHIGI: server soati mijozga tobe emas, shuning
-                    # uchun beat spam qilib vaqtni oshirib bo'lmaydi.
-                    credited = min(pos_delta, wall * BEAT_MAX_RATE)
+                progress.last_position = position
+                eligible_gap = wall is not None and BEAT_MIN_GAP <= wall <= BEAT_MAX_GAP
+                if eligible_gap and blocked_by is None and advance > 0:
+                    # Kredit — eng KICHIK chegara: pozitsiya o'sishi, server
+                    # soati bilan o'tgan real vaqt va hali kreditlanmagan qism.
+                    credited = min(advance, wall * BEAT_MAX_RATE,
+                                   position - progress.max_position)
                     cap = _global_credit_cap(progress, now)
                     if cap is not None:
                         credited = min(credited, cap)
-                if pos_delta > 0:
-                    progress.max_position = position
+                    if pending_quiz is not None:
+                        # Testdan oldinga o'tib bo'lmaydi.
+                        credited = min(credited,
+                                       pending_quiz.trigger_second - progress.max_position)
+                    credited = max(0.0, credited)
+
                 if credited > 0:
+                    # `max_position` — KREDIT chizig'i: faqat haqiqatda
+                    # hisoblangan soniyaga suriladi. `= position` bo'lsa kredit
+                    # to'xtatilgan oraliq keyinroq "bepul" bo'lib qolardi, va
+                    # aksincha, kreditsiz surilsa halol o'quvchi yetib
+                    # bo'lmaydigan talab bilan qulflanib qolardi.
+                    progress.max_position += credited
                     progress.verified_seconds += credited
                     progress.last_credit_at = now
 
-            progress.last_beat_at = now
-            progress.save(update_fields=[
-                'max_position', 'verified_seconds', 'last_beat_at',
-                'last_credit_at', 'cheat_attempts',
-            ])
+        # ── 6. Navbatdagi tiriklik tekshiruvini yuborish ──
+        if progress.next_check_seconds <= 0:
+            progress.next_check_seconds = progress.verified_seconds + random.uniform(
+                PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
+            )
+        presence_challenge = None
+        if progress.presence_token:
+            # Javob kutilmoqda. Tokenni qayta yuboramiz: mijoz javobni tarmoq
+            # uzilishi tufayli olmagan bo'lishi mumkin.
+            presence_challenge = {'token': progress.presence_token, 'deadline': PRESENCE_DEADLINE}
+        elif (
+            playing and not hidden and not stale_client
+            and required and not progress.is_requirement_met
+            and progress.verified_seconds >= progress.next_check_seconds
+        ):
+            progress.presence_token = _new_token()
+            progress.presence_sent_at = now
+            presence_challenge = {'token': progress.presence_token, 'deadline': PRESENCE_DEADLINE}
 
-    return {
+        # ── 7. Yangi nonce va yakuniy saqlash ──
+        progress.beat_nonce = _new_token()
+        progress.last_beat_at = now
+        if suspicion:
+            progress.suspicion_score += suspicion
+            if progress.suspicion_score >= SUSPICION_NOTIFY_AT and not progress.suspicion_notified:
+                progress.suspicion_notified = True
+                notify_admin = True
+        progress.save(update_fields=[
+            'max_position', 'last_position', 'verified_seconds', 'last_beat_at',
+            'last_credit_at', 'cheat_attempts', 'beat_nonce', 'presence_token',
+            'presence_sent_at', 'next_check_seconds', 'presence_failures',
+            'suspicion_score', 'suspicion_notified',
+        ])
+
+    if notify_admin:
+        _notify_admin_watch_suspicion(progress, video)   # tranzaksiyadan tashqarida
+
+    result = {
         'ok': True,
         'verified_seconds': round(progress.verified_seconds, 1),
         'required_seconds': required,
         'remaining': max(0, round(required - progress.verified_seconds, 1)) if required else None,
         'can_complete': progress.is_requirement_met,
         'seek_blocked': cheated,
-        'resume_at': round(progress.max_position, 1) if cheated else None,
+        'resume_at': round(progress.last_position, 1) if cheated else None,
+        'nonce': progress.beat_nonce,
+        'credited': round(credited, 1),
+        'blocked': blocked_by,
     }
+    if presence_challenge:
+        result['presence'] = presence_challenge
+    if blocked_by == 'quiz':
+        result['quiz_required'] = {
+            'id': pending_quiz.pk,
+            'trigger_second': pending_quiz.trigger_second,
+        }
+    return result
 
 
 def _watch_beat_response(request, video, progress):
     return JsonResponse(_process_watch_beat(request, video, progress.pk))
+
+
+def _beat_rate_limited(request, video_key):
+    """Beat oqimini cheklaydi (429) — normal mijoz 15 soniyada bitta yuboradi.
+
+    Faqat FOYDALANUVCHI+VIDEO bo'yicha cheklanadi, IP bo'yicha emas: kompyuter
+    xonasidagi o'nlab o'quvchi bitta tashqi IP orqali kiradi va `check_rate_limit`
+    IP chegarasi "strike" yozadi — 10 strike'dan keyin butun xona 6 soatga
+    bloklanardi. Beat so'rovi allaqachon `@login_required`, ya'ni kimligi aniq.
+    """
+    key = f"video_watch_beat:{request.user.pk}:{video_key}"
+    if is_rate_limited(key, limit=40, window_seconds=60):
+        return JsonResponse({
+            'ok': False,
+            'error': "Juda ko'p so'rov yuborildi. Biroz kutib turing.",
+        }, status=429)
+    return None
 
 
 @login_required
@@ -3931,6 +4177,9 @@ def video_watch_beat(request, pk):
     """Heartbeat: admin/o'qituvchi uchun (pk bo'yicha)."""
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'error': 'POST only'}, status=405)
+    limited = _beat_rate_limited(request, pk)
+    if limited is not None:
+        return limited
     video = get_object_or_404(VideoLesson, pk=pk)
     progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
     return _watch_beat_response(request, video, progress)
@@ -3941,6 +4190,9 @@ def student_video_watch_beat(request, token):
     """Heartbeat: o'quvchi uchun (token URL bo'yicha)."""
     if request.method != 'POST':
         return JsonResponse({'ok': False, 'error': 'POST only'}, status=405)
+    limited = _beat_rate_limited(request, token)
+    if limited is not None:
+        return limited
     token_obj = _get_token_or_404(request.user, token)
     lesson = token_obj.lesson
     if lesson.lesson_type != 'video':
@@ -3952,6 +4204,24 @@ def student_video_watch_beat(request, token):
 
 def _watch_requirement_error(progress, video):
     """Talab bajarilmagan bo'lsa — JsonResponse, aks holda None."""
+    if progress.watched:
+        return None   # allaqachon yopilgan — keyin qo'shilgan test bloklamasin
+
+    # Video ichidagi testlar javobsiz qolsa dars yopilmaydi: skript video
+    # mazmunini bilmaydi, shuning uchun testga javob berolmaydi. Faqat
+    # o'quvchida tekshiriladi — test modali boshqa rollarda ishlamaydi.
+    if getattr(progress.user, 'is_learner', False):
+        pending = _unanswered_mid_quiz_count(
+            progress.user_id, video, progress.required_seconds
+        )
+        if pending:
+            return JsonResponse({
+                'success': False,
+                'error': f"Video ichidagi {pending} ta savol javobsiz qoldi. "
+                         f"Videoni ko'rish davomida savollarga javob bering.",
+                'quiz_pending': pending,
+            }, status=403)
+
     if progress.is_requirement_met:
         return None
 
@@ -17645,10 +17915,14 @@ def admin_direct_chats(request):
     from .models import DirectMessage
 
     search_query = request.GET.get('q', '').strip()
+    active_filter = request.GET.get('f', 'all')  # all | today | week | deleted
+    if active_filter not in ('all', 'today', 'week', 'deleted'):
+        active_filter = 'all'
 
+    # Eslatma: is_deleted bo'yicha FILTR YO'Q — foydalanuvchi o'chirgan
+    # xabarlar ham admin monitoringida ko'rinib turishi kerak.
     pairs = (
         DirectMessage.objects
-        .filter(is_deleted=False)
         .exclude(sender__role__in=_PRIVATE_CHAT_ROLES)
         .exclude(recipient__role__in=_PRIVATE_CHAT_ROLES)
         .annotate(
@@ -17664,9 +17938,18 @@ def admin_direct_chats(request):
             ),
         )
         .values('u1', 'u2')
-        .annotate(msg_count=_Count('id'), last_at=Max('created_at'))
+        .annotate(
+            msg_count=_Count('id'),
+            last_at=Max('created_at'),
+            last_id=Max('id'),
+            deleted_count=_Count('id', filter=Q(is_deleted=True)),
+            edited_count=_Count('id', filter=Q(is_edited=True)),
+        )
         .order_by('-last_at')
     )
+
+    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    week_start = today_start - timedelta(days=7)
 
     user_ids = set()
     for p in pairs:
@@ -17680,6 +17963,12 @@ def admin_direct_chats(request):
         u2 = users_by_id.get(p['u2'])
         if not u1 or not u2:
             continue
+        if active_filter == 'today' and (not p['last_at'] or p['last_at'] < today_start):
+            continue
+        if active_filter == 'week' and (not p['last_at'] or p['last_at'] < week_start):
+            continue
+        if active_filter == 'deleted' and not p['deleted_count']:
+            continue
         if search_query:
             q = search_query.lower()
             haystack = f"{u1.full_name} {u1.username} {u2.full_name} {u2.username}".lower()
@@ -17688,16 +17977,95 @@ def admin_direct_chats(request):
         conversations.append({
             'u1': u1, 'u2': u2,
             'msg_count': p['msg_count'], 'last_at': p['last_at'],
+            'deleted_count': p['deleted_count'], 'edited_count': p['edited_count'],
+            'last_id': p['last_id'],
         })
 
     paginator = Paginator(conversations, 25)
     page_obj = paginator.get_page(request.GET.get('page'))
 
+    # Joriy sahifadagi suhbatlarning oxirgi xabarlarini BITTa so'rovda olish
+    last_ids = [c['last_id'] for c in page_obj.object_list if c.get('last_id')]
+    last_msgs = DirectMessage.objects.in_bulk(last_ids) if last_ids else {}
+    for c in page_obj.object_list:
+        lm = last_msgs.get(c.get('last_id'))
+        c['last_msg'] = lm
+        if lm:
+            c['last_msg_sender_is_u1'] = (lm.sender_id == c['u1'].pk)
+
+    # AI tahlil paneli + statistika kartalar uchun qo'shimcha ma'lumotlar
+    from .chat_ai import ai_available
+    base_msgs = (
+        DirectMessage.objects
+        .exclude(sender__role__in=_PRIVATE_CHAT_ROLES)
+        .exclude(recipient__role__in=_PRIVATE_CHAT_ROLES)
+    )
+    stats = {
+        'total_messages': base_msgs.count(),
+        'today_messages': base_msgs.filter(created_at__gte=today_start).count(),
+        'deleted_messages': base_msgs.filter(is_deleted=True).count(),
+        'today_conversations': len({
+            tuple(sorted((m['sender_id'], m['recipient_id'])))
+            for m in base_msgs.filter(created_at__gte=today_start).values('sender_id', 'recipient_id')
+        }),
+    }
+
     return render(request, 'accounts/admin/direct_chats.html', {
         'page_obj': page_obj,
         'search_query': search_query,
+        'active_filter': active_filter,
         'total_count': len(conversations),
+        'stats': stats,
+        'ai_available': ai_available(),
     })
+
+
+@login_required
+def admin_direct_chats_ai(request):
+    """AI Chat Tahlilchi — admin savoliga chatlar bazasidan javob (AJAX, POST).
+
+    OpenAI kaliti bo'lsa function-calling agent ishlaydi, bo'lmasa offline
+    qoidaviy tahlilchi. Javob: {'answer', 'links', 'mode', 'tools_used', 'ok'}."""
+    if not (request.user.is_admin or request.user.is_admin_or_assistant):
+        return JsonResponse({'ok': False, 'answer': "Ruxsat yo'q.", 'links': []}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'answer': "Faqat POST so'rovi qabul qilinadi.", 'links': []}, status=405)
+
+    question = (request.POST.get('question') or '').strip()[:600]
+    if len(question) < 3:
+        return JsonResponse({'ok': False, 'answer': "Savol juda qisqa — aniqroq yozing.", 'links': []}, status=400)
+
+    # Kontekst: oxirgi 4 ta savol-javob (frontend yuboradi)
+    try:
+        history = json.loads(request.POST.get('history') or '[]')
+        if not isinstance(history, list):
+            history = []
+    except ValueError:
+        history = []
+
+    # Oddiy rate-limit: soatiga 40 ta so'rov (admin boshiga)
+    rl_key = f"chat_ai_rl:{request.user.pk}"
+    used = cache.get(rl_key, 0)
+    if used >= 40:
+        return JsonResponse({
+            'ok': False,
+            'answer': "⏳ Soatlik AI so'rovlar limitingiz tugadi (40 ta). Birozdan so'ng urinib ko'ring.",
+            'links': [],
+        }, status=429)
+    cache.set(rl_key, used + 1, 3600)
+
+    from .chat_ai import analyze_chats
+    try:
+        result = analyze_chats(question, history)
+    except Exception as e:
+        print(f"admin_direct_chats_ai error: {e}")
+        return JsonResponse({
+            'ok': False,
+            'answer': f"⚠️ Ichki xatolik yuz berdi: {e}",
+            'links': [],
+        }, status=500)
+
+    return JsonResponse(result)
 
 
 @login_required
@@ -17717,15 +18085,22 @@ def admin_direct_chat_detail(request, u1_pk, u2_pk):
     if u1.role in _PRIVATE_CHAT_ROLES or u2.role in _PRIVATE_CHAT_ROLES:
         return redirect('admin_direct_chats')
 
+    # is_deleted bo'yicha filtr YO'Q: o'chirilgan xabarlar ham admin
+    # monitoringida (maxsus belgi bilan) ko'rsatiladi. Tahrir tarixi esa
+    # DirectMessageEditHistory orqali prefetch qilinadi.
     thread = (
         DirectMessage.objects
-        .filter(
-            Q(sender=u1, recipient=u2) | Q(sender=u2, recipient=u1),
-            is_deleted=False,
-        )
+        .filter(Q(sender=u1, recipient=u2) | Q(sender=u2, recipient=u1))
         .select_related('sender', 'recipient', 'reply_to', 'reply_to__sender')
+        .prefetch_related('edit_history', 'reactions', 'reactions__user')
         .order_by('-created_at')
     )
+
+    thread_stats = {
+        'total': thread.count(),
+        'deleted': thread.filter(is_deleted=True).count(),
+        'edited': thread.filter(is_edited=True).count(),
+    }
 
     paginator = Paginator(thread, 50)
     page_obj = paginator.get_page(request.GET.get('page'))
@@ -17735,6 +18110,7 @@ def admin_direct_chat_detail(request, u1_pk, u2_pk):
         'u1': u1, 'u2': u2,
         'page_obj': page_obj,
         'messages_chrono': messages_chrono,
+        'thread_stats': thread_stats,
     })
 
 

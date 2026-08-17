@@ -555,7 +555,14 @@ def message_edit(request, kind, msg_id):
     if len(text) > 5000:
         return _err("Xabar juda uzun (max 5000 belgi)")
 
-    msg.message = _sanitize_html(text)
+    new_text = _sanitize_html(text)
+    # Shaxsiy xabarlar uchun tahrir tarixini saqlaymiz — admin panel
+    # investigatsiyasida asl matn ko'rinib turishi kerak.
+    if kind == 'dm' and msg.message != new_text:
+        from accounts.models import DirectMessageEditHistory
+        DirectMessageEditHistory.objects.create(message=msg, old_text=msg.message)
+
+    msg.message = new_text
     msg.is_edited = True
     msg.edited_at = timezone.now()
     msg.save(update_fields=['message', 'is_edited', 'edited_at'])
@@ -578,7 +585,11 @@ def message_delete(request, kind, msg_id):
         return _err("Bu xabarni o'chirish huquqingiz yo'q", 403)
 
     msg.is_deleted = True
-    msg.save(update_fields=['is_deleted'])
+    update = ['is_deleted']
+    if kind == 'dm':
+        msg.deleted_at = timezone.now()
+        update.append('deleted_at')
+    msg.save(update_fields=update)
     return _ok({'id': msg.pk})
 
 
