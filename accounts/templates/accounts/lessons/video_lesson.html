@@ -1403,8 +1403,21 @@ const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" studen
 let serverCanComplete = false;
 let serverRemaining   = null;
 let beatInFlight      = false;
+let beatNonce         = '';
+let presencePrompting = false;
 
-function sendBeat() {
+function answerPresenceChallenge(challenge) {
+    if (!challenge || !challenge.token || presencePrompting) return;
+    presencePrompting = true;
+    const confirmed = window.confirm(
+        "Video darsni ko'rishni davom ettiryapsizmi?\n\n" +
+        'Davom etish uchun OK tugmasini bosing.'
+    );
+    presencePrompting = false;
+    if (confirmed) sendBeat(challenge.token);
+}
+
+function sendBeat(presenceToken) {
     if (beatInFlight || serverCanComplete) return;
     getPlayerTime(function(t) {
         if (t == null || !isFinite(t)) return;
@@ -1412,12 +1425,23 @@ function sendBeat() {
         fetch(BEAT_URL, {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
-            body: JSON.stringify({ position: t })
+            // Bu qiymatlarning hech biri yakunlash uchun o'zi yetarli emas:
+            // server pozitsiyani o'z soati, oldingi beat va bir martalik nonce
+            // bilan tekshiradi. Konsoldan timer/pozitsiyani o'zgartirish kredit
+            // miqdorini server o'tkazgan real vaqtdan oshira olmaydi.
+            body: JSON.stringify({
+                position: t,
+                playing: isVideoPlaying,
+                hidden: document.hidden,
+                nonce: beatNonce,
+                presence_token: presenceToken || ''
+            })
         })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
             beatInFlight = false;
             if (!data || !data.ok) return;
+            beatNonce         = data.nonce || '';
             serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
             // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
@@ -1426,6 +1450,7 @@ function sendBeat() {
                 statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
             }
             updateTimerUI();
+            answerPresenceChallenge(data.presence);
         })
         .catch(() => { beatInFlight = false; });
     });
@@ -1554,30 +1579,32 @@ setTimeout(function() {
     if (!durationLocked && dbSeconds >= 60) lockDuration(dbSeconds);
 }, DB_FALLBACK_DELAY_MS);
 
-/* UI'ni watchedTime bo'yicha yangilaydi (davomiylik lock qilingandan keyin).
-   Countdown va ring FAQAT watchedTime'dan hisoblanadi — u monoton bo'lgani
-   uchun ekranda ham orqa-oldinga sakramaydi. */
+/* UI'ni yangilaydi (davomiylik lock qilingandan keyin). Birinchi beatgacha
+   mahalliy watchedTime, undan keyin esa server tasdiqlagan vaqt ishlatiladi. */
 function updateTimerUI() {
     if (!durationLocked || isReady) return;
-    const remaining = Math.max(0, requiredTime - watchedTime);
-    const progress  = Math.min(1, watchedTime / requiredTime);
+    // Birinchi heartbeat javobidan keyin countdownning yagona haqiqat manbai
+    // server bo'ladi. Shu sabab video oxirida mahalliy JS timeridan server
+    // timeriga o'tib, birdan qo'shimcha vaqt paydo bo'lmaydi.
+    const remaining = serverRemaining != null
+        ? Math.max(0, serverRemaining)
+        : Math.max(0, requiredTime - watchedTime);
+    const progress = Math.min(1, (requiredTime - remaining) / requiredTime);
     countdownEl.textContent = formatTime(remaining);
     ringFill.style.strokeDashoffset = circumference * (1 - progress);
-    // Tugma FAQAT server tasdiqlaganda yonadi. Mahalliy watchedTime yetgan
-    // bo'lsa ham server hisobi yetmasa — kutamiz (va buni ekranda ko'rsatamiz).
-    if (watchedTime >= requiredTime) {
-        if (!serverCanComplete) {
-            countdownEl.textContent = serverRemaining != null ? formatTime(serverRemaining) : '…';
-            timerLabel.textContent  = 'Tekshirilmoqda';
-            statusText.textContent  = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
-            return;
-        }
+
+    // Tugma faqat server tasdiqlaganda yonadi. `watchedTime` yoki DOM'ni
+    // konsoldan o'zgartirish bu holatni serverda o'zgartirmaydi.
+    if (serverCanComplete) {
         isReady = true;
         setTimerState('ready');
         countdownEl.textContent = '✓';
         timerLabel.textContent  = 'Tayyor!';
         statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
         markWatchedBtn.disabled = false;
+    } else if (watchedTime >= requiredTime) {
+        timerLabel.textContent = 'Tekshirilmoqda';
+        statusText.textContent = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
     }
 }
 
