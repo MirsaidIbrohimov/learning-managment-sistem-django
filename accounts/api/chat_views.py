@@ -53,6 +53,25 @@ from .homework_views import (
 
 MESSAGES_LIMIT = 200  # max messages returned per fetch
 
+# Chatda fayl yuborish limiti — 1 MB (messenger uchun maxsus;
+# umumiy homework validatori 5 MB ga ruxsat beradi, shuning uchun
+# hajm tekshiruvi shu yerda alohida bajariladi).
+CHAT_MAX_FILE_BYTES = 1 * 1024 * 1024  # 1 MB
+
+
+def _validate_chat_file(up_file):
+    """Chat fayli uchun tekshiruv: max 1 MB + ruxsat etilgan turlar.
+
+    Returns (ok: bool, error_msg: str|None) — `_validate_file` bilan bir xil
+    kontrakt, faqat hajm chegarasi chatga moslab qattiqroq."""
+    if not up_file:
+        return False, "Fayl yuklanmagan"
+    if up_file.size > CHAT_MAX_FILE_BYTES:
+        kb = up_file.size / 1024
+        size_txt = f"{kb / 1024:.1f} MB" if kb >= 1024 else f"{kb:.0f} KB"
+        return False, f"Fayl hajmi juda katta: {size_txt}. Chatda maksimal 1 MB gacha fayl yuborish mumkin."
+    return _validate_file(up_file)
+
 
 # ──────────────────────────────────────────────────────────────────────
 # Permission helpers
@@ -354,7 +373,7 @@ def group_send(request, profession_pk):
 
     text = _sanitize_html(text) if text else ''
     if up_file:
-        ok, err = _validate_file(up_file)
+        ok, err = _validate_chat_file(up_file)
         if not ok:
             return _err(err)
         up_file.name = _safe_filename(up_file.name)
@@ -437,7 +456,7 @@ def direct_send(request, user_pk):
 
     text = _sanitize_html(text) if text else ''
     if up_file:
-        ok, err = _validate_file(up_file)
+        ok, err = _validate_chat_file(up_file)
         if not ok:
             return _err(err)
         up_file.name = _safe_filename(up_file.name)

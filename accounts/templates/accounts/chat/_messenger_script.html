@@ -35,6 +35,14 @@ window.MZChat = (function(){
     }
     function escAttr(s){ return esc(s).replace(/\n/g,' '); }
 
+    // Fayl hajmini o'qiladigan ko'rinishga o'tkazish: 512 B / 340 KB / 1.0 MB
+    function fmtSize(bytes){
+        if(bytes < 1024) return bytes + ' B';
+        var kb = bytes / 1024;
+        if(kb < 1024) return (kb >= 100 ? Math.round(kb) : kb.toFixed(1)) + ' KB';
+        return (kb / 1024).toFixed(1) + ' MB';
+    }
+
     // ── Lightweight premium toast (for quick-actions / coming-soon notices) ──
     function mzToast(msg, icon){
         var wrap = document.getElementById('mzToastWrap');
@@ -1071,10 +1079,17 @@ window.MZChat = (function(){
             if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); dom.form.requestSubmit(); }
         });
         dom.file.addEventListener('change', function(){
-            if(dom.file.files.length){
-                dom.fileName.textContent = dom.file.files[0].name;
-                dom.fileChip.style.display = 'flex';
+            if(!dom.file.files.length) return;
+            var f = dom.file.files[0];
+            // Chat fayl limiti: 1 MB (serverda ham tekshiriladi)
+            if(f.size > 1024 * 1024){
+                mzToast('Fayl juda katta (' + fmtSize(f.size) + '). Maksimal 1 MB.', 'bi-exclamation-triangle');
+                dom.file.value = '';
+                dom.fileChip.style.display = 'none';
+                return;
             }
+            dom.fileName.textContent = f.name + ' (' + fmtSize(f.size) + ')';
+            dom.fileChip.style.display = 'flex';
         });
         dom.fileClear.addEventListener('click', function(){ dom.file.value=''; dom.fileChip.style.display='none'; });
 
@@ -1144,6 +1159,7 @@ window.MZChat = (function(){
         dom.infoBtn = document.getElementById('mzInfoBtn');
         dom.callBtn = document.getElementById('mzCallBtn');
         dom.videoBtn = document.getElementById('mzVideoBtn');
+        dom.fullBtn = document.getElementById('mzFullBtn');
         dom.infoStats = document.getElementById('mzInfoStats');
         dom.info = document.getElementById('mzInfo');
         dom.infoClose = document.getElementById('mzInfoClose');

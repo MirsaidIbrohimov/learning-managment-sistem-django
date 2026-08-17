@@ -42,6 +42,14 @@
     --mz-r-md: 14px;
     --mz-r-sm: 10px;
     --mz-ease: cubic-bezier(.4, 0, .2, 1);
+
+    /* Glassmorphism tokenlar — shaffof oynalar */
+    --mz-glass:        rgba(255, 255, 255, .58);   /* yirik panellar (sidebar/footer) */
+    --mz-glass-strong: rgba(255, 255, 255, .74);   /* header kabi muhim panellar */
+    --mz-glass-bubble: rgba(255, 255, 255, .82);   /* qoshimcha bubble */
+    --mz-glass-border: rgba(255, 255, 255, .55);   /* shisha chegarasi (yorug'lik) */
+    --mz-blur:         blur(22px) saturate(160%);
+    --mz-blur-sm:      blur(14px) saturate(140%);
 }
 [data-bs-theme="dark"] {
     --mz-bg:          #0b0d13;
@@ -72,6 +80,12 @@
     --mz-shadow-sm:   0 1px 2px rgba(0, 0, 0, .35);
     --mz-shadow-md:   0 10px 30px -12px rgba(0, 0, 0, .55);
     --mz-shadow-lg:   0 24px 60px -20px rgba(0, 0, 0, .70);
+
+    /* Glassmorphism tokenlar (dark) */
+    --mz-glass:        rgba(20, 23, 34, .58);
+    --mz-glass-strong: rgba(20, 23, 34, .78);
+    --mz-glass-bubble: rgba(26, 30, 44, .82);
+    --mz-glass-border: rgba(255, 255, 255, .10);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -89,18 +103,63 @@
     height: calc(100vh - 88px);
     min-height: 540px;
     border-radius: var(--mz-r-lg);
-    border: 1px solid var(--mz-border);
+    border: 1px solid var(--mz-glass-border);
     background: var(--mz-panel);
-    box-shadow: var(--mz-shadow-sm);
+    box-shadow: var(--mz-shadow-md);
     overflow: hidden;
 }
+
+/* Shaffof oynalar ostidagi jonli gradient "aurora" qatlami —
+   glass panellar shu fonni xiralashtirib (blur) ko'rsatadi */
+.mz-shell::before {
+    content: '';
+    position: absolute; inset: 0; z-index: 0;
+    background:
+        radial-gradient(640px 420px at 12% 8%,  rgba(124, 58, 237, .20), transparent 62%),
+        radial-gradient(520px 380px at 88% 12%, rgba(14, 165, 233, .17), transparent 60%),
+        radial-gradient(720px 520px at 55% 108%, rgba(236, 72, 153, .13), transparent 66%),
+        radial-gradient(420px 320px at 30% 85%, rgba(52, 211, 153, .10), transparent 60%);
+    pointer-events: none;
+}
+.mz-shell::after {
+    content: '';
+    position: absolute; z-index: 0; pointer-events: none;
+    width: 420px; height: 420px; border-radius: 50%;
+    right: -120px; top: -140px;
+    background: radial-gradient(circle, rgba(124, 58, 237, .14), transparent 65%);
+    animation: mzAurora 16s ease-in-out infinite alternate;
+}
+@keyframes mzAurora {
+    from { transform: translate(0, 0) scale(1); }
+    to   { transform: translate(-90px, 70px) scale(1.15); }
+}
+[data-bs-theme="dark"] .mz-shell::before {
+    background:
+        radial-gradient(640px 420px at 12% 8%,  rgba(124, 58, 237, .28), transparent 62%),
+        radial-gradient(520px 380px at 88% 12%, rgba(14, 165, 233, .22), transparent 60%),
+        radial-gradient(720px 520px at 55% 108%, rgba(236, 72, 153, .18), transparent 66%),
+        radial-gradient(420px 320px at 30% 85%, rgba(52, 211, 153, .12), transparent 60%);
+}
+
+/* ── TO'LIQ EKRAN rejimi ── */
+.mz-shell.mz-fullscreen,
+.mz-shell:fullscreen {
+    position: fixed; inset: 0; z-index: 2100;
+    max-width: none; width: 100%;
+    height: 100vh; height: 100dvh; min-height: 0;
+    margin: 0; border-radius: 0; border: none;
+}
+#mzFullBtn.on { color: var(--mz-accent); background: var(--mz-accent-soft); }
 
 /* ───────────────────────── SIDEBAR ───────────────────────── */
 .mz-side {
     display: flex; flex-direction: column;
     flex: 0 0 340px; min-width: 0;
+    position: relative; z-index: 1;
     border-right: 1px solid var(--mz-border-soft);
-    background: var(--mz-panel);
+    background: var(--mz-glass);
+    backdrop-filter: var(--mz-blur);
+    -webkit-backdrop-filter: var(--mz-blur);
 }
 
 .mz-side-head { padding: 1.1rem 1rem 0.75rem; }
@@ -287,15 +346,17 @@
 .mz-main {
     flex: 1; min-width: 0;
     display: flex; flex-direction: column;
-    position: relative;
-    background: var(--mz-panel-2);
+    position: relative; z-index: 1;
+    background: transparent;
 }
 
-/* Sarlavha */
+/* Sarlavha — shaffof shisha panel */
 .mz-head {
     display: flex; align-items: center; gap: 0.75rem;
     padding: 0.65rem 1rem;
-    background: var(--mz-panel);
+    background: var(--mz-glass-strong);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
     border-bottom: 1px solid var(--mz-border-soft);
     flex-shrink: 0; z-index: 5;
 }
@@ -380,7 +441,9 @@
     border-radius: var(--mz-r-md);
     font-size: 0.9rem; line-height: 1.5;
     word-break: break-word;
-    background: var(--mz-panel);
+    background: var(--mz-glass-bubble);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
     color: var(--mz-text);
     border: 1px solid var(--mz-border-soft);
     box-shadow: var(--mz-shadow-sm);
@@ -491,14 +554,16 @@
 .mz-tick { font-size: 0.85rem; color: var(--mz-me-muted); }
 .mz-tick.read { color: #7dd3fc; }
 
-/* Amallar paneli (hover) */
+/* Amallar paneli (hover) — shisha */
 .mz-actions {
     position: absolute; top: -34px;
     display: flex; gap: 2px;
     padding: 3px 4px;
     border-radius: 12px;
-    background: var(--mz-panel);
-    border: 1px solid var(--mz-border);
+    background: var(--mz-glass-strong);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
+    border: 1px solid var(--mz-glass-border);
     box-shadow: var(--mz-shadow-md);
     opacity: 0; transform: translateY(6px);
     pointer-events: none; z-index: 7;
@@ -527,8 +592,10 @@
     display: flex; gap: 2px;
     padding: 5px 7px;
     border-radius: 999px;
-    background: var(--mz-panel);
-    border: 1px solid var(--mz-border);
+    background: var(--mz-glass-strong);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
+    border: 1px solid var(--mz-glass-border);
     box-shadow: var(--mz-shadow-md);
     z-index: 9;
     animation: mzPopIn .16s var(--mz-ease);
@@ -559,7 +626,7 @@
 .mz-typing {
     padding: 0.25rem 1.25rem 0.35rem;
     font-size: 0.76rem; color: var(--mz-muted);
-    background: var(--mz-panel-2);
+    background: transparent;
     flex-shrink: 0;
 }
 .mz-typing-dots { display: inline-flex; gap: 3px; margin-left: 5px; vertical-align: middle; }
@@ -575,7 +642,9 @@
 /* ───────────────────────── COMPOSER ───────────────────────── */
 .mz-foot {
     padding: 0.7rem 1rem 0.85rem;
-    background: var(--mz-panel);
+    background: var(--mz-glass-strong);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
     border-top: 1px solid var(--mz-border-soft);
     flex-shrink: 0; position: relative;
 }
@@ -722,8 +791,10 @@
     width: 42px; height: 42px;
     border-radius: 50%; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    background: var(--mz-panel); color: var(--mz-muted);
-    border: 1px solid var(--mz-border);
+    background: var(--mz-glass-strong); color: var(--mz-muted);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
+    border: 1px solid var(--mz-glass-border);
     box-shadow: var(--mz-shadow-md);
     font-size: 1rem; z-index: 8;
     opacity: 0; transform: translateY(10px);
@@ -745,7 +816,10 @@
 .mz-info {
     flex: 0 0 0px; width: auto;
     display: flex; flex-direction: column;
-    background: var(--mz-panel);
+    position: relative; z-index: 1;
+    background: var(--mz-glass);
+    backdrop-filter: var(--mz-blur);
+    -webkit-backdrop-filter: var(--mz-blur);
     border-left: 1px solid transparent;
     overflow: hidden;
     transition: flex-basis .25s var(--mz-ease), border-color .25s;
@@ -927,15 +1001,19 @@
     position: fixed; inset: 0; z-index: 1060;
     display: flex; align-items: center; justify-content: center;
     padding: 1rem;
-    background: rgba(9, 11, 18, .55);
+    background: rgba(9, 11, 18, .45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
 }
 .mz-modal {
     width: 100%; max-width: 400px;
     max-height: min(560px, 86vh);
     display: flex; flex-direction: column;
     border-radius: var(--mz-r-lg);
-    background: var(--mz-panel);
-    border: 1px solid var(--mz-border);
+    background: var(--mz-glass-strong);
+    backdrop-filter: var(--mz-blur);
+    -webkit-backdrop-filter: var(--mz-blur);
+    border: 1px solid var(--mz-glass-border);
     box-shadow: var(--mz-shadow-lg);
     overflow: hidden;
     animation: mzPopIn .18s var(--mz-ease);
@@ -975,8 +1053,10 @@
     display: flex; align-items: center; gap: 0.5rem;
     padding: 0.6rem 1.1rem;
     border-radius: 999px;
-    background: var(--mz-panel);
-    border: 1px solid var(--mz-border);
+    background: var(--mz-glass-strong);
+    backdrop-filter: var(--mz-blur-sm);
+    -webkit-backdrop-filter: var(--mz-blur-sm);
+    border: 1px solid var(--mz-glass-border);
     box-shadow: var(--mz-shadow-md);
     color: var(--mz-text);
     font-size: 0.84rem; font-weight: 600;
