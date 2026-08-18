@@ -5,78 +5,19 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
-/* ============ PAGE SHELL (layout only; component styling lives in dashboard.css) ============ */
+/* ============ PAGE SHELL (faqat layout; komponentlar dashboard.css da) ============ */
 #weather_effect { display:none !important; }
 
-.dash{
-  width:100vw; position:relative; left:50%; margin-left:-50vw; margin-top:-1.25rem;
-  min-height:100vh; padding:28px 0 80px;
-}
-.dash-shell{ max-width:1280px; margin:0 auto; padding:0 22px; }
-.dash-section{ margin-top:34px; }
-.dash-section:first-child{ margin-top:0; }
+.dash{ position:relative; padding:4px 0 64px; }
+.dash-section{ margin-top:32px; }
+.dash-section:first-of-type{ margin-top:0; }
 
-/* hero */
-.dash-hero{
-  display:grid; grid-template-columns:1.55fr .85fr; gap:24px; align-items:stretch;
-  padding:30px; border-radius:24px; overflow:hidden; position:relative;
-}
-.dash-hero::before{
-  content:""; position:absolute; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(620px 320px at 88% -10%, color-mix(in srgb,var(--dash-accent) 26%,transparent), transparent 60%),
-    radial-gradient(520px 300px at 0% 120%, color-mix(in srgb,var(--dash-accent-2) 22%,transparent), transparent 60%);
-}
-.dash-hero > *{ position:relative; z-index:1; }
-.dh-eyebrow{ font-size:.74rem; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--dash-accent); display:inline-flex; align-items:center; gap:8px; }
-.dh-eyebrow .dot{ width:7px; height:7px; border-radius:50%; background:var(--dash-accent); box-shadow:0 0 10px var(--dash-accent); animation:dhPulse 2s infinite; }
-@keyframes dhPulse{0%,100%{opacity:1}50%{opacity:.3}}
-.dh-title{ font-size:clamp(1.6rem,3vw,2.3rem); font-weight:800; letter-spacing:-.02em; margin:10px 0 6px; line-height:1.1; }
-.dh-sub{ color:var(--dash-muted); font-size:.95rem; margin:0 0 18px; max-width:46ch; }
-.dh-reco{
-  display:flex; align-items:center; gap:14px; padding:14px 16px; margin:0 0 20px;
-  background:var(--dash-surface-2); border:1px solid var(--dash-border); border-radius:16px;
-}
-.dh-reco-ic{ width:42px; height:42px; flex:0 0 auto; border-radius:12px; display:grid; place-items:center; font-size:1.2rem; color:#fff; background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2)); }
-.dh-reco-txt b{ font-weight:700; } .dh-reco-txt{ font-size:.9rem; color:var(--dash-text); }
-.dh-reco-txt span{ color:var(--dash-muted); }
-.dh-cta{ display:flex; gap:12px; flex-wrap:wrap; }
-.dh-btn{ display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:.92rem; padding:13px 22px; border-radius:14px; transition:transform .15s ease, box-shadow .2s ease; }
-.dh-btn.primary{ background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2)); color:#fff; box-shadow:var(--dash-glow); }
-.dh-btn.ghost{ background:var(--dash-surface); border:1px solid var(--dash-border); color:var(--dash-text); }
-.dh-btn:hover{ transform:translateY(-2px); }
-.dh-btn:focus-visible, .dash a:focus-visible, .dash button:focus-visible{ outline:2px solid var(--dash-accent); outline-offset:2px; }
-
-/* hero stats panel */
-.dh-panel{ display:flex; flex-direction:column; gap:16px; justify-content:center; }
-.dh-ringwrap{ display:flex; align-items:center; gap:18px; padding:18px; border-radius:18px; background:var(--dash-surface-2); border:1px solid var(--dash-border); }
-.dh-bigring{ --pct:0; width:96px; height:96px; flex:0 0 auto; border-radius:50%; display:grid; place-items:center;
-  background:conic-gradient(var(--dash-accent) calc(var(--pct)*1%), var(--dash-border) 0); position:relative; transition:background 1s ease; }
-.dh-bigring::after{ content:""; position:absolute; inset:9px; border-radius:50%; background:var(--dash-surface-2); }
-.dh-bigring b{ position:relative; z-index:1; font-size:1.35rem; font-weight:800; font-family:'JetBrains Mono',monospace; }
-.dh-ringmeta .l{ font-size:.74rem; color:var(--dash-muted); font-weight:600; }
-.dh-ringmeta .v{ font-size:1rem; font-weight:700; }
-.dh-chiprow{ display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-.dh-chip{ text-align:center; padding:14px 8px; border-radius:14px; background:var(--dash-surface-2); border:1px solid var(--dash-border); }
-.dh-chip i{ font-size:1.1rem; }
-.dh-chip .n{ font-size:1.3rem; font-weight:800; line-height:1; margin-top:6px; font-family:'JetBrains Mono',monospace; }
-.dh-chip .l{ font-size:.68rem; color:var(--dash-muted); font-weight:600; margin-top:4px; }
-.dh-chip.xp i{color:var(--dash-warning)} .dh-chip.fire i{color:var(--dash-danger)} .dh-chip.lvl i{color:var(--dash-accent)}
-
-/* main / sidebar split */
 .dash-split{ display:grid; grid-template-columns:1fr; gap:24px; }
-@media (min-width:992px){ .dash-split{ grid-template-columns:1.65fr .95fr; align-items:start; } }
-.dash-col{ display:flex; flex-direction:column; gap:34px; min-width:0; }
+@media (min-width:992px){ .dash-split{ grid-template-columns:1.6fr .95fr; align-items:start; } }
+.dash-col{ display:flex; flex-direction:column; gap:32px; min-width:0; }
 
-/* sparkline mini chart */
-.spark{ display:flex; align-items:flex-end; gap:7px; height:64px; margin-top:14px; }
-.spark .bar{ flex:1; min-width:0; border-radius:6px 6px 3px 3px; height:6px;
-  background:linear-gradient(180deg,var(--dash-accent),var(--dash-accent-2)); opacity:.85; transition:height .9s cubic-bezier(.34,1.3,.5,1); }
-.spark-labels{ display:flex; gap:7px; margin-top:6px; }
-.spark-labels span{ flex:1; text-align:center; font-size:.62rem; color:var(--dash-muted); font-weight:600; }
-
-/* AI assistant card accent */
-.ai-card{ background:linear-gradient(150deg, color-mix(in srgb,var(--dash-accent) 14%,var(--dash-surface)), var(--dash-surface) 70%); }
+/* AI yordamchi kartasi */
+.ai-card{ background:linear-gradient(150deg, color-mix(in srgb,var(--dash-accent) 12%,var(--dash-surface)), var(--dash-surface) 70%); }
 .ai-reco{ display:flex; gap:12px; align-items:flex-start; padding:12px; border-radius:14px; background:var(--dash-surface-2); border:1px solid var(--dash-border); margin-top:10px; }
 .ai-reco .ic{ width:36px;height:36px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2)); }
 .ai-reco .t{ font-weight:700; font-size:.88rem; } .ai-reco .r{ font-size:.76rem; color:var(--dash-muted); }
@@ -84,325 +25,639 @@
   background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2)); color:#fff; box-shadow:var(--dash-glow); transition:transform .15s; }
 .ai-ask:hover{ transform:translateY(-2px); }
 
-/* leaderboard stack */
 .leader-stack{ display:flex; flex-direction:column; gap:8px; }
-
-/* responsive */
-@media (max-width:991px){ .dash-hero{ grid-template-columns:1fr; } }
-@media (max-width:560px){
-  .dash-shell{ padding:0 16px; }
-  .dash-hero{ padding:22px; }
-}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="dash">
-  <div class="dash-shell">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-    {# ===================== SECTION 1 · WELCOME HERO ===================== #}
-    {% widthratio user.coins|default:0 100 1 as level_base %}
-    <section class="dash-section" aria-label="Salomlashuv">
-      <div class="dash-hero dash-card dash-card-glass">
-        <div class="dh-left">
-          <span class="dh-eyebrow"><span class="dot"></span> <span id="dhDate"></span></span>
-          <h1 class="dh-title">Salom, {{ user.first_name|default:user.username }} 👋</h1>
-          <p class="dh-sub">Bugun ham bilimga bir qadam yaqinlashamiz. Mana sizning bugungi yo‘l xaritangiz.</p>
+  {# ===================== 1 · JONLI HERO ===================== #}
+  <section class="dash-section" aria-label="Salomlashuv">
+    <div class="hero">
+      <div class="hero-left">
+        <span class="hero-eyebrow">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="heroDate"></span>
+          <span class="hero-clock" id="heroClock"></span>
+        </span>
 
+        <h1 class="hero-title">
+          {{ greeting }}, {{ user.first_name|default:user.username }}
+          <span class="wave" aria-hidden="true">{{ greeting_icon }}</span>
+        </h1>
+
+        <p class="hero-sub">
           {% if today_recommendation %}
-          <div class="dh-reco">
-            <span class="dh-reco-ic" aria-hidden="true"><i class="bi bi-lightning-charge-fill"></i></span>
-            <div class="dh-reco-txt">
-              <b>{{ today_recommendation.course_name }}</b> kursini davom ettiring.
-              <span>Modulni yakunlashga {{ today_recommendation.lessons_left|default:0 }} ta dars qoldi.</span>
+            <b>{{ today_recommendation.course_name }}</b> kursini davom ettiring — modulni yakunlashga
+            {{ today_recommendation.lessons_left|default:0 }} ta dars qoldi.
+          {% else %}
+            Bugun ham bilimga bir qadam yaqinlashamiz. Mana sizning yo‘l xaritangiz.
+          {% endif %}
+        </p>
+
+        <div class="focus-strip">
+          {% if next_lesson %}
+          <span class="focus-chip is-task">
+            <i class="bi bi-calendar-check" aria-hidden="true"></i>
+            Keyingi dars: <b>{{ next_lesson.day_label }} {{ next_lesson.time_label }}</b>
+          </span>
+          {% endif %}
+          <span class="focus-chip is-task">
+            <i class="bi bi-check2-circle" aria-hidden="true"></i>
+            Vazifalar: <b>{{ missions_done_count|default:0 }}/{{ missions_total|default:4 }}</b>
+          </span>
+          <span class="focus-chip is-fire">
+            <i class="bi bi-fire" aria-hidden="true"></i>
+            Streak: <b>{{ user.streak_days|default:0 }} kun</b>
+          </span>
+          {% if db_inprogress %}
+          <span class="focus-chip is-rank">
+            <i class="bi bi-mortarboard" aria-hidden="true"></i>
+            Jarayonda: <b>{{ db_inprogress }} kurs</b>
+          </span>
+          {% endif %}
+        </div>
+
+        <div class="hero-cta">
+          <a class="hero-btn primary" href="{% if today_recommendation %}{{ today_recommendation.url }}{% elif db_featured %}{% url 'profession_detail' db_featured.id %}{% else %}{% url 'professions' %}{% endif %}">
+            <i class="bi bi-play-fill" aria-hidden="true"></i> O‘qishni davom ettirish
+          </a>
+          <a class="hero-btn ghost" href="{% url 'professions' %}">
+            <i class="bi bi-compass" aria-hidden="true"></i> Kurslarni kashf etish
+          </a>
+        </div>
+      </div>
+
+      <div class="hero-panel">
+        <div class="lvl-head">
+          <div class="lvl-ring" data-xp="{{ xp_in_level|default:0 }}">
+            <svg viewBox="0 0 100 100" aria-hidden="true">
+              <defs>
+                <linearGradient id="lvlGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="var(--dash-accent)"></stop>
+                  <stop offset="100%" stop-color="var(--dash-accent-2)"></stop>
+                </linearGradient>
+              </defs>
+              <circle class="track" cx="50" cy="50" r="40"></circle>
+              <circle class="bar" cx="50" cy="50" r="40"></circle>
+            </svg>
+            <div class="lvl-center">
+              <div>
+                <div class="lvl-num" data-countup="{{ level_number|default:1 }}">0</div>
+                <div class="lvl-cap">Daraja</div>
+              </div>
             </div>
           </div>
-          {% endif %}
-
-          <div class="dh-cta">
-            <a class="dh-btn primary" href="{% if today_recommendation %}{{ today_recommendation.url }}{% elif db_featured %}{% url 'profession_detail' db_featured.id %}{% else %}{% url 'professions' %}{% endif %}">
-              <i class="bi bi-play-fill" aria-hidden="true"></i> O‘qishni davom ettirish
-            </a>
-            <a class="dh-btn ghost" href="{% url 'professions' %}">
-              <i class="bi bi-compass" aria-hidden="true"></i> Kurslarni kashf etish
-            </a>
+          <div class="lvl-meta">
+            <div class="l">Keyingi darajaga</div>
+            <div class="v">{{ xp_to_next|default:100 }} XP <small>qoldi</small></div>
+            <div class="l" style="margin-top:10px;">Umumiy o‘zlashtirish</div>
+            <div class="v">{{ db_avg_progress|default:0 }}%</div>
           </div>
         </div>
 
-        <div class="dh-panel">
-          <div class="dh-ringwrap">
-            <div class="dh-bigring" data-ring="{{ db_avg_progress|default:0 }}" aria-hidden="true"><b>{{ db_avg_progress|default:0 }}%</b></div>
-            <div class="dh-ringmeta">
-              <div class="l">Umumiy o‘zlashtirish</div>
-              <div class="v">{{ db_inprogress|default:0 }} ta kurs jarayonda</div>
-              <div class="l" style="margin-top:8px;">Reytingdagi o‘rningiz</div>
-              <div class="v">{% if user_rank %}#{{ user_rank }}{% else %}—{% endif %}</div>
-            </div>
+        <div>
+          <div class="xp-bar" role="progressbar" aria-valuenow="{{ xp_in_level|default:0 }}" aria-valuemin="0" aria-valuemax="100" aria-label="Daraja progressi">
+            <i data-xpbar="{{ xp_in_level|default:0 }}"></i>
           </div>
-          <div class="dh-chiprow">
-            <div class="dh-chip lvl"><i class="bi bi-stars" aria-hidden="true"></i><div class="n">{{ level_base|add:1 }}</div><div class="l">Daraja</div></div>
-            <div class="dh-chip xp"><i class="bi bi-gem" aria-hidden="true"></i><div class="n">{{ user.coins|default:0 }}</div><div class="l">XP</div></div>
-            <div class="dh-chip fire"><i class="bi bi-fire" aria-hidden="true"></i><div class="n">{{ user.streak_days|default:0 }}</div><div class="l">Streak</div></div>
+          <div class="xp-legend">
+            <span>{{ xp_in_level|default:0 }} / 100 XP</span>
+            <span>{{ level_number|default:1|add:1 }}-daraja</span>
           </div>
         </div>
-      </div>
-    </section>
 
-    {# ===================== SECTION 2 · DAILY MISSIONS ===================== #}
-    <section class="dash-section" aria-label="Kunlik vazifalar">
-      {% include 'accounts/dashboard/_section_header.html' with icon='check2-circle' title='Kunlik vazifalar' subtitle=missions_subtitle %}
-      {% if daily_missions %}
-      <div class="dash-cols cols-sm-2 cols-md-4">
-        {% for m in daily_missions %}
-          {% include 'accounts/dashboard/_mission_card.html' with mission=m %}
-        {% endfor %}
+        <div class="hero-stats">
+          <div class="hero-stat xp"><i class="bi bi-gem" aria-hidden="true"></i><div class="n" data-countup="{{ user.coins|default:0 }}">0</div><div class="l">XP</div></div>
+          <div class="hero-stat fire"><i class="bi bi-fire" aria-hidden="true"></i><div class="n" data-countup="{{ user.streak_days|default:0 }}">0</div><div class="l">Streak</div></div>
+          <div class="hero-stat rank"><i class="bi bi-bar-chart-fill" aria-hidden="true"></i><div class="n">{% if user_rank %}#{{ user_rank }}{% else %}—{% endif %}</div><div class="l">Reyting</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ===================== 2 · IQTIBOS + KEYINGI DARS ===================== #}
+  <section class="dash-section reveal" aria-label="Kun iqtibosi va keyingi dars">
+    <div class="dash-cols cols-md-2">
+      {% if daily_quote %}
+      <div class="quote-bar">
+        <span class="qb-mark" aria-hidden="true"><i class="bi bi-quote"></i></span>
+        <div>
+          <div class="qb-text">{{ daily_quote.text }}</div>
+          <div class="qb-author">— {{ daily_quote.author }} · kun iqtibosi</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if next_lesson %}
+      <div class="cd-card" data-countdown="{{ next_lesson.start_iso }}">
+        <div class="dash-card-head" style="margin-bottom:6px;">
+          <div class="cd-title"><i class="bi bi-broadcast" aria-hidden="true"></i> Keyingi darsingiz</div>
+          <span class="dash-chip is-accent">{{ next_lesson.day_label }}</span>
+        </div>
+        <div class="cd-meta">
+          <span><i class="bi bi-mortarboard" aria-hidden="true"></i> {{ next_lesson.course }}</span>
+          <span><i class="bi bi-clock" aria-hidden="true"></i> {{ next_lesson.time_label }}</span>
+          {% if next_lesson.teacher %}<span><i class="bi bi-person" aria-hidden="true"></i> {{ next_lesson.teacher }}</span>{% endif %}
+          {% if next_lesson.room %}<span><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ next_lesson.room }}</span>{% endif %}
+        </div>
+        <div class="cd-timer">
+          <div class="cd-unit"><div class="n" data-cd="d">0</div><div class="l">kun</div></div>
+          <div class="cd-unit"><div class="n" data-cd="h">0</div><div class="l">soat</div></div>
+          <div class="cd-unit"><div class="n" data-cd="m">0</div><div class="l">daqiqa</div></div>
+          <div class="cd-unit"><div class="n" data-cd="s">0</div><div class="l">sekund</div></div>
+        </div>
+        <div class="cd-done" data-cd-done hidden style="margin-top:14px;">
+          <span class="cd-live"><i class="bi bi-record-circle" aria-hidden="true"></i> Dars boshlandi!</span>
+        </div>
+      </div>
+      {% elif upcoming_events %}
+      <div class="cd-card" data-countdown="{{ upcoming_events.0.iso }}">
+        <div class="dash-card-head" style="margin-bottom:6px;">
+          <div class="cd-title"><i class="bi bi-trophy" aria-hidden="true"></i> Yaqin tadbir</div>
+          <span class="dash-chip is-accent">Musobaqa</span>
+        </div>
+        <div class="cd-meta">
+          <span><i class="bi bi-flag" aria-hidden="true"></i> {{ upcoming_events.0.title }}</span>
+          <span><i class="bi bi-clock" aria-hidden="true"></i> {{ upcoming_events.0.datetime_label }}</span>
+        </div>
+        <div class="cd-timer">
+          <div class="cd-unit"><div class="n" data-cd="d">0</div><div class="l">kun</div></div>
+          <div class="cd-unit"><div class="n" data-cd="h">0</div><div class="l">soat</div></div>
+          <div class="cd-unit"><div class="n" data-cd="m">0</div><div class="l">daqiqa</div></div>
+          <div class="cd-unit"><div class="n" data-cd="s">0</div><div class="l">sekund</div></div>
+        </div>
+        <div class="cd-done" data-cd-done hidden style="margin-top:14px;">
+          <span class="cd-live"><i class="bi bi-record-circle" aria-hidden="true"></i> Boshlandi!</span>
+        </div>
       </div>
       {% else %}
-        {% include 'accounts/dashboard/_empty.html' with icon='emoji-smile' text='Bugun uchun vazifalar tayyorlanmoqda.' %}
+      <div class="cd-card">
+        <div class="cd-title"><i class="bi bi-calendar3" aria-hidden="true"></i> Jadval bo‘sh</div>
+        <div class="cd-meta"><span>Hozircha rejalashtirilgan dars yoki tadbir yo‘q.</span></div>
+        <a class="de-cta" href="{% url 'my_study_schedule' %}" style="margin-top:14px;">
+          Jadvalni ko‘rish <i class="bi bi-arrow-right" aria-hidden="true"></i>
+        </a>
+      </div>
       {% endif %}
-    </section>
+    </div>
+  </section>
 
-    {# ===================== SPLIT: MAIN + SIDEBAR ===================== #}
-    <div class="dash-split">
+  {# ===================== 3 · KUN SAVOLI ===================== #}
+  {% if daily_question %}
+  <section class="dash-section reveal" aria-label="Kun savoli">
+    <div class="dq" id="dqCard"
+         data-url="{% url 'daily_question_answer' %}"
+         data-state="{{ daily_question_state }}"
+         {% if daily_question.correct_id %}data-correct="{{ daily_question.correct_id }}"{% endif %}>
+      <div class="dq-head">
+        <span class="dq-badge"><i class="bi bi-lightbulb-fill" aria-hidden="true"></i> Kun savoli</span>
+        <span class="dq-reward"><i class="bi bi-coin" aria-hidden="true"></i> +{{ daily_question.reward }} coin</span>
+      </div>
 
-      {# ---------- MAIN COLUMN ---------- #}
-      <div class="dash-col">
+      {% if daily_question.course %}<div class="dq-course"><i class="bi bi-bookmark" aria-hidden="true"></i> {{ daily_question.course }}</div>{% endif %}
+      <div class="dq-text">{{ daily_question.text }}</div>
+      {% if daily_question.image %}<img class="dq-img" src="{{ daily_question.image }}" alt="Savol rasmi">{% endif %}
 
-        {# SECTION 3 · CONTINUE LEARNING #}
-        <section aria-label="O‘qishni davom ettirish">
-          {% include 'accounts/dashboard/_section_header.html' with icon='play-btn' title='O‘qishni davom ettiring' subtitle='Qoldirgan joyingizdan davom eting' action_url='/professions/' action_label='Barcha kurslar' %}
-          {% if dashboard_courses %}
-          <div class="dash-cols cols-sm-2 cols-md-2">
-            {% for c in dashboard_courses %}
-              {% include 'accounts/dashboard/_course_card.html' with course=c %}
-            {% endfor %}
-          </div>
-          {% else %}
-            {% include 'accounts/dashboard/_empty.html' with icon='play-circle' text='Hali kursga yozilmagansiz. Birinchi kursingizni tanlang!' cta_url='/professions/' cta_label='Kurs tanlash' %}
-          {% endif %}
-        </section>
-
-        {# SECTION 4 · LEARNING STATISTICS #}
-        <section aria-label="O‘quv statistikasi">
-          {% include 'accounts/dashboard/_section_header.html' with icon='bar-chart-line' title='O‘quv statistikangiz' subtitle='Umumiy natijalaringiz bir qarashda' %}
-          <div class="dash-cols cols-sm-2 cols-md-3">
-            {% for st in stat_cards %}
-              {% include 'accounts/dashboard/_stat_card.html' with stat=st %}
-            {% endfor %}
-          </div>
-          {% if weekly_spark %}
-          <div class="dash-card" style="margin-top:16px;">
-            <div class="dash-card-head"><h3 class="dash-card-title"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Shu hafta faolligi</h3><span class="dash-chip">Jami {{ learning_stats.study_hours|default:0 }} soat online</span></div>
-            <div class="spark" id="weekSpark">
-              {% for v in weekly_spark %}<div class="bar" data-v="{{ v }}" style="height:6px"></div>{% endfor %}
-            </div>
-            <div class="spark-labels"><span>Du</span><span>Se</span><span>Cho</span><span>Pa</span><span>Ju</span><span>Sh</span><span>Ya</span></div>
-          </div>
-          {% endif %}
-        </section>
-
-        {# SECTION 5 · WEEKLY ACTIVITY HEATMAP #}
-        <section aria-label="Faollik xaritasi">
-          {% include 'accounts/dashboard/_section_header.html' with icon='calendar3' title='Faollik izchilligi' subtitle='O‘rganish odatingizni kuzating' %}
-          <div class="dash-card">
-            {% include 'accounts/dashboard/_heatmap.html' with days=heatmap_days total=heatmap_total active_days=heatmap_active_days %}
-          </div>
-        </section>
-
-        {# SECTION 9 · RECOMMENDED COURSES #}
-        <section aria-label="Tavsiya etilgan kurslar">
-          {% include 'accounts/dashboard/_section_header.html' with icon='magic' title='Siz uchun tavsiyalar' subtitle='Qiziqishlaringizga mos kurslar' action_url='/professions/' action_label='Hammasi' %}
-          {% if recommended_courses %}
-          <div class="dash-cols cols-sm-2 cols-md-3">
-            {% for c in recommended_courses %}
-              {% include 'accounts/dashboard/_course_card.html' with course=c recommend=True %}
-            {% endfor %}
-          </div>
-          {% else %}
-            {% include 'accounts/dashboard/_empty.html' with icon='stars' text='Tavsiyalar tez orada paydo bo‘ladi.' %}
-          {% endif %}
-        </section>
-
-        {# SECTION 10 · UPCOMING EVENTS #}
-        <section aria-label="Yaqinlashayotgan tadbirlar">
-          {% include 'accounts/dashboard/_section_header.html' with icon='calendar-event' title='Yaqinlashayotgan tadbirlar' subtitle='Jonli darslar, imtihonlar va musobaqalar' %}
-          {% if upcoming_events %}
-          <div class="dash-cols cols-sm-2">
-            {% for e in upcoming_events %}
-              {% include 'accounts/dashboard/_event_card.html' with event=e %}
-            {% endfor %}
-          </div>
-          {% else %}
-            {% include 'accounts/dashboard/_empty.html' with icon='calendar2-week' text='Hozircha rejalashtirilgan tadbirlar yo‘q.' %}
-          {% endif %}
-        </section>
-
-      </div>{# /MAIN #}
-
-      {# ---------- SIDEBAR COLUMN ---------- #}
-      <div class="dash-col">
-
-        {# SECTION 7 · AI LEARNING ASSISTANT #}
-        <section aria-label="AI yordamchi">
-          <div class="dash-card ai-card">
-            <div class="dash-card-head">
-              <h3 class="dash-card-title"><i class="bi bi-robot" aria-hidden="true"></i> AI yordamchi</h3>
-              <span class="dash-chip is-accent">Smart</span>
-            </div>
-            <p style="color:var(--dash-muted);font-size:.88rem;margin:2px 0 6px;">Keyin nimani o‘rganish kerak?</p>
-            {% if ai_recommendations.course %}
-            <a class="ai-reco" href="{{ ai_recommendations.course.url|default:'#' }}">
-              <span class="ic" aria-hidden="true"><i class="bi bi-{{ ai_recommendations.course.icon|default:'mortarboard' }}"></i></span>
-              <span><span class="t">{{ ai_recommendations.course.title }}</span><br><span class="r">{{ ai_recommendations.course.reason }}</span></span>
-            </a>
-            {% endif %}
-            {% if ai_recommendations.article %}
-            <a class="ai-reco" href="{{ ai_recommendations.article.url|default:'#' }}">
-              <span class="ic" aria-hidden="true"><i class="bi bi-{{ ai_recommendations.article.icon|default:'journal-text' }}"></i></span>
-              <span><span class="t">{{ ai_recommendations.article.title }}</span><br><span class="r">{{ ai_recommendations.article.reason }}</span></span>
-            </a>
-            {% endif %}
-            {% if ai_recommendations.practice %}
-            <a class="ai-reco" href="{{ ai_recommendations.practice.url|default:'#' }}">
-              <span class="ic" aria-hidden="true"><i class="bi bi-{{ ai_recommendations.practice.icon|default:'controller' }}"></i></span>
-              <span><span class="t">{{ ai_recommendations.practice.title }}</span><br><span class="r">{{ ai_recommendations.practice.reason }}</span></span>
-            </a>
-            {% endif %}
-            {% if not ai_recommendations.course and not ai_recommendations.article and not ai_recommendations.practice %}
-              {% include 'accounts/dashboard/_empty.html' with icon='robot' text='Tavsiyalar tayyorlanmoqda.' %}
-            {% endif %}
-            <a class="ai-ask" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-chat-dots-fill" aria-hidden="true"></i> AI dan so‘rash</a>
-          </div>
-        </section>
-
-        {# SECTION 8 · LEADERBOARD PREVIEW #}
-        <section aria-label="Reyting">
-          <div class="dash-card">
-            <div class="dash-card-head">
-              <h3 class="dash-card-title"><i class="bi bi-trophy-fill" aria-hidden="true"></i> Haftalik reyting</h3>
-              <a class="dash-chip" href="{% url 'leaderboard' %}">To‘liq <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
-            </div>
-            {% if top_students %}
-            <div class="leader-stack">
-              {% for s in top_students %}
-                {% include 'accounts/dashboard/_leader_row.html' with row=s %}
-              {% endfor %}
-            </div>
-            {% if my_leader_row %}
-            <div class="leader-stack" style="margin-top:8px;border-top:1px dashed var(--dash-border);padding-top:8px;">
-              {% include 'accounts/dashboard/_leader_row.html' with row=my_leader_row %}
-            </div>
-            {% endif %}
-            {% else %}
-              {% include 'accounts/dashboard/_empty.html' with icon='people' text='Reyting hali shakllanmoqda.' %}
-            {% endif %}
-          </div>
-        </section>
-
-        {# SECTION 6 · ACHIEVEMENTS & BADGES #}
-        <section aria-label="Yutuqlar">
-          <div class="dash-card">
-            <div class="dash-card-head">
-              <h3 class="dash-card-title"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Yutuqlar</h3>
-              <span class="dash-chip">{{ achievements_earned_count|default:0 }}/{{ achievements_total|default:0 }}</span>
-            </div>
-            {% if achievements %}
-            <div class="dash-cols cols-sm-2 cols-md-2" style="gap:12px;">
-              {% for b in achievements %}
-                {% include 'accounts/dashboard/_achievement_card.html' with badge=b %}
-              {% endfor %}
-            </div>
-            {% else %}
-              {% include 'accounts/dashboard/_empty.html' with icon='award' text='Yutuqlar yo‘lda — birinchi darsdan boshlang!' %}
-            {% endif %}
-          </div>
-        </section>
-
-        {# SECTION 11 · ANNOUNCEMENTS #}
-        <section aria-label="E'lonlar">
-          <div class="dash-card">
-            <div class="dash-card-head">
-              <h3 class="dash-card-title"><i class="bi bi-megaphone-fill" aria-hidden="true"></i> E‘lonlar</h3>
-              {% if announcements_unread %}<span class="dash-chip is-danger">{{ announcements_unread }} yangi</span>{% endif %}
-            </div>
-            {% if announcements %}
-            <div class="leader-stack">
-              {% for a in announcements %}
-                {% include 'accounts/dashboard/_announcement_card.html' with ann=a %}
-              {% endfor %}
-            </div>
-            {% else %}
-              {% include 'accounts/dashboard/_empty.html' with icon='megaphone' text='Yangi e‘lonlar yo‘q.' %}
-            {% endif %}
-          </div>
-        </section>
-
-      </div>{# /SIDEBAR #}
-    </div>{# /SPLIT #}
-
-    {# ===================== SECTION 12 · QUICK ACCESS HUB ===================== #}
-    <section class="dash-section" aria-label="Tezkor havolalar">
-      {% include 'accounts/dashboard/_section_header.html' with icon='grid-1x2-fill' title='Tezkor havolalar' subtitle='Platformaning barcha imkoniyatlari' %}
-      {% if quick_access %}
-      <div class="dash-cols cols-sm-2 cols-md-4 cols-lg-4">
-        {% for t in quick_access %}
-          {% include 'accounts/dashboard/_quick_tile.html' with tile=t %}
+      <div class="dq-options" id="dqOptions">
+        {% for opt in daily_question.options %}
+        <button type="button" class="dq-opt" data-answer="{{ opt.id }}"
+                {% if daily_question_state != 'new' %}disabled{% endif %}>
+          <span class="key" aria-hidden="true">{{ forloop.counter0|add:65|stringformat:"c" }}</span>
+          <span>{{ opt.text }}</span>
+        </button>
         {% endfor %}
       </div>
-      {% else %}
-        {% include 'accounts/dashboard/_empty.html' with icon='grid' text='Havolalar yuklanmoqda.' %}
-      {% endif %}
-    </section>
 
-  </div>{# /shell #}
+      <div class="dq-result" id="dqResult">
+        <span class="ic" aria-hidden="true"><i class="bi bi-info-circle-fill"></i></span>
+        <div>
+          <div class="t" id="dqResultTitle"></div>
+          <div class="d" id="dqResultDesc"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
+  {# ===================== 4 · KUNLIK VAZIFALAR ===================== #}
+  <section class="dash-section reveal" aria-label="Kunlik vazifalar">
+    {% include 'accounts/dashboard/_section_header.html' with icon='check2-circle' title='Kunlik vazifalar' subtitle=missions_subtitle %}
+    {% if daily_missions %}
+    <div class="dash-cols cols-sm-2 cols-md-4">
+      {% for m in daily_missions %}
+        {% include 'accounts/dashboard/_mission_card.html' with mission=m %}
+      {% endfor %}
+    </div>
+    {% else %}
+      {% include 'accounts/dashboard/_empty.html' with icon='emoji-smile' text='Bugun uchun vazifalar tayyorlanmoqda.' %}
+    {% endif %}
+  </section>
+
+  {# ===================== SPLIT: ASOSIY + YON PANEL ===================== #}
+  <div class="dash-section dash-split">
+
+    {# ---------- ASOSIY USTUN ---------- #}
+    <div class="dash-col">
+
+      <section class="reveal" aria-label="O‘qishni davom ettirish">
+        {% include 'accounts/dashboard/_section_header.html' with icon='play-btn' title='O‘qishni davom ettiring' subtitle='Qoldirgan joyingizdan davom eting' action_url='/professions/' action_label='Barcha kurslar' %}
+        {% if dashboard_courses %}
+        <div class="dash-cols cols-sm-2 cols-md-2">
+          {% for c in dashboard_courses %}
+            {% include 'accounts/dashboard/_course_card.html' with course=c %}
+          {% endfor %}
+        </div>
+        {% else %}
+          {% include 'accounts/dashboard/_empty.html' with icon='play-circle' text='Hali kursga yozilmagansiz. Birinchi kursingizni tanlang!' cta_url='/professions/' cta_label='Kurs tanlash' %}
+        {% endif %}
+      </section>
+
+      <section class="reveal" aria-label="O‘quv statistikasi">
+        {% include 'accounts/dashboard/_section_header.html' with icon='bar-chart-line' title='O‘quv statistikangiz' subtitle='Umumiy natijalaringiz bir qarashda' %}
+        <div class="dash-cols cols-sm-2 cols-md-3">
+          {% for st in stat_cards %}
+            {% include 'accounts/dashboard/_stat_card.html' with stat=st %}
+          {% endfor %}
+        </div>
+
+        {% if weekly_spark %}
+        <div class="dash-card" style="margin-top:16px;">
+          <div class="dash-card-head">
+            <h3 class="dash-card-title"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i> Shu hafta faolligi</h3>
+            <span class="dash-chip">Jami {{ learning_stats.study_hours|default:0 }} soat online</span>
+          </div>
+          <div class="wchart{% if not weekly_spark_total %} is-flat{% endif %}" id="weekChart">
+            {% for v in weekly_spark %}
+            <div class="wchart-col{% if forloop.counter0 == today_weekday %} is-today{% endif %}{% if not v %} is-empty{% endif %}">
+              <span class="wchart-tip">{{ v }} ta faollik</span>
+              <span class="wchart-bar" data-v="{{ v }}"></span>
+              <span class="wchart-day">{% if forloop.counter0 == 0 %}Du{% elif forloop.counter0 == 1 %}Se{% elif forloop.counter0 == 2 %}Cho{% elif forloop.counter0 == 3 %}Pa{% elif forloop.counter0 == 4 %}Ju{% elif forloop.counter0 == 5 %}Sh{% else %}Ya{% endif %}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% if not weekly_spark_total %}
+          <div class="wchart-hint">
+            <i class="bi bi-info-circle" aria-hidden="true"></i>
+            Bu hafta hali faollik yo‘q — bitta dars yoki test bilan grafikni to‘ldiring.
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </section>
+
+      <section class="reveal" aria-label="Faollik xaritasi">
+        {% include 'accounts/dashboard/_section_header.html' with icon='calendar3' title='Faollik izchilligi' subtitle='O‘rganish odatingizni kuzating' %}
+        <div class="dash-card">
+          {% include 'accounts/dashboard/_heatmap.html' with days=heatmap_days total=heatmap_total active_days=heatmap_active_days %}
+        </div>
+      </section>
+
+      <section class="reveal" aria-label="Tavsiya etilgan kurslar">
+        {% include 'accounts/dashboard/_section_header.html' with icon='magic' title='Siz uchun tavsiyalar' subtitle='Qiziqishlaringizga mos kurslar' action_url='/professions/' action_label='Hammasi' %}
+        {% if recommended_courses %}
+        <div class="dash-cols cols-sm-2 cols-md-3">
+          {% for c in recommended_courses %}
+            {% include 'accounts/dashboard/_course_card.html' with course=c recommend=True %}
+          {% endfor %}
+        </div>
+        {% else %}
+          {% include 'accounts/dashboard/_empty.html' with icon='stars' text='Tavsiyalar tez orada paydo bo‘ladi.' %}
+        {% endif %}
+      </section>
+
+      <section class="reveal" aria-label="Yaqinlashayotgan tadbirlar">
+        {% include 'accounts/dashboard/_section_header.html' with icon='calendar-event' title='Yaqinlashayotgan tadbirlar' subtitle='Jonli darslar, imtihonlar va musobaqalar' %}
+        {% if upcoming_events %}
+        <div class="dash-cols cols-sm-2">
+          {% for e in upcoming_events %}
+            {% include 'accounts/dashboard/_event_card.html' with event=e %}
+          {% endfor %}
+        </div>
+        {% else %}
+          {% include 'accounts/dashboard/_empty.html' with icon='calendar2-week' text='Hozircha rejalashtirilgan tadbirlar yo‘q.' %}
+        {% endif %}
+      </section>
+
+    </div>{# /ASOSIY #}
+
+    {# ---------- YON PANEL ---------- #}
+    <div class="dash-col">
+
+      <section class="reveal" aria-label="AI yordamchi">
+        <div class="dash-card ai-card">
+          <div class="dash-card-head">
+            <h3 class="dash-card-title"><i class="bi bi-robot" aria-hidden="true"></i> AI yordamchi</h3>
+            <span class="dash-chip is-accent">Smart</span>
+          </div>
+          <p style="color:var(--dash-muted);font-size:.88rem;margin:2px 0 6px;">Keyin nimani o‘rganish kerak?</p>
+          {% if ai_recommendations.course %}
+          <a class="ai-reco" href="{{ ai_recommendations.course.url|default:'#' }}">
+            <span class="ic" aria-hidden="true"><i class="bi bi-{{ ai_recommendations.course.icon|default:'mortarboard' }}"></i></span>
+            <span><span class="t">{{ ai_recommendations.course.title }}</span><br><span class="r">{{ ai_recommendations.course.reason }}</span></span>
+          </a>
+          {% endif %}
+          {% if ai_recommendations.article %}
+          <a class="ai-reco" href="{{ ai_recommendations.article.url|default:'#' }}">
+            <span class="ic" aria-hidden="true"><i class="bi bi-{{ ai_recommendations.article.icon|default:'journal-text' }}"></i></span>
+            <span><span class="t">{{ ai_recommendations.article.title }}</span><br><span class="r">{{ ai_recommendations.article.reason }}</span></span>
+          </a>
+          {% endif %}
+          {% if ai_recommendations.practice %}
+          <a class="ai-reco" href="{{ ai_recommendations.practice.url|default:'#' }}">
+            <span class="ic" aria-hidden="true"><i class="bi bi-{{ ai_recommendations.practice.icon|default:'controller' }}"></i></span>
+            <span><span class="t">{{ ai_recommendations.practice.title }}</span><br><span class="r">{{ ai_recommendations.practice.reason }}</span></span>
+          </a>
+          {% endif %}
+          {% if not ai_recommendations.course and not ai_recommendations.article and not ai_recommendations.practice %}
+            {% include 'accounts/dashboard/_empty.html' with icon='robot' text='Tavsiyalar tayyorlanmoqda.' %}
+          {% endif %}
+          <a class="ai-ask" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-chat-dots-fill" aria-hidden="true"></i> AI dan so‘rash</a>
+        </div>
+      </section>
+
+      <section class="reveal" aria-label="Reyting">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h3 class="dash-card-title"><i class="bi bi-trophy-fill" aria-hidden="true"></i> Haftalik reyting</h3>
+            <a class="dash-chip" href="{% url 'leaderboard' %}">To‘liq <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+          </div>
+          {% if top_students %}
+          <div class="leader-stack">
+            {% for s in top_students %}
+              {% include 'accounts/dashboard/_leader_row.html' with row=s %}
+            {% endfor %}
+          </div>
+          {% if my_leader_row %}
+          <div class="leader-stack" style="margin-top:8px;border-top:1px dashed var(--dash-border);padding-top:8px;">
+            {% include 'accounts/dashboard/_leader_row.html' with row=my_leader_row %}
+          </div>
+          {% endif %}
+          {% else %}
+            {% include 'accounts/dashboard/_empty.html' with icon='people' text='Reyting hali shakllanmoqda.' %}
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="reveal" aria-label="Yutuqlar">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h3 class="dash-card-title"><i class="bi bi-patch-check-fill" aria-hidden="true"></i> Yutuqlar</h3>
+            <span class="dash-chip">{{ achievements_earned_count|default:0 }}/{{ achievements_total|default:0 }}</span>
+          </div>
+          {% if achievements %}
+          <div class="dash-cols cols-sm-2 cols-md-2" style="gap:12px;">
+            {% for b in achievements %}
+              {% include 'accounts/dashboard/_achievement_card.html' with badge=b %}
+            {% endfor %}
+          </div>
+          {% else %}
+            {% include 'accounts/dashboard/_empty.html' with icon='award' text='Yutuqlar yo‘lda — birinchi darsdan boshlang!' %}
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="reveal" aria-label="E'lonlar">
+        <div class="dash-card">
+          <div class="dash-card-head">
+            <h3 class="dash-card-title"><i class="bi bi-megaphone-fill" aria-hidden="true"></i> E‘lonlar</h3>
+            {% if announcements_unread %}<span class="dash-chip is-danger">{{ announcements_unread }} yangi</span>{% endif %}
+          </div>
+          {% if announcements %}
+          <div class="leader-stack">
+            {% for a in announcements %}
+              {% include 'accounts/dashboard/_announcement_card.html' with ann=a %}
+            {% endfor %}
+          </div>
+          {% else %}
+            {% include 'accounts/dashboard/_empty.html' with icon='megaphone' text='Yangi e‘lonlar yo‘q.' %}
+          {% endif %}
+        </div>
+      </section>
+
+    </div>{# /YON PANEL #}
+  </div>{# /SPLIT #}
+
+  {# ===================== 5 · TEZKOR HAVOLALAR ===================== #}
+  <section class="dash-section reveal" aria-label="Tezkor havolalar">
+    {% include 'accounts/dashboard/_section_header.html' with icon='grid-1x2-fill' title='Tezkor havolalar' subtitle='Platformaning barcha imkoniyatlari' %}
+    {% if quick_access %}
+    <div class="dash-cols cols-sm-2 cols-md-4 cols-lg-4">
+      {% for t in quick_access %}
+        {% include 'accounts/dashboard/_quick_tile.html' with tile=t %}
+      {% endfor %}
+    </div>
+    {% else %}
+      {% include 'accounts/dashboard/_empty.html' with icon='grid' text='Havolalar yuklanmoqda.' %}
+    {% endif %}
+  </section>
+
 </div>{# /dash #}
 
 <script>
 (function(){
   "use strict";
-  // localized date
-  try{
-    var d=new Date(),
-        m=['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'],
-        el=document.getElementById('dhDate');
-    if(el) el.textContent=d.getDate()+'-'+m[d.getMonth()]+', '+d.getFullYear();
-  }catch(e){}
+  var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MONTHS = ['Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr'];
 
-  function animate(){
-    // hero ring
-    document.querySelectorAll('.dh-bigring').forEach(function(r){
-      var p=Math.max(0,Math.min(100,parseFloat(r.getAttribute('data-ring'))||0));
-      r.style.setProperty('--pct',p);
+  /* ---------- sana + jonli soat ---------- */
+  function tickClock(){
+    var d = new Date();
+    var dateEl = document.getElementById('heroDate');
+    var clockEl = document.getElementById('heroClock');
+    if (dateEl) dateEl.textContent = d.getDate() + '-' + MONTHS[d.getMonth()] + ', ' + d.getFullYear() + ' ·';
+    if (clockEl) clockEl.textContent = ('0'+d.getHours()).slice(-2) + ':' + ('0'+d.getMinutes()).slice(-2);
+  }
+  tickClock();
+  setInterval(tickClock, 20000);
+
+  /* ---------- raqamlarni count-up ---------- */
+  function countUp(el){
+    var target = parseFloat(el.getAttribute('data-countup')) || 0;
+    if (REDUCE || target === 0){ el.textContent = target; return; }
+    var dur = 900, start = performance.now();
+    function step(now){
+      var p = Math.min(1, (now - start) / dur);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ---------- daraja ringi + XP bar + haftalik grafik ---------- */
+  function animateAll(){
+    document.querySelectorAll('[data-countup]').forEach(countUp);
+
+    document.querySelectorAll('.lvl-ring').forEach(function(ring){
+      var pct = Math.max(0, Math.min(100, parseFloat(ring.getAttribute('data-xp')) || 0));
+      var bar = ring.querySelector('.bar');
+      if (!bar) return;
+      var circ = 2 * Math.PI * 40;
+      ring.style.setProperty('--circ', circ.toFixed(2));
+      bar.style.strokeDasharray = circ.toFixed(2);
+      bar.style.strokeDashoffset = (circ * (1 - pct / 100)).toFixed(2);
     });
-    // weekly sparkline (scale to max)
-    var bars=[].slice.call(document.querySelectorAll('#weekSpark .bar'));
-    if(bars.length){
-      var max=Math.max.apply(null,bars.map(function(b){return parseFloat(b.getAttribute('data-v'))||0;}));
+
+    document.querySelectorAll('[data-xpbar]').forEach(function(bar){
+      var pct = Math.max(0, Math.min(100, parseFloat(bar.getAttribute('data-xpbar')) || 0));
+      bar.style.width = pct + '%';
+    });
+
+    var bars = [].slice.call(document.querySelectorAll('#weekChart .wchart-bar'));
+    if (bars.length){
+      var max = Math.max.apply(null, bars.map(function(b){ return parseFloat(b.getAttribute('data-v')) || 0; }));
       bars.forEach(function(b){
-        var v=parseFloat(b.getAttribute('data-v'))||0;
-        b.style.height=(max>0?Math.max(6,Math.round(v/max*100)):6)+'%';
+        var v = parseFloat(b.getAttribute('data-v')) || 0;
+        b.style.height = (max > 0 ? Math.max(6, Math.round(v / max * 100)) : 6) + '%';
       });
     }
   }
-  if('requestAnimationFrame' in window){ requestAnimationFrame(function(){ setTimeout(animate,120); }); }
-  else { setTimeout(animate,200); }
+  requestAnimationFrame(function(){ setTimeout(animateAll, 120); });
 
-  // heatmap range toggle (7 / 30 / 90)
+  /* ---------- scroll reveal ---------- */
+  var revealEls = [].slice.call(document.querySelectorAll('.reveal'));
+  if (REDUCE || !('IntersectionObserver' in window)){
+    revealEls.forEach(function(el){ el.classList.add('is-in'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.06 });
+    revealEls.forEach(function(el){ io.observe(el); });
+  }
+
+  /* ---------- countdown ---------- */
+  document.querySelectorAll('[data-countdown]').forEach(function(card){
+    var target = new Date(card.getAttribute('data-countdown')).getTime();
+    if (isNaN(target)) return;
+    var out = {
+      d: card.querySelector('[data-cd="d"]'), h: card.querySelector('[data-cd="h"]'),
+      m: card.querySelector('[data-cd="m"]'), s: card.querySelector('[data-cd="s"]')
+    };
+    var timer = card.querySelector('.cd-timer');
+    var done = card.querySelector('[data-cd-done]');
+    function tick(){
+      var diff = target - Date.now();
+      if (diff <= 0){
+        if (timer) timer.hidden = true;
+        if (done) done.hidden = false;
+        clearInterval(iv);
+        return;
+      }
+      var s = Math.floor(diff / 1000);
+      if (out.d) out.d.textContent = Math.floor(s / 86400);
+      if (out.h) out.h.textContent = ('0' + Math.floor(s % 86400 / 3600)).slice(-2);
+      if (out.m) out.m.textContent = ('0' + Math.floor(s % 3600 / 60)).slice(-2);
+      if (out.s) out.s.textContent = ('0' + (s % 60)).slice(-2);
+    }
+    tick();
+    var iv = setInterval(tick, 1000);
+  });
+
+  /* ---------- heatmap oraliq tugmalari ---------- */
   document.querySelectorAll('[data-heatmap]').forEach(function(wrap){
-    var cells=[].slice.call(wrap.querySelectorAll('.heatmap .heatmap-cell'));
-    var btns=[].slice.call(wrap.querySelectorAll('.heatmap-range-btn'));
+    var cells = [].slice.call(wrap.querySelectorAll('.heatmap .heatmap-cell'));
+    var btns = [].slice.call(wrap.querySelectorAll('.heatmap-range-btn'));
     function apply(n){
-      var start=Math.max(0,cells.length-n);
-      cells.forEach(function(c,i){ c.style.display=(i>=start)?'':'none'; });
+      var start = Math.max(0, cells.length - n);
+      cells.forEach(function(c, i){ c.style.display = (i >= start) ? '' : 'none'; });
     }
     btns.forEach(function(b){
-      b.addEventListener('click',function(){
+      b.addEventListener('click', function(){
         btns.forEach(function(x){ x.classList.remove('is-active'); });
-               b.classList.add('is-active');
-        apply(parseInt(b.getAttribute('data-range'),10)||90);
+        b.classList.add('is-active');
+        apply(parseInt(b.getAttribute('data-range'), 10) || 90);
       });
     });
   });
+
+  /* ---------- kun savoli ---------- */
+  var dq = document.getElementById('dqCard');
+  if (dq){
+    var options = [].slice.call(dq.querySelectorAll('.dq-opt'));
+    var result = document.getElementById('dqResult');
+    var rTitle = document.getElementById('dqResultTitle');
+    var rDesc = document.getElementById('dqResultDesc');
+    var state = dq.getAttribute('data-state');
+    var busy = false;
+
+    function markCorrect(correctId){
+      options.forEach(function(o){
+        if (o.getAttribute('data-answer') === String(correctId)) o.classList.add('is-correct');
+        else o.classList.add('is-dim');
+      });
+    }
+    function showResult(kind, title, desc){
+      result.classList.remove('ok', 'no');
+      result.classList.add(kind === 'ok' ? 'ok' : 'no', 'is-open');
+      result.querySelector('.ic').innerHTML = kind === 'ok'
+        ? '<i class="bi bi-check-circle-fill"></i>'
+        : '<i class="bi bi-x-circle-fill"></i>';
+      rTitle.textContent = title;
+      rDesc.textContent = desc || '';
+    }
+    function confetti(){
+      if (REDUCE) return;
+      var colors = ['#6366f1','#22d3ee','#10b981','#f59e0b','#ec4899'];
+      for (var i = 0; i < 40; i++){
+        var p = document.createElement('span');
+        p.className = 'dq-confetti';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.background = colors[i % colors.length];
+        p.style.animationDelay = (Math.random() * 0.4) + 's';
+        dq.appendChild(p);
+        setTimeout(function(node){ return function(){ node.remove(); }; }(p), 2200);
+      }
+    }
+
+    // sahifa yuklanganda: bugun allaqachon javob berilgan holat
+    if (state === 'correct' || state === 'wrong'){
+      markCorrect(dq.getAttribute('data-correct'));
+      if (state === 'correct') showResult('ok', 'Bugungi savolga to‘g‘ri javob berdingiz!', 'Ertaga yangi savol kutib turadi.');
+      else showResult('no', 'Bugun noto‘g‘ri javob berdingiz.', 'To‘g‘ri javob yuqorida belgilangan. Ertaga yangi imkoniyat!');
+    }
+
+    options.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (busy || btn.disabled) return;
+        busy = true;
+        options.forEach(function(o){ o.disabled = true; });
+        var body = new URLSearchParams();
+        body.append('answer_id', btn.getAttribute('data-answer'));
+        fetch(dq.getAttribute('data-url'), {
+          method: 'POST',
+          headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString()
+        })
+        .then(function(r){ return r.json().then(function(j){ return { status: r.status, data: j }; }); })
+        .then(function(res){
+          var d = res.data || {};
+          if (d.correct_id) markCorrect(d.correct_id);
+          if (d.ok && d.correct){
+            btn.classList.remove('is-dim');
+            btn.classList.add('is-correct');
+            showResult('ok', 'To‘g‘ri! +' + (d.reward || 0) + ' coin', d.explanation);
+            confetti();
+          } else if (d.ok){
+            btn.classList.remove('is-dim');
+            btn.classList.add('is-wrong');
+            showResult('no', 'Noto‘g‘ri javob', d.explanation || 'To‘g‘ri javob yuqorida belgilangan.');
+          } else if (d.error === 'already'){
+            showResult(d.was_correct ? 'ok' : 'no', 'Bugungi savolga allaqachon javob bergansiz.', d.explanation);
+          } else {
+            showResult('no', 'Javobni saqlab bo‘lmadi', 'Iltimos, sahifani yangilab qayta urinib ko‘ring.');
+          }
+        })
+        .catch(function(){
+          options.forEach(function(o){ o.disabled = false; });
+          busy = false;
+          showResult('no', 'Tarmoq xatosi', 'Internet aloqasini tekshirib qayta urinib ko‘ring.');
+        });
+      });
+    });
+  }
 })();
 </script>
 {% endblock %}

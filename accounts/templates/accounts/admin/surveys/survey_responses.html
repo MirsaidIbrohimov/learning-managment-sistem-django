@@ -1,118 +1,260 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
 
 {% block title %}Javoblar - {{ survey.title }}{% endblock %}
+{% block topbar_title %}So'rovnomalar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/survey.css' %}">
+{% endblock %}
 
 {% block admin_content %}
-<style>
-    .sr-page { padding: 1.5rem 0; }
-    .sr-header {
-        display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap;
-    }
-    .sr-back {
-        width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--bs-border-color);
-        background: transparent; display: flex; align-items: center; justify-content: center;
-        color: var(--bs-body-color); text-decoration: none; font-size: 1.1rem; transition: all 0.2s;
-    }
-    .sr-back:hover { background: rgba(99, 102, 241, 0.08); color: #6366f1; }
-    .sr-header h3 { font-weight: 800; margin: 0; }
-    .sr-count {
-        background: rgba(99, 102, 241, 0.12); color: #6366f1;
-        padding: 6px 14px; border-radius: 10px; font-weight: 700; font-size: 0.88rem;
-    }
-    .sr-download {
-        margin-left: auto; display: inline-flex; align-items: center; gap: 0.45rem;
-        padding: 9px 16px; border-radius: 10px; background: #10b981; color: #fff;
-        text-decoration: none; font-size: 0.88rem; font-weight: 700; transition: all 0.2s;
-    }
-    .sr-download:hover { background: #059669; color: #fff; }
+<div class="sv-bg"></div>
 
-    .sr-response-card {
-        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
-        border-radius: 16px; padding: 1.5rem; margin-bottom: 1.25rem;
-        transition: all 0.2s;
-    }
-    .sr-response-card:hover { border-color: #6366f1; }
-
-    .sr-user-info {
-        display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem;
-        padding-bottom: 1rem; border-bottom: 1px solid var(--bs-border-color);
-    }
-    .sr-avatar {
-        width: 44px; height: 44px; border-radius: 12px;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff; display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 0.9rem; flex-shrink: 0;
-    }
-    .sr-user-name { font-weight: 700; }
-    .sr-user-meta { font-size: 0.82rem; color: var(--bs-secondary-color); }
-
-    .sr-answer-item {
-        padding: 0.75rem 0;
-        border-bottom: 1px dashed var(--bs-border-color);
-    }
-    .sr-answer-item:last-child { border-bottom: none; }
-    .sr-answer-q {
-        font-weight: 600; font-size: 0.88rem; color: #6366f1;
-        margin-bottom: 0.3rem;
-    }
-    .sr-answer-a { font-size: 0.95rem; }
-    .sr-answer-empty { color: var(--bs-secondary-color); font-style: italic; }
-
-    .sr-empty {
-        text-align: center; padding: 4rem 2rem; color: var(--bs-secondary-color);
-        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
-        border-radius: 16px;
-    }
-    .sr-empty i { font-size: 3rem; opacity: 0.3; margin-bottom: 1rem; display: block; }
-</style>
-
-<div class="sr-page">
-    <div class="sr-header">
-        <a href="{% url 'admin_surveys' %}" class="sr-back"><i class="bi bi-arrow-left"></i></a>
-        <h3><i class="bi bi-chat-square-text" style="color:#6366f1;"></i> {{ survey.title }}</h3>
-        <span class="sr-count">{{ responses|length }} ta javob</span>
-        <a href="{% url 'admin_survey_responses_excel' survey.pk %}" class="sr-download">
-            <i class="bi bi-download"></i> Yuklab olish
+<div class="sv-wrap">
+    <div class="sv-head">
+        <div class="sv-head-main">
+            <a href="{% url 'admin_surveys' %}" class="sv-back" title="Orqaga"><i class="bi bi-arrow-left"></i></a>
+            <div>
+                <div class="sv-eyebrow">Natijalar</div>
+                <h1 class="sv-title">{{ survey.title }}</h1>
+                {% if survey.description %}
+                <p class="sv-subtitle">{{ survey.description }}</p>
+                {% endif %}
+            </div>
+        </div>
+        <a href="{% url 'admin_survey_responses_excel' survey.pk %}" class="sv-btn sv-btn-success sv-btn-lg">
+            <i class="bi bi-file-earmark-arrow-down"></i> Excel yuklab olish
         </a>
     </div>
 
-    {% if survey.description %}
-    <p style="color: var(--bs-secondary-color); margin-bottom: 1.5rem;">{{ survey.description }}</p>
-    {% endif %}
+    <div class="sv-stats">
+        <div class="sv-stat">
+            <div class="sv-stat-icon" style="background: var(--sv-accent-soft); color: var(--sv-accent);">
+                <i class="bi bi-inboxes"></i>
+            </div>
+            <div>
+                <div class="sv-stat-num">{{ response_count }}</div>
+                <div class="sv-stat-label">Kelgan javoblar</div>
+            </div>
+        </div>
+        <div class="sv-stat">
+            <div class="sv-stat-icon"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="sv-stat-num">{{ percent }}%</div>
+                <div class="sv-stat-label">
+                    {% if target %}Mo'ljal: {{ target }} foydalanuvchi{% else %}Mo'ljal auditoriya yo'q{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="sv-stat">
+            <div class="sv-stat-icon"><i class="bi bi-list-check"></i></div>
+            <div>
+                <div class="sv-stat-num">{{ questions|length }}</div>
+                <div class="sv-stat-label">Savollar soni</div>
+            </div>
+        </div>
+    </div>
 
     {% if responses %}
-        {% for response in responses %}
-        <div class="sr-response-card">
-            <div class="sr-user-info">
-                <div class="sr-avatar">{{ response.user.first_name.0 }}{{ response.user.last_name.0 }}</div>
-                <div>
-                    <div class="sr-user-name">{{ response.user.get_full_name }}</div>
-                    <div class="sr-user-meta">
-                        @{{ response.user.username }} &bull; {{ response.submitted_at|date:"d.m.Y H:i" }}
+    <div class="sv-tabs" id="svTabs">
+        <button type="button" class="sv-tab is-active" data-pane="agg">
+            <i class="bi bi-bar-chart"></i> Jamlanma
+        </button>
+        <button type="button" class="sv-tab" data-pane="raw">
+            <i class="bi bi-person-lines-fill"></i> Alohida javoblar
+        </button>
+    </div>
+
+    <!-- ═══ JAMLANMA ═══ -->
+    <div class="sv-tabpane is-active" data-pane="agg">
+        <div class="sv-agg">
+            {% for s in stats %}
+            <section class="sv-agg-card">
+                <div class="sv-agg-head">
+                    <span class="sv-q-index">{{ forloop.counter }}</span>
+                    <div style="min-width:0;">
+                        <h2 class="sv-agg-q">{{ s.question.question_text }}</h2>
+                        <div class="sv-agg-sub">
+                            <span class="sv-badge">{{ s.question.get_question_type_display }}</span>
+                            <span><b>{{ s.answered }}</b> javob berdi</span>
+                            {% if s.skipped %}<span>{{ s.skipped }} ta bo'sh</span>{% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {% for answer in response.answers.all %}
-            <div class="sr-answer-item">
-                <div class="sr-answer-q"><i class="bi bi-chat-dots"></i> {{ answer.question.question_text }}</div>
-                <div class="sr-answer-a">
-                    {% if answer.answer_text %}
-                        {{ answer.answer_text }}
-                    {% else %}
-                        <span class="sr-answer-empty">Javob berilmagan</span>
+                {% if s.type == 'rating' %}
+                    <div class="sv-rate-summary">
+                        <div>
+                            <div class="sv-rate-avg">{{ s.average }}</div>
+                            <div class="sv-rate-note">5 balldan o'rtacha</div>
+                        </div>
+                        <div>
+                            <div class="sv-rate-stars">
+                                {% for on in s.stars %}
+                                <i class="bi bi-star-fill{% if not on %} is-empty{% endif %}"></i>
+                                {% endfor %}
+                            </div>
+                            <div class="sv-rate-note">{{ s.voted }} ta baho</div>
+                        </div>
+                    </div>
+                    <div class="sv-bars">
+                        {% for row in s.rating_rows %}
+                        <div class="sv-bar-row{% if not row.count %} is-zero{% endif %}">
+                            <span class="sv-bar-star">{{ row.star }} <i class="bi bi-star-fill"></i></span>
+                            <span class="sv-bar-val">{{ row.count }} &middot; {{ row.percent }}%</span>
+                            <div class="sv-bar-track">
+                                <div class="sv-bar-fill" data-pct="{{ row.percent }}"
+                                     style="background: var(--sv-warning);"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                {% elif s.options %}
+                    <div class="sv-bars">
+                        {% for opt in s.options %}
+                        <div class="sv-bar-row{% if opt.is_top and opt.count %} is-top{% endif %}{% if not opt.count %} is-zero{% endif %}">
+                            <span class="sv-bar-label">{{ opt.label }}</span>
+                            <span class="sv-bar-val">{{ opt.count }} &middot; {{ opt.percent }}%</span>
+                            <div class="sv-bar-track">
+                                <div class="sv-bar-fill" data-pct="{{ opt.percent }}"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if s.type == 'checkbox' %}
+                    <div class="sv-note">
+                        <i class="bi bi-info-circle"></i>
+                        <span>Ko'p tanlash savoli — bitta kishi bir nechta variant belgilagani uchun foizlar yig'indisi 100%dan oshishi mumkin.</span>
+                    </div>
                     {% endif %}
-                </div>
-            </div>
+
+                {% elif s.quotes %}
+                    <div class="sv-quotes">
+                        {% for quote in s.quotes %}
+                        <div class="sv-quote">{{ quote }}</div>
+                        {% endfor %}
+                        {% if s.more %}
+                        <div class="sv-quote-more">va yana {{ s.more }} ta javob — to'liq ro'yxat "Alohida javoblar" bo'limida yoki Excel faylda.</div>
+                        {% endif %}
+                    </div>
+
+                {% else %}
+                    <div class="sv-quote-more">Bu savolga hali javob berilmagan.</div>
+                {% endif %}
+            </section>
             {% endfor %}
         </div>
-        {% endfor %}
+    </div>
+
+    <!-- ═══ ALOHIDA JAVOBLAR ═══ -->
+    <div class="sv-tabpane" data-pane="raw">
+        <div class="sv-toolbar">
+            <div class="sv-search">
+                <i class="bi bi-search"></i>
+                <input type="search" id="svRespSearch" placeholder="Ism yoki username bo'yicha qidirish..." autocomplete="off">
+            </div>
+            <span class="sv-panel-hint" id="svRespCount">{{ response_count }} ta javob</span>
+        </div>
+
+        <div id="svRespList">
+            {% for response in responses %}
+            <article class="sv-resp" data-person="{{ response.user.get_full_name|lower }} {{ response.user.username|lower }}">
+                <div class="sv-resp-head">
+                    <div class="sv-avatar">{{ response.user.first_name|slice:":1" }}{{ response.user.last_name|slice:":1" }}</div>
+                    <div style="min-width:0;">
+                        <div class="sv-resp-name">{{ response.user.get_full_name }}</div>
+                        <div class="sv-resp-meta">
+                            @{{ response.user.username }} &middot; {{ response.submitted_at|date:"d.m.Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+
+                {% for answer in response.answers.all %}
+                <div class="sv-answer">
+                    <div class="sv-answer-q">{{ answer.question.question_text }}</div>
+                    <div class="sv-answer-a">
+                        {% if answer.answer_text %}
+                            {% if answer.question.question_type == 'rating' %}
+                                <span class="sv-bar-star">{{ answer.answer_text }} <i class="bi bi-star-fill"></i></span>
+                            {% else %}
+                                {{ answer.answer_text }}
+                            {% endif %}
+                        {% else %}
+                            <span class="sv-answer-empty">Javob berilmagan</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="sv-no-result" id="svRespEmpty">
+            <i class="bi bi-search" style="font-size:1.6rem; display:block; margin-bottom:0.6rem; opacity:.4;"></i>
+            Bu nom bo'yicha javob topilmadi.
+        </div>
+    </div>
+
     {% else %}
-    <div class="sr-empty">
-        <i class="bi bi-chat-square-text"></i>
+    <div class="sv-empty">
+        <div class="sv-empty-icon"><i class="bi bi-inbox"></i></div>
         <h5>Hali javoblar yo'q</h5>
-        <p>Foydalanuvchilar so'rovnomani to'ldirganda javoblar shu yerda ko'rinadi</p>
+        <p>Foydalanuvchilar so'rovnomani to'ldirgach, javoblar va jamlanma statistika shu yerda paydo bo'ladi.</p>
+        {% if not survey.is_active %}
+        <div class="sv-note" style="max-width:34rem; margin:1.25rem auto 0; text-align:left;">
+            <i class="bi bi-exclamation-triangle"></i>
+            <span>Diqqat: bu so'rovnoma hozir <b>nofaol</b> — foydalanuvchilarga ko'rinmaydi.</span>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function fillBars(scope) {
+        scope.querySelectorAll('.sv-bar-fill').forEach(function (bar) {
+            bar.style.width = (bar.dataset.pct || 0) + '%';
+        });
+    }
+
+    const tabs = document.getElementById('svTabs');
+    if (!tabs) return;
+
+    requestAnimationFrame(function () { fillBars(document); });
+
+    tabs.addEventListener('click', function (event) {
+        const tab = event.target.closest('.sv-tab');
+        if (!tab) return;
+        tabs.querySelectorAll('.sv-tab').forEach(function (item) {
+            item.classList.toggle('is-active', item === tab);
+        });
+        document.querySelectorAll('.sv-tabpane').forEach(function (pane) {
+            pane.classList.toggle('is-active', pane.dataset.pane === tab.dataset.pane);
+        });
+    });
+
+    const search = document.getElementById('svRespSearch');
+    const list = document.getElementById('svRespList');
+    const empty = document.getElementById('svRespEmpty');
+    const count = document.getElementById('svRespCount');
+    const cards = Array.from(list.querySelectorAll('.sv-resp'));
+
+    search.addEventListener('input', function () {
+        const term = search.value.trim().toLowerCase();
+        let shown = 0;
+        cards.forEach(function (card) {
+            const visible = !term || (card.dataset.person || '').includes(term);
+            card.classList.toggle('is-hidden', !visible);
+            if (visible) shown++;
+        });
+        empty.classList.toggle('is-shown', shown === 0);
+        count.textContent = shown + ' ta javob';
+    });
+})();
+</script>
 {% endblock %}

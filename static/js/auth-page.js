@@ -8,6 +8,7 @@
   'use strict';
 
   var THEME_KEY = 'its-theme';
+  var SITE_THEME_KEY = 'theme'; // base.html shu kalitni o'qiydi — tanlov saytga ham o'tadi
   var sceneApi = null; // mount qilingan sahna (tema o'zgarishida kerak)
 
   /* ────────────────────────────────────────────
@@ -19,7 +20,10 @@
 
   function applyTheme(theme, btn) {
     document.documentElement.setAttribute('data-theme', theme);
-    try { localStorage.setItem(THEME_KEY, theme); } catch (e) { /* private mode */ }
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+      localStorage.setItem(SITE_THEME_KEY, theme);
+    } catch (e) { /* private mode */ }
     if (btn) btn.setAttribute('aria-pressed', theme === 'light' ? 'true' : 'false');
     if (sceneApi) sceneApi.setTheme(theme);
   }
@@ -92,6 +96,37 @@
   }
 
   /* ────────────────────────────────────────────
+     RAQAM SANASH ANIMATSIYASI
+  ──────────────────────────────────────────── */
+  function countUp(el, target, suffix) {
+    if (!el) return;
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) { el.textContent = target + (suffix || ''); return; }
+    var start = performance.now(), dur = 1100;
+    function step(now) {
+      var p = Math.max(0, Math.min(1, (now - start) / dur));
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased) + (suffix || '');
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* ────────────────────────────────────────────
+     CAPS LOCK OGOHLANTIRISHI
+  ──────────────────────────────────────────── */
+  function capsHint(input, hint) {
+    if (!input || !hint) return;
+    function check(e) {
+      var on = e.getModifierState && e.getModifierState('CapsLock');
+      hint.classList.toggle('on', !!on);
+    }
+    input.addEventListener('keydown', check);
+    input.addEventListener('keyup', check);
+    input.addEventListener('blur', function () { hint.classList.remove('on'); });
+  }
+
+  /* ────────────────────────────────────────────
      SEGMENT TABLAR (suzuvchi pill indikator bilan)
   ──────────────────────────────────────────── */
   function initSegTabs(seg) {
@@ -130,7 +165,8 @@
   }
 
   /* ============================================================
-     3D SAHNA — tarmoq globusi (landing hero uslubida)
+     3D SAHNA — "Bilim yadrosi": trefoil (2,3) tugun + neyron
+     tugunlar + orbital halqalar + tugun bo'ylab yuguruvchi signallar.
      t = 0 → tun (dark)   |   t = 1 → kun (light)
   ============================================================ */
   function mountScene(canvas, opts) {
@@ -139,7 +175,7 @@
       return null;
     }
     opts = opts || {};
-    var side = opts.side === 'right' ? 1 : -1; // globus qaysi tomonda turadi
+    var side = opts.side === 'right' ? 1 : -1; // shakl qaysi tomonda turadi
 
     var renderer;
     try {
@@ -155,8 +191,10 @@
     camera.position.z = 8;
 
     var root = new THREE.Group();    // joylashish + kursorga egilish
-    var spinner = new THREE.Group(); // doimiy aylanish
+    var spinner = new THREE.Group(); // tugunning o'z aylanishi
+    var orbits = new THREE.Group();  // halqalar alohida presessiya qiladi
     root.add(spinner);
+    root.add(orbits);
     scene.add(root);
 
     /* ── Tema palitrasi bog'lamalari ── */
@@ -166,7 +204,7 @@
     function bindColor(m, n, d) { colorBinds.push({ mat: m, n: C(n), d: C(d) }); }
     function bindNum(obj, prop, n, d) { numBinds.push({ obj: obj, prop: prop, n: n, d: d }); }
 
-    /* ── Yumaloq porlovchi nuqta teksturasi (landing bilan bir xil) ── */
+    /* ── Yumaloq porlovchi nuqta teksturasi ── */
     function dotTexture() {
       var c = document.createElement('canvas');
       c.width = c.height = 64;
@@ -181,56 +219,101 @@
       g.fill();
       return new THREE.CanvasTexture(c);
     }
+    var dotMap = dotTexture();
 
-    /* ── Fibonachchi sferasi — nuqtalar ── */
-    var R = 2.4, N = 280;
-    var verts = [];
-    var positions = [];
-    for (var i = 0; i < N; i++) {
-      var y = 1 - (i / (N - 1)) * 2;
-      var rad = Math.sqrt(Math.max(0, 1 - y * y));
-      var theta = i * Math.PI * (3 - Math.sqrt(5));
-      var x = Math.cos(theta) * rad, z = Math.sin(theta) * rad;
-      verts.push(new THREE.Vector3(x * R, y * R, z * R));
-      positions.push(x * R, y * R, z * R);
+    /* ── Trefoil tugun: markaziy egri chiziq formulasi (three.js bilan bir xil) ── */
+    var KR = 1.34, KT = 0.40, KP = 2, KQ = 3;
+    var tmpV = new THREE.Vector3();
+    function knotPoint(u, out) {
+      var quOverP = KQ / KP * u;
+      var cs = Math.cos(quOverP);
+      out.set(
+        KR * (2 + cs) * 0.5 * Math.cos(KP * u),
+        KR * (2 + cs) * 0.5 * Math.sin(KP * u),
+        KR * Math.sin(quOverP) * 0.5
+      );
+      return out;
     }
-    var pGeo = new THREE.BufferGeometry();
-    pGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+    var knotGeo = new THREE.TorusKnotGeometry(KR, KT, 88, 6, KP, KQ);
+
+    /* ── Markaziy egri chiziq: porlovchi quvur — shaklning konturi ── */
+    var curvePts = [];
+    for (var ci = 0; ci < 260; ci++) {
+      curvePts.push(knotPoint((ci / 260) * Math.PI * 2, new THREE.Vector3()));
+    }
+    var knotCurve = new THREE.CatmullRomCurve3(curvePts, true, 'catmullrom', 0.5);
+
+    var tubeMat = new THREE.MeshBasicMaterial({ color: 0x9aa2ff, transparent: true, opacity: 0.9 });
+    spinner.add(new THREE.Mesh(new THREE.TubeGeometry(knotCurve, 460, 0.044, 7, true), tubeMat));
+    bindColor(tubeMat, '#9aa2ff', '#5346d8');
+
+    var glowMat = new THREE.MeshBasicMaterial({
+      color: 0x6366f1, transparent: true, opacity: 0.11,
+      blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
+    });
+    spinner.add(new THREE.Mesh(new THREE.TubeGeometry(knotCurve, 200, 0.16, 8, true), glowMat));
+    bindColor(glowMat, '#6366f1', '#7c6cf6');
+
+    /* ── Quvur atrofidagi siyrak neyron nuqtalari ── */
     var pMat = new THREE.PointsMaterial({
-      size: 0.22, map: dotTexture(), transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending, color: 0xc0c1ff, sizeAttenuation: true
+      size: 0.062, map: dotMap, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending, color: 0xc0c1ff, opacity: 0.5, sizeAttenuation: true
     });
-    spinner.add(new THREE.Points(pGeo, pMat));
-    bindColor(pMat, '#c0c1ff', '#5b4be0');
+    spinner.add(new THREE.Points(knotGeo, pMat));
+    bindColor(pMat, '#c0c1ff', '#4536c9');
+    bindNum(pMat, 'opacity', 0.5, 0.4);
 
-    /* ── Yaqin nuqtalarni bog'lovchi "tarmoq" chiziqlari ── */
-    var linePos = [];
-    var maxD = R * 0.46;
-    for (var a = 0; a < verts.length; a++) {
-      for (var b = a + 1; b < verts.length; b++) {
-        if (verts[a].distanceTo(verts[b]) < maxD) {
-          linePos.push(
-            verts[a].x, verts[a].y, verts[a].z,
-            verts[b].x, verts[b].y, verts[b].z
-          );
-        }
-      }
+    /* ── Tugun bo'ylab yuguruvchi signal impulslari ── */
+    var PN = 26;
+    var pulseU = new Float32Array(PN);
+    var pulseSpd = new Float32Array(PN);
+    var pulsePos = new Float32Array(PN * 3);
+    for (var pi = 0; pi < PN; pi++) {
+      pulseU[pi] = Math.random() * Math.PI * 2;
+      pulseSpd[pi] = 0.24 + Math.random() * 0.38;
     }
-    var lGeo = new THREE.BufferGeometry();
-    lGeo.setAttribute('position', new THREE.Float32BufferAttribute(linePos, 3));
-    var lMat = new THREE.LineBasicMaterial({
-      color: 0x6366f1, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending
+    var pulseGeo = new THREE.BufferGeometry();
+    pulseGeo.setAttribute('position', new THREE.BufferAttribute(pulsePos, 3));
+    var pulseMat = new THREE.PointsMaterial({
+      size: 0.22, map: dotMap, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending, color: 0xffffff, opacity: 0.9, sizeAttenuation: true
     });
-    spinner.add(new THREE.LineSegments(lGeo, lMat));
-    bindColor(lMat, '#6366f1', '#6353e8');
+    spinner.add(new THREE.Points(pulseGeo, pulseMat));
+    bindColor(pulseMat, '#ffffff', '#3a2bb8');
+    bindNum(pulseMat, 'opacity', 0.9, 0.8);
 
-    /* ── Ichki yumshoq yadro ── */
-    var coreMat = new THREE.MeshBasicMaterial({ color: 0x1a1f47, transparent: true, opacity: 0.4 });
-    spinner.add(new THREE.Mesh(new THREE.SphereGeometry(R * 0.92, 32, 32), coreMat));
-    bindColor(coreMat, '#1a1f47', '#e8ecff');
-    bindNum(coreMat, 'opacity', 0.4, 0.55);
+    /* ── Markazdagi qirrali yadro ── */
+    var gemMat = new THREE.MeshBasicMaterial({ color: 0x8b93ff, transparent: true, opacity: 0.55 });
+    var gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.24, 0), gemMat);
+    spinner.add(gem);
+    bindColor(gemMat, '#8b93ff', '#5b4be0');
+    var gemEdgeMat = new THREE.LineBasicMaterial({
+      color: 0xe6e9ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
+    });
+    var gemEdges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.245, 0)), gemEdgeMat);
+    spinner.add(gemEdges);
+    bindColor(gemEdgeMat, '#e6e9ff', '#4536c9');
 
-    /* ── Orqa halo (yorug'lik gardishi) ── */
+    /* ── Orbital halqalar ── */
+    var ringMats = [];
+    function addRing(radius, rx, ry, nHex, dHex, op) {
+      var m = new THREE.MeshBasicMaterial({
+        color: parseInt(nHex.slice(1), 16), transparent: true, opacity: op,
+        blending: THREE.AdditiveBlending, side: THREE.DoubleSide
+      });
+      var mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.007, 5, 190), m);
+      mesh.rotation.set(rx, ry, 0);
+      orbits.add(mesh);
+      bindColor(m, nHex, dHex);
+      bindNum(m, 'opacity', op, op * 1.35);
+      ringMats.push(m);
+      return mesh;
+    }
+    var ringA = addRing(2.62, Math.PI / 2.35, 0.28, '#22d3ee', '#0c9fc4', 0.42);
+    var ringB = addRing(2.98, Math.PI / 1.7, -0.42, '#7c6cf6', '#5b4be0', 0.3);
+
+    /* ── Orqa halo ── */
     function haloTexture() {
       var c = document.createElement('canvas');
       c.width = c.height = 128;
@@ -244,37 +327,37 @@
       return new THREE.CanvasTexture(c);
     }
     var haloMat = new THREE.SpriteMaterial({
-      map: haloTexture(), transparent: true, opacity: 0.45,
+      map: haloTexture(), transparent: true, opacity: 0.42,
       depthWrite: false, blending: THREE.AdditiveBlending, color: 0x6366f1
     });
     var halo = new THREE.Sprite(haloMat);
-    halo.scale.set(R * 4.4, R * 4.4, 1);
-    halo.position.z = -0.6;
+    halo.scale.set(6.4, 6.4, 1);
+    halo.position.z = -1.2;
     root.add(halo);
     bindColor(haloMat, '#6366f1', '#8b9cff');
-    bindNum(haloMat, 'opacity', 0.45, 0.28);
+    bindNum(haloMat, 'opacity', 0.34, 0.2);
 
     /* ── Atrofdagi mayda zarralar ── */
     var dustGeo = new THREE.BufferGeometry();
-    var dustN = 160;
+    var dustN = 170;
     var dustPos = new Float32Array(dustN * 3);
     for (var d0 = 0; d0 < dustN; d0++) {
       var th = Math.random() * Math.PI * 2;
       var ph = Math.acos(2 * Math.random() - 1);
-      var rr = R * (1.6 + Math.random() * 2.6);
+      var rr = 2.6 + Math.random() * 4.4;
       dustPos[d0 * 3] = rr * Math.sin(ph) * Math.cos(th);
       dustPos[d0 * 3 + 1] = rr * Math.cos(ph) * 0.7;
       dustPos[d0 * 3 + 2] = rr * Math.sin(ph) * Math.sin(th) - 1;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
     var dustMat = new THREE.PointsMaterial({
-      size: 0.08, map: dotTexture(), transparent: true, opacity: 0.45,
+      size: 0.06, map: dotMap, transparent: true, opacity: 0.32,
       depthWrite: false, blending: THREE.AdditiveBlending, color: 0xaeb6ff, sizeAttenuation: true
     });
     var dust = new THREE.Points(dustGeo, dustMat);
     root.add(dust);
     bindColor(dustMat, '#aeb6ff', '#5b4be0');
-    bindNum(dustMat, 'opacity', 0.45, 0.14);
+    bindNum(dustMat, 'opacity', 0.32, 0.14);
 
     /* ── Tema lerp ── */
     var t = currentTheme() === 'light' ? 1 : 0;
@@ -285,6 +368,19 @@
       numBinds.forEach(function (bd) { bd.obj[bd.prop] = bd.n + (bd.d - bd.n) * t; });
     }
 
+    /* Kun rejimida additiv aralashtirish yorug' fonda yo'qoladi — normal rejimga o'tamiz */
+    var blendMats = [pMat, glowMat, pulseMat, dustMat, gemEdgeMat].concat(ringMats);
+    var lastLight = null;
+    function applyBlend() {
+      var light = t > 0.5;
+      if (light === lastLight) return;
+      lastLight = light;
+      blendMats.forEach(function (m) {
+        m.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
+        m.needsUpdate = true;
+      });
+    }
+
     /* ── Moslashuvchan joylashuv ── */
     function layout() {
       var w = window.innerWidth, h = window.innerHeight;
@@ -292,15 +388,18 @@
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       if (w <= 980) {
-        root.position.set(0, 0.85, 0);
-        root.scale.setScalar(0.8);
+        root.position.set(0, 0.9, 0);
+        root.scale.setScalar(0.7);
+        spinner.scale.setScalar(1);
       } else {
-        root.position.set(side * Math.min(2.4, w / 700), 0.1, 0);
-        root.scale.setScalar(1);
+        // Yadro shisha karta markazida turadi: halqalar chetlaridan chiqib ko'rinadi
+        root.position.set(side * Math.min(2.35, w / 620), 0.02, 0);
+        root.scale.setScalar(1.02);
+        spinner.scale.setScalar(1.22); // tugun karta chetidan tashqariga chiqib ko'rinadi
       }
     }
 
-    /* ── Kursor parallaksi (landing bilan bir xil his) ── */
+    /* ── Kursor parallaksi ── */
     var mx = 0, my = 0, cx = 0, cy = 0;
     var canHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
     if (canHover) {
@@ -313,25 +412,52 @@
     /* ── Render sikli ── */
     var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var rafId = 0, running = false, clock = new THREE.Clock();
-    var spin = 0;
+    var spin = 0, prevEl = 0;
+
+    function movePulses(dt) {
+      for (var k = 0; k < PN; k++) {
+        pulseU[k] += pulseSpd[k] * dt;
+        knotPoint(pulseU[k], tmpV);
+        pulsePos[k * 3] = tmpV.x;
+        pulsePos[k * 3 + 1] = tmpV.y;
+        pulsePos[k * 3 + 2] = tmpV.z;
+      }
+      pulseGeo.attributes.position.needsUpdate = true;
+    }
 
     function frame() {
       var el = clock.getElapsedTime();
+      var dt = Math.min(0.05, el - prevEl);
+      prevEl = el;
+
       t += (tTarget - t) * 0.055;
       if (Math.abs(tTarget - t) < 0.002) t = tTarget;
       applyPalette();
+      applyBlend();
 
       cx += (mx - cx) * 0.06;
       cy += (my - cy) * 0.06;
 
-      spin += 0.0022;
-      spinner.rotation.y = spin + cx * 0.7;      // doimiy aylanish + kursor
-      root.rotation.x = 0.32 + cy * 0.45;        // kursorga egilish
+      spin += 0.0026;
+      spinner.rotation.y = spin + cx * 0.7;
+      spinner.rotation.x = Math.sin(el * 0.18) * 0.34;
+      root.rotation.x = 0.24 + cy * 0.42;
       spinner.position.y = Math.sin(el * 0.8) * 0.07;
 
-      // Pulslar — chiziq shaffofligi va nuqta o'lchami "nafas oladi"
-      lMat.opacity = lerp(0.16, 0.30) + (Math.sin(spin * 8) * 0.5 + 0.5) * 0.12;
-      pMat.size = 0.215 + (Math.sin(spin * 6) * 0.5 + 0.5) * 0.03;
+      orbits.rotation.y = -spin * 1.5 + cx * 0.5;
+      orbits.rotation.z = Math.sin(el * 0.12) * 0.25;
+      // Halqalar sekin qiyalik o'zgartiradi (o'z o'qi bo'ylab aylanish ko'rinmaydi)
+      ringA.rotation.x = Math.PI / 2.35 + Math.sin(el * 0.21) * 0.32;
+      ringB.rotation.x = Math.PI / 1.7 + Math.cos(el * 0.17) * 0.28;
+
+      gem.rotation.set(el * 0.5, el * 0.7, 0);
+      gemEdges.rotation.copy(gem.rotation);
+
+      movePulses(dt);
+
+      // "Nafas olish" — porlash va nuqta o'lchami pulsatsiyasi
+      glowMat.opacity = lerp(0.11, 0.15) + (Math.sin(spin * 8) * 0.5 + 0.5) * 0.06;
+      pMat.size = 0.058 + (Math.sin(spin * 6) * 0.5 + 0.5) * 0.018;
       dust.rotation.y = el * 0.02;
 
       renderer.render(scene, camera);
@@ -342,6 +468,7 @@
       if (running || reduced) return;
       running = true;
       clock.start();
+      prevEl = 0;
       rafId = requestAnimationFrame(frame);
     }
     function stop() {
@@ -350,9 +477,11 @@
     }
     function renderOnce() {
       applyPalette();
-      lMat.opacity = lerp(0.16, 0.30);
-      spinner.rotation.y = 0.6;
-      root.rotation.x = 0.32;
+      applyBlend();
+      glowMat.opacity = lerp(0.11, 0.15);
+      spinner.rotation.set(0.2, 0.6, 0);
+      root.rotation.x = 0.24;
+      movePulses(0);
       renderer.render(scene, camera);
     }
 
@@ -388,6 +517,8 @@
     toast: toast,
     togglePw: togglePw,
     formatUzPhone: formatUzPhone,
-    initSegTabs: initSegTabs
+    initSegTabs: initSegTabs,
+    countUp: countUp,
+    capsHint: capsHint
   };
 })(window);

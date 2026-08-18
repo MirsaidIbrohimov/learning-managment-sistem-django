@@ -8,7 +8,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Count, Max, Q, Sum, Avg
 from django.db import models, transaction
 from django.utils import timezone
-from datetime import timedelta, date
+from datetime import timedelta, date, datetime
 import json
 import random
 import secrets
@@ -1079,6 +1079,31 @@ def _week_bars(date_counts, today):
     return bars
 
 
+def _trend(current, previous):
+    """Oldingi davr bilan solishtirish: {dir, pct}. previous=0 bo'lsa yo'nalish beriladi."""
+    try:
+        cur, prev = int(current or 0), int(previous or 0)
+    except (TypeError, ValueError):
+        return None
+    if not prev:
+        return {'dir': 'up', 'pct': 100} if cur else None
+    pct = round((cur - prev) / prev * 100)
+    if pct == 0:
+        return {'dir': 'flat', 'pct': 0}
+    return {'dir': 'up' if pct > 0 else 'down', 'pct': abs(pct)}
+
+
+def _online_now(minutes=5):
+    """Oxirgi `minutes` daqiqada faol bo'lgan noyob foydalanuvchilar soni."""
+    try:
+        return UserSession.objects.filter(
+            is_active=True,
+            last_activity__gte=timezone.now() - timedelta(minutes=minutes),
+        ).values('user').distinct().count()
+    except Exception:
+        return 0
+
+
 def _home_teacher(request):
     """O'qituvchi uchun bosh sahifa: kurslari, tekshirilmagan vazifalar, faollik."""
     user = request.user
@@ -1156,6 +1181,64 @@ def _home_teacher(request):
         ).distinct().order_by('-coins')[:5]
     )
 
+    # ── Bugungi ko'rsatkichlar ──
+    subs_today = HomeworkSubmission.objects.filter(
+        homework__lesson__profession__teachers=user, submitted_at__date=today
+    ).count()
+    try:
+        students_active_today = ActivityLog.objects.filter(
+            user__enrollments__profession__teachers=user, created_at__date=today
+        ).values('user').distinct().count()
+    except Exception:
+        students_active_today = 0
+
+    today_stats = [
+        {'label': "Bugun topshirilgan vazifa", 'value': subs_today, 'icon': 'journal-arrow-up'},
+        {'label': "Bugungi test natijasi", 'value': tests_today, 'icon': 'patch-check'},
+        {'label': "Bugun faol o'quvchilar", 'value': students_active_today, 'icon': 'person-check'},
+    ]
+
+    # ── Sifat ko'rsatkichlari (oxirgi 30 kun) ──
+    since_30 = timezone.now() - timedelta(days=30)
+    score_agg = TestResult.objects.filter(
+        test__lesson__profession__teachers=user, completed_at__gte=since_30
+    ).aggregate(
+        avg=Avg('score'), total=Count('id'), ok=Count('id', filter=Q(passed=True))
+    )
+    avg_score = round(score_agg['avg'] or 0)
+    tests_month = score_agg['total'] or 0
+    pass_rate = round((score_agg['ok'] or 0) / tests_month * 100) if tests_month else 0
+
+    hw_total = HomeworkSubmission.objects.filter(
+        homework__lesson__profession__teachers=user
+    ).count()
+    graded_pct = round((hw_total - pending_homeworks) / hw_total * 100) if hw_total else 100
+
+    # ── Oldingi hafta bilan solishtirish ──
+    try:
+        prev_week_subs = HomeworkSubmission.objects.filter(
+            homework__lesson__profession__teachers=user,
+            submitted_at__date__gte=today - timedelta(days=13),
+            submitted_at__date__lt=today - timedelta(days=6),
+        ).count()
+    except Exception:
+        prev_week_subs = 0
+    week_trend = _trend(week_total, prev_week_subs)
+
+    # ── E'tibor talab qiladigan o'quvchilar (7+ kun faolsiz) ──
+    risk_cutoff = timezone.now() - timedelta(days=7)
+    risk_students = []
+    try:
+        for s in CustomUser.objects.filter(
+            role='student', enrollments__profession__teachers=user
+        ).exclude(last_login__gte=risk_cutoff).distinct().order_by('last_login')[:5]:
+            risk_students.append({
+                'name': s.get_full_name() or s.username,
+                'days': (timezone.now() - s.last_login).days if s.last_login else None,
+            })
+    except Exception:
+        risk_students = []
+
     quick_actions = _build_quick_actions([
         ("Kurslarim", 'teacher:courses', 'collection-play'),
         ("O'quvchilarim", 'teacher:my_students', 'people'),
@@ -1185,8 +1268,16 @@ def _home_teacher(request):
         'recent_tests': recent_tests,
         'week_bars': week_bars,
         'week_total': week_total,
+        'week_trend': week_trend,
         'top_students': top_students,
         'quick_actions': quick_actions,
+        'today_stats': today_stats,
+        'avg_score': avg_score,
+        'pass_rate': pass_rate,
+        'tests_month': tests_month,
+        'graded_pct': graded_pct,
+        'risk_students': risk_students,
+        'online_now': _online_now(),
     })
 
 
@@ -1269,6 +1360,69 @@ def _home_admin(request):
         CourseApplication.objects.filter(status='new').order_by('-created_at')[:5]
     )
 
+    # ── Oldingi hafta bilan solishtirish ──
+    prev_week_users = CustomUser.objects.filter(
+        date_joined__gte=timezone.now() - timedelta(days=14), date_joined__lt=week_ago
+    ).count()
+    users_trend = _trend(new_users_week, prev_week_users)
+
+    # ── Bugungi harakat ko'rsatkichlari ──
+    def _count_today(qs_filter):
+        try:
+            return qs_filter()
+        except Exception:
+            return 0
+
+    coins_today = _count_today(lambda: CoinTransaction.objects.filter(
+        created_at__date=today, action='add'
+    ).aggregate(s=Sum('amount'))['s'] or 0)
+
+    today_stats = [
+        {'label': "Yangi ro'yxatlar", 'value': CustomUser.objects.filter(date_joined__date=today).count(),
+         'icon': 'person-plus'},
+        {'label': "Ko'rilgan videolar", 'value': _count_today(
+            lambda: VideoProgress.objects.filter(watched_at__date=today).count()), 'icon': 'play-btn'},
+        {'label': "Topshirilgan vazifalar", 'value': HomeworkSubmission.objects.filter(
+            submitted_at__date=today).count(), 'icon': 'journal-arrow-up'},
+        {'label': "Test natijalari", 'value': TestResult.objects.filter(
+            completed_at__date=today).count(), 'icon': 'patch-check'},
+        {'label': "Berilgan coinlar", 'value': coins_today, 'icon': 'coin'},
+    ]
+
+    # ── Eng ko'p o'quvchisi bor o'qituvchilar ──
+    top_teachers = []
+    try:
+        top_teachers = list(
+            CustomUser.objects.filter(role='teacher').annotate(
+                student_total=Count(
+                    'teaching_professions__enrollments__user',
+                    filter=Q(teaching_professions__enrollments__user__role='student'),
+                    distinct=True,
+                ),
+                course_total=Count('teaching_professions', distinct=True),
+            ).filter(course_total__gt=0).order_by('-student_total')[:5]
+        )
+    except Exception:
+        top_teachers = []
+
+    # ── Tizim salomatligi ──
+    empty_courses = _count_today(
+        lambda: Profession.objects.annotate(n=Count('lessons')).filter(n=0).count())
+    failed_logins = _count_today(lambda: LoginAttempt.objects.filter(
+        was_successful=False, attempted_at__date=today).count())
+    active_sessions = _count_today(
+        lambda: UserSession.objects.filter(is_active=True).count())
+
+    health = [
+        {'label': "Darssiz kurslar", 'value': empty_courses, 'icon': 'folder-x',
+         'state': 'ok' if not empty_courses else 'warn'},
+        {'label': "Bugungi muvaffaqiyatsiz kirishlar", 'value': failed_logins, 'icon': 'shield-exclamation',
+         'state': 'ok' if failed_logins < 10 else 'warn'},
+        {'label': "Bloklangan foydalanuvchilar", 'value': stats['blocked'], 'icon': 'slash-circle',
+         'state': 'ok' if not stats['blocked'] else 'warn'},
+        {'label': "Faol sessiyalar", 'value': active_sessions, 'icon': 'hdd-network', 'state': 'ok'},
+    ]
+
     quick_actions = _build_quick_actions([
         ("Foydalanuvchilar", 'admin_users', 'people'),
         ("O'qituvchi qo'shish", 'admin_add_teacher', 'person-plus'),
@@ -1298,13 +1452,18 @@ def _home_admin(request):
         'pending': pending,
         'pending_total': pending_total,
         'new_users_week': new_users_week,
+        'users_trend': users_trend,
         'recent_users': recent_users,
         'recent_activity': recent_activity,
         'logins_today': logins_today,
         'week_bars': week_bars,
         'top_courses': top_courses,
+        'top_teachers': top_teachers,
         'recent_applications': recent_applications,
         'quick_actions': quick_actions,
+        'today_stats': today_stats,
+        'health': health,
+        'online_now': _online_now(),
     })
 
 
@@ -1364,11 +1523,17 @@ def _home_assistant(request):
 
     # Kechikkan kitob ijaralari
     overdue_rentals = 0
+    library = {'total': 0, 'rented': 0, 'available': 0}
     try:
-        from .models import BookRental
+        from .models import Book, BookRental
         overdue_rentals = BookRental.objects.exclude(status='returned').filter(
             return_date__lt=today
         ).count()
+        library = {
+            'total': Book.objects.count(),
+            'rented': BookRental.objects.filter(status='active').count(),
+            'available': Book.objects.aggregate(s=Sum('available_copies'))['s'] or 0,
+        }
     except Exception:
         overdue_rentals = 0
 
@@ -1377,13 +1542,36 @@ def _home_assistant(request):
         CourseApplication.objects.filter(status='new').order_by('-created_at')[:5]
     )
 
+    # So'nggi yordam so'rovlari
+    recent_help = list(
+        HelpRequest.objects.select_related('user').filter(
+            status='pending'
+        ).order_by('-created_at')[:5]
+    )
+
+    # Oxirgi 7 kunlik arizalar grafigi
+    try:
+        _counts = dict(
+            CourseApplication.objects.filter(
+                created_at__date__gte=today - timedelta(days=6)
+            ).values_list('created_at__date').annotate(c=Count('id')).values_list('created_at__date', 'c')
+        )
+    except Exception:
+        _counts = {}
+    week_bars = _week_bars(_counts, today)
+    week_total = sum(_counts.values())
+
     # Mening so'nggi harakatlarim (audit)
     my_actions = []
+    my_week_total = 0
     try:
         from .models import AssistantActionLog
         my_actions = list(
             AssistantActionLog.objects.filter(user=request.user).order_by('-created_at')[:6]
         )
+        my_week_total = AssistantActionLog.objects.filter(
+            user=request.user, created_at__gte=timezone.now() - timedelta(days=7)
+        ).count()
     except Exception:
         my_actions = []
 
@@ -1409,8 +1597,215 @@ def _home_assistant(request):
         'today_stats': today_stats,
         'overdue_rentals': overdue_rentals,
         'recent_applications': recent_applications,
+        'recent_help': recent_help,
         'my_actions': my_actions,
+        'my_week_total': my_week_total,
         'quick_actions': quick_actions,
+        'week_bars': week_bars,
+        'week_total': week_total,
+        'library': library,
+        'online_now': _online_now(),
+    })
+
+
+DAILY_QUESTION_REWARD = 3
+_DQ_MARKER = 'Kun savoli'
+_DQ_OK = '[correct]'
+_DQ_FAIL = '[wrong]'
+
+_DAILY_QUOTES = (
+    ("Bugun qilgan kichik qadamingiz — ertangi katta natijangiz.", "IT Shaharcha"),
+    ("Kod yozishni o'rganish — fikrlashni o'rganishdir.", "Steve Jobs"),
+    ("Mukammallikni kutib o'tirmang, boshlang va yo'lda o'rganing.", "Kent Beck"),
+    ("Har kuni 1% yaxshilanish — bir yilda 37 barobar o'sish.", "James Clear"),
+    ("Eng yaxshi dasturchi — eng ko'p o'qigan dasturchi.", "Robert C. Martin"),
+    ("Xatolar — muvaffaqiyatga olib boruvchi eng qisqa yo'l.", "Thomas Edison"),
+    ("Bilim — yagona boylik, uni sarflaganingiz sari ko'payadi.", "Xalq maqoli"),
+    ("Murakkab masalani kichik bo'laklarga bo'l — u oddiy bo'lib qoladi.", "Rene Descartes"),
+    ("Bugun o'rganmagan narsangizni ertaga kimdir sizdan yaxshi biladi.", "IT Shaharcha"),
+    ("Izchillik iste'doddan kuchli.", "Xalq maqoli"),
+    ("Yaxshi kod — izohga muhtoj bo'lmagan kod.", "Martin Fowler"),
+    ("O'rganish to'xtaganda o'sish ham to'xtaydi.", "Benjamin Franklin"),
+    ("Sabr — bu kutish emas, kutayotganda ishlashdir.", "Xalq maqoli"),
+    ("Kichik loyihalar katta dasturchilarni tarbiyalaydi.", "Linus Torvalds"),
+    ("Bugungi mashqingiz — ertangi ishonchingiz.", "IT Shaharcha"),
+)
+
+
+def _daily_quote(today):
+    text, author = _DAILY_QUOTES[today.toordinal() % len(_DAILY_QUOTES)]
+    return {'text': text, 'author': author}
+
+
+def _next_study_lesson(user):
+    """O'quvchining keyingi jadval darsi — countdown uchun aniq vaqt bilan."""
+    try:
+        groups = list(StudyGroup.objects.filter(
+            students=user, is_active=True
+        ).select_related('profession', 'teacher'))
+    except Exception:
+        return None
+    if not groups:
+        return None
+
+    now = timezone.localtime()
+    tz = timezone.get_current_timezone()
+    best = None
+    for g in groups:
+        for offset in range(0, 8):
+            day = now.date() + timedelta(days=offset)
+            if not g.has_day(day.isoweekday()):
+                continue
+            start_dt = timezone.make_aware(datetime.combine(day, g.start_time), tz)
+            if start_dt <= now:
+                continue
+            if best is None or start_dt < best[0]:
+                best = (start_dt, g)
+            break
+
+    if best is None:
+        return None
+
+    start_dt, group = best
+    delta_days = (start_dt.date() - now.date()).days
+    if delta_days == 0:
+        day_label = 'Bugun'
+    elif delta_days == 1:
+        day_label = 'Ertaga'
+    else:
+        day_label = StudyGroup.DAYS_OF_WEEK[start_dt.isoweekday() - 1][1]
+    try:
+        teacher_name = group.teacher.get_full_name() if group.teacher else ''
+    except Exception:
+        teacher_name = ''
+    return {
+        'group_name': group.name,
+        'course': group.profession.name,
+        'teacher': teacher_name,
+        'room': group.room,
+        'color': group.color or '#6366f1',
+        'start_iso': start_dt.isoformat(),
+        'time_label': '%s–%s' % (group.start_time.strftime('%H:%M'), group.end_time.strftime('%H:%M')),
+        'day_label': day_label,
+    }
+
+
+def _daily_question_for(user, today):
+    """Kunning savoli — mavjud test savollaridan, foydalanuvchi+kun bo'yicha barqaror tanlov."""
+    seed = (user.pk or 1) * 7919 + today.toordinal()
+    try:
+        prof_ids = list(user.enrollments.values_list('profession_id', flat=True))
+    except Exception:
+        prof_ids = []
+
+    base = TestQuestion.objects.filter(answers__is_correct=True).distinct()
+    pools = []
+    if prof_ids:
+        pools.append(base.filter(test__lesson__profession_id__in=prof_ids))
+    pools.append(base)
+
+    for pool in pools:
+        pool = pool.order_by('id')
+        try:
+            total = pool.count()
+        except Exception:
+            total = 0
+        if not total:
+            continue
+        idx = seed % total
+        for step in range(min(5, total)):
+            question = pool[(idx + step) % total:(idx + step) % total + 1].first()
+            if not question:
+                continue
+            answers = list(question.answers.all())
+            correct = next((a for a in answers if a.is_correct), None)
+            if len(answers) < 2 or correct is None:
+                continue
+            options = [{'id': a.id, 'text': a.answer_text} for a in answers]
+            random.Random(seed).shuffle(options)
+            try:
+                course_name = question.test.lesson.profession.name
+            except Exception:
+                course_name = ''
+            try:
+                image = question.question_image.url if question.question_image else ''
+            except Exception:
+                image = ''
+            return {
+                'id': question.id,
+                'text': question.question_text,
+                'image': image,
+                'explanation': question.explanation or '',
+                'course': course_name,
+                'options': options,
+                'correct_id': correct.id,
+                'reward': DAILY_QUESTION_REWARD,
+            }
+    return None
+
+
+def _daily_question_log(user, today):
+    """Bugun kun savoliga javob berilganini bildiruvchi yozuv (yoki None)."""
+    try:
+        return ActivityLog.objects.filter(
+            user=user,
+            action_type='submit_test',
+            description__startswith=_DQ_MARKER,
+            created_at__date=today,
+        ).order_by('-created_at').first()
+    except Exception:
+        return None
+
+
+@login_required
+def daily_question_answer(request):
+    """Kun savoliga javobni qabul qiladi: kunda faqat bir marta, to'g'ri javobga coin."""
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'error': 'method'}, status=405)
+
+    user = request.user
+    today = timezone.localdate()
+    question = _daily_question_for(user, today)
+    if not question:
+        return JsonResponse({'ok': False, 'error': 'no_question'}, status=404)
+
+    previous = _daily_question_log(user, today)
+    if previous:
+        return JsonResponse({
+            'ok': False,
+            'error': 'already',
+            'correct_id': question['correct_id'],
+            'was_correct': _DQ_OK in previous.description,
+            'explanation': question['explanation'],
+        }, status=409)
+
+    answer_id = _to_int(request.POST.get('answer_id'), 0)
+    if answer_id not in {o['id'] for o in question['options']}:
+        return JsonResponse({'ok': False, 'error': 'bad_answer'}, status=400)
+
+    is_correct = answer_id == question['correct_id']
+    reward = DAILY_QUESTION_REWARD if is_correct else 0
+
+    ActivityLog.objects.create(
+        user=user,
+        action_type='submit_test',
+        description='%s %s — %s' % (
+            _DQ_MARKER,
+            _DQ_OK if is_correct else _DQ_FAIL,
+            question['text'][:120],
+        ),
+        ip_address=get_client_ip(request),
+    )
+    if reward:
+        user.add_coins(reward, 'Kun savoli')
+
+    return JsonResponse({
+        'ok': True,
+        'correct': is_correct,
+        'correct_id': question['correct_id'],
+        'explanation': question['explanation'],
+        'reward': reward,
+        'coins': user.coins,
     })
 
 
@@ -1741,6 +2136,7 @@ def home_view(request):
         weekly_spark = spark
     except Exception:
         weekly_spark = [0] * 7
+    weekly_spark_total = sum(weekly_spark)
 
     learning_stats = {
         'courses_completed': courses_completed,
@@ -1974,6 +2370,7 @@ def home_view(request):
                 'datetime_label': dt_label,
                 'day': day,
                 'month': month,
+                'iso': st.isoformat() if st else '',
                 'url': ev_url,
                 'icon': 'trophy',
             })
@@ -2067,6 +2464,45 @@ def home_view(request):
     except Exception:
         my_leader_row = None
 
+    # --- Daraja / XP (100 coin = 1 daraja) ---
+    _coins = user.coins or 0
+    level_number = _coins // 100 + 1
+    xp_in_level = _coins % 100
+    xp_to_next = 100 - xp_in_level
+
+    # --- Vaqtga qarab salomlashuv (server local time = o'quvchi vaqti) ---
+    _hour = timezone.localtime().hour
+    if _hour < 6:
+        greeting, greeting_icon = 'Xayrli tun', '🌙'
+    elif _hour < 12:
+        greeting, greeting_icon = 'Xayrli tong', '☀️'
+    elif _hour < 18:
+        greeting, greeting_icon = 'Xayrli kun', '👋'
+    else:
+        greeting, greeting_icon = 'Xayrli kech', '🌆'
+
+    # --- Kun iqtibosi, keyingi jadval darsi, kun savoli ---
+    daily_quote = _daily_quote(today)
+    next_lesson = _next_study_lesson(user)
+
+    daily_question = None
+    daily_question_state = 'none'
+    try:
+        _dq = _daily_question_for(user, today)
+        if _dq:
+            _log = _daily_question_log(user, today)
+            if _log:
+                daily_question_state = 'correct' if _DQ_OK in _log.description else 'wrong'
+            else:
+                daily_question_state = 'new'
+            # to'g'ri javob ID'si shablonga faqat javob berilgandan keyin uzatiladi
+            daily_question = {k: v for k, v in _dq.items() if k != 'correct_id'}
+            if daily_question_state != 'new':
+                daily_question['correct_id'] = _dq['correct_id']
+    except Exception:
+        daily_question = None
+        daily_question_state = 'none'
+
     context = {
         'professions': professions,
         'total_students': total_students,
@@ -2094,6 +2530,7 @@ def home_view(request):
         'missions_xp_earned': missions_xp_earned,
         'learning_stats': learning_stats,
         'weekly_spark': weekly_spark,
+        'weekly_spark_total': weekly_spark_total,
         'heatmap_days': heatmap_days,
         'heatmap_max': heatmap_max,
         'heatmap_total': heatmap_total,
@@ -2107,6 +2544,17 @@ def home_view(request):
         'announcements': announcements,
         'announcements_unread': announcements_unread,
         'quick_access': quick_access,
+        # --- Redesign: daraja, iqtibos, keyingi dars, kun savoli ---
+        'level_number': level_number,
+        'xp_in_level': xp_in_level,
+        'xp_to_next': xp_to_next,
+        'greeting': greeting,
+        'greeting_icon': greeting_icon,
+        'today_weekday': today.weekday(),
+        'daily_quote': daily_quote,
+        'next_lesson': next_lesson,
+        'daily_question': daily_question,
+        'daily_question_state': daily_question_state,
     }
 
     return render(request, 'accounts/home.html', context)
@@ -3770,10 +4218,6 @@ BEAT_MAX_RATE        = 1.15
 BEAT_MAX_GAP         = 150
 BEAT_MIN_GAP         = 1.0   # bundan tez kelgan beat kredit bermaydi (spam himoyasi)
 BEAT_SEEK_TOLERANCE  = 5.0   # max_position'dan shuncha oldinga o'tish kechiriladi
-# Birinchi beat kredit bermaydi (oldingi vaqt nuqtasi yo'q), shuning uchun
-# hisob har doim ~1 beat oraliqcha kam bo'ladi. Qisqa videolar "tugatib
-# bo'lmaydigan" bo'lib qolmasligi uchun shu qadar chegirma beramiz.
-WATCH_GRACE_SECONDS  = 15
 
 # ── Tiriklik tekshiruvi (presence check) ──
 # Vaqt o'tishining o'zi yetarli emas edi: konsoldan soxta pozitsiya yuboruvchi
@@ -3924,7 +4368,9 @@ def _resolve_required_seconds(progress, video):
     if not secs:
         return progress.required_seconds
 
-    required = max(1, int(secs * WATCH_REQUIRED_RATIO) - WATCH_GRACE_SECONDS)
+    # Majburiy ko'rish vaqti — davomiyligining ANIQ 90% i (mijozdagi timer
+    # xuddi shu qiymatni ko'rsatadi, shuning uchun chegirma qo'shmaymiz).
+    required = max(1, int(secs * WATCH_REQUIRED_RATIO))
     if progress.required_seconds == required:
         return required
 
@@ -16758,16 +17204,46 @@ def admin_file_only_toggle(request):
 # SO'ROVNOMALAR BOSHQARUVI (ADMIN)
 # ============================================
 
+def _survey_audience_count(target_role):
+    """So'rovnoma mo'ljallangan faol foydalanuvchilar soni."""
+    users = CustomUser.objects.filter(is_active=True)
+    if target_role in ('student', 'teacher'):
+        users = users.filter(role=target_role)
+    return users.count()
+
+
 @login_required
 def admin_surveys(request):
     if request.user.role != 'admin':
         return redirect('home')
-    
-    surveys = SurveyForm.objects.all()
-    
+
+    surveys = SurveyForm.objects.annotate(
+        q_count=Count('questions', distinct=True),
+        r_count=Count('responses', distinct=True),
+    )
+
+    audience = {
+        'student': _survey_audience_count('student'),
+        'teacher': _survey_audience_count('teacher'),
+        'all': _survey_audience_count('all'),
+    }
+
+    survey_rows = []
+    for survey in surveys:
+        target = audience.get(survey.target_role, audience['all'])
+        survey_rows.append({
+            'obj': survey,
+            'questions': survey.q_count,
+            'responses': survey.r_count,
+            'target': target,
+            'percent': min(round(survey.r_count * 100 / target), 100) if target else 0,
+        })
+
     context = {
-        'surveys': surveys,
-        'active_count': surveys.filter(is_active=True).count(),
+        'survey_rows': survey_rows,
+        'total_count': len(survey_rows),
+        'active_count': sum(1 for row in survey_rows if row['obj'].is_active),
+        'inactive_count': sum(1 for row in survey_rows if not row['obj'].is_active),
         'total_responses': SurveyResponse.objects.count(),
     }
     return render(request, 'accounts/admin/surveys/survey_list.html', context)
@@ -16891,15 +17367,108 @@ def admin_survey_delete(request, pk):
     return render(request, 'accounts/admin/surveys/survey_delete.html', {'survey': survey})
 
 
+def _survey_question_stats(questions, responses):
+    """Har bir savol bo'yicha jamlanma statistika."""
+    total = len(responses)
+    grouped = {question.id: [] for question in questions}
+    for response in responses:
+        for answer in response.answers.all():
+            if answer.question_id in grouped:
+                grouped[answer.question_id].append((answer.answer_text or '').strip())
+
+    stats = []
+    for question in questions:
+        filled = [text for text in grouped.get(question.id, []) if text]
+        item = {
+            'question': question,
+            'type': question.question_type,
+            'answered': len(filled),
+            'skipped': max(total - len(filled), 0),
+        }
+        base = len(filled) or 1
+
+        if question.question_type in ('radio', 'select', 'checkbox'):
+            counter = {choice: 0 for choice in question.get_choices_list()}
+            extra = {}
+            for text in filled:
+                picks = text.split(',') if question.question_type == 'checkbox' else [text]
+                for pick in picks:
+                    pick = pick.strip()
+                    if not pick:
+                        continue
+                    if pick in counter:
+                        counter[pick] += 1
+                    else:
+                        extra[pick] = extra.get(pick, 0) + 1
+
+            ordered = list(counter.items()) + sorted(extra.items(), key=lambda kv: -kv[1])
+            top = max((count for _, count in ordered), default=0)
+            item['options'] = [
+                {
+                    'label': label,
+                    'count': count,
+                    'percent': round(count * 100 / base),
+                    'is_top': bool(top) and count == top,
+                }
+                for label, count in ordered
+            ]
+
+        elif question.question_type == 'rating':
+            dist = {star: 0 for star in range(1, 6)}
+            score = 0
+            for text in filled:
+                try:
+                    value = int(text)
+                except (TypeError, ValueError):
+                    continue
+                if 1 <= value <= 5:
+                    dist[value] += 1
+                    score += value
+            voted = sum(dist.values())
+            average = round(score / voted, 1) if voted else 0
+            item['voted'] = voted
+            item['average'] = average
+            item['stars'] = [star <= round(average) for star in range(1, 6)]
+            item['rating_rows'] = [
+                {
+                    'star': star,
+                    'count': dist[star],
+                    'percent': round(dist[star] * 100 / (voted or 1)),
+                }
+                for star in range(5, 0, -1)
+            ]
+
+        else:
+            item['quotes'] = filled[:6]
+            item['more'] = max(len(filled) - 6, 0)
+
+        stats.append(item)
+    return stats
+
+
 @login_required
 def admin_survey_responses(request, pk):
     if not request.user.is_admin_or_assistant:
         return redirect('home')
     from .models import SurveyForm, SurveyResponse
     survey = get_object_or_404(SurveyForm, pk=pk)
-    responses = SurveyResponse.objects.filter(survey=survey).select_related('user').prefetch_related('answers__question').order_by('-submitted_at')
+    responses = list(
+        SurveyResponse.objects.filter(survey=survey)
+        .select_related('user')
+        .prefetch_related('answers__question')
+        .order_by('-submitted_at')
+    )
+    questions = list(survey.questions.all())
+    target = _survey_audience_count(survey.target_role)
+
     return render(request, 'accounts/admin/surveys/survey_responses.html', {
-        'survey': survey, 'responses': responses,
+        'survey': survey,
+        'responses': responses,
+        'questions': questions,
+        'stats': _survey_question_stats(questions, responses),
+        'response_count': len(responses),
+        'target': target,
+        'percent': min(round(len(responses) * 100 / target), 100) if target else 0,
     })
 
 

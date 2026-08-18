@@ -10,85 +10,174 @@
 
 {% block content %}
 <div class="dash rhome rhome-admin">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
   <div class="dash-shell">
 
     <!-- HERO -->
-    <section class="rh-hero">
+    <section class="rh-hero" aria-label="Salomlashuv">
       <div class="rh-hero-main">
-        <span class="rh-eyebrow"><span class="dot"></span> Administrator paneli</span>
-        <h1 class="rh-title">Xush kelibsiz, {{ user.first_name|default:user.username }}! 👋</h1>
+        <span class="rh-eyebrow">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="rhDate"></span>
+          <span class="rh-clock" id="rhClock"></span>
+        </span>
+
+        <h1 class="rh-title">
+          Xush kelibsiz, {{ user.first_name|default:user.username }}
+          <span class="wave" aria-hidden="true">👋</span>
+        </h1>
+
         <p class="rh-sub">
           Tizimning umumiy holati va kutilayotgan ishlar bir qarashda.
           {% if new_users_week %}Oxirgi 7 kunda <b>{{ new_users_week }}</b> ta yangi foydalanuvchi qo'shildi.{% endif %}
         </p>
+
+        <div class="rh-chips">
+          <span class="rh-fchip is-ok">
+            <i class="bi bi-broadcast" aria-hidden="true"></i>
+            Hozir onlayn: <b>{{ online_now }}</b>
+          </span>
+          <span class="rh-fchip {% if pending_total %}is-warn{% endif %}">
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            Kutilayotgan: <b>{{ pending_total }}</b>
+          </span>
+          <span class="rh-fchip">
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+            Bugungi kirishlar: <b>{{ logins_today }}</b>
+          </span>
+          {% if users_trend %}
+          <span class="rh-fchip {% if users_trend.dir == 'down' %}is-hot{% else %}is-ok{% endif %}">
+            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
+            Haftalik o'sish: <b>{% if users_trend.dir == 'down' %}−{% elif users_trend.dir == 'up' %}+{% endif %}{{ users_trend.pct }}%</b>
+          </span>
+          {% endif %}
+        </div>
+
         <div class="rh-cta">
-          <a href="{% url 'admin_dashboard' %}" class="rh-btn primary"><i class="bi bi-speedometer2"></i> To'liq boshqaruv paneli</a>
-          <a href="{% url 'admin_users' %}" class="rh-btn ghost"><i class="bi bi-people"></i> Foydalanuvchilar</a>
-          <a href="{% url 'admin_statistics' %}" class="rh-btn ghost"><i class="bi bi-graph-up"></i> Statistika</a>
+          <a href="{% url 'admin_dashboard' %}" class="rh-btn primary">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i> To'liq boshqaruv paneli
+          </a>
+          <a href="{% url 'admin_users' %}" class="rh-btn ghost">
+            <i class="bi bi-people" aria-hidden="true"></i> Foydalanuvchilar
+          </a>
+          <a href="{% url 'admin_statistics' %}" class="rh-btn ghost">
+            <i class="bi bi-graph-up" aria-hidden="true"></i> Statistika
+          </a>
         </div>
       </div>
+
       <div class="rh-hero-side">
-        <div class="rh-sidestack">
+        <div class="rh-sidegrid">
+          <div class="rh-bigstat ok">
+            <i class="bi bi-broadcast" aria-hidden="true"></i>
+            <b data-countup="{{ online_now }}">0</b>
+            <span>Hozir onlayn</span>
+          </div>
           <div class="rh-bigstat {% if pending_total %}warn{% endif %}">
-            <i class="bi bi-hourglass-split"></i>
-            <b>{{ pending_total }}</b>
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            <b data-countup="{{ pending_total }}">0</b>
             <span>Kutilayotgan ishlar</span>
           </div>
           <div class="rh-bigstat">
-            <i class="bi bi-box-arrow-in-right"></i>
-            <b>{{ logins_today }}</b>
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+            <b data-countup="{{ logins_today }}">0</b>
             <span>Bugungi kirishlar</span>
+          </div>
+          <div class="rh-bigstat">
+            <i class="bi bi-person-plus" aria-hidden="true"></i>
+            <b data-countup="{{ new_users_week }}">0</b>
+            <span>Haftada yangi</span>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- TEZKOR QIDIRUV -->
+    <section class="rh-section reveal" aria-label="Tezkor qidiruv">
+      <form class="rh-searchbar" method="get" action="{% url 'admin_users' %}" role="search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" name="q" placeholder="Foydalanuvchini ism, username yoki telefon bo'yicha qidirish…"
+               aria-label="Foydalanuvchi qidirish">
+        <button type="submit">Qidirish</button>
+      </form>
+    </section>
+
     <!-- STATLAR -->
-    <section class="rh-section">
+    <section class="rh-section reveal" aria-label="Umumiy ko'rsatkichlar">
       <div class="rh-statgrid">
         {% for c in stat_cards %}
         <div class="rh-stat {{ c.color }}">
-          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}"></i></div>
-          <b>{{ c.value }}</b>
+          {% if forloop.first and users_trend %}
+          <span class="rh-trend {{ users_trend.dir }}" title="Oxirgi hafta oldingi hafta bilan solishtirilgan">
+            <i class="bi bi-arrow-{% if users_trend.dir == 'up' %}up{% elif users_trend.dir == 'down' %}down{% else %}right{% endif %}" aria-hidden="true"></i>
+            {{ users_trend.pct }}%
+          </span>
+          {% endif %}
+          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}" aria-hidden="true"></i></div>
+          <b data-countup="{{ c.value }}">0</b>
           <span>{{ c.label }}</span>
         </div>
         {% endfor %}
       </div>
     </section>
 
-    <!-- TEZKOR HARAKATLAR -->
-    <section class="rh-card rh-section">
+    <!-- BUGUN -->
+    <section class="rh-card rh-section reveal">
       <div class="rh-card-head">
-        <h2><i class="bi bi-lightning-charge"></i> Tezkor harakatlar</h2>
+        <h2><i class="bi bi-calendar-day" aria-hidden="true"></i> Bugungi harakat</h2>
+        <span class="rh-chip">Real vaqt</span>
+      </div>
+      <div class="rh-tiles">
+        {% for t in today_stats %}
+        <div class="rh-tile">
+          <i class="bi bi-{{ t.icon }}" aria-hidden="true"></i>
+          <div class="rh-tile-txt">
+            <b data-countup="{{ t.value }}">0</b>
+            <span>{{ t.label }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <!-- TEZKOR HARAKATLAR -->
+    <section class="rh-card rh-section reveal">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-lightning-charge" aria-hidden="true"></i> Tezkor harakatlar</h2>
       </div>
       <div class="rh-quickgrid">
         {% for q in quick_actions %}
-        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}"></i> {{ q.label }}</a>
+        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}" aria-hidden="true"></i> {{ q.label }}</a>
         {% endfor %}
       </div>
     </section>
 
     <!-- CHART + TOP KURSLAR -->
-    <div class="rh-cols rh-section">
+    <div class="rh-cols rh-section reveal">
       <section class="rh-card">
         <div class="rh-card-head">
-          <h2><i class="bi bi-bar-chart"></i> Ro'yxatdan o'tishlar (7 kun)</h2>
+          <h2><i class="bi bi-bar-chart" aria-hidden="true"></i> Ro'yxatdan o'tishlar (7 kun)</h2>
           <span class="rh-chip">+{{ new_users_week }}</span>
         </div>
+        {% if week_bars %}
         <div class="rh-chart">
           {% for b in week_bars %}
-          <div class="rh-bar" title="{{ b.count }} ta">
+          <div class="rh-bar {% if forloop.last %}is-today{% endif %}" title="{{ b.count }} ta">
             <i style="height:{{ b.pct }}%"></i>
             <em>{{ b.count }}</em>
             <span>{{ b.label }}</span>
           </div>
           {% endfor %}
         </div>
+        {% else %}
+        <div class="rh-empty">Ma'lumot yig'ilmadi.</div>
+        {% endif %}
       </section>
 
       <section class="rh-card">
         <div class="rh-card-head">
-          <h2><i class="bi bi-trophy"></i> Eng ommabop kurslar</h2>
+          <h2><i class="bi bi-trophy" aria-hidden="true"></i> Eng ommabop kurslar</h2>
           <a href="{% url 'admin_professions' %}" class="rh-more">Barchasi</a>
         </div>
         {% if top_courses %}
@@ -107,18 +196,19 @@
       </section>
     </div>
 
-    <div class="rh-cols rh-section">
-      <!-- KUTILAYOTGAN ISHLAR -->
+    <!-- KUTILAYOTGAN ISHLAR + TIZIM SALOMATLIGI -->
+    <div class="rh-cols rh-section reveal">
       <section class="rh-card">
         <div class="rh-card-head">
-          <h2><i class="bi bi-list-check"></i> Kutilayotgan ishlar</h2>
+          <h2><i class="bi bi-list-check" aria-hidden="true"></i> Kutilayotgan ishlar</h2>
+          {% if pending_total %}<span class="rh-badge hot">{{ pending_total }}</span>{% endif %}
         </div>
         {% if pending_total %}
         <ul class="rh-list">
           {% for p in pending %}
           <li>
             <a href="{{ p.url }}" class="rh-list-row">
-              <span class="rh-list-ic"><i class="bi bi-{{ p.icon }}"></i></span>
+              <span class="rh-list-ic"><i class="bi bi-{{ p.icon }}" aria-hidden="true"></i></span>
               <span class="rh-list-label">{{ p.label }}</span>
               <span class="rh-badge {% if p.count %}hot{% endif %}">{{ p.count }}</span>
             </a>
@@ -126,11 +216,11 @@
           {% endfor %}
         </ul>
         {% else %}
-        <div class="rh-empty"><i class="bi bi-check2-circle"></i> Hammasi bajarilgan — kutilayotgan ish yo'q!</div>
+        <div class="rh-empty"><i class="bi bi-check2-circle" aria-hidden="true"></i> Hammasi bajarilgan — kutilayotgan ish yo'q!</div>
         {% endif %}
 
-        <div class="rh-card-head" style="margin-top:18px;">
-          <h2><i class="bi bi-inbox"></i> Yangi arizalar</h2>
+        <div class="rh-card-head rh-subhead">
+          <h2><i class="bi bi-inbox" aria-hidden="true"></i> Yangi arizalar</h2>
           <a href="{% url 'admin_applications' %}" class="rh-more">Barchasi</a>
         </div>
         {% if recent_applications %}
@@ -152,55 +242,102 @@
       </section>
 
       <div class="rh-colstack">
-        <!-- YANGI FOYDALANUVCHILAR -->
+        <!-- TIZIM SALOMATLIGI -->
         <section class="rh-card">
           <div class="rh-card-head">
-            <h2><i class="bi bi-person-plus"></i> Yangi foydalanuvchilar</h2>
-            <a href="{% url 'admin_users' %}" class="rh-more">Barchasi</a>
+            <h2><i class="bi bi-activity" aria-hidden="true"></i> Tizim salomatligi</h2>
+            <a href="{% url 'admin_security_events' %}" class="rh-more">Xavfsizlik</a>
           </div>
-          {% if recent_users %}
-          <ul class="rh-list">
-            {% for u in recent_users %}
-            <li class="rh-list-row static">
-              <span class="rh-avatar">{{ u.first_name|slice:":1"|default:"?" }}</span>
-              <span class="rh-list-label">
-                {{ u.get_full_name|default:u.username }}
-                <small>{{ u.get_role_display }}</small>
-              </span>
-              <span class="rh-time">{{ u.date_joined|date:"d.m.Y" }}</span>
-            </li>
+          <div class="rh-health">
+            {% for h in health %}
+            <div class="rh-health-row {{ h.state }}">
+              <i class="bi bi-{{ h.icon }}" aria-hidden="true"></i>
+              <span class="h-label">{{ h.label }}</span>
+              <span class="h-value">{{ h.value }}</span>
+              <span class="h-dot" aria-hidden="true"></span>
+            </div>
             {% endfor %}
-          </ul>
-          {% else %}
-          <div class="rh-empty">Hozircha yangi foydalanuvchi yo'q.</div>
-          {% endif %}
+          </div>
         </section>
 
-        <!-- SO'NGGI FAOLLIK -->
+        <!-- TOP O'QITUVCHILAR -->
         <section class="rh-card">
           <div class="rh-card-head">
-            <h2><i class="bi bi-activity"></i> So'nggi faollik</h2>
+            <h2><i class="bi bi-person-video3" aria-hidden="true"></i> Yetakchi o'qituvchilar</h2>
+            <a href="{% url 'admin_users' %}?role=teacher" class="rh-more">Barchasi</a>
           </div>
-          {% if recent_activity %}
+          {% if top_teachers %}
           <ul class="rh-list">
-            {% for a in recent_activity %}
+            {% for t in top_teachers %}
             <li class="rh-list-row static">
-              <span class="rh-list-ic soft"><i class="bi bi-lightning-charge"></i></span>
+              <span class="rh-rank">{{ forloop.counter }}</span>
               <span class="rh-list-label">
-                {{ a.user.get_full_name|default:a.user.username }}
-                <small>{{ a.get_action_type_display }}</small>
+                {{ t.get_full_name|default:t.username }}
+                <small>{{ t.course_total }} kurs</small>
               </span>
-              <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
+              <span class="rh-badge">{{ t.student_total }} o'quvchi</span>
             </li>
             {% endfor %}
           </ul>
           {% else %}
-          <div class="rh-empty">Faollik qayd etilmagan.</div>
+          <div class="rh-empty">O'qituvchilarga hali kurs biriktirilmagan.</div>
           {% endif %}
         </section>
       </div>
     </div>
 
+    <!-- YANGI FOYDALANUVCHILAR + SO'NGGI FAOLLIK -->
+    <div class="rh-cols even rh-section reveal">
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-person-plus" aria-hidden="true"></i> Yangi foydalanuvchilar</h2>
+          <a href="{% url 'admin_users' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if recent_users %}
+        <ul class="rh-list">
+          {% for u in recent_users %}
+          <li class="rh-list-row static">
+            <span class="rh-avatar">{{ u.first_name|slice:":1"|default:"?" }}</span>
+            <span class="rh-list-label">
+              {{ u.get_full_name|default:u.username }}
+              <small>{{ u.get_role_display }}</small>
+            </span>
+            <span class="rh-time">{{ u.date_joined|date:"d.m.Y" }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Hozircha yangi foydalanuvchi yo'q.</div>
+        {% endif %}
+      </section>
+
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-lightning-charge" aria-hidden="true"></i> So'nggi faollik</h2>
+        </div>
+        {% if recent_activity %}
+        <ul class="rh-list">
+          {% for a in recent_activity %}
+          <li class="rh-list-row static">
+            <span class="rh-list-ic soft"><i class="bi bi-lightning-charge" aria-hidden="true"></i></span>
+            <span class="rh-list-label">
+              {{ a.user.get_full_name|default:a.user.username }}
+              <small>{{ a.get_action_type_display }}</small>
+            </span>
+            <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Faollik qayd etilmagan.</div>
+        {% endif %}
+      </section>
+    </div>
+
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/role_home.js' %}" defer></script>
 {% endblock %}

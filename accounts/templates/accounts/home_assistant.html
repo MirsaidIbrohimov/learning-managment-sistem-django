@@ -10,89 +10,224 @@
 
 {% block content %}
 <div class="dash rhome rhome-assistant">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
   <div class="dash-shell">
 
     <!-- HERO -->
-    <section class="rh-hero">
+    <section class="rh-hero" aria-label="Salomlashuv">
       <div class="rh-hero-main">
-        <span class="rh-eyebrow"><span class="dot"></span> Yordamchi admin paneli</span>
-        <h1 class="rh-title">Xush kelibsiz, {{ user.first_name|default:user.username }}! 👋</h1>
+        <span class="rh-eyebrow">
+          <span class="dot" aria-hidden="true"></span>
+          <span id="rhDate"></span>
+          <span class="rh-clock" id="rhClock"></span>
+        </span>
+
+        <h1 class="rh-title">
+          Xush kelibsiz, {{ user.first_name|default:user.username }}
+          <span class="wave" aria-hidden="true">👋</span>
+        </h1>
+
         <p class="rh-sub">
           Sizga biriktirilgan ishlar va so'rovlar holati bir qarashda.
-          {% if pending_total %}Hozirda <b>{{ pending_total }}</b> ta ish ko'rib chiqishni kutmoqda.{% endif %}
+          {% if pending_total %}Hozirda <b>{{ pending_total }}</b> ta ish ko'rib chiqishni kutmoqda.{% else %}Kutilayotgan ish yo'q — hammasi joyida!{% endif %}
         </p>
+
+        <div class="rh-chips">
+          <span class="rh-fchip {% if pending_total %}is-warn{% else %}is-ok{% endif %}">
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            Kutilayotgan: <b>{{ pending_total }}</b>
+          </span>
+          <span class="rh-fchip {% if overdue_rentals %}is-hot{% else %}is-ok{% endif %}">
+            <i class="bi bi-book" aria-hidden="true"></i>
+            Kechikkan ijara: <b>{{ overdue_rentals }}</b>
+          </span>
+          <span class="rh-fchip is-ok">
+            <i class="bi bi-broadcast" aria-hidden="true"></i>
+            Onlayn: <b>{{ online_now }}</b>
+          </span>
+          <span class="rh-fchip">
+            <i class="bi bi-check2-all" aria-hidden="true"></i>
+            Haftalik ishim: <b>{{ my_week_total }}</b>
+          </span>
+        </div>
+
         <div class="rh-cta">
-          <a href="{% url 'yordamchi_dashboard' %}" class="rh-btn primary"><i class="bi bi-speedometer2"></i> Yordamchi paneli</a>
-          <a href="{% url 'yordamchi_students' %}" class="rh-btn ghost"><i class="bi bi-mortarboard"></i> O'quvchilar</a>
-          <a href="{% url 'yordamchi_audit_log' %}" class="rh-btn ghost"><i class="bi bi-clock-history"></i> Harakatlar tarixi</a>
+          <a href="{% url 'yordamchi_dashboard' %}" class="rh-btn primary">
+            <i class="bi bi-speedometer2" aria-hidden="true"></i> Yordamchi paneli
+          </a>
+          <a href="{% url 'yordamchi_homework' %}" class="rh-btn ghost">
+            <i class="bi bi-journal-check" aria-hidden="true"></i> Uy vazifalar
+          </a>
+          <a href="{% url 'yordamchi_help' %}" class="rh-btn ghost">
+            <i class="bi bi-life-preserver" aria-hidden="true"></i> Yordam so'rovlari
+            {% if recent_help %}<span class="rh-btn-badge">{{ recent_help|length }}</span>{% endif %}
+          </a>
         </div>
       </div>
+
       <div class="rh-hero-side">
-        <div class="rh-sidestack">
-          <div class="rh-bigstat {% if pending_total %}warn{% endif %}">
-            <i class="bi bi-hourglass-split"></i>
-            <b>{{ pending_total }}</b>
+        <div class="rh-sidegrid">
+          <div class="rh-bigstat {% if pending_total %}warn{% else %}ok{% endif %}">
+            <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+            <b data-countup="{{ pending_total }}">0</b>
             <span>Kutilayotgan ishlar</span>
           </div>
-          <div class="rh-bigstat {% if overdue_rentals %}warn{% endif %}">
-            <i class="bi bi-book"></i>
-            <b>{{ overdue_rentals }}</b>
+          <div class="rh-bigstat {% if overdue_rentals %}hot{% endif %}">
+            <i class="bi bi-book" aria-hidden="true"></i>
+            <b data-countup="{{ overdue_rentals }}">0</b>
             <span>Kechikkan ijaralar</span>
+          </div>
+          <div class="rh-bigstat ok">
+            <i class="bi bi-broadcast" aria-hidden="true"></i>
+            <b data-countup="{{ online_now }}">0</b>
+            <span>Hozir onlayn</span>
+          </div>
+          <div class="rh-bigstat">
+            <i class="bi bi-check2-all" aria-hidden="true"></i>
+            <b data-countup="{{ my_week_total }}">0</b>
+            <span>Haftalik harakatim</span>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- TEZKOR QIDIRUV -->
+    <section class="rh-section reveal" aria-label="O'quvchi qidirish">
+      <form class="rh-searchbar" method="get" action="{% url 'yordamchi_students' %}" role="search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" name="q" placeholder="O'quvchini ism, username yoki telefon bo'yicha qidirish…"
+               aria-label="O'quvchi qidirish">
+        <button type="submit">Qidirish</button>
+      </form>
+    </section>
+
     <!-- STATLAR -->
-    <section class="rh-section">
+    <section class="rh-section reveal" aria-label="Umumiy ko'rsatkichlar">
       <div class="rh-statgrid">
         {% for c in stat_cards %}
         <div class="rh-stat {{ c.color }}">
-          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}"></i></div>
-          <b>{{ c.value }}</b>
+          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}" aria-hidden="true"></i></div>
+          <b data-countup="{{ c.value }}">0</b>
           <span>{{ c.label }}</span>
         </div>
         {% endfor %}
       </div>
     </section>
 
-    <!-- BUGUN -->
-    <section class="rh-section">
-      <div class="rh-statgrid three">
-        {% for t in today_stats %}
-        <div class="rh-stat accent2">
-          <div class="rh-stat-ic"><i class="bi bi-{{ t.icon }}"></i></div>
-          <b>{{ t.value }}</b>
-          <span>{{ t.label }}</span>
+    <!-- BUGUN + KUTUBXONA -->
+    <div class="rh-cols rh-section reveal">
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-calendar-day" aria-hidden="true"></i> Bugungi harakat</h2>
+          <span class="rh-chip">Real vaqt</span>
         </div>
-        {% endfor %}
-      </div>
-    </section>
+        <div class="rh-tiles">
+          {% for t in today_stats %}
+          <div class="rh-tile">
+            <i class="bi bi-{{ t.icon }}" aria-hidden="true"></i>
+            <div class="rh-tile-txt">
+              <b data-countup="{{ t.value }}">0</b>
+              <span>{{ t.label }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-book-half" aria-hidden="true"></i> Kutubxona holati</h2>
+          <a href="{% url 'yordamchi_books' %}" class="rh-more">Kitoblar</a>
+        </div>
+        <div class="rh-tiles">
+          <div class="rh-tile">
+            <i class="bi bi-journals" aria-hidden="true"></i>
+            <div class="rh-tile-txt">
+              <b data-countup="{{ library.total }}">0</b>
+              <span>Jami kitob nomi</span>
+            </div>
+          </div>
+          <div class="rh-tile">
+            <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+            <div class="rh-tile-txt">
+              <b data-countup="{{ library.rented }}">0</b>
+              <span>Ijarada</span>
+            </div>
+          </div>
+          <div class="rh-tile">
+            <i class="bi bi-bookshelf" aria-hidden="true"></i>
+            <div class="rh-tile-txt">
+              <b data-countup="{{ library.available }}">0</b>
+              <span>Mavjud nusxa</span>
+            </div>
+          </div>
+        </div>
+        {% if overdue_rentals %}
+        <div class="rh-card-head rh-subhead">
+          <h2><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> Diqqat talab qiladi</h2>
+        </div>
+        <ul class="rh-list">
+          <li>
+            <a href="{% url 'yordamchi_rentals_overdue' %}" class="rh-list-row">
+              <span class="rh-list-ic warn"><i class="bi bi-hourglass-bottom" aria-hidden="true"></i></span>
+              <span class="rh-list-label">
+                Kechikkan kitob ijaralari
+                <small>Qaytarish muddati o'tgan</small>
+              </span>
+              <span class="rh-badge hot">{{ overdue_rentals }}</span>
+            </a>
+          </li>
+        </ul>
+        {% endif %}
+      </section>
+    </div>
 
     <!-- TEZKOR HARAKATLAR -->
-    <section class="rh-card rh-section">
+    <section class="rh-card rh-section reveal">
       <div class="rh-card-head">
-        <h2><i class="bi bi-lightning-charge"></i> Tezkor harakatlar</h2>
+        <h2><i class="bi bi-lightning-charge" aria-hidden="true"></i> Tezkor harakatlar</h2>
       </div>
       <div class="rh-quickgrid">
         {% for q in quick_actions %}
-        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}"></i> {{ q.label }}</a>
+        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}" aria-hidden="true"></i> {{ q.label }}</a>
         {% endfor %}
       </div>
     </section>
 
-    <div class="rh-cols rh-section">
-      <!-- KUTILAYOTGAN ISHLAR -->
+    <!-- CHART + KUTILAYOTGAN ISHLAR -->
+    <div class="rh-cols rh-section reveal">
       <section class="rh-card">
         <div class="rh-card-head">
-          <h2><i class="bi bi-list-check"></i> Kutilayotgan ishlar</h2>
+          <h2><i class="bi bi-bar-chart" aria-hidden="true"></i> Kelib tushgan arizalar (7 kun)</h2>
+          <span class="rh-chip">{{ week_total }} ta</span>
+        </div>
+        {% if week_bars %}
+        <div class="rh-chart">
+          {% for b in week_bars %}
+          <div class="rh-bar {% if forloop.last %}is-today{% endif %}" title="{{ b.count }} ta">
+            <i style="height:{{ b.pct }}%"></i>
+            <em>{{ b.count }}</em>
+            <span>{{ b.label }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="rh-empty">Ma'lumot yig'ilmadi.</div>
+        {% endif %}
+      </section>
+
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-list-check" aria-hidden="true"></i> Kutilayotgan ishlar</h2>
+          {% if pending_total %}<span class="rh-badge hot">{{ pending_total }}</span>{% endif %}
         </div>
         {% if pending_total %}
         <ul class="rh-list">
           {% for p in pending %}
           <li>
             <a href="{{ p.url }}" class="rh-list-row">
-              <span class="rh-list-ic"><i class="bi bi-{{ p.icon }}"></i></span>
+              <span class="rh-list-ic"><i class="bi bi-{{ p.icon }}" aria-hidden="true"></i></span>
               <span class="rh-list-label">{{ p.label }}</span>
               <span class="rh-badge {% if p.count %}hot{% endif %}">{{ p.count }}</span>
             </a>
@@ -100,60 +235,89 @@
           {% endfor %}
         </ul>
         {% else %}
-        <div class="rh-empty"><i class="bi bi-check2-circle"></i> Hammasi bajarilgan — kutilayotgan ish yo'q!</div>
+        <div class="rh-empty"><i class="bi bi-check2-circle" aria-hidden="true"></i> Hammasi bajarilgan — kutilayotgan ish yo'q!</div>
+        {% endif %}
+      </section>
+    </div>
+
+    <!-- YORDAM SO'ROVLARI + YANGI ARIZALAR -->
+    <div class="rh-cols even rh-section reveal">
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-life-preserver" aria-hidden="true"></i> Yangi yordam so'rovlari</h2>
+          <a href="{% url 'yordamchi_help' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if recent_help %}
+        <ul class="rh-list">
+          {% for h in recent_help %}
+          <li>
+            <a href="{% url 'yordamchi_help' %}" class="rh-list-row">
+              <span class="rh-avatar">{{ h.user.first_name|slice:":1"|default:"?" }}</span>
+              <span class="rh-list-label">
+                {{ h.user.get_full_name|default:h.user.username }}
+                <small>{{ h.subject|truncatechars:44 }}</small>
+              </span>
+              <span class="rh-time">{{ h.created_at|date:"d.m H:i" }}</span>
+            </a>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty"><i class="bi bi-emoji-smile" aria-hidden="true"></i> Yangi yordam so'rovi yo'q.</div>
         {% endif %}
       </section>
 
-      <div class="rh-colstack">
-        <!-- YANGI ARIZALAR -->
-        <section class="rh-card">
-          <div class="rh-card-head">
-            <h2><i class="bi bi-inbox"></i> Yangi arizalar</h2>
-            <a href="{% url 'yordamchi_applications' %}" class="rh-more">Barchasi</a>
-          </div>
-          {% if recent_applications %}
-          <ul class="rh-list">
-            {% for a in recent_applications %}
-            <li class="rh-list-row static">
-              <span class="rh-avatar">{{ a.first_name|slice:":1"|default:"?" }}</span>
-              <span class="rh-list-label">
-                {{ a.first_name }} {{ a.last_name }}
-                <small>{{ a.course_interest|default:"Kurs belgilanmagan" }} · {{ a.phone }}</small>
-              </span>
-              <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <div class="rh-empty">Yangi ariza yo'q.</div>
-          {% endif %}
-        </section>
-
-        <!-- MENING HARAKATLARIM -->
-        <section class="rh-card">
-          <div class="rh-card-head">
-            <h2><i class="bi bi-clock-history"></i> Mening so'nggi harakatlarim</h2>
-            <a href="{% url 'yordamchi_audit_log' %}" class="rh-more">Barchasi</a>
-          </div>
-          {% if my_actions %}
-          <ul class="rh-list">
-            {% for a in my_actions %}
-            <li class="rh-list-row static">
-              <span class="rh-list-ic soft"><i class="bi bi-check2"></i></span>
-              <span class="rh-list-label">
-                {{ a.description|default:a.action_code|truncatechars:48 }}
-              </span>
-              <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
-            </li>
-            {% endfor %}
-          </ul>
-          {% else %}
-          <div class="rh-empty">Hozircha harakatlar yo'q.</div>
-          {% endif %}
-        </section>
-      </div>
+      <section class="rh-card">
+        <div class="rh-card-head">
+          <h2><i class="bi bi-inbox" aria-hidden="true"></i> Yangi arizalar</h2>
+          <a href="{% url 'yordamchi_applications' %}" class="rh-more">Barchasi</a>
+        </div>
+        {% if recent_applications %}
+        <ul class="rh-list">
+          {% for a in recent_applications %}
+          <li class="rh-list-row static">
+            <span class="rh-avatar">{{ a.first_name|slice:":1"|default:"?" }}</span>
+            <span class="rh-list-label">
+              {{ a.first_name }} {{ a.last_name }}
+              <small>{{ a.course_interest|default:"Kurs belgilanmagan" }} · {{ a.phone }}</small>
+            </span>
+            <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="rh-empty">Yangi ariza yo'q.</div>
+        {% endif %}
+      </section>
     </div>
+
+    <!-- MENING HARAKATLARIM -->
+    <section class="rh-card rh-section reveal">
+      <div class="rh-card-head">
+        <h2><i class="bi bi-clock-history" aria-hidden="true"></i> Mening so'nggi harakatlarim</h2>
+        <a href="{% url 'yordamchi_audit_log' %}" class="rh-more">Barchasi</a>
+      </div>
+      {% if my_actions %}
+      <ul class="rh-list">
+        {% for a in my_actions %}
+        <li class="rh-list-row static">
+          <span class="rh-list-ic ok"><i class="bi bi-check2" aria-hidden="true"></i></span>
+          <span class="rh-list-label">
+            {{ a.description|default:a.action_code|truncatechars:60 }}
+          </span>
+          <span class="rh-time">{{ a.created_at|date:"d.m H:i" }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="rh-empty">Hozircha harakatlar yo'q.</div>
+      {% endif %}
+    </section>
 
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/role_home.js' %}" defer></script>
 {% endblock %}

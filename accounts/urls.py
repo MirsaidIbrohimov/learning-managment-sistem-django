@@ -3,9 +3,11 @@ from . import views
 from . import payment_views
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
+from .api import notify_views as notify_api
 
 urlpatterns = [
     path('', views.home_view, name='home'),
+    path('daily-question/answer/', views.daily_question_answer, name='daily_question_answer'),
     path('search/', views.global_search, name='global_search'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
@@ -145,6 +147,9 @@ urlpatterns = [
     path('api/chat/typing/status/',                       chat_api.typing_status,   name='api_chat_typing_status'),
     path('api/chat/pin/',                                 chat_api.pin_toggle,      name='api_chat_pin_toggle'),
     path('api/chat/users/search/',                        chat_api.user_search,     name='api_chat_user_search'),
+
+    # ── Bildirishnoma feed (barcha sahifalarda real-time toast + ovoz) ──
+    path('api/notify/feed/', notify_api.notify_feed, name='api_notify_feed'),
 
     # Messages
     path('messages/', views.messages_view, name='messages'),

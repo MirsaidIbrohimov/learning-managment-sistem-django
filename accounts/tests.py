@@ -303,7 +303,7 @@ class VideoWatchAntiCheatTests(TestCase):
         # Beat yubormagan bo'lsa ham talab shu yerda hisoblanadi — o'quvchi
         # "davomiylik aniqlanmadi" emas, aniq sababni ko'radi.
         self.assertEqual(payload['verified_seconds'], 0)
-        self.assertEqual(payload['required_seconds'], 3225)
+        self.assertEqual(payload['required_seconds'], 3240)   # 3600 * 0.9 — aniq 90%
         self.assertFalse(
             VideoProgress.objects.filter(
                 user=self.user, video=self.video, watched=True
@@ -319,7 +319,7 @@ class VideoWatchAntiCheatTests(TestCase):
             self._beat(position)
 
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
-        self.assertEqual(progress.required_seconds, 3225)   # 3600*0.9 - 15s grace
+        self.assertEqual(progress.required_seconds, 3240)   # 3600*0.9 — aniq 90%
         # Real vaqt o'tmagani uchun hech qanday kredit berilmaydi.
         self.assertLess(progress.verified_seconds, 1)
 
@@ -376,7 +376,7 @@ class VideoWatchAntiCheatTests(TestCase):
         self._beat(0, duration_seconds=3600)
         self._beat(1, duration_seconds=10)
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
-        self.assertEqual(progress.required_seconds, 3225)
+        self.assertEqual(progress.required_seconds, 3240)   # 3600*0.9 — aniq 90%
 
     def test_verified_duration_replaces_stale_manual_duration_and_requirement(self):
         """35 daqiqalik video eski 61 daqiqalik timer bilan ochilmasligi kerak."""
@@ -402,8 +402,8 @@ class VideoWatchAntiCheatTests(TestCase):
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
         self.assertEqual(self.video.verified_duration_seconds, 35 * 60)
         self.assertEqual(self.video.duration, 35)
-        self.assertEqual(progress.required_seconds, 1875)
-        self.assertEqual(result['remaining'], 1875)
+        self.assertEqual(progress.required_seconds, 1890)   # 35*60*0.9 — aniq 90%
+        self.assertEqual(result['remaining'], 1890)
 
     def test_duration_resolution_is_deduplicated_before_background_start(self):
         """Ko'p heartbeat bir video uchun ko'p tashqi HTTP thread boshlamasligi kerak."""
@@ -560,7 +560,7 @@ class StudentTokenWatchAntiCheatTests(TestCase):
 
         self.assertFalse(payload['success'])
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(payload['required_seconds'], 3225)
+        self.assertEqual(payload['required_seconds'], 3240)
         self.user.refresh_from_db()
         self.assertEqual(self.user.coins, 0)
 
@@ -729,13 +729,14 @@ class VideoWatchLivenessTests(TestCase):
         """Eski nonce'ni qayta ishlatish (replay) kredit bermaydi."""
         self._beat(0)
         self._elapse(30)
+        used_nonce = self._nonce   # beat(0) javobida berilgan — beat(30)da SARFLANADI
         first = self._beat(30)
         self.assertGreater(first['credited'], 0)
         earned = self._progress().verified_seconds
 
-        # Xuddi shu (allaqachon ishlatilgan) nonce bilan yana yuboramiz.
+        # Xuddi shu (allaqachon sarflangan) nonce bilan yana yuboramiz.
         self._elapse(30)
-        replayed = self._beat(60, nonce=first['nonce'])
+        replayed = self._beat(60, nonce=used_nonce)
         self.assertEqual(replayed['blocked'], 'nonce')
         self.assertEqual(replayed['credited'], 0)
         self.assertEqual(self._progress().verified_seconds, earned)

@@ -9,10 +9,11 @@
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
 <script>
-/* Tema — birinchi chizishdan oldin (FOUC oldini olish) */
+/* Tema — birinchi chizishdan oldin (FOUC oldini olish).
+   Saytning 'theme' kaliti ustun: bosh sahifadagi tanlov shu yerda ham saqlanadi. */
 (function () {
   var t;
-  try { t = localStorage.getItem('its-theme'); } catch (e) {}
+  try { t = localStorage.getItem('theme') || localStorage.getItem('its-theme'); } catch (e) {}
   if (t !== 'light' && t !== 'dark') {
     t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   }
@@ -50,7 +51,12 @@
 <main class="stage stage--rev">
 
   <!-- Chap: ro'yxatdan o'tish kartasi -->
-  <section class="card">
+  <div class="card-shell">
+    <span class="c-orb c-orb-1" aria-hidden="true"></span>
+    <span class="c-orb c-orb-2" aria-hidden="true"></span>
+    <span class="c-orb c-orb-3" aria-hidden="true"></span>
+
+    <section class="card">
     <div class="c-head">
       <span class="c-logo">IT</span>
       <h2 class="c-title">Ro'yxatdan o'tish</h2>
@@ -127,6 +133,7 @@
             {{ form.password1 }}
             <button type="button" class="pw-eye" data-pw="{{ form.password1.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
           </div>
+          <span class="caps-hint" data-caps-for="{{ form.password1.id_for_label }}"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</span>
           {% if form.password1.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
           <div class="str">
             <div class="str-bar"><div class="str-fill" id="strFill"></div></div>
@@ -152,13 +159,25 @@
       <span class="muted">Akkauntingiz bormi?</span>
       <a href="{% url 'login' %}" class="link" style="font-weight:700">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
     </div>
-  </section>
+    </section>
 
-  <!-- O'ng: 3D globus ustidagi brend matni -->
+    <div class="safe-note">
+      <i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz shifrlangan holda saqlanadi
+    </div>
+  </div>
+
+  <!-- O'ng: 3D "bilim yadrosi" ustidagi brend matni -->
   <section class="pane-scene" aria-hidden="true">
     <span class="scene-eyebrow"><span class="dot"></span> Yangi a'zo bo'ling</span>
     <h1 class="scene-title">Shaharchamizga<br><span class="grad">qo'shiling!</span></h1>
     <p class="scene-sub">Kelajakdagi dasturchi yo'lini biz bilan boshlaydi. Ro'yxatdan o'ting va bilim tarmog'iga qo'shiling.</p>
+
+    <div class="scene-stats">
+      <div class="st"><span class="st-num" data-count="500" data-suffix="+">0</span><span class="st-lab">O'quvchi</span></div>
+      <div class="st"><span class="st-num" data-count="12" data-suffix="">0</span><span class="st-lab">Yo'nalish</span></div>
+      <div class="st"><span class="st-num" data-count="2" data-suffix=" daqiqa">0</span><span class="st-lab">Ro'yxatdan o'tish</span></div>
+    </div>
+
     <div class="chips">
       <span class="chip"><i class="bi bi-1-circle-fill"></i> Ma'lumotlarni kiriting</span>
       <span class="chip"><i class="bi bi-2-circle-fill"></i> Parol yarating</span>
@@ -173,8 +192,8 @@ document.addEventListener('DOMContentLoaded', function () {
   var A = window.ITSAuth;
   if (!A) return;
 
-  /* 3D sahna (globus o'ng tomonda) + tema */
-  A.mountScene(document.getElementById('bg3d'), { side: 'right' });
+  /* 3D sahna (yadro shisha karta ortida — sinish effekti uchun) + tema */
+  A.mountScene(document.getElementById('bg3d'), { side: 'left' });
   A.initTheme(document.getElementById('themeToggle'));
   window.addEventListener('load', function () { window.dispatchEvent(new Event('resize')); });
 
@@ -277,6 +296,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* Telefon formatlash: (90) 123 45 67 */
   A.formatUzPhone(document.getElementById('id_phone'), 'paren');
+
+  /* Caps Lock ogohlantirishi */
+  document.querySelectorAll('.caps-hint').forEach(function (hint) {
+    A.capsHint(document.getElementById(hint.dataset.capsFor), hint);
+  });
+
+  /* Statistika raqamlari sanaladi */
+  document.querySelectorAll('.st-num').forEach(function (el) {
+    A.countUp(el, parseInt(el.dataset.count, 10) || 0, el.dataset.suffix || '');
+  });
 
   /* Parol kuchi */
   if (pw1) {

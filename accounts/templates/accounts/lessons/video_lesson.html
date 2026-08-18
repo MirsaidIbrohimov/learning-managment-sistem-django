@@ -1372,7 +1372,11 @@ const circumference = 2 * Math.PI * 18;
 // totalSeconds/requiredTime dastlab NULL — countdown "—:—" ko'rinishida turadi.
 let totalSeconds   = null;
 let requiredTime   = null;
-let durationLocked = false;   // haqiqiy (yoki fallback) davomiylik o'rnatildimi
+let durationLocked = false;   // talab o'rnatildimi (server yoki vaqtincha manba)
+// Talab manbasi: 'server' (o'zgarmas hukm) > 'player' > 'db' (vaqtinchalik).
+// Countdown'ning orqa-oldinga sakrashi shu yerda hal bo'ladi: server talabi
+// kelgach, requiredTime boshqa HECH NIMA tomonidan o'zgartirilmaydi.
+let requirementSource = null;
 
 // ── Anti-skip sozlamalari ──
 // Sakrashni ANIQLASH endi "eng uzoq qonuniy ko'rilgan nuqta"ga (watchedTime)
@@ -1486,11 +1490,20 @@ function sendBeat() {
             serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
 
-            // Server o'zi aniqlagan talabni (anti-cheat manbasi) lokal timerga
-            // ham tushiramiz — bu pleer getDuration() bermasa countdown
-            // "—:—" da qotib qolishini oldini oladi.
-            if (!durationLocked && data.required_seconds) {
-                lockDuration(Math.max(2, Math.ceil(data.required_seconds / 0.9) + 15));
+            // Server O'ZI hisoblagan majburiy vaqt (davomiyligining aniq 90%)
+            // — boshlang'ich va yakuniy manba. Pleer getDuration() bermasa ham
+            // countdown "—:—" da qotib qolmaydi, va lokal/server qiymatlari
+            // har doim bir xil bo'ladi (sakrash yo'q).
+            if (data.required_seconds) {
+                lockDuration(data.required_seconds, 'server');
+            }
+            // Server hisobiga sinxron: verified = required - remaining. Lokal
+            // hisob orqada qolgan bo'lsa (sahifa yangilangandan keyin yoki
+            // kechikishdan keyin) watchedTime'ni oldinga suramiz — u baribir
+            // faqat o'sadi, countdown faqat kamayadi.
+            if (data.remaining != null && durationLocked) {
+                const serverVerified = Math.min(requiredTime, Math.max(0, requiredTime - data.remaining));
+                if (serverVerified > watchedTime) watchedTime = serverVerified;
             }
             // Server talabni tasdiqladi — lokal hisob qolgan bo'lsa ham tugatamiz
             // (server hukmi asosiy).
@@ -1609,12 +1622,35 @@ function getPlayerDuration(cb) {
     cb(null);
 }
 
-/* Davomiylikni belgilash (pleerdan yoki DB fallback'dan) — bir marta. */
-function lockDuration(seconds) {
-    if (durationLocked) return;
-    totalSeconds   = Math.max(1, seconds);
-    requiredTime   = Math.max(1, Math.floor(totalSeconds * 0.9));
-    durationLocked = true;
+/* Talabni belgilash — manba ustuvorligi bilan.
+ *   • source='server': server O'ZI hisoblagan majburiy vaqt (video davomiyligining
+ *     ANIQ 90%). Bu — oxirgi hukm: undan keyin requiredTime o'zgarmaydi.
+ *   • source='player'/'db': vaqtinchalik baholash (server javobi kelgunga qadar).
+ *   serverdan keyin kelgan player davomiyligi faqat totalSecondsni (coin
+ *   ko'rsatish uchun) aniqlashtiradi, requiredTime'ga tegmaydi. */
+function lockDuration(seconds, source) {
+    if (source === 'server') {
+        if (requirementSource === 'server') return;
+        requirementSource = 'server';
+        // Bir martalik halol tuzatish: vaqtincha baholash (pleer/DB) noto'g'ri
+        // bo'lib chiqsa countdown yangi haqiqiy qiymatga o'tadi (keyin qotadi).
+        if (requiredTime && seconds > requiredTime) countdownHitZero = false;
+        requiredTime      = Math.max(1, Math.round(seconds));
+        durationLocked    = true;
+        if (!totalSeconds) totalSeconds = Math.ceil(requiredTime / 0.9);
+    } else {
+        if (requirementSource === 'server') {
+            // Talab o'zgarmaydi — faqat coin ko'rsatish uchun davomiylikni
+            // aniqlashtiramiz (haqiqiy pleer qiymati dbMinutesdan aniqroq).
+            if (source === 'player') totalSeconds = Math.max(1, seconds);
+            return;
+        }
+        if (durationLocked) return;
+        totalSeconds      = Math.max(1, seconds);
+        requiredTime      = Math.max(1, Math.floor(totalSeconds * 0.9));
+        requirementSource = source;
+        durationLocked    = true;
+    }
     const rewardSeconds = dbSeconds >= 60 ? dbSeconds : totalSeconds;
     videoCoinAmountEl.textContent = Math.max(1, Math.round(rewardSeconds / 60)) * coinMultiplier;
     // UI: countdown endi to'g'ri qiymatga to'ldiriladi (birinchi tikda ham darrov).
@@ -1626,12 +1662,12 @@ function lockDuration(seconds) {
     }
 }
 
-/* Pleer bergan davomiylik bilan sinxronlash — ustuvor. */
+/* Pleer bergan davomiylik bilan sinxronlash — server javobi kelguncha vaqtincha. */
 function resolveDuration() {
-    if (durationLocked) return;
+    if (requirementSource === 'server') return;
     getPlayerDuration(function(d) {
         if (!d || !isFinite(d) || d < 2) return;   // hali tayyor emas
-        lockDuration(d);
+        lockDuration(d, 'player');
     });
 }
 
@@ -1640,15 +1676,22 @@ function resolveDuration() {
 // (noma'lum) hech narsa qilmaymiz: resolveDuration() har tikda pleerni qayta
 // so'raydi va u ijro boshlanishi bilan haqiqiy davomiylikni beradi.
 setTimeout(function() {
-    if (!durationLocked && dbSeconds >= 60) lockDuration(dbSeconds);
+    if (!durationLocked && dbSeconds >= 60) lockDuration(dbSeconds, 'db');
 }, DB_FALLBACK_DELAY_MS);
+
+/* Countdown monotonligi: bir marta 0 ga yetgach, keyin server kechikishi
+ * tufayli kattaroq qiymat ko'rsatilmaydi — "orqaga sakrash" shu bilan
+ * butunlay yo'q qilinadi. */
+let countdownHitZero = false;
 
 /* UI'ni watchedTime bo'yicha yangilaydi (davomiylik lock qilingandan keyin).
    Countdown va ring FAQAT watchedTime'dan hisoblanadi — u monoton bo'lgani
    uchun ekranda ham orqa-oldinga sakramaydi. */
 function updateTimerUI() {
     if (!durationLocked || isReady) return;
-    const remaining = Math.max(0, requiredTime - watchedTime);
+    let remaining = Math.max(0, requiredTime - watchedTime);
+    if (remaining <= 0) countdownHitZero = true;
+    if (countdownHitZero) remaining = 0;   // 0 dan keyin hech qachon ortga qaytmaydi
     const progress  = Math.min(1, watchedTime / requiredTime);
     countdownEl.textContent = formatTime(remaining);
     ringFill.style.strokeDashoffset = circumference * (1 - progress);
@@ -1656,7 +1699,7 @@ function updateTimerUI() {
     // bo'lsa ham server hisobi yetmasa — kutamiz (va buni ekranda ko'rsatamiz).
     if (watchedTime >= requiredTime) {
         if (!serverCanComplete) {
-            countdownEl.textContent = serverRemaining != null ? formatTime(serverRemaining) : '…';
+            countdownEl.textContent = '0:00';
             timerLabel.textContent  = 'Tekshirilmoqda';
             statusText.textContent  = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
             return;
@@ -1682,12 +1725,12 @@ function completeOnEnded() {
     if (!durationLocked) {
         getPlayerDuration(function(d) {
             if (d && isFinite(d) && d > 1) {
-                lockDuration(d);
+                lockDuration(d, 'player');
                 watchedTime = requiredTime;
                 updateTimerUI();
             } else {
                 getPlayerTime(function(t) {
-                    if (t && isFinite(t) && t > 1) lockDuration(t);
+                    if (t && isFinite(t) && t > 1) lockDuration(t, 'player');
                     watchedTime = requiredTime || watchedTime;
                     updateTimerUI();
                 });
