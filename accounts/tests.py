@@ -148,6 +148,53 @@ class UnreadMessagesContextTests(TestCase):
         self.assertEqual(unread_messages(request)['unread_messages_count'], 0)
 
 
+class VideoProviderUrlTests(TestCase):
+    def _video(self, *, video_url=None, youtube_url=None):
+        profession = Profession.objects.create(
+            name=f'Provider kursi {Profession.objects.count()}',
+            photo='professions/provider.jpg',
+            description='Video URL testi',
+        )
+        lesson = Lesson.objects.create(
+            profession=profession,
+            title='Provider video',
+            lesson_type='video',
+            ai_article='Tayyor maqola',
+        )
+        return VideoLesson.objects.create(
+            lesson=lesson, video_url=video_url, youtube_url=youtube_url,
+        )
+
+    def test_vimeo_unlisted_hash_is_kept_in_embed_url(self):
+        video = self._video(video_url='https://vimeo.com/123456789/AbC_987-xyz')
+
+        self.assertEqual(video.get_video_id(), '123456789')
+        self.assertEqual(video.get_vimeo_hash(), 'AbC_987-xyz')
+        self.assertIn('h=AbC_987-xyz', video.get_embed_url())
+
+    def test_vimeo_player_and_showcase_formats_extract_video_id(self):
+        player = self._video(
+            video_url='https://player.vimeo.com/video/234567890?h=secretHash'
+        )
+        showcase = self._video(
+            video_url='https://vimeo.com/showcase/111111/video/345678901'
+        )
+
+        self.assertEqual(player.get_video_id(), '234567890')
+        self.assertEqual(player.get_vimeo_hash(), 'secretHash')
+        self.assertEqual(showcase.get_video_id(), '345678901')
+
+    def test_youtube_field_wins_over_stale_vimeo_field_for_youtube_id(self):
+        video = self._video(
+            video_url='https://vimeo.com/123456789',
+            youtube_url='https://www.youtube.com/watch?v=abcdefghijk',
+        )
+
+        self.assertTrue(video.is_youtube)
+        self.assertFalse(video.is_vimeo)
+        self.assertEqual(video.get_video_id(), 'abcdefghijk')
+
+
 class VideoWatchCoinRewardTests(TestCase):
     def setUp(self):
         self.profession = Profession.objects.create(
@@ -351,6 +398,18 @@ class VideoWatchAntiCheatTests(TestCase):
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
         self.assertLessEqual(progress.verified_seconds, 20)   # 10s * 2x chegara
         self.assertGreater(progress.verified_seconds, 0)
+
+    def test_short_video_final_playing_beat_unlocks_completion(self):
+        """15 soniyalik intervaldan qisqa video oxirgi beat bilan yopiladi."""
+        self.video.verified_duration_seconds = 10
+        self.video.save(update_fields=['verified_duration_seconds'])
+
+        self._beat(0)
+        self._rewind_last_beat(8)
+        result = self._beat(8, playing=True)
+
+        self.assertTrue(result['can_complete'])
+        self.assertGreater(result['credited'], 0)
 
     def test_full_watch_over_real_time_unlocks_completion(self):
         """Haqiqiy ko'rish: yetarli real vaqt o'tgach dars yopiladi."""

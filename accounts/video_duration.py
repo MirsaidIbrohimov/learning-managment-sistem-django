@@ -114,10 +114,11 @@ def _youtube_page_duration(video_id):
     return 0
 
 
-def _vimeo_oembed_duration(video_id):
+def _vimeo_oembed_duration(video):
     response = requests.get(
         'https://vimeo.com/api/oembed.json',
-        params={'url': f'https://vimeo.com/{video_id}'},
+        # Unlisted Vimeo videos require the original URL including its hash.
+        params={'url': video.get_vimeo_url()},
         headers={'User-Agent': _UA},
         timeout=FETCH_TIMEOUT,
     )
@@ -125,11 +126,15 @@ def _vimeo_oembed_duration(video_id):
     return int(response.json().get('duration') or 0)
 
 
-def _vimeo_config_duration(video_id):
+def _vimeo_config_duration(video):
     """Zaxira yo'l: oembed faqat ochiq videolarni biladi, pleer config esa
     embed qilinadigan (shu jumladan ro'yxatda ko'rinmaydigan) videolarni ham."""
+    video_id = video.get_video_id()
+    private_hash = video.get_vimeo_hash()
+    params = {'h': private_hash} if private_hash else None
     response = requests.get(
         f'https://player.vimeo.com/video/{video_id}/config',
+        params=params,
         headers={'User-Agent': _UA, 'Referer': 'https://player.vimeo.com/'},
         timeout=FETCH_TIMEOUT,
     )
@@ -143,13 +148,15 @@ def _fetch_duration(video):
     if not video_id:
         return 0
 
-    sources = (
-        (_vimeo_oembed_duration, _vimeo_config_duration) if video.is_vimeo
-        else (_youtube_api_duration, _youtube_innertube_duration, _youtube_page_duration)
-    )
+    if video.is_vimeo:
+        sources = (_vimeo_oembed_duration, _vimeo_config_duration)
+        source_arg = video
+    else:
+        sources = (_youtube_api_duration, _youtube_innertube_duration, _youtube_page_duration)
+        source_arg = video_id
     for source in sources:
         try:
-            seconds = source(video_id)
+            seconds = source(source_arg)
         except Exception:
             continue
         if MIN_PLAUSIBLE <= seconds <= MAX_PLAUSIBLE:

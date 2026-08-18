@@ -1023,6 +1023,7 @@ const iframe = document.getElementById('videoFrame');
 const isVimeo   = {{ video.is_vimeo|yesno:"true,false" }};
 const isYouTube = {{ video.is_youtube|yesno:"true,false" }};
 const videoId   = "{{ video.get_video_id|default:'' }}";
+const vimeoEmbedUrl = "{{ video.get_embed_url|default:''|escapejs }}";
 // Sensorli qurilmada YouTube'ning native tugmalari ochiq qolishi kerak. Aks holda
 // mobil autoplay bloklanganda videoGuard native Play tugmasini ham to'sib qo'yadi.
 const useNativeMobileControls = window.matchMedia &&
@@ -1327,7 +1328,6 @@ if (placeholder) {
         }
 
         if (isVimeo) {
-            iframe.src = "https://player.vimeo.com/video/" + videoId + "?autoplay=1&title=0&byline=0&portrait=0&controls=0&keyboard=0&pip=0";
             iframe.onload = function() {
                 vimeoPlayer = new Vimeo.Player(iframe);
                 vlSetupQuality();
@@ -1337,6 +1337,9 @@ if (placeholder) {
                 vimeoPlayer.on('bufferstart', () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); });
                 vimeoPlayer.on('bufferend',   () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); });
             };
+            // onload avval ulanadi: keshlangan Vimeo iframe juda tez yuklansa ham
+            // Player eventlari va timer boshlanish hodisasi yo'qolib ketmaydi.
+            iframe.src = vimeoEmbedUrl;
         }
     });
 }
@@ -1392,6 +1395,7 @@ let isReady     = false;  // 90% ga yetdi
  * vaqtni o'lchab kredit beradi. Tugma serverdan can_complete kelganda yonadi.
  */
 const BEAT_INTERVAL_MS = 15000;
+const BEAT_TIMEOUT_MS = 12000;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
 // Sahifa avval to'liq video vaqtini ko'rsatib, birinchi heartbeatda oldin
@@ -1402,14 +1406,15 @@ const initialServerVerified = {{ progress.verified_seconds|default:0|unlocalize 
 let serverRemaining = initialServerRequired > 0
     ? Math.max(0, initialServerRequired - initialServerVerified)
     : null;
-// Ekrandagi countdown sahifa davomida bir marta boshlanadi. Heartbeat javobi
-// biroz katta/kichik qiymat qaytarsa ham sekund 39 → 45 yoki 40 → 20 bo'lib
-// sakramaydi; faqat haqiqiy video ijrosi miqdoricha monoton kamayadi.
+// Ekrandagi countdown server tasdiqlagan qolgan vaqtdan davom etadi. Har
+// heartbeat bazani yangilaydi; kredit olinmagan oraliq bo'lsa noto'g'ri 0:00 da
+// qotib qolish o'rniga serverdagi haqiqiy qolgan vaqt ko'rsatiladi.
 let displayRemainingStart = null;
 let displayWatchedStart   = 0;
 let beatInFlight      = false;
 let beatNonce         = '';
 let presencePrompting = false;
+let finalBeatPending  = false;
 
 function answerPresenceChallenge(challenge) {
     if (!challenge || !challenge.token || presencePrompting) return;
@@ -1422,21 +1427,40 @@ function answerPresenceChallenge(challenge) {
     if (confirmed) sendBeat(challenge.token);
 }
 
-function sendBeat(presenceToken) {
-    if (beatInFlight || serverCanComplete) return;
+function sendBeat(presenceToken, playingOverride) {
+    if (serverCanComplete) return;
+    if (beatInFlight) {
+        // Vimeo getCurrentTime() Promise qaytaradi. Shu orada interval yoki
+        // ENDED kelsa ikkinchi bir xil nonce'li so'rov yubormaymiz; oxirgi beatni
+        // navbatga qo'yamiz. Aks holda server halol beatni replay deb bloklardi.
+        if (playingOverride === true) finalBeatPending = true;
+        return;
+    }
+    beatInFlight = true;
     getPlayerTime(function(t) {
-        if (t == null || !isFinite(t)) return;
-        beatInFlight = true;
+        if (t == null || !isFinite(t)) {
+            beatInFlight = false;
+            return;
+        }
+        const controller = typeof AbortController !== 'undefined'
+            ? new AbortController() : null;
+        const timeoutId = controller
+            ? setTimeout(() => controller.abort(), BEAT_TIMEOUT_MS) : null;
+        let receivedPresence = null;
         fetch(BEAT_URL, {
             method: 'POST',
             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+            signal: controller ? controller.signal : undefined,
             // Bu qiymatlarning hech biri yakunlash uchun o'zi yetarli emas:
             // server pozitsiyani o'z soati, oldingi beat va bir martalik nonce
             // bilan tekshiradi. Konsoldan timer/pozitsiyani o'zgartirish kredit
             // miqdorini server o'tkazgan real vaqtdan oshira olmaydi.
             body: JSON.stringify({
                 position: t,
-                playing: isVideoPlaying,
+                // ENDED hodisasi pleer holatini false qilgan bo'lsa ham, aynan
+                // shu oxirgi pozitsiyagacha video ijro etilganini serverga
+                // yetkazamiz. Kredit baribir server o'tgan vaqti bilan cheklangan.
+                playing: playingOverride === true ? true : isVideoPlaying,
                 hidden: document.hidden,
                 nonce: beatNonce,
                 presence_token: presenceToken || ''
@@ -1444,23 +1468,40 @@ function sendBeat(presenceToken) {
         })
         .then(r => r.ok ? r.json() : null)
         .then(data => {
-            beatInFlight = false;
             if (!data || !data.ok) return;
             beatNonce         = data.nonce || '';
             serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
+            // Countdown server tasdiqlagan qiymatdan davom etadi. Tarmoq uzilishi
+            // yoki bloklangan beat bo'lsa 0:00 da "tasdiqlanmoqda" deb qotmaydi,
+            // balki qolgan haqiqiy soniyalarni ko'rsatib sanashda davom etadi.
+            if (data.remaining != null) {
+                displayRemainingStart = Math.max(0, Number(data.remaining) || 0);
+                displayWatchedStart = watchedTime;
+            }
             // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
             if (data.seek_blocked && data.resume_at != null) {
                 seekPlayerTo(data.resume_at);
                 statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
             }
             updateTimerUI();
-            answerPresenceChallenge(data.presence);
+            receivedPresence = data.presence || null;
         })
-        .catch(() => { beatInFlight = false; });
+        .catch(() => {})
+        .finally(() => {
+            if (timeoutId) clearTimeout(timeoutId);
+            beatInFlight = false;
+            // Confirm oynasi ochilganda yangi beat erkin yuborilishi uchun buni
+            // faqat joriy so'rov to'liq tugagandan keyin chaqiramiz.
+            answerPresenceChallenge(receivedPresence);
+            if (finalBeatPending && !serverCanComplete) {
+                finalBeatPending = false;
+                setTimeout(() => sendBeat('', true), 0);
+            }
+        });
     });
 }
-setInterval(sendBeat, BEAT_INTERVAL_MS);
+setInterval(() => sendBeat(), BEAT_INTERVAL_MS);
 let seekLock    = false;  // revert davomida tetiklamaslik
 let lastPos     = null;   // oldingi tikdagi pleer pozitsiyasi (soniya)
 let lastWall    = null;   // oldingi tik vaqti (ms) — real vaqt hisobi uchun
@@ -1652,6 +1693,9 @@ function updateTimerUI() {
    "qotib" qolib, "Ko'rdim" tugmasi yoqilmay qolmaydi. */
 function completeOnEnded() {
     if (isReady) return;
+    // Davomiylik hali aniqlanmagan juda qisqa videoda ham oxirgi pozitsiya
+    // yo'qolmasin. getPlayerTime davomiylikdan mustaqil ishlaydi.
+    sendBeat('', true);
     // Davomiylik hali aniqlanmagan bo'lsa — avval pleer davomiyligini, keyin
     // joriy pozitsiyani asos qilamiz (ENDED bo'lsa ikkalasi ham ≈ to'liq vaqt).
     if (!durationLocked) {
@@ -1671,9 +1715,6 @@ function completeOnEnded() {
         return;
     }
     watchedTime = requiredTime;
-    // Oxirgi pozitsiyani serverga yetkazamiz, aks holda serverdagi hisob
-    // oxirgi beatdan keyingi qismni ko'rmay qolardi.
-    sendBeat();
     updateTimerUI();
 }
 

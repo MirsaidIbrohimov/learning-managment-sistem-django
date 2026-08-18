@@ -645,6 +645,10 @@ class VideoLesson(models.Model):
     
     @property
     def is_vimeo(self):
+        # Yangi form faqat bitta provider saqlaydi. Eski yozuvda ikkala maydon
+        # to'lib qolgan bo'lsa, `is_youtube` ishlatadigan YouTube maydoni ustun.
+        if (self.youtube_url or '').strip():
+            return False
         url = (self.video_url or '').strip()
         return bool(url and 'vimeo.com' in url)
     
@@ -654,22 +658,26 @@ class VideoLesson(models.Model):
         return bool(url and ('youtube.com' in url or 'youtu.be' in url))
     
     def get_video_id(self):
-        url = (self.video_url or self.youtube_url or '').strip()
+        # Har bir provider o'z maydonidan olinadi. Eski yozuvda ikkala maydon
+        # tasodifan to'lib qolgan bo'lsa ham YouTube ID Vimeo URL'dan (yoki
+        # aksincha) ajratilmasin.
+        url = (
+            (self.video_url or '') if self.is_vimeo
+            else (self.youtube_url or self.video_url or '')
+        ).strip()
         
-        # Vimeo: https://vimeo.com/123456789 or https://vimeo.com/123456789?share=copy
-        # or https://player.vimeo.com/video/123456789
+        # Vimeo: oddiy, player, manage, showcase va unlisted URL'lar.
         if 'vimeo.com' in url:
-            if '/video/' in url:
-                video_id = url.split('/video/')[1].split('?')[0].split('/')[0]
-            else:
-                # Extract number after vimeo.com/
-                import re
-                match = re.search(r'vimeo\.com/(\d+)', url)
-                if match:
-                    video_id = match.group(1)
-                else:
-                    video_id = url.split('vimeo.com/')[1].split('?')[0].split('/')[0]
-            return video_id
+            from urllib.parse import urlparse
+
+            parts = [part for part in urlparse(url).path.split('/') if part]
+            for marker in ('video', 'videos'):
+                if marker in parts:
+                    index = parts.index(marker) + 1
+                    if index < len(parts) and parts[index].isdigit():
+                        return parts[index]
+            numeric_parts = [part for part in parts if part.isdigit()]
+            return numeric_parts[-1] if numeric_parts else None
         
         # YouTube formats:
         # https://www.youtube.com/watch?v=VIDEO_ID
@@ -693,6 +701,29 @@ class VideoLesson(models.Model):
                     return m.group(1)
 
         return None
+
+    def get_vimeo_hash(self):
+        """Vimeo unlisted havolasidagi maxfiy `h` qiymatini qaytaradi."""
+        if not self.is_vimeo:
+            return None
+
+        from urllib.parse import parse_qs, urlparse
+
+        parsed = urlparse((self.video_url or '').strip())
+        query_hash = (parse_qs(parsed.query).get('h') or [None])[0]
+        if query_hash:
+            return query_hash
+
+        video_id = self.get_video_id()
+        parts = [part for part in parsed.path.split('/') if part]
+        if video_id in parts:
+            index = parts.index(video_id) + 1
+            if index < len(parts):
+                import re
+
+                if re.fullmatch(r'[a-zA-Z0-9_-]+', parts[index]):
+                    return parts[index]
+        return None
     
     def get_embed_url(self):
         video_id = self.get_video_id()
@@ -700,7 +731,16 @@ class VideoLesson(models.Model):
             return None
         
         if self.is_vimeo:
-            return f"https://player.vimeo.com/video/{video_id}?autoplay=1&title=0&byline=0&portrait=0"
+            from urllib.parse import urlencode
+
+            params = {
+                'autoplay': 1, 'title': 0, 'byline': 0, 'portrait': 0,
+                'controls': 0, 'keyboard': 0, 'pip': 0,
+            }
+            private_hash = self.get_vimeo_hash()
+            if private_hash:
+                params['h'] = private_hash
+            return f"https://player.vimeo.com/video/{video_id}?{urlencode(params)}"
         elif self.is_youtube:
             return f"https://www.youtube-nocookie.com/embed/{video_id}?autoplay=1&rel=0&modestbranding=1"
         return None
