@@ -32,6 +32,15 @@
   --aur2: rgba(34, 211, 238, 0.13);
   --aur3: rgba(244, 114, 182, 0.10);
 
+  /* Shisha (glassmorphism) qatlami */
+  --glass: rgba(14, 19, 40, 0.52);
+  --glass-2: rgba(255, 255, 255, 0.05);
+  --glass-bord: rgba(255, 255, 255, 0.11);
+  --glass-hi: rgba(255, 255, 255, 0.18);
+  --glass-sheen: rgba(255, 255, 255, 0.10);
+  --glass-blur: 26px;
+  --scrim-c: 4, 6, 13;
+
   color-scheme: dark;
 }
 
@@ -57,10 +66,18 @@
   --aur2: rgba(84, 220, 236, 0.30);
   --aur3: rgba(255, 170, 214, 0.26);
 
+  --glass: rgba(255, 255, 255, 0.52);
+  --glass-2: rgba(255, 255, 255, 0.40);
+  --glass-bord: rgba(255, 255, 255, 0.70);
+  --glass-hi: rgba(255, 255, 255, 0.95);
+  --glass-sheen: rgba(255, 255, 255, 0.55);
+  --scrim-c: 237, 241, 252;
+
   color-scheme: light;
 }
 
 html, body { min-height: 100%; }
+html { overflow-x: hidden; }
 body {
   font-family: var(--font-b);
   background-color: var(--bg);
@@ -117,8 +134,11 @@ html.no3d #bg3d { display: none; }
 /* Tema tugmasi */
 .tgl {
   position: relative; width: 64px; height: 34px; border-radius: 999px;
-  border: 1px solid var(--bord); background: var(--card);
-  backdrop-filter: blur(14px); cursor: pointer;
+  border: 1px solid var(--glass-bord); background: var(--glass);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  cursor: pointer;
   transition: border-color .3s;
 }
 .tgl:hover { border-color: var(--ac); }
@@ -145,12 +165,25 @@ html.no3d #bg3d { display: none; }
 .stage--rev { grid-template-columns: .95fr 1.05fr; }
 
 /* Chap/o'ng — 3D sahna ustidagi matn */
-.pane-scene { pointer-events: none; }
+.pane-scene { position: relative; pointer-events: none; }
+/* Yumshoq parda: zarralar matn kontrastini buzmasin */
+.pane-scene::before {
+  content: ''; position: absolute; z-index: -1;
+  inset: -6% -10% -6% -16%;
+  background: radial-gradient(60% 54% at 42% 50%,
+    rgba(var(--scrim-c), .60) 0%,
+    rgba(var(--scrim-c), .34) 46%,
+    rgba(var(--scrim-c), 0) 76%);
+  pointer-events: none;
+}
+.stage--rev .pane-scene::before { inset: -6% -16% -6% -10%; }
 .scene-eyebrow {
   display: inline-flex; align-items: center; gap: .5rem;
   padding: .4rem .9rem; border-radius: 999px;
-  background: var(--card); border: 1px solid var(--bord);
-  backdrop-filter: blur(10px);
+  background: var(--glass); border: 1px solid var(--glass-bord);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(12px) saturate(1.5);
+  -webkit-backdrop-filter: blur(12px) saturate(1.5);
   font-size: .76rem; font-weight: 600; color: var(--tx2);
   letter-spacing: .6px; text-transform: uppercase;
   margin-bottom: 1.1rem;
@@ -176,8 +209,10 @@ html.no3d #bg3d { display: none; }
 .chip {
   display: flex; align-items: center; gap: .55rem;
   padding: .5rem .85rem; border-radius: 14px;
-  background: var(--card); border: 1px solid var(--bord2);
-  backdrop-filter: blur(12px);
+  background: var(--glass); border: 1px solid var(--glass-bord);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
   font-size: .8rem; font-weight: 600; color: var(--tx2);
   animation: chipFloat 5s ease-in-out infinite;
 }
@@ -194,16 +229,22 @@ html.no3d #bg3d { display: none; }
 .card {
   position: relative;
   width: min(468px, 100%); justify-self: center;
-  background: var(--card);
-  border: 1px solid var(--bord);
+  background:
+    linear-gradient(155deg, var(--glass-2), transparent 46%),
+    var(--glass);
+  border: 1px solid var(--glass-bord);
   border-radius: 26px;
   padding: 2.1rem 2rem;
-  backdrop-filter: blur(26px) saturate(1.35);
-  -webkit-backdrop-filter: blur(26px) saturate(1.35);
-  box-shadow: var(--shadow);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 var(--glass-hi),
+    inset 0 -1px 0 rgba(255, 255, 255, .04);
   animation: cardIn .55s cubic-bezier(.16, 1, .3, 1);
   transition: background-color .6s ease, border-color .6s ease;
 }
+.card > * { position: relative; z-index: 1; }
 .card::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
   background: linear-gradient(140deg, rgba(124, 108, 246, .55), transparent 38%, transparent 62%, rgba(34, 211, 238, .4));
@@ -211,7 +252,46 @@ html.no3d #bg3d { display: none; }
   -webkit-mask-composite: xor; mask-composite: exclude;
   pointer-events: none;
 }
+/* Shisha ustidan sekin o'tuvchi yorug'lik nuri */
+.card::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit;
+  overflow: hidden; pointer-events: none; z-index: 0;
+  background: linear-gradient(105deg, transparent 32%, var(--glass-sheen) 48%, transparent 62%);
+  background-size: 260% 100%; background-position: 130% 0;
+  animation: cardSheen 9s ease-in-out infinite;
+}
+@keyframes cardSheen {
+  0%, 62% { background-position: 130% 0; }
+  100% { background-position: -30% 0; }
+}
 @keyframes cardIn { from { opacity: 0; transform: translateY(26px) scale(.985); } to { opacity: 1; transform: none; } }
+
+/* Karta ortidagi rangli sharlar — shisha ularni xiralashtirib "sinishi" beradi */
+.card-shell { position: relative; width: min(468px, 100%); justify-self: center; }
+.card-shell > .card { width: 100%; justify-self: stretch; }
+.c-orb {
+  position: absolute; border-radius: 50%; z-index: 0;
+  pointer-events: none; filter: blur(26px); opacity: .85;
+  transition: background-color .8s ease;
+}
+.c-orb-1 {
+  width: 190px; height: 190px; top: -54px; left: -46px;
+  background: radial-gradient(circle, var(--ac), transparent 70%);
+  animation: orbA 15s ease-in-out infinite alternate;
+}
+.c-orb-2 {
+  width: 160px; height: 160px; bottom: -48px; right: -38px;
+  background: radial-gradient(circle, var(--ac2), transparent 70%);
+  animation: orbB 19s ease-in-out infinite alternate;
+}
+.c-orb-3 {
+  width: 130px; height: 130px; top: 44%; right: -34px;
+  background: radial-gradient(circle, var(--aur3), transparent 72%);
+  animation: orbC 23s ease-in-out infinite alternate;
+}
+@keyframes orbA { to { transform: translate3d(34px, 46px, 0) scale(1.16); } }
+@keyframes orbB { to { transform: translate3d(-40px, -34px, 0) scale(1.2); } }
+@keyframes orbC { to { transform: translate3d(-26px, 38px, 0) scale(1.1); } }
 
 .c-head { text-align: center; margin-bottom: 1.4rem; }
 .c-logo {
@@ -228,7 +308,10 @@ html.no3d #bg3d { display: none; }
 /* ──── SEGMENT TABLAR ──── */
 .seg {
   position: relative; display: flex;
-  background: var(--inp); border: 1px solid var(--bord2);
+  background: var(--glass-2); border: 1px solid var(--glass-bord);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 15px; padding: 4px; margin-bottom: 1.4rem;
 }
 .seg-pill {
@@ -252,6 +335,13 @@ html.no3d #bg3d { display: none; }
 .pane.on { display: block; animation: fadeUp .3s ease; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
+/* Faol paneldagi maydonlar navbatma-navbat suzib chiqadi */
+.pane.on > form > :where(.f, .tg, .btn) { animation: fieldIn .42s cubic-bezier(.16, 1, .3, 1) both; }
+.pane.on > form > :where(.f, .tg, .btn):nth-of-type(1) { animation-delay: .04s; }
+.pane.on > form > :where(.f, .tg, .btn):nth-of-type(2) { animation-delay: .10s; }
+.pane.on > form > :where(.f, .tg, .btn):nth-of-type(3) { animation-delay: .16s; }
+@keyframes fieldIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
 /* ──── MAYDONLAR ──── */
 .f { margin-bottom: 1rem; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
@@ -262,14 +352,17 @@ html.no3d #bg3d { display: none; }
 }
 .f :where(input:not([type="hidden"]), select) {
   width: 100%; padding: .72rem .9rem;
-  background: var(--inp); color: var(--tx);
-  border: 1.5px solid var(--inpb); border-radius: 13px;
+  background: var(--glass-2); color: var(--tx);
+  border: 1.5px solid var(--glass-bord); border-radius: 13px;
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   font-family: inherit; font-size: .9rem; outline: none;
   transition: border-color .2s, box-shadow .2s, background-color .4s;
 }
 .f :where(input, select):focus {
   border-color: var(--ac);
-  box-shadow: 0 0 0 4px var(--ring);
+  box-shadow: 0 0 0 4px var(--ring), inset 0 1px 0 var(--glass-hi);
 }
 .f input::placeholder { color: var(--tx3); }
 .f input.has-err { border-color: var(--err); }
@@ -297,8 +390,11 @@ html.no3d #bg3d { display: none; }
 .ph { display: flex; }
 .ph-pre {
   display: flex; align-items: center; gap: .45rem; flex-shrink: 0;
-  padding: 0 .85rem; border: 1.5px solid var(--inpb); border-right: 0;
-  border-radius: 13px 0 0 13px; background: var(--inp);
+  padding: 0 .85rem; border: 1.5px solid var(--glass-bord); border-right: 0;
+  border-radius: 13px 0 0 13px; background: var(--glass-2);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--tx2); font-size: .87rem; font-weight: 600; white-space: nowrap;
   transition: background-color .4s, border-color .2s;
 }
@@ -307,8 +403,11 @@ html.no3d #bg3d { display: none; }
 
 /* Telegram bloki */
 .tg {
-  background: rgba(41, 169, 235, .09);
-  border: 1px solid rgba(41, 169, 235, .25);
+  background: linear-gradient(135deg, rgba(41, 169, 235, .16), rgba(41, 169, 235, .06));
+  border: 1px solid rgba(41, 169, 235, .28);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(12px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
   border-radius: 15px; padding: 1rem 1.1rem; margin-bottom: 1rem;
 }
 .tg ul { list-style: none; display: flex; flex-direction: column; gap: .55rem; }
@@ -359,9 +458,12 @@ html.no3d #bg3d { display: none; }
 .btn-ok:hover { transform: translateY(-2px); box-shadow: 0 14px 38px rgba(52, 211, 153, .35); }
 .btn-ghost {
   width: auto; flex-shrink: 0;
-  background: var(--inp); border: 1px solid var(--bord2); color: var(--tx2);
+  background: var(--glass-2); border: 1px solid var(--glass-bord); color: var(--tx2);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
-.btn-ghost:hover { color: var(--tx); border-color: var(--bord); }
+.btn-ghost:hover { color: var(--tx); border-color: var(--ac); }
 .btn.loading { pointer-events: none; color: transparent !important; }
 .btn.loading::before {
   content: ''; position: absolute; left: 50%; top: 50%; margin: -9px 0 0 -9px;
@@ -413,6 +515,77 @@ html.no3d #bg3d { display: none; }
 /* Honeypot — botlar uchun ko'rinmas maydon */
 .hp { position: absolute; opacity: 0; pointer-events: none; height: 0; overflow: hidden; }
 
+/* ============================================================
+   LOGIN SAHNASI — qo'shimcha shisha bloklar
+   ============================================================ */
+
+/* Chap paneldagi jonli statistika */
+.scene-stats {
+  display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.1rem;
+}
+.st {
+  flex: 1 1 0; min-width: 104px;
+  padding: .7rem .85rem; border-radius: 16px;
+  background: var(--glass); border: 1px solid var(--glass-bord);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(14px) saturate(1.5);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+}
+.st-num {
+  font-family: var(--font-d); font-weight: 700; font-size: 1.45rem;
+  line-height: 1.1; letter-spacing: -.5px;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(92deg, var(--ac), var(--ac2));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+.st-lab {
+  display: block; margin-top: .15rem;
+  font-size: .72rem; font-weight: 600; color: var(--tx3);
+  letter-spacing: .3px;
+}
+
+/* Kunning fakti / motivatsiyasi */
+.fact-bar {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .85rem 1rem; border-radius: 18px; margin-bottom: 1.4rem;
+  max-width: 44ch;
+  background: linear-gradient(135deg, var(--glass-2), transparent 60%), var(--glass);
+  border: 1px solid var(--glass-bord);
+  box-shadow: inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(16px) saturate(1.5);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+}
+.fact-ico {
+  width: 38px; height: 38px; flex: 0 0 auto; border-radius: 12px;
+  display: grid; place-items: center; color: #fff; font-size: 1.05rem;
+  background: linear-gradient(135deg, var(--ac), var(--ac2));
+  box-shadow: 0 8px 22px var(--ring);
+}
+.fact-lab {
+  display: block; font-size: .68rem; font-weight: 700; letter-spacing: .9px;
+  text-transform: uppercase; color: var(--tx3); margin-bottom: .15rem;
+}
+.fact-txt { font-size: .88rem; font-weight: 600; line-height: 1.45; color: var(--tx2); }
+
+/* Caps Lock ogohlantirishi */
+.caps-hint {
+  display: none; align-items: center; gap: .35rem;
+  margin-top: .4rem; font-size: .74rem; font-weight: 600; color: #fbbf24;
+}
+.caps-hint.on { display: flex; animation: fadeUp .2s ease; }
+
+/* Karta ostidagi xavfsizlik izohi */
+.safe-note {
+  display: flex; align-items: center; justify-content: center; gap: .45rem;
+  margin-top: 1rem; padding: .6rem .9rem; border-radius: 999px;
+  font-size: .74rem; font-weight: 600; color: var(--tx3);
+  background: var(--glass-2); border: 1px solid var(--glass-bord);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.safe-note i { color: var(--ok); }
+
 /* ──── TOASTLAR ──── */
 .toast-box {
   position: fixed; top: 1.2rem; right: 1.2rem; z-index: 999;
@@ -421,10 +594,11 @@ html.no3d #bg3d { display: none; }
 .toast {
   display: flex; align-items: center; gap: .6rem;
   padding: .7rem 1rem; border-radius: 13px;
-  background: var(--card); border: 1px solid var(--bord2);
-  backdrop-filter: blur(14px);
+  background: var(--glass); border: 1px solid var(--glass-bord);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .25), inset 0 1px 0 var(--glass-hi);
+  backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6);
   font-size: .85rem; color: var(--tx);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, .25);
   animation: toastIn .3s ease;
   transition: opacity .3s, transform .3s;
 }
@@ -451,7 +625,19 @@ html.no3d #bg3d { display: none; }
   .c-title { font-size: 1.35rem; }
   .grid2 { grid-template-columns: 1fr; }
   .stage { padding-left: 1rem; padding-right: 1rem; }
+  .c-orb-1 { width: 140px; height: 140px; top: -40px; left: -34px; }
+  .c-orb-2 { width: 120px; height: 120px; bottom: -36px; right: -28px; }
+  .c-orb-3 { display: none; }
 }
+
+/* backdrop-filter yo'q brauzerlarda shisha o'rniga to'liq fon */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
+  :where(.card, .tgl, .chip, .scene-eyebrow, .toast, .st, .fact-bar) { background: var(--card); }
+  :where(.seg, .safe-note, .btn-ghost, .f input:not([type="hidden"]), .f select, .ph-pre) { background: var(--inp); }
+  .c-orb { display: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .c-orb, .card::after, .chip, .scene-eyebrow .dot, .blob { animation: none !important; }
 }

@@ -9,10 +9,11 @@
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
 <script>
-/* Tema — birinchi chizishdan oldin (FOUC oldini olish) */
+/* Tema — birinchi chizishdan oldin (FOUC oldini olish).
+   Saytning 'theme' kaliti ustun: bosh sahifadagi tanlov shu yerda ham saqlanadi. */
 (function () {
   var t;
-  try { t = localStorage.getItem('its-theme'); } catch (e) {}
+  try { t = localStorage.getItem('theme') || localStorage.getItem('its-theme'); } catch (e) {}
   if (t !== 'light' && t !== 'dark') {
     t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   }
@@ -54,6 +55,21 @@
     <span class="scene-eyebrow"><span class="dot"></span> Onlayn ta'lim platformasi</span>
     <h1 class="scene-title">Kelajak shahriga<br><span class="grad">xush kelibsiz!</span></h1>
     <p class="scene-sub">IT Shaharcha Zomin — dasturlash olamiga birinchi qadamni birga qo'yamiz. Bilim tarmog'iga ulaning.</p>
+
+    <div class="scene-stats">
+      <div class="st"><span class="st-num" data-count="500" data-suffix="+">0</span><span class="st-lab">O'quvchi</span></div>
+      <div class="st"><span class="st-num" data-count="12" data-suffix="">0</span><span class="st-lab">Yo'nalish</span></div>
+      <div class="st"><span class="st-num" data-count="98" data-suffix="%">0</span><span class="st-lab">Mamnunlik</span></div>
+    </div>
+
+    <div class="fact-bar" id="factBar">
+      <span class="fact-ico"><i class="bi bi-lightbulb-fill"></i></span>
+      <span>
+        <span class="fact-lab">Kunning fakti</span>
+        <span class="fact-txt" id="factText">Har kuni 20 daqiqa kod yozish bir yilda 120 soatdan ortiq amaliyot beradi.</span>
+      </span>
+    </div>
+
     <div class="chips">
       <span class="chip"><i class="bi bi-mortarboard-fill"></i> 500+ o'quvchi</span>
       <span class="chip"><i class="bi bi-code-slash"></i> Amaliy darslar</span>
@@ -62,7 +78,12 @@
   </section>
 
   <!-- O'ng: kirish kartasi -->
-  <section class="card">
+  <div class="card-shell">
+    <span class="c-orb c-orb-1" aria-hidden="true"></span>
+    <span class="c-orb c-orb-2" aria-hidden="true"></span>
+    <span class="c-orb c-orb-3" aria-hidden="true"></span>
+
+    <section class="card">
     <div class="c-head">
       <span class="c-logo">IT</span>
       <h2 class="c-title">Tizimga kirish</h2>
@@ -104,6 +125,7 @@
             {{ form.password }}
             <button type="button" class="pw-eye" data-pw="{{ form.password.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
           </div>
+          <span class="caps-hint" data-caps-for="{{ form.password.id_for_label }}"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</span>
         </div>
         <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
       </form>
@@ -133,6 +155,7 @@
             <input type="password" name="password" id="phonePw" placeholder="Parol" autocomplete="current-password">
             <button type="button" class="pw-eye" data-pw="phonePw" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
           </div>
+          <span class="caps-hint" data-caps-for="phonePw"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</span>
         </div>
         <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
       </form>
@@ -168,7 +191,12 @@
       <hr class="divider">
       <a href="{% url 'parent_login' %}" class="link" style="color:var(--tx2)"><i class="bi bi-people"></i> Ota-ona sifatida kirish</a>
     </div>
-  </section>
+    </section>
+
+    <div class="safe-note">
+      <i class="bi bi-shield-lock-fill"></i> Ulanish shifrlangan — ma'lumotlaringiz himoyalangan
+    </div>
+  </div>
 
 </main>
 
@@ -178,7 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
   if (!A) return;
 
   /* 3D sahna (globus chap tomonda) + tema */
-  A.mountScene(document.getElementById('bg3d'), { side: 'left' });
+  A.mountScene(document.getElementById('bg3d'), { side: 'right' });
   A.initTheme(document.getElementById('themeToggle'));
 
   /* Tablar */
@@ -210,6 +238,33 @@ document.addEventListener('DOMContentLoaded', function () {
     tgCode.addEventListener('input', function () {
       this.value = this.value.replace(/\D/g, '').slice(0, 6);
     });
+  }
+
+  /* Caps Lock ogohlantirishi */
+  document.querySelectorAll('.caps-hint').forEach(function (hint) {
+    A.capsHint(document.getElementById(hint.dataset.capsFor), hint);
+  });
+
+  /* Statistika raqamlari sanaladi */
+  document.querySelectorAll('.st-num').forEach(function (el) {
+    A.countUp(el, parseInt(el.dataset.count, 10) || 0, el.dataset.suffix || '');
+  });
+
+  /* Kunning fakti — sanaga qarab aylanadi */
+  var facts = [
+    'Har kuni 20 daqiqa kod yozish bir yilda 120 soatdan ortiq amaliyot beradi.',
+    'Xatolikni o‘qib tushunish — dasturchining eng tez o‘rganish usuli.',
+    'Sun’iy intellekt modellari ham xuddi siz kabi misollar ko‘rib o‘rganadi.',
+    'Kichik loyiha yakunlangani — o‘nta tugallanmagan darsdan qimmatli.',
+    'Kod yozishdan oldin masalani o‘z so‘zingiz bilan aytib bering.',
+    'Takrorlash oralig‘ini uzaytirib borish esda saqlashni kuchaytiradi.',
+    'Eng yaxshi dasturchilar ko‘p yozmaydi — ko‘p o‘chiradi.'
+  ];
+  var factText = document.getElementById('factText');
+  if (factText) {
+    var d = new Date();
+    var doy = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+    factText.textContent = facts[doy % facts.length];
   }
 
   /* Yuborishda loading holati */

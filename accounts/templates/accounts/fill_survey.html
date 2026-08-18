@@ -1,179 +1,169 @@
 {% extends 'accounts/base.html' %}
-{% load widget_tweaks %}
+{% load static %}
 
 {% block title %}{{ survey.title }}{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/survey.css' %}">
+{% endblock %}
+
 {% block content %}
-<style>
-    .fs-page {
-        max-width: 700px; margin: 2rem auto; padding: 0 1rem;
-    }
-    .fs-card {
-        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
-        border-radius: 20px; padding: 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.06);
-    }
-    .fs-title {
-        font-weight: 800; font-size: 1.5rem; margin-bottom: 0.5rem;
-        display: flex; align-items: center; gap: 0.5rem;
-    }
-    .fs-title i { color: #6366f1; }
-    .fs-desc {
-        color: var(--bs-secondary-color); margin-bottom: 2rem;
-        padding-bottom: 1.25rem; border-bottom: 1px solid var(--bs-border-color);
-    }
+<div class="sv-bg"></div>
 
-    .fs-question {
-        margin-bottom: 1.75rem; padding-bottom: 1.5rem;
-        border-bottom: 1px dashed var(--bs-border-color);
-    }
-    .fs-question:last-of-type { border-bottom: none; padding-bottom: 0; }
-
-    .fs-q-label {
-        font-weight: 700; font-size: 1rem; margin-bottom: 0.75rem;
-        display: flex; align-items: flex-start; gap: 0.5rem;
-    }
-    .fs-q-num {
-        width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
-        background: rgba(99, 102, 241, 0.12); color: #6366f1;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 0.82rem; font-weight: 700;
-    }
-    .fs-required { color: #ef4444; }
-
-    .fs-input, .fs-textarea, .fs-select {
-        width: 100%; padding: 10px 14px; border-radius: 10px;
-        border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
-        color: var(--bs-body-color); font-size: 0.92rem; transition: all 0.2s;
-    }
-    .fs-input:focus, .fs-textarea:focus, .fs-select:focus {
-        outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-    }
-    .fs-textarea { min-height: 100px; resize: vertical; }
-
-    .fs-radio-group, .fs-check-group { display: flex; flex-direction: column; gap: 0.6rem; }
-    .fs-radio-item, .fs-check-item {
-        display: flex; align-items: center; gap: 0.6rem;
-        padding: 10px 14px; border-radius: 10px;
-        border: 1px solid var(--bs-border-color); cursor: pointer;
-        transition: all 0.2s;
-    }
-    .fs-radio-item:hover, .fs-check-item:hover {
-        border-color: #6366f1; background: rgba(99, 102, 241, 0.04);
-    }
-    .fs-radio-item input, .fs-check-item input {
-        accent-color: #6366f1; width: 18px; height: 18px; cursor: pointer;
-    }
-
-    .fs-rating {
-        display: flex; gap: 0.5rem; flex-direction: row-reverse; justify-content: flex-end;
-    }
-    .fs-rating input { display: none; }
-    .fs-rating label {
-        font-size: 1.8rem; color: var(--bs-border-color); cursor: pointer;
-        transition: all 0.2s;
-    }
-    .fs-rating label:hover, .fs-rating label:hover ~ label,
-    .fs-rating input:checked ~ label { color: #f59e0b; }
-
-    .fs-submit {
-        width: 100%; padding: 14px; border-radius: 14px; border: none;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
-        font-weight: 700; font-size: 1.05rem; cursor: pointer;
-        transition: all 0.2s; margin-top: 1rem;
-    }
-    .fs-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99, 102, 241, 0.3); }
-
-    .fs-skip {
-        display: block; text-align: center; margin-top: 1rem;
-        color: var(--bs-secondary-color); text-decoration: none; font-size: 0.88rem;
-    }
-    .fs-skip:hover { color: #6366f1; }
-</style>
-
-<div class="fs-page">
-    <div class="fs-card">
-        <div class="fs-title"><i class="bi bi-ui-checks-grid"></i> {{ survey.title }}</div>
+<div class="sv-wrap sv-wrap-narrow">
+    <div class="sv-hero">
+        <div class="sv-eyebrow"><i class="bi bi-ui-checks-grid"></i> So'rovnoma</div>
+        <h1 class="sv-hero-title">{{ survey.title }}</h1>
         {% if survey.description %}
-        <div class="fs-desc">{{ survey.description }}</div>
+        <p class="sv-hero-desc">{{ survey.description }}</p>
         {% endif %}
+    </div>
 
-        <form method="post">
-            {% csrf_token %}
+    <form method="post" id="svFillForm">
+        {% csrf_token %}
 
+        <div class="sv-progress">
+            <div class="sv-progress-row">
+                <span>To'ldirilgan savollar</span>
+                <span class="sv-progress-count"><span id="svDone">0</span> / {{ questions|length }}</span>
+            </div>
+            <div class="sv-progress-track">
+                <div class="sv-progress-bar" id="svBar"></div>
+            </div>
+        </div>
+
+        <div class="sv-form-body">
             {% for question in questions %}
-            <div class="fs-question">
-                <div class="fs-q-label">
-                    <span class="fs-q-num">{{ forloop.counter }}</span>
-                    <span>{{ question.question_text }}{% if question.is_required %} <span class="fs-required">*</span>{% endif %}</span>
+            <div class="sv-fq" data-qid="{{ question.id }}">
+                <div class="sv-fq-label">
+                    <span class="sv-fq-index">{{ forloop.counter }}</span>
+                    <span class="sv-fq-text">{{ question.question_text }}{% if question.is_required %}<span class="sv-req">&nbsp;*</span>{% endif %}</span>
                 </div>
 
                 {% if question.question_type == 'text' %}
-                    <input type="text" name="question_{{ question.id }}" class="fs-input"
-                           {% if question.is_required %}required{% endif %} placeholder="Javobingizni yozing...">
+                    <input type="text" name="question_{{ question.id }}" class="sv-input"
+                           {% if question.is_required %}required{% endif %}
+                           placeholder="Javobingizni yozing...">
 
                 {% elif question.question_type == 'textarea' %}
-                    <textarea name="question_{{ question.id }}" class="fs-textarea"
-                              {% if question.is_required %}required{% endif %} placeholder="Javobingizni yozing..."></textarea>
+                    <textarea name="question_{{ question.id }}" class="sv-textarea"
+                              {% if question.is_required %}required{% endif %}
+                              placeholder="Javobingizni batafsil yozing..."></textarea>
 
                 {% elif question.question_type == 'number' %}
-                    <input type="number" name="question_{{ question.id }}" class="fs-input"
-                           {% if question.is_required %}required{% endif %} placeholder="Raqam kiriting...">
+                    <input type="number" name="question_{{ question.id }}" class="sv-input"
+                           {% if question.is_required %}required{% endif %}
+                           placeholder="Raqam kiriting...">
 
                 {% elif question.question_type == 'date' %}
-                    <input type="date" name="question_{{ question.id }}" class="fs-input"
+                    <input type="date" name="question_{{ question.id }}" class="sv-input"
                            {% if question.is_required %}required{% endif %}>
 
                 {% elif question.question_type == 'radio' %}
-                    <div class="fs-radio-group">
+                    <div class="sv-opts">
                         {% for choice in question.get_choices_list %}
-                        <label class="fs-radio-item">
+                        <label class="sv-opt">
                             <input type="radio" name="question_{{ question.id }}" value="{{ choice }}"
                                    {% if question.is_required %}required{% endif %}>
-                            <span>{{ choice }}</span>
+                            <span class="sv-opt-text">{{ choice }}</span>
                         </label>
                         {% endfor %}
                     </div>
 
                 {% elif question.question_type == 'checkbox' %}
-                    <div class="fs-check-group">
+                    <div class="sv-opts">
                         {% for choice in question.get_choices_list %}
-                        <label class="fs-check-item">
+                        <label class="sv-opt">
                             <input type="checkbox" name="question_{{ question.id }}" value="{{ choice }}">
-                            <span>{{ choice }}</span>
+                            <span class="sv-opt-text">{{ choice }}</span>
                         </label>
                         {% endfor %}
                     </div>
 
                 {% elif question.question_type == 'select' %}
-                    <select name="question_{{ question.id }}" class="fs-select"
+                    <select name="question_{{ question.id }}" class="sv-select"
                             {% if question.is_required %}required{% endif %}>
-                        <option value="">-- Tanlang --</option>
+                        <option value="">— Tanlang —</option>
                         {% for choice in question.get_choices_list %}
                         <option value="{{ choice }}">{{ choice }}</option>
                         {% endfor %}
                     </select>
 
                 {% elif question.question_type == 'rating' %}
-                    <div class="fs-rating">
+                    <div class="sv-rate">
                         {% for i in "54321" %}
                         <input type="radio" name="question_{{ question.id }}" value="{{ i }}"
                                id="rating_{{ question.id }}_{{ i }}"
                                {% if question.is_required %}required{% endif %}>
-                        <label for="rating_{{ question.id }}_{{ i }}"><i class="bi bi-star-fill"></i></label>
+                        <label for="rating_{{ question.id }}_{{ i }}" title="{{ i }}">
+                            <i class="bi bi-star-fill"></i>
+                        </label>
                         {% endfor %}
                     </div>
                 {% endif %}
             </div>
             {% endfor %}
 
-            <button type="submit" class="fs-submit">
-                <i class="bi bi-send"></i> Javoblarni yuborish
-            </button>
-        </form>
+            <div class="sv-send">
+                <button type="submit" class="sv-btn sv-btn-primary sv-btn-lg sv-btn-block">
+                    <i class="bi bi-send"></i> Javoblarni yuborish
+                </button>
 
-        {% if not survey.is_required %}
-        <a href="{% url 'home' %}" class="fs-skip">Keyinroq to'ldiraman →</a>
-        {% endif %}
-    </div>
+                {% if survey.is_required %}
+                <div class="sv-note">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Bu so'rovnoma majburiy. Javoblaringiz faqat markaz ma'muriyati tomonidan ko'riladi.</span>
+                </div>
+                {% else %}
+                <a href="{% url 'home' %}" class="sv-skip">Keyinroq to'ldiraman →</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const form = document.getElementById('svFillForm');
+    if (!form) return;
+
+    const items = Array.from(form.querySelectorAll('.sv-fq'));
+    const bar = document.getElementById('svBar');
+    const done = document.getElementById('svDone');
+
+    function isAnswered(item) {
+        const boxes = item.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+        if (boxes.length) {
+            return Array.from(boxes).some(function (box) { return box.checked; });
+        }
+        const field = item.querySelector('input, textarea, select');
+        return !!(field && field.value.trim());
+    }
+
+    function refresh() {
+        let filled = 0;
+        items.forEach(function (item) {
+            const ok = isAnswered(item);
+            item.classList.toggle('is-answered', ok);
+            if (ok) filled++;
+
+            // :has() qo'llab-quvvatlanmasa ham tanlangan variant ko'rinishi uchun
+            item.querySelectorAll('.sv-opt').forEach(function (opt) {
+                opt.classList.toggle('is-checked', opt.querySelector('input').checked);
+            });
+        });
+
+        const pct = items.length ? Math.round(filled * 100 / items.length) : 0;
+        bar.style.width = pct + '%';
+        bar.classList.toggle('is-done', filled === items.length && items.length > 0);
+        done.textContent = filled;
+    }
+
+    form.addEventListener('input', refresh);
+    form.addEventListener('change', refresh);
+    refresh();
+})();
+</script>
 {% endblock %}

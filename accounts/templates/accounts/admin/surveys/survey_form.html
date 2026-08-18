@@ -1,247 +1,202 @@
 {% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
 
 {% block title %}{% if mode == 'edit' %}Tahrirlash{% else %}Yangi so'rovnoma{% endif %} - Admin{% endblock %}
+{% block topbar_title %}So'rovnomalar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/survey.css' %}">
+{% endblock %}
 
 {% block admin_content %}
-<style>
-    .sf-page { padding: 1.5rem 0; max-width: 900px; }
-    .sf-header {
-        display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
-    }
-    .sf-header h3 { font-weight: 800; margin: 0; }
-    .sf-back {
-        width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--bs-border-color);
-        background: transparent; display: flex; align-items: center; justify-content: center;
-        color: var(--bs-body-color); text-decoration: none; font-size: 1.1rem; transition: all 0.2s;
-    }
-    .sf-back:hover { background: rgba(99, 102, 241, 0.08); color: #6366f1; }
+<div class="sv-bg"></div>
 
-    .sf-card {
-        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
-        border-radius: 16px; padding: 1.75rem; margin-bottom: 1.5rem;
-    }
-    .sf-card-title {
-        font-weight: 700; font-size: 1.1rem; margin-bottom: 1.25rem;
-        display: flex; align-items: center; gap: 0.5rem;
-    }
-    .sf-card-title i { color: #6366f1; }
-
-    .sf-group { margin-bottom: 1.25rem; }
-    .sf-label { font-weight: 600; font-size: 0.88rem; margin-bottom: 0.4rem; display: block; }
-    .sf-input, .sf-textarea, .sf-select {
-        width: 100%; padding: 10px 14px; border-radius: 10px;
-        border: 1px solid var(--bs-border-color); background: var(--bs-body-bg);
-        color: var(--bs-body-color); font-size: 0.92rem; transition: all 0.2s;
-    }
-    .sf-input:focus, .sf-textarea:focus, .sf-select:focus {
-        outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-    }
-    .sf-textarea { min-height: 80px; resize: vertical; }
-
-    .sf-check-row {
-        display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 0.5rem;
-    }
-    .sf-check-item {
-        display: flex; align-items: center; gap: 0.5rem; cursor: pointer;
-    }
-    .sf-check-item input[type="checkbox"] {
-        width: 18px; height: 18px; accent-color: #6366f1; cursor: pointer;
-    }
-
-    /* Questions */
-    .sf-questions-title {
-        font-weight: 700; font-size: 1.1rem; margin-bottom: 1rem;
-        display: flex; align-items: center; justify-content: space-between;
-    }
-    .sf-q-item {
-        background: var(--bs-body-bg); border: 1px solid var(--bs-border-color);
-        border-radius: 14px; padding: 1.25rem; margin-bottom: 1rem;
-        position: relative; transition: all 0.3s;
-    }
-    .sf-q-item:hover { border-color: #6366f1; }
-    .sf-q-header {
-        display: flex; align-items: center; justify-content: space-between;
-        margin-bottom: 1rem; gap: 0.5rem;
-    }
-    .sf-q-num {
-        width: 32px; height: 32px; border-radius: 10px;
-        background: rgba(99, 102, 241, 0.12); color: #6366f1;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: 700; font-size: 0.88rem; flex-shrink: 0;
-    }
-    .sf-q-remove {
-        width: 32px; height: 32px; border-radius: 8px; border: none;
-        background: rgba(239, 68, 68, 0.1); color: #ef4444;
-        cursor: pointer; display: flex; align-items: center; justify-content: center;
-        transition: all 0.2s;
-    }
-    .sf-q-remove:hover { background: #ef4444; color: #fff; }
-
-    .sf-q-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .sf-q-choices { display: none; }
-    .sf-q-choices.visible { display: block; }
-
-    .sf-add-btn {
-        display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-        width: 100%; padding: 14px; border-radius: 14px;
-        border: 2px dashed var(--bs-border-color); background: transparent;
-        color: #6366f1; font-weight: 700; font-size: 0.92rem;
-        cursor: pointer; transition: all 0.2s;
-    }
-    .sf-add-btn:hover { border-color: #6366f1; background: rgba(99, 102, 241, 0.04); }
-
-    .sf-submit-row { display: flex; gap: 1rem; margin-top: 2rem; }
-    .sf-submit {
-        padding: 12px 28px; border-radius: 12px; border: none;
-        background: #6366f1; color: #fff; font-weight: 700; font-size: 1rem;
-        cursor: pointer; transition: all 0.2s;
-    }
-    .sf-submit:hover { background: #4f46e5; }
-    .sf-cancel {
-        padding: 12px 28px; border-radius: 12px; border: 1px solid var(--bs-border-color);
-        background: transparent; color: var(--bs-body-color); font-weight: 600;
-        text-decoration: none; display: inline-flex; align-items: center; transition: all 0.2s;
-    }
-    .sf-cancel:hover { background: rgba(0,0,0,0.04); color: var(--bs-body-color); }
-
-    @media (max-width: 768px) {
-        .sf-q-grid { grid-template-columns: 1fr; }
-    }
-</style>
-
-<div class="sf-page">
-    <div class="sf-header">
-        <a href="{% url 'admin_surveys' %}" class="sf-back"><i class="bi bi-arrow-left"></i></a>
-        <h3>{% if mode == 'edit' %}<i class="bi bi-pencil" style="color:#6366f1;"></i> Tahrirlash{% else %}<i class="bi bi-plus-lg" style="color:#6366f1;"></i> Yangi so'rovnoma{% endif %}</h3>
+<div class="sv-wrap" style="max-width: 900px;">
+    <div class="sv-head">
+        <div class="sv-head-main">
+            <a href="{% url 'admin_surveys' %}" class="sv-back" title="Orqaga"><i class="bi bi-arrow-left"></i></a>
+            <div>
+                <div class="sv-eyebrow">{% if mode == 'edit' %}Tahrirlash{% else %}Yaratish{% endif %}</div>
+                <h1 class="sv-title">{% if mode == 'edit' %}{{ survey.title }}{% else %}Yangi so'rovnoma{% endif %}</h1>
+            </div>
+        </div>
     </div>
 
-    <form method="post" id="surveyForm">
+    <form method="post" id="svForm">
         {% csrf_token %}
 
-        <div class="sf-card">
-            <div class="sf-card-title"><i class="bi bi-info-circle"></i> Asosiy ma'lumotlar</div>
+        <div class="sv-panel">
+            <div class="sv-panel-head">
+                <h2 class="sv-panel-title"><i class="bi bi-card-text"></i> Asosiy ma'lumotlar</h2>
+            </div>
 
-            <div class="sf-group">
-                <label class="sf-label">Forma nomi *</label>
-                <input type="text" name="title" class="sf-input" required
+            <div class="sv-field">
+                <label class="sv-label" for="svTitle">Forma nomi <span class="sv-req">*</span></label>
+                <input type="text" id="svTitle" name="title" class="sv-input sv-input-lg" required
                        value="{% if survey %}{{ survey.title }}{% endif %}"
-                       placeholder="Masalan: O'quvchilar uchun so'rovnoma">
+                       placeholder="Masalan: O'quv sifati bo'yicha so'rovnoma">
             </div>
 
-            <div class="sf-group">
-                <label class="sf-label">Tavsif</label>
-                <textarea name="description" class="sf-textarea"
-                          placeholder="So'rovnoma haqida qisqacha ma'lumot...">{% if survey %}{{ survey.description }}{% endif %}</textarea>
+            <div class="sv-field">
+                <label class="sv-label" for="svDesc">Tavsif</label>
+                <textarea id="svDesc" name="description" class="sv-textarea"
+                          placeholder="So'rovnoma maqsadi haqida qisqacha yozing — foydalanuvchi shu matnni birinchi ko'radi.">{% if survey %}{{ survey.description|default_if_none:'' }}{% endif %}</textarea>
+            </div>
+        </div>
+
+        <div class="sv-panel">
+            <div class="sv-panel-head">
+                <h2 class="sv-panel-title"><i class="bi bi-sliders2"></i> Ko'rsatish sozlamalari</h2>
             </div>
 
-            <div class="sf-group">
-                <label class="sf-label">Kimga ko'rsatilsin</label>
-                <select name="target_role" class="sf-select">
-                    <option value="all" {% if survey and survey.target_role == 'all' %}selected{% endif %}>Hammaga</option>
-                    <option value="student" {% if survey and survey.target_role == 'student' %}selected{% endif %}>O'quvchilarga</option>
-                    <option value="teacher" {% if survey and survey.target_role == 'teacher' %}selected{% endif %}>O'qituvchilarga</option>
-                </select>
+            <div class="sv-field">
+                <label class="sv-label">Kimga ko'rsatilsin</label>
+                <div class="sv-seg" id="svSeg">
+                    <label class="sv-seg-item">
+                        <input type="radio" name="target_role" value="all"
+                               {% if not survey or survey.target_role == 'all' %}checked{% endif %}>
+                        <i class="bi bi-globe2"></i> Hammaga
+                    </label>
+                    <label class="sv-seg-item">
+                        <input type="radio" name="target_role" value="student"
+                               {% if survey and survey.target_role == 'student' %}checked{% endif %}>
+                        <i class="bi bi-mortarboard"></i> O'quvchilarga
+                    </label>
+                    <label class="sv-seg-item">
+                        <input type="radio" name="target_role" value="teacher"
+                               {% if survey and survey.target_role == 'teacher' %}checked{% endif %}>
+                        <i class="bi bi-person-video3"></i> O'qituvchilarga
+                    </label>
+                </div>
             </div>
 
-            <div class="sf-check-row">
-                <label class="sf-check-item">
+            <div class="sv-switches">
+                <label class="sv-switch">
                     <input type="checkbox" name="is_active" {% if mode == 'create' or survey.is_active %}checked{% endif %}>
-                    <span>Faol</span>
+                    <span class="sv-switch-track"></span>
+                    <span class="sv-switch-text">
+                        <span class="sv-switch-name">Faol</span>
+                        <span class="sv-switch-desc">O'chirilsa, forma hech kimga ko'rinmaydi va javob qabul qilinmaydi.</span>
+                    </span>
                 </label>
-                <label class="sf-check-item">
+                <label class="sv-switch">
                     <input type="checkbox" name="show_on_login" {% if mode == 'create' or survey.show_on_login %}checked{% endif %}>
-                    <span>Login qilganda ko'rsatish</span>
+                    <span class="sv-switch-track"></span>
+                    <span class="sv-switch-text">
+                        <span class="sv-switch-name">Login qilganda ko'rsatish</span>
+                        <span class="sv-switch-desc">Foydalanuvchi tizimga kirgach forma avtomatik ochiladi.</span>
+                    </span>
                 </label>
-                <label class="sf-check-item">
+                <label class="sv-switch">
                     <input type="checkbox" name="is_required" {% if survey and survey.is_required %}checked{% endif %}>
-                    <span>Majburiy</span>
+                    <span class="sv-switch-track"></span>
+                    <span class="sv-switch-text">
+                        <span class="sv-switch-name">Majburiy</span>
+                        <span class="sv-switch-desc">"Keyinroq to'ldiraman" havolasi yashiriladi.</span>
+                    </span>
                 </label>
             </div>
         </div>
 
-        <div class="sf-card">
-            <div class="sf-questions-title">
-                <span><i class="bi bi-list-check" style="color:#6366f1;"></i> Savollar</span>
+        <div class="sv-panel">
+            <div class="sv-panel-head">
+                <h2 class="sv-panel-title"><i class="bi bi-list-check"></i> Savollar</h2>
+                <span class="sv-panel-hint"><span id="svQCount">0</span> ta savol</span>
             </div>
 
-            <div id="questionsContainer">
-                {% if questions %}
-                    {% for q in questions %}
-                    <div class="sf-q-item" data-index="{{ forloop.counter0 }}">
-                        <div class="sf-q-header">
-                            <div class="sf-q-num">{{ forloop.counter }}</div>
-                            <button type="button" class="sf-q-remove" onclick="removeQuestion(this)"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                        <div class="sf-group">
-                            <input type="text" name="question_text" class="sf-input" required
-                                   value="{{ q.question_text }}" placeholder="Savol matni...">
-                        </div>
-                        <div class="sf-q-grid">
-                            <div class="sf-group">
-                                <label class="sf-label">Savol turi</label>
-                                <select name="question_type" class="sf-select" onchange="toggleChoices(this)">
-                                    <option value="text" {% if q.question_type == 'text' %}selected{% endif %}>Matn (qisqa)</option>
-                                    <option value="textarea" {% if q.question_type == 'textarea' %}selected{% endif %}>Matn (uzun)</option>
-                                    <option value="radio" {% if q.question_type == 'radio' %}selected{% endif %}>Bitta tanlash</option>
-                                    <option value="checkbox" {% if q.question_type == 'checkbox' %}selected{% endif %}>Ko'p tanlash</option>
-                                    <option value="select" {% if q.question_type == 'select' %}selected{% endif %}>Ro'yxatdan tanlash</option>
-                                    <option value="number" {% if q.question_type == 'number' %}selected{% endif %}>Raqam</option>
-                                    <option value="date" {% if q.question_type == 'date' %}selected{% endif %}>Sana</option>
-                                    <option value="rating" {% if q.question_type == 'rating' %}selected{% endif %}>Baholash (1-5)</option>
-                                </select>
-                            </div>
-                            <div class="sf-group">
-                                <label class="sf-check-item" style="margin-top: 1.7rem;">
-                                    <input type="checkbox" name="question_required" value="{{ forloop.counter0 }}"
-                                           {% if q.is_required %}checked{% endif %}>
-                                    <span>Majburiy savol</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="sf-group sf-q-choices {% if q.question_type == 'radio' or q.question_type == 'checkbox' or q.question_type == 'select' %}visible{% endif %}">
-                            <label class="sf-label">Variantlar (har bir qator — bitta variant)</label>
-                            <textarea name="question_choices" class="sf-textarea" placeholder="Variant 1&#10;Variant 2&#10;Variant 3">{{ q.choices }}</textarea>
+            <div class="sv-q-list" id="svQList">
+                {% for q in questions %}
+                <div class="sv-q">
+                    <div class="sv-q-head">
+                        <span class="sv-q-index">1</span>
+                        <span class="sv-panel-hint sv-q-caption">Savol</span>
+                        <div class="sv-q-tools">
+                            <button type="button" class="sv-q-tool" data-action="up" title="Yuqoriga"><i class="bi bi-chevron-up"></i></button>
+                            <button type="button" class="sv-q-tool" data-action="down" title="Pastga"><i class="bi bi-chevron-down"></i></button>
+                            <button type="button" class="sv-q-tool sv-q-tool-danger" data-action="remove" title="O'chirish"><i class="bi bi-x-lg"></i></button>
                         </div>
                     </div>
-                    {% endfor %}
-                {% endif %}
+
+                    <div class="sv-field">
+                        <input type="text" name="question_text" class="sv-input" required
+                               value="{{ q.question_text }}" placeholder="Savol matnini yozing...">
+                    </div>
+
+                    <div class="sv-q-grid">
+                        <div class="sv-field" style="margin-bottom:0;">
+                            <label class="sv-label">Javob turi</label>
+                            <select name="question_type" class="sv-select" data-role="type">
+                                <option value="text" {% if q.question_type == 'text' %}selected{% endif %}>Matn (qisqa)</option>
+                                <option value="textarea" {% if q.question_type == 'textarea' %}selected{% endif %}>Matn (uzun)</option>
+                                <option value="radio" {% if q.question_type == 'radio' %}selected{% endif %}>Bitta tanlash</option>
+                                <option value="checkbox" {% if q.question_type == 'checkbox' %}selected{% endif %}>Ko'p tanlash</option>
+                                <option value="select" {% if q.question_type == 'select' %}selected{% endif %}>Ro'yxatdan tanlash</option>
+                                <option value="number" {% if q.question_type == 'number' %}selected{% endif %}>Raqam</option>
+                                <option value="date" {% if q.question_type == 'date' %}selected{% endif %}>Sana</option>
+                                <option value="rating" {% if q.question_type == 'rating' %}selected{% endif %}>Baholash (1-5)</option>
+                            </select>
+                        </div>
+                        <label class="sv-switch sv-switch-sm">
+                            <input type="checkbox" name="question_required" value="0" {% if q.is_required %}checked{% endif %}>
+                            <span class="sv-switch-track"></span>
+                            <span class="sv-switch-text">
+                                <span class="sv-switch-name">Majburiy savol</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div class="sv-field sv-q-choices {% if q.question_type == 'radio' or q.question_type == 'checkbox' or q.question_type == 'select' %}is-shown{% endif %}">
+                        <label class="sv-label">Variantlar — har bir qatorga bittasi</label>
+                        <textarea name="question_choices" class="sv-textarea" placeholder="Variant 1&#10;Variant 2&#10;Variant 3">{{ q.choices|default_if_none:'' }}</textarea>
+                    </div>
+                </div>
+                {% endfor %}
             </div>
 
-            <button type="button" class="sf-add-btn" onclick="addQuestion()">
+            <div class="sv-empty" id="svQEmpty" style="display:none; padding:2.25rem 1.25rem; box-shadow:none; background:transparent; border-style:dashed;">
+                <div class="sv-empty-icon"><i class="bi bi-patch-question"></i></div>
+                <h5>Savollar hali qo'shilmagan</h5>
+                <p>Pastdagi tugma orqali birinchi savolni qo'shing.</p>
+            </div>
+
+            <button type="button" class="sv-add" id="svAdd">
                 <i class="bi bi-plus-circle"></i> Savol qo'shish
             </button>
         </div>
 
-        <div class="sf-submit-row">
-            <button type="submit" class="sf-submit">
-                <i class="bi bi-check-lg"></i> {% if mode == 'edit' %}Saqlash{% else %}Yaratish{% endif %}
+        <div class="sv-actions-bar">
+            <button type="submit" class="sv-btn sv-btn-primary sv-btn-lg">
+                <i class="bi bi-check2"></i> {% if mode == 'edit' %}Saqlash{% else %}Yaratish{% endif %}
             </button>
-            <a href="{% url 'admin_surveys' %}" class="sf-cancel">Bekor qilish</a>
+            <a href="{% url 'admin_surveys' %}" class="sv-btn sv-btn-ghost sv-btn-lg">Bekor qilish</a>
+            <span class="sv-spacer"></span>
+            <span class="sv-panel-hint d-none d-md-inline">
+                <i class="bi bi-info-circle"></i> Savollar tartibi shu sahifadagi ketma-ketlik bo'yicha saqlanadi.
+            </span>
         </div>
     </form>
 </div>
-{% endblock %}
 
-{% block extra_js %}
-<script>
-let questionIndex = document.querySelectorAll('.sf-q-item').length;
+<template id="svQTemplate">
+    <div class="sv-q">
+        <div class="sv-q-head">
+            <span class="sv-q-index">1</span>
+            <span class="sv-panel-hint sv-q-caption">Savol</span>
+            <div class="sv-q-tools">
+                <button type="button" class="sv-q-tool" data-action="up" title="Yuqoriga"><i class="bi bi-chevron-up"></i></button>
+                <button type="button" class="sv-q-tool" data-action="down" title="Pastga"><i class="bi bi-chevron-down"></i></button>
+                <button type="button" class="sv-q-tool sv-q-tool-danger" data-action="remove" title="O'chirish"><i class="bi bi-x-lg"></i></button>
+            </div>
+        </div>
 
-function addQuestion() {
-    const container = document.getElementById('questionsContainer');
-    const idx = questionIndex;
-    const html = `
-    <div class="sf-q-item" data-index="${idx}" style="animation: fadeIn 0.3s ease;">
-        <div class="sf-q-header">
-            <div class="sf-q-num">${idx + 1}</div>
-            <button type="button" class="sf-q-remove" onclick="removeQuestion(this)"><i class="bi bi-x-lg"></i></button>
+        <div class="sv-field">
+            <input type="text" name="question_text" class="sv-input" required placeholder="Savol matnini yozing...">
         </div>
-        <div class="sf-group">
-            <input type="text" name="question_text" class="sf-input" required placeholder="Savol matni...">
-        </div>
-        <div class="sf-q-grid">
-            <div class="sf-group">
-                <label class="sf-label">Savol turi</label>
-                <select name="question_type" class="sf-select" onchange="toggleChoices(this)">
+
+        <div class="sv-q-grid">
+            <div class="sv-field" style="margin-bottom:0;">
+                <label class="sv-label">Javob turi</label>
+                <select name="question_type" class="sv-select" data-role="type">
                     <option value="text">Matn (qisqa)</option>
                     <option value="textarea">Matn (uzun)</option>
                     <option value="radio">Bitta tanlash</option>
@@ -252,51 +207,92 @@ function addQuestion() {
                     <option value="rating">Baholash (1-5)</option>
                 </select>
             </div>
-            <div class="sf-group">
-                <label class="sf-check-item" style="margin-top: 1.7rem;">
-                    <input type="checkbox" name="question_required" value="${idx}" checked>
-                    <span>Majburiy savol</span>
-                </label>
-            </div>
+            <label class="sv-switch sv-switch-sm">
+                <input type="checkbox" name="question_required" value="0" checked>
+                <span class="sv-switch-track"></span>
+                <span class="sv-switch-text">
+                    <span class="sv-switch-name">Majburiy savol</span>
+                </span>
+            </label>
         </div>
-        <div class="sf-group sf-q-choices">
-            <label class="sf-label">Variantlar (har bir qator — bitta variant)</label>
-            <textarea name="question_choices" class="sf-textarea" placeholder="Variant 1&#10;Variant 2&#10;Variant 3"></textarea>
+
+        <div class="sv-field sv-q-choices">
+            <label class="sv-label">Variantlar — har bir qatorga bittasi</label>
+            <textarea name="question_choices" class="sv-textarea" placeholder="Variant 1&#10;Variant 2&#10;Variant 3"></textarea>
         </div>
-    </div>`;
-    container.insertAdjacentHTML('beforeend', html);
-    questionIndex++;
-    renumberQuestions();
-}
+    </div>
+</template>
+{% endblock %}
 
-function removeQuestion(btn) {
-    const item = btn.closest('.sf-q-item');
-    item.style.opacity = '0';
-    item.style.transform = 'scale(0.95)';
-    setTimeout(() => {
-        item.remove();
-        renumberQuestions();
-    }, 200);
-}
+{% block extra_js %}
+<script>
+(function () {
+    const list = document.getElementById('svQList');
+    const tpl = document.getElementById('svQTemplate');
+    const empty = document.getElementById('svQEmpty');
+    const counter = document.getElementById('svQCount');
+    const CHOICE_TYPES = ['radio', 'checkbox', 'select'];
 
-function renumberQuestions() {
-    document.querySelectorAll('.sf-q-item').forEach((item, i) => {
-        item.querySelector('.sf-q-num').textContent = i + 1;
-        const reqCheckbox = item.querySelector('input[name="question_required"]');
-        if (reqCheckbox) reqCheckbox.value = i;
+    // Savol tartibi = DOM tartibi. Backend `question_required` qiymatini
+    // indeks sifatida o'qiydi, shuning uchun har o'zgarishdan keyin qayta raqamlanadi.
+    function sync() {
+        const items = list.querySelectorAll('.sv-q');
+        items.forEach(function (item, index) {
+            item.querySelector('.sv-q-index').textContent = index + 1;
+            const required = item.querySelector('input[name="question_required"]');
+            if (required) required.value = index;
+            item.querySelector('[data-action="up"]').disabled = index === 0;
+            item.querySelector('[data-action="down"]').disabled = index === items.length - 1;
+        });
+        counter.textContent = items.length;
+        empty.style.display = items.length ? 'none' : 'block';
+    }
+
+    function toggleChoices(select) {
+        const box = select.closest('.sv-q').querySelector('.sv-q-choices');
+        box.classList.toggle('is-shown', CHOICE_TYPES.includes(select.value));
+    }
+
+    document.getElementById('svAdd').addEventListener('click', function () {
+        list.appendChild(tpl.content.cloneNode(true));
+        sync();
+        const added = list.lastElementChild;
+        added.style.animation = 'sv-fade .3s ease';
+        added.querySelector('input[name="question_text"]').focus();
     });
-}
 
-function toggleChoices(select) {
-    const choicesDiv = select.closest('.sf-q-item').querySelector('.sf-q-choices');
-    const needChoices = ['radio', 'checkbox', 'select'].includes(select.value);
-    choicesDiv.classList.toggle('visible', needChoices);
-}
+    list.addEventListener('click', function (event) {
+        const tool = event.target.closest('.sv-q-tool');
+        if (!tool) return;
+        const item = tool.closest('.sv-q');
+
+        if (tool.dataset.action === 'remove') {
+            item.classList.add('is-removing');
+            setTimeout(function () { item.remove(); sync(); }, 180);
+        } else if (tool.dataset.action === 'up' && item.previousElementSibling) {
+            item.parentNode.insertBefore(item, item.previousElementSibling);
+            sync();
+        } else if (tool.dataset.action === 'down' && item.nextElementSibling) {
+            item.parentNode.insertBefore(item.nextElementSibling, item);
+            sync();
+        }
+    });
+
+    list.addEventListener('change', function (event) {
+        if (event.target.dataset.role === 'type') toggleChoices(event.target);
+    });
+
+    // Segmented control — :has() qo'llab-quvvatlanmasa ham ishlashi uchun
+    const seg = document.getElementById('svSeg');
+    function paintSeg() {
+        seg.querySelectorAll('.sv-seg-item').forEach(function (item) {
+            item.classList.toggle('is-checked', item.querySelector('input').checked);
+        });
+    }
+    seg.addEventListener('change', paintSeg);
+    paintSeg();
+
+    sync();
+})();
 </script>
-<style>
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-</style>
 {% endblock %}

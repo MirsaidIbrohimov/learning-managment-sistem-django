@@ -880,6 +880,41 @@ window.MZChat = (function(){
     }
     function isInfoOpen(){ return dom.shell.classList.contains('mz-info-open'); }
 
+    // ── To'liq ekran rejimi ──
+    // Native Fullscreen API ishlatiladi; qo'llab-quvvatlamasa (masalan, iOS Safari)
+    // CSS fallback — .mz-fullscreen klassi (position:fixed; inset:0) qo'llaniladi.
+    function isCssFullscreen(){ return dom.shell.classList.contains('mz-fullscreen'); }
+    function exitCssFullscreen(){
+        dom.shell.classList.remove('mz-fullscreen');
+        syncFullscreenState();
+    }
+    function toggleFullscreen(){
+        var doc = document;
+        var fsEl = doc.fullscreenElement || doc.webkitFullscreenElement;
+        if(fsEl){
+            (doc.exitFullscreen || doc.webkitExitFullscreen).call(doc);
+            return;
+        }
+        if(isCssFullscreen()){ exitCssFullscreen(); return; }
+        var req = dom.shell.requestFullscreen || dom.shell.webkitRequestFullscreen;
+        if(req){
+            var p = req.call(dom.shell);
+            if(p && p.catch) p.catch(function(){ dom.shell.classList.add('mz-fullscreen'); syncFullscreenState(); });
+        } else {
+            dom.shell.classList.add('mz-fullscreen');
+            syncFullscreenState();
+        }
+    }
+    function syncFullscreenState(){
+        var doc = document;
+        var isFs = !!(doc.fullscreenElement || doc.webkitFullscreenElement) || isCssFullscreen();
+        if(dom.fullBtn){
+            dom.fullBtn.classList.toggle('on', isFs);
+            dom.fullBtn.title = isFs ? "To'liq ekrandan chiqish" : "To'liq ekran";
+            dom.fullBtn.innerHTML = isFs ? '<i class="bi bi-fullscreen-exit"></i>' : '<i class="bi bi-arrows-fullscreen"></i>';
+        }
+    }
+
     // Info-panel "hero" qismini ochiq suhbat headeridan ko'chiradi.
     // Shu tarzda serverda render qilingan boshlang'ich suhbat uchun ham ishlaydi.
     function syncInfoHero(){
@@ -1048,6 +1083,9 @@ window.MZChat = (function(){
             mzToast("Video qo'ng'iroq tez kunda qo'shiladi", 'bi-camera-video');
         });
         if(dom.infoBtn) dom.infoBtn.addEventListener('click', toggleInfo);
+        if(dom.fullBtn) dom.fullBtn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', syncFullscreenState);
+        document.addEventListener('webkitfullscreenchange', syncFullscreenState);
         if(dom.infoClose) dom.infoClose.addEventListener('click', closeInfo);
         if(dom.infoBackdrop) dom.infoBackdrop.addEventListener('click', closeInfo);
         dom.infoTabs.forEach(function(t){
@@ -1065,6 +1103,7 @@ window.MZChat = (function(){
 
         document.addEventListener('keydown', function(e){
             if(e.key !== 'Escape') return;
+            if(isCssFullscreen()){ exitCssFullscreen(); return; }
             if(dom.fwdBackdrop.style.display !== 'none'){ dom.fwdBackdrop.style.display = 'none'; return; }
             if(isInfoOpen()){ closeInfo(); return; }
             if(dom.emojiPanel.style.display !== 'none'){ dom.emojiPanel.style.display = 'none'; return; }

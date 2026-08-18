@@ -1,0 +1,278 @@
+/* ══════════════════════════════════════════════════════════════════════
+   IT SHAHARCHA — BILDIRISHNOMA TIZIMI (shaffof oyna uslubi)
+   • .ios-notif*  — barcha sahifalarda ishlaydigan toast'lar
+                    (Django messages + JS orqali keladigan chat xabarlari)
+   • .nbell*      — navbar'dagi qo'ng'iroq paneli
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Toast konteyneri ─────────────────────────────────────────────── */
+.ios-notif-wrap {
+    position: fixed;
+    top: 78px; right: 16px;
+    z-index: 99998;
+    display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none;
+    max-width: min(380px, calc(100vw - 32px));
+}
+.ios-notif-wrap:empty { display: none; }
+
+.ios-notif {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 13px 15px;
+    border-radius: 20px;
+    pointer-events: auto; cursor: pointer;
+    position: relative; overflow: hidden;
+    text-decoration: none; color: inherit;
+    background: rgba(18, 20, 36, 0.72);
+    backdrop-filter: blur(30px) saturate(190%);
+    -webkit-backdrop-filter: blur(30px) saturate(190%);
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow:
+        0 18px 50px rgba(0,0,0,0.38),
+        0 4px 12px rgba(0,0,0,0.20),
+        inset 0 1px 0 rgba(255,255,255,0.14);
+    animation: notifSlideIn .42s cubic-bezier(.34,1.56,.64,1) both;
+    min-width: 280px;
+}
+[data-bs-theme="light"] .ios-notif {
+    background: rgba(255,255,255,0.72);
+    border-color: rgba(15,23,42,0.09);
+    box-shadow:
+        0 18px 50px rgba(15,23,42,0.14),
+        0 4px 12px rgba(15,23,42,0.07),
+        inset 0 1px 0 rgba(255,255,255,0.92);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .ios-notif { background: rgba(18,20,36,0.95); }
+    [data-bs-theme="light"] .ios-notif { background: rgba(255,255,255,0.97); }
+}
+@keyframes notifSlideIn {
+    from { opacity: 0; transform: translateX(calc(100% + 24px)) scale(.88); }
+    to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.ios-notif.notif-hiding { animation: notifSlideOut .32s cubic-bezier(.4,0,.6,1) forwards; }
+@keyframes notifSlideOut {
+    from { opacity: 1; transform: translateX(0) scale(1); max-height: 140px; margin-bottom: 0; }
+    to   { opacity: 0; transform: translateX(calc(100% + 24px)) scale(.88); max-height: 0; margin-bottom: -10px; }
+}
+
+/* Vaqt chizig'i */
+.ios-notif::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2.5px; border-radius: 0 0 20px 20px;
+    transform-origin: left;
+    animation: notifTimer var(--notif-life, 5s) linear forwards;
+}
+@keyframes notifTimer { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.ios-notif.notif-sticky::after { animation: none; transform: scaleX(1); }
+
+/* Ikonka / avatar */
+.ios-notif-icon {
+    width: 40px; height: 40px; border-radius: 13px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.05rem; font-weight: 700; flex-shrink: 0;
+    position: relative; overflow: hidden;
+}
+.ios-notif-icon::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,.20) 50%, transparent 60%);
+    background-size: 200% 200%;
+    animation: notifShimmer 2.5s ease-in-out infinite;
+}
+@keyframes notifShimmer {
+    0%,100% { background-position: 200% 200%; }
+    50%     { background-position: -100% -100%; }
+}
+.ios-notif-icon img {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; z-index: 1;
+}
+
+.ios-notif-body { flex: 1; min-width: 0; }
+.ios-notif-title {
+    font-weight: 700; font-size: .82rem; margin-bottom: 2px;
+    letter-spacing: .01em;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ios-notif-msg {
+    font-size: .86rem; font-weight: 450; line-height: 1.4;
+    word-break: break-word;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+    color: rgba(255,255,255,.88);
+}
+[data-bs-theme="light"] .ios-notif-msg { color: #1e293b; }
+.ios-notif-meta { font-size: .68rem; opacity: .55; margin-top: 3px; }
+
+/* Yopish tugmasi */
+.ios-notif-close {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: rgba(255,255,255,.12);
+    border: none; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,.60); font-size: .65rem;
+    transition: all .18s; margin-top: 1px;
+}
+[data-bs-theme="light"] .ios-notif-close { background: rgba(15,23,42,.07); color: rgba(15,23,42,.45); }
+.ios-notif-close:hover { background: rgba(255,255,255,.22); color: #fff; transform: scale(1.1); }
+[data-bs-theme="light"] .ios-notif-close:hover { background: rgba(15,23,42,.14); color: #000; }
+
+/* ── Turlar ──────────────────────────────────────────────────────── */
+.ios-notif.n-success .ios-notif-icon { background: linear-gradient(135deg, #10b981, #059669); color: #fff; }
+.ios-notif.n-success::after { background: linear-gradient(90deg, #10b981, #34d399); }
+.ios-notif.n-success .ios-notif-title { color: #10b981; }
+
+.ios-notif.n-error .ios-notif-icon { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+.ios-notif.n-error::after { background: linear-gradient(90deg, #ef4444, #f87171); }
+.ios-notif.n-error .ios-notif-title { color: #ef4444; }
+
+.ios-notif.n-warning .ios-notif-icon { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+.ios-notif.n-warning::after { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.ios-notif.n-warning .ios-notif-title { color: #f59e0b; }
+
+.ios-notif.n-info .ios-notif-icon { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
+.ios-notif.n-info::after { background: linear-gradient(90deg, #6366f1, #a78bfa); }
+.ios-notif.n-info .ios-notif-title { color: #818cf8; }
+
+.ios-notif.n-default .ios-notif-icon { background: linear-gradient(135deg, #64748b, #475569); color: #fff; }
+.ios-notif.n-default::after { background: linear-gradient(90deg, #64748b, #94a3b8); }
+.ios-notif.n-default .ios-notif-title { color: #94a3b8; }
+
+/* Chat xabarlari — shaxsiy */
+.ios-notif.n-dm .ios-notif-icon { background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; }
+.ios-notif.n-dm::after { background: linear-gradient(90deg, #3b82f6, #818cf8); }
+.ios-notif.n-dm .ios-notif-title { color: #60a5fa; }
+
+/* Chat xabarlari — guruh */
+.ios-notif.n-group .ios-notif-icon { background: linear-gradient(135deg, #14b8a6, #0d9488); color: #fff; }
+.ios-notif.n-group::after { background: linear-gradient(90deg, #14b8a6, #2dd4bf); }
+.ios-notif.n-group .ios-notif-title { color: #2dd4bf; }
+
+/* Tizim bildirishnomalari */
+.ios-notif.n-system .ios-notif-icon { background: linear-gradient(135deg, #a855f7, #7c3aed); color: #fff; }
+.ios-notif.n-system::after { background: linear-gradient(90deg, #a855f7, #c084fc); }
+.ios-notif.n-system .ios-notif-title { color: #c084fc; }
+
+[data-bs-theme="light"] .ios-notif-title { filter: brightness(.78); }
+
+/* Xabar turi belgisi (chat toast'ida kichik nishon) */
+.ios-notif-kind {
+    position: absolute; bottom: -3px; right: -3px; z-index: 2;
+    width: 17px; height: 17px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .55rem; color: #fff;
+    border: 2px solid rgba(18,20,36,.85);
+}
+[data-bs-theme="light"] .ios-notif-kind { border-color: rgba(255,255,255,.92); }
+.n-dm     .ios-notif-kind { background: #3b82f6; }
+.n-group  .ios-notif-kind { background: #14b8a6; }
+.n-system .ios-notif-kind { background: #a855f7; }
+
+@media (max-width: 480px) {
+    .ios-notif-wrap { top: 68px; right: 10px; left: 10px; max-width: 100%; }
+    .ios-notif { min-width: unset; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ios-notif, .ios-notif-icon::after { animation-duration: .01ms !important; }
+    .ios-notif::after { animation: notifTimer var(--notif-life, 5s) linear forwards; }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   NAVBAR QO'NG'IROQ PANELI
+   ══════════════════════════════════════════════════════════════════ */
+.nbell-panel {
+    width: 340px; max-width: calc(100vw - 24px);
+    padding: 0 !important; overflow: hidden;
+}
+.nbell-head {
+    display: flex; align-items: center; gap: 8px;
+    padding: .70rem .85rem;
+    border-bottom: 1px solid var(--nbg-line-soft, rgba(15,23,42,.06));
+}
+.nbell-title { font-weight: 800; font-size: .85rem; color: var(--text); }
+.nbell-count {
+    min-width: 20px; height: 18px; padding: 0 6px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 99px; background: rgba(239,68,68,.14); color: #ef4444;
+    font-size: .64rem; font-weight: 800;
+}
+.nbell-sound {
+    margin-left: auto;
+    width: 30px; height: 30px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--nbg-fill, rgba(15,23,42,.045));
+    border: 1px solid var(--nbg-line-soft, rgba(15,23,42,.06));
+    color: var(--text); cursor: pointer; font-size: .85rem;
+    transition: all .18s;
+}
+.nbell-sound:hover { background: rgba(99,102,241,.14); border-color: rgba(99,102,241,.28); color: #6366f1; }
+.nbell-sound.muted { color: #ef4444; background: rgba(239,68,68,.10); border-color: rgba(239,68,68,.20); }
+
+.nbell-list {
+    max-height: min(58vh, 400px); overflow-y: auto; overscroll-behavior: contain;
+    padding: 5px; scrollbar-width: thin;
+}
+.nbell-list::-webkit-scrollbar { width: 7px; }
+.nbell-list::-webkit-scrollbar-thumb { background: rgba(99,102,241,.5); border-radius: 10px; }
+
+.nbell-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: .55rem .6rem; border-radius: 13px;
+    text-decoration: none; color: var(--text);
+    border: 1px solid transparent; transition: all .16s;
+}
+.nbell-item:hover { background: rgba(99,102,241,.10); border-color: rgba(99,102,241,.14); color: var(--text); }
+.nbell-ava {
+    width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .78rem; font-weight: 700; color: #fff;
+    position: relative; overflow: hidden;
+}
+.nbell-ava img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.nbell-ava.k-dm     { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+.nbell-ava.k-group  { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.nbell-ava.k-system { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+.nbell-txt { flex: 1; min-width: 0; }
+.nbell-name {
+    font-weight: 700; font-size: .82rem;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.nbell-msg {
+    font-size: .77rem; color: var(--text-muted); line-height: 1.35;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.nbell-time { font-size: .66rem; color: var(--text-muted); opacity: .8; flex-shrink: 0; margin-top: 2px; }
+
+.nbell-empty {
+    padding: 1.6rem .9rem; text-align: center;
+    color: var(--text-muted); font-size: .8rem;
+}
+.nbell-empty i { display: block; font-size: 1.7rem; margin-bottom: .45rem; opacity: .35; }
+
+.nbell-foot {
+    display: flex; gap: 6px; padding: .5rem .6rem;
+    border-top: 1px solid var(--nbg-line-soft, rgba(15,23,42,.06));
+}
+.nbell-foot a {
+    flex: 1; text-align: center; padding: .45rem .5rem;
+    border-radius: 11px; text-decoration: none;
+    font-size: .77rem; font-weight: 700;
+    background: var(--nbg-fill, rgba(15,23,42,.045));
+    border: 1px solid var(--nbg-line-soft, rgba(15,23,42,.06));
+    color: var(--text); transition: all .16s;
+}
+.nbell-foot a:hover { background: rgba(99,102,241,.13); border-color: rgba(99,102,241,.24); color: #6366f1; }
+
+/* Yangi xabar bo'lganda qo'ng'iroq chayqaladi */
+.nbell-btn.has-new i { animation: nbellRing 1.1s ease-in-out 2; transform-origin: 50% 10%; }
+@keyframes nbellRing {
+    0%,100% { transform: rotate(0); }
+    15% { transform: rotate(14deg); }
+    30% { transform: rotate(-12deg); }
+    45% { transform: rotate(9deg); }
+    60% { transform: rotate(-6deg); }
+    75% { transform: rotate(3deg); }
+}
+@media (max-width: 575px) {
+    .nbell-panel { width: calc(100vw - 20px); }
+}
