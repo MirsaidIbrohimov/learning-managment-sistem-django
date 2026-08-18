@@ -244,6 +244,15 @@ class CustomUser(AbstractUser):
     is_profile_completed = models.BooleanField(default=False, verbose_name="Profil to'ldirilgan")
     is_verified = models.BooleanField(default=False, verbose_name="Tasdiqlangan (verified)")
 
+    @property
+    def age(self):
+        """Tug'ilgan sanadan yosh (to'liq yillar); sana yo'q bo'lsa None."""
+        if not self.birth_date:
+            return None
+        today = timezone.localdate()
+        bd = self.birth_date
+        return today.year - bd.year - ((today.month, today.day) < (bd.month, bd.day))
+
     # ---------------- PROPERTIES ----------------
 
     # Granular permission role (for assistant_admin staff)

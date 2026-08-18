@@ -4015,6 +4015,11 @@ def lesson_view(request, pk):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
+        # Sahifa render QILINISHIDANOQ talab vaqti server tomonda yakuniy
+        # holatda bo'lishi kerak: aks holda birinchi heartbeat'da
+        # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
+        _ensure_gating_duration(video)
+        _resolve_required_seconds(progress, video)
         # AI maqola yaratish (birinchi marta) — faqat threadda, requestni bloklamaymiz
         if not lesson.ai_article:
             import threading
@@ -6356,6 +6361,11 @@ def student_lesson_view(request, token):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
+        # Sahifa render QILINISHIDANOQ talab vaqti server tomonda yakuniy
+        # holatda bo'lishi kerak: aks holda birinchi heartbeat'da
+        # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
+        _ensure_gating_duration(video)
+        _resolve_required_seconds(progress, video)
         if not lesson.ai_article:
             import threading
             _lesson_id = lesson.pk
@@ -6978,15 +6988,20 @@ def complete_profile(request):
     """
     from .forms import StudentProfileCompleteForm
 
-    # Agar profil allaqachon to'ldirilgan bo'lsa
-    if request.user.is_profile_completed:
+    # Agar profil to'liq to'ldirilgan (tug'ilgan sana bilan) bo'lsa
+    if request.user.is_profile_completed and request.user.birth_date:
         return redirect('home')
 
-    # ⏭️ "Keyinroq to'ldiraman" — shu sessiya uchun o'tkazib yuboriladi
+    # ⏭️ "Keyinroq to'ldiraman" — shu sessiya uchun o'tkazib yuboriladi.
+    # Faqat tug'ilgan sanasi BOR o'quvchilar skip qilishi mumkin: sana
+    # yo'q bo'lsa keyingi kirishda yana so'raladi.
     if request.method == 'POST' and request.POST.get('action') == 'skip':
-        request.session['profile_verify_skipped'] = True
-        messages.info(request, "Profil to'ldirish keyinga qoldirildi. Keyingi kirishda yana so'raladi.")
-        return redirect('home')
+        if request.user.birth_date:
+            request.session['profile_verify_skipped'] = True
+            messages.info(request, "Profil to'ldirish keyinga qoldirildi. Keyingi kirishda yana so'raladi.")
+            return redirect('home')
+        messages.warning(request, "Tug'ilgan sana majburiy — iltimos formani to'ldiring!")
+        return redirect('complete_profile')
 
     if request.method == 'POST':
         form = StudentProfileCompleteForm(request.POST, request.FILES, instance=request.user)
@@ -11213,6 +11228,7 @@ def admin_users(request):
     status_filter = request.GET.get('status', '')
     group_filter = request.GET.get('group', '')
     payment_filter = request.GET.get('payment', '')
+    dob_filter = request.GET.get('dob', '')
     sort_by = request.GET.get('sort', '')
 
     from django.db.models import Exists, OuterRef, Prefetch
@@ -11221,7 +11237,7 @@ def admin_users(request):
     users = CustomUser.objects.only(
         'id', 'username', 'first_name', 'last_name', 'phone', 'photo',
         'role', 'is_blocked', 'is_finished', 'is_premium', 'last_activity', 'date_joined',
-        'is_superuser', 'student_id',
+        'is_superuser', 'student_id', 'birth_date', 'gender',
     ).prefetch_related(
         # Ro'yxatda har bir o'quvchining guruh(lar)ini ko'rsatish uchun
         Prefetch('study_groups', queryset=StudyGroup.objects.only('id', 'name', 'color'))
@@ -11259,7 +11275,11 @@ def admin_users(request):
         users = users.filter(has_contract=True)
     elif payment_filter == 'balance':
         users = users.filter(role='student', has_contract=False)
-    
+    if dob_filter == 'missing':
+        users = users.filter(birth_date__isnull=True)
+    elif dob_filter == 'has':
+        users = users.filter(birth_date__isnull=False)
+
     if sort_by == 'name':
         users = users.order_by('first_name', 'last_name')
     elif sort_by == 'name_desc':
@@ -11279,6 +11299,7 @@ def admin_users(request):
         teachers_count=Count('id', filter=Q(role='teacher')),
         blocked_count=Count('id', filter=Q(is_blocked=True)),
         contract_count=Count('id', filter=Q(student_balance__is_contract=True)),
+        dob_missing_count=Count('id', filter=Q(role='student', birth_date__isnull=True)),
     )
     professions = Profession.objects.only('id', 'name')
     groups = StudyGroup.objects.select_related('profession').only(
@@ -11295,6 +11316,7 @@ def admin_users(request):
         bool(status_filter),
         bool(group_filter),
         bool(payment_filter),
+        bool(dob_filter),
     ])
 
     from .users_ai import ai_available as _users_ai_available
@@ -11309,6 +11331,7 @@ def admin_users(request):
         'status_filter': status_filter,
         'group_filter': group_filter,
         'payment_filter': payment_filter,
+        'dob_filter': dob_filter,
         'sort_by': sort_by,
         'total_count': total_count,
         'active_filters': active_filters,

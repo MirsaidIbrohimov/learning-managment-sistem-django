@@ -1038,6 +1038,24 @@ const useNativeMobileControls = window.matchMedia &&
 let isVideoPlaying = false;
 let vimeoPlayer    = null;
 
+// Resume seek'i faqat BIR MARTA, iframe to'liq yuklanganidan keyin (birinchi
+// PLAYING) bajariladi. onReady'da darhol seekTo chaqirishda widgetapi xabar
+// hali about:blank turgan iframe'ga yuborilib, konsolda
+// "postMessage target origin does not match" xatosi chiqardi.
+let resumeApplied = false;
+function ensureResumeApplied() {
+    if (resumeApplied || resumeAtServer <= 1) return;
+    resumeApplied = true;
+    if (typeof getPlayerTime !== 'function' || typeof seekPlayerTo !== 'function') return;
+    // `start` parametri ishlamagan kamdan-kam holatda bitta tuzatish seek:
+    // endi iframe yuklangan, postMessage xatosi bo'lmaydi.
+    getPlayerTime(function(t) {
+        if (t != null && isFinite(t) && t < resumeAtServer - 5) {
+            seekPlayerTo(resumeAtServer);
+        }
+    });
+}
+
 /* ── Video sifati (quality) ─────────────────────────────────
  * Pleerning o'z boshqaruvi (controls:0) o'chirilgani uchun sifatni tanlash
  * uchun o'zimizning menyuni to'ldiramiz.
@@ -1305,20 +1323,15 @@ if (placeholder) {
                         fs: useNativeMobileControls ? 1 : 0,
                         playsinline: 1,
                         iv_load_policy: 3,
-                        origin: window.location.origin
+                        origin: window.location.origin,
+                        // Video oldingi ko'rilgan joydan O'ZI boshlanadi —
+                        // seekTo'postMessage poygasi va konsol xatosi yo'q.
+                        ...(resumeAtServer > 1 ? { start: Math.floor(resumeAtServer) } : {})
                     },
                     events: {
-                        onReady: function() {
-                            // Oldingi ko'rilgan joydan davom ettirish (bir marta).
-                            // Bu seek tick'dagi anti-skip tomonidan revert
-                            // qilinmaydi — watchedTime shu nuqtadan boshlanadi.
-                            if (resumeAtServer > 1) {
-                                try { window._vqYT.seekTo(resumeAtServer, true); } catch (e) {}
-                            }
-                        },
                         onStateChange: function(e) {
                             const s = e.data;
-                            if      (s === YT.PlayerState.PLAYING)   { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
+                            if      (s === YT.PlayerState.PLAYING)   { ensureResumeApplied(); isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
                             else if (s === YT.PlayerState.BUFFERING) { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); }
                             else if (s === YT.PlayerState.PAUSED)    { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); }
                             else if (s === YT.PlayerState.ENDED)     { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); }
@@ -1349,7 +1362,7 @@ if (placeholder) {
                 if (resumeAtServer > 1) {
                     vimeoPlayer.setCurrentTime(resumeAtServer).catch(function(){});
                 }
-                vimeoPlayer.on('play',        () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
+                vimeoPlayer.on('play',        () => { ensureResumeApplied(); isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
                 vimeoPlayer.on('pause',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); });
                 vimeoPlayer.on('ended',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); });
                 vimeoPlayer.on('bufferstart', () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); });
@@ -1493,12 +1506,33 @@ function sendBeat(presenceToken, playingOverride) {
             beatNonce         = data.nonce || '';
             serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
-            // Countdown server tasdiqlagan qiymatdan davom etadi. Tarmoq uzilishi
-            // yoki bloklangan beat bo'lsa 0:00 da "tasdiqlanmoqda" deb qotmaydi,
-            // balki qolgan haqiqiy soniyalarni ko'rsatib sanashda davom etadi.
-            if (data.remaining != null) {
-                displayRemainingStart = Math.max(0, Number(data.remaining) || 0);
+
+            // ── Countdown sinxronlashi (silliq, sakrashsiz) ──
+            // Server har heartbeat'da (15s) qiymat yuboradi. Kichik farqlar —
+            // yaxitlash (0.1s qadam), beat kechikishi, kichik kredit
+            // farqlari — countdownni ORQAGA/OLDINGA sakratadi. Shuning uchun
+            // server bazasi FAQAT mazmunli farq bo'lganda qabul qilinadi.
+            const srvRequired   = Number(data.required_seconds) || 0;
+            const srvRemaining  = Math.max(0, Number(data.remaining) || 0);
+            const localRemaining = (displayRemainingStart != null)
+                ? Math.max(0, displayRemainingStart - Math.max(0, watchedTime - displayWatchedStart))
+                : null;
+
+            if (srvRequired > (requiredTime || 0)) {
+                // Talab OSHDI (masalan eski qo'lda kiritilgan davomiylik
+                // noto'g'ri bo'lsa server haqiqiysini topdi) — bu haqiqiy
+                // o'zgarish, darhol yangi bazadan davom etamiz.
+                requiredTime = srvRequired;
+                displayRemainingStart = srvRemaining;
                 displayWatchedStart = watchedTime;
+            } else if (data.remaining != null && !isReady && !serverCanComplete) {
+                // Server qolgan vaqtini faqat 5 soniyadan katta farqda
+                // qabul qilamiz — kichik jitterlarni lokal hisob yutadi va
+                // countdown uzluksiz, silliq kamayib boradi.
+                if (localRemaining == null || Math.abs(srvRemaining - localRemaining) > 5) {
+                    displayRemainingStart = srvRemaining;
+                    displayWatchedStart = watchedTime;
+                }
             }
             // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
             if (data.seek_blocked && data.resume_at != null) {

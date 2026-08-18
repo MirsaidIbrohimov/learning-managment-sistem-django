@@ -97,7 +97,7 @@
 
 /* ===== Stats Grid ===== */
 .au-stats {
-    display: grid; grid-template-columns: repeat(5, 1fr);
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
     gap: 0.75rem; margin-top: 1.25rem; position: relative;
 }
 .au-stat {
@@ -348,6 +348,19 @@
     font-size: 0.86rem; color: var(--au-muted);
     display: inline-flex; align-items: center; gap: 0.35rem;
 }
+
+/* Birth date */
+.au-dob {
+    font-size: 0.78rem; color: var(--au-muted); margin-top: 4px;
+    display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap;
+}
+.au-dob i { font-size: 0.85em; }
+.au-dob.d-missing {
+    color: var(--au-danger); font-weight: 700;
+    background: rgba(239,68,68,0.09); border: 1px solid rgba(239,68,68,0.22);
+    padding: 1px 8px; border-radius: 8px;
+}
+[data-bs-theme="dark"] .au-dob.d-missing { background: rgba(239,68,68,0.16); }
 
 /* Role badge */
 .au-role {
@@ -734,6 +747,13 @@
                     <div class="au-stat-lbl">Shartnoma</div>
                 </div>
             </div>
+            <div class="au-stat">
+                <div class="au-stat-icon" style="background:rgba(239,68,68,0.25);"><i class="bi bi-calendar-x-fill"></i></div>
+                <div>
+                    <div class="au-stat-val" style="color:#ffd6d6;">{{ dob_missing_count }}</div>
+                    <div class="au-stat-lbl">Tug'ilgan sanasi yo'q</div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -861,6 +881,14 @@
                         <option value="balance" {% if payment_filter == 'balance' %}selected{% endif %}>Oddiy (balans)</option>
                     </select>
                 </div>
+                <div class="au-filter-group">
+                    <label><i class="bi bi-calendar-event me-1"></i>Tug'ilgan sana</label>
+                    <select name="dob" class="au-filter-select">
+                        <option value="">Barchasi</option>
+                        <option value="has" {% if dob_filter == 'has' %}selected{% endif %}>Kiritilgan</option>
+                        <option value="missing" {% if dob_filter == 'missing' %}selected{% endif %}>❌ Kiritilmagan</option>
+                    </select>
+                </div>
             </div>
             <div class="au-filter-actions">
                 <a href="{% url 'admin_users' %}" class="au-btn-reset">
@@ -876,7 +904,7 @@
     </form>
 
     <!-- Active Filter Chips -->
-    {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter %}
+    {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter or dob_filter %}
     <div class="au-chips">
         <span class="au-chips-label"><i class="bi bi-funnel-fill me-1"></i>Faol filtrlar:</span>
         {% if search_query %}
@@ -919,6 +947,13 @@
             <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}{% endif %}" class="au-chip-x">&times;</a>
         </span>
         {% endif %}
+        {% if dob_filter %}
+        <span class="au-chip">
+            <i class="bi bi-calendar-event"></i>
+            {% if dob_filter == 'missing' %}❌ Sana kiritilmagan{% else %}Sana kiritilgan{% endif %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if role_filter %}role={{ role_filter }}&{% endif %}{% if profession_filter %}profession={{ profession_filter }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}{% if payment_filter %}payment={{ payment_filter }}&{% endif %}{% if group_filter %}group={{ group_filter }}{% endif %}" class="au-chip-x">&times;</a>
+        </span>
+        {% endif %}
     </div>
     {% endif %}
 
@@ -950,8 +985,17 @@
                 </div>
             </div>
 
-            <div class="au-phone au-desktop">
-                <i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}
+            <div class="au-phone au-desktop" style="flex-direction:column;align-items:flex-start;gap:0;">
+                <span><i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}</span>
+                {% if u.birth_date %}
+                <span class="au-dob" title="{% if u.age %}{{ u.age }} yosh{% endif %}">
+                    <i class="bi bi-cake2"></i>{{ u.birth_date|date:"d.m.Y" }}{% if u.age %} <span style="opacity:.7;">({{ u.age }})</span>{% endif %}
+                </span>
+                {% else %}
+                <span class="au-dob d-missing" title="Tug'ilgan sana kiritilmagan — profil to'ldirilishi kerak">
+                    <i class="bi bi-calendar-x"></i>Sana yo'q
+                </span>
+                {% endif %}
             </div>
 
             <div class="au-groups-cell au-desktop">
@@ -1043,6 +1087,11 @@
                 </div>
                 <div style="display:flex; flex-wrap:wrap; gap:0.5rem 0.8rem; align-items:center;">
                     <span class="au-phone"><i class="bi bi-telephone"></i>{{ u.phone|default:"—" }}</span>
+                    {% if u.birth_date %}
+                    <span class="au-dob"><i class="bi bi-cake2"></i>{{ u.birth_date|date:"d.m.Y" }}{% if u.age %} ({{ u.age }}){% endif %}</span>
+                    {% else %}
+                    <span class="au-dob d-missing"><i class="bi bi-calendar-x"></i>Sana yo'q</span>
+                    {% endif %}
                     <span class="au-status {% if u.is_blocked %}s-blocked{% else %}s-active{% endif %}">
                         <span class="au-status-dot"></span>
                         {% if u.is_blocked %}Bloklangan{% else %}Faol{% endif %}
@@ -1101,7 +1150,7 @@
         <div class="au-empty-icon"><i class="bi bi-people"></i></div>
         <h5>Foydalanuvchilar topilmadi</h5>
         <p>{% if search_query %}"{{ search_query }}" bo'yicha hech narsa topilmadi{% else %}Filtr shartlariga mos foydalanuvchi yo'q{% endif %}</p>
-        {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter %}
+        {% if search_query or role_filter or profession_filter or status_filter or group_filter or payment_filter or dob_filter %}
         <a href="{% url 'admin_users' %}" class="au-btn-reset" style="display:inline-flex;">
             <i class="bi bi-arrow-counterclockwise"></i> Filtrlarni tozalash
         </a>

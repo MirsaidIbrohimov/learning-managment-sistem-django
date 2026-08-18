@@ -576,8 +576,14 @@ class ProfileCompletionMiddleware:
         if request.path.startswith(_SKIP_PREFIXES_WITH_API):
             return self.get_response(request)
         if request.user.is_authenticated and request.user.role == 'student':
-            # Skip qilingan bo'lsa (shu sessiyada) majburlamaymiz — keyingi login'da so'raladi
-            if not request.user.is_profile_completed and not request.session.get('profile_verify_skipped'):
+            # Skip qilingan bo'lsa (shu sessiyada) majburlamaymiz — keyingi login'da so'raladi.
+            # Tug'ilgan sana majburiy: profil "to'ldirilgan" deb belgilangan bolsa ham
+            # sana yo'q bo'lsa (eski yozuvlar) qayta to'ldirish so'raladi.
+            needs_profile = (
+                not request.user.is_profile_completed
+                or not getattr(request.user, 'birth_date', None)
+            )
+            if needs_profile and not request.session.get('profile_verify_skipped'):
                 if request.path.startswith('/admin/'):
                     return self.get_response(request)
                 try:
