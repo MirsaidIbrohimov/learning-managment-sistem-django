@@ -1024,6 +1024,12 @@ const isVimeo   = {{ video.is_vimeo|yesno:"true,false" }};
 const isYouTube = {{ video.is_youtube|yesno:"true,false" }};
 const videoId   = "{{ video.get_video_id|default:'' }}";
 const vimeoEmbedUrl = "{{ video.get_embed_url|default:''|escapejs }}";
+// Oldingi sessiyada server tasdiqlagan ko'rilgan nuqta (sekund). Sahifa
+// yangilanganda video shu joydan DAVOM ETADI — 0-dan emas. Aks holda server
+// `position - max_position` kredit formulasi tufayli qayta ko'rilgan qismga
+// kredit bermaydi va countdown har heartbeat'da orqaga sakrab, umuman
+// yurmay qolardi.
+const resumeAtServer = Math.max(0, parseFloat('{{ progress.max_position|default:0|unlocalize }}') || 0);
 // Sensorli qurilmada YouTube'ning native tugmalari ochiq qolishi kerak. Aks holda
 // mobil autoplay bloklanganda videoGuard native Play tugmasini ham to'sib qo'yadi.
 const useNativeMobileControls = window.matchMedia &&
@@ -1302,6 +1308,14 @@ if (placeholder) {
                         origin: window.location.origin
                     },
                     events: {
+                        onReady: function() {
+                            // Oldingi ko'rilgan joydan davom ettirish (bir marta).
+                            // Bu seek tick'dagi anti-skip tomonidan revert
+                            // qilinmaydi — watchedTime shu nuqtadan boshlanadi.
+                            if (resumeAtServer > 1) {
+                                try { window._vqYT.seekTo(resumeAtServer, true); } catch (e) {}
+                            }
+                        },
                         onStateChange: function(e) {
                             const s = e.data;
                             if      (s === YT.PlayerState.PLAYING)   { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
@@ -1331,6 +1345,10 @@ if (placeholder) {
             iframe.onload = function() {
                 vimeoPlayer = new Vimeo.Player(iframe);
                 vlSetupQuality();
+                // Oldingi ko'rilgan joydan davom ettirish (bir marta).
+                if (resumeAtServer > 1) {
+                    vimeoPlayer.setCurrentTime(resumeAtServer).catch(function(){});
+                }
                 vimeoPlayer.on('play',        () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
                 vimeoPlayer.on('pause',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); });
                 vimeoPlayer.on('ended',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); });
@@ -1385,7 +1403,10 @@ const STEP_TOLERANCE  = 0.5;   // o'lchov/tik jitteri uchun zaxira (soniya)
 const SEEK_AHEAD_LIMIT = 4.0;  // watchedTime'dan shuncha soniyadan ko'p oldinda → sakrash
 const SEEK_LOCK_MS    = 800;   // revert o'rnashguncha qayta tetiklamaymiz
 
-let watchedTime = 0;      // erishilgan MAKS qonuniy pleer sekundi (monoton o'suvchi)
+// Resume: oldingi sessiyada tasdiqlangan nuqtadan boshlaymiz — aks holda
+// tick'dagi anti-skip (t > watchedTime + SEEK_AHEAD_LIMIT) darhol videoni
+// 0-ga qaytarib tashlaydi va countdown yurmaydi.
+let watchedTime = resumeAtServer > 0 ? resumeAtServer : 0;  // erishilgan MAKS qonuniy pleer sekundi (monoton o'suvchi)
 let isReady     = false;  // 90% ga yetdi
 
 /* ── Server tomonlama tasdiqlash (anti-cheat) ──────────────────────────────
@@ -1625,7 +1646,12 @@ function getPlayerDuration(cb) {
 function lockDuration(seconds) {
     if (durationLocked) return;
     totalSeconds   = Math.max(1, seconds);
-    requiredTime   = Math.max(1, Math.floor(totalSeconds * 0.9));
+    // Server allaqachon talabni belgilagan bo'lsa (progress.required_seconds)
+    // — SERVER qiymati ustuvor: pleer hisoblagan 90% dan farq qilishi mumkin
+    // va yakunlash ruxsati server talabiga bog'liq.
+    requiredTime   = initialServerRequired > 0
+        ? initialServerRequired
+        : Math.max(1, Math.floor(totalSeconds * 0.9));
     durationLocked = true;
     const rewardSeconds = dbSeconds >= 60 ? dbSeconds : totalSeconds;
     setRewardCoinAmount(Math.max(1, Math.round(rewardSeconds / 60)) * coinMultiplier);
@@ -1662,7 +1688,22 @@ setTimeout(function() {
 /* UI'ni yangilaydi: countdown faqat sahifadagi qonuniy ijro bilan kamayadi;
    server esa alohida ravishda yakunlash ruxsatini tasdiqlaydi. */
 function updateTimerUI() {
-    if (!durationLocked || isReady) return;
+    if (isReady) return;
+    // Tugma faqat server tasdiqlaganda yonadi. `watchedTime` yoki DOM'ni
+    // konsoldan o'zgartirish bu holatni serverda o'zgartirmaydi.
+    // serverCanComplete tekshiruvi BIRINCHI — davomiylik hali aniqlanmagan
+    // juda qisqa videoda ham tugma chiqib qolishi kerak.
+    if (serverCanComplete) {
+        isReady = true;
+        setTimerState('ready');
+        countdownEl.textContent = '✓';
+        timerLabel.textContent  = 'Tayyor!';
+        statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
+        showMarkWatchedButton();
+        return;
+    }
+    if (!durationLocked || displayRemainingStart == null) return;
+
     // Server heartbeat qiymati faqat yakunlash huquqi uchun ishlatiladi. Ekran
     // qiymati esa boshlang'ich nuqtadan beri qonuniy ijro etilgan vaqtga kamayadi.
     const playedSinceDisplayStart = Math.max(0, watchedTime - displayWatchedStart);
@@ -1671,16 +1712,7 @@ function updateTimerUI() {
     countdownEl.textContent = formatTime(remaining);
     ringFill.style.strokeDashoffset = circumference * (1 - progress);
 
-    // Tugma faqat server tasdiqlaganda yonadi. `watchedTime` yoki DOM'ni
-    // konsoldan o'zgartirish bu holatni serverda o'zgartirmaydi.
-    if (serverCanComplete) {
-        isReady = true;
-        setTimerState('ready');
-        countdownEl.textContent = '✓';
-        timerLabel.textContent  = 'Tayyor!';
-        statusText.textContent  = "Endi \"Ko'rdim\" tugmasini bosishingiz mumkin";
-        showMarkWatchedButton();
-    } else if (remaining <= 0) {
+    if (remaining <= 0) {
         timerLabel.textContent = 'Tekshirilmoqda';
         statusText.textContent = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
     }

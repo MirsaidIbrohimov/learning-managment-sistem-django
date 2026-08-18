@@ -4443,6 +4443,17 @@ def _process_watch_beat(request, video, progress_pk):
     now = timezone.now()
     _ensure_gating_duration(video)   # tashqi HTTP — tranzaksiyadan TASHQARIDA
 
+    # Video oxiriga yaqin oxirgi beat: pleer ENDED paytida pozitsiyani
+    # davomiylikdan bir-ikki soniya kam qilib qaytaradi. Bunday holatda
+    # pozitsiyani haqiqiy yakunga yaxlitlaymiz — aks holda heartbeat
+    # intervalidan qisqa videoda oxirgi kredit talabga yetmay qolib, dars
+    # hech qachon yopilmaydi. Sakrash tekshiruvi (advance) ham shu
+    # effektiv pozitsiya bilan o'lchanadi, ya'ni cheklov ochilmaydi.
+    if position is not None and video.verified_duration_seconds:
+        end_pos = float(video.verified_duration_seconds)
+        if end_pos > 0 and position >= end_pos - BEAT_SEEK_TOLERANCE:
+            position = end_pos
+
     notify_admin = False
 
     with transaction.atomic():
@@ -11286,6 +11297,8 @@ def admin_users(request):
         bool(payment_filter),
     ])
 
+    from .users_ai import ai_available as _users_ai_available
+
     return render(request, 'accounts/admin/users.html', {
         'users': users,
         'professions': professions,
@@ -11299,6 +11312,7 @@ def admin_users(request):
         'sort_by': sort_by,
         'total_count': total_count,
         'active_filters': active_filters,
+        'ai_available': _users_ai_available(),
         **user_stats,
     })
 
@@ -18702,6 +18716,56 @@ def admin_direct_chats_ai(request):
         result = analyze_chats(question, history)
     except Exception as e:
         print(f"admin_direct_chats_ai error: {e}")
+        return JsonResponse({
+            'ok': False,
+            'answer': f"⚠️ Ichki xatolik yuz berdi: {e}",
+            'links': [],
+        }, status=500)
+
+    return JsonResponse(result)
+
+
+@login_required
+def admin_users_ai(request):
+    """AI Foydalanuvchi Boshqaruvchisi — foydalanuvchilar bazasiga savol va
+    buyruqlar (bloklash, blokdan chiqarish, ismlarni tuzatish...) uchun
+    AJAX endpoint (POST).
+
+    OpenAI kaliti bo'lsa function-calling agent ishlaydi, bo'lmasa offline
+    qoidaviy yordamchi. Javob: {'answer', 'links', 'mode', 'tools_used', 'ok'}."""
+    if not request.user.is_admin:
+        return JsonResponse({'ok': False, 'answer': "Ruxsat yo'q.", 'links': []}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False, 'answer': "Faqat POST so'rovi qabul qilinadi.", 'links': []}, status=405)
+
+    question = (request.POST.get('question') or '').strip()[:600]
+    if len(question) < 3:
+        return JsonResponse({'ok': False, 'answer': "Savol juda qisqa — aniqroq yozing.", 'links': []}, status=400)
+
+    # Kontekst: oxirgi 4 ta savol-javob (frontend yuboradi)
+    try:
+        history = json.loads(request.POST.get('history') or '[]')
+        if not isinstance(history, list):
+            history = []
+    except ValueError:
+        history = []
+
+    # Oddiy rate-limit: soatiga 40 ta so'rov (admin boshiga)
+    rl_key = f"users_ai_rl:{request.user.pk}"
+    used = cache.get(rl_key, 0)
+    if used >= 40:
+        return JsonResponse({
+            'ok': False,
+            'answer': "⏳ Soatlik AI so'rovlar limitingiz tugadi (40 ta). Birozdan so'ng urinib ko'ring.",
+            'links': [],
+        }, status=429)
+    cache.set(rl_key, used + 1, 3600)
+
+    from .users_ai import analyze_users
+    try:
+        result = analyze_users(question, history)
+    except Exception as e:
+        print(f"admin_users_ai error: {e}")
         return JsonResponse({
             'ok': False,
             'answer': f"⚠️ Ichki xatolik yuz berdi: {e}",

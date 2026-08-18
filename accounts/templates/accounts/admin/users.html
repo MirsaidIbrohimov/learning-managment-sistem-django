@@ -471,6 +471,154 @@
 /* Loading state */
 .au-row.is-loading { opacity: 0.55; pointer-events: none; }
 
+/* ===== AI Foydalanuvchi Boshqaruvchisi paneli (.uai-) ===== */
+.uai-card {
+    position: relative;
+    border-radius: 22px; overflow: hidden; margin-bottom: 1.25rem;
+    background: var(--au-card);
+    border: 1px solid rgba(16,185,129,0.28);
+    box-shadow: 0 12px 38px rgba(13,148,136,0.12);
+}
+.uai-card::before {
+    content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 1;
+    background: linear-gradient(90deg,#10b981,#14b8a6,#0ea5e9,#14b8a6,#10b981);
+    background-size: 300% 100%;
+    animation: uaiFlow 6s linear infinite;
+}
+@keyframes uaiFlow { 0% { background-position: 0% 0; } 100% { background-position: 300% 0; } }
+.uai-head {
+    background:
+        radial-gradient(circle at 88% 10%, rgba(255,255,255,0.14), transparent 45%),
+        linear-gradient(120deg, #064e3b 0%, #0f766e 55%, #0e7490 100%);
+    color: #fff; padding: 1.05rem 1.3rem; cursor: pointer;
+    display: flex; align-items: center; gap: .85rem; user-select: none;
+}
+.uai-head-ic {
+    width: 46px; height: 46px; border-radius: 14px; flex: 0 0 46px; position: relative;
+    background: rgba(255,255,255,.14); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; font-size: 1.35rem;
+}
+.uai-head-ic::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 18px;
+    border: 2px solid rgba(52,211,153,.55); animation: uaiRing 2.4s ease-out infinite;
+}
+@keyframes uaiRing {
+    0% { transform: scale(.9); opacity: 1; }
+    70%,100% { transform: scale(1.22); opacity: 0; }
+}
+.uai-head h5 { margin: 0; font-weight: 800; font-size: 1.02rem; letter-spacing: .2px; }
+.uai-head p { margin: .15rem 0 0; font-size: .76rem; opacity: .82; }
+.uai-badge {
+    margin-left: auto; font-size: .68rem; font-weight: 800; padding: .3rem .65rem;
+    border-radius: 20px; background: rgba(255,255,255,.16); letter-spacing: .4px;
+    display: flex; align-items: center; gap: .32rem; white-space: nowrap;
+}
+.uai-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: #4ade80; box-shadow: 0 0 7px #4ade80; }
+.uai-badge.off .dot { background: #fbbf24; box-shadow: 0 0 7px #fbbf24; }
+.uai-toggle { transition: transform .25s; font-size: 1.05rem; opacity: .85; }
+.uai-card.collapsed .uai-toggle { transform: rotate(-90deg); }
+.uai-body { display: flex; flex-direction: column; }
+.uai-card.collapsed .uai-body { display: none; }
+
+.uai-thread {
+    max-height: 440px; overflow-y: auto; padding: 1.15rem 1.3rem;
+    display: flex; flex-direction: column; gap: .95rem;
+    background:
+        radial-gradient(circle at 12% 20%, rgba(16,185,129,.05), transparent 30%),
+        radial-gradient(circle at 90% 80%, rgba(14,165,233,.05), transparent 30%);
+    scroll-behavior: smooth;
+}
+.uai-thread:empty { display: none; }
+.uai-msg { display: flex; gap: .6rem; max-width: 90%; animation: uaiIn .25s ease; }
+@keyframes uaiIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.uai-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.uai-ava {
+    width: 32px; height: 32px; border-radius: 10px; flex: 0 0 32px; font-size: .9rem;
+    display: flex; align-items: center; justify-content: center; color: #fff;
+    background: linear-gradient(135deg,#10b981,#0d9488);
+}
+.uai-msg.user .uai-ava { background: linear-gradient(135deg,#0284c7,#0ea5e9); border-radius: 50%; }
+.uai-bubble {
+    padding: .68rem .95rem; border-radius: 16px; font-size: .88rem; line-height: 1.55;
+    background: var(--au-card); color: var(--au-text);
+    border: 1px solid rgba(13,148,136,.22);
+    box-shadow: 0 2px 10px rgba(13,148,136,.07); overflow-wrap: anywhere;
+}
+.uai-msg.user .uai-bubble {
+    background: linear-gradient(135deg,#0d9488,#0891b2); color: #fff; border: none;
+    border-bottom-right-radius: 4px;
+}
+.uai-msg.ai .uai-bubble { border-bottom-left-radius: 4px; }
+.uai-bubble a { color: #0d9488; font-weight: 700; text-decoration: none; border-bottom: 1px dashed rgba(13,148,136,.5); }
+.uai-bubble a:hover { border-bottom-style: solid; }
+.uai-bubble p { margin: 0 0 .45rem; } .uai-bubble p:last-child { margin: 0; }
+.uai-bubble ul { margin: .2rem 0 .5rem; padding-left: 1.1rem; }
+.uai-bubble li { margin-bottom: .2rem; }
+.uai-bubble code {
+    background: rgba(13,148,136,.1); color: #0f766e; border-radius: 6px; padding: .05rem .35rem;
+    font-size: .82em;
+}
+.uai-bubble blockquote {
+    margin: .3rem 0; padding: .25rem .7rem; border-left: 3px solid #5eead4;
+    background: rgba(20,184,166,.07); border-radius: 0 8px 8px 0; font-size: .83rem;
+    color: var(--au-muted);
+}
+.uai-tools {
+    font-size: .68rem; color: var(--au-muted); margin-top: .5rem;
+    display: flex; flex-wrap: wrap; gap: .3rem; align-items: center;
+}
+.uai-tool-chip {
+    background: rgba(13,148,136,.1); color: #0f766e; border-radius: 12px;
+    padding: .1rem .5rem; font-weight: 700;
+}
+.uai-tool-chip.act { background: rgba(16,185,129,.16); color: #047857; }
+[data-bs-theme="dark"] .uai-tool-chip { color: #5eead4; }
+.uai-links { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .55rem; }
+.uai-link-chip {
+    font-size: .75rem; font-weight: 700; text-decoration: none; color: #0f766e;
+    border: 1px solid rgba(13,148,136,.4); border-radius: 20px; padding: .22rem .7rem;
+    display: inline-flex; align-items: center; gap: .3rem; transition: .15s;
+    background: var(--au-card);
+}
+.uai-link-chip:hover { background: #0f766e; color: #fff; }
+.uai-typing { display: flex; gap: 4px; padding: .4rem .2rem; }
+.uai-typing i { width: 7px; height: 7px; border-radius: 50%; background: #14b8a6; animation: uaiBlink 1.2s infinite; }
+.uai-typing i:nth-child(2) { animation-delay: .2s; } .uai-typing i:nth-child(3) { animation-delay: .4s; }
+@keyframes uaiBlink { 0%,80%,100% { opacity: .25; transform: scale(.8);} 40% { opacity: 1; transform: scale(1);} }
+
+.uai-chips {
+    display: flex; flex-wrap: wrap; gap: .45rem; padding: .85rem 1.3rem .6rem;
+    border-top: 1px dashed rgba(13,148,136,.25);
+}
+.uai-chip {
+    border: 1.5px dashed rgba(13,148,136,.5); color: #0f766e;
+    background: rgba(16,185,129,.06);
+    font-size: .75rem; font-weight: 700; border-radius: 20px; padding: .34rem .8rem;
+    cursor: pointer; transition: .15s; display: inline-flex; align-items: center; gap: .3rem;
+}
+.uai-chip i { font-size: .8em; }
+.uai-chip:hover { background: #0f766e; color: #fff; border-style: solid; transform: translateY(-1px); }
+[data-bs-theme="dark"] .uai-chip { color: #5eead4; }
+
+.uai-form {
+    display: flex; gap: .6rem; padding: .95rem 1.3rem;
+    border-top: 1px solid var(--au-border); background: var(--au-card);
+}
+.uai-input {
+    flex: 1; border: 2px solid var(--au-border); border-radius: 14px;
+    padding: .68rem 1.05rem; font-size: .9rem; background: transparent; color: inherit;
+    transition: .2s;
+}
+.uai-input:focus { outline: none; border-color: #14b8a6; box-shadow: 0 0 0 3px rgba(20,184,166,.14); }
+.uai-send {
+    border: none; border-radius: 14px; padding: 0 1.2rem; color: #fff; font-size: 1.02rem;
+    background: linear-gradient(135deg,#10b981,#0891b2); cursor: pointer; transition: .15s;
+    display: flex; align-items: center; gap: .4rem; font-weight: 800;
+}
+.uai-send:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(13,148,136,.35); }
+.uai-send:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+@media (max-width: 576px) { .uai-msg { max-width: 100%; } .uai-head h5 { font-size: .9rem; } }
+
 /* ===== MOBILE ===== */
 @media (max-width: 900px) {
     .au-hero { padding: 1.25rem 1.1rem; border-radius: 16px; }
@@ -586,6 +734,41 @@
                     <div class="au-stat-lbl">Shartnoma</div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- ═══════════ AI FOYDALANUVCHI BOSHQARUVCHISI ═══════════ -->
+    <div class="uai-card collapsed" id="uaiCard">
+        <div class="uai-head" id="uaiHead">
+            <div class="uai-head-ic"><i class="bi bi-robot"></i></div>
+            <div>
+                <h5>AI Foydalanuvchi Boshqaruvchisi</h5>
+                <p>Foydalanuvchilar haqida savol bering yoki buyruq bering — bazada amalga oshiradi</p>
+            </div>
+            <span class="uai-badge {% if not ai_available %}off{% endif %}" title="{% if ai_available %}OpenAI GPT rejimi faol{% else %}OpenAI kaliti yo'q — offline rejim{% endif %}">
+                <span class="dot"></span>{% if ai_available %}GPT rejim{% else %}Offline rejim{% endif %}
+            </span>
+            <i class="bi bi-chevron-down uai-toggle"></i>
+        </div>
+        <div class="uai-body">
+            <div class="uai-thread" id="uaiThread"></div>
+
+            <div class="uai-chips">
+                <button type="button" class="uai-chip"><i class="bi bi-type-bold"></i>Barcha ismlarni bosh harfini katta qilib chiq</button>
+                <button type="button" class="uai-chip"><i class="bi bi-shield-lock"></i>Bloklanganlar ro'yxatini ko'rsat</button>
+                <button type="button" class="uai-chip"><i class="bi bi-graph-up"></i>Foydalanuvchilar statistikasi</button>
+                <button type="button" class="uai-chip"><i class="bi bi-person-plus"></i>Eng yangi 5 ta foydalanuvchi</button>
+                <button type="button" class="uai-chip"><i class="bi bi-wifi"></i>Hozir onlayn kimlar bor?</button>
+            </div>
+
+            <form class="uai-form" id="uaiForm" autocomplete="off">
+                {% csrf_token %}
+                <input type="text" class="uai-input" id="uaiInput" maxlength="600"
+                       placeholder="Masalan: Axmatni blokdan chiqar  •  Madina haqida ma'lumot ber">
+                <button type="submit" class="uai-send" id="uaiSend">
+                    <i class="bi bi-send-fill"></i><span class="d-none d-sm-inline">Yuborish</span>
+                </button>
+            </form>
         </div>
     </div>
 
@@ -1043,6 +1226,168 @@
             btn.dataset.loading = '0';
             if (row) row.classList.remove('is-loading');
         });
+    });
+})();
+</script>
+
+<!-- ═══════════ AI FOYDALANUVCHI BOSHQARUVCHISI — JS ═══════════ -->
+<script>
+(function(){
+    var card = document.getElementById('uaiCard');
+    var head = document.getElementById('uaiHead');
+    var thread = document.getElementById('uaiThread');
+    var form = document.getElementById('uaiForm');
+    var input = document.getElementById('uaiInput');
+    var sendBtn = document.getElementById('uaiSend');
+    if (!card || !form) return;
+
+    var AI_URL = "{% url 'admin_users_ai' %}";
+    var csrf = document.querySelector('#uaiForm [name=csrfmiddlewaretoken]').value;
+    var history = [];
+    var busy = false;
+
+    head.addEventListener('click', function(){ card.classList.toggle('collapsed'); });
+
+    document.querySelectorAll('.uai-chip').forEach(function(ch){
+        ch.addEventListener('click', function(){
+            input.value = ch.textContent.trim();
+            input.focus();
+            card.classList.remove('collapsed');
+        });
+    });
+
+    function escapeHtml(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function renderMarkdown(src) {
+        var t = escapeHtml(src || '');
+        t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, function(m, txt, url){
+            if (!/^(\/|https?:\/\/)/.test(url)) return txt;
+            return '<a href="' + url + '">' + txt + '</a>';
+        });
+        t = t.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
+        t = t.replace(/\*([^*\n]+)\*/g, '<i>$1</i>');
+        t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+        var lines = t.split(/\n/);
+        var html = '', inList = false, inPara = false;
+        function closeBlocks(){
+            if (inList) { html += '</ul>'; inList = false; }
+            if (inPara) { html += '</p>'; inPara = false; }
+        }
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trimEnd();
+            if (!line.trim()) { closeBlocks(); continue; }
+            if (/^&gt;\s?/.test(line)) {
+                closeBlocks();
+                html += '<blockquote>' + line.replace(/^&gt;\s?/, '') + '</blockquote>';
+            } else if (/^[-•]\s+/.test(line)) {
+                if (inPara) { html += '</p>'; inPara = false; }
+                if (!inList) { html += '<ul>'; inList = true; }
+                html += '<li>' + line.replace(/^[-•]\s+/, '') + '</li>';
+            } else if (/^\d+\.\s+/.test(line)) {
+                if (inPara) { html += '</p>'; inPara = false; }
+                if (!inList) { html += '<ul>'; inList = true; }
+                html += '<li>' + line.replace(/^\d+\.\s+/, '') + '</li>';
+            } else {
+                if (inList) { html += '</ul>'; inList = false; }
+                if (!inPara) { html += '<p>'; inPara = true; }
+                else html += '<br>';
+                html += line;
+            }
+        }
+        closeBlocks();
+        return html;
+    }
+
+    function addUserBubble(text) {
+        var el = document.createElement('div');
+        el.className = 'uai-msg user';
+        el.innerHTML = '<div class="uai-ava"><i class="bi bi-person-fill"></i></div>' +
+                       '<div class="uai-bubble">' + escapeHtml(text) + '</div>';
+        thread.appendChild(el);
+        thread.scrollTop = thread.scrollHeight;
+    }
+
+    var TOOL_NAMES = {
+        search_users: 'foydalanuvchi qidirish',
+        get_user_profile: 'profilni o\'qish',
+        get_user_stats: 'statistika',
+        list_users: 'ro\'yxat',
+        get_online_users: 'onlaynlar',
+        block_user: 'BLOKLASH ⚡',
+        unblock_user: 'BLOKDAN CHIQARISH ⚡',
+        set_finished: 'TUGATGAN BELGISI ⚡',
+        update_user_names: 'ISMNI YANGILASH ⚡',
+        bulk_fix_names: 'ISMLARNI TUZATISH ⚡',
+        delete_user: 'O\'CHIRISH ⚡',
+    };
+
+    function addAiBubble(data) {
+        var el = document.createElement('div');
+        el.className = 'uai-msg ai';
+        var toolsHtml = '';
+        if (data.tools_used && data.tools_used.length) {
+            var chips = data.tools_used.map(function(t){
+                var act = /block|finished|names|delete/.test(t) ? ' act' : '';
+                return '<span class="uai-tool-chip' + act + '"><i class="bi bi-wrench-adjustable"></i> ' +
+                       (TOOL_NAMES[t] || t) + '</span>';
+            }).join('');
+            toolsHtml = '<div class="uai-tools"><i class="bi bi-cpu"></i> Bajarilgan amallar: ' + chips + '</div>';
+        }
+        var linksHtml = '';
+        if (data.links && data.links.length) {
+            linksHtml = '<div class="uai-links">' + data.links.map(function(l){
+                return '<a class="uai-link-chip" href="' + l.url + '"><i class="bi bi-person-lines-fill"></i>' +
+                       escapeHtml(l.label) + '</a>';
+            }).join('') + '</div>';
+        }
+        el.innerHTML = '<div class="uai-ava"><i class="bi bi-robot"></i></div>' +
+                       '<div class="uai-bubble">' + renderMarkdown(data.answer) + toolsHtml + linksHtml + '</div>';
+        thread.appendChild(el);
+        thread.scrollTop = thread.scrollHeight;
+    }
+
+    function addTyping() {
+        var el = document.createElement('div');
+        el.className = 'uai-msg ai';
+        el.id = 'uaiTyping';
+        el.innerHTML = '<div class="uai-ava"><i class="bi bi-robot"></i></div>' +
+                       '<div class="uai-bubble"><div class="uai-typing"><i></i><i></i><i></i></div></div>';
+        thread.appendChild(el);
+        thread.scrollTop = thread.scrollHeight;
+    }
+    function removeTyping() { var t = document.getElementById('uaiTyping'); if (t) t.remove(); }
+
+    form.addEventListener('submit', async function(e){
+        e.preventDefault();
+        var q = input.value.trim();
+        if (!q || busy) return;
+        busy = true;
+        sendBtn.disabled = true;
+        input.value = '';
+        card.classList.remove('collapsed');
+        addUserBubble(q);
+        addTyping();
+        try {
+            var resp = await fetch(AI_URL, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' },
+                body: new URLSearchParams({ question: q, history: JSON.stringify(history.slice(-4)) }),
+            });
+            var data = await resp.json();
+            removeTyping();
+            addAiBubble(data);
+            if (data.ok) history.push({ q: q, a: (data.answer || '').slice(0, 1200) });
+        } catch (err) {
+            removeTyping();
+            addAiBubble({ answer: '⚠️ Server bilan bog\'lanishda xatolik: ' + err, links: [] });
+        }
+        busy = false;
+        sendBtn.disabled = false;
+        input.focus();
     });
 })();
 </script>
