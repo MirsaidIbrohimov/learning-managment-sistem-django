@@ -1,5 +1,6 @@
 import json
 from datetime import date, timedelta
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
@@ -258,6 +259,24 @@ class VideoWatchCoinRewardTests(TestCase):
         self.assertEqual(payload['coin_amount'], 20)
         self.assertEqual(user.coins, 20)
 
+    def test_duplicate_completion_does_not_award_coins_twice(self):
+        user, first = self._watch_video()
+        request = self.factory.post(
+            reverse('mark_video_watched', args=[self.video.pk]),
+            data='{}', content_type='application/json',
+        )
+        request.user = user
+        with patch('accounts.notifications.on_video_watched'):
+            second = json.loads(mark_video_watched(request, self.video.pk).content)
+
+        user.refresh_from_db()
+        self.assertEqual(first['coin_amount'], 10)
+        self.assertEqual(second['coin_amount'], 0)
+        self.assertEqual(user.coins, 10)
+        self.assertEqual(
+            CoinTransaction.objects.filter(user=user, amount=10).count(), 1,
+        )
+
 
 class VideoWatchAntiCheatTests(TestCase):
     """Konsoldan timerni chetlab o'tish urinishlari serverda to'xtatilishi."""
@@ -302,6 +321,7 @@ class VideoWatchAntiCheatTests(TestCase):
         body = {
             'position': position,
             'duration_seconds': duration_seconds,
+            'duration': duration_seconds,
             'playing': playing,
             'hidden': hidden,
             'nonce': self._nonce if nonce is None else nonce,
@@ -374,19 +394,55 @@ class VideoWatchAntiCheatTests(TestCase):
         self.assertFalse(payload['success'])
         self.assertEqual(response.status_code, 403)
 
-    def test_seek_forward_is_blocked_and_recorded(self):
-        """Videoni oldinga o'tkazish kredit bermaydi va qayd etiladi."""
+    def test_seek_forward_is_not_credited_but_new_playback_segment_is(self):
+        """Seek oralig'i sanalmaydi; yangi joydagi normal playback sanaladi."""
         self._beat(0)
         self._rewind_last_beat(10)
         result = self._beat(3500)
 
         self.assertTrue(result['seek_blocked'])
-        self.assertEqual(result['resume_at'], 0)
+        self.assertTrue(result['seek_detected'])
+        self.assertIsNone(result['resume_at'])
 
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
         self.assertEqual(progress.verified_seconds, 0)
         self.assertEqual(progress.max_position, 0)
         self.assertEqual(progress.cheat_attempts, 1)
+
+        self._rewind_last_beat(10)
+        continued = self._beat(3510)
+        progress.refresh_from_db()
+        self.assertGreater(continued['credited'], 0)
+        self.assertAlmostEqual(progress.verified_seconds, 10, delta=0.5)
+        self.assertEqual(progress.watched_segments, [[3500.0, 3510.0]])
+
+    def test_rewatching_same_segment_does_not_inflate_progress(self):
+        self._beat(0)
+        self._rewind_last_beat(30)
+        self._beat(30)
+        first_watch = VideoProgress.objects.get(user=self.user, video=self.video).verified_seconds
+
+        self._rewind_last_beat(5)
+        self._beat(0)  # orqaga seek — kredit yo'q, faqat yangi baza
+        self._rewind_last_beat(30)
+        self._beat(30)
+
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertAlmostEqual(progress.verified_seconds, first_watch, delta=0.5)
+        self.assertEqual(progress.watched_segments, [[0.0, 30.0]])
+
+    def test_disjoint_segments_are_merged_and_summed_uniquely(self):
+        self._beat(0)
+        self._rewind_last_beat(30)
+        self._beat(30)
+        self._rewind_last_beat(5)
+        self._beat(300)  # seek oralig'i sanalmaydi
+        self._rewind_last_beat(30)
+        self._beat(330)
+
+        progress = VideoProgress.objects.get(user=self.user, video=self.video)
+        self.assertAlmostEqual(progress.verified_seconds, 60, delta=0.5)
+        self.assertEqual(progress.watched_segments, [[0.0, 30.0], [300.0, 330.0]])
 
     def test_credit_is_capped_by_server_elapsed_time(self):
         """Pozitsiyani katta qadam bilan yuborsa ham kredit real vaqt bilan cheklanadi."""
@@ -437,6 +493,21 @@ class VideoWatchAntiCheatTests(TestCase):
         progress = VideoProgress.objects.get(user=self.user, video=self.video)
         self.assertEqual(progress.required_seconds, 3240)   # 3600*0.9 — aniq 90%
 
+    def test_client_duration_cannot_unlock_video_when_server_duration_is_unknown(self):
+        self.video.verified_duration_seconds = 0
+        self.video.duration = 0
+        self.video.duration_checked_at = timezone.now()
+        self.video.save(update_fields=[
+            'verified_duration_seconds', 'duration', 'duration_checked_at',
+        ])
+
+        result = self._beat(0, duration_seconds=10)
+        response, payload = self._mark_watched()
+
+        self.assertEqual(result['required_seconds'], 0)
+        self.assertFalse(result['can_complete'])
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(payload['success'])
     def test_verified_duration_replaces_stale_manual_duration_and_requirement(self):
         """35 daqiqalik video eski 61 daqiqalik timer bilan ochilmasligi kerak."""
         self.video.duration = 61
@@ -535,6 +606,21 @@ class VideoWatchAntiCheatTests(TestCase):
         self.assertLessEqual(total, 30 * 1.15 + 0.5)
 
 
+class VideoTemplateContractTests(TestCase):
+    def test_youtube_player_uses_ready_duration_and_server_completion(self):
+        template = (
+            Path(__file__).parent
+            / 'templates' / 'accounts' / 'lessons' / 'video_lesson.html'
+        ).read_text(encoding='utf-8')
+
+        self.assertIn("new YT.Player('ytPlayer'", template)
+        self.assertIn('onReady: function', template)
+        self.assertIn('window._vqYT.getDuration()', template)
+        self.assertIn('window._vqYT.getCurrentTime()', template)
+        self.assertIn('duration: Math.round(totalSeconds || 0)', template)
+        self.assertIn('serverCanComplete = !!data.can_complete', template)
+
+
 class StudentTokenWatchAntiCheatTests(TestCase):
     """O'quvchining haqiqiy yo'li — `/s/<token>/` URL'lari ham himoyalangan.
 
@@ -623,21 +709,22 @@ class StudentTokenWatchAntiCheatTests(TestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.coins, 0)
 
-    def test_token_beat_blocks_seek_and_credits_real_time_only(self):
-        """Tokenli beat ham sakrashni bloklaydi va faqat real vaqt beradi."""
+    def test_token_beat_skips_seek_gap_and_credits_real_time_only(self):
+        """Tokenli beat seek oralig'ini tashlaydi va yangi playbackni sanaydi."""
         self._beat(0)
 
         jumped = self._beat(3000)
         self.assertTrue(jumped['seek_blocked'])
-        self.assertEqual(jumped['resume_at'], 0)
+        self.assertIsNone(jumped['resume_at'])
 
         moment = timezone.now() - timedelta(seconds=20)
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
             last_beat_at=moment, last_credit_at=moment
         )
-        honest = self._beat(20)
+        honest = self._beat(3020)
         self.assertFalse(honest['seek_blocked'])
         self.assertLessEqual(honest['verified_seconds'], 20 * 1.15 + 0.5)
+        self.assertEqual(honest['watched_segments'], [[3000.0, 3020.0]])
         self.assertFalse(honest['can_complete'])
 
 
@@ -1028,6 +1115,15 @@ class CertificateFinalTestRequirementTests(TestCase):
 
 class CourseProgressAndHomeworkCoinTests(TestCase):
     def setUp(self):
+        # `DeviceLimitMiddleware` faol sessiyani protsess bo'ylab yashaydigan
+        # LocMemCache'da (`active_session_<user.id>`) saqlaydi — bu TestCase'ning
+        # har test uchun DB rollback'iga kirmaydi. SQLite bekor qilingan
+        # insert'ning rowid'ini qayta ishlatgani uchun keyingi testda yaratilgan
+        # user avvalgi testdagi user bilan bir xil id ga tushib, uning eskirgan
+        # cache yozuvini "meros" qilib oladi; middleware esa sessiyani boshqa
+        # deb hisoblab, yangi login'ni chiqarib yuboradi. Cache'ni tozalash
+        # izolyatsiyani tiklaydi (productionda id lar qayta ishlatilmaydi).
+        cache.clear()
         self.student = CustomUser.objects.create_user(
             username='progress-student',
             password='test-password',
@@ -1316,6 +1412,9 @@ class AdminCoinHistoryTests(TestCase):
 
 class ContractStudentMonthlyPaymentsTests(TestCase):
     def setUp(self):
+        # `active_session_<user.id>` cache yozuvi testlar orasida saqlanib
+        # qoladi — batafsil izoh `CourseProgressAndHomeworkCoinTests.setUp` da.
+        cache.clear()
         self.admin = CustomUser.objects.create_user(
             username='payments-admin',
             password='test-password',

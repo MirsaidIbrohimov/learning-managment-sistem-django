@@ -12,8 +12,25 @@ from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, 
 
 # Static/media so'rovlarini tezkor o'tkazish uchun (BlockedUserMiddleware va boshqalar)
 _SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/')
-# API ni ham o'tkazib yuboradigan middleware lar uchun
+# API ni ham o'tkazib yuboradigan middleware lar uchun.
+# DIQQAT: sessiya nazorati (timeout, qurilma limiti) bu ro'yxatdan
+# FOYDALANMAYDI — aks holda o'g'irlangan yoki bekor qilingan sessiya cookie'si
+# `/api/` orqali cheksiz ishlatilishi mumkin bo'lardi.
 _SKIP_PREFIXES_WITH_API = ('/static/', '/media/', '/api/', '/admin/jsi18n/')
+
+
+def _session_expired_response(request, redirect_to='login'):
+    """
+    Sessiya nazorati buzilganda javob. `/api/` uchun JSON 401 qaytaradi:
+    HTML redirect JSON mijozni "muvaffaqiyat" deb yanglishtirardi.
+    """
+    if request.path.startswith('/api/'):
+        from django.http import JsonResponse
+        return JsonResponse(
+            {'detail': 'Sessiya yaroqsiz yoki muddati tugagan. Qayta kiring.'},
+            status=401,
+        )
+    return redirect(redirect_to)
 
 
 @lru_cache(maxsize=1)
@@ -227,12 +244,13 @@ class SessionTimeoutMiddleware:
         self.get_response = get_response
     
     def __call__(self, request):
-        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
+        # `/api/` ATAYIN o'tkazib yuborilmaydi: idle timeout API da ham amal qilsin.
+        if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
         if request.user.is_authenticated:
             now = timezone.now().timestamp()
             last_activity = request.session.get('_last_activity')
-            
+
             if last_activity:
                 if now - last_activity > self.SESSION_TIMEOUT:
                     session_key = request.session.session_key
@@ -242,14 +260,14 @@ class SessionTimeoutMiddleware:
                             user=request.user, session_key=session_key
                         ).update(is_active=False)
                     request.session.flush()
-                    return redirect('login')
-                
+                    return _session_expired_response(request)
+
                 # Faqat 60 sekundda bir marta session yangilash
                 if now - last_activity > 60:
                     request.session['_last_activity'] = now
             else:
                 request.session['_last_activity'] = now
-        
+
         return self.get_response(request)
 
 
@@ -398,10 +416,13 @@ class DeviceLimitMiddleware:
         if request.user.is_admin:
             return self.get_response(request)
         
-        # Static/media/API fayllar
-        if request.path.startswith(_SKIP_PREFIXES_WITH_API):
+        # Static/media. `/api/` ATAYIN o'tkazib yuborilmaydi: aks holda bekor
+        # qilingan ("boshqa qurilmadan chiqarilgan") sessiya cookie'si bilan
+        # barcha `/api/v1/...` endpointlar, shu qatorda coin o'tkazma ham,
+        # cheksiz ishlatilishi mumkin bo'lardi.
+        if request.path.startswith(_SKIP_PREFIXES):
             return self.get_response(request)
-        
+
         # Exempt URL larni o'tkazib yuborish
         try:
             resolved = resolve(request.path)
@@ -409,16 +430,16 @@ class DeviceLimitMiddleware:
                 return self.get_response(request)
         except Exception:
             pass
-        
+
         # 🔒 Faqat 1 ta online: joriy sessiya ro'yxatdan o'tganmi tekshirish
         session_key = request.session.session_key
         if not session_key:
             return self.get_response(request)
-        
+
         # Cache orqali tekshirish — har requestda DB ga murojaat qilmaslik
         cache_key = f'active_session_{request.user.id}'
         cached_session_key = cache.get(cache_key)
-        
+
         if cached_session_key is not None:
             # Cache da bor — tezkor tekshirish
             if cached_session_key == session_key:
@@ -426,27 +447,27 @@ class DeviceLimitMiddleware:
             else:
                 from django.contrib.auth import logout as auth_logout
                 auth_logout(request)
-                return redirect('login')
-        
+                return _session_expired_response(request)
+
         # Cache da yo'q — DB dan o'qib, cache ga saqlash
         from .models import UserSession
         active_session = UserSession.objects.filter(
             user=request.user, is_active=True
         ).values_list('session_key', flat=True).first()
-        
+
         if active_session is None:
             from django.contrib.auth import logout as auth_logout
             auth_logout(request)
-            return redirect('login')
-        
+            return _session_expired_response(request)
+
         # 30 sekundga cache ga saqlash
         cache.set(cache_key, active_session, 120)
-        
+
         if active_session != session_key:
             from django.contrib.auth import logout as auth_logout
             auth_logout(request)
-            return redirect('login')
-        
+            return _session_expired_response(request)
+
         return self.get_response(request)
 
 

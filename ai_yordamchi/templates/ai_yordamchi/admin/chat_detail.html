@@ -630,8 +630,12 @@
                         </div>
                         <div class="msg-bubble">
                             {% if msg.role == 'assistant' %}
-                                <div class="markdown-body" id="ai-msg-{{ forloop.counter }}"></div>
-                                <script type="text/plain" id="ai-content-{{ forloop.counter }}">{{ msg.content|safe }}</script>
+                                {# `json_script` — `|safe` bo'lganda kontentdagi `</script>`
+                                   script tegini yopib, adminning brauzerida XSS ishga tushar edi. #}
+                                {% with mid=forloop.counter|stringformat:"s" %}{% with src_id="ai-content-"|add:mid %}
+                                <div class="markdown-body" id="ai-msg-{{ mid }}"></div>
+                                {{ msg.content|json_script:src_id }}
+                                {% endwith %}{% endwith %}
                             {% else %}
                                 <div style="white-space:pre-wrap;">{{ msg.content }}</div>
                             {% endif %}
@@ -656,6 +660,7 @@
 {% block extra_js %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 <script>
 // Marked renderer setup
 const renderer = new marked.Renderer();
@@ -682,16 +687,15 @@ renderer.code = function(code, lang) {
         highlighted = codeText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
-    const escapedCode = codeText
-        .replace(/\\/g, '\\\\').replace(/`/g, '\\`')
-        .replace(/\$/g, '\\$').replace(/\n/g, '\\n').replace(/\r/g, '\\r');
-
     const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
 
+    // Nusxalash tugmasi `onclick` orqali emas, event delegation orqali ishlaydi:
+    // kod matnini `onclick="..."` atributiga qo'yish `"` belgisi bilan atributdan
+    // chiqib ketish (XSS) imkonini berardi.
     return `<div class="code-block-wrapper" id="${codeId}">
         <div class="code-header">
             <span class="code-lang">${language}</span>
-            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Nusxalash">
+            <button class="copy-btn" type="button" title="Nusxalash">
                 <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
             </button>
         </div>
@@ -714,20 +718,30 @@ renderer.link = function(href, title, text) {
 
 marked.setOptions({ renderer: renderer, breaks: true, gfm: true, pedantic: false });
 
-// Copy function
-function copyCode(btn, code, codeId) {
-    let text = code.replace(/\\\\/g, '\\').replace(/\\`/g, '`').replace(/\\\$/g, '$').replace(/\\n/g, '\n').replace(/\\r/g, '\r');
-    const codeBlock = document.getElementById(codeId);
-    if (codeBlock) {
-        const el = codeBlock.querySelector('code');
-        if (el) text = el.textContent || el.innerText;
-    }
+// Markdown natijasi `innerHTML` ga tushadi. Kontent AI javobi bo'lsa-da, uni
+// o'quvchi savoli shakllantiradi — shuning uchun admin brauzerida ko'rsatishdan
+// oldin sanitizatsiya qilinadi. Sanitizer yuklanmasa `null` qaytadi va
+// chaqiruvchi HTML emas, oddiy matn ko'rsatadi.
+function renderSafeMarkdown(text) {
+    let html;
+    try { html = marked.parse(text || ''); } catch (e) { return null; }
+    if (!window.DOMPurify || typeof DOMPurify.sanitize !== 'function') return null;
+    return DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, ADD_ATTR: ['target'] });
+}
+
+// Nusxalash — event delegation (sanitizer inline `onclick`ni olib tashlaydi)
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.copy-btn');
+    if (!btn) return;
+    const wrap = btn.closest('.code-block-wrapper');
+    const el = wrap && wrap.querySelector('code');
+    const text = el ? (el.textContent || '') : '';
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => showCopied(btn)).catch(() => fallbackCopy(text, btn));
     } else {
         fallbackCopy(text, btn);
     }
-}
+});
 
 function showCopied(btn) {
     const t = btn.querySelector('.copy-text');
@@ -759,45 +773,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.getElementById('totalCoins').textContent = totalCoins;
 
-    document.querySelectorAll('script[type="text/plain"][id^="ai-content-"]').forEach(script => {
+    document.querySelectorAll('script[type="application/json"][id^="ai-content-"]').forEach(script => {
         const id = script.id.replace('ai-content-', '');
         const target = document.getElementById('ai-msg-' + id);
-        if (target && script.textContent) {
-            try {
-                let content = script.textContent.trim();
-                target.innerHTML = marked.parse(content);
+        if (!target) return;
+        let content = '';
+        try { content = (JSON.parse(script.textContent) || '').trim(); } catch (e) { content = ''; }
+        if (!content) return;
 
-                target.querySelectorAll('pre code').forEach(block => {
-                    if (!block.closest('.code-block-wrapper')) {
-                        const wrapper = document.createElement('div');
-                        wrapper.className = 'code-block-wrapper';
-                        const codeId = 'code-' + Math.random().toString(36).substr(2, 9);
-                        wrapper.id = codeId;
-                        const langMatch = block.className.match(/language-(\w+)/);
-                        const lang = langMatch ? langMatch[1] : 'plaintext';
-                        const codeText = block.textContent || block.innerText;
-                        const escapedCode = codeText.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/\n/g, '\\n');
-
-                        const header = document.createElement('div');
-                        header.className = 'code-header';
-                        header.innerHTML = `
-                            <span class="code-lang">${lang}</span>
-                            <button class="copy-btn" onclick="copyCode(this, \`${escapedCode}\`, '${codeId}')" title="Nusxalash">
-                                <i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>
-                            </button>
-                        `;
-                        wrapper.appendChild(header);
-                        const pre = block.parentElement;
-                        pre.parentNode.insertBefore(wrapper, pre);
-                        wrapper.appendChild(pre);
-                    }
-                    hljs.highlightElement(block);
-                });
-            } catch(e) {
-                console.error('Markdown parse error:', e);
-                target.innerHTML = '<div style="white-space:pre-wrap;">' + script.textContent + '</div>';
-            }
+        const html = renderSafeMarkdown(content);
+        if (html === null) {
+            target.textContent = content;
+            return;
         }
+        target.innerHTML = html;
+
+        target.querySelectorAll('pre code').forEach(block => {
+            if (!block.closest('.code-block-wrapper')) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+                wrapper.id = 'code-' + Math.random().toString(36).substr(2, 9);
+                const langMatch = block.className.match(/language-(\w+)/);
+                const lang = langMatch ? langMatch[1] : 'plaintext';
+
+                const header = document.createElement('div');
+                header.className = 'code-header';
+                const langEl = document.createElement('span');
+                langEl.className = 'code-lang';
+                langEl.textContent = lang;
+                const btn = document.createElement('button');
+                btn.className = 'copy-btn';
+                btn.type = 'button';
+                btn.title = 'Nusxalash';
+                btn.innerHTML = '<i class="bi bi-clipboard"></i> <span class="copy-text">Nusxalash</span>';
+                header.appendChild(langEl);
+                header.appendChild(btn);
+
+                wrapper.appendChild(header);
+                const pre = block.parentElement;
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
+            }
+            try { hljs.highlightElement(block); } catch (e) {}
+        });
     });
 
     scrollToBottom();

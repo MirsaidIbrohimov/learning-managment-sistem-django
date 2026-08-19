@@ -868,16 +868,22 @@ button { font-family: var(--font-ui); }
     z-index: 2;
 }
 
-/* Oxirgi yurish — amber yuvish */
+/* Oxirgi yurish — aniq ko'rinadigan yashil belgi (from + to kataklari).
+   z-index yo'q: dona ostida qoladi, faqat halqa dona atrofida ko'rinadi. */
 .cell.last-move::before {
     content: '';
     position: absolute; inset: 0;
-    background: var(--brass);
-    opacity: 0.28;
-    animation: lastWash 0.6s var(--ease-out);
+    background: rgba(34, 197, 94, 0.32);
+    box-shadow: inset 0 0 0 3px rgba(34, 197, 94, 0.95);
+    animation: lastPop 0.45s var(--ease-out);
     pointer-events: none;
 }
-@keyframes lastWash { from { opacity: 0.55; } to { opacity: 0.28; } }
+/* Manzil (kelgan) katagi — kuchliroq, to'qroq halqa */
+.cell.last-move-to::before {
+    background: rgba(34, 197, 94, 0.46);
+    box-shadow: inset 0 0 0 4px rgba(21, 128, 61, 1);
+}
+@keyframes lastPop { from { opacity: 0; } to { opacity: 1; } }
 
 /* Tanlangan katak — brass ramka */
 .cell.selected {

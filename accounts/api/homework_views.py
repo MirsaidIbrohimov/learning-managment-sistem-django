@@ -104,32 +104,25 @@ def rate_limited(tag: str):
 
 
 # ── File validation ────────────────────────────────────────────────────────────
+# `.php` ATAYLAB yo'q — `accounts.security.DANGEROUS_EXTENSIONS` izohiga qarang.
 ALLOWED_EXTENSIONS = {
     '.jpg', '.jpeg', '.png', '.gif', '.webp',
     '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
     '.txt', '.py', '.js', '.ts', '.jsx', '.tsx', '.css', '.html',
-    '.java', '.c', '.cpp', '.cs', '.go', '.rs', '.rb', '.php',
+    '.java', '.c', '.cpp', '.cs', '.go', '.rs', '.rb',
     '.json', '.xml', '.yaml', '.yml', '.sql', '.sh', '.md',
     '.zip', '.rar', '.tar', '.gz',
     '.mp3', '.mp4', '.wav', '.ogg',
 }
 
-# Extension → expected MIME prefix (simple sniff)
-MIME_HINTS = {
-    '.jpg': 'image/', '.jpeg': 'image/', '.png': 'image/', '.gif': 'image/',
-    '.webp': 'image/', '.pdf': 'application/pdf',
-    '.zip': 'application/', '.rar': 'application/',
-    '.mp3': 'audio/', '.mp4': 'video/', '.wav': 'audio/',
-}
+IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 
 MAX_FILE_BYTES = 5 * 1024 * 1024   # 5 MB
 
 def _safe_filename(name: str) -> str:
     """Strip path separators and control characters from filename."""
-    name = os.path.basename(name)
-    name = unicodedata.normalize('NFC', name)
-    name = re.sub(r'[^\w.\-]', '_', name)
-    return name[:120] or 'file'
+    from accounts.security import _safe_filename as _shared_safe_filename
+    return _shared_safe_filename(name)
 
 def _validate_file(uploaded_file, extra_exts=None):
     """
@@ -143,37 +136,44 @@ def _validate_file(uploaded_file, extra_exts=None):
         mb = uploaded_file.size / (1024 * 1024)
         return False, f"Fayl hajmi juda katta: {mb:.1f} MB (max 5 MB)"
 
-    ext = os.path.splitext(uploaded_file.name)[1].lower()
+    from accounts.security import (
+        DANGEROUS_EXTENSIONS, _extension_chain, _image_bytes_are_real,
+    )
+
+    raw_name = uploaded_file.name or ''
+    if '\x00' in raw_name:
+        return False, "Fayl nomi xavfli belgilar o'z ichiga olgan"
+
+    if os.path.basename(raw_name).startswith('.'):
+        return False, "Nuqta bilan boshlanadigan fayl nomlari ruxsat etilmagan"
+
+    # `shell.php.jpg` va `shell.php.jpg.txt` — zanjirdagi HAR BIR kengaytma.
+    for chain_ext in _extension_chain(raw_name):
+        if chain_ext in DANGEROUS_EXTENSIONS:
+            return False, f"Yashirin xavfli kengaytma: {chain_ext}"
+
+    ext = os.path.splitext(raw_name)[1].lower()
+    if ext in DANGEROUS_EXTENSIONS:
+        return False, f"'{ext}' kengaytmali fayllar ruxsat etilmagan"
+
     allowed = ALLOWED_EXTENSIONS | (extra_exts or set())
     if ext not in allowed:
         return False, f"Ruxsat etilmagan fayl turi: {ext}"
 
-    # Basic MIME sniff
-    hint = MIME_HINTS.get(ext)
-    if hint:
-        guessed, _ = mimetypes.guess_type(uploaded_file.name)
-        if guessed and not guessed.startswith(hint.rstrip('/')):
-            return False, f"Fayl turi mos kelmayapti ({ext} → {guessed})"
+    # Rasm kengaytmasi bo'lsa, baytlari ham rasm bo'lishi shart. Eski tekshiruv
+    # `mimetypes.guess_type()` ni ishlatardi — u ham kengaytmadan kelib chiqadi,
+    # ya'ni hech narsani tekshirmasdi.
+    if ext in IMAGE_EXTENSIONS and not _image_bytes_are_real(uploaded_file):
+        return False, "Fayl haqiqiy rasm emas"
 
     return True, None
 
 
 # ── Text sanitizer ─────────────────────────────────────────────────────────────
-_DANGEROUS_TAGS = re.compile(
-    r'<\s*(script|iframe|object|embed|link|meta|base|form|input|button|svg|math)'
-    r'[\s>].*?</\s*\1\s*>|<\s*(script|iframe|object|embed|link|meta|base)[\s/][^>]*>',
-    re.IGNORECASE | re.DOTALL,
-)
-_ON_ATTRS = re.compile(r'\s+on\w+\s*=\s*["\'][^"\']*["\']', re.IGNORECASE)
-_JS_HREFS  = re.compile(r'href\s*=\s*["\']javascript:[^"\']*["\']', re.IGNORECASE)
-
 def _sanitize_html(text: str) -> str:
-    if not text:
-        return ''
-    text = _DANGEROUS_TAGS.sub('', text)
-    text = _ON_ATTRS.sub('', text)
-    text = _JS_HREFS.sub('href="#"', text)
-    return text.strip()
+    """Rich-editor matnini tozalaydi (oq ro'yxatli parser, accounts.security)."""
+    from accounts.security import sanitize_html
+    return sanitize_html(text)
 
 
 # ── Submission serializer ──────────────────────────────────────────────────────
@@ -290,7 +290,8 @@ def _serialize_homework(hw: Homework, user) -> dict:
     )
     return {
         "id":               hw.pk,
-        "description":      hw.description,
+        # Mijoz tomonida `innerHTML` ga tushadi — shu sababli tozalab yuboriladi.
+        "description":      _sanitize_html(hw.description),
         "due_date":         hw.due_date.strftime("%d.%m.%Y %H:%M") if hw.due_date else None,
         "max_score":        _homework_max_score(hw),
         "ai_check":         hw.ai_check,

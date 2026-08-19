@@ -384,9 +384,7 @@ def teacher_manager(request, video_id):
     return render(request, 'video_quiz/teacher_manager.html', {
         'video': video,
         'duration_seconds': max(60, _video_duration_seconds(video)),
-        'quizzes_json': json.dumps(
-            [_quiz_payload(q, stats.get(q.pk)) for q in quizzes]
-        ),
+        'quizzes_payload': [_quiz_payload(q, stats.get(q.pk)) for q in quizzes],
         'quiz_count': len(quizzes),
         'total_attempts': total_attempts,
         'total_income': total_income,

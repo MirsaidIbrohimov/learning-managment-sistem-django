@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% load widget_tweaks %}
+{% load widget_tweaks custom_filters %}
 
 {% block title %}{{ post.title }} — IT Shaharcha{% endblock %}
 
@@ -352,7 +352,7 @@
       </div>
 
       <!-- Body -->
-      <div class="pd-body">{{ post.content|safe }}</div>
+      <div class="pd-body">{{ post.content|safe_html }}</div>
 
       <!-- Actions -->
       <div class="pd-actions">

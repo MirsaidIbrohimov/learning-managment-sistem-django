@@ -1434,7 +1434,7 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script id="chartDataJson" type="application/json">{{ daily_activity_json|safe }}</script>
+{{ daily_activity|json_script:"chartDataJson" }}
 <script>
 // ===== Chart =====
 const chartData = JSON.parse(document.getElementById('chartDataJson').textContent);

@@ -730,25 +730,25 @@ class Command(BaseCommand):
             chat_state.ai_session = session
             chat_state.save()
 
-        # Foydalanuvchi xabarini saqlash
+        # Coin ayirish (faqat premium bo'lmaganlar uchun) — xabarni saqlashdan
+        # OLDIN, aks holda to'lanmagan suhbat tarixda qolib ketadi.
         coin_cost = 0 if is_premium else 1
+        if not is_premium:
+            from telegram_bot.utils import spend_ai_coin
+
+            if not spend_ai_coin(user, "AI yordamchi bilan suhbat (Telegram)"):
+                self._send_message(bot_token, chat_id,
+                    "❌ Sizda yetarli coin yo'q.\n"
+                    "AI bilan suhbatlashish uchun 1 coin kerak.")
+                return
+
+        # Foydalanuvchi xabarini saqlash
         ChatMessage.objects.create(
             session=session,
             role='user',
             content=text,
             coins_spent=coin_cost,
         )
-
-        # Coin ayirish (faqat premium bo'lmaganlar uchun)
-        if not is_premium:
-            user.coins -= 1
-            user.save(update_fields=['coins'])
-            CoinTransaction.objects.create(
-                user=user,
-                amount=1,
-                action='remove',
-                reason="AI yordamchi bilan suhbat (Telegram)"
-            )
 
         # Sessiya sarlavhasini yangilash (birinchi xabar)
         if session.messages.filter(role='user').count() == 1:
@@ -854,12 +854,15 @@ class Command(BaseCommand):
 
         user_text = caption or "[Rasm yuborildi]"
         coin_cost = 0 if is_premium else 1
-        ChatMessage.objects.create(session=session, role='user', content=user_text, coins_spent=coin_cost)
 
         if not is_premium:
-            user.coins -= 1
-            user.save(update_fields=['coins'])
-            CoinTransaction.objects.create(user=user, amount=1, action='remove', reason="AI yordamchi bilan suhbat - rasm (Telegram)")
+            from telegram_bot.utils import spend_ai_coin
+
+            if not spend_ai_coin(user, "AI yordamchi bilan suhbat - rasm (Telegram)"):
+                self._send_message(bot_token, chat_id, "❌ Sizda yetarli coin yo'q.\nAI bilan suhbatlashish uchun 1 coin kerak.")
+                return
+
+        ChatMessage.objects.create(session=session, role='user', content=user_text, coins_spent=coin_cost)
 
         if session.messages.filter(role='user').count() == 1:
             title = caption[:45] if caption else "Rasm tahlili"

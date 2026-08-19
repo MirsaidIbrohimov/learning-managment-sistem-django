@@ -28,11 +28,62 @@ OPENAI_MAX_TOKENS = 4096
 OPENAI_TEMPERATURE = 0.2
 
 IMAGE_EXTS = ('.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp')
+# `.php`, `.bat`, `.ini`, `.cfg`, `.env` ATAYLAB olib tashlandi:
+#   - `.php`/`.bat` — `media/` ichida bajarilib ketish xavfi (accounts.security);
+#   - `.env`/`.ini`/`.cfg` — konfiguratsiya fayllari, ularning mazmuni AI ga
+#     (ya'ni tashqi provayderga) yuborilardi; maxfiy kalitlar chiqib ketmasin.
 TEXT_EXTS = (
     '.py', '.js', '.ts', '.html', '.css', '.json', '.xml', '.sql', '.txt',
-    '.md', '.csv', '.java', '.php', '.rb', '.c', '.cpp', '.h', '.go', '.rs',
-    '.sh', '.bat', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.env', '.log',
+    '.md', '.csv', '.java', '.rb', '.c', '.cpp', '.h', '.go', '.rs',
+    '.sh', '.yaml', '.yml', '.toml', '.log',
 )
+
+AI_MAX_UPLOAD_BYTES = 5 * 1024 * 1024   # 5 MB
+
+
+def _validate_ai_upload(uploaded, images_only=False):
+    """AI chatga yuklangan faylni tekshiradi. Xato matnini yoki `None` qaytaradi.
+
+    Avval hech qanday tekshiruv yo'q edi: `.htaccess`, `.exe` yoki cheksiz
+    hajmli fayl to'g'ridan-to'g'ri `media/` ga tushardi.
+    """
+    import os
+
+    from accounts.security import (
+        DANGEROUS_EXTENSIONS, _extension_chain, _image_bytes_are_real,
+        _safe_filename,
+    )
+
+    if not uploaded:
+        return None
+
+    if uploaded.size > AI_MAX_UPLOAD_BYTES:
+        mb = uploaded.size / (1024 * 1024)
+        return f"Fayl hajmi juda katta: {mb:.1f} MB (maksimum 5 MB)."
+
+    raw_name = uploaded.name or ''
+    if '\x00' in raw_name:
+        return "Fayl nomi xavfli belgilar o'z ichiga olgan."
+    if os.path.basename(raw_name).startswith('.'):
+        return "Nuqta bilan boshlanadigan fayl nomlari ruxsat etilmagan."
+
+    for chain_ext in _extension_chain(raw_name):
+        if chain_ext in DANGEROUS_EXTENSIONS:
+            return f"Yashirin xavfli kengaytma: {chain_ext}"
+
+    ext = os.path.splitext(raw_name)[1].lower()
+    if ext in DANGEROUS_EXTENSIONS:
+        return f"'{ext}' kengaytmali fayllar ruxsat etilmagan."
+
+    allowed = IMAGE_EXTS if images_only else (IMAGE_EXTS + TEXT_EXTS)
+    if ext not in allowed:
+        return f"Ruxsat etilmagan fayl turi: {ext}"
+
+    if ext in IMAGE_EXTS and not _image_bytes_are_real(uploaded):
+        return "Fayl haqiqiy rasm emas."
+
+    uploaded.name = _safe_filename(raw_name)
+    return None
 
 # Single source of truth for the assistant persona + formatting rules.
 SYSTEM_PROMPT = """Siz LMS o'quv platformasining AI yordamchisisiz. Har doim O'zbek tilida javob bering.
@@ -347,6 +398,12 @@ def send_message(request, pk):
     if not content and not image and not file:
         return fail("Xabar, rasm yoki fayl yuborishingiz kerak.")
 
+    # Fayl `media/` ga saqlanadi va mazmuni AI ga uzatiladi — avval tekshiriladi.
+    for uploaded, images_only in ((image, True), (file, False)):
+        problem = _validate_ai_upload(uploaded, images_only=images_only)
+        if problem:
+            return fail(problem)
+
     is_premium = getattr(request.user, 'is_premium', False)
     if not is_premium and request.user.coins < 1:
         return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
@@ -660,8 +717,11 @@ def admin_chat_detail(request, pk):
 #  UTILS
 # ============================================================
 def get_client_ip(request):
-    """Best-effort client IP for activity logging."""
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        return x_forwarded_for.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR')
+    """Best-effort client IP for activity logging.
+
+    `X-Forwarded-For` ning eng chap qiymati mijoz nazoratida — soxtalashtirish
+    mumkin edi. Umumiy `accounts.security.get_client_ip` ishonchli proxy
+    sonidan kelib chiqib to'g'ri qiymatni oladi.
+    """
+    from accounts.security import get_client_ip as _get_client_ip
+    return _get_client_ip(request)

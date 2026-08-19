@@ -252,10 +252,18 @@
         return d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear();
     }
 
+    // Server javobidagi matn (mahsulot nomi, izoh, xato xabari) `innerHTML` ga
+    // tushadi — shu sababli avval escape qilinadi (stored XSS).
+    function esc(s) {
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+
     function toast(msg, type) {
         const t = document.createElement('div');
         t.className = 'mp-toast ' + type;
-        t.innerHTML = '<i class="bi bi-' + (type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill') + '"></i> ' + msg;
+        t.innerHTML = '<i class="bi bi-' + (type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill') + '"></i> ' + esc(msg);
         document.body.appendChild(t);
         setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 3000);
     }
@@ -350,31 +358,36 @@
             list.innerHTML = d.results.map(function(p, i) {
                 var cancelBtn = '';
                 if (p.can_cancel) {
-                    cancelBtn = '<button class="mp-cancel-btn" onclick="openCancel(' + p.id + ',\'' + p.product_name.replace(/'/g, "\\'") + '\',' + p.coins_spent + ')"><i class="bi bi-x-lg"></i> Bekor qilish</button>';
+                    // Mahsulot nomini `onclick` atributiga qo'yish xavfli edi ("
+                    // belgisi atributdan chiqib ketardi) — data-* + delegation.
+                    cancelBtn = '<button class="mp-cancel-btn" data-cancel-id="' + esc(p.id) +
+                        '" data-cancel-name="' + esc(p.product_name) +
+                        '" data-cancel-coins="' + esc(p.coins_spent) +
+                        '"><i class="bi bi-x-lg"></i> Bekor qilish</button>';
                 }
 
                 var extraInfo = '';
                 if (p.status === 'cancelled' && p.cancelled_at) {
-                    extraInfo = '<span class="mp-cancelled-date"><i class="bi bi-calendar-x"></i> ' + fmtDateShort(p.cancelled_at) + '</span>';
+                    extraInfo = '<span class="mp-cancelled-date"><i class="bi bi-calendar-x"></i> ' + esc(fmtDateShort(p.cancelled_at)) + '</span>';
                 }
 
                 var imgHtml = p.product_image
-                    ? '<img class="mp-card-img" src="' + p.product_image + '" alt="' + p.product_name + '" loading="lazy">'
+                    ? '<img class="mp-card-img" src="' + esc(p.product_image) + '" alt="' + esc(p.product_name) + '" loading="lazy">'
                     : '<div class="mp-card-img" style="display:flex;align-items:center;justify-content:center;"><i class="bi bi-box-seam" style="font-size:1.5rem;color:var(--mkt-dim);"></i></div>';
 
                 return '<div class="mp-card" style="animation-delay:' + (i * 60) + 'ms">' +
                     imgHtml +
                     '<div class="mp-card-body">' +
                         '<div class="mp-card-header">' +
-                            '<h3 class="mp-card-title"><a href="/market/' + p.product + '/">' + p.product_name + '</a></h3>' +
-                            '<span class="mp-order-id">#' + p.id + '</span>' +
+                            '<h3 class="mp-card-title"><a href="/market/' + encodeURIComponent(p.product) + '/">' + esc(p.product_name) + '</a></h3>' +
+                            '<span class="mp-order-id">#' + esc(p.id) + '</span>' +
                         '</div>' +
                         '<div class="mp-card-info">' +
-                            '<span class="mp-card-price"><i class="bi bi-coin"></i> ' + p.coins_spent + ' coin</span>' +
-                            '<span class="mp-card-date"><i class="bi bi-calendar3"></i> ' + fmtDate(p.purchased_at) + '</span>' +
+                            '<span class="mp-card-price"><i class="bi bi-coin"></i> ' + esc(p.coins_spent) + ' coin</span>' +
+                            '<span class="mp-card-date"><i class="bi bi-calendar3"></i> ' + esc(fmtDate(p.purchased_at)) + '</span>' +
                         '</div>' +
                         '<div class="mp-status-wrap">' +
-                            '<span class="mp-status ' + p.status + '">' + statusIcon(p.status) + ' ' + statusLabel(p.status) + '</span>' +
+                            '<span class="mp-status ' + esc(p.status) + '">' + statusIcon(p.status) + ' ' + statusLabel(p.status) + '</span>' +
                             extraInfo +
                         '</div>' +
                         buildProgress(p.status) +
@@ -413,9 +426,15 @@
     window.openCancel = function(id, name, coins) {
         cancelId = id;
         document.getElementById('cancelProductName').textContent = '"' + name + '" buyurtmasini bekor qilmoqchimisiz?';
-        document.getElementById('cancelCoinsInfo').innerHTML = '<i class="bi bi-coin"></i> ' + coins + ' coin qaytariladi';
+        document.getElementById('cancelCoinsInfo').innerHTML = '<i class="bi bi-coin"></i> ' + esc(coins) + ' coin qaytariladi';
         document.getElementById('cancelModal').classList.add('show');
     };
+
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.mp-cancel-btn');
+        if (!btn) return;
+        openCancel(btn.dataset.cancelId, btn.dataset.cancelName || '', btn.dataset.cancelCoins || '0');
+    });
 
     window.closeCancel = function() {
         document.getElementById('cancelModal').classList.remove('show');

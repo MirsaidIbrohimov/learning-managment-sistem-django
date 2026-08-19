@@ -660,13 +660,16 @@
 
 <div class="vm-toast" id="vqToast"><i class="bi bi-check-circle-fill"></i><span id="vqToastText"></span></div>
 
+{{ quizzes_payload|json_script:"vqQuizzesJson" }}
 <script>
 /* ================================================================
    Video Quiz Manager — timeline, CRUD (fetch API orqali)
    ================================================================ */
 const VQ = {
     duration: {{ duration_seconds }},
-    quizzes: {{ quizzes_json|safe }},
+    // `json_script` — savol matnidagi `</script>` script tegini yopib
+    // yubormasligi uchun (JSON literalini to'g'ridan-to'g'ri qo'yish xavfli).
+    quizzes: JSON.parse(document.getElementById('vqQuizzesJson').textContent),
     csrf: '{{ csrf_token }}',
     urls: {
         create: "{% url 'video_quiz:api_quiz_create' video.pk %}",

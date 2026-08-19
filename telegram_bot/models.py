@@ -1,8 +1,13 @@
-import random
+import secrets
 import string
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
+
+# Login kodi uchun urinish limiti: 6 xonali kod 10^6 variantga ega, lekin
+# tekshiruv butun bazadan qidiradi (kod global unique). Cheklovsiz taxmin
+# qilishga yo'l qo'yilmaydi.
+MAX_CODE_ATTEMPTS = 5
 
 
 class TelegramLoginCode(models.Model):
@@ -11,6 +16,7 @@ class TelegramLoginCode(models.Model):
     code = models.CharField(max_length=6, unique=True, verbose_name="Login kodi")
     created_at = models.DateTimeField(auto_now_add=True)
     is_used = models.BooleanField(default=False, verbose_name="Ishlatilgan")
+    attempts = models.PositiveSmallIntegerField(default=0, verbose_name="Noto'g'ri urinishlar")
 
     class Meta:
         verbose_name = "Telegram login kodi"
@@ -23,10 +29,23 @@ class TelegramLoginCode(models.Model):
     def is_expired(self):
         return timezone.now() > self.created_at + timedelta(minutes=5)
 
+    @property
+    def is_attempt_exhausted(self):
+        return self.attempts >= MAX_CODE_ATTEMPTS
+
+    @property
+    def is_usable(self):
+        return not self.is_used and not self.is_expired and not self.is_attempt_exhausted
+
     @staticmethod
     def generate_code():
-        """6 xonali tasodifiy kod yaratish"""
-        return ''.join(random.choices(string.digits, k=6))
+        """6 xonali kriptografik tasodifiy kod.
+
+        `random` moduli (Mersenne Twister) kutilishi mumkin: bir nechta kodni
+        ko'rgan hujumchi keyingilarini hisoblab chiqara oladi. Autentifikatsiya
+        uchun faqat `secrets` ishlatiladi.
+        """
+        return ''.join(secrets.choice(string.digits) for _ in range(6))
 
 
 class TelegramLinkToken(models.Model):
@@ -49,7 +68,15 @@ class TelegramLinkToken(models.Model):
 
     @staticmethod
     def generate_token():
-        return ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+        """Kriptografik tasodifiy ulash tokeni.
+
+        Bu token akkauntga Telegram bog'lash uchun ishlatiladi, ya'ni uni
+        taxmin qilgan hujumchi o'z Telegramini boshqa foydalanuvchining
+        akkauntiga bog'lab, keyin login kodi orqali to'liq egalik oladi.
+        `random.choices` ni bu yerda ishlatib bo'lmaydi.
+        """
+        alphabet = string.ascii_letters + string.digits
+        return ''.join(secrets.choice(alphabet) for _ in range(32))
 
 
 class TelegramMessageLog(models.Model):

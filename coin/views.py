@@ -223,15 +223,27 @@ def admin_cancel_purchase(request, pk):
     
     if request.method == 'POST':
         with transaction.atomic():
-            purchase.user.coins += purchase.coins_spent
-            purchase.user.save(update_fields=['coins'])
-            
-            purchase.product.stock += 1
-            purchase.product.save()
-            
-            purchase.status = 'cancelled'
-            purchase.cancelled_at = timezone.now()
-            purchase.save()
+            # Holatni shartli UPDATE bilan band qilamiz — tugma ikki marta
+            # bosilsa coin ikki marta qaytarilmasin.
+            cancelled = ProductPurchase.objects.filter(
+                pk=purchase.pk, status='pending', is_delivered=False
+            ).update(status='cancelled', cancelled_at=timezone.now())
+
+            if not cancelled:
+                messages.error(request, "Bu buyurtmani bekor qilib bo'lmaydi!")
+                return redirect('coin:admin_purchases')
+
+            purchase.refresh_from_db(fields=['status', 'cancelled_at'])
+
+            CustomUser.objects.filter(pk=purchase.user_id).update(
+                coins=db_models.F('coins') + purchase.coins_spent
+            )
+            purchase.user.refresh_from_db(fields=['coins'])
+
+            Product.objects.filter(pk=purchase.product_id).update(
+                stock=db_models.F('stock') + 1
+            )
+            purchase.product.refresh_from_db(fields=['stock'])
             
             CoinTransaction.objects.create(
                 user=purchase.user,

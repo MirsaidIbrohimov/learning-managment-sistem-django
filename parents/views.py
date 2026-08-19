@@ -11,6 +11,7 @@ from accounts.models import (
     Homework, HomeworkSubmission, Test, TestResult,
     CourseEnrollment,
 )
+from accounts.security import validate_parent_password
 
 
 @login_required
@@ -61,10 +62,16 @@ def admin_parent_add(request):
         password = request.POST.get('password', '')
         children_ids = request.POST.getlist('children')
 
+        # Ilgari hech qanday parol siyosati yo'q edi — admin "123" ham
+        # qo'ya olardi, keyin ota-ona uni deyarli hech qachon o'zgartirmasdi.
+        policy_error = validate_parent_password(password)
+
         if Parent.objects.filter(username=username).exists():
             messages.error(request, "Bu username allaqachon mavjud!")
         elif Parent.objects.filter(phone=phone).exists():
             messages.error(request, "Bu telefon raqam allaqachon mavjud!")
+        elif policy_error:
+            messages.error(request, policy_error)
         else:
             parent = Parent.objects.create(
                 first_name=first_name,
@@ -105,10 +112,15 @@ def admin_parent_edit(request, pk):
         password = request.POST.get('password', '')
         children_ids = request.POST.getlist('children')
 
+        # Bo'sh parol = "o'zgartirmang", shuning uchun faqat berilganda tekshiriladi.
+        policy_error = validate_parent_password(password) if password else ''
+
         if Parent.objects.filter(username=username).exclude(pk=pk).exists():
             messages.error(request, "Bu username allaqachon mavjud!")
         elif Parent.objects.filter(phone=phone).exclude(pk=pk).exists():
             messages.error(request, "Bu telefon raqam allaqachon mavjud!")
+        elif policy_error:
+            messages.error(request, policy_error)
         else:
             parent.first_name = first_name
             parent.last_name = last_name
@@ -255,8 +267,9 @@ def approve_parent_password_reset(request, pk):
     reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
 
     if reset_request.status == 'pending':
-        reset_request.parent.password = make_password(reset_request.new_password)
-        reset_request.parent.save()
+        # `new_password` so'rov paytida hashlangan — qayta hashlamaymiz.
+        reset_request.parent.password = reset_request.new_password
+        reset_request.parent.save(update_fields=['password'])
 
         reset_request.status = 'approved'
         reset_request.reviewed_by = request.user

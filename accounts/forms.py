@@ -3,10 +3,11 @@ import unicodedata
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import (
-    CustomUser, Profession, Section, Lesson, VideoLesson, Homework, 
+    CustomUser, Profession, Section, Lesson, VideoLesson, Homework,
     Test, TestQuestion, TestAnswer, HomeworkSubmission, Certificate,
     Dictionary, DictionaryWord
 )
+from .security import validate_document_upload, validate_upload
 
 
 def _clean_name_field(name, field_label):
@@ -56,9 +57,11 @@ class RegisterForm(UserCreationForm):
         widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
     )
     role = forms.ChoiceField(
-        choices=[('student', 'O\'quvchi'), ('teacher', 'O\'qituvchi')],
+        choices=[('student', 'O\'quvchi')],
         initial='student',
+        required=False,
         widget=forms.HiddenInput(),
+        disabled=True,
     )
     password1 = forms.CharField(
         widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Parol'})
@@ -69,7 +72,22 @@ class RegisterForm(UserCreationForm):
 
     class Meta:
         model = CustomUser
-        fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'role', 'password1', 'password2']
+        # `role` ATAYLAB yo'q: ochiq ro'yxatdan o'tish faqat 'student' yaratadi.
+        # Ilgari `role` Meta.fields ichida edi va HiddenInput bo'lgani uchun
+        # hujumchi POST da role=teacher yuborib o'zini o'qituvchi qilib
+        # ro'yxatdan o'tkaza olardi (privilege escalation). Rol faqat serverda,
+        # save() ichida belgilanadi; o'qituvchi/admin rollari admin panelidan
+        # beriladi.
+        fields = ['first_name', 'last_name', 'username', 'email', 'phone', 'birth_date', 'password1', 'password2']
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.role = 'student'
+        user.is_staff = False
+        user.is_superuser = False
+        if commit:
+            user.save()
+        return user
     
     def clean_first_name(self):
         return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
@@ -231,8 +249,8 @@ class UserProfileForm(forms.ModelForm):
 
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Yashash manzilingiz'}))
     birth_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    id_card = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
-    birth_certificate = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
+    id_card = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
+    birth_certificate = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = CustomUser
@@ -292,8 +310,8 @@ class AdminUserEditForm(forms.ModelForm):
 
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
     birth_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    id_card = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
-    birth_certificate = forms.FileField(required=False, widget=forms.FileInput(attrs={'class': 'form-control'}))
+    id_card = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
+    birth_certificate = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
 
     gender = forms.ChoiceField(required=False, choices=[('', 'Tanlang')] + list(CustomUser.GENDER_CHOICES), widget=forms.Select(attrs={'class': 'form-control'}))
     nationality = forms.CharField(required=False, max_length=100, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': "Masalan: O'zbek"}))
@@ -447,6 +465,7 @@ class HomeworkSubmissionForm(forms.ModelForm):
     )
     file = forms.FileField(
         required=False,
+        validators=[validate_upload],
         widget=forms.FileInput(attrs={'class': 'form-control'})
     )
     text_content = forms.CharField(
@@ -578,6 +597,7 @@ class CertificateForm(forms.ModelForm):
         help_text="Bo'sh qoldirilsa avtomatik yaratiladi",
     )
     file = forms.FileField(
+        validators=[validate_document_upload],
         widget=forms.FileInput(attrs={'class': 'form-control', 'accept': '.pdf'}),
         label="Sertifikat fayli (PDF)"
     )

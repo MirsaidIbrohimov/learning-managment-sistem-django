@@ -95,6 +95,7 @@ class Command(BaseCommand):
                         'url': webhook_url,
                         'max_connections': 40,
                         'drop_pending_updates': False,
+                        'secret_token': getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', ''),
                     },
                     timeout=10,
                 )

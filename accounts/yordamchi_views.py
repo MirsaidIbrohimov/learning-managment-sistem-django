@@ -61,6 +61,12 @@ def _require_perm(request, perm_code: str) -> bool:
     return user.has_assistant_perm(perm_code)
 
 
+def _audit_client_ip(request):
+    """Audit uchun IP — proxy ortida ham to'g'ri qiymat (soxtalashtirilmaydi)."""
+    from accounts.security import get_client_ip
+    return get_client_ip(request)
+
+
 def _log_action(request, action_code: str, target_type='', target_id='', description='', extra=None):
     """AssistantActionLog yozish."""
     try:
@@ -70,7 +76,7 @@ def _log_action(request, action_code: str, target_type='', target_id='', descrip
             target_type=target_type,
             target_id=str(target_id) if target_id else '',
             description=description[:500] if description else '',
-            ip_address=request.META.get('REMOTE_ADDR'),
+            ip_address=_audit_client_ip(request),
             extra=extra or {},
         )
     except Exception:

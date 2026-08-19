@@ -1615,7 +1615,11 @@ def teacher_generate_ai_test(request, pk):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'AI javobini o\'qishda xatolik. Qayta urinib ko\'ring.'}, status=500)
     except Exception as e:
-        return JsonResponse({'error': f'AI xatolik: {str(e)}'}, status=500)
+        from accounts.security import safe_error
+        return JsonResponse(
+            {'error': safe_error(e, 'teacher_ai_questions', "AI xatolik. Qayta urinib ko'ring.")},
+            status=500,
+        )
 
 
 @teacher_required

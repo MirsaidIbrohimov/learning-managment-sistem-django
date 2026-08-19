@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
-from django.db.models import Count, Max, Q, Sum, Avg
+from django.conf import settings
+from django.db.models import Count, F, Max, Q, Sum, Avg
 from django.db import models, transaction
 from django.utils import timezone
 from datetime import timedelta, date, datetime
@@ -31,7 +32,10 @@ from .models import (
     final_test_prerequisites_met, daily_limit_active,
 )
 from django.contrib.auth.hashers import make_password
-from .security import get_client_ip, check_rate_limit, is_rate_limited
+from .security import (
+    get_client_ip, check_rate_limit, is_rate_limited, validate_parent_password,
+    safe_error,
+)
 from coin.models import ActivityLog, CoinTransaction
 from blog.models import Post
 from quiz.models import Attempt, Quiz, QuizSettings
@@ -245,7 +249,10 @@ def generate_ai_homework(request):
             'description': homework_content,
         })
     except Exception as e:
-        return JsonResponse({'error': f'AI xatolik: {str(e)}'}, status=500)
+        return JsonResponse(
+            {'error': safe_error(e, 'ai_generate_homework', "AI xatolik. Qayta urinib ko'ring.")},
+            status=500,
+        )
 
 
 def generate_ai_test(request):
@@ -404,7 +411,10 @@ def generate_ai_test(request):
     except json.JSONDecodeError:
         return JsonResponse({'error': 'AI javobini o\'qishda xatolik. Qayta urinib ko\'ring.'}, status=500)
     except Exception as e:
-        return JsonResponse({'error': f'AI xatolik: {str(e)}'}, status=500)
+        return JsonResponse(
+            {'error': safe_error(e, 'ai_generate_questions', "AI xatolik. Qayta urinib ko'ring.")},
+            status=500,
+        )
 
 
 @login_required
@@ -585,7 +595,7 @@ def _register_device_and_session(request, user):
     from django.contrib.sessions.models import Session as DjangoSession
     
     ua = request.META.get('HTTP_USER_AGENT', '')
-    ip_address = request.META.get('REMOTE_ADDR', '')
+    ip_address = get_client_ip(request) or ''
     device_name, device_type, browser, os_name = _parse_user_agent(ua)
     device_id = _get_device_id(user, ua, ip_address)
 
@@ -750,7 +760,10 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
 
-    ip_address = request.META.get('REMOTE_ADDR', '')
+    # Login urinishlari IP bo'yicha hisoblanadi. `REMOTE_ADDR` proxy ortida
+    # hamma foydalanuvchi uchun bir xil bo'lib qolardi — bitta hujumchi
+    # butun saytni qulflab qo'yishi mumkin edi.
+    ip_address = get_client_ip(request) or ''
     user_agent = request.META.get('HTTP_USER_AGENT', '')
     max_attempts = getattr(django_settings, 'LOGIN_MAX_ATTEMPTS', 5)
     lockout_minutes = getattr(django_settings, 'LOGIN_LOCKOUT_DURATION', 15)
@@ -765,17 +778,29 @@ def login_view(request):
 
     if request.method == 'POST':
         form = LoginForm(request.POST)
-        # POST dan tokenni olish (hidden field)
-        login_token = request.POST.get('login_token', login_token)
+        # login_token ATAYLAB POST dan olinmaydi. Ilgari
+        #     login_token = request.POST.get('login_token', login_token)
+        # deb yozilgan edi — hidden field mijoz nazoratida bo'lgani uchun
+        # hujumchi har urinishda yangi tasodifiy token yuborib, pastdagi
+        # `is_token_blocked` bloklashini butunlay chetlab o'tardi. Token faqat
+        # serverdagi sessiyadan olinadi; hidden field template'da qolsa ham
+        # ishonilmaydi. Sessiyasiz brute-force uchun IP asosidagi
+        # check_rate_limit ishlaydi (uni cookie tashlab yuborib bo'lmaydi).
         request.session['login_token'] = login_token
 
         # 🛡️ IP-based rate limiting
-        login_identifier = (
-            request.POST.get('username', '') or
-            request.POST.get('phone', '') or
-            request.POST.get('telegram_code', '') or
-            ''
-        ).strip().lower()
+        if login_mode == 'telegram':
+            # Telegram kodi — akkaunt identifikatori EMAS, balki taxmin
+            # qilinayotgan sirning o'zi. Uni identifier qilib berilganda har
+            # taxmin yangi kalitga tushib, id_limit hech qachon ishlamaydi.
+            # Sessiyaga bog'lab qo'yamiz — shunda 5 ta noto'g'ri kodda to'xtaydi.
+            login_identifier = f'tgcode:{login_token[:32]}'
+        else:
+            login_identifier = (
+                request.POST.get('username', '') or
+                request.POST.get('phone', '') or
+                ''
+            ).strip().lower()
         blocked, block_msg = check_rate_limit(
             request, 'login', identifier=login_identifier,
             ip_limit=15, id_limit=5, window=900
@@ -820,26 +845,49 @@ def login_view(request):
                 messages.error(request, "Iltimos, kodni kiriting! ⚠️")
                 return _login_render(request, form, 'telegram')
 
-            from telegram_bot.models import TelegramLoginCode
-            try:
-                login_code = TelegramLoginCode.objects.get(code=telegram_code, is_used=False)
-            except TelegramLoginCode.DoesNotExist:
-                _record_failed_login(ip_address, f'telegram_code:{telegram_code[:6]}', user_agent, login_token)
+            # Faqat 6 xonali raqam — bazaga tegmasdan shovqinni to'sadi.
+            if not (len(telegram_code) == 6 and telegram_code.isdigit()):
+                _record_failed_login(ip_address, 'telegram_code:invalid', user_agent, login_token)
                 messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
                 return _login_render(request, form, 'telegram')
 
-            if login_code.is_expired:
-                messages.error(request, "Kod muddati tugagan! Botdan yangi kod oling. ⏰")
-                return _login_render(request, form, 'telegram')
+            from telegram_bot.models import TelegramLoginCode
 
-            try:
-                user = CustomUser.objects.get(telegram_id=login_code.telegram_id)
-            except CustomUser.DoesNotExist:
-                messages.error(request, "Foydalanuvchi topilmadi! ❌")
-                return _login_render(request, form, 'telegram')
+            # Kodni bir martalik qilib qulflab olamiz: bir vaqtda kelgan ikki
+            # so'rov bitta kodni ikki marta "ishlatib" yubormasin.
+            with transaction.atomic():
+                login_code = (
+                    TelegramLoginCode.objects
+                    .select_for_update()
+                    .filter(code=telegram_code, is_used=False)
+                    .first()
+                )
+                if login_code is None:
+                    _record_failed_login(
+                        ip_address, 'telegram_code:unknown', user_agent, login_token
+                    )
+                    messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
+                    return _login_render(request, form, 'telegram')
 
-            login_code.is_used = True
-            login_code.save()
+                if login_code.is_attempt_exhausted:
+                    login_code.is_used = True   # kodni butunlay o'lik qilamiz
+                    login_code.save(update_fields=['is_used'])
+                    messages.error(request, "Bu kod bloklandi. Botdan yangi kod oling. 🔒")
+                    return _login_render(request, form, 'telegram')
+
+                if login_code.is_expired:
+                    messages.error(request, "Kod muddati tugagan! Botdan yangi kod oling. ⏰")
+                    return _login_render(request, form, 'telegram')
+
+                user = CustomUser.objects.filter(telegram_id=login_code.telegram_id).first()
+                if user is None:
+                    login_code.attempts += 1
+                    login_code.save(update_fields=['attempts'])
+                    messages.error(request, "Kod noto'g'ri yoki allaqachon ishlatilgan! ❌")
+                    return _login_render(request, form, 'telegram')
+
+                login_code.is_used = True
+                login_code.save(update_fields=['is_used'])
 
         elif login_mode == 'phone':
             phone = request.POST.get('phone', '').strip()
@@ -930,7 +978,7 @@ def login_view(request):
             user.add_coins(5, "Premium kunlik bonus")
             messages.success(request, "💎 Premium bonus: +5 coin qo'shildi!")
 
-        ip_address = request.META.get('REMOTE_ADDR', '')
+        ip_address = get_client_ip(request) or ''
         ActivityLog.objects.create(
             user=user,
             action_type='login',
@@ -1027,7 +1075,7 @@ def logout_view(request):
             user=request.user,
             action_type='logout',
             description="Tizimdan chiqdi",
-            ip_address=request.META.get('REMOTE_ADDR')
+            ip_address=get_client_ip(request)
         )
 
     logout(request)
@@ -3983,7 +4031,11 @@ def lesson_view(request, pk):
         return redir
     profession = lesson.profession
 
-    context = {'lesson': lesson, 'profession': profession}
+    context = {
+        'lesson': lesson,
+        'profession': profession,
+        'video_timer_debug': settings.DEBUG,
+    }
     
     # Keyingi darsni topish
     next_lesson = None
@@ -4343,6 +4395,38 @@ def _clean_seconds(value, limit=86400):
     return secs
 
 
+def _merged_watch_segments(segments, new_segment=None, duration=0):
+    """Segmentlarni tozalab birlashtiradi va unique soniyalarni qaytaradi.
+
+    `new_segment` faqat server tekshiruvlaridan o'tgan playback oralig'i bo'ladi;
+    request body'dan kelgan tayyor segmentlar bu funksiyaga uzatilmaydi.
+    """
+    cleaned = []
+    for segment in list(segments or []) + ([new_segment] if new_segment else []):
+        if not isinstance(segment, (list, tuple)) or len(segment) != 2:
+            continue
+        start = _clean_seconds(segment[0])
+        end = _clean_seconds(segment[1])
+        if start is None or end is None:
+            continue
+        if duration:
+            start = min(start, duration)
+            end = min(end, duration)
+        if end > start:
+            cleaned.append([start, end])
+
+    merged = []
+    for start, end in sorted(cleaned):
+        if merged and start <= merged[-1][1] + 0.25:
+            merged[-1][1] = max(merged[-1][1], end)
+        else:
+            merged.append([start, end])
+
+    merged = [[round(start, 3), round(end, 3)] for start, end in merged]
+    watched = sum(end - start for start, end in merged)
+    return merged, watched
+
+
 def _ensure_gating_duration(video):
     """Ishonchli davomiylikni ta'minlaydi; aniqlanmasa adminga xabar beradi.
 
@@ -4429,6 +4513,7 @@ def _process_watch_beat(request, video, progress_pk):
         payload = {}
 
     position       = _clean_seconds(payload.get('position'))
+    reported_duration = _clean_seconds(payload.get('duration'))
     client_nonce   = str(payload.get('nonce') or '')[:32]
     presence_reply = str(payload.get('presence_token') or '')[:32]
     # Eski (brauzer keshida qolgan) mijoz bu maydonlarni yubormaydi. Uni "ijroda"
@@ -4464,6 +4549,20 @@ def _process_watch_beat(request, video, progress_pk):
     with transaction.atomic():
         progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
         required = _resolve_required_seconds(progress, video)
+        # Browser duration'i diagnostika uchun qabul qilinadi, lekin segmentni
+        # kesish yoki 90% talabini belgilashda faqat server duration'i ishlaydi.
+        duration = float(video.gating_duration_seconds or 0)
+        segments, unique_watched = _merged_watch_segments(
+            progress.watched_segments, duration=duration,
+        )
+        # Migratsiyadan oldingi yoki qo'lda yaratilgan progress yo'qolmasin.
+        if not segments and progress.verified_seconds > 0:
+            legacy_end = min(progress.verified_seconds, duration) if duration else progress.verified_seconds
+            segments, unique_watched = _merged_watch_segments(
+                [], [0, legacy_end], duration=duration,
+            )
+        progress.watched_segments = segments
+        progress.verified_seconds = unique_watched
 
         credited   = 0.0
         cheated    = False
@@ -4524,37 +4623,43 @@ def _process_watch_beat(request, video, progress_pk):
             )
 
             if advance > allowed_advance:
-                # Sakrash: `last_position` yangilanmaydi, aks holda sakragan nuqta
-                # keyingi beatlar uchun "qonuniy" bazaga aylanardi.
+                # Sakrab o'tilgan oraliqqa kredit yo'q. Yangi pozitsiyani baza
+                # qilamiz: foydalanuvchi shu joydan normal ko'rishni davom ettirsa,
+                # keyingi beat alohida watched segment yaratadi.
                 cheated = True
                 progress.cheat_attempts += 1
                 suspicion += 2
+                progress.last_position = position
             else:
+                segment_start = progress.last_position
                 progress.last_position = position
                 eligible_gap = wall is not None and BEAT_MIN_GAP <= wall <= BEAT_MAX_GAP
                 if eligible_gap and blocked_by is None and advance > 0:
-                    # Kredit — eng KICHIK chegara: pozitsiya o'sishi, server
-                    # soati bilan o'tgan real vaqt va hali kreditlanmagan qism.
-                    credited = min(advance, wall * BEAT_MAX_RATE,
-                                   position - progress.max_position)
+                    # Kredit — eng KICHIK chegara: pozitsiya o'sishi va server
+                    # soati bilan o'tgan real vaqt. Takror ko'rilgan qism pastda
+                    # segmentlar merge qilinganda ikkinchi marta sanalmaydi.
+                    credited = min(advance, wall * BEAT_MAX_RATE)
                     cap = _global_credit_cap(progress, now)
                     if cap is not None:
                         credited = min(credited, cap)
                     if pending_quiz is not None:
                         # Testdan oldinga o'tib bo'lmaydi.
                         credited = min(credited,
-                                       pending_quiz.trigger_second - progress.max_position)
+                                       pending_quiz.trigger_second - segment_start)
                     credited = max(0.0, credited)
 
                 if credited > 0:
-                    # `max_position` — KREDIT chizig'i: faqat haqiqatda
-                    # hisoblangan soniyaga suriladi. `= position` bo'lsa kredit
-                    # to'xtatilgan oraliq keyinroq "bepul" bo'lib qolardi, va
-                    # aksincha, kreditsiz surilsa halol o'quvchi yetib
-                    # bo'lmaydigan talab bilan qulflanib qolardi.
-                    progress.max_position += credited
-                    progress.verified_seconds += credited
-                    progress.last_credit_at = now
+                    segment_end = segment_start + credited
+                    previous_watched = progress.verified_seconds
+                    progress.watched_segments, progress.verified_seconds = _merged_watch_segments(
+                        progress.watched_segments,
+                        [segment_start, segment_end],
+                        duration=duration,
+                    )
+                    credited = max(0.0, progress.verified_seconds - previous_watched)
+                    progress.max_position = max(progress.max_position, segment_end)
+                    if credited > 0:
+                        progress.last_credit_at = now
 
         # ── 6. Navbatdagi tiriklik tekshiruvini yuborish ──
         if progress.next_check_seconds <= 0:
@@ -4584,7 +4689,7 @@ def _process_watch_beat(request, video, progress_pk):
                 progress.suspicion_notified = True
                 notify_admin = True
         progress.save(update_fields=[
-            'max_position', 'last_position', 'verified_seconds', 'last_beat_at',
+            'max_position', 'last_position', 'verified_seconds', 'watched_segments', 'last_beat_at',
             'last_credit_at', 'cheat_attempts', 'beat_nonce', 'presence_token',
             'presence_sent_at', 'next_check_seconds', 'presence_failures',
             'suspicion_score', 'suspicion_notified',
@@ -4600,10 +4705,16 @@ def _process_watch_beat(request, video, progress_pk):
         'remaining': max(0, round(required - progress.verified_seconds, 1)) if required else None,
         'can_complete': progress.is_requirement_met,
         'seek_blocked': cheated,
-        'resume_at': round(progress.last_position, 1) if cheated else None,
+        'seek_detected': cheated,
+        'resume_at': None,
         'nonce': progress.beat_nonce,
         'credited': round(credited, 1),
         'blocked': blocked_by,
+        'watched_segments': progress.watched_segments,
+        'watched_percentage': round(
+            min(100, progress.verified_seconds * 100 / video.gating_duration_seconds), 1
+        ) if video.gating_duration_seconds else 0,
+        'duration': video.gating_duration_seconds,
     }
     if presence_challenge:
         result['presence'] = presence_challenge
@@ -4711,48 +4822,60 @@ def _watch_requirement_error(progress, video):
     }, status=403)
 
 
-@login_required
-def mark_video_watched(request, pk):
-    if request.method != 'POST':
-        return JsonResponse({'success': False, 'error': 'POST only'})
-    
-    if request.user.is_student and not request.user.is_admin:
-        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin', 'use_token': True}, status=403)
-    
-    video = get_object_or_404(VideoLesson, pk=pk)
-    _ensure_gating_duration(video)
-    progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-
-    # Server tasdiqlagan vaqt talabga yetmasa — rad etamiz. Mijozdagi tugma
-    # holatiga ishonmaymiz (konsoldan yoqib yuborish mumkin).
-    error = _watch_requirement_error(progress, video)
-    if error is not None:
-        return error
-
+def _complete_video_watch(request, video):
+    """Progressni qayta tekshirib, dars va coin mukofotini atomik yakunlaydi."""
     coin_amount = _video_watch_coin_amount(video, request.user)
     awarded = False
+    completed_now = False
 
-    if not progress.watched:
-        progress.watched = True
-        progress.watched_at = timezone.now()
-        progress.save()
-        
+    with transaction.atomic():
+        progress, _ = VideoProgress.objects.select_for_update().get_or_create(
+            user=request.user, video=video,
+        )
+        error = _watch_requirement_error(progress, video)
+        if error is not None:
+            return error
+
+        if not progress.watched:
+            progress.watched = True
+            progress.watched_at = timezone.now()
+            completed_now = True
+
         if not progress.coin_awarded:
-            request.user.add_coins(coin_amount, f"Video darslik ko'rildi: {video.lesson.title}")
+            request.user.add_coins(
+                coin_amount, f"Video darslik ko'rildi: {video.lesson.title}",
+            )
             progress.coin_awarded = True
-            progress.save()
             awarded = True
-        
-        # Avtomatik xabar yuborish
+
+        progress.save(update_fields=[
+            'watched', 'watched_at', 'coin_awarded',
+        ])
+
+    if completed_now:
         from .notifications import on_video_watched
         on_video_watched(request.user, progress)
-    
+
+    request.user.refresh_from_db(fields=['coins'])
     return JsonResponse({
         'success': True,
         'coins': request.user.coins,
         'coin_amount': coin_amount if awarded else 0,
         'is_premium': request.user.is_premium,
     })
+
+
+@login_required
+def mark_video_watched(request, pk):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'POST only'})
+
+    if request.user.is_student and not request.user.is_admin:
+        return JsonResponse({'success': False, 'error': 'Faqat token URL orqali kirish mumkin', 'use_token': True}, status=403)
+
+    video = get_object_or_404(VideoLesson, pk=pk)
+    _ensure_gating_duration(video)
+    return _complete_video_watch(request, video)
 
 
 def _notify_ai_graded(submission, ai_result):
@@ -6336,7 +6459,13 @@ def student_lesson_view(request, token):
     # Kurs tokenini olish (orqaga qaytish uchun)
     course_token = StudentCourseToken.get_or_create(request.user, profession)
 
-    context = {'lesson': lesson, 'profession': profession, 'student_token': token_obj, 'course_token': course_token}
+    context = {
+        'lesson': lesson,
+        'profession': profession,
+        'student_token': token_obj,
+        'course_token': course_token,
+        'video_timer_debug': settings.DEBUG,
+    }
 
     # Keyingi darsni topish
     next_lesson = None
@@ -6466,37 +6595,7 @@ def student_mark_video_watched(request, token):
 
     video = lesson.video
     _ensure_gating_duration(video)
-    progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-
-    # Server tasdiqlagan vaqt talabga yetmasa — rad etamiz. Mijozdagi tugma
-    # holatiga ishonmaymiz (konsoldan yoqib yuborish mumkin).
-    error = _watch_requirement_error(progress, video)
-    if error is not None:
-        return error
-
-    coin_amount = _video_watch_coin_amount(video, request.user)
-    awarded = False
-
-    if not progress.watched:
-        progress.watched = True
-        progress.watched_at = timezone.now()
-        progress.save()
-
-        if not progress.coin_awarded:
-            request.user.add_coins(coin_amount, f"Video darslik ko'rildi: {video.lesson.title}")
-            progress.coin_awarded = True
-            progress.save()
-            awarded = True
-
-        from .notifications import on_video_watched
-        on_video_watched(request.user, progress)
-
-    return JsonResponse({
-        'success': True,
-        'coins': request.user.coins,
-        'coin_amount': coin_amount if awarded else 0,
-        'is_premium': request.user.is_premium,
-    })
+    return _complete_video_watch(request, video)
 
 
 @login_required
@@ -9365,7 +9464,7 @@ def ai_generate_dictionary(request, pk):
     except json.JSONDecodeError:
         messages.error(request, "AI javobini o'qishda xatolik yuz berdi. Qaytadan urinib ko'ring.")
     except Exception as e:
-        messages.error(request, f"AI so'z yaratishda xatolik: {str(e)}")
+        messages.error(request, safe_error(e, 'ai_generate_words', "AI so'z yaratishda xatolik yuz berdi."))
 
     return redirect('manage_dictionary', pk=dictionary.pk)
 
@@ -9949,7 +10048,7 @@ def notify_teacher_homework(request):
             target_type='profession',
             target_id=str(profession.pk),
             description=f"'{profession.name}' kursi ustoz(lar)iga vazifa eslatmasi yuborildi",
-            ip_address=request.META.get('REMOTE_ADDR'),
+            ip_address=get_client_ip(request),
         )
     except Exception:
         pass
@@ -13618,7 +13717,6 @@ def admin_lesson_statistics(request):
         'completion_percent': round(completion_percent, 1),
 
         # Kunlik faollik
-        'daily_activity_json': json.dumps(daily_activity),
         'daily_activity': daily_activity,
         'activity_period_label': activity_period_label,
 
@@ -14730,11 +14828,16 @@ def admin_parent_add(request):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         children_ids = request.POST.getlist('children')
-        
+
+        # Ilgari hech qanday parol siyosati yo'q edi — admin "123" ham qo'ya olardi.
+        policy_error = validate_parent_password(password)
+
         if Parent.objects.filter(username=username).exists():
             messages.error(request, "Bu username allaqachon mavjud!")
         elif Parent.objects.filter(phone=phone).exists():
             messages.error(request, "Bu telefon raqam allaqachon mavjud!")
+        elif policy_error:
+            messages.error(request, policy_error)
         else:
             parent = Parent.objects.create(
                 first_name=first_name,
@@ -14776,11 +14879,16 @@ def admin_parent_edit(request, pk):
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
         children_ids = request.POST.getlist('children')
-        
+
+        # Bo'sh parol = "o'zgartirmang", shuning uchun faqat berilganda tekshiriladi.
+        policy_error = validate_parent_password(password) if password else ''
+
         if Parent.objects.filter(username=username).exclude(pk=pk).exists():
             messages.error(request, "Bu username allaqachon mavjud!")
         elif Parent.objects.filter(phone=phone).exclude(pk=pk).exists():
             messages.error(request, "Bu telefon raqam allaqachon mavjud!")
+        elif policy_error:
+            messages.error(request, policy_error)
         else:
             parent.first_name = first_name
             parent.last_name = last_name
@@ -15414,23 +15522,23 @@ def admin_parent_password_requests(request):
 def approve_parent_password_reset(request, pk):
     if not request.user.is_admin:
         return redirect('home')
-    
+
     from .models import ParentPasswordResetRequest
-    from django.contrib.auth.hashers import make_password
-    
+
     reset_request = get_object_or_404(ParentPasswordResetRequest, pk=pk)
-    
+
     if reset_request.status == 'pending':
-        reset_request.parent.password = make_password(reset_request.new_password)
-        reset_request.parent.save()
-        
+        # `new_password` so'rov paytida hashlangan — qayta hashlamaymiz.
+        reset_request.parent.password = reset_request.new_password
+        reset_request.parent.save(update_fields=['password'])
+
         reset_request.status = 'approved'
         reset_request.reviewed_by = request.user
         reset_request.reviewed_at = timezone.now()
         reset_request.save()
-        
+
         messages.success(request, f"{reset_request.parent.full_name} paroli yangilandi!")
-    
+
     return redirect('admin_parent_password_requests')
 
 
@@ -15631,14 +15739,19 @@ def reject_premium_request(request, pk):
         return redirect('admin_premium_management')
 
     with transaction.atomic():
-        prem_req.status = 'rejected'
-        prem_req.reviewed_by = request.user
-        prem_req.reviewed_at = timezone.now()
-        prem_req.save()
+        # Holatni shartli UPDATE bilan band qilamiz: tugma ikki marta bosilsa
+        # yoki so'rov takrorlansa, coin ikki marta qaytarilmasin.
+        claimed = PremiumRequest.objects.filter(pk=prem_req.pk, status='pending').update(
+            status='rejected', reviewed_by=request.user, reviewed_at=timezone.now()
+        )
+        if not claimed:
+            messages.info(request, "Bu so'rov allaqachon ko'rib chiqilgan.")
+            return redirect('admin_premium_management')
+        prem_req.refresh_from_db()
 
         user = CustomUser.objects.select_for_update().get(pk=prem_req.user_id)
-        user.coins += prem_req.price
-        user.save(update_fields=['coins'])
+        CustomUser.objects.filter(pk=user.pk).update(coins=F('coins') + prem_req.price)
+        user.refresh_from_db(fields=['coins'])
 
         from coin.models import CoinTransaction
         CoinTransaction.objects.create(
@@ -15771,13 +15884,9 @@ def toggle_section_block(request, section):
         })
     
     except Exception as e:
-        import sys
-        print(f"DEBUG: Exception - {str(e)}", file=sys.stderr)
-        import traceback
-        traceback.print_exc(file=sys.stderr)
         return JsonResponse({
             'success': False,
-            'error': str(e)
+            'error': safe_error(e, 'admin_balance_view'),
         }, status=400)
 
 
@@ -17887,9 +17996,8 @@ def admin_balance_topup(request, student_id):
     from django.db import transaction
 
     student = get_object_or_404(CustomUser, pk=student_id, role='student')
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
-    if ',' in ip:
-        ip = ip.split(',')[0].strip()
+    # Pul operatsiyasi audit izi — IP soxtalashtirilmasligi kerak.
+    ip = get_client_ip(request) or ''
 
     if request.method == 'POST':
         try:
@@ -17995,9 +18103,8 @@ def admin_balance_deduct(request, student_id):
     except (ValueError, TypeError) as exc:
         return JsonResponse({'error': str(exc)}, status=400)
 
-    ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', ''))
-    if ',' in ip:
-        ip = ip.split(',')[0].strip()
+    # Pul operatsiyasi audit izi — IP soxtalashtirilmasligi kerak.
+    ip = get_client_ip(request) or ''
 
     with transaction.atomic():
         balance, _ = StudentBalance.objects.select_for_update().get_or_create(user=student)
@@ -18738,10 +18845,9 @@ def admin_direct_chats_ai(request):
     try:
         result = analyze_chats(question, history)
     except Exception as e:
-        print(f"admin_direct_chats_ai error: {e}")
         return JsonResponse({
             'ok': False,
-            'answer': f"⚠️ Ichki xatolik yuz berdi: {e}",
+            'answer': "⚠️ " + safe_error(e, 'admin_direct_chats_ai'),
             'links': [],
         }, status=500)
 
@@ -18788,10 +18894,9 @@ def admin_users_ai(request):
     try:
         result = analyze_users(question, history)
     except Exception as e:
-        print(f"admin_users_ai error: {e}")
         return JsonResponse({
             'ok': False,
-            'answer': f"⚠️ Ichki xatolik yuz berdi: {e}",
+            'answer': "⚠️ " + safe_error(e, 'admin_users_ai'),
             'links': [],
         }, status=500)
 

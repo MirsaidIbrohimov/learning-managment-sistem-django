@@ -2,6 +2,7 @@ import re
 import html as _html
 
 from django import template
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 register = template.Library()
@@ -189,7 +190,12 @@ def premium_name(user):
     name = user.full_name if hasattr(user, 'full_name') else str(user)
     
     if hasattr(user, 'is_premium') and user.is_premium:
-        return mark_safe(f'{name} <i class="bi bi-patch-check-fill" style="color:#f59e0b;font-size:0.85em;" title="Premium"></i>')
+        # `format_html` ismni escape qiladi — ism foydalanuvchi kiritadigan maydon,
+        # `mark_safe(f'{name} ...')` bo'lsa XSS ochilib qolar edi.
+        return format_html(
+            '{} <i class="bi bi-patch-check-fill" style="color:#f59e0b;font-size:0.85em;" title="Premium"></i>',
+            name,
+        )
     return name
 
 @register.filter
@@ -203,3 +209,15 @@ def chr(value):
             return builtins.chr(int(value))
         except:
             return ''
+
+
+@register.filter(name='safe_html')
+def safe_html(value):
+    """Saqlangan boy matnni (rich text) tozalab ko'rsatadi.
+
+    `|safe` o'rniga ishlatiladi: formatlash saqlanadi, lekin skript, `onerror=`
+    kabi hodisa atributlari va `javascript:` havolalar olib tashlanadi. Tozalash
+    o'qish paytida bajarilgani uchun bazadagi eski kontent ham himoyalanadi.
+    """
+    from accounts.security import sanitize_html
+    return mark_safe(sanitize_html(value or ''))

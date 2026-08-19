@@ -16,6 +16,23 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 from dotenv import load_dotenv
 import os
+import sys
+
+# Test runner ishlayaptimi. Faqat transport bilan bog'liq sozlamalarni
+# (SSL redirect) o'chirish uchun kerak — Django test mijozi HTTPS emulyatsiya
+# qilmaydi va har bir so'rov 301 ga aylanib ketadi. Production yo'liga
+# ta'sir qilmaydi: `manage.py test` bo'lmasa qiymat o'zgarmaydi.
+RUNNING_TESTS = 'test' in sys.argv or 'pytest' in sys.modules
+
+# `manage.py runserver` — lokal ishlab chiqish serveri. U TLS ni qo'llab
+# quvvatlamaydi, shuning uchun DEBUG=False bilan lokal sinaganda HTTPS
+# majburlash brauzerda ERR_SSL_PROTOCOL_ERROR beradi, `Secure` cookie'lar esa
+# http ustidan yuborilmagani uchun login umuman ishlamaydi.
+# Bu flag FAQAT transport sozlamalarini bo'shatadi — DEBUG o'zi o'zgarmaydi,
+# ya'ni xatolik sahifalari va traceback lar hamon yopiq qoladi.
+# cPanel production Passenger/WSGI orqali ishlaydi va `runserver` ni
+# ishlatmaydi, shuning uchun bu yerga hech qachon tushmaydi.
+RUNNING_DEV_SERVER = 'runserver' in sys.argv
 
 load_dotenv(BASE_DIR / '.env')
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -36,7 +53,9 @@ def _env_bool(name, default=False):
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # Default False — DEBUG yoqilishi uchun .env da ATAYLAB DEBUG=True yozilishi shart.
-DEBUG = True
+# Pastdagi barcha cookie/HSTS/SSL himoyalari `not DEBUG` ga bog'langan, shuning
+# uchun bu qiymatni qattiq `True` qilib qoldirish ularning hammasini o'chiradi.
+DEBUG = _env_bool('DEBUG', False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY') or ''
@@ -51,13 +70,28 @@ if not SECRET_KEY:
         )
 
 _DEFAULT_HOSTS = 'itc-academy.uz,www.itc-academy.uz,itcreative.uz,www.itcreative.uz,localhost,127.0.0.1'
-ALLOWED_HOSTS = ["*"]
-# Production'da '*' Host sarlavhasi tekshiruvini butunlay o'chiradi (Host header
-# poisoning: parol tiklash havolalarini soxta domenga yo'naltirish mumkin).
-if not DEBUG and '*' in ALLOWED_HOSTS:
-    ALLOWED_HOSTS = [h for h in ALLOWED_HOSTS if h != '*'] or [
-        h.strip() for h in _DEFAULT_HOSTS.split(',') if h.strip()
-    ]
+
+
+def _env_list(name, default=''):
+    return [item.strip() for item in os.getenv(name, default).split(',') if item.strip()]
+
+
+def _split_csv(value):
+    return [item.strip() for item in value.split(',') if item.strip()]
+
+
+# Productionda '*' Host tekshiruvini butunlay o'chiradi (Host header poisoning:
+# parol tiklash havolalarini soxta domenga yo'naltirish mumkin), shuning uchun
+# '*' env dan kelsa ham tashlab yuboriladi.
+ALLOWED_HOSTS = [
+    h for h in _env_list('ALLOWED_HOSTS') if h != '*'
+] or _split_csv(_DEFAULT_HOSTS)
+# Loopback nomlari doim ruxsat etiladi: ular tashqi hujumchiga hech narsa bermaydi
+# (soxta Host: localhost bilan yasalgan havola jabrlanuvchining o'z mashinasiga
+# ishora qiladi), lekin lokal ishga tushirishni kafolatlaydi.
+for _loopback in ('localhost', '127.0.0.1'):
+    if _loopback not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_loopback)
 
 
 # Application definition
@@ -419,8 +453,10 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # (Eski STATICFILES_STORAGE qatori e'tiborsiz qolib, WhiteNoise siqishi ishlamay
 #  turgan edi.) Manifest emas: collectstatic esdan chiqsa sayt 500 bermaydi.
 STORAGES = {
+    # Yuklangan fayllar: nomni tozalaydi, bajariladigan kengaytmalarni
+    # zararsizlantiradi (accounts/storage.py izohiga qarang).
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "accounts.storage.SafeMediaStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
@@ -450,12 +486,33 @@ except Exception:
     pass
 
 # ── HTTPS (production) ────────────────────────────────────────────
+# `_PLAIN_HTTP_OK` — HTTPS mavjud bo'lmagan lokal muhitlar (test runner va
+# `runserver`). Bu qiymat DEBUG dan mustaqil: production'da ikkisi ham False.
+_PLAIN_HTTP_OK = RUNNING_TESTS or RUNNING_DEV_SERVER
+
 SECURE_HSTS_SECONDS            = 0 if DEBUG else 31536000   # 1 yil (production)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
 SECURE_HSTS_PRELOAD            = not DEBUG
 # DEBUG=False bilan lokal sinash uchun .env da SECURE_SSL_REDIRECT=False qilish mumkin.
-SECURE_SSL_REDIRECT            = _env_bool('SECURE_SSL_REDIRECT', not DEBUG)
-SECURE_PROXY_SSL_HEADER        = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT            = (
+    False if _PLAIN_HTTP_OK else _env_bool('SECURE_SSL_REDIRECT', not DEBUG)
+)
+# X-Forwarded-Proto ni faqat reverse proxy ortida ishonish mumkin. Django to'g'ridan
+# to'g'ri ochiq bo'lsa, mijoz bu headerni o'zi yuborib SSL redirectni chetlab o'tadi
+# va HTTP ustidan "secure" cookie o'rnatilishiga sabab bo'ladi.
+if _env_bool('TRUST_PROXY_SSL_HEADER', True):
+    SECURE_PROXY_SSL_HEADER    = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ── Reverse proxy / mijoz IP ─────────────────────────────────────
+# accounts.security.get_client_ip shu ikki qiymatga tayanadi.
+# USE_X_FORWARDED_FOR=False bo'lsa faqat REMOTE_ADDR ishlatiladi (proxy yo'q holat).
+# TRUSTED_PROXY_COUNT — Django oldida turgan O'ZIMIZNING proxy soni
+# (masalan cPanel/Apache = 1, Cloudflare + Apache = 2).
+USE_X_FORWARDED_FOR = _env_bool('USE_X_FORWARDED_FOR', True)
+try:
+    TRUSTED_PROXY_COUNT = max(1, int(os.getenv('TRUSTED_PROXY_COUNT', '1')))
+except ValueError:
+    TRUSTED_PROXY_COUNT = 1
 
 # ── Browser xavfsizlik headerlari ────────────────────────────────
 SECURE_BROWSER_XSS_FILTER  = True
@@ -466,7 +523,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = None  # SecurityHeadersMiddleware boshqaradi
 
 # ── CSRF ─────────────────────────────────────────────────────────
 CSRF_COOKIE_HTTPONLY   = False           # JS Ajax uchun o'qilishi kerak
-CSRF_COOKIE_SECURE     = not DEBUG
+CSRF_COOKIE_SECURE     = not (DEBUG or _PLAIN_HTTP_OK)
 CSRF_COOKIE_SAMESITE   = 'Lax'
 CSRF_COOKIE_NAME       = 'csrftoken'    # standart
 CSRF_USE_SESSIONS      = False
@@ -475,7 +532,7 @@ CSRF_TRUSTED_ORIGINS   = [
     o.strip() for o in os.getenv(
         'CSRF_TRUSTED_ORIGINS',
         'http://localhost:8000,http://127.0.0.1:8000'
-        if DEBUG else
+        if (DEBUG or _PLAIN_HTTP_OK) else
         'https://itc-academy.uz,https://www.itc-academy.uz,https://itcreative.uz,https://www.itcreative.uz'
     ).split(',') if o.strip()
 ]
@@ -486,7 +543,7 @@ CSRF_TRUSTED_ORIGINS   = [
 # variant; hisoblar aralashib ketishining oldini oladi.
 SESSION_ENGINE           = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_HTTPONLY  = True
-SESSION_COOKIE_SECURE    = not DEBUG
+SESSION_COOKIE_SECURE    = not (DEBUG or _PLAIN_HTTP_OK)
 SESSION_COOKIE_SAMESITE  = 'Lax'
 SESSION_COOKIE_NAME      = 'itc_sid'    # Default "sessionid" emas
 SESSION_COOKIE_AGE       = 60 * 60 * 2  # 2 soat
@@ -608,6 +665,26 @@ TELEGRAM_BOT_USERNAME  = os.getenv('TELEGRAM_BOT_USERNAME', '').strip()
 # Bo'sh qoldirilsa SECRET_KEY dan olinadi (hech qachon ochiq qolmaydi).
 TELEGRAM_HEALTH_TOKEN  = os.getenv('TELEGRAM_HEALTH_TOKEN', '').strip()
 
+# Webhook endpoint (/telegrambotlms/webhook/) @csrf_exempt bo'lgani uchun
+# autentifikatsiyasiz har kim soxta "update" yuborib boshqa foydalanuvchining
+# telegram_id si nomidan ish qila olardi (akkauntni bog'lash, login kodi olish,
+# coin sarflash). Telegram `setWebhook` da berilgan `secret_token` ni har bir
+# so'rovda `X-Telegram-Bot-Api-Secret-Token` sarlavhasida qaytaradi.
+# Bo'sh qoldirilsa SECRET_KEY + bot token dan deterministik olinadi — ya'ni
+# qo'shimcha sozlashsiz ham endpoint hech qachon ochiq qolmaydi.
+# Telegram talabi: 1-256 belgi, faqat A-Z a-z 0-9 _ -
+_raw_webhook_secret = os.getenv('TELEGRAM_WEBHOOK_SECRET', '').strip()
+if _raw_webhook_secret:
+    TELEGRAM_WEBHOOK_SECRET = _raw_webhook_secret
+else:
+    import hashlib as _hashlib
+    import hmac as _hmac
+    TELEGRAM_WEBHOOK_SECRET = _hmac.new(
+        SECRET_KEY.encode('utf-8'),
+        b'telegram-webhook:' + TELEGRAM_BOT_TOKEN.encode('utf-8'),
+        _hashlib.sha256,
+    ).hexdigest()
+
 # Premium custom emoji va ixtiyoriy stikerlar (telegram_bot/premium.py).
 # Botning matnli xabarlari premium animatsiyali emojilarni xabar ichida ishlatadi;
 # xabardan keyin alohida stiker avtomatik yuborilmaydi.
@@ -642,4 +719,9 @@ REST_FRAMEWORK = {
     'DEFAULT_THROTTLE_RATES': {
         'coin_transfer': '10/min',
     },
+    # DRF throttle mijozni IP bo'yicha ajratadi. `NUM_PROXIES` berilmasa
+    # `X-Forwarded-For` ning ENG CHAP qiymati olinadi — u butunlay mijoz
+    # nazoratida, ya'ni har so'rovda boshqa IP yozib limitni cheksiz
+    # aylanib o'tish mumkin edi (pul ko'chiruvchi endpoint uchun jiddiy).
+    'NUM_PROXIES': TRUSTED_PROXY_COUNT if USE_X_FORWARDED_FOR else 0,
 }

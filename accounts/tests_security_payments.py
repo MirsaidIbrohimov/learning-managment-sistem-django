@@ -1,4 +1,11 @@
-"""Vaqtincha tekshiruv — xavfsizlik tuzatishlarini tasdiqlash uchun."""
+"""
+To'lov shlyuzlari (Payme/Click), Telegram service endpointlari va ommaviy
+root fayllar uchun xavfsizlik regression testlari.
+
+Asosiy himoya: kalit sozlanmagan bo'lsa (`PAYME_KEY=''`, `CLICK_SECRET_KEY=''`)
+autentifikatsiya "hammaga ruxsat" holatiga tushib qolmasligi kerak — aks holda
+istalgan odam to'lovni tasdiqlangan deb ko'rsatib, balansni oshira olardi.
+"""
 import base64
 import hashlib
 

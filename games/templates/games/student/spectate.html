@@ -270,6 +270,8 @@
     </div>
 </div>
 
+{{ match.board_state|json_script:"spBoardState" }}
+{{ match.last_move|json_script:"spLastMove" }}
 <script>
 const MATCH_ID   = {{ match.id }};
 const GAME_SLUG  = "{{ match.game.slug }}";
@@ -287,8 +289,8 @@ let moveLog = [];
 let polling = true;
 
 // ── Build initial board from server render ──────────────────────────
-const INITIAL_BOARD = {{ board_state_json|safe }};
-renderBoard(INITIAL_BOARD, {{ last_move_json|safe }});
+const INITIAL_BOARD = JSON.parse(document.getElementById('spBoardState').textContent) || [];
+renderBoard(INITIAL_BOARD, JSON.parse(document.getElementById('spLastMove').textContent) || null);
 
 // ── Polling ──────────────────────────────────────────────────────────
 function poll() {

@@ -19,6 +19,7 @@ const URLS = {
     result:  `${API_BASE}/result/`,
     mpFind:  `${API_BASE}/mp/find/`,
     mpState: `${API_BASE}/mp/state/`,
+    mpPing:  `${API_BASE}/mp/ping/`,
     mpMove:  `${API_BASE}/mp/move/`,
     mpResign:`${API_BASE}/mp/resign/`,
 };
@@ -101,6 +102,26 @@ function hideReconnectOverlay() {
     if (!overlay) return;
     overlay.classList.add('hidden');
     overlay.classList.remove('reconnecting');
+}
+// Token muddati tugaganda (HTTP 403) — jimgina "Raqib yurmoqda"da qotib qolish
+// o'rniga pollingni to'xtatib, aniq xabar beramiz. Sahifa yangilansa yangi token
+// olinadi va o'yin davom etadi.
+let _sessionExpired = false;
+// O'z yurishimiz serverga yuborilayotgan qisqa payt. Shu paytda polling
+// serverdagi (hali yangilanmagan) holatga qarab optimistik yurishimizni
+// qaytarib yubormasligi uchun reconcile'ni to'xtatamiz.
+let _localMovePending = false;
+function showSessionExpired() {
+    if (_sessionExpired) return;
+    _sessionExpired = true;
+    if (pollInterval) clearInterval(pollInterval);
+    const overlay = $('wait-overlay');
+    if (overlay) {
+        $('wait-text').innerHTML = "<i class=\"bi bi-hourglass-bottom\"></i> Sessiya muddati tugadi. Davom etish uchun sahifani yangilang.";
+        overlay.classList.remove('hidden');
+        overlay.classList.remove('reconnecting');
+    }
+    announce('Sessiya muddati tugadi, sahifani yangilang');
 }
 
 const screens = {
@@ -489,11 +510,52 @@ function startGame(initialState = null) {
     updateTurnUI();
     startTimer();
 
-    // Multiplayer polling
+    // Multiplayer polling — versiyaga asoslangan moslashuvchan usul
     if (pollInterval) clearInterval(pollInterval);
     if (MODE === 'mp') {
-        pollInterval = setInterval(pollMatchState, 2000);
+        startPolling();
     }
+}
+
+// ===== VERSIYAGA ASOSLANGAN MOSLASHUVCHAN POLLING =====
+// Har safar ARZON `mp/ping` (bitta qator: mc/status/turn) so'raladi. Faqat
+// biror narsa o'zgarsa (yurish soni/holat/navbat) — BIR MARTA to'liq
+// pollMatchState() (taxta + reconcile) chaqiriladi. Bu ko'p o'yinchi bir vaqtda
+// o'ynaganda serverni engillashtiradi. Raqib yurishini kutayotganda tez (~1s),
+// o'z navbatimizda sekin (~3s) so'raymiz.
+function _pollDelay() {
+    if (MODE !== 'mp' || resultSubmitted || _endPauseStarted) return 3000;
+    return (currentTurn !== PLAYER_COLOR) ? 1000 : 3000;   // raqibni kutsak — tez
+}
+async function mpPingTick() {
+    if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
+    try {
+        const res = await fetch(URLS.mpPing, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
+        });
+        const d = await res.json();
+        if (!d.ok) { if (res.status === 403) showSessionExpired(); return; }
+        mpPollFailCount = 0; hideReconnectOverlay();
+        // O'zgarish bo'lsa — to'liq holatni olamiz (reconcile shu yerda)
+        if (d.mc !== lastSeenMoveCount || d.st === 'ended' || d.ct !== currentTurn) {
+            await pollMatchState();
+        }
+    } catch (e) {
+        mpPollFailCount++;
+        if (mpPollFailCount >= MP_POLL_FAIL_THRESHOLD) showReconnectOverlay();
+    }
+}
+function startPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+    (function loop() {
+        pollInterval = setTimeout(async function() {
+            if (resultSubmitted || _endPauseStarted) return;
+            await mpPingTick();
+            if (!resultSubmitted && !_endPauseStarted) loop();
+        }, _pollDelay());
+    })();
+    mpPingTick();   // darhol sinxronlaymiz (kutmasdan)
 }
 
 function renderCoords() {
@@ -518,7 +580,9 @@ function startTimer() {
 // ============== RENDER ==============
 function renderBoard() {
     const boardEl = $('board');
-    boardEl.innerHTML = '';
+    // Miltillashning oldini olish: kataklarni avval fragmentda yig'ib, keyin
+    // bitta atomik almashtirish bilan qo'yamiz (innerHTML='' bo'sh kadr bermaydi).
+    const frag = document.createDocumentFragment();
     const flip = PLAYER_COLOR === 'black'; // qora bo'lsa, doskani aylantirish
 
     for (let rr = 0; rr < 8; rr++) {
@@ -542,12 +606,14 @@ function renderBoard() {
                 cell.setAttribute('aria-hidden', 'true');
             }
 
-            // Last move highlight
+            // Oxirgi yurish belgisi — from + to kataklari. Manzil (to) kuchliroq.
             const last = moveHistory[moveHistory.length - 1];
-            if (last && (
-                (last.to[0] === r && last.to[1] === c) ||
-                (last.from[0] === r && last.from[1] === c)
-            )) cell.classList.add('last-move');
+            if (last && last.from && last.to) {
+                const isTo = last.to[0] === r && last.to[1] === c;
+                const isFrom = last.from[0] === r && last.from[1] === c;
+                if (isTo || isFrom) cell.classList.add('last-move');
+                if (isTo) cell.classList.add('last-move-to');
+            }
 
             if (selected && selected.r === r && selected.c === c) cell.classList.add('selected');
             const move = possibleMoves.find(m => m.r === r && m.c === c);
@@ -570,9 +636,10 @@ function renderBoard() {
             } else if (isDark) {
                 cell.setAttribute('aria-label', `${square}, bo'sh`);
             }
-            boardEl.appendChild(cell);
+            frag.appendChild(cell);
         }
     }
+    boardEl.replaceChildren(frag);   // bitta atomik almashtirish — miltillashsiz
     updateCapturedDisplay();
 }
 
@@ -741,9 +808,10 @@ function doMove(fromR, fromC, move, isRemote = false) {
     // Multiplayer: yurishni serverga yuboramiz (o'yin tugagan bo'lsa winner bilan),
     // so'ng 30s ko'rib chiqish oynasini ikkala tomon uchun ko'rsatamiz.
     if (MODE === 'mp' && !isRemote) {
+        _localMovePending = true;
         sendMpMove(winner).then(match => {
             if (winner) scheduleEndGameDisplay((match && match.winner) || winner, 30);
-        });
+        }).finally(() => { _localMovePending = false; });
         if (winner) return;
     }
 
@@ -1565,13 +1633,22 @@ async function pollMatchState() {
         // A response arrived — connection is fine, clear any reconnect warning
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        if (!data.ok) return;
+        if (!data.ok) { if (res.status === 403) showSessionExpired(); return; }
         const m = data.match;
-        const hasNewMove = m.move_count > lastSeenMoveCount;
         const isEnded = m.status === 'ended';
-        // MUHIM: o'yin tugaganda ham server taxtasini majburan ko'rsatamiz —
-        // shunda yutqazgan o'yinchi raqibning oxirgi (mag'lub etuvchi) yurishini ko'radi.
-        if (hasNewMove || isEnded) {
+        // Yangi yurish(lar) — raqib yurdi.
+        const hasNewMove = m.move_count > lastSeenMoveCount;
+        // Server bilan client holati farq qilyaptimi? FAQAT `>` emas, `!=` bilan
+        // tekshiramiz. Sabab: agar lastSeenMoveCount qandaydir yo'l bilan serverdan
+        // OSHIB ketgan bo'lsa (oldingi match qoldig'i yoki poll/send poygasi),
+        // eski kodda `>` hech qachon ishlamay, raqib yurishlari butunlay
+        // e'tiborsiz qolardi va taxta "Raqib yurmoqda"da qotib qolardi (faqat
+        // sahifani yangilash yordam berardi). Endi har qanday farqda serverga
+        // moslashamiz va lastSeenMoveCount'ni server qiymatiga tenglaymiz —
+        // shu bilan drift o'z-o'zidan tuzaladi. `_localMovePending` — o'z
+        // yurishimiz ketayotgan payt reconcile qilmaymiz.
+        const diverged = (m.move_count !== lastSeenMoveCount) || (m.current_turn !== currentTurn);
+        if (!_localMovePending && (diverged || isEnded)) {
             // Apply server board state
             board = m.board;
             currentTurn = m.current_turn;
@@ -1596,7 +1673,7 @@ async function pollMatchState() {
                     }
                 }
             }
-            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
+            lastSeenMoveCount = m.move_count || 0;   // serverga ishonamiz (drift'ni tuzatadi)
             renderBoard();
             updateTurnUI();
         }
@@ -1620,24 +1697,33 @@ async function sendMpMove(winner = null) {
     const captureCount = mpCaptureAccum;
     mpCaptureAccum = 0;
 
-    try {
-        const res = await fetch(URLS.mpMove, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                token: TOKEN, game: GAME, match_id: MATCH_ID,
-                board: board,
-                last_move: { ...last, notation, captures: captureCount },
-                game_over: !!winner,
-                winner: winner || null,
-            })
-        });
-        const data = await res.json();
-        if (data.ok) {
-            lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
-            return data.match;
-        }
-    } catch (e) {}
+    // Yurishni serverga ISHONCHLI yetkazamiz: qulf/tarmoq xatosida qayta urinamiz.
+    // Aks holda yurish yo'qolib, raqib "Raqib yurmoqda"da qotib qolardi.
+    for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+            const res = await fetch(URLS.mpMove, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token: TOKEN, game: GAME, match_id: MATCH_ID,
+                    board: board,
+                    last_move: { ...last, notation, captures: captureCount },
+                    game_over: !!winner,
+                    winner: winner || null,
+                })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                lastSeenMoveCount = data.match.move_count;
+                if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
+                return data.match;
+            }
+            if (res.status === 403) { showSessionExpired(); return null; }
+            if (res.status === 409) return null;   // navbat/holat — qayta urinish foydasiz
+            // boshqa (5xx / qulf) — quyida qayta urinamiz
+        } catch (e) { /* tarmoq xatosi — qayta urinamiz */ }
+        await new Promise(function (r) { setTimeout(r, 250 * (attempt + 1)); });
+    }
+    showReconnectOverlay();   // 3 marta ham bo'lmadi — ogohlantiramiz
     return null;
 }
 

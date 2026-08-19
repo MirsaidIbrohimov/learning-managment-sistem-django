@@ -15,6 +15,11 @@ from accounts.models import CustomUser
 from .models import TelegramLoginCode, TelegramLinkToken, TelegramMessageLog, ContactMessage, TelegramBroadcastMessage
 
 logger = logging.getLogger(__name__)
+security_logger = logging.getLogger('security')
+
+# Telegram update'lari amalda bir necha KB. Cheklov bo'lmasa oddiy POST bilan
+# xotira to'ldirish mumkin (DATA_UPLOAD_MAX_MEMORY_SIZE raw body'ga tegmaydi).
+_MAX_WEBHOOK_BODY = 512 * 1024
 
 
 def _health_token():
@@ -32,6 +37,30 @@ def _health_token():
     return hashlib.sha256(
         f"telegram-health:{settings.SECRET_KEY}".encode('utf-8')
     ).hexdigest()[:32]
+
+
+def _webhook_secret():
+    """setWebhook da ro'yxatdan o'tkazilgan `secret_token`.
+
+    Telegram uni har bir webhook so'rovida `X-Telegram-Bot-Api-Secret-Token`
+    sarlavhasida qaytaradi. settings ichida env bo'lmasa SECRET_KEY dan
+    deterministik hosil qilinadi, shuning uchun bu yerda hech qachon bo'sh emas.
+    """
+    from django.conf import settings
+
+    return (getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', '') or '').strip()
+
+
+def _webhook_authorized(request):
+    import hmac
+
+    expected = _webhook_secret()
+    if not expected:
+        # Sozlanmagan holatda ochib qo'yish — autentifikatsiyasiz webhook bilan
+        # bir xil xavf. Yopiq qolsin.
+        return False
+    provided = (request.headers.get('X-Telegram-Bot-Api-Secret-Token') or '').strip()
+    return bool(provided) and hmac.compare_digest(provided, expected)
 
 
 def _cron_authorized(request):
@@ -139,11 +168,12 @@ def unlink_telegram(request):
         messages.error(request, "Telegram ulanmagan!")
         return redirect('profile')
 
-    import random
+    import secrets
     from django.core.cache import cache
     from .utils import notify_user
 
-    code = ''.join([str(random.randint(0, 9)) for _ in range(6)])
+    # Tasdiqlash kodi — `random` (Mersenne Twister) kutilishi mumkin.
+    code = ''.join(secrets.choice('0123456789') for _ in range(6))
     cache_key = f'tg_unlink_code_{request.user.id}'
     cache.set(cache_key, code, 300)  # 5 daqiqa
 
@@ -220,12 +250,19 @@ def set_webhook(request):
         webhook_url = f"{site_url}{webhook_path}"
 
         url = f"https://api.telegram.org/bot{bot_token}/setWebhook"
-        resp = http_requests.post(url, json={'url': webhook_url, 'allowed_updates': ['message', 'callback_query']}, timeout=15)
+        resp = http_requests.post(url, json={
+            'url': webhook_url,
+            'allowed_updates': ['message', 'callback_query'],
+            # Telegram bu qiymatni har so'rovda X-Telegram-Bot-Api-Secret-Token
+            # sarlavhasida qaytaradi — bot_webhook shuni tekshiradi.
+            'secret_token': _webhook_secret(),
+        }, timeout=15)
         result = resp.json()
         result['webhook_url'] = webhook_url
         return JsonResponse(result)
     except Exception as e:
-        return JsonResponse({'ok': False, 'error': str(e)})
+        logger.exception("setWebhook xatolik")
+        return JsonResponse({'ok': False, 'error': 'Webhook o\'rnatilmadi'}, status=502)
 
 
 def bot_health(request):
@@ -259,10 +296,32 @@ def bot_health(request):
 @csrf_exempt
 @require_POST
 def bot_webhook(request):
-    """Telegram bot webhook — botdan kelgan xabarlarni qayta ishlash"""
+    """Telegram bot webhook — botdan kelgan xabarlarni qayta ishlash.
+
+    @csrf_exempt bo'lgani uchun yagona himoya — Telegram qaytaradigan
+    `X-Telegram-Bot-Api-Secret-Token`. U bo'lmasa har kim soxta update yuborib
+    istalgan telegram_id nomidan akkaunt bog'lash, login kodi olish yoki
+    boshqaning coinini sarflash imkoniga ega bo'lardi.
+    """
+    if not _webhook_authorized(request):
+        from accounts.security import get_client_ip
+        security_logger.warning(
+            "telegram_webhook_unauthorized ip=%s ua=%s",
+            get_client_ip(request),
+            (request.headers.get('User-Agent') or '')[:120],
+        )
+        return JsonResponse({'ok': False, 'error': 'Forbidden'}, status=403)
+
+    if len(request.body) > _MAX_WEBHOOK_BODY:
+        security_logger.warning("telegram_webhook_body_too_large size=%s", len(request.body))
+        return JsonResponse({'ok': False, 'error': 'Payload too large'}, status=413)
+
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
+        return JsonResponse({'ok': False})
+
+    if not isinstance(data, dict):
         return JsonResponse({'ok': False})
 
     # Darhol javob qaytarish — Telegram kutmasin
@@ -864,25 +923,25 @@ def _handle_ai_chat_message(bot_token, chat_id, telegram_id, text, chat_state):
         chat_state.ai_session = session
         chat_state.save()
 
-    # Foydalanuvchi xabarini saqlash
+    # Coin ayirish (faqat premium bo'lmaganlar uchun) — xabarni saqlashdan
+    # OLDIN, aks holda to'lanmagan suhbat tarixda qolib ketadi.
     coin_cost = 0 if is_premium else 1
+    if not is_premium:
+        from .utils import spend_ai_coin
+
+        if not spend_ai_coin(user, "AI yordamchi bilan suhbat (Telegram)"):
+            _send_message(bot_token, chat_id,
+                "❌ Sizda yetarli coin yo'q.\n"
+                "AI bilan suhbatlashish uchun 1 coin kerak.")
+            return
+
+    # Foydalanuvchi xabarini saqlash
     ChatMessage.objects.create(
         session=session,
         role='user',
         content=text,
         coins_spent=coin_cost,
     )
-
-    # Coin ayirish (faqat premium bo'lmaganlar uchun)
-    if not is_premium:
-        user.coins -= 1
-        user.save(update_fields=['coins'])
-        CoinTransaction.objects.create(
-            user=user,
-            amount=1,
-            action='remove',
-            reason="AI yordamchi bilan suhbat (Telegram)"
-        )
 
     # Sessiya sarlavhasini yangilash
     if session.messages.filter(role='user').count() == 1:
@@ -990,12 +1049,15 @@ def _handle_ai_chat_image(bot_token, chat_id, telegram_id, caption, photo, chat_
 
     user_text = caption or "[Rasm yuborildi]"
     coin_cost = 0 if is_premium else 1
-    ChatMessage.objects.create(session=session, role='user', content=user_text, coins_spent=coin_cost)
 
     if not is_premium:
-        user.coins -= 1
-        user.save(update_fields=['coins'])
-        CoinTransaction.objects.create(user=user, amount=1, action='remove', reason="AI yordamchi bilan suhbat - rasm (Telegram)")
+        from .utils import spend_ai_coin
+
+        if not spend_ai_coin(user, "AI yordamchi bilan suhbat - rasm (Telegram)"):
+            _send_message(bot_token, chat_id, "❌ Sizda yetarli coin yo'q.\nAI bilan suhbatlashish uchun 1 coin kerak.")
+            return
+
+    ChatMessage.objects.create(session=session, role='user', content=user_text, coins_spent=coin_cost)
 
     if session.messages.filter(role='user').count() == 1:
         title = caption[:45] if caption else "Rasm tahlili"
@@ -1634,10 +1696,10 @@ def phone_link(request):
                 f"\n🆔 <b>Username:</b> @{request.user.username}"
             )
 
-        # IP va vaqt
-        ip = request.META.get('HTTP_X_FORWARDED_FOR', request.META.get('REMOTE_ADDR', 'Noma\'lum'))
-        if ',' in ip:
-            ip = ip.split(',')[0].strip()
+        # IP va vaqt. `X-Forwarded-For` ning eng chap qiymati mijoz nazoratida —
+        # umumiy `get_client_ip` ishonchli proxy sonini hisobga oladi.
+        from accounts.security import get_client_ip
+        ip = get_client_ip(request) or 'Noma\'lum'
 
         user_agent = request.META.get('HTTP_USER_AGENT', 'Noma\'lum')
 

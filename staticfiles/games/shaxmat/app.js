@@ -15,6 +15,7 @@ const URLS = {
     result:  `${API_BASE}/result/`,
     mpFind:  `${API_BASE}/mp/find/`,
     mpState: `${API_BASE}/mp/state/`,
+    mpPing:  `${API_BASE}/mp/ping/`,
     mpMove:  `${API_BASE}/mp/move/`,
     mpResign:`${API_BASE}/mp/resign/`,
 };
@@ -51,6 +52,20 @@ function initThemePicker() {
 const $ = (id) => document.getElementById(id);
 // Screen-reader announcer — pushes short status text into the live region (#sr-announcer)
 function announce(text) { const el = $('sr-announcer'); if (el) el.textContent = text; }
+
+// Brauzer fetch so'roviga o'zi timeout qo'ymaydi. Javobsiz qolgan bitta polling
+// so'rovi keyingi pollingni, yurish so'rovi esa barcha server reconcile'larini
+// cheksiz to'xtatib qo'ymasligi uchun multiplayer so'rovlarini bekor qilamiz.
+async function fetchWithTimeout(url, options, timeoutMs = 6000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
+    }
+}
+
 // Appends a move <li>, keeping a single 'latest' highlight on the most recent entry
 function appendMoveLi(li) {
     const list = $('moves-list');
@@ -94,6 +109,26 @@ function hideReconnectOverlay() {
     if (!overlay) return;
     overlay.classList.add('hidden');
     overlay.classList.remove('reconnecting');
+}
+// Token muddati tugaganda (HTTP 403) — jimgina "Raqib yurmoqda"da qotib qolish
+// o'rniga pollingni to'xtatib, aniq xabar beramiz. Sahifa yangilansa yangi token
+// olinadi va o'yin davom etadi.
+let _sessionExpired = false;
+// O'z yurishimiz serverga yuborilayotgan qisqa payt. Shu paytda polling
+// serverdagi (hali yangilanmagan) holatga qarab optimistik yurishimizni
+// qaytarib yubormasligi uchun reconcile'ni to'xtatamiz.
+let _localMovePending = false;
+function showSessionExpired() {
+    if (_sessionExpired) return;
+    _sessionExpired = true;
+    if (pollInterval) clearInterval(pollInterval);
+    const overlay = $('wait-overlay');
+    if (overlay) {
+        $('wait-text').innerHTML = "<i class=\"bi bi-hourglass-bottom\"></i> Sessiya muddati tugadi. Davom etish uchun sahifani yangilang.";
+        overlay.classList.remove('hidden');
+        overlay.classList.remove('reconnecting');
+    }
+    announce('Sessiya muddati tugadi, sahifani yangilang');
 }
 
 const screens = {
@@ -542,9 +577,8 @@ function startGame(initialState = null) {
     if (MODE === 'mp') {
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        clearInterval(pollInterval);
-        pollInterval = setInterval(pollMatchState, 2000);
         lastSeenMoveCount = 0;
+        startPolling();
     } else if (PLAYER_COLOR === 'black') {
         setTimeout(aiMove, 500);
     }
@@ -927,8 +961,19 @@ async function applyMove(m) {
     const winner = checkGameEnd();
 
     if (MODE === 'mp') {
-        const match = await sendMpMove(winner);
-        if (winner) scheduleEndGameDisplay((match && match.winner) || winner, 30);
+        let match = null;
+        _localMovePending = true;
+        try {
+            match = await sendMpMove(winner);
+            if (winner) scheduleEndGameDisplay((match && match.winner) || winner, 30);
+        } finally {
+            _localMovePending = false;
+        }
+        // Timeout yoki 409 javobida birinchi so'rov serverda saqlangan bo'lishi
+        // mumkin. Saqlanmagan bo'lsa optimistik yurishni qaytaramiz; saqlangan
+        // bo'lsa serverdagi navbat/count bilan aniq moslashamiz. Buni pending=false
+        // bo'lgandan keyin qilamiz, aks holda poll reconcile'ni ataylab o'tkazadi.
+        if (!match && !_sessionExpired) await pollMatchState();
     } else if (MODE === 'ai' && !winner && currentTurn !== PLAYER_COLOR) {
         // Faqat AI yurish navbati bo'lganda — o'zini cheksiz chaqirmasin
         setTimeout(aiMove, 350);
@@ -1619,26 +1664,80 @@ function scheduleEndGameDisplay(winner, seconds = 30) {
     overlay.querySelector('#end-pause-skip').onclick = finalize;
 }
 
+// ===== VERSIYAGA ASOSLANGAN MOSLASHUVCHAN POLLING =====
+// Har safar ARZON `mp/ping` (bitta qator: mc/status/turn) so'raladi. Faqat
+// biror narsa o'zgarsa — BIR MARTA to'liq pollMatchState() (taxta + reconcile)
+// chaqiriladi. Ko'p o'yinchi bir vaqtda o'ynaganda serverni engillashtiradi.
+// Raqib yurishini kutayotganda tez (~1s), o'z navbatimizda sekin (~3s).
+function _pollDelay() {
+    if (MODE !== 'mp' || resultSubmitted || _endPauseStarted) return 3000;
+    return (currentTurn !== PLAYER_COLOR) ? 1000 : 3000;
+}
+async function mpPingTick() {
+    if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
+    try {
+        const res = await fetchWithTimeout(URLS.mpPing, {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
+        });
+        const d = await res.json();
+        if (!d.ok) {
+            if (res.status === 403) { showSessionExpired(); return; }
+            throw new Error(`Polling xatosi: HTTP ${res.status}`);
+        }
+        mpPollFailCount = 0; hideReconnectOverlay();
+        if (d.mc !== lastSeenMoveCount || d.st === 'ended' || d.ct !== currentTurn) {
+            await pollMatchState();
+        }
+    } catch (e) {
+        mpPollFailCount++;
+        if (mpPollFailCount >= MP_POLL_FAIL_THRESHOLD) showReconnectOverlay();
+    }
+}
+function startPolling() {
+    if (pollInterval) clearInterval(pollInterval);
+    (function loop() {
+        pollInterval = setTimeout(async function() {
+            if (resultSubmitted || _endPauseStarted) return;
+            await mpPingTick();
+            if (!resultSubmitted && !_endPauseStarted) loop();
+        }, _pollDelay());
+    })();
+    mpPingTick();   // darhol sinxronlaymiz (kutmasdan)
+}
+
 async function pollMatchState() {
     if (!MATCH_ID || resultSubmitted || _endPauseStarted) return;
     // Eslatma: navbat o'zimizda bo'lsa ham so'rab turamiz — raqib taslim bo'lsa
     // yoki match yopilsa tugashni aniqlash uchun (taxta move_count bilan himoyalangan).
     try {
-        const res = await fetch(URLS.mpState, {
+        const res = await fetchWithTimeout(URLS.mpState, {
             method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ token: TOKEN, game: GAME, match_id: MATCH_ID })
         });
         const data = await res.json();
-        // A response arrived — connection is fine, clear any reconnect warning
+        if (!data.ok) {
+            if (res.status === 403) { showSessionExpired(); return; }
+            throw new Error(`State xatosi: HTTP ${res.status}`);
+        }
+        // Faqat yaroqli state kelganda ulanish tiklangan deb hisoblaymiz.
         mpPollFailCount = 0;
         hideReconnectOverlay();
-        if (!data.ok) return;
         const m = data.match;
-        const hasNewMove = m.move_count > lastSeenMoveCount;
         const isEnded = m.status === 'ended';
-        // MUHIM: o'yin tugaganda ham server taxtasini majburan ko'rsatamiz —
-        // shunda yutqazgan o'yinchi raqibning oxirgi (mag'lub etuvchi) yurishini ko'radi.
-        if (hasNewMove || isEnded) {
+        // Yangi yurish(lar) — raqib yurdi.
+        const hasNewMove = m.move_count > lastSeenMoveCount;
+        // Server bilan client holati farq qilyaptimi? FAQAT `>` emas, `!=` bilan
+        // tekshiramiz. Sabab: agar lastSeenMoveCount qandaydir yo'l bilan serverdan
+        // OSHIB ketgan bo'lsa (oldingi match qoldig'i yoki poll/send poygasi),
+        // eski kodda `>` hech qachon ishlamay, raqib yurishlari butunlay
+        // e'tiborsiz qolardi va taxta "Raqib yurmoqda"da qotib qolardi (faqat
+        // sahifani yangilash yordam berardi). Endi har qanday farqda serverga
+        // moslashamiz va lastSeenMoveCount'ni server qiymatiga tenglaymiz —
+        // shu bilan drift o'z-o'zidan tuzaladi (2 soniyada), sahifani
+        // yangilashsiz. `_localMovePending` — o'z yurishimiz ketayotgan payt.
+        const diverged = (m.move_count !== lastSeenMoveCount) || (m.current_turn !== currentTurn);
+        if (!_localMovePending && (diverged || isEnded)) {
             board = m.board;
             currentTurn = m.current_turn;
             if (hasNewMove && m.last_move?.notation) {
@@ -1655,7 +1754,7 @@ async function pollMatchState() {
                     else capturedByBlack.push(m.last_move.captured);
                 }
             }
-            lastSeenMoveCount = Math.max(lastSeenMoveCount, m.move_count || 0);
+            lastSeenMoveCount = m.move_count || 0;   // serverga ishonamiz (drift'ni tuzatadi)
             // En passant target reconstruction not critical client-side after server roundtrip
             enPassantTarget = null;
             selected = null;
@@ -1685,24 +1784,33 @@ async function sendMpMove(winner = null) {
     if (last.castle) notation = (last.color === 'white' ? 'O: ' : 'X: ') + (last.castle === 'k' ? 'O-O' : 'O-O-O');
     else notation = `${sym} ${pieceLetter}${file[last.from.c]}${8-last.from.r}${last.capture ? 'x' : '-'}${file[last.to.c]}${8-last.to.r}${last.promotion ? '='+(last.promoTo||'q').toUpperCase() : ''}`;
 
-    try {
-        const res = await fetch(URLS.mpMove, {
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({
-                token: TOKEN, game: GAME, match_id: MATCH_ID,
-                board: board,
-                last_move: { ...last, notation },
-                game_over: !!winner,
-                winner: winner || null,
-            })
-        });
-        const data = await res.json();
-        if (data.ok) {
-            lastSeenMoveCount = data.match.move_count;
-            if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
-            return data.match;
-        }
-    } catch (e) {}
+    // Yurishni serverga ISHONCHLI yetkazamiz: qulf/tarmoq xatosida qayta urinamiz.
+    // Aks holda yurish yo'qolib, raqib "Raqib yurmoqda"da qotib qolardi.
+    for (var attempt = 0; attempt < 3; attempt++) {
+        try {
+            const res = await fetchWithTimeout(URLS.mpMove, {
+                method:'POST', headers:{'Content-Type':'application/json'},
+                body: JSON.stringify({
+                    token: TOKEN, game: GAME, match_id: MATCH_ID,
+                    board: board,
+                    last_move: { ...last, notation },
+                    game_over: !!winner,
+                    winner: winner || null,
+                })
+            }, 8000);
+            const data = await res.json();
+            if (data.ok) {
+                lastSeenMoveCount = data.match.move_count;
+                if (data.match.status === 'ended') scheduleEndGameDisplay(data.match.winner, 30);
+                return data.match;
+            }
+            if (res.status === 403) { showSessionExpired(); return null; }
+            if (res.status === 409) return null;   // navbat/holat — qayta urinish foydasiz
+            // boshqa (5xx / qulf) — quyida qayta urinamiz
+        } catch (e) { /* tarmoq xatosi — qayta urinamiz */ }
+        await new Promise(function (r) { setTimeout(r, 250 * (attempt + 1)); });
+    }
+    showReconnectOverlay();   // 3 marta ham bo'lmadi — ogohlantiramiz
     return null;
 }
 

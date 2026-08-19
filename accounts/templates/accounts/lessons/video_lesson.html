@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% load l10n %}
+{% load l10n custom_filters %}
 
 {% block title %}{{ lesson.title }} - LMS{% endblock %}
 
@@ -477,6 +477,16 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
     border-radius: 10px;
     font-weight: 500;
 }
+.vl-progress-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 12px;
+    margin-bottom: 12px;
+    color: var(--vl-muted);
+    font-size: .76rem;
+}
+.vl-progress-stats strong { color: var(--vl-text); text-align: right; }
+.vl-progress-stats .vl-progress-percent { color: var(--vl-blue); }
 
 /* Ko'rdim button */
 .vl-btn-watched {
@@ -876,7 +886,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
                     <i class="bi bi-chevron-up vl-ai-chev"></i>
                 </div>
                 <div class="vl-ai-body">
-                    {{ lesson.ai_article|safe }}
+                    {{ lesson.ai_article|safe_html }}
                 </div>
             </div>
             {% endif %}
@@ -910,12 +920,19 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
                             </div>
                         </div>
 
+                        <div class="vl-progress-stats" aria-live="polite">
+                            <span>Video davomiyligi</span><strong id="videoDurationText">—:—</strong>
+                            <span>Ko'rilgan</span><strong id="watchedDurationText">0:00</strong>
+                            <span>Progress</span><strong class="vl-progress-percent" id="watchedPercentageText">0%</strong>
+                        </div>
+
                         <div class="vl-status-hint" id="statusText">
                             Videoning kamida 90% ini ko'ring
                         </div>
 
                         {# Tugma server ruxsat bermaguncha DOM'da umuman bo'lmaydi. #}
                         <div id="markWatchedHost" data-coin-amount="{{ video_coin_amount }}"></div>
+                        {{ progress.watched_segments|json_script:"initialWatchedSegments" }}
                     </div>
                 </div>
 
@@ -1024,12 +1041,16 @@ const isVimeo   = {{ video.is_vimeo|yesno:"true,false" }};
 const isYouTube = {{ video.is_youtube|yesno:"true,false" }};
 const videoId   = "{{ video.get_video_id|default:'' }}";
 const vimeoEmbedUrl = "{{ video.get_embed_url|default:''|escapejs }}";
+const VIDEO_TIMER_DEBUG = {{ video_timer_debug|yesno:"true,false" }};
+function videoTimerLog(...args) {
+    if (VIDEO_TIMER_DEBUG) console.debug('[VideoTimer]', ...args);
+}
 // Oldingi sessiyada server tasdiqlagan ko'rilgan nuqta (sekund). Sahifa
 // yangilanganda video shu joydan DAVOM ETADI — 0-dan emas. Aks holda server
 // `position - max_position` kredit formulasi tufayli qayta ko'rilgan qismga
 // kredit bermaydi va countdown har heartbeat'da orqaga sakrab, umuman
 // yurmay qolardi.
-const resumeAtServer = Math.max(0, parseFloat('{{ progress.max_position|default:0|unlocalize }}') || 0);
+const resumeAtServer = Math.max(0, parseFloat('{{ progress.last_position|default:0|unlocalize }}') || 0);
 // Sensorli qurilmada YouTube'ning native tugmalari ochiq qolishi kerak. Aks holda
 // mobil autoplay bloklanganda videoGuard native Play tugmasini ham to'sib qo'yadi.
 const useNativeMobileControls = window.matchMedia &&
@@ -1329,6 +1350,10 @@ if (placeholder) {
                         ...(resumeAtServer > 1 ? { start: Math.floor(resumeAtServer) } : {})
                     },
                     events: {
+                        onReady: function(e) {
+                            videoTimerLog('Player ready');
+                            if (typeof resolveDuration === 'function') resolveDuration();
+                        },
                         onStateChange: function(e) {
                             const s = e.data;
                             if      (s === YT.PlayerState.PLAYING)   { ensureResumeApplied(); isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
@@ -1395,6 +1420,8 @@ if (placeholder) {
 const dbSeconds     = {{ video.verified_duration_seconds|default:0 }};
 const DB_FALLBACK_DELAY_MS = 12000;  // pleer 12 sek ichida getDuration bermasa VA DB'da haqiqiy qiymat bo'lsa — DB'ga tushamiz
 const circumference = 2 * Math.PI * 18;
+const initialServerRequired = {{ progress.required_seconds|default:0|unlocalize }};
+const initialServerVerified = {{ progress.verified_seconds|default:0|unlocalize }};
 
 // totalSeconds/requiredTime dastlab NULL — countdown "—:—" ko'rinishida turadi.
 let totalSeconds   = null;
@@ -1411,15 +1438,32 @@ let durationLocked = false;   // haqiqiy (yoki fallback) davomiylik o'rnatildimi
 // bo'lsagina — bu haqiqiy oldinga sakrash → revert. Kichik buferli siljishlar
 // esa toleratsiya qilinadi (lekin baribir faqat real vaqt qadar hisoblanadi).
 const TICK_MS         = 350;   // tez aniqlash uchun (avval 500)
-const MAX_PLAY_RATE   = 2.0;   // ruxsat etilgan maks. tezlik (2x gacha bemalol)
+const MAX_PLAY_RATE   = 1.25;  // server real-vaqt chegarasi bilan bir xil diapazon
 const STEP_TOLERANCE  = 0.5;   // o'lchov/tik jitteri uchun zaxira (soniya)
-const SEEK_AHEAD_LIMIT = 4.0;  // watchedTime'dan shuncha soniyadan ko'p oldinda → sakrash
-const SEEK_LOCK_MS    = 800;   // revert o'rnashguncha qayta tetiklamaymiz
+const SEEK_THRESHOLD  = 3.0;
 
-// Resume: oldingi sessiyada tasdiqlangan nuqtadan boshlaymiz — aks holda
-// tick'dagi anti-skip (t > watchedTime + SEEK_AHEAD_LIMIT) darhol videoni
-// 0-ga qaytarib tashlaydi va countdown yurmaydi.
-let watchedTime = resumeAtServer > 0 ? resumeAtServer : 0;  // erishilgan MAKS qonuniy pleer sekundi (monoton o'suvchi)
+let watchedSegments = [];
+try {
+    watchedSegments = JSON.parse(
+        document.getElementById('initialWatchedSegments').textContent || '[]'
+    );
+} catch (e) {}
+function mergeClientSegment(start, end) {
+    if (!isFinite(start) || !isFinite(end) || end <= start) return;
+    const all = watchedSegments.concat([[start, end]]).sort((a, b) => a[0] - b[0]);
+    watchedSegments = [];
+    all.forEach(function(segment) {
+        const s = Math.max(0, Number(segment[0]) || 0);
+        const e = Math.max(s, Number(segment[1]) || 0);
+        const last = watchedSegments[watchedSegments.length - 1];
+        if (last && s <= last[1] + 0.25) last[1] = Math.max(last[1], e);
+        else if (e > s) watchedSegments.push([s, e]);
+    });
+}
+function clientWatchedSeconds() {
+    return watchedSegments.reduce((sum, segment) => sum + segment[1] - segment[0], 0);
+}
+let watchedTime = Math.max(initialServerVerified, clientWatchedSeconds());
 let isReady     = false;  // 90% ga yetdi
 
 /* ── Server tomonlama tasdiqlash (anti-cheat) ──────────────────────────────
@@ -1428,15 +1472,13 @@ let isReady     = false;  // 90% ga yetdi
  * BEAT_INTERVAL_MS da pozitsiya yuboriladi, server O'Z SOATI bilan o'tgan
  * vaqtni o'lchab kredit beradi. Tugma serverdan can_complete kelganda yonadi.
  */
-const BEAT_INTERVAL_MS = 15000;
+const BEAT_INTERVAL_MS = 8000;
 const BEAT_TIMEOUT_MS = 12000;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
 // Sahifa avval to'liq video vaqtini ko'rsatib, birinchi heartbeatda oldin
 // ko'rilgan vaqtni birdan ayirib yubormasin. DB'da talab mavjud bo'lsa,
 // countdown birinchi kadrdayoq server tasdiqlagan qolgan vaqtdan boshlanadi.
-const initialServerRequired = {{ progress.required_seconds|default:0|unlocalize }};
-const initialServerVerified = {{ progress.verified_seconds|default:0|unlocalize }};
 let serverRemaining = initialServerRequired > 0
     ? Math.max(0, initialServerRequired - initialServerVerified)
     : null;
@@ -1491,6 +1533,7 @@ function sendBeat(presenceToken, playingOverride) {
             // miqdorini server o'tkazgan real vaqtdan oshira olmaydi.
             body: JSON.stringify({
                 position: t,
+                duration: Math.round(totalSeconds || 0),
                 // ENDED hodisasi pleer holatini false qilgan bo'lsa ham, aynan
                 // shu oxirgi pozitsiyagacha video ijro etilganini serverga
                 // yetkazamiz. Kredit baribir server o'tgan vaqti bilan cheklangan.
@@ -1506,9 +1549,16 @@ function sendBeat(presenceToken, playingOverride) {
             beatNonce         = data.nonce || '';
             serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
+            if (Array.isArray(data.watched_segments)) {
+                watchedSegments = data.watched_segments;
+                watchedTime = Math.max(0, Number(data.verified_seconds) || 0);
+            }
+            videoTimerLog('Current position:', Math.round(t));
+            videoTimerLog('Watched:', Math.round(Number(data.verified_seconds) || 0));
+            videoTimerLog('Progress:', `${Number(data.watched_percentage) || 0}%`);
 
             // ── Countdown sinxronlashi (silliq, sakrashsiz) ──
-            // Server har heartbeat'da (15s) qiymat yuboradi. Kichik farqlar —
+            // Server har heartbeat'da qiymat yuboradi. Kichik farqlar —
             // yaxitlash (0.1s qadam), beat kechikishi, kichik kredit
             // farqlari — countdownni ORQAGA/OLDINGA sakratadi. Shuning uchun
             // server bazasi FAQAT mazmunli farq bo'lganda qabul qilinadi.
@@ -1518,10 +1568,9 @@ function sendBeat(presenceToken, playingOverride) {
                 ? Math.max(0, displayRemainingStart - Math.max(0, watchedTime - displayWatchedStart))
                 : null;
 
-            if (srvRequired > (requiredTime || 0)) {
-                // Talab OSHDI (masalan eski qo'lda kiritilgan davomiylik
-                // noto'g'ri bo'lsa server haqiqiysini topdi) — bu haqiqiy
-                // o'zgarish, darhol yangi bazadan davom etamiz.
+            if (srvRequired > 0 && Math.abs(srvRequired - (requiredTime || 0)) > 1) {
+                // Server provider'dan haqiqiy durationni topganda eski/manual
+                // talab oshishi ham, kamayishi ham mumkin.
                 requiredTime = srvRequired;
                 displayRemainingStart = srvRemaining;
                 displayWatchedStart = watchedTime;
@@ -1534,12 +1583,13 @@ function sendBeat(presenceToken, playingOverride) {
                     displayWatchedStart = watchedTime;
                 }
             }
-            // Server oldinga sakrashni aniqladi — pleerni qaytaramiz.
-            if (data.seek_blocked && data.resume_at != null) {
-                seekPlayerTo(data.resume_at);
-                statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
+            if (data.seek_detected) {
+                videoTimerLog('Seek detected');
+                statusText.textContent = "Sakrab o'tilgan qism progressga qo'shilmadi";
             }
             updateTimerUI();
+            videoTimerLog('Progress synced');
+            if (serverCanComplete) videoTimerLog('90% reached');
             receivedPresence = data.presence || null;
         })
         .catch(() => {})
@@ -1557,7 +1607,6 @@ function sendBeat(presenceToken, playingOverride) {
     });
 }
 setInterval(() => sendBeat(), BEAT_INTERVAL_MS);
-let seekLock    = false;  // revert davomida tetiklamaslik
 let lastPos     = null;   // oldingi tikdagi pleer pozitsiyasi (soniya)
 let lastWall    = null;   // oldingi tik vaqti (ms) — real vaqt hisobi uchun
 
@@ -1568,6 +1617,9 @@ const markWatchedHost = document.getElementById('markWatchedHost');
 const timerIcon      = document.getElementById('timerIcon');
 const timerIconI     = document.getElementById('timerIconI');
 const timerLabel     = document.getElementById('timerLabel');
+const videoDurationText = document.getElementById('videoDurationText');
+const watchedDurationText = document.getElementById('watchedDurationText');
+const watchedPercentageText = document.getElementById('watchedPercentageText');
 const coinMultiplier = {% if request.user.is_premium %}2{% else %}1{% endif %};
 
 function setRewardCoinAmount(amount) {
@@ -1687,6 +1739,8 @@ function lockDuration(seconds) {
         ? initialServerRequired
         : Math.max(1, Math.floor(totalSeconds * 0.9));
     durationLocked = true;
+    videoDurationText.textContent = formatTime(totalSeconds);
+    videoTimerLog('Duration:', Math.round(totalSeconds));
     const rewardSeconds = dbSeconds >= 60 ? dbSeconds : totalSeconds;
     setRewardCoinAmount(Math.max(1, Math.round(rewardSeconds / 60)) * coinMultiplier);
     // UI: countdown endi to'g'ri qiymatga to'ldiriladi (birinchi tikda ham darrov).
@@ -1723,6 +1777,11 @@ setTimeout(function() {
    server esa alohida ravishda yakunlash ruxsatini tasdiqlaydi. */
 function updateTimerUI() {
     if (isReady) return;
+    const watchedForUi = Math.max(0, Math.min(totalSeconds || watchedTime, watchedTime));
+    watchedDurationText.textContent = formatTime(watchedForUi);
+    watchedPercentageText.textContent = totalSeconds
+        ? `${Math.min(100, Math.floor(watchedForUi * 100 / totalSeconds))}%`
+        : '0%';
     // Tugma faqat server tasdiqlaganda yonadi. `watchedTime` yoki DOM'ni
     // konsoldan o'zgartirish bu holatni serverda o'zgartirmaydi.
     // serverCanComplete tekshiruvi BIRINCHI — davomiylik hali aniqlanmagan
@@ -1752,11 +1811,8 @@ function updateTimerUI() {
     }
 }
 
-/* Video oxirigacha ijro etilib TUGAGANDA (ENDED) chaqiriladi. Oldinga sakrash
-   taqiqlangani uchun ENDED faqat video haqiqatda to'liq ko'rilganda yuz beradi.
-   Shuning uchun bu yerda timerni ishonch bilan yakunlaymiz — davomiylik biroz
-   noaniq bo'lsa ham (masalan requiredTime haqiqiy videodan sal uzunroq) timer
-   "qotib" qolib, "Ko'rdim" tugmasi yoqilmay qolmaydi. */
+/* ENDED oxirgi pozitsiyani serverga yuboradi. Lokal progressni sun'iy 90% qilib
+   qo'ymaymiz — yakuniy qaror keyingi server javobidan keladi. */
 function completeOnEnded() {
     if (isReady) return;
     // Davomiylik hali aniqlanmagan juda qisqa videoda ham oxirgi pozitsiya
@@ -1768,28 +1824,22 @@ function completeOnEnded() {
         getPlayerDuration(function(d) {
             if (d && isFinite(d) && d > 1) {
                 lockDuration(d);
-                watchedTime = requiredTime;
                 updateTimerUI();
             } else {
                 getPlayerTime(function(t) {
                     if (t && isFinite(t) && t > 1) lockDuration(t);
-                    watchedTime = requiredTime || watchedTime;
                     updateTimerUI();
                 });
             }
         });
         return;
     }
-    watchedTime = requiredTime;
     updateTimerUI();
 }
 
 /* ── Har tikda: pleer soniyasi o'qiladi, real vaqt bilan solishtiriladi ──
- * Asosiy g'oya: o'ynatishda pleer pozitsiyasi real o'tgan vaqtdan tez oldinga
- * keta olmaydi. Bir tik ichida posDt (pozitsiya o'zgarishi) real vaqtdan
- * (wallDt) MAX_PLAY_RATE barobardan ko'p bo'lsa — bu SEEK (sakrash) → revert.
- * watchedTime esa FAQAT qonuniy, real vaqt qadar oldinga o'sadi (sakramaydi)
- * va hech qachon kamaymaydi (orqaga siljimaydi).
+ * Faqat PLAYING + visible holatdagi kichik ketma-ket oraliqlar segmentga
+ * qo'shiladi. Katta pozitsiya farqi seek hisoblanadi va oralig'i tashlanadi.
  */
 function tick() {
     if (!durationLocked) resolveDuration();
@@ -1799,9 +1849,8 @@ function tick() {
         const now    = Date.now();
         const wallDt = (lastWall == null) ? 0 : (now - lastWall) / 1000;
 
-        // Kuzatuvni QAYTA BOSHLASH holatlari (bu tikda aniqlash/o'sish yo'q):
-        //  • birinchi o'qish  • revert davomi (seekLock)  • uzoq tanaffus (fon rejimi)
-        if (seekLock || lastPos == null || lastWall == null || wallDt > 3) {
+        // Birinchi o'qish, fon tab yoki uzoq tanaffusda yangi baza boshlanadi.
+        if (lastPos == null || lastWall == null || wallDt > 3 || document.hidden) {
             lastPos = t; lastWall = now;
             updateTimerUI();
             return;
@@ -1809,27 +1858,17 @@ function tick() {
 
         const maxStep = wallDt * MAX_PLAY_RATE + STEP_TOLERANCE;
 
-        // ── OLDINGA SAKRASH: pozitsiya eng uzoq qonuniy ko'rilgan nuqtadan
-        //    (watchedTime) SEEK_AHEAD_LIMIT dan ko'proq oldinda → foydalanuvchi
-        //    oldinga o'tkazgan → videoni qaytaramiz. Bufer/qayta ulanishdagi
-        //    kichik siljishlar bu chegara ostida qoladi, shuning uchun endi
-        //    revert-loop (qotib qolish) yuz bermaydi.
-        if (t > watchedTime + SEEK_AHEAD_LIMIT) {
-            seekLock = true;
-            seekPlayerTo(watchedTime);
-            if (!isReady) statusText.textContent = "⛔ Oldinga o'tkazish taqiqlangan";
-            lastPos = null; lastWall = null;                  // hisobni tozalaymiz
-            setTimeout(function () { seekLock = false; }, SEEK_LOCK_MS);
+        // Seek orqali o'tkazib yuborilgan oraliq segmentga qo'shilmaydi.
+        const positionDelta = t - lastPos;
+        if (Math.abs(positionDelta) > SEEK_THRESHOLD) {
+            videoTimerLog('Seek detected');
+            lastPos = t; lastWall = now;
             return;
         }
 
-        // ── QATTIQ QOIDA: watchedTime FAQAT video HAQIQATDA ijro etilayotganda
-        //    (isVideoPlaying) VA pozitsiya watchedTime'dan oldinda bo'lganda
-        //    o'sadi — lekin bir tikda ko'pi bilan maxStep (real vaqt) qadar.
-        //    Pauza/bufer/tugash paytida isVideoPlaying=false — timer to'xtaydi.
-        //    Orqaga (rewind): t < watchedTime → o'smaydi (kamaymaydi ham).
-        if (isVideoPlaying && t > watchedTime) {
-            watchedTime = Math.min(t, watchedTime + maxStep);
+        if (isVideoPlaying && !document.hidden && positionDelta > 0) {
+            mergeClientSegment(lastPos, Math.min(t, lastPos + maxStep));
+            watchedTime = Math.max(initialServerVerified, clientWatchedSeconds());
         }
 
         lastPos = t; lastWall = now;

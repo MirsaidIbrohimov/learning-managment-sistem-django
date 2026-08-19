@@ -404,6 +404,19 @@ def _dm_thread_qs(a, b):
     )
 
 
+def _can_view_dm_thread(user, other):
+    """
+    `_can_dm` dan yumshoqroq tekshiruv: YOZISH huquqi bo'lmasa ham mavjud
+    yozishmani O'QISHGA ruxsat beradi. Aks holda kursdan chiqqan o'quvchi
+    eski suhbat tarixini butunlay yo'qotardi.
+    """
+    if user.pk == other.pk:
+        return False
+    if _can_dm(user, other):
+        return True
+    return _dm_thread_qs(user, other).exists()
+
+
 @login_required
 @rate_limited('chat_dm_list')
 @require_http_methods(["GET"])
@@ -411,6 +424,12 @@ def direct_messages(request, user_pk):
     other = get_object_or_404(CustomUser, pk=user_pk)
     if other.pk == request.user.pk:
         return _err("O'zingizga yozolmaysiz", 400)
+    # Javobda `partner` profili (ism, username, rol, online holati) qaytadi.
+    # Tekshiruvsiz bu endpoint pk=1..N bo'ylab butun foydalanuvchi
+    # ro'yxatini yig'ib olish kanaliga aylanardi (`user_search` esa ayni
+    # siyosatni allaqachon qo'llaydi).
+    if not _can_view_dm_thread(request.user, other):
+        return _err("Bu suhbatga ruxsatingiz yo'q", 403)
 
     qs = _dm_thread_qs(request.user, other).select_related(
         'reply_to__sender'
@@ -735,7 +754,9 @@ def typing_status(request):
     cutoff = timezone.now() - timedelta(seconds=TYPING_TTL_SECONDS)
 
     if kind == 'dm':
-        get_object_or_404(CustomUser, pk=target_id)
+        other = get_object_or_404(CustomUser, pk=target_id)
+        if not _can_view_dm_thread(request.user, other):
+            return _err("Ruxsat yo'q", 403)
         is_typing = ChatTypingStatus.objects.filter(
             user_id=target_id, partner_id=request.user.pk, updated_at__gte=cutoff
         ).exists()
@@ -771,8 +792,13 @@ def pin_toggle(request):
         other = get_object_or_404(CustomUser, pk=target_id)
         existing = ChatPin.objects.filter(user=request.user, partner=other).first()
         if existing:
+            # Olib tashlash har doim mumkin (holatni kamaytiradi).
             existing.delete()
             return _ok({'pinned': False})
+        # Yangi pin sidebar'ga suhbatni qo'shadi va u yerda partner profili
+        # ko'rsatiladi — shuning uchun DM siyosati bu yerda ham amal qiladi.
+        if not _can_view_dm_thread(request.user, other):
+            return _err("Ruxsat yo'q", 403)
         ChatPin.objects.create(user=request.user, partner=other)
         return _ok({'pinned': True})
 

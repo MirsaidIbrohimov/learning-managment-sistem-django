@@ -2609,8 +2609,6 @@ def spectate_match(request, match_id):
     return render(request, 'games/student/spectate.html', {
         'match': match,
         'is_player': is_player,
-        'board_state_json': _json.dumps(match.board_state or []),
-        'last_move_json': _json.dumps(match.last_move or None),
         'spectators': spectator_users,
     })
 

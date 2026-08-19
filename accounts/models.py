@@ -2,8 +2,8 @@ import unicodedata
 import uuid
 from datetime import timedelta
 
-from django.db import models
-from django.db.models import Q
+from django.db import models, transaction
+from django.db.models import F, Q
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
@@ -410,15 +410,19 @@ class CustomUser(AbstractUser):
         if self.is_finished:
             return
 
-        self.coins += amount
-        self.save(update_fields=['coins'])
-
-        CoinTransaction.objects.create(
-            user=self,
-            amount=amount,
-            action='add',
-            reason=reason
-        )
+        # `coins = coins + N` SQL darajasida bajariladi. Ilgari Python'da
+        # `self.coins += amount` qilinardi — parallel ikki so'rov bir xil eski
+        # qiymatni o'qib, biri ikkinchisining natijasini yo'q qilardi
+        # (lost update).
+        with transaction.atomic():
+            type(self).objects.filter(pk=self.pk).update(coins=F('coins') + amount)
+            CoinTransaction.objects.create(
+                user=self,
+                amount=amount,
+                action='add',
+                reason=reason
+            )
+        self.refresh_from_db(fields=['coins'])
 
     def remove_coins(self, amount: int, reason: str = ''):
         from coin.models import CoinTransaction
@@ -430,16 +434,52 @@ class CustomUser(AbstractUser):
         if self.is_finished:
             return
 
-        # Coinlar minusga ham o'tishi mumkin
-        self.coins -= amount
-        self.save(update_fields=['coins'])
+        # Coinlar minusga ham o'tishi mumkin (mavjud xatti-harakat saqlangan) —
+        # shu sababli bu yerda balans tekshirilmaydi. Xarid/sarflash uchun
+        # `try_spend_coins()` dan foydalanish kerak.
+        with transaction.atomic():
+            type(self).objects.filter(pk=self.pk).update(coins=F('coins') - amount)
+            CoinTransaction.objects.create(
+                user=self,
+                amount=amount,
+                action='remove',
+                reason=reason
+            )
+        self.refresh_from_db(fields=['coins'])
 
-        CoinTransaction.objects.create(
-            user=self,
-            amount=amount,
-            action='remove',
-            reason=reason
-        )
+    def try_spend_coins(self, amount: int, reason: str = '') -> bool:
+        """Balans yetarli bo'lsa yechadi va True qaytaradi, aks holda False.
+
+        Yechish bitta shartli UPDATE (`WHERE coins >= amount`) bilan bajariladi.
+        Bu — atomik compare-and-swap: "tekshirdim, keyin yechdim" oralig'i
+        yo'q, shuning uchun bir vaqtda kelgan ikki so'rov bir xil coinni ikki
+        marta sarflay olmaydi (double-spend).
+        """
+        from coin.models import CoinTransaction
+
+        if amount <= 0:
+            return False
+
+        if self.is_finished:
+            return False
+
+        with transaction.atomic():
+            updated = type(self).objects.filter(
+                pk=self.pk, coins__gte=amount
+            ).update(coins=F('coins') - amount)
+
+            if not updated:
+                return False
+
+            CoinTransaction.objects.create(
+                user=self,
+                amount=amount,
+                action='remove',
+                reason=reason
+            )
+
+        self.refresh_from_db(fields=['coins'])
+        return True
 
     # ---------------- NAME SANITIZATION ----------------
 
@@ -796,6 +836,10 @@ class VideoProgress(models.Model):
     # vaqtni yig'adi, shuning uchun ularni mijoz oshirib yubora olmaydi.
     verified_seconds = models.FloatField(
         default=0, verbose_name="Tasdiqlangan ko'rish vaqti (soniya)"
+    )
+    watched_segments = models.JSONField(
+        default=list, blank=True,
+        verbose_name="Tasdiqlangan ko'rilgan segmentlar",
     )
     max_position = models.FloatField(
         default=0, verbose_name="Eng uzoq ko'rilgan nuqta (soniya)"
@@ -1905,7 +1949,7 @@ class ParentPasswordResetRequest(models.Model):
     )
     
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='password_reset_requests')
-    new_password = models.CharField(max_length=128, verbose_name="Yangi parol")
+    new_password = models.CharField(max_length=255, verbose_name="Yangi parol (hash)")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     reviewed_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_parent_password_requests')
     reviewed_at = models.DateTimeField(null=True, blank=True)

@@ -9,6 +9,33 @@ from telegram_bot import premium
 logger = logging.getLogger(__name__)
 
 
+def spend_ai_coin(user, reason="AI yordamchi bilan suhbat (Telegram)") -> bool:
+    """AI suhbati uchun 1 coinni atomik yechadi. Yetarli bo'lmasa False.
+
+    Yechish bitta shartli UPDATE (`WHERE coins >= 1`) bilan bajariladi.
+    Ilgari `user.coins -= 1; user.save()` yozilgan edi — tez-tez yuborilgan
+    xabarlar bir xil eski balansni o'qib, bitta coinni bir necha marta
+    sarflashga imkon berardi.
+    """
+    from django.db import transaction
+    from django.db.models import F
+
+    from coin.models import CoinTransaction
+
+    with transaction.atomic():
+        spent = type(user).objects.filter(pk=user.pk, coins__gte=1).update(
+            coins=F('coins') - 1
+        )
+        if not spent:
+            return False
+        CoinTransaction.objects.create(
+            user=user, amount=1, action='remove', reason=reason
+        )
+
+    user.refresh_from_db(fields=['coins'])
+    return True
+
+
 def notify_admins(text):
     """Barcha admin foydalanuvchilarga Telegram orqali xabar yuborish (background thread)"""
     bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')

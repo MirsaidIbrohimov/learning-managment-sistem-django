@@ -356,6 +356,12 @@
     }
 
     function formatNum(n){ return (n||0).toLocaleString('en-US').replace(/,/g,' '); }
+    // Server ma'lumoti `innerHTML` ga qo'yiladi — HTML metabelgilarini escape qilamiz.
+    function esc(s) {
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
 
     function updateBalanceRing(coins, targetPrice){
         userCoins = coins;
@@ -509,12 +515,12 @@
                 return `<div class="mk-card" style="animation-delay:${i*70}ms">
                     ${trendingRibbon}
                     <div class="mk-card-img-wrap">
-                        <img class="mk-card-img" src="${p.image}" alt="${p.name}" loading="lazy">
+                        <img class="mk-card-img" src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">
                         ${stockBadge}
                     </div>
                     <div class="mk-card-body">
-                        <h3 class="mk-card-title">${p.name}</h3>
-                        <p class="mk-card-desc">${(p.description||'').substring(0,100)}${p.description&&p.description.length>100?'...':''}</p>
+                        <h3 class="mk-card-title">${esc(p.name)}</h3>
+                        <p class="mk-card-desc">${esc((p.description||'').substring(0,100))}${p.description&&p.description.length>100?'...':''}</p>
                         ${socialProof}
                         <div class="mk-card-footer">
                             <div class="mk-price"><i class="bi bi-coin"></i> ${formatNum(p.coin_price)}</div>

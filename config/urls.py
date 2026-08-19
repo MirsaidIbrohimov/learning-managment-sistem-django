@@ -2,11 +2,9 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
-from django.conf.urls.static import static
-from django.views.static import serve
 from django.urls import re_path
 
-from .views import robots_txt, security_txt, sitemap_xml
+from .views import robots_txt, security_txt, sitemap_xml, serve_media
 
 urlpatterns = [
     path("ai/", include("ai_yordamchi.urls")),
@@ -30,11 +28,8 @@ urlpatterns = [
 ]
 
 # Media files handling
-if settings.DEBUG:
-    # Development: serve media files directly
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    # Production: serve media files securely
-    urlpatterns += [
-        re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
-    ]
+# DEBUG rejimida ham `serve_media` ishlatiladi: yuklangan `.html`/`.svg` fayl
+# saqlangan XSS bermasligi lokal muhitda ham tekshirilishi kerak.
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve_media, name='serve_media'),
+]

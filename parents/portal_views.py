@@ -1,5 +1,6 @@
 from functools import wraps
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.hashers import make_password
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Avg, Count, Max, Q, Sum
@@ -11,6 +12,16 @@ from accounts.models import (
     Test, TestResult, Certificate, CourseEnrollment, BookRental,
     TestUserAnswer,
 )
+from accounts.security import (
+    check_rate_limit, log_security_event, validate_parent_password,
+)
+
+LOGIN_TEMPLATE = 'parents/portal/login.html'
+
+# Enumeration'ga qarshi: login yo'q va parol xato holatlari uchun BIR XIL xabar.
+# Ilgari "Foydalanuvchi topilmadi" / "Parol noto'g'ri" farqlanardi — shu orqali
+# qaysi loginlar mavjudligini ro'yxatlab olish mumkin edi.
+AUTH_ERROR = "Login yoki parol noto'g'ri"
 
 
 def parent_required(view_func):
@@ -32,28 +43,49 @@ def parent_required(view_func):
 def parent_login_view(request):
     if request.session.get('parent_id'):
         return redirect('parent_dashboard')
-    
+
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         password = request.POST.get('password', '')
-        
-        try:
-            parent = Parent.objects.get(username=username, is_active=True)
-            if parent.check_password(password):
-                request.session['parent_id'] = parent.id
-                parent.last_login = timezone.now()
-                parent.save(update_fields=['last_login'])
-                return redirect('parent_dashboard')
-            else:
-                return render(request, 'parents/portal/login.html', {'error': "Parol noto'g'ri"})
-        except Parent.DoesNotExist:
-            return render(request, 'parents/portal/login.html', {'error': "Foydalanuvchi topilmadi"})
-    
-    return render(request, 'parents/portal/login.html')
+
+        blocked, block_message = check_rate_limit(
+            request, 'parent_login', identifier=username,
+            ip_limit=25, id_limit=8, window=900,
+        )
+        if blocked:
+            return render(request, LOGIN_TEMPLATE, {'error': block_message})
+
+        parent = Parent.objects.filter(username=username, is_active=True).first()
+        if parent is None:
+            # Parolni baribir hashlaymiz: aks holda javob vaqti farqi
+            # ("tez" = login yo'q) enumeration kanaliga aylanardi.
+            Parent().set_password(password)
+            password_ok = False
+        else:
+            password_ok = parent.check_password(password)
+
+        if not password_ok:
+            log_security_event(
+                'failed_login', request=request,
+                detail=f"parent_login username={username[:40]}", severity='medium',
+            )
+            return render(request, LOGIN_TEMPLATE, {'error': AUTH_ERROR})
+
+        # Session fixation: hujumchi oldin bergan sessiya ID si bilan
+        # ota-ona sessiyasini o'zlashtirib olmasin.
+        request.session.cycle_key()
+        request.session['parent_id'] = parent.id
+        parent.last_login = timezone.now()
+        parent.save(update_fields=['last_login'])
+        return redirect('parent_dashboard')
+
+    return render(request, LOGIN_TEMPLATE)
 
 
 def parent_logout_view(request):
     request.session.pop('parent_id', None)
+    # Chiqishdan keyin eski sessiya ID si qayta ishlatilmasin.
+    request.session.cycle_key()
     return redirect('parent_login')
 
 
@@ -917,37 +949,41 @@ def parent_profile_edit(request):
 def parent_change_password(request):
     """Ota-ona parolini o'zgartirish"""
     from django.contrib.auth.hashers import make_password, check_password
-    
+
     parent = request.parent
-    
+
     if request.method == 'POST':
         current_password = request.POST.get('current_password', '')
         new_password = request.POST.get('new_password', '')
         confirm_password = request.POST.get('confirm_password', '')
-        
+
         if not check_password(current_password, parent.password):
             return render(request, 'parents/portal/change_password.html', {
                 'parent': parent,
                 'error': "Joriy parol noto'g'ri!",
             })
-        
+
         if new_password != confirm_password:
             return render(request, 'parents/portal/change_password.html', {
                 'parent': parent,
                 'error': "Yangi parollar mos kelmadi!",
             })
-        
-        if len(new_password) < 6:
+
+        policy_error = validate_parent_password(new_password, parent=parent)
+        if policy_error:
             return render(request, 'parents/portal/change_password.html', {
                 'parent': parent,
-                'error': "Parol kamida 6 ta belgidan iborat bo'lishi kerak!",
+                'error': policy_error,
             })
-        
+
         parent.password = make_password(new_password)
         parent.save()
-        
+        # Parol o'zgardi — eski sessiya ID si bilan davom etilmasin.
+        # `cycle_key()` sessiya ma'lumotini saqlaydi, faqat kalitni almashtiradi.
+        request.session.cycle_key()
+
         return redirect('parent_profile')
-    
+
     return render(request, 'parents/portal/change_password.html', {
         'parent': parent,
     })
@@ -965,38 +1001,48 @@ def parent_settings(request):
 
 def parent_password_reset_request(request):
     """Ota-ona parol tiklash so'rovi"""
+    template = 'parents/portal/password_reset_request.html'
+    # Enumeration'ga qarshi: login mavjud bo'lsa ham, bo'lmasa ham bir xil javob.
+    generic_success = "So'rov yuborildi! Admin tasdiqlashini kuting."
+
     if request.method == 'POST':
         username = request.POST.get('username', '').strip()
         new_password = request.POST.get('new_password', '')
         confirm_password = request.POST.get('confirm_password', '')
-        
+
         if not username or not new_password:
-            return render(request, 'parents/portal/password_reset_request.html', {
+            return render(request, template, {
                 'error': "Barcha maydonlarni to'ldiring"
             })
-        
+
         if new_password != confirm_password:
-            return render(request, 'parents/portal/password_reset_request.html', {
+            return render(request, template, {
                 'error': "Parollar mos kelmadi"
             })
-        
-        try:
-            parent = Parent.objects.get(username=username)
+
+        policy_error = validate_parent_password(new_password)
+        if policy_error:
+            return render(request, template, {'error': policy_error})
+
+        blocked, block_message = check_rate_limit(
+            request, 'parent_password_reset', identifier=username,
+            ip_limit=10, id_limit=5, window=3600,
+        )
+        if blocked:
+            return render(request, template, {'error': block_message})
+
+        parent = Parent.objects.filter(username=username).first()
+        if parent is not None:
             from accounts.models import ParentPasswordResetRequest
-            
-            # Yangi so'rov yaratish
+
+            # Parol so'rov paytida hashlanadi. Ilgami ochiq matnda saqlanardi:
+            # admin panelidan yoki DB nusxasidan o'qib olish mumkin edi.
             ParentPasswordResetRequest.objects.create(
                 parent=parent,
-                new_password=new_password
+                new_password=make_password(new_password),
             )
-            
-            return render(request, 'parents/portal/password_reset_request.html', {
-                'success': "So'rov yuborildi! Admin tasdiqlashini kuting."
-            })
-        except Parent.DoesNotExist:
-            return render(request, 'parents/portal/password_reset_request.html', {
-                'error': "Bunday foydalanuvchi topilmadi"
-            })
-    
-    return render(request, 'parents/portal/password_reset_request.html')
+
+        return render(request, template, {'success': generic_success})
+
+    return render(request, template)
 

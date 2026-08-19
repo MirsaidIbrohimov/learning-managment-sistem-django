@@ -58,22 +58,21 @@ class TelegramBotConfig(AppConfig):
 
         for attempt in range(3):
             try:
-                # Avval mavjud webhookni tekshirish
+                # Mavjud holatni faqat log uchun o'qiymiz. `setWebhook` ATAYLAB
+                # har ishga tushishda qayta chaqiriladi: getWebhookInfo
+                # `secret_token` o'rnatilganini KO'RSATMAYDI, shuning uchun
+                # "URL bir xil" deb o'tkazib yuborilsa, secret hech qachon
+                # ro'yxatga olinmay qoladi va bot_webhook barcha update'ni
+                # 403 bilan rad etadi.
                 resp = requests.get(
                     f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
                     timeout=10
                 )
                 info = resp.json().get('result', {})
-                current_url = info.get('url', '')
                 last_error = info.get('last_error_message', '')
-
-                if current_url == webhook_url and not last_error:
-                    print(f"Telegram webhook allaqachon o'rnatilgan: {webhook_url}")
-                    return
 
                 if last_error:
                     print(f"Webhook xatolik bor, qayta o'rnatilmoqda: {last_error}")
-                    # Xatolik bo'lsa avval o'chirish
                     requests.post(
                         f"https://api.telegram.org/bot{bot_token}/deleteWebhook",
                         timeout=10
@@ -86,6 +85,9 @@ class TelegramBotConfig(AppConfig):
                     json={
                         'url': webhook_url,
                         'max_connections': 40,
+                        # bot_webhook shu tokenni X-Telegram-Bot-Api-Secret-Token
+                        # sarlavhasida talab qiladi.
+                        'secret_token': getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', ''),
                     },
                     timeout=10
                 )
@@ -758,25 +760,25 @@ class TelegramBotConfig(AppConfig):
             chat_state.ai_session = session
             chat_state.save()
 
-        # Foydalanuvchi xabarini saqlash
+        # Coin ayirish (faqat premium bo'lmaganlar uchun) — xabarni saqlashdan
+        # OLDIN, aks holda to'lanmagan suhbat tarixda qolib ketadi.
         coin_cost = 0 if is_premium else 1
+        if not is_premium:
+            from telegram_bot.utils import spend_ai_coin
+
+            if not spend_ai_coin(user, "AI yordamchi bilan suhbat (Telegram)"):
+                self._send_message(bot_token, chat_id,
+                    "❌ Sizda yetarli coin yo'q.\n"
+                    "AI bilan suhbatlashish uchun 1 coin kerak.")
+                return
+
+        # Foydalanuvchi xabarini saqlash
         ChatMessage.objects.create(
             session=session,
             role='user',
             content=text,
             coins_spent=coin_cost,
         )
-
-        # Coin ayirish (faqat premium bo'lmaganlar uchun)
-        if not is_premium:
-            user.coins -= 1
-            user.save(update_fields=['coins'])
-            CoinTransaction.objects.create(
-                user=user,
-                amount=1,
-                action='remove',
-                reason="AI yordamchi bilan suhbat (Telegram)"
-            )
 
         # Sessiya sarlavhasini yangilash (birinchi xabar)
         if session.messages.filter(role='user').count() == 1:
@@ -900,21 +902,22 @@ class TelegramBotConfig(AppConfig):
         # Foydalanuvchi xabarini saqlash
         user_text = caption or "[Rasm yuborildi]"
         coin_cost = 0 if is_premium else 1
+
+        # Coin ayirish — xabarni saqlashdan oldin.
+        if not is_premium:
+            from telegram_bot.utils import spend_ai_coin
+
+            if not spend_ai_coin(user, "AI yordamchi bilan suhbat - rasm (Telegram)"):
+                self._send_message(bot_token, chat_id,
+                    "❌ Sizda yetarli coin yo'q.\nAI bilan suhbatlashish uchun 1 coin kerak.")
+                return
+
         ChatMessage.objects.create(
             session=session,
             role='user',
             content=user_text,
             coins_spent=coin_cost,
         )
-
-        # Coin ayirish
-        if not is_premium:
-            user.coins -= 1
-            user.save(update_fields=['coins'])
-            CoinTransaction.objects.create(
-                user=user, amount=1, action='remove',
-                reason="AI yordamchi bilan suhbat - rasm (Telegram)"
-            )
 
         # Sessiya sarlavhasini yangilash
         if session.messages.filter(role='user').count() == 1:

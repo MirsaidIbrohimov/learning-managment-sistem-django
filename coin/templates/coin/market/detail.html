@@ -200,8 +200,16 @@
     function fmtDate(iso) { return new Date(iso).toLocaleDateString('uz-UZ',{day:'2-digit',month:'2-digit',year:'numeric'}); }
     function fmtTime(iso) { return new Date(iso).toLocaleTimeString('uz-UZ',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 
+    // Izoh matni va ismlar boshqa foydalanuvchi kiritgan ma'lumot — `innerHTML`
+    // ga qo'yishdan oldin escape qilinadi (stored XSS).
+    function esc(s) {
+        return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+        });
+    }
+
     function toast(msg, type) {
-        const t=document.createElement('div'); t.className='dt-toast '+type; t.innerHTML='<i class="bi bi-'+(type==='success'?'check-circle':'x-circle')+'"></i> '+msg;
+        const t=document.createElement('div'); t.className='dt-toast '+type; t.innerHTML='<i class="bi bi-'+(type==='success'?'check-circle':'x-circle')+'"></i> '+esc(msg);
         document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
     }
 
@@ -210,21 +218,21 @@
             const [p,s] = await Promise.all([get(API+'/products/'+PID+'/'), get(API+'/summary/')]);
             product = p; userCoins = s.total_coins;
 
-            document.getElementById('dtImageWrap').innerHTML = `<img class="dt-img" src="${p.image}" alt="${p.name}">`;
+            document.getElementById('dtImageWrap').innerHTML = `<img class="dt-img" src="${esc(p.image)}" alt="${esc(p.name)}">`;
 
             const outOfStock = p.stock<=0;
             const canAfford = userCoins >= p.coin_price;
             document.getElementById('dtInfo').innerHTML = `
-                <h1 class="dt-title">${p.name}</h1>
-                <p class="dt-desc">${p.description||''}</p>
+                <h1 class="dt-title">${esc(p.name)}</h1>
+                <p class="dt-desc">${esc(p.description||'')}</p>
                 <div class="dt-meta">
-                    <span class="dt-badge price"><i class="bi bi-coin"></i> ${p.coin_price} coin</span>
-                    <span class="dt-badge ${outOfStock?'out':'stock'}"><i class="bi bi-${outOfStock?'x-circle':'box-seam'}"></i> ${outOfStock?'Tugagan':'Omborda: '+p.stock+' ta'}</span>
-                    <span class="dt-badge balance"><i class="bi bi-wallet2"></i> Balans: ${userCoins}</span>
+                    <span class="dt-badge price"><i class="bi bi-coin"></i> ${esc(p.coin_price)} coin</span>
+                    <span class="dt-badge ${outOfStock?'out':'stock'}"><i class="bi bi-${outOfStock?'x-circle':'box-seam'}"></i> ${outOfStock?'Tugagan':'Omborda: '+esc(p.stock)+' ta'}</span>
+                    <span class="dt-badge balance"><i class="bi bi-wallet2"></i> Balans: ${esc(userCoins)}</span>
                 </div>
                 <div class="dt-stats">
-                    <span class="dt-stat" id="dtLikeCount"><i class="bi bi-heart-fill" style="color:${p.is_liked?'#ef4444':''}"></i> ${p.likes_count} ta like</span>
-                    <span class="dt-stat"><i class="bi bi-chat-fill"></i> ${p.comments_count} ta izoh</span>
+                    <span class="dt-stat" id="dtLikeCount"><i class="bi bi-heart-fill" style="color:${p.is_liked?'#ef4444':''}"></i> ${esc(p.likes_count)} ta like</span>
+                    <span class="dt-stat"><i class="bi bi-chat-fill"></i> ${esc(p.comments_count)} ta izoh</span>
                 </div>
                 <div class="dt-actions">
                     <button class="dt-like-btn ${p.is_liked?'liked':''}" id="dtLikeBtn" onclick="toggleLike()">
@@ -253,13 +261,13 @@
             if(!d.results.length) { h+='<p style="color:var(--mkt-dim);text-align:center;padding:1rem;">Hali izohlar yo\'q</p>'; }
             else {
                 h += d.results.map(c => `<div class="dt-comment">
-                    <div class="dt-comment-avatar">${(c.full_name||c.username||'?')[0].toUpperCase()}</div>
+                    <div class="dt-comment-avatar">${esc((c.full_name||c.username||'?')[0].toUpperCase())}</div>
                     <div class="dt-comment-body">
                         <div class="dt-comment-header">
-                            <span class="dt-comment-name">${c.full_name||c.username}</span>
-                            <span class="dt-comment-date">${fmtDate(c.created_at)} ${fmtTime(c.created_at)}</span>
+                            <span class="dt-comment-name">${esc(c.full_name||c.username)}</span>
+                            <span class="dt-comment-date">${esc(fmtDate(c.created_at))} ${esc(fmtTime(c.created_at))}</span>
                         </div>
-                        <p class="dt-comment-text">${c.content}</p>
+                        <p class="dt-comment-text">${esc(c.content)}</p>
                     </div>
                 </div>`).join('');
             }
@@ -286,7 +294,7 @@
             const icon = btn.querySelector('i');
             if(d.liked) { btn.classList.add('liked'); icon.className='bi bi-heart-fill'; }
             else { btn.classList.remove('liked'); icon.className='bi bi-heart'; }
-            document.getElementById('dtLikeCount').innerHTML = `<i class="bi bi-heart-fill" style="color:${d.liked?'#ef4444':''}"></i> ${d.likes_count} ta like`;
+            document.getElementById('dtLikeCount').innerHTML = `<i class="bi bi-heart-fill" style="color:${d.liked?'#ef4444':''}"></i> ${esc(d.likes_count)} ta like`;
             const s = await get(API+'/summary/');
             userCoins = s.total_coins;
         } catch(e) { toast('Xatolik yuz berdi','error'); }
@@ -295,10 +303,10 @@
     window.openModal = function() {
         if(!product) return;
         document.getElementById('modalInfo').innerHTML = `
-            <div><span>Mahsulot:</span><span><b>${product.name}</b></span></div>
-            <div><span>Narxi:</span><span><b>${product.coin_price} coin</b></span></div>
-            <div><span>Balansingiz:</span><span>${userCoins} coin</span></div>
-            <div class="dt-modal-total"><span>Qoldiq:</span><span>${userCoins-product.coin_price} coin</span></div>`;
+            <div><span>Mahsulot:</span><span><b>${esc(product.name)}</b></span></div>
+            <div><span>Narxi:</span><span><b>${esc(product.coin_price)} coin</b></span></div>
+            <div><span>Balansingiz:</span><span>${esc(userCoins)} coin</span></div>
+            <div class="dt-modal-total"><span>Qoldiq:</span><span>${esc(userCoins-product.coin_price)} coin</span></div>`;
         document.getElementById('purchaseModal').classList.add('show');
     };
     window.closeModal = function() { document.getElementById('purchaseModal').classList.remove('show'); };

@@ -480,8 +480,14 @@ def _dispatch_tool(name, args):
     try:
         return func(**args)
     except Exception as e:  # tool xatosi agent'ni to'xtatmasligi kerak
-        print(f"Chat AI tool error ({name}): {e}")
-        return json.dumps({'error': f'Ichki xatolik: {e}'}, ensure_ascii=False), []
+        # Xato matni OpenAI ga qaytib yuboriladi — DB jadval/ustun nomlari va
+        # qator ma'lumotlari uchinchi tomonga chiqib ketmasin. To'liq izoh
+        # server jurnalida qoladi.
+        from .security import safe_error
+        return json.dumps(
+            {'error': safe_error(e, f'chat_ai_tool:{name}', 'Ichki xatolik')},
+            ensure_ascii=False,
+        ), []
 
 
 # ---------------------------------------------------------------------------
@@ -559,9 +565,13 @@ def _run_openai_agent(client, question, history=None):
                 max_tokens=AI_MAX_TOKENS,
             )
         except Exception as e:
-            print(f"Chat AI OpenAI error: {e}")
+            # OpenAI SDK xatoligi so'rov URL i, model va tashkilot ID sini
+            # o'z ichiga oladi — brauzerga chiqarilmasin.
+            from .security import safe_error
             return {
-                'answer': f"⚠️ AI xizmatiga ulanishda xatolik: {e}",
+                'answer': "⚠️ " + safe_error(
+                    e, 'chat_ai_openai', "AI xizmatiga ulanishda xatolik. Keyinroq urinib ko'ring.",
+                ),
                 'links': [], 'mode': 'openai', 'tools_used': tools_used, 'ok': False,
             }
 

@@ -57,6 +57,7 @@ class Command(BaseCommand):
                 json={
                     'url': webhook_url,
                     'max_connections': 40,
+                    'secret_token': getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', ''),
                 },
                 timeout=10,
             )

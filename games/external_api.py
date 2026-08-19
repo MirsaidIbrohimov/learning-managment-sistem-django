@@ -287,6 +287,11 @@ def submit_result(request):
     except CustomUser.DoesNotExist:
         return _cors_headers(JsonResponse({'ok': False, 'error': "Foydalanuvchi topilmadi"}, status=404), request)
 
+    # O'chirilgan akkaunt token muddati tugagunicha natija yozishda davom
+    # eta olmasin — token allaqachon berilgan bo'lsa ham.
+    if not user.is_active:
+        return _cors_headers(JsonResponse({'ok': False, 'error': "Akkaunt faol emas"}, status=403), request)
+
     # Natija validatsiyasi
     result = str(data.get('result', '')).lower()
     if result not in ('win', 'lose', 'draw'):
@@ -349,6 +354,12 @@ def submit_result(request):
         defaults = {'easy': 25, 'medium': 35, 'hard': 50}
         coins_awarded = int(rewards.get(difficulty, defaults.get(difficulty, 0)))
 
+        # Bloklangan (to'lov qarzi bor) o'quvchi o'yin o'ynay oladi, lekin
+        # coin ishlab olmasin — coin marketda pul o'rnida ishlatiladi.
+        if getattr(user, 'is_blocked', False):
+            coins_awarded = 0
+            coin_reason = "Akkaunt bloklangan — coin berilmadi"
+
         # Shaxmat uchun kunlik 3 ta o'yin limiti
         DAILY_AI_COIN_LIMIT = int(cfg.get('daily_ai_coin_limit', 3))
         if engine == 'chess' and coins_awarded > 0:
@@ -370,12 +381,14 @@ def submit_result(request):
             coin_reason = f"{game.title} ({difficulty}) g'olibi"
             user.add_coins(coins_awarded, coin_reason)
 
+    from accounts.security import get_client_ip
+
     meta_payload = {
         'result': result,
         'meta': meta,
         'source': 'external',
         'coins_awarded': coins_awarded,
-        'remote_ip': request.META.get('REMOTE_ADDR', ''),
+        'remote_ip': get_client_ip(request) or '',
     }
 
     attempt = GameAttempt.objects.create(

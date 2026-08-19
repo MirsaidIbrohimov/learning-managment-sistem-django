@@ -9,12 +9,16 @@ audit_logger = logging.getLogger('api.audit')
 
 
 def _client_ip(request):
+    """Audit jurnaliga yozish uchun IP.
+
+    Avval `X-Forwarded-For` ning ENG CHAP qiymati olinardi — u butunlay
+    mijoz nazoratida, ya'ni admin amallari jurnalida IP soxtalashtirilishi
+    mumkin edi. `get_client_ip` ishonchli proxy sonini hisobga oladi.
+    """
     if not request:
         return None
-    xff = request.META.get('HTTP_X_FORWARDED_FOR')
-    if xff:
-        return xff.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR')
+    from accounts.security import get_client_ip
+    return get_client_ip(request)
 
 
 def log_action(request, action_code: str, *,
