@@ -14,7 +14,7 @@ Covers:
 Run with: python manage.py test quiz
 """
 import base64
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -61,6 +61,9 @@ def make_user(role, username, **extra):
         # ProfileCompletionMiddleware before ever reaching the view. Tests
         # that specifically need an incomplete profile should override this.
         'is_profile_completed': True,
+        # Middleware `is_profile_completed` flagidan tashqari `birth_date`ni
+        # ham talab qiladi — ikkisidan biri bo'sh bo'lsa redirect qiladi.
+        'birth_date': date(2000, 1, 1),
     }
     defaults.update(extra)
     user = CustomUser.objects.create_user(username=username, password='testpass123', **defaults)
