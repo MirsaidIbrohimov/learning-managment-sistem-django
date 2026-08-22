@@ -11,6 +11,17 @@ from api.permissions import IsNotBlocked
 logger = logging.getLogger(__name__)
 
 
+def _filter_students_by_search(queryset, search_query):
+    """Search by username or any part of a student's full name."""
+    for term in search_query.split():
+        queryset = queryset.filter(
+            Q(first_name__icontains=term)
+            | Q(last_name__icontains=term)
+            | Q(username__icontains=term)
+        )
+    return queryset
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsNotBlocked])
 def leaderboard_api(request):
@@ -39,11 +50,7 @@ def leaderboard_api(request):
             if profession_id:
                 students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct()
             if search_query:
-                students_qs = students_qs.filter(
-                    Q(first_name__icontains=search_query) |
-                    Q(last_name__icontains=search_query) |
-                    Q(username__icontains=search_query)
-                )
+                students_qs = _filter_students_by_search(students_qs, search_query)
 
             student_ids = list(students_qs.values_list('id', flat=True))
 
@@ -116,11 +123,7 @@ def leaderboard_api(request):
     if profession_id:
         students_qs = students_qs.filter(enrollments__profession_id=profession_id).distinct().order_by('-coins')
     if search_query:
-        students_qs = students_qs.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(username__icontains=search_query)
-        )
+        students_qs = _filter_students_by_search(students_qs, search_query)
 
     user_rank = None
     if request.user.role == 'student':

@@ -1,6 +1,6 @@
 /* ============================================================
    ITSAuth — Login / Register sahifalari uchun umumiy runtime
-   - 3D tarmoq globusi (landing sahifadagi hero bilan bir xil uslub)
+   - Kursorga javob beradigan fon (2D canvas konstellatsiya)
    - Dark / Light tema (tun ↔ kun) silliq o'tish bilan
    - Toast, parol ko'rsatish, telefon formatlash, segment tablar
    ============================================================ */
@@ -9,7 +9,7 @@
 
   var THEME_KEY = 'its-theme';
   var SITE_THEME_KEY = 'theme'; // base.html shu kalitni o'qiydi — tanlov saytga ham o'tadi
-  var sceneApi = null; // mount qilingan sahna (tema o'zgarishida kerak)
+  var sceneApi = null; // mount qilingan fon (tema o'zgarishida kerak)
 
   /* ────────────────────────────────────────────
      TEMA
@@ -165,327 +165,313 @@
   }
 
   /* ============================================================
-     3D SAHNA — "Bilim yadrosi": trefoil (2,3) tugun + neyron
-     tugunlar + orbital halqalar + tugun bo'ylab yuguruvchi signallar.
+     FON — "Kursor konstellatsiyasi" (2D canvas)
+     Kursor atrofidagi tugunlar yorishadi, kursor uchiga nur tortadi
+     va maydon ochilib beriladi. Bosilganda to'lqin tarqaladi.
      t = 0 → tun (dark)   |   t = 1 → kun (light)
   ============================================================ */
   function mountScene(canvas, opts) {
-    if (!canvas || typeof THREE === 'undefined') {
+    if (!canvas) return null;
+    var ctx = canvas.getContext && canvas.getContext('2d');
+    if (!ctx) {
       document.documentElement.classList.add('no3d');
       return null;
     }
     opts = opts || {};
-    var side = opts.side === 'right' ? 1 : -1; // shakl qaysi tomonda turadi
+    var side = opts.side === 'right' ? 1 : -1; // kursor tegmaganda fon shu tomonda jonlanadi
+    var reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var TAU = Math.PI * 2;
 
-    var renderer;
-    try {
-      renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
-    } catch (e) {
-      document.documentElement.classList.add('no3d');
-      return null;
+    /* ── Palitra: [tun, kun] ── */
+    var PAL = {
+      dot:     ['#7f88e0', '#5b62c8'],
+      dotHot:  ['#ffffff', '#241a96'],
+      link:    ['#4b55b8', '#8b93e0'],
+      linkHot: ['#b9c0ff', '#3b2fc0'],
+      ray:     ['#a5b4ff', '#4f46e5'],
+      halo:    ['#6d5bf0', '#8b86ff']
+    };
+    function hex2rgb(h) {
+      var v = parseInt(h.slice(1), 16);
+      return [(v >> 16) & 255, (v >> 8) & 255, v & 255];
     }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    var rgb = {};
+    Object.keys(PAL).forEach(function (k) { rgb[k] = [hex2rgb(PAL[k][0]), hex2rgb(PAL[k][1])]; });
 
-    var scene = new THREE.Scene();
-    var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-    camera.position.z = 8;
-
-    var root = new THREE.Group();    // joylashish + kursorga egilish
-    var spinner = new THREE.Group(); // tugunning o'z aylanishi
-    var orbits = new THREE.Group();  // halqalar alohida presessiya qiladi
-    root.add(spinner);
-    root.add(orbits);
-    scene.add(root);
-
-    /* ── Tema palitrasi bog'lamalari ── */
-    var colorBinds = []; // {mat, n, d}
-    var numBinds = [];   // {obj, prop, n, d}
-    function C(hex) { return new THREE.Color(hex); }
-    function bindColor(m, n, d) { colorBinds.push({ mat: m, n: C(n), d: C(d) }); }
-    function bindNum(obj, prop, n, d) { numBinds.push({ obj: obj, prop: prop, n: n, d: d }); }
-
-    /* ── Yumaloq porlovchi nuqta teksturasi ── */
-    function dotTexture() {
-      var c = document.createElement('canvas');
-      c.width = c.height = 64;
-      var g = c.getContext('2d');
-      var grd = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-      grd.addColorStop(0, 'rgba(255,255,255,1)');
-      grd.addColorStop(0.35, 'rgba(192,193,255,0.9)');
-      grd.addColorStop(1, 'rgba(99,102,241,0)');
-      g.fillStyle = grd;
-      g.beginPath();
-      g.arc(32, 32, 32, 0, Math.PI * 2);
-      g.fill();
-      return new THREE.CanvasTexture(c);
+    var t = currentTheme() === 'light' ? 1 : 0, tTarget = t;
+    function chan(p, i) { return Math.round(p[0][i] + (p[1][i] - p[0][i]) * t); }
+    function mix(key) {
+      var p = rgb[key];
+      return 'rgb(' + chan(p, 0) + ',' + chan(p, 1) + ',' + chan(p, 2) + ')';
     }
-    var dotMap = dotTexture();
-
-    /* ── Trefoil tugun: markaziy egri chiziq formulasi (three.js bilan bir xil) ── */
-    var KR = 1.34, KT = 0.40, KP = 2, KQ = 3;
-    var tmpV = new THREE.Vector3();
-    function knotPoint(u, out) {
-      var quOverP = KQ / KP * u;
-      var cs = Math.cos(quOverP);
-      out.set(
-        KR * (2 + cs) * 0.5 * Math.cos(KP * u),
-        KR * (2 + cs) * 0.5 * Math.sin(KP * u),
-        KR * Math.sin(quOverP) * 0.5
-      );
-      return out;
+    function mixA(key, a) {
+      var p = rgb[key];
+      return 'rgba(' + chan(p, 0) + ',' + chan(p, 1) + ',' + chan(p, 2) + ',' + a + ')';
     }
 
-    var knotGeo = new THREE.TorusKnotGeometry(KR, KT, 88, 6, KP, KQ);
+    /* ── Tugunlar ── */
+    var W = 0, H = 0, dpr = 1;
+    var LINK = 132, PULL = 210;
+    var nodes = [], rings = [];
 
-    /* ── Markaziy egri chiziq: porlovchi quvur — shaklning konturi ── */
-    var curvePts = [];
-    for (var ci = 0; ci < 260; ci++) {
-      curvePts.push(knotPoint((ci / 260) * Math.PI * 2, new THREE.Vector3()));
-    }
-    var knotCurve = new THREE.CatmullRomCurve3(curvePts, true, 'catmullrom', 0.5);
-
-    var tubeMat = new THREE.MeshBasicMaterial({ color: 0x9aa2ff, transparent: true, opacity: 0.9 });
-    spinner.add(new THREE.Mesh(new THREE.TubeGeometry(knotCurve, 460, 0.044, 7, true), tubeMat));
-    bindColor(tubeMat, '#9aa2ff', '#5346d8');
-
-    var glowMat = new THREE.MeshBasicMaterial({
-      color: 0x6366f1, transparent: true, opacity: 0.11,
-      blending: THREE.AdditiveBlending, side: THREE.DoubleSide, depthWrite: false
-    });
-    spinner.add(new THREE.Mesh(new THREE.TubeGeometry(knotCurve, 200, 0.16, 8, true), glowMat));
-    bindColor(glowMat, '#6366f1', '#7c6cf6');
-
-    /* ── Quvur atrofidagi siyrak neyron nuqtalari ── */
-    var pMat = new THREE.PointsMaterial({
-      size: 0.062, map: dotMap, transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending, color: 0xc0c1ff, opacity: 0.5, sizeAttenuation: true
-    });
-    spinner.add(new THREE.Points(knotGeo, pMat));
-    bindColor(pMat, '#c0c1ff', '#4536c9');
-    bindNum(pMat, 'opacity', 0.5, 0.4);
-
-    /* ── Tugun bo'ylab yuguruvchi signal impulslari ── */
-    var PN = 26;
-    var pulseU = new Float32Array(PN);
-    var pulseSpd = new Float32Array(PN);
-    var pulsePos = new Float32Array(PN * 3);
-    for (var pi = 0; pi < PN; pi++) {
-      pulseU[pi] = Math.random() * Math.PI * 2;
-      pulseSpd[pi] = 0.24 + Math.random() * 0.38;
-    }
-    var pulseGeo = new THREE.BufferGeometry();
-    pulseGeo.setAttribute('position', new THREE.BufferAttribute(pulsePos, 3));
-    var pulseMat = new THREE.PointsMaterial({
-      size: 0.22, map: dotMap, transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending, color: 0xffffff, opacity: 0.9, sizeAttenuation: true
-    });
-    spinner.add(new THREE.Points(pulseGeo, pulseMat));
-    bindColor(pulseMat, '#ffffff', '#3a2bb8');
-    bindNum(pulseMat, 'opacity', 0.9, 0.8);
-
-    /* ── Markazdagi qirrali yadro ── */
-    var gemMat = new THREE.MeshBasicMaterial({ color: 0x8b93ff, transparent: true, opacity: 0.55 });
-    var gem = new THREE.Mesh(new THREE.IcosahedronGeometry(0.24, 0), gemMat);
-    spinner.add(gem);
-    bindColor(gemMat, '#8b93ff', '#5b4be0');
-    var gemEdgeMat = new THREE.LineBasicMaterial({
-      color: 0xe6e9ff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending
-    });
-    var gemEdges = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(0.245, 0)), gemEdgeMat);
-    spinner.add(gemEdges);
-    bindColor(gemEdgeMat, '#e6e9ff', '#4536c9');
-
-    /* ── Orbital halqalar ── */
-    var ringMats = [];
-    function addRing(radius, rx, ry, nHex, dHex, op) {
-      var m = new THREE.MeshBasicMaterial({
-        color: parseInt(nHex.slice(1), 16), transparent: true, opacity: op,
-        blending: THREE.AdditiveBlending, side: THREE.DoubleSide
-      });
-      var mesh = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.007, 5, 190), m);
-      mesh.rotation.set(rx, ry, 0);
-      orbits.add(mesh);
-      bindColor(m, nHex, dHex);
-      bindNum(m, 'opacity', op, op * 1.35);
-      ringMats.push(m);
-      return mesh;
-    }
-    var ringA = addRing(2.62, Math.PI / 2.35, 0.28, '#22d3ee', '#0c9fc4', 0.42);
-    var ringB = addRing(2.98, Math.PI / 1.7, -0.42, '#7c6cf6', '#5b4be0', 0.3);
-
-    /* ── Orqa halo ── */
-    function haloTexture() {
-      var c = document.createElement('canvas');
-      c.width = c.height = 128;
-      var g = c.getContext('2d');
-      var grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-      grd.addColorStop(0, 'rgba(255,255,255,.9)');
-      grd.addColorStop(0.4, 'rgba(255,255,255,.25)');
-      grd.addColorStop(1, 'rgba(255,255,255,0)');
-      g.fillStyle = grd;
-      g.fillRect(0, 0, 128, 128);
-      return new THREE.CanvasTexture(c);
-    }
-    var haloMat = new THREE.SpriteMaterial({
-      map: haloTexture(), transparent: true, opacity: 0.42,
-      depthWrite: false, blending: THREE.AdditiveBlending, color: 0x6366f1
-    });
-    var halo = new THREE.Sprite(haloMat);
-    halo.scale.set(6.4, 6.4, 1);
-    halo.position.z = -1.2;
-    root.add(halo);
-    bindColor(haloMat, '#6366f1', '#8b9cff');
-    bindNum(haloMat, 'opacity', 0.34, 0.2);
-
-    /* ── Atrofdagi mayda zarralar ── */
-    var dustGeo = new THREE.BufferGeometry();
-    var dustN = 170;
-    var dustPos = new Float32Array(dustN * 3);
-    for (var d0 = 0; d0 < dustN; d0++) {
-      var th = Math.random() * Math.PI * 2;
-      var ph = Math.acos(2 * Math.random() - 1);
-      var rr = 2.6 + Math.random() * 4.4;
-      dustPos[d0 * 3] = rr * Math.sin(ph) * Math.cos(th);
-      dustPos[d0 * 3 + 1] = rr * Math.cos(ph) * 0.7;
-      dustPos[d0 * 3 + 2] = rr * Math.sin(ph) * Math.sin(th) - 1;
-    }
-    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
-    var dustMat = new THREE.PointsMaterial({
-      size: 0.06, map: dotMap, transparent: true, opacity: 0.32,
-      depthWrite: false, blending: THREE.AdditiveBlending, color: 0xaeb6ff, sizeAttenuation: true
-    });
-    var dust = new THREE.Points(dustGeo, dustMat);
-    root.add(dust);
-    bindColor(dustMat, '#aeb6ff', '#5b4be0');
-    bindNum(dustMat, 'opacity', 0.32, 0.14);
-
-    /* ── Tema lerp ── */
-    var t = currentTheme() === 'light' ? 1 : 0;
-    var tTarget = t;
-    function lerp(n, d) { return n + (d - n) * t; }
-    function applyPalette() {
-      colorBinds.forEach(function (bd) { bd.mat.color.copy(bd.n).lerp(bd.d, t); });
-      numBinds.forEach(function (bd) { bd.obj[bd.prop] = bd.n + (bd.d - bd.n) * t; });
+    function seedNodes() {
+      var want = Math.max(44, Math.min(150, Math.round(W * H / 11000)));
+      while (nodes.length > want) nodes.pop();
+      while (nodes.length < want) {
+        var x = Math.random() * W, y = Math.random() * H;
+        nodes.push({
+          x: x, y: y,
+          hx: x, hy: y,                   // uy nuqtasi — kursor o'tgach shu yerga qaytadi
+          dx: (Math.random() - 0.5) * 17, // doimiy sekin siljish
+          dy: (Math.random() - 0.5) * 17,
+          vx: 0, vy: 0,
+          r: 1 + Math.random() * 1.7,
+          hot: 0
+        });
+      }
     }
 
-    /* Kun rejimida additiv aralashtirish yorug' fonda yo'qoladi — normal rejimga o'tamiz */
-    var blendMats = [pMat, glowMat, pulseMat, dustMat, gemEdgeMat].concat(ringMats);
-    var lastLight = null;
-    function applyBlend() {
-      var light = t > 0.5;
-      if (light === lastLight) return;
-      lastLight = light;
-      blendMats.forEach(function (m) {
-        m.blending = light ? THREE.NormalBlending : THREE.AdditiveBlending;
-        m.needsUpdate = true;
-      });
-    }
+    /* ── Kursor holati ── */
+    var mx = 0, my = 0, tx = 0, ty = 0, active = false;
+    var el = 0, last = 0, rafId = 0, running = false;
 
-    /* ── Moslashuvchan joylashuv ── */
+    function idleX() { return W * (0.5 + side * 0.24) + Math.cos(el * 0.31) * W * 0.1; }
+    function idleY() { return H * 0.5 + Math.sin(el * 0.23) * H * 0.16; }
+
     function layout() {
-      var w = window.innerWidth, h = window.innerHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
-      if (w <= 980) {
-        root.position.set(0, 0.9, 0);
-        root.scale.setScalar(0.7);
-        spinner.scale.setScalar(1);
-      } else {
-        // Yadro shisha karta markazida turadi: halqalar chetlaridan chiqib ko'rinadi
-        root.position.set(side * Math.min(2.35, w / 620), 0.02, 0);
-        root.scale.setScalar(1.02);
-        spinner.scale.setScalar(1.22); // tugun karta chetidan tashqariga chiqib ko'rinadi
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      W = canvas.clientWidth || window.innerWidth;
+      H = canvas.clientHeight || window.innerHeight;
+      canvas.width = Math.round(W * dpr);
+      canvas.height = Math.round(H * dpr);
+      LINK = W < 700 ? 118 : 152;
+      PULL = W < 700 ? 175 : 265;
+      seedNodes();
+      if (!active) { mx = tx = idleX(); my = ty = idleY(); }
+    }
+
+    function step(dt) {
+      var snap = dt ? Math.min(1, dt * 9) : 1;
+      var decay = Math.pow(0.05, dt);
+      for (var i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+
+        n.hx += n.dx * dt;
+        n.hy += n.dy * dt;
+        if (n.hx < -24) { n.hx += W + 48; n.x += W + 48; }
+        else if (n.hx > W + 24) { n.hx -= W + 48; n.x -= W + 48; }
+        if (n.hy < -24) { n.hy += H + 48; n.y += H + 48; }
+        else if (n.hy > H + 24) { n.hy -= H + 48; n.y -= H + 48; }
+
+        var ax = (n.hx - n.x) * 6, ay = (n.hy - n.y) * 6;
+
+        var dx = n.x - mx, dy = n.y - my;
+        var d2 = dx * dx + dy * dy, hot = 0;
+        if (d2 < PULL * PULL) {
+          var d = Math.sqrt(d2) || 0.001;
+          hot = 1 - d / PULL;
+          var push = hot * hot * 340;
+          ax += (dx / d) * push;
+          ay += (dy / d) * push;
+        }
+        n.hot += (hot - n.hot) * snap;
+
+        for (var k = 0; k < rings.length; k++) {
+          var R = rings[k];
+          var rx = n.x - R.x, ry = n.y - R.y;
+          var rd = Math.sqrt(rx * rx + ry * ry) || 0.001;
+          var band = Math.abs(rd - R.r);
+          if (band < 48) {
+            var g = (1 - band / 48) * R.a * 1800;
+            ax += (rx / rd) * g;
+            ay += (ry / rd) * g;
+          }
+        }
+
+        n.vx = (n.vx + ax * dt) * decay;
+        n.vy = (n.vy + ay * dt) * decay;
+        n.x += n.vx * dt;
+        n.y += n.vy * dt;
+      }
+      for (var j = rings.length - 1; j >= 0; j--) {
+        rings[j].r += 470 * dt;
+        rings[j].a -= dt * 1.2;
+        if (rings[j].a <= 0) rings.splice(j, 1);
       }
     }
 
-    /* ── Kursor parallaksi ── */
-    var mx = 0, my = 0, cx = 0, cy = 0;
-    var canHover = window.matchMedia && window.matchMedia('(hover: hover)').matches;
-    if (canHover) {
-      window.addEventListener('pointermove', function (e) {
-        mx = (e.clientX / window.innerWidth) * 2 - 1;
-        my = (e.clientY / window.innerHeight) * 2 - 1;
-      }, { passive: true });
-    }
+    /* Chizishni tejash: har bir chiziq/nuqta uchun alohida stroke() o'rniga
+       shaffoflik bo'yicha guruhlab, guruhga bitta path chizamiz. */
+    function buckets(n) { var a = []; while (n--) a.push([]); return a; }
+    var bLink = buckets(5), bLinkHot = buckets(5), bRay = buckets(4);
+    var bDot = buckets(2), bDotHot = buckets(3);
 
-    /* ── Render sikli ── */
-    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var rafId = 0, running = false, clock = new THREE.Clock();
-    var spin = 0, prevEl = 0;
-
-    function movePulses(dt) {
-      for (var k = 0; k < PN; k++) {
-        pulseU[k] += pulseSpd[k] * dt;
-        knotPoint(pulseU[k], tmpV);
-        pulsePos[k * 3] = tmpV.x;
-        pulsePos[k * 3 + 1] = tmpV.y;
-        pulsePos[k * 3 + 2] = tmpV.z;
+    function clearB() {
+      var all = [bLink, bLinkHot, bRay, bDot, bDotHot];
+      for (var i = 0; i < all.length; i++) {
+        for (var j = 0; j < all[i].length; j++) all[i][j].length = 0;
       }
-      pulseGeo.attributes.position.needsUpdate = true;
+    }
+    function pick(b, v, vMax) {
+      var k = Math.floor(v / vMax * b.length);
+      return b[k < 0 ? 0 : (k >= b.length ? b.length - 1 : k)];
+    }
+    function bucketAlpha(k, n, aMin, aMax) { return aMin + (aMax - aMin) * ((k + 0.5) / n); }
+
+    function strokeLines(b, color, lw, aMin, aMax) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = lw;
+      for (var k = 0; k < b.length; k++) {
+        var arr = b[k];
+        if (!arr.length) continue;
+        ctx.globalAlpha = bucketAlpha(k, b.length, aMin, aMax);
+        ctx.beginPath();
+        for (var q = 0; q < arr.length; q += 4) {
+          ctx.moveTo(arr[q], arr[q + 1]);
+          ctx.lineTo(arr[q + 2], arr[q + 3]);
+        }
+        ctx.stroke();
+      }
+    }
+    function fillDots(b, color, aMin, aMax) {
+      ctx.fillStyle = color;
+      for (var k = 0; k < b.length; k++) {
+        var arr = b[k];
+        if (!arr.length) continue;
+        ctx.globalAlpha = bucketAlpha(k, b.length, aMin, aMax);
+        ctx.beginPath();
+        for (var q = 0; q < arr.length; q += 3) {
+          ctx.moveTo(arr[q] + arr[q + 2], arr[q + 1]);
+          ctx.arc(arr[q], arr[q + 1], arr[q + 2], 0, TAU);
+        }
+        ctx.fill();
+      }
     }
 
-    function frame() {
-      var el = clock.getElapsedTime();
-      var dt = Math.min(0.05, el - prevEl);
-      prevEl = el;
+    function draw() {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      var day = t >= 0.5;
+      ctx.globalCompositeOperation = day ? 'source-over' : 'lighter';
 
-      t += (tTarget - t) * 0.055;
-      if (Math.abs(tTarget - t) < 0.002) t = tTarget;
-      applyPalette();
-      applyBlend();
+      /* Kursor halosi */
+      var hr = Math.min(W, H) * 0.42;
+      var grad = ctx.createRadialGradient(mx, my, 0, mx, my, hr);
+      grad.addColorStop(0, mixA('halo', day ? 0.2 : 0.26));
+      grad.addColorStop(0.4, mixA('halo', 0.07));
+      grad.addColorStop(1, mixA('halo', 0));
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(mx, my, hr, 0, TAU);
+      ctx.fill();
 
-      cx += (mx - cx) * 0.06;
-      cy += (my - cy) * 0.06;
+      var cRay = mix('ray');
+      var LMAX = day ? 0.36 : 0.3;
+      clearB();
 
-      spin += 0.0026;
-      spinner.rotation.y = spin + cx * 0.7;
-      spinner.rotation.x = Math.sin(el * 0.18) * 0.34;
-      root.rotation.x = 0.24 + cy * 0.42;
-      spinner.position.y = Math.sin(el * 0.8) * 0.07;
+      /* Ulanishlar — kursor yonidagilari yorqin guruhga tushadi */
+      for (var i = 0; i < nodes.length; i++) {
+        var a = nodes[i];
+        for (var j = i + 1; j < nodes.length; j++) {
+          var b = nodes[j];
+          var dx = a.x - b.x, dy = a.y - b.y;
+          var d2 = dx * dx + dy * dy;
+          if (d2 > LINK * LINK) continue;
+          var f = 1 - Math.sqrt(d2) / LINK;
+          var boost = a.hot > b.hot ? a.hot : b.hot;
+          var al = f * f * LMAX + f * boost * 0.75;
+          (boost > 0.06 ? pick(bLinkHot, al, 1) : pick(bLink, al, LMAX))
+            .push(a.x, a.y, b.x, b.y);
+        }
+      }
 
-      orbits.rotation.y = -spin * 1.5 + cx * 0.5;
-      orbits.rotation.z = Math.sin(el * 0.12) * 0.25;
-      // Halqalar sekin qiyalik o'zgartiradi (o'z o'qi bo'ylab aylanish ko'rinmaydi)
-      ringA.rotation.x = Math.PI / 2.35 + Math.sin(el * 0.21) * 0.32;
-      ringB.rotation.x = Math.PI / 1.7 + Math.cos(el * 0.17) * 0.28;
+      /* Tugunlar va kursor uchiga tortilgan nurlar */
+      for (i = 0; i < nodes.length; i++) {
+        var n = nodes[i];
+        var rr = n.r * (1 + n.hot * 1.7);
+        if (n.hot > 0.2) pick(bDotHot, n.hot, 1).push(n.x, n.y, rr);
+        else pick(bDot, n.hot, 0.2).push(n.x, n.y, rr);
+        if (n.hot > 0.06) pick(bRay, n.hot * n.hot, 1).push(mx, my, n.x, n.y);
+      }
 
-      gem.rotation.set(el * 0.5, el * 0.7, 0);
-      gemEdges.rotation.copy(gem.rotation);
+      strokeLines(bLink, mix('link'), 1, 0, LMAX);
+      strokeLines(bLinkHot, mix('linkHot'), 1, 0, 1);
+      strokeLines(bRay, cRay, 1.1, 0, 0.85);
+      fillDots(bDot, mix('dot'), 0.55, 0.62);
+      fillDots(bDotHot, mix('dotHot'), 0.7, 1);
 
-      movePulses(dt);
+      /* Bosishdagi to'lqinlar */
+      ctx.strokeStyle = cRay;
+      ctx.lineWidth = 1.6;
+      for (var q = 0; q < rings.length; q++) {
+        ctx.globalAlpha = Math.max(0, rings[q].a) * 0.4;
+        ctx.beginPath();
+        ctx.arc(rings[q].x, rings[q].y, rings[q].r, 0, TAU);
+        ctx.stroke();
+      }
 
-      // "Nafas olish" — porlash va nuqta o'lchami pulsatsiyasi
-      glowMat.opacity = lerp(0.11, 0.15) + (Math.sin(spin * 8) * 0.5 + 0.5) * 0.06;
-      pMat.size = 0.058 + (Math.sin(spin * 6) * 0.5 + 0.5) * 0.018;
-      dust.rotation.y = el * 0.02;
+      /* Kursor yadrosi */
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = mix('dotHot');
+      ctx.beginPath();
+      ctx.arc(mx, my, 3.2 + Math.sin(el * 3.1) * 0.5, 0, TAU);
+      ctx.fill();
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = cRay;
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.arc(mx, my, 15 + Math.sin(el * 2.2) * 2.5, 0, TAU);
+      ctx.stroke();
 
-      renderer.render(scene, camera);
-      if (running) rafId = requestAnimationFrame(frame);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function renderOnce() {
+      t = tTarget;
+      step(0);
+      draw();
+    }
+
+    function frame(now) {
+      rafId = requestAnimationFrame(frame);
+      var dt = last ? Math.min(0.05, (now - last) / 1000) : 0.016;
+      last = now;
+      el += dt;
+      t += (tTarget - t) * Math.min(1, dt * 3.2);
+      if (!active) { tx = idleX(); ty = idleY(); }
+      mx += (tx - mx) * Math.min(1, dt * 7);
+      my += (ty - my) * Math.min(1, dt * 7);
+      step(dt);
+      draw();
     }
 
     function start() {
       if (running || reduced) return;
-      running = true;
-      clock.start();
-      prevEl = 0;
+      running = true; last = 0;
       rafId = requestAnimationFrame(frame);
     }
     function stop() {
       running = false;
       if (rafId) cancelAnimationFrame(rafId);
     }
-    function renderOnce() {
-      applyPalette();
-      applyBlend();
-      glowMat.opacity = lerp(0.11, 0.15);
-      spinner.rotation.set(0.2, 0.6, 0);
-      root.rotation.x = 0.24;
-      movePulses(0);
-      renderer.render(scene, camera);
+
+    function aim(e) {
+      tx = e.clientX; ty = e.clientY;
+      if (!active) { active = true; mx = tx; my = ty; }
+      if (reduced) renderOnce();
     }
 
     layout();
+    window.addEventListener('pointermove', aim, { passive: true });
+    window.addEventListener('pointerdown', function (e) {
+      aim(e);
+      if (rings.length < 4) rings.push({ x: e.clientX, y: e.clientY, r: 10, a: 1 });
+      if (reduced) renderOnce();
+    }, { passive: true });
+    document.addEventListener('pointerleave', function () { active = false; });
+    window.addEventListener('blur', function () { active = false; });
     window.addEventListener('resize', function () {
       layout();
       if (reduced || !running) renderOnce();
@@ -493,18 +479,13 @@
     document.addEventListener('visibilitychange', function () {
       if (document.hidden) stop(); else start();
     });
-    canvas.addEventListener('webglcontextlost', function (e) {
-      e.preventDefault();
-      stop();
-    });
-    canvas.addEventListener('webglcontextrestored', function () { start(); });
 
-    if (reduced) { t = tTarget; renderOnce(); } else { start(); }
+    if (reduced) renderOnce(); else start();
 
     sceneApi = {
       setTheme: function (theme) {
         tTarget = theme === 'light' ? 1 : 0;
-        if (reduced || !running) { t = tTarget; renderOnce(); }
+        if (reduced || !running) renderOnce();
       }
     };
     return sceneApi;

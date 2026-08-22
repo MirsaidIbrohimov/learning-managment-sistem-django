@@ -23,7 +23,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
 <script src="{% static 'js/auth-page.js' %}" defer></script>
 </head>
 <body>
@@ -50,7 +49,7 @@
 
 <main class="stage">
 
-  <!-- Chap: 3D globus ustidagi brend matni -->
+  <!-- Chap: fon ustidagi brend matni -->
   <section class="pane-scene" aria-hidden="true">
     <span class="scene-eyebrow"><span class="dot"></span> Onlayn ta'lim platformasi</span>
     <h1 class="scene-title">Kelajak shahriga<br><span class="grad">xush kelibsiz!</span></h1>
@@ -205,8 +204,10 @@ document.addEventListener('DOMContentLoaded', function () {
   var A = window.ITSAuth;
   if (!A) return;
 
-  /* 3D sahna (globus chap tomonda) + tema */
-  A.mountScene(document.getElementById('bg3d'), { side: 'right' });
+  /* Kursorga javob beradigan fon + tema.
+     Fon buzilsa ham forma ishlashda davom etishi kerak. */
+  try { A.mountScene(document.getElementById('bg3d'), { side: 'right' }); }
+  catch (e) { document.documentElement.classList.add('no3d'); }
   A.initTheme(document.getElementById('themeToggle'));
 
   /* Tablar */

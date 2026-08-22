@@ -20,11 +20,14 @@
     var currentSearch = '';
     var searchTimer = null;
     var abortCtrl = null;
+    var premiumDismissed = false;
 
     // Elements
     var tabCoins = document.getElementById('tabCoins');
     var tabScore = document.getElementById('tabScore');
     var searchInput = document.getElementById('lbSearch');
+    var searchClear = document.getElementById('lbSearchClear');
+    var searchStatus = document.getElementById('lbSearchStatus');
     var pillsContainer = document.getElementById('pillsContainer');
     var lbLoading = document.getElementById('lbLoading');
     var lbContent = document.getElementById('lbContent');
@@ -73,6 +76,8 @@
         currentTab = tab;
         if (tabCoins) tabCoins.classList.toggle('active', tab === 'coins');
         if (tabScore) tabScore.classList.toggle('active', tab === 'score');
+        if (tabCoins) tabCoins.setAttribute('aria-selected', tab === 'coins' ? 'true' : 'false');
+        if (tabScore) tabScore.setAttribute('aria-selected', tab === 'score' ? 'true' : 'false');
         fetchData();
     }
 
@@ -80,11 +85,29 @@
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             clearTimeout(searchTimer);
+            if (searchClear) searchClear.classList.toggle('show', searchInput.value.length > 0);
+            if (searchStatus) searchStatus.innerHTML = '<span class="searching"><i class="bi bi-arrow-repeat"></i> Qidirilmoqda…</span>';
             searchTimer = setTimeout(function() {
                 currentSearch = searchInput.value.trim();
                 fetchData();
-            }, 350);
+            }, 250);
         });
+        searchInput.addEventListener('search', function() {
+            if (!searchInput.value) clearSearch();
+        });
+    }
+
+    if (searchClear) searchClear.addEventListener('click', clearSearch);
+
+    function clearSearch() {
+        clearTimeout(searchTimer);
+        currentSearch = '';
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        if (searchClear) searchClear.classList.remove('show');
+        fetchData();
     }
 
     // ====== PILLS ======
@@ -138,7 +161,7 @@
             return;
         }
 
-        if (premiumOverlay && !IS_PREMIUM && !IS_STAFF) {
+        if (premiumOverlay && !IS_PREMIUM && !IS_STAFF && !premiumDismissed) {
             premiumOverlay.style.display = '';
         }
 
@@ -159,7 +182,13 @@
 
     function renderPodium(students) {
         if (!lbPodium) return;
-        if (students.length < 3) { lbPodium.innerHTML = ''; return; }
+        var board = lbPodium.closest('.lb-board');
+        if (students.length < 3) {
+            lbPodium.innerHTML = '';
+            if (board) board.style.display = 'none';
+            return;
+        }
+        if (board) board.style.display = '';
 
         var top3 = students.slice(0, 3);
         var order = [top3[1], top3[0], top3[2]];
@@ -187,13 +216,17 @@
 
     function renderList(students) {
         if (!lbList) return;
-        if (students.length <= 3) { lbList.innerHTML = ''; return; }
+        var board = lbList.closest('.lb-table-board');
+        if (students.length === 0) { lbList.innerHTML = ''; return; }
+        if (board) board.style.display = students.length === 3 ? 'none' : '';
+        if (students.length === 3) { lbList.innerHTML = ''; return; }
 
         var vi = valueIcon();
+        var startIndex = students.length >= 3 ? 3 : 0;
         var html = '<div class="lb-list-header"><div>#</div><div>Foydalanuvchi</div><div>' +
                    (currentTab === 'score' ? 'Ball' : 'Coin') + '</div><div></div></div>';
 
-        students.slice(3).forEach(function(s, i) {
+        students.slice(startIndex).forEach(function(s, i) {
             var rank = s.rank;
             var delay = (i + 1) * 100;
             var visible = canSee(s);
@@ -266,9 +299,19 @@
                 renderPills(data.professions);
             }
 
+            var totalCount = document.getElementById('lbTotalCount');
+            if (totalCount) totalCount.textContent = data.total;
+            if (searchStatus) {
+                searchStatus.textContent = currentSearch
+                    ? '“' + currentSearch + '” uchun ' + data.total + ' ta natija'
+                    : data.total + ' ta o‘quvchi reytingda';
+            }
+
             if (data.students.length === 0) {
                 if (lbPodium) lbPodium.innerHTML = '';
                 if (lbList) lbList.innerHTML = '';
+                if (lbPodium && lbPodium.closest('.lb-board')) lbPodium.closest('.lb-board').style.display = 'none';
+                if (lbList && lbList.closest('.lb-table-board')) lbList.closest('.lb-table-board').style.display = '';
                 if (lbUserRank) lbUserRank.style.display = 'none';
                 if (premiumOverlay) premiumOverlay.style.display = 'none';
                 if (lbEmpty) lbEmpty.style.display = '';
@@ -292,7 +335,8 @@
             if (err.name === 'AbortError') return;
             if (lbLoading) lbLoading.style.display = 'none';
             if (lbContent) lbContent.style.display = '';
-            if (lbList) lbList.innerHTML = '<div class="lb-list"><div class="lb-empty"><div class="lb-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h4>Xatolik yuz berdi</h4><p>Qayta urinib ko\'ring</p></div></div>';
+            if (searchStatus) searchStatus.textContent = 'Qidirishda xatolik yuz berdi';
+            if (lbList) lbList.innerHTML = '<div class="lb-empty"><div class="lb-empty-icon"><i class="bi bi-exclamation-triangle"></i></div><h3>Xatolik yuz berdi</h3><p>Sahifani yangilab, qayta urinib ko\'ring.</p></div>';
         });
     }
 
@@ -318,6 +362,7 @@
 
     window.closePremiumOverlay = function() {
         var overlay = document.getElementById('premiumOverlay');
+        premiumDismissed = true;
         if (overlay) {
             overlay.classList.add('hiding');
             setTimeout(function() { overlay.style.display = 'none'; overlay.classList.remove('hiding'); }, 400);
@@ -338,7 +383,11 @@
     var urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('tab') === 'score') { currentTab = 'score'; switchTab('score'); }
     if (urlParams.get('profession')) currentProfession = urlParams.get('profession');
-    if (urlParams.get('q')) { currentSearch = urlParams.get('q'); if (searchInput) searchInput.value = currentSearch; }
+    if (urlParams.get('q')) {
+        currentSearch = urlParams.get('q');
+        if (searchInput) searchInput.value = currentSearch;
+        if (searchClear) searchClear.classList.add('show');
+    }
 
     fetchData();
 })();

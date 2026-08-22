@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 {% load l10n custom_filters %}
 
 {% block title %}{{ lesson.title }} - LMS{% endblock %}
@@ -809,10 +810,14 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
     .vl-celeb-modal { padding: 28px 20px 22px; width: 92%; }
 }
 </style>
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/student_learning_glass.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="vl-wrap">
+<div class="vl-wrap dash learning-glass video-glass">
+    <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="vl-shell">
 
     <!-- Back -->
     {% if course_token %}
@@ -1020,6 +1025,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 
     </div><!-- /vl-grid -->
 
+    </div><!-- /vl-shell -->
 </div><!-- /vl-wrap -->
 {% endblock %}
 

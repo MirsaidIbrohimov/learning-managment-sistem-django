@@ -2,7 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(python manage.py test accounts.tests_security.ApiSessionEnforcementTest accounts.tests_security.GameResultAccountStateTest accounts.tests_security.ChatDirectAuthorizationTest)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(powershell -NoProfile -Command 'Get-CimInstance Win32_Process -Filter \"Name='\\\\''chrome.exe'\\\\''\" | Where-Object { $_.CommandLine -like '\\\\''*sa_chrome_prof*'\\\\'' } | Select-Object ProcessId, @{n='\\\\''cmd'\\\\'';e={$_.CommandLine.Substring\\(0,[Math]::Min\\(120,$_.CommandLine.Length\\)\\)}} | Format-Table -AutoSize | Out-String -Width 200')",
+      "Bash(netstat -ano)",
+      "Bash(curl -s http://127.0.0.1:9333/json/version)"
     ]
   }
 }

@@ -1,7 +1,12 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 {% load custom_filters %}
 
 {% block title %}Kasblar — IT Shaharcha{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 
 {% block content %}
 <style>
@@ -434,9 +439,119 @@
   .kp-hero::after,.kp-prog-fill::after { animation:none !important; }
   .kp-card { animation:none !important; opacity:1 !important; }
 }
+
+/* ════════════════════════════════════════════
+   STUDENT DASHBOARD GLASS THEME
+   Dashboard bilan bir xil token, aurora va shaffof oynalar.
+   ════════════════════════════════════════════ */
+.kp.dash {
+  --kp-bg:var(--dash-bg);
+  --kp-bg2:var(--dash-surface-2);
+  --kp-panel:var(--dash-glass);
+  --kp-border:var(--dash-glass-border);
+  --kp-indigo:var(--dash-accent);
+  --kp-purple:var(--dash-accent-3);
+  --kp-cyan:var(--dash-accent-2);
+  --kp-green:var(--dash-success);
+  --kp-amber:var(--dash-warning);
+  --kp-red:var(--dash-danger);
+  --kp-text:var(--dash-text);
+  --kp-muted:var(--dash-muted);
+  --kp-grad:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2));
+  --kp-r:var(--dash-radius);
+  margin-top:-1.25rem;
+  padding:26px 0 84px;
+  background:transparent;
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+}
+.kp .kp-wrap,.kp .kp-search-float { max-width:1280px; }
+.kp .kp-hero {
+  width:calc(100% - 48px);
+  max-width:1232px;
+  margin:0 auto;
+  padding:32px 0 78px;
+  border:1px solid var(--dash-glass-border);
+  border-radius:var(--dash-radius-lg);
+  background:var(--dash-glass);
+  box-shadow:var(--dash-shadow);
+  backdrop-filter:blur(22px) saturate(160%);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+}
+.kp .kp-hero-grid {
+  background-image:linear-gradient(color-mix(in srgb,var(--dash-accent) 8%,transparent) 1px,transparent 1px),
+                   linear-gradient(90deg,color-mix(in srgb,var(--dash-accent) 8%,transparent) 1px,transparent 1px);
+}
+.kp .kp-hero-glow-a { background:radial-gradient(circle,color-mix(in srgb,var(--dash-accent) 28%,transparent),transparent 70%); }
+.kp .kp-hero-glow-b { background:radial-gradient(circle,color-mix(in srgb,var(--dash-accent-2) 24%,transparent),transparent 70%); }
+.kp .kp-hero-label {
+  color:var(--dash-accent);
+  background:color-mix(in srgb,var(--dash-accent) 12%,transparent);
+  border-color:color-mix(in srgb,var(--dash-accent) 28%,transparent);
+}
+.kp .kp-hero-label .dot { background:var(--dash-success);box-shadow:0 0 8px var(--dash-success); }
+.kp .kp-hero-title { color:var(--dash-text);text-shadow:none; }
+.kp .kp-hero-title span {
+  background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.kp .kp-hero-sub { color:var(--dash-muted); }
+.kp .kp-hs,
+.kp .kp-search-box,
+.kp .kp-card,
+.kp .kp-tab,
+.kp .kp-sort-btn,
+.kp .kp-view-sw,
+.kp .pg,
+.kp .kp-panel {
+  background:var(--dash-glass);
+  border-color:var(--dash-glass-border);
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:var(--dash-shadow-sm);
+}
+.kp .kp-hs-val { color:var(--dash-text); }
+.kp .kp-hs-lab { color:var(--dash-muted); }
+.kp .kp-hs-icon.ind { background:color-mix(in srgb,var(--dash-accent) 14%,transparent);color:var(--dash-accent); }
+.kp .kp-hs-icon.grn { background:color-mix(in srgb,var(--dash-success) 14%,transparent);color:var(--dash-success); }
+.kp .kp-search-float { margin-top:-34px; }
+.kp .kp-search-box { box-shadow:var(--dash-shadow),var(--dash-glow); }
+.kp .kp-search-box > i { color:var(--dash-accent); }
+.kp .kp-tab.active,.kp .kp-view-btn.active,.kp .pg.cur { background:var(--kp-grad);color:#fff;border-color:transparent; }
+.kp .kp-card { box-shadow:var(--dash-shadow-sm); }
+.kp .kp-card:hover,
+[data-bs-theme="light"] .kp .kp-card:hover {
+  border-color:color-mix(in srgb,var(--dash-accent) 36%,transparent);
+  box-shadow:var(--dash-shadow),var(--dash-glow);
+}
+.kp .kp-card.enrolled { border-color:color-mix(in srgb,var(--dash-success) 35%,transparent); }
+.kp .kp-card.enrolled:hover { border-color:color-mix(in srgb,var(--dash-success) 55%,transparent);box-shadow:var(--dash-shadow),0 12px 32px -14px color-mix(in srgb,var(--dash-success) 45%,transparent); }
+.kp .kp-card:hover .kp-name { color:var(--dash-accent); }
+.kp .kp-prog-track { background:color-mix(in srgb,var(--dash-accent) 12%,transparent); }
+.kp .kp-prog-fill { background:linear-gradient(90deg,var(--dash-accent),var(--dash-accent-2)); }
+.kp .kp-prog-pct { color:var(--dash-success); }
+.kp .kp-status.enrolled { background:color-mix(in srgb,var(--dash-success) 12%,transparent);color:var(--dash-success); }
+.kp .kp-status.new,.kp .kp-arrow { background:color-mix(in srgb,var(--dash-accent) 12%,transparent);color:var(--dash-accent); }
+.kp .kp-sort-menu {
+  background:var(--dash-glass);
+  border-color:var(--dash-glass-border);
+  backdrop-filter:blur(24px) saturate(170%);
+  -webkit-backdrop-filter:blur(24px) saturate(170%);
+  box-shadow:var(--dash-shadow);
+}
+[data-bs-theme="light"] .kp .kp-sort-menu { background:rgba(255,255,255,.86); }
+[data-bs-theme="dark"] .kp .kp-sort-menu { background:rgba(26,34,52,.88); }
+.kp .kp-sort-item:hover,.kp .kp-sort-item.active { background:color-mix(in srgb,var(--dash-accent) 12%,transparent);color:var(--dash-accent); }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  .kp .kp-hero,.kp .kp-hs,.kp .kp-search-box,.kp .kp-card,.kp .kp-tab,
+  .kp .kp-sort-btn,.kp .kp-view-sw,.kp .pg,.kp .kp-panel,.kp .kp-sort-menu { background:var(--dash-surface); }
+}
+@media(max-width:768px){
+  .kp .kp-hero { width:calc(100% - 28px);padding:26px 0 66px; }
+}
 </style>
 
-<div class="kp">
+<div class="kp dash">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
   <!-- ══ HERO ══ -->
   <div class="kp-hero">

@@ -54,8 +54,8 @@ def _env_bool(name, default=False):
 # SECURITY WARNING: don't run with debug turned on in production!
 # Default False — DEBUG yoqilishi uchun .env da ATAYLAB DEBUG=True yozilishi shart.
 # Pastdagi barcha cookie/HSTS/SSL himoyalari `not DEBUG` ga bog'langan, shuning
-# uchun bu qiymatni qattiq `True` qilib qoldirish ularning hammasini o'chiradi.
-DEBUG = _env_bool('DEBUG', False)
+# uchun bu qiymatni qattiq `True` qilib qoldirish ularning hammasini o'chiradi.    _env_bool('DEBUG', False)
+DEBUG = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY') or ''

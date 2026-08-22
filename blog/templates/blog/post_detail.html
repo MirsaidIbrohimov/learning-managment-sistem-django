@@ -1,7 +1,13 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 {% load widget_tweaks custom_filters %}
 
 {% block title %}{{ post.title }} — IT Shaharcha{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/student_learning_glass.css' %}">
+{% endblock %}
 
 {% block content %}
 <style>
@@ -11,11 +17,17 @@
 .pd {
   width:100vw; position:relative; left:50%; margin-left:-50vw;
   margin-top:-1.25rem;
-  background: linear-gradient(170deg,#07080f 0%,#0d0f1e 40%,#070c18 100%);
+  background:transparent;
   min-height:100vh;
   --pd-primary:#6366f1; --pd-accent:#8b5cf6;
-  --pd-card:rgba(255,255,255,0.04); --pd-border:rgba(255,255,255,0.08);
-  --pd-text:#f1f5f9; --pd-muted:#94a3b8;
+  --pd-card:rgba(255,255,255,.72); --pd-border:rgba(99,102,241,.14);
+  --pd-text:#0f172a; --pd-muted:#64748b;
+  --pd-soft:#f1f5f9;
+}
+[data-bs-theme="dark"] .pd {
+  --pd-card:rgba(26,34,52,.66); --pd-border:rgba(255,255,255,.08);
+  --pd-text:#e2e8f0; --pd-muted:#94a3b8;
+  --pd-soft:#151e30;
 }
 
 /* ── Hero image banner ── */
@@ -93,8 +105,8 @@
 
 /* ── Glass card ── */
 .pd-card {
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
+  background:var(--pd-card);
+  border:1px solid var(--pd-border);
   border-radius:22px; overflow:hidden;
   backdrop-filter:blur(10px);
   margin-bottom:1.5rem;
@@ -104,7 +116,7 @@
 .pd-author {
   display:flex; align-items:center; gap:1rem;
   padding:1.4rem 1.75rem;
-  border-bottom:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid var(--pd-border);
 }
 .pd-author-avatar {
   width:52px; height:52px; border-radius:50%; object-fit:cover;
@@ -129,7 +141,7 @@
 }
 .pd-body p { margin-bottom:1.2rem; }
 .pd-body h2,.pd-body h3,.pd-body h4 {
-  color:#f1f5f9; font-weight:700; margin:1.75rem 0 .75rem;
+  color:var(--pd-text); font-weight:700; margin:1.75rem 0 .75rem;
 }
 .pd-body a { color:#818cf8; }
 .pd-body img {
@@ -141,10 +153,10 @@
   padding:.15em .4em; border-radius:6px; font-size:.9em; color:#a78bfa;
 }
 .pd-body pre {
-  background:rgba(0,0,0,.4); border:1px solid rgba(255,255,255,.08);
+  background:var(--pd-soft); border:1px solid var(--pd-border);
   border-radius:12px; padding:1.25rem; overflow-x:auto; margin:1.5rem 0;
 }
-.pd-body pre code { background:none; border:none; padding:0; color:#e2e8f0; }
+.pd-body pre code { background:none; border:none; padding:0; color:var(--pd-text); }
 .pd-body blockquote {
   border-left:3px solid #6366f1; padding-left:1rem; margin:1.5rem 0;
   color:var(--pd-muted); font-style:italic;
@@ -154,7 +166,7 @@
 .pd-actions {
   display:flex; align-items:center; gap:1rem;
   padding:1.25rem 1.75rem;
-  border-top:1px solid rgba(255,255,255,.07);
+  border-top:1px solid var(--pd-border);
   flex-wrap:wrap;
 }
 .pd-like-btn {
@@ -185,15 +197,15 @@
 
 /* ── Comments section ── */
 .pd-cmt-section {
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.08);
+  background:var(--pd-card);
+  border:1px solid var(--pd-border);
   border-radius:22px; overflow:hidden;
   backdrop-filter:blur(10px);
 }
 .pd-cmt-header {
   display:flex; justify-content:space-between; align-items:center;
   padding:1.4rem 1.75rem;
-  border-bottom:1px solid rgba(255,255,255,.07);
+  border-bottom:1px solid var(--pd-border);
 }
 .pd-cmt-header h3 {
   font-weight:800; color:var(--pd-text); margin:0;
@@ -207,10 +219,10 @@
 }
 
 /* Comment form */
-.pd-cmt-form-wrap { padding:1.5rem 1.75rem; border-bottom:1px solid rgba(255,255,255,.06); }
+.pd-cmt-form-wrap { padding:1.5rem 1.75rem; border-bottom:1px solid var(--pd-border); }
 .pd-cmt-textarea {
   width:100%; padding:1rem 1.1rem; border-radius:14px; resize:none; min-height:96px;
-  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+  background:var(--pd-card); border:1px solid var(--pd-border);
   color:var(--pd-text); font-size:.95rem; font-family:inherit;
   transition:all .22s; outline:none;
 }
@@ -249,7 +261,7 @@
 }
 .pd-cmt-bubble {
   flex:1; min-width:0;
-  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  background:var(--pd-card); border:1px solid var(--pd-border);
   border-radius:16px; padding:1rem 1.1rem;
 }
 .pd-cmt-bubble-hdr {
@@ -296,7 +308,8 @@
 }
 </style>
 
-<div class="pd">
+<div class="pd dash learning-glass post-glass">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
   <!-- Hero Banner -->
   <div class="pd-hero">
     <div class="pd-hero-img">

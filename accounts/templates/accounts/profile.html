@@ -1,5 +1,5 @@
 ﻿{% extends 'accounts/base.html' %}
-{% load custom_filters %}
+{% load static custom_filters %}
 
 {% block title %}Profil | LMS - IT Shaharcha{% endblock %}
 
@@ -222,10 +222,13 @@
     .pf-sec{padding:1.15rem}
 }
 </style>
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/student_learning_glass.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="pf">
+<div class="pf dash learning-glass profile-glass">
+<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <!-- ===== BANNER ===== -->
 <div class="pf-banner a-up {% if user.is_premium %}pm{% endif %}"></div>

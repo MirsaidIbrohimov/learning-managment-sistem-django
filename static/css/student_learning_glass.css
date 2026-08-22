@@ -1,0 +1,385 @@
+/* Student learning flow: shared dashboard glass skin. */
+body { background: var(--bg) !important; }
+
+.learning-glass {
+    position: relative;
+    color: var(--dash-text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.learning-glass a { text-decoration: none; }
+
+/* Course detail */
+.course-glass {
+    --card-bg: var(--dash-glass);
+    --card-border: var(--dash-glass-border);
+    --text-main: var(--dash-text);
+    --text-muted: var(--dash-muted);
+    --soft-bg: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+    --radius: var(--dash-radius);
+    --shadow: var(--dash-shadow-sm);
+    --shadow-lg: var(--dash-shadow);
+}
+.course-glass .cd-back,
+.course-glass .cd-info-card,
+.course-glass .cd-main,
+.course-glass .section-card,
+.course-glass .cd-cert-card,
+.course-glass .glass-card {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.course-glass .cd-main-head { background: transparent; }
+.course-glass .cd-back:hover,
+.course-glass .cd-btn-outline:hover { color: var(--dash-accent); border-color: color-mix(in srgb, var(--dash-accent) 38%, transparent); }
+.course-glass .cd-btn-primary { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); box-shadow: var(--dash-glow); }
+.course-glass .cd-main-title i,
+.course-glass .cd-pill-count { color: var(--dash-accent); }
+.course-glass .section-card:not(.section-locked):hover {
+    border-color: color-mix(in srgb, var(--dash-accent) 35%, transparent);
+    box-shadow: var(--dash-shadow), var(--dash-glow);
+}
+
+/* Video lesson */
+.video-glass {
+    --vl-bg: var(--dash-bg);
+    --vl-bg-grad: none;
+    --vl-card: var(--dash-glass);
+    --vl-card-2: var(--dash-surface-2);
+    --vl-border: var(--dash-glass-border);
+    --vl-sep: var(--dash-border);
+    --vl-text: var(--dash-text);
+    --vl-text-2: var(--dash-text);
+    --vl-muted: var(--dash-muted);
+    --vl-soft: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+    --vl-shadow: var(--dash-shadow-sm);
+    --vl-shadow-lg: var(--dash-shadow);
+    --vl-blue: var(--dash-accent);
+    --vl-blue-2: var(--dash-accent-2);
+    --vl-purple: var(--dash-accent-3);
+    --vl-green: var(--dash-success);
+    --vl-orange: var(--dash-warning);
+    --vl-pink: var(--dash-danger);
+    --vl-grad-blue: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2));
+    --vl-grad-purple: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-3));
+}
+.video-glass .vl-card,
+.video-glass .vl-back {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.video-glass .vl-card:hover { box-shadow: var(--dash-shadow); }
+.video-glass .vl-header::before { background: linear-gradient(135deg, color-mix(in srgb, var(--dash-accent) 9%, transparent), color-mix(in srgb, var(--dash-accent-2) 6%, transparent)); }
+.video-glass .vl-back { color: var(--dash-accent); }
+
+/* Homework submission */
+.homework-glass {
+    --sp-bg: var(--dash-bg);
+    --sp-surface: var(--dash-glass);
+    --sp-surface-solid: var(--dash-surface);
+    --sp-card: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+    --sp-card-hover: color-mix(in srgb, var(--dash-accent) 11%, transparent);
+    --sp-border: var(--dash-glass-border);
+    --sp-border-strong: var(--dash-border);
+    --sp-text: var(--dash-text);
+    --sp-muted: var(--dash-muted);
+    --sp-accent: var(--dash-accent);
+    --sp-accent2: var(--dash-accent-2);
+    --sp-green: var(--dash-success);
+    --sp-amber: var(--dash-warning);
+    --sp-red: var(--dash-danger);
+    --sp-teal: var(--dash-accent-2);
+    --sp-indigo: var(--dash-accent);
+    --sp-grad: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2));
+    --sp-grad-warm: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-3));
+    --sp-shadow: var(--dash-shadow);
+    --sp-shadow-sm: var(--dash-shadow-sm);
+    min-height: 100vh;
+    background: transparent;
+}
+.homework-glass::before,
+.homework-glass::after { display: none; }
+.homework-glass > .dash-aurora { display: none; }
+.homework-glass .sp-topbar,
+.homework-glass .sp-card,
+.homework-glass .sp-tabs,
+.homework-glass .sp-tab-panel,
+.homework-glass .sp-hw-banner-inner {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(20px) saturate(155%);
+    -webkit-backdrop-filter: blur(20px) saturate(155%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.homework-glass .sp-tab.active,
+.homework-glass .sp-submit-btn { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); box-shadow: var(--dash-glow); }
+
+/* Blog post detail */
+.post-glass {
+    --pd-primary: var(--dash-accent);
+    --pd-accent: var(--dash-accent-2);
+    --pd-card: var(--dash-glass);
+    --pd-border: var(--dash-glass-border);
+    --pd-text: var(--dash-text);
+    --pd-muted: var(--dash-muted);
+    padding: 26px 0 84px;
+    background: transparent;
+}
+.post-glass .pd-hero {
+    width: calc(100% - 48px);
+    max-width: 1232px;
+    margin: 0 auto;
+    border: 1px solid var(--dash-glass-border);
+    border-radius: var(--dash-radius-lg);
+    background: var(--dash-glass);
+    box-shadow: var(--dash-shadow);
+    backdrop-filter: blur(20px) saturate(155%);
+    -webkit-backdrop-filter: blur(20px) saturate(155%);
+}
+.post-glass .pd-hero-img { background: linear-gradient(135deg, color-mix(in srgb, var(--dash-bg) 76%, transparent), color-mix(in srgb, var(--dash-accent) 25%, transparent)); }
+.post-glass .pd-hero-title { color: #fff; }
+.post-glass .pd-card,
+.post-glass .pd-cmt-section,
+.post-glass .pd-cmt-bubble,
+.post-glass .pd-cmt-textarea {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.post-glass .pd-author,
+.post-glass .pd-actions,
+.post-glass .pd-cmt-header,
+.post-glass .pd-cmt-form-wrap { border-color: var(--dash-border); }
+.post-glass .pd-body h2,
+.post-glass .pd-body h3,
+.post-glass .pd-body h4 { color: var(--dash-text); }
+.post-glass .pd-body a { color: var(--dash-accent); }
+.post-glass .pd-body pre { background: var(--dash-surface-2); border-color: var(--dash-border); }
+.post-glass .pd-body pre code { color: var(--dash-text); }
+.post-glass .pd-author-init,
+.post-glass .pd-cmt-ava-init,
+.post-glass .pd-cmt-badge,
+.post-glass .pd-cmt-submit { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); }
+.post-glass .pd-cmt-textarea:focus { border-color: var(--dash-accent); background: color-mix(in srgb, var(--dash-accent) 7%, transparent); box-shadow: var(--dash-glow); }
+
+/* Market list, detail and premium overview */
+.market-glass {
+    --mkt-card: var(--dash-glass);
+    --mkt-bg-soft: transparent;
+    --mkt-border: var(--dash-glass-border);
+    --mkt-text: var(--dash-text);
+    --mkt-dim: var(--dash-muted);
+    --mkt-sub: var(--dash-muted);
+    --mkt-accent: var(--dash-accent);
+    --mkt-accent-2: var(--dash-accent-2);
+    --mkt-accent-soft: color-mix(in srgb, var(--dash-accent) 11%, transparent);
+    --mkt-ok: var(--dash-success);
+    --mkt-bad: var(--dash-danger);
+    --mkt-info: var(--dash-accent-2);
+    --mkt-shadow: var(--dash-shadow-sm);
+    --mkt-shadow-lg: var(--dash-shadow);
+}
+.market-glass .mkt-hero,
+.market-glass .mkt-panel,
+.market-glass .mkt-stat,
+.market-glass .mkt-search,
+.market-glass .mkt-empty,
+.market-glass .mkt-back,
+.market-glass .mk-stat-chip,
+.market-glass .mk-product-card,
+.market-glass .mk-card,
+.market-glass .dt-img-wrap,
+.market-glass .dt-info,
+.market-glass .ps-crown-card {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.market-glass .mkt-btn.primary,
+.market-glass .mkt-tab.active { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); box-shadow: var(--dash-glow); }
+
+/* Premium purchase */
+.premium-buy-glass {
+    --pm-bg: transparent;
+    --pm-card: var(--dash-glass);
+    --pm-text: var(--dash-text);
+    --pm-muted: var(--dash-muted);
+    --pm-border: var(--dash-glass-border);
+    --pm-purple: var(--dash-accent-3);
+    --pm-blue: var(--dash-accent-2);
+    background: transparent;
+}
+.premium-buy-glass .pm-hero,
+.premium-buy-glass .pm-plan,
+.premium-buy-glass .pm-progress-card,
+.premium-buy-glass .pm-t-card,
+.premium-buy-glass .pm-faq-item,
+.premium-buy-glass .pm-step {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(20px) saturate(155%);
+    -webkit-backdrop-filter: blur(20px) saturate(155%);
+    box-shadow: var(--dash-shadow-sm);
+}
+
+/* Premium extension */
+.premium-extend-glass {
+    --xp-bg: transparent;
+    --xp-card: var(--dash-glass);
+    --xp-text: var(--dash-text);
+    --xp-muted: var(--dash-muted);
+    --xp-subtle: color-mix(in srgb, var(--dash-accent) 7%, transparent);
+    --xp-border: var(--dash-glass-border);
+    --xp-border-strong: var(--dash-border);
+    --xp-primary: var(--dash-accent);
+    --xp-primary-dark: var(--dash-accent);
+    --xp-secondary: var(--dash-accent-2);
+    --xp-tertiary: var(--dash-accent-3);
+    --xp-success: var(--dash-success);
+    --xp-danger: var(--dash-danger);
+    --xp-warning: var(--dash-warning);
+    --xp-shadow-sm: var(--dash-shadow-sm);
+    --xp-shadow: var(--dash-shadow);
+    --xp-shadow-lg: var(--dash-shadow);
+    background: transparent;
+}
+.premium-extend-glass .xp-hero,
+.premium-extend-glass .xp-plan,
+.premium-extend-glass .xp-countdown-card,
+.premium-extend-glass .xp-value-card,
+.premium-extend-glass .xp-faq-item {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(20px) saturate(155%);
+    -webkit-backdrop-filter: blur(20px) saturate(155%);
+    box-shadow: var(--dash-shadow-sm);
+}
+
+/* Global search */
+.search-glass {
+    --bg: var(--dash-bg);
+    --surface: var(--dash-glass);
+    --surface2: var(--dash-surface-2);
+    --border: var(--dash-glass-border);
+    --border2: var(--dash-border);
+    --text: var(--dash-text);
+    --muted: var(--dash-muted);
+    --faint: var(--dash-muted);
+    --accent: var(--dash-accent);
+    --accent2: var(--dash-accent-2);
+    --success: var(--dash-success);
+    --glass: var(--dash-glass);
+    --glass2: color-mix(in srgb, var(--dash-accent) 6%, transparent);
+    --ring: color-mix(in srgb, var(--dash-accent) 36%, transparent);
+    --shadow: var(--dash-shadow);
+    background: transparent;
+}
+.search-glass .qs-cmd,
+.search-glass .qs-ai,
+.search-glass .qs-chip,
+.search-glass .qs-side,
+.search-glass .qs-card,
+.search-glass .qs-scard,
+.search-glass .qs-recent {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.search-glass .qs-submit,
+.search-glass .qs-tbtn.active,
+.search-glass .qs-cont { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); }
+
+/* Profile */
+.profile-glass {
+    --card: var(--dash-glass);
+    --border: var(--dash-glass-border);
+    --text: var(--dash-text);
+    --muted: var(--dash-muted);
+    --accent: var(--dash-accent);
+    --success: var(--dash-success);
+    --warn: var(--dash-warning);
+    --red: var(--dash-danger);
+    max-width: 1180px;
+}
+.profile-glass .pf-card,
+.profile-glass .pf-qs,
+.profile-glass .pf-mini {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(20px) saturate(155%);
+    -webkit-backdrop-filter: blur(20px) saturate(155%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.profile-glass .pf-banner { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2), var(--dash-accent-3)); }
+
+/* Help center */
+.help-glass {
+    --hlp-shadow: var(--dash-shadow-sm);
+    --hlp-shadow-h: var(--dash-shadow);
+    max-width: 960px;
+}
+.help-glass .hlp-hero,
+.help-glass .hlp-search input,
+.help-glass .hlp-chip,
+.help-glass .hlp-faq-item,
+.help-glass .hlp-form,
+.help-glass .hlp-pill,
+.help-glass .hlp-rq {
+    background: var(--dash-glass);
+    border-color: var(--dash-glass-border);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm);
+}
+.help-glass .hlp-chip.active,
+.help-glass .hlp-pill.active,
+.help-glass .hlp-btn-send { background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); border-color: transparent; }
+
+/* Video page uses one uninterrupted page background; only its cards are boxed. */
+body:has(.video-glass) {
+    min-height: 100vh;
+    background: var(--bg) !important;
+}
+body:has(.homework-glass) {
+    min-height: 100vh;
+    background: var(--bg) !important;
+}
+.video-glass {
+    margin-top: -1.25rem;
+    padding: 26px 16px 56px;
+    background: transparent;
+}
+.video-glass > .dash-aurora { display: none; }
+.video-glass .vl-shell { max-width: 1180px; margin: 0 auto; }
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .learning-glass .cd-back,
+    .learning-glass .cd-info-card,
+    .learning-glass .cd-main,
+    .learning-glass .section-card,
+    .learning-glass .vl-card,
+    .learning-glass .vl-back,
+    .learning-glass .sp-topbar,
+    .learning-glass .sp-card,
+    .learning-glass .sp-tabs,
+    .learning-glass .sp-tab-panel,
+    .learning-glass .pd-card,
+    .learning-glass .pd-cmt-section,
+    .learning-glass .pd-cmt-bubble { background: var(--dash-surface); }
+}
+
+@media (max-width: 768px) {
+    .post-glass .pd-hero { width: calc(100% - 28px); }
+}

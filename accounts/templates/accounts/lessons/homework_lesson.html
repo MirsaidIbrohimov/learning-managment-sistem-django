@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 {% block title %}{{ lesson.title }} — Uy vazifasi{% endblock %}
 
 {% block extra_css %}
@@ -788,10 +789,13 @@
   * { scroll-behavior:auto !important; }
 }
 </style>
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/student_learning_glass.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="sp-wrap" id="hwApp">
+<div class="sp-wrap dash learning-glass homework-glass" id="hwApp">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
   <!-- Top bar -->
   <div class="sp-topbar">

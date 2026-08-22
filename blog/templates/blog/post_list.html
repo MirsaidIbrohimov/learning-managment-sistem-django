@@ -1,5 +1,10 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 {% block title %}Blog Postlar — IT Shaharcha{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+{% endblock %}
 
 {% block content %}
 <style>
@@ -261,9 +266,103 @@
   transition:all .22s;
 }
 .bl-create-btn:hover { transform:translateY(-2px); box-shadow:0 10px 28px rgba(99,102,241,.4); color:#fff; }
+
+/* ── Student dashboard glass theme ── */
+.bl.dash {
+  --bl-primary:var(--dash-accent);
+  --bl-accent:var(--dash-accent-2);
+  --bl-card:var(--dash-glass);
+  --bl-border:var(--dash-glass-border);
+  --bl-text:var(--dash-text);
+  --bl-muted:var(--dash-muted);
+  padding:26px 0 84px;
+  background:transparent;
+  color:var(--dash-text);
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+}
+.bl .bl-hero {
+  width:calc(100% - 48px);
+  max-width:1232px;
+  margin:0 auto;
+  padding:3rem 1.5rem 6rem;
+  border:1px solid var(--dash-glass-border);
+  border-radius:var(--dash-radius-lg);
+  background:var(--dash-glass);
+  box-shadow:var(--dash-shadow);
+  backdrop-filter:blur(22px) saturate(160%);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+}
+.bl .bl-hero-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb,var(--dash-accent) 8%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,var(--dash-accent) 8%,transparent) 1px,transparent 1px);
+}
+.bl .bl-hero-orb1 { background:color-mix(in srgb,var(--dash-accent) 25%,transparent); }
+.bl .bl-hero-orb2 { background:color-mix(in srgb,var(--dash-accent-2) 22%,transparent); }
+.bl .bl-hero-badge {
+  color:var(--dash-accent);
+  background:color-mix(in srgb,var(--dash-accent) 12%,transparent);
+  border-color:color-mix(in srgb,var(--dash-accent) 28%,transparent);
+}
+.bl .bl-hero h1 {
+  background:linear-gradient(135deg,var(--dash-text) 10%,var(--dash-accent) 55%,var(--dash-accent-2));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.bl .bl-search-box,
+.bl .bl-tab,
+.bl .bl-card,
+.bl .bl-page,
+.bl .bl-empty {
+  background:var(--dash-glass);
+  border-color:var(--dash-glass-border);
+  backdrop-filter:blur(18px) saturate(150%);
+  -webkit-backdrop-filter:blur(18px) saturate(150%);
+  box-shadow:var(--dash-shadow-sm);
+}
+.bl .bl-search-box { border-color:color-mix(in srgb,var(--dash-accent) 24%,var(--dash-glass-border));box-shadow:var(--dash-shadow),var(--dash-glow); }
+.bl .bl-search-box > i { color:var(--dash-accent); }
+.bl .bl-search-clear { background:color-mix(in srgb,var(--dash-accent) 10%,transparent);color:var(--dash-muted); }
+.bl .bl-tab:hover { border-color:color-mix(in srgb,var(--dash-accent) 35%,transparent);color:var(--dash-accent); }
+.bl .bl-tab.active {
+  color:#fff;
+  border-color:transparent;
+  background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2));
+  box-shadow:var(--dash-glow);
+}
+.bl .bl-tab.active .cnt { background:rgba(255,255,255,.18); }
+.bl .bl-card { box-shadow:var(--dash-shadow-sm); }
+.bl .bl-card::before { background:linear-gradient(135deg,transparent,color-mix(in srgb,var(--dash-accent) 8%,transparent)); }
+.bl .bl-card:hover {
+  border-color:color-mix(in srgb,var(--dash-accent) 36%,transparent);
+  box-shadow:var(--dash-shadow),var(--dash-glow);
+}
+.bl .bl-card-img-empty { background:linear-gradient(135deg,color-mix(in srgb,var(--dash-accent) 14%,transparent),color-mix(in srgb,var(--dash-accent-2) 10%,transparent)); }
+.bl .bl-card-img-empty i { color:color-mix(in srgb,var(--dash-accent) 42%,transparent); }
+.bl .bl-card-avatar { border-color:color-mix(in srgb,var(--dash-accent) 30%,transparent); }
+.bl .bl-card-avatar-init,.bl .bl-arrow,.bl .bl-create-btn,.bl .bl-page.cur {
+  background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2));
+}
+.bl .bl-create-btn { color:#fff;box-shadow:var(--dash-glow); }
+.bl .bl-arrow { color:#fff;box-shadow:var(--dash-glow); }
+.bl .bl-card:hover .bl-arrow { background:linear-gradient(135deg,var(--dash-accent),var(--dash-accent-2)); }
+.bl .bl-stat.comments i { color:var(--dash-accent); }
+.bl .bl-page:hover { border-color:color-mix(in srgb,var(--dash-accent) 35%,transparent);color:var(--dash-accent); }
+.bl .bl-empty { border-style:dashed; }
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+  .bl .bl-hero,.bl .bl-search-box,.bl .bl-tab,.bl .bl-card,.bl .bl-page,.bl .bl-empty { background:var(--dash-surface); }
+}
+@media(max-width:768px){
+  .bl .bl-hero { width:calc(100% - 28px);padding:2.5rem 1rem 5.5rem; }
+  .bl .bl-main { padding-left:14px;padding-right:14px; }
+}
+@media (prefers-reduced-motion:reduce){
+  .bl .dash-aurora > i { animation:none!important; }
+  .bl .bl-card { transition:none; }
+}
 </style>
 
-<div class="bl">
+<div class="bl dash">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
   <!-- Hero -->
   <div class="bl-hero">
     <div class="bl-hero-grid"></div>
