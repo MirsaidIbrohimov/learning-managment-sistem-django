@@ -650,6 +650,10 @@
               </li>
               <li><hr class="dropdown-divider"></li>
               <li><a class="dropdown-item" href="{% url 'profile' %}"><span class="dd-icon" style="background:rgba(129,140,248,.15);color:#818cf8;"><i class="bi bi-person-fill"></i></span>Profil</a></li>
+              <li><a class="dropdown-item" href="{% url 'startup:dashboard' %}"><span class="dd-icon" style="background:rgba(99,102,241,.15);color:#6366f1;"><i class="bi bi-rocket-takeoff-fill"></i></span>MY StartUp{% if my_startup %}<span class="badge bg-primary ms-auto" style="font-size:.6rem;">{{ my_startup.progress }}%</span>{% else %}<span class="badge bg-success ms-auto" style="font-size:.6rem;">Yangi</span>{% endif %}</a></li>
+              {% if startup_mentor_access %}
+              <li><a class="dropdown-item" href="{% url 'startup:mentor' %}"><span class="dd-icon" style="background:rgba(16,185,129,.15);color:#10b981;"><i class="bi bi-person-badge-fill"></i></span>Mentor paneli</a></li>
+              {% endif %}
               <li><a class="dropdown-item" href="{% url 'coin:coin_history' %}"><span class="dd-icon" style="background:rgba(245,158,11,.15);color:#f59e0b;"><i class="bi bi-coin"></i></span>Coin tarixi<span class="badge bg-warning text-dark ms-auto" style="font-size:.6rem;">{{ user.coins|default:0 }}</span></a></li>
               <li><a class="dropdown-item" href="{% url 'coin:coin_transfer' %}"><span class="dd-icon" style="background:rgba(251,191,36,.15);color:#fbbf24;"><i class="bi bi-send-fill"></i></span>Coin o'tkazma</a></li>
               <li><a class="dropdown-item" href="{% url 'coin:my_purchases' %}"><span class="dd-icon" style="background:rgba(99,102,241,.15);color:#6366f1;"><i class="bi bi-bag-check-fill"></i></span>Mening Xaridlarim</a></li>
