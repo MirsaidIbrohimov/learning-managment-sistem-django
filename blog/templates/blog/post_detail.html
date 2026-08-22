@@ -19,15 +19,10 @@
   margin-top:-1.25rem;
   background:transparent;
   min-height:100vh;
-  --pd-primary:#6366f1; --pd-accent:#8b5cf6;
-  --pd-card:rgba(255,255,255,.72); --pd-border:rgba(99,102,241,.14);
-  --pd-text:#0f172a; --pd-muted:#64748b;
-  --pd-soft:#f1f5f9;
-}
-[data-bs-theme="dark"] .pd {
-  --pd-card:rgba(26,34,52,.66); --pd-border:rgba(255,255,255,.08);
-  --pd-text:#e2e8f0; --pd-muted:#94a3b8;
-  --pd-soft:#151e30;
+  --pd-primary:var(--dash-accent); --pd-accent:var(--dash-accent-2);
+  --pd-card:var(--dash-glass); --pd-border:var(--dash-glass-border);
+  --pd-text:var(--dash-text); --pd-muted:var(--dash-muted);
+  --pd-soft:var(--dash-surface-2);
 }
 
 /* ── Hero image banner ── */
@@ -232,6 +227,16 @@
   box-shadow:0 0 0 4px rgba(99,102,241,.12);
 }
 .pd-cmt-textarea::placeholder { color:var(--pd-muted); }
+.pd-cmt-help {
+  color:var(--pd-muted); font-size:.78rem; line-height:1.45; margin-top:.55rem;
+}
+.pd-cmt-error {
+  display:flex; align-items:flex-start; gap:.45rem;
+  margin-top:.65rem; padding:.65rem .8rem; border-radius:10px;
+  background:color-mix(in srgb,#ef4444 10%,transparent);
+  border:1px solid color-mix(in srgb,#ef4444 28%,transparent);
+  color:#ef4444; font-size:.82rem; line-height:1.45;
+}
 .pd-cmt-form-footer {
   display:flex; justify-content:flex-end; margin-top:.85rem;
 }
@@ -392,7 +397,16 @@
         <form method="post">
           {% csrf_token %}
           <textarea name="content" class="pd-cmt-textarea"
-                    placeholder="Fikringizni yozing..." required>{{ form.content.value|default:'' }}</textarea>
+                    placeholder="Fikringizni tushunarli va mazmunli yozing..."
+                    maxlength="1000" required>{{ form.content.value|default:'' }}</textarea>
+          <div class="pd-cmt-help">
+            Kamida ikki tushunarli so'z yozing. Tasodifiy harflar va takroriy belgilar qabul qilinmaydi.
+          </div>
+          {% for error in form.content.errors %}
+          <div class="pd-cmt-error" role="alert">
+            <i class="bi bi-exclamation-circle-fill"></i><span>{{ error }}</span>
+          </div>
+          {% endfor %}
           <div class="pd-cmt-form-footer">
             <button type="submit" class="pd-cmt-submit">
               <i class="bi bi-send-fill"></i> Yuborish
@@ -421,7 +435,7 @@
         {% empty %}
         <div class="pd-cmt-empty">
           <i class="bi bi-chat-square"></i>
-          <div style="font-weight:600;color:#f1f5f9;margin-bottom:.35rem;">Hozircha izohlar yo'q</div>
+          <div style="font-weight:600;color:var(--pd-text);margin-bottom:.35rem;">Hozircha izohlar yo'q</div>
           <div style="font-size:.85rem;">Birinchi bo'lib fikr bildiring!</div>
         </div>
         {% endfor %}
