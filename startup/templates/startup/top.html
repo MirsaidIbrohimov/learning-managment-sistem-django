@@ -1,0 +1,103 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}TOP startuplar — MY StartUp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-trophy-fill"></i></span>
+    <div class="su-head-main">
+      <h1>TOP startuplar</h1>
+      <p>Startuplar XP boʻyicha saralanadi. Vazifa tasdiqlangani sari XP oʻsadi.</p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:explore' %}">
+        <i class="bi bi-compass"></i> Barcha startuplar
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Mening startupim
+      </a>
+    </div>
+  </div>
+
+  <div class="su-filters">
+    <a class="su-chip {% if period == 'all' %}active{% endif %}"
+       href="?period=all{% if profession_id %}&profession={{ profession_id }}{% endif %}">Umumiy</a>
+    <a class="su-chip {% if period == 'month' %}active{% endif %}"
+       href="?period=month{% if profession_id %}&profession={{ profession_id }}{% endif %}">Bu oy</a>
+    <a class="su-chip {% if period == 'week' %}active{% endif %}"
+       href="?period=week{% if profession_id %}&profession={{ profession_id }}{% endif %}">Bu hafta</a>
+
+    <form method="get" class="d-flex gap-2 ms-auto" style="max-width:320px">
+      <input type="hidden" name="period" value="{{ period }}">
+      <select class="form-select form-select-sm" name="profession" aria-label="Kurs filtri"
+              onchange="this.form.submit()">
+        <option value="">My Academy — barcha kurslar</option>
+        {% for profession in professions %}
+          <option value="{{ profession.id }}" {% if profession_id == profession.id %}selected{% endif %}>
+            {{ profession.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div>
+    {% for startup in page_obj %}
+      <a class="su-row {% if my_startup_id == startup.id %}is-mine{% endif %}"
+         href="{% url 'startup:detail' startup.slug %}">
+        <span class="su-rank {% if page_obj.number == 1 and forloop.counter == 1 %}r1{% elif page_obj.number == 1 and forloop.counter == 2 %}r2{% elif page_obj.number == 1 and forloop.counter == 3 %}r3{% endif %}">
+          {{ forloop.counter0|add:page_obj.start_index }}
+        </span>
+        {% if startup.logo %}
+          <img class="su-item-logo" src="{{ startup.logo.url }}" alt="{{ startup.name }}">
+        {% else %}
+          <span class="su-item-logo"><i class="bi bi-rocket-takeoff"></i></span>
+        {% endif %}
+        <span class="su-person-name">
+          {{ startup.name }}
+          <small>
+            {{ startup.owner.get_full_name|default:startup.owner.username }}
+            {% if startup.profession %} · {{ startup.profession.name }}{% endif %}
+          </small>
+        </span>
+        <span class="su-badge"><i class="bi bi-people"></i> {{ startup.member_count }}</span>
+        <span class="su-badge"><i class="bi bi-flag"></i> {{ startup.get_current_stage_display }}</span>
+        <span class="su-badge is-primary">
+          <i class="bi bi-lightning-charge-fill"></i>
+          {% if period == 'all' %}{{ startup.total_xp }}{% else %}{{ startup.period_xp|default:0 }}{% endif %} XP
+        </span>
+      </a>
+    {% empty %}
+      <div class="su-card"><p class="su-note">Hozircha startup yoʻq.</p></div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav style="margin-top:18px" aria-label="Sahifalar">
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}&period={{ period }}{% if profession_id %}&profession={{ profession_id }}{% endif %}">‹</a>
+        </li>
+      {% endif %}
+      <li class="page-item active">
+        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}&period={{ period }}{% if profession_id %}&profession={{ profession_id }}{% endif %}">›</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}

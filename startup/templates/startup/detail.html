@@ -1,0 +1,209 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — startup profili{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    {% if startup.logo %}
+      <img class="su-head-logo" src="{{ startup.logo.url }}" alt="{{ startup.name }}">
+    {% else %}
+      <span class="su-head-logo"><i class="bi bi-rocket-takeoff"></i></span>
+    {% endif %}
+    <div class="su-head-main">
+      <h1>{{ startup.name }}</h1>
+      <p>
+        {{ startup.short_description }}<br>
+        <span class="su-badge">{{ startup.get_category_display }}</span>
+        <span class="su-badge"><i class="bi bi-flag"></i> {{ stage_label }}</span>
+        <span class="su-badge"><i class="bi bi-lightning-charge-fill"></i> {{ startup.total_xp }} XP</span>
+        <span class="su-badge"><i class="bi bi-person"></i> {{ startup.owner.get_full_name|default:startup.owner.username }}</span>
+      </p>
+    </div>
+    <div class="su-head-actions">
+      {% if not can_view_private %}
+        <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:team' startup.slug %}">
+          <i class="bi bi-people"></i> Jamoa
+        </a>
+      {% endif %}
+      {% if can_edit %}
+        <a class="btn btn-sm btn-primary" href="{% url 'startup:edit' startup.slug %}">
+          <i class="bi bi-pencil"></i> Tahrirlash
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if can_view_private %}{% include 'startup/_nav.html' with active='detail' %}{% endif %}
+
+  <div class="su-grid-2">
+    <div>
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-graph-up-arrow"></i> Progress</h2>
+        {% include 'startup/_progress.html' with progress=startup.progress %}
+        <p class="su-note" style="margin-top:10px">
+          {{ startup.progress }}% bajarildi · {{ startup.stage_index }}/10 bosqich
+          {% if task_stats %} · {{ task_stats.done }}/{{ task_stats.total }} vazifa{% endif %}
+        </p>
+      </div>
+
+      {% if startup.description %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-file-text"></i> Startup haqida</h2>
+        <p style="white-space:pre-line;margin:0">{{ startup.description }}</p>
+      </div>
+      {% endif %}
+
+      {% if startup.problem or startup.solution or startup.target_audience or startup.business_model or startup.competitors %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-lightbulb"></i> Gʻoya</h2>
+        {% if startup.problem %}<p><b>Muammo:</b><br>{{ startup.problem|linebreaksbr }}</p>{% endif %}
+        {% if startup.solution %}<p><b>Yechim:</b><br>{{ startup.solution|linebreaksbr }}</p>{% endif %}
+        {% if startup.target_audience %}<p><b>Maqsadli auditoriya:</b><br>{{ startup.target_audience|linebreaksbr }}</p>{% endif %}
+        {% if startup.business_model %}<p><b>Biznes model:</b><br>{{ startup.business_model|linebreaksbr }}</p>{% endif %}
+        {% if startup.competitors %}<p style="margin-bottom:0"><b>Raqobatchilar:</b><br>{{ startup.competitors|linebreaksbr }}</p>{% endif %}
+      </div>
+      {% endif %}
+
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-signpost-split"></i> Bosqichlar</h2>
+        {% for stage in stages %}
+          <div class="su-stage {% if stage.is_completed %}done{% elif stage.key == startup.current_stage %}current{% endif %}">
+            <span class="su-stage-dot">
+              {% if stage.is_completed %}<i class="bi bi-check-lg"></i>{% else %}{{ stage.order }}{% endif %}
+            </span>
+            <div class="su-stage-body">
+              <h3>{{ stage.title }}</h3>
+              <span class="su-stage-meta">
+                {% if stage.is_completed %}Yakunlangan{% elif stage.key == startup.current_stage %}Joriy bosqich{% else %}Kutilmoqda{% endif %}
+              </span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-people-fill"></i> Jamoa
+          <span class="su-count">{{ members|length }}</span>
+        </h2>
+        {% for member in members %}
+          <div class="su-person">
+            <span class="su-avatar">{{ member.user.first_name|first|default:member.user.username|first|upper }}</span>
+            <span class="su-person-name">
+              {{ member.user.get_full_name|default:member.user.username }}
+              <small>{{ member.get_role_display }}</small>
+            </span>
+          </div>
+        {% endfor %}
+
+        {% if not is_member and not membership %}
+          <form method="post" action="{% url 'startup:team_join' startup.slug %}" style="margin-top:12px">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-primary w-100" type="submit">
+              <i class="bi bi-person-plus"></i> Jamoaga qoʻshilish
+            </button>
+          </form>
+        {% elif membership and membership.status == 'pending' %}
+          <p class="su-note" style="margin-top:12px"><i class="bi bi-hourglass"></i> Soʻrovingiz koʻrib chiqilmoqda.</p>
+        {% endif %}
+      </div>
+
+      {% if mentors %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-person-badge"></i> Mentorlar</h2>
+        {% for link in mentors %}
+          <div class="su-person">
+            <span class="su-avatar">{{ link.mentor.first_name|first|default:link.mentor.username|first|upper }}</span>
+            <span class="su-person-name">
+              {{ link.mentor.get_full_name|default:link.mentor.username }}
+              <small>Mentor</small>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if achievements %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-award"></i> Yutuqlar</h2>
+        <div class="su-medals">
+          {% for achievement in achievements %}
+            <span class="su-medal">
+              <i class="bi {{ achievement.definition.icon|default:'bi-award' }}"></i>
+              {{ achievement.definition.title|default:achievement.code }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if startup.website or startup.github_url or startup.telegram_url or startup.instagram_url %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-link-45deg"></i> Havolalar</h2>
+        <div class="d-flex flex-wrap gap-2">
+          {% if startup.website %}<a class="su-chip" href="{{ startup.website }}" target="_blank" rel="noopener nofollow"><i class="bi bi-globe"></i> Sayt</a>{% endif %}
+          {% if startup.github_url %}<a class="su-chip" href="{{ startup.github_url }}" target="_blank" rel="noopener nofollow"><i class="bi bi-github"></i> GitHub</a>{% endif %}
+          {% if startup.telegram_url %}<a class="su-chip" href="{{ startup.telegram_url }}" target="_blank" rel="noopener nofollow"><i class="bi bi-telegram"></i> Telegram</a>{% endif %}
+          {% if startup.instagram_url %}<a class="su-chip" href="{{ startup.instagram_url }}" target="_blank" rel="noopener nofollow"><i class="bi bi-instagram"></i> Instagram</a>{% endif %}
+        </div>
+      </div>
+      {% endif %}
+
+      {% if finance %}
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-cash-stack"></i> Moliya
+          <a class="su-count" href="{% url 'startup:finance' startup.slug %}">Batafsil →</a>
+        </h2>
+        <p class="su-note">
+          Daromad: <b style="color:var(--success)">{{ finance.revenue }}</b> soʻm<br>
+          Xarajat: <b style="color:var(--danger)">{{ finance.expense }}</b> soʻm<br>
+          Foyda: <b>{{ finance.profit }}</b> soʻm
+        </p>
+      </div>
+      {% endif %}
+
+      {% if can_review %}
+      <form class="su-card" method="post" action="{% url 'startup:feedback' startup.slug %}">
+        {% csrf_token %}
+        <h2 class="su-card-title"><i class="bi bi-chat-square-text"></i> Mentor fikri</h2>
+        {% include 'startup/_form.html' with form=feedback_form %}
+        <div style="margin-top:14px">
+          <button class="btn btn-primary btn-sm" type="submit"><i class="bi bi-send"></i> Yuborish</button>
+        </div>
+      </form>
+      {% endif %}
+
+      {% if feedbacks %}
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-chat-quote"></i> Fikrlar
+          <span class="su-count">{{ feedbacks|length }}</span>
+        </h2>
+        {% for item in feedbacks %}
+          <div class="su-sub">
+            <div class="su-sub-head">
+              <span class="su-avatar">{{ item.mentor.first_name|first|default:item.mentor.username|first|upper }}</span>
+              <b>{{ item.mentor.get_full_name|default:item.mentor.username }}</b>
+              {% if item.rating %}<span class="su-badge is-primary"><i class="bi bi-star-fill"></i> {{ item.rating }}/5</span>{% endif %}
+              <time style="margin-left:auto">{{ item.created_at|date:"d.m.Y H:i" }}</time>
+            </div>
+            <p style="margin:0;white-space:pre-line">{{ item.message }}</p>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

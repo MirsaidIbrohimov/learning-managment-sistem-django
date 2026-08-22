@@ -1,0 +1,129 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ task.title }} — {{ startup.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap" style="max-width:960px">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-check2-square"></i></span>
+    <div class="su-head-main">
+      <h1>{{ task.title }}</h1>
+      <p>
+        {{ startup.name }}{% if task.stage %} · {{ task.stage.title }}{% endif %}<br>
+        <span class="su-badge is-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+        <span class="su-badge"><i class="bi bi-lightning-charge"></i> {{ task.points }} XP</span>
+        {% if task.priority == 'high' %}<span class="su-badge is-high">Muhim</span>{% endif %}
+        {% if task.deadline %}<span class="su-badge {% if task.is_overdue %}is-overdue{% endif %}"><i class="bi bi-calendar-event"></i> {{ task.deadline|date:"d.m.Y" }}</span>{% endif %}
+        {% if task.assigned_to %}<span class="su-badge"><i class="bi bi-person"></i> {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</span>{% endif %}
+      </p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:task_list' startup.slug %}">
+        <i class="bi bi-arrow-left"></i> Vazifalar
+      </a>
+    </div>
+  </div>
+
+  {% if task.description %}
+  <div class="su-card">
+    <h2 class="su-card-title"><i class="bi bi-file-text"></i> Vazifa tavsifi</h2>
+    <p style="white-space:pre-line;margin:0">{{ task.description }}</p>
+    {% if task.attachment %}
+      <p style="margin:12px 0 0">
+        <a class="su-chip" href="{{ task.attachment.url }}" target="_blank" rel="noopener">
+          <i class="bi bi-paperclip"></i> Biriktirilgan fayl
+        </a>
+      </p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if can_submit and task.status != 'COMPLETED' %}
+  <form class="su-card" method="post" action="{% url 'startup:task_submit' startup.slug task.pk %}"
+        enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <h2 class="su-card-title"><i class="bi bi-upload"></i> Natijani topshirish</h2>
+    {% include 'startup/_form.html' %}
+    <button class="btn btn-primary" style="margin-top:14px" type="submit">
+      <i class="bi bi-send"></i> Tekshiruvga yuborish
+    </button>
+    <p class="su-note" style="margin-top:8px">
+      Topshiriqni mentor yoki administrator tekshiradi. Tasdiqlansa +{{ task.points }} XP olasiz.
+    </p>
+  </form>
+  {% endif %}
+
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-clock-history"></i> Topshiriqlar tarixi
+      <span class="su-count">{{ submissions|length }}</span>
+    </h2>
+
+    {% for submission in submissions %}
+      <div class="su-sub">
+        <div class="su-sub-head">
+          <span class="su-avatar" style="width:28px;height:28px;font-size:.72rem">
+            {{ submission.submitted_by.first_name|first|default:submission.submitted_by.username|first|upper }}
+          </span>
+          <b>{{ submission.submitted_by.get_full_name|default:submission.submitted_by.username }}</b>
+          <span>{{ submission.submitted_at|date:"d.m.Y H:i" }}</span>
+          <span class="su-badge {% if submission.status == 'approved' %}is-completed{% elif submission.status == 'rejected' %}is-rejected{% elif submission.status == 'pending' %}is-submitted{% else %}is-progress{% endif %}">
+            {{ submission.get_status_display }}
+          </span>
+        </div>
+
+        {% if submission.description %}<p style="white-space:pre-line;margin:0">{{ submission.description }}</p>{% endif %}
+
+        {% if submission.file or submission.link or submission.github_url or submission.demo_url %}
+        <div class="su-sub-links">
+          {% if submission.file %}<a class="su-chip" href="{{ submission.file.url }}" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> Fayl</a>{% endif %}
+          {% if submission.link %}<a class="su-chip" href="{{ submission.link }}" target="_blank" rel="noopener nofollow"><i class="bi bi-link-45deg"></i> Havola</a>{% endif %}
+          {% if submission.github_url %}<a class="su-chip" href="{{ submission.github_url }}" target="_blank" rel="noopener nofollow"><i class="bi bi-github"></i> GitHub</a>{% endif %}
+          {% if submission.demo_url %}<a class="su-chip" href="{{ submission.demo_url }}" target="_blank" rel="noopener nofollow"><i class="bi bi-play-btn"></i> Demo</a>{% endif %}
+        </div>
+        {% endif %}
+
+        {% if submission.status != 'pending' %}
+          <div class="su-review">
+            <b>{{ submission.reviewed_by.get_full_name|default:submission.reviewed_by.username }}</b>
+            — {{ submission.reviewed_at|date:"d.m.Y H:i" }}<br>
+            {{ submission.review_comment|default:"Izoh yoʻq."|linebreaksbr }}
+          </div>
+        {% elif can_review %}
+          <form class="su-review" method="post" action="{% url 'startup:task_review' startup.slug task.pk %}">
+            {% csrf_token %}
+            <label class="su-form-label" for="suComment">Mentor izohi</label>
+            <textarea class="form-control" id="suComment" name="comment" rows="2"
+                      placeholder="Nima yaxshi, nimani tuzatish kerak?"></textarea>
+            <div class="d-flex flex-wrap gap-2" style="margin-top:10px">
+              <button class="btn btn-sm btn-success" type="submit" name="action" value="approve">
+                <i class="bi bi-check-lg"></i> Tasdiqlash (+{{ task.points }} XP)
+              </button>
+              <button class="btn btn-sm btn-warning" type="submit" name="action" value="changes">
+                <i class="bi bi-pencil"></i> Oʻzgartirish soʻrash
+              </button>
+              <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="reject">
+                <i class="bi bi-x-lg"></i> Rad etish
+              </button>
+            </div>
+          </form>
+        {% elif is_owner %}
+          <p class="su-note su-review">
+            <i class="bi bi-shield-lock"></i> Tekshiruvda. Oʻz startupingiz vazifasini oʻzingiz
+            tasdiqlay olmaysiz — mentor yoki administrator koʻrib chiqadi.
+          </p>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="su-note">Hali topshiriq yoʻq.</p>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

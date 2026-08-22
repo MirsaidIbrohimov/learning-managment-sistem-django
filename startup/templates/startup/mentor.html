@@ -1,0 +1,122 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Mentor paneli — MY StartUp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-person-badge-fill"></i></span>
+    <div class="su-head-main">
+      <h1>Mentor paneli</h1>
+      <p>Biriktirilgan startuplar va tekshiruv navbati</p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:top' %}">
+        <i class="bi bi-trophy"></i> TOP
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:explore' %}">
+        <i class="bi bi-compass"></i> Barcha startuplar
+      </a>
+    </div>
+  </div>
+
+  <div class="su-stats">
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-diagram-3"></i> Biriktirilgan</span>
+      <span class="su-stat-value">{{ stats.assigned }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-hourglass-split"></i> Tekshiruv kutmoqda</span>
+      <span class="su-stat-value" style="color:var(--warning)">{{ stats.pending }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-rocket-takeoff"></i> Faol</span>
+      <span class="su-stat-value">{{ stats.active }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-check2-circle"></i> Yakunlangan</span>
+      <span class="su-stat-value" style="color:var(--success)">{{ stats.completed }}</span>
+    </div>
+  </div>
+
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-inbox"></i> Tekshiruv navbati
+      <span class="su-count">{{ submissions|length }}</span>
+    </h2>
+    {% for submission in submissions %}
+      <a class="su-task" href="{% url 'startup:task_detail' submission.task.startup.slug submission.task.pk %}">
+        <i class="bi bi-file-earmark-text"></i>
+        <span class="su-task-title">
+          {{ submission.task.title }}
+          <small>
+            {{ submission.task.startup.name }}
+            · {{ submission.submitted_by.get_full_name|default:submission.submitted_by.username }}
+            · {{ submission.submitted_at|date:"d.m H:i" }}
+          </small>
+        </span>
+        {% if submission.task.stage %}
+          <span class="su-badge">{{ submission.task.stage.title }}</span>
+        {% endif %}
+        <span class="su-badge is-submitted"><i class="bi bi-lightning-charge"></i> {{ submission.task.points }}</span>
+      </a>
+    {% empty %}
+      <p class="su-note">Tekshiruvni kutayotgan topshiriq yoʻq.</p>
+    {% endfor %}
+  </div>
+
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-collection"></i> Startuplar
+      <span class="su-count">{{ startups|length }}</span>
+    </h2>
+    <div class="su-grid">
+      {% for item in startups %}
+        <div class="su-item">
+          <div class="su-item-top">
+            {% if item.logo %}
+              <img class="su-item-logo" src="{{ item.logo.url }}" alt="{{ item.name }}">
+            {% else %}
+              <span class="su-item-logo"><i class="bi bi-rocket-takeoff"></i></span>
+            {% endif %}
+            <span class="su-item-name">
+              {{ item.name }}
+              <small>{{ item.owner.get_full_name|default:item.owner.username }}</small>
+            </span>
+          </div>
+          <p class="su-item-desc">{{ item.short_description }}</p>
+          <div class="su-bar"><i style="width:{{ item.progress }}%"></i></div>
+          <div class="su-item-foot">
+            <span class="su-badge is-primary">{{ item.current_stage_label }}</span>
+            <span class="su-badge">{{ item.progress }}%</span>
+            <span class="su-badge"><i class="bi bi-people"></i> {{ item.member_count }}</span>
+            {% if item.pending_reviews %}
+              <span class="su-badge is-submitted"><i class="bi bi-hourglass"></i> {{ item.pending_reviews }}</span>
+            {% endif %}
+          </div>
+          <div class="su-sub-links">
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:detail' item.slug %}">
+              <i class="bi bi-eye"></i> Profil
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:task_list' item.slug %}">
+              <i class="bi bi-list-check"></i> Vazifalar
+            </a>
+            <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:roadmap' item.slug %}">
+              <i class="bi bi-signpost-split"></i> Roadmap
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <p class="su-note">Sizga hali startup biriktirilmagan. Admin panel orqali biriktiriladi.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

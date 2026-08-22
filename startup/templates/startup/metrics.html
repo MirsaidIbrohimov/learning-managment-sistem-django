@@ -1,0 +1,119 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — metrika{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap" style="max-width:1000px">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-graph-up-arrow"></i></span>
+    <div class="su-head-main">
+      <h1>Metrika</h1>
+      <p>{{ startup.name }} · oʻsish koʻrsatkichlari</p>
+    </div>
+  </div>
+
+  {% include 'startup/_nav.html' with active='metrics' %}
+
+  {% if form %}
+  <form class="su-card" method="post">
+    {% csrf_token %}
+    <h2 class="su-card-title"><i class="bi bi-plus-circle"></i> Koʻrsatkich kiritish</h2>
+    {% include 'startup/_form.html' %}
+    <div style="margin-top:14px">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Saqlash</button>
+    </div>
+  </form>
+  {% endif %}
+
+  {% if charts %}
+    <div class="su-grid-2">
+      {% for chart in charts %}
+        <div class="su-card">
+          <h2 class="su-card-title">
+            <i class="bi bi-activity"></i> {{ chart.label }}
+            <span class="su-count">{{ chart.data.latest|floatformat:"-2" }}</span>
+          </h2>
+          <canvas class="su-chart" data-key="{{ chart.key }}" height="190"></canvas>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="su-card">
+      <p class="su-note">
+        Hali koʻrsatkich kiritilmagan. Foydalanuvchi soni, mijozlar, buyurtmalar yoki MRR
+        kiritilsa, oʻsish grafigi shu yerda chiziladi.
+      </p>
+    </div>
+  {% endif %}
+
+  {% if recent %}
+  <div class="su-card">
+    <h2 class="su-card-title"><i class="bi bi-clock-history"></i> Oxirgi yozuvlar</h2>
+    {% for metric in recent %}
+      <div class="su-task">
+        <i class="bi bi-dot"></i>
+        <span class="su-task-title">
+          {{ metric.key }} = {{ metric.value|floatformat:"-2" }}
+          <small>{{ metric.date|date:"d.m.Y" }}{% if metric.note %} · {{ metric.note }}{% endif %}</small>
+        </span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+
+{{ charts|json_script:"su-chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+(function () {
+  var payload = document.getElementById('su-chart-data');
+  if (!payload || typeof Chart === 'undefined') return;
+
+  var charts = JSON.parse(payload.textContent);
+  var style = getComputedStyle(document.documentElement);
+  var primary = style.getPropertyValue('--primary').trim() || '#6366f1';
+  var muted = style.getPropertyValue('--text-muted').trim() || '#94a3b8';
+  var border = style.getPropertyValue('--border').trim() || '#e2e8f0';
+
+  charts.forEach(function (item) {
+    var canvas = document.querySelector('.su-chart[data-key="' + item.key + '"]');
+    if (!canvas) return;
+
+    new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: item.data.labels,
+        datasets: [{
+          data: item.data.values,
+          borderColor: primary,
+          backgroundColor: primary + '22',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.35,
+          pointRadius: 3,
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: muted }, grid: { color: border } },
+          y: { beginAtZero: true, ticks: { color: muted }, grid: { color: border } },
+        },
+      },
+    });
+  });
+})();
+</script>
+{% endblock %}

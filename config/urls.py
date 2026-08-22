@@ -18,6 +18,9 @@ urlpatterns = [
     path('video-quiz/', include('video_quiz.urls')),
     path('teacher/', include('teacher.urls')),
     path('yordamchi/', include('accounts.yordamchi_urls')),
+    path('startup/', include('startup.urls')),
+    # `accounts.urls` dan oldin: admin panel route'lari `dashboard/` ostida.
+    path('dashboard/startups/', include('startup.admin_urls')),
     path('', include('accounts.urls')),
     path('dashboard/parents/', include('parents.urls')),
     path('parent/', include('parents.portal_urls')),

@@ -1,0 +1,16 @@
+{% if form.non_field_errors %}
+  <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+{% endif %}
+
+<div class="su-form-grid">
+  {% for field in form %}
+    <div class="{% if field.field.widget.input_type == 'text' or field.name == 'name' or field.name == 'short_description' %}su-full{% endif %}{% if field.field.widget.attrs.rows %} su-full{% endif %}">
+      <label class="su-form-label" for="{{ field.id_for_label }}">
+        {{ field.label }}{% if field.field.required %} <span style="color:var(--danger)">*</span>{% endif %}
+      </label>
+      {{ field }}
+      {% if field.help_text %}<div class="su-form-help">{{ field.help_text }}</div>{% endif %}
+      {% if field.errors %}<div class="su-errors">{{ field.errors|join:" " }}</div>{% endif %}
+    </div>
+  {% endfor %}
+</div>

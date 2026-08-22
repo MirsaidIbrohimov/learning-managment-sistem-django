@@ -1,0 +1,422 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Startuplar — Admin Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup_admin.css' %}">
+{% endblock %}
+
+{% block admin_content %}
+<div class="sa-page">
+    <div class="sa-aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="sa-body d-flex flex-column gap-3">
+
+        <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-rocket-takeoff"></i> Startuplar</h1>
+                <p>O'quvchilar g'oyalarini ko'rish, boshqarish, Excel'ga chiqarish va import qilish.</p>
+            </div>
+            <div class="sa-hero-actions">
+                <a href="{% url 'startup_admin:startup_export' %}{% if querystring %}?{{ querystring }}{% endif %}" class="sa-hero-btn">
+                    <i class="bi bi-file-earmark-excel"></i> Excel eksport
+                </a>
+                <a href="{% url 'startup_admin:startup_import' %}" class="sa-hero-btn">
+                    <i class="bi bi-upload"></i> Import
+                </a>
+                <a href="{% url 'startup:top' %}" class="sa-hero-btn" target="_blank" rel="noopener">
+                    <i class="bi bi-trophy"></i> Reyting
+                </a>
+            </div>
+        </div>
+
+        <div class="sa-stats">
+            <div class="sa-stat" style="--sa-accent:#6366f1">
+                <div class="sa-stat-icon"><i class="bi bi-rocket"></i></div>
+                <div class="sa-stat-value">{{ totals.total }}</div>
+                <div class="sa-stat-label">Jami startup</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#10b981">
+                <div class="sa-stat-icon"><i class="bi bi-play-circle"></i></div>
+                <div class="sa-stat-value">{{ totals.active }}</div>
+                <div class="sa-stat-label">Faol</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#f59e0b">
+                <div class="sa-stat-icon"><i class="bi bi-pause-circle"></i></div>
+                <div class="sa-stat-value">{{ totals.paused }}</div>
+                <div class="sa-stat-label">To'xtatilgan</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#64748b">
+                <div class="sa-stat-icon"><i class="bi bi-archive"></i></div>
+                <div class="sa-stat-value">{{ totals.archived }}</div>
+                <div class="sa-stat-label">Arxivlangan</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#8b5cf6">
+                <div class="sa-stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                <div class="sa-stat-value">{{ totals.avg_progress|default:0|floatformat:0 }}%</div>
+                <div class="sa-stat-label">O'rtacha progress</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#ec4899">
+                <div class="sa-stat-icon"><i class="bi bi-lightning-charge"></i></div>
+                <div class="sa-stat-value">{{ totals.total_xp|default:0 }}</div>
+                <div class="sa-stat-label">Jami XP</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#ef4444">
+                <div class="sa-stat-icon"><i class="bi bi-person-dash"></i></div>
+                <div class="sa-stat-value">{{ totals.no_mentor }}</div>
+                <div class="sa-stat-label">Mentorsiz</div>
+            </div>
+            <div class="sa-stat" style="--sa-accent:#0ea5e9">
+                <div class="sa-stat-icon"><i class="bi bi-hourglass-split"></i></div>
+                <div class="sa-stat-value">{{ totals.pending_reviews }}</div>
+                <div class="sa-stat-label">Tekshiruv kutayotgan</div>
+            </div>
+        </div>
+
+        <div class="sa-charts">
+            <div class="sa-card sa-card-pad">
+                <div class="sa-chart-head"><i class="bi bi-pie-chart"></i> Kategoriya bo'yicha</div>
+                <div class="sa-chart-box"><canvas id="saCategoryChart"></canvas></div>
+            </div>
+            <div class="sa-card sa-card-pad">
+                <div class="sa-chart-head"><i class="bi bi-bar-chart"></i> Bosqich bo'yicha</div>
+                <div class="sa-chart-box"><canvas id="saStageChart"></canvas></div>
+            </div>
+        </div>
+
+        <form method="get" class="sa-filters">
+            <div class="sa-filter-grid">
+                <div class="sa-field" style="grid-column:span 2">
+                    <label for="sa-q">Qidiruv</label>
+                    <input type="search" id="sa-q" name="q" value="{{ filters.q }}" class="sa-input"
+                           placeholder="Nom, tavsif, egasi (username / F.I.Sh)">
+                </div>
+                <div class="sa-field">
+                    <label for="sa-status">Holat</label>
+                    <select id="sa-status" name="status" class="sa-input">
+                        <option value="">Barchasi</option>
+                        {% for code, label in status_choices %}
+                        <option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sa-field">
+                    <label for="sa-category">Kategoriya</label>
+                    <select id="sa-category" name="category" class="sa-input">
+                        <option value="">Barchasi</option>
+                        {% for code, label in category_choices %}
+                        <option value="{{ code }}" {% if filters.category == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sa-field">
+                    <label for="sa-stage">Bosqich</label>
+                    <select id="sa-stage" name="stage" class="sa-input">
+                        <option value="">Barchasi</option>
+                        {% for code, label in stage_choices %}
+                        <option value="{{ code }}" {% if filters.stage == code %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sa-field">
+                    <label for="sa-profession">Kurs / kasb</label>
+                    <select id="sa-profession" name="profession" class="sa-input">
+                        <option value="">Barchasi</option>
+                        {% for profession in professions %}
+                        <option value="{{ profession.id }}" {% if filters.profession == profession.id|stringformat:'s' %}selected{% endif %}>{{ profession.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="sa-field">
+                    <label for="sa-mentor">Mentor</label>
+                    <select id="sa-mentor" name="mentor" class="sa-input">
+                        <option value="">Farqi yo'q</option>
+                        <option value="yes" {% if filters.mentor == 'yes' %}selected{% endif %}>Biriktirilgan</option>
+                        <option value="no" {% if filters.mentor == 'no' %}selected{% endif %}>Mentorsiz</option>
+                    </select>
+                </div>
+                <div class="sa-field">
+                    <label for="sa-sort">Tartib</label>
+                    <select id="sa-sort" name="sort" class="sa-input">
+                        <option value="xp" {% if filters.sort == 'xp' or not filters.sort %}selected{% endif %}>XP (ko'pdan)</option>
+                        <option value="progress" {% if filters.sort == 'progress' %}selected{% endif %}>Progress</option>
+                        <option value="new" {% if filters.sort == 'new' %}selected{% endif %}>Yangi</option>
+                        <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Nom (A-Z)</option>
+                    </select>
+                </div>
+                <div class="sa-field d-flex gap-2">
+                    <button type="submit" class="sa-btn sa-btn-primary flex-grow-1">
+                        <i class="bi bi-funnel"></i> Filtrlash
+                    </button>
+                    <a href="{% url 'startup_admin:startup_list' %}" class="sa-btn" title="Tozalash">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </form>
+
+        <div class="sa-table-wrap">
+            {% if startups %}
+            <div class="table-responsive">
+                <table class="sa-table">
+                    <thead>
+                        <tr>
+                            <th>Startup</th>
+                            <th>Egasi</th>
+                            <th>Kategoriya</th>
+                            <th>Bosqich</th>
+                            <th>Progress</th>
+                            <th>Vazifa</th>
+                            <th>Jamoa</th>
+                            <th>XP</th>
+                            <th>Holat</th>
+                            <th style="width:44px"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for startup in startups %}
+                        <tr>
+                            <td>
+                                <div class="sa-name">
+                                    {% if startup.logo %}
+                                    <img src="{{ startup.logo.url }}" alt="" class="sa-logo">
+                                    {% else %}
+                                    <div class="sa-logo-ph">{{ startup.name|first|upper }}</div>
+                                    {% endif %}
+                                    <div class="sa-name-main">
+                                        <a href="{% url 'startup_admin:startup_detail' startup.slug %}" title="{{ startup.name }}">{{ startup.name }}</a>
+                                        <div class="sa-name-sub" title="{{ startup.short_description }}">{{ startup.short_description }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <a href="{% url 'admin_user_view' startup.owner.id %}" class="text-decoration-none" style="color:inherit">
+                                    <div style="font-weight:600">{{ startup.owner.get_full_name|default:startup.owner.username }}</div>
+                                    <div class="sa-name-sub">@{{ startup.owner.username }}</div>
+                                </a>
+                            </td>
+                            <td><span class="sa-badge sa-badge-primary">{{ startup.get_category_display }}</span></td>
+                            <td><span class="sa-badge sa-badge-info">{{ startup.current_stage_label|truncatechars:22 }}</span></td>
+                            <td>
+                                <div class="sa-progress"><i style="width:{{ startup.progress }}%"></i></div>
+                                <div class="sa-progress-text">{{ startup.progress }}%</div>
+                            </td>
+                            <td>
+                                <span style="font-weight:700">{{ startup.task_done }}</span>
+                                <span class="sa-name-sub d-inline">/ {{ startup.task_total }}</span>
+                                {% if startup.pending_count %}
+                                <div><span class="sa-badge sa-badge-paused">{{ startup.pending_count }} kutilmoqda</span></div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {{ startup.member_count }}
+                                {% if not startup.mentor_count %}
+                                <div><span class="sa-badge sa-badge-danger">mentorsiz</span></div>
+                                {% endif %}
+                            </td>
+                            <td><span class="sa-badge sa-badge-primary"><i class="bi bi-lightning-charge-fill"></i> {{ startup.total_xp }}</span></td>
+                            <td><span class="sa-badge sa-badge-{{ startup.status }}">{{ startup.get_status_display }}</span></td>
+                            <td>
+                                <div class="sa-actions" data-sa-actions>
+                                    <button type="button" class="sa-actions-btn" data-sa-toggle aria-label="Amallar">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <div class="sa-actions-menu">
+                                        <a href="{% url 'startup_admin:startup_detail' startup.slug %}"><i class="bi bi-eye"></i> Batafsil</a>
+                                        <a href="{% url 'startup_admin:startup_edit' startup.slug %}"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                                        <a href="{% url 'startup:detail' startup.slug %}" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytda ko'rish</a>
+                                        <div class="sa-actions-sep"></div>
+                                        {% if startup.status != 'active' %}
+                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="active"><i class="bi bi-play-circle"></i> Faollashtirish</button>
+                                        {% endif %}
+                                        {% if startup.status != 'paused' %}
+                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="paused"><i class="bi bi-pause-circle"></i> To'xtatish</button>
+                                        {% endif %}
+                                        {% if startup.status != 'archived' %}
+                                        <button type="submit" form="sa-status-{{ startup.pk }}" name="status" value="archived"><i class="bi bi-archive"></i> Arxivlash</button>
+                                        {% endif %}
+                                        <div class="sa-actions-sep"></div>
+                                        <button type="button" class="sa-danger" data-sa-delete
+                                                data-name="{{ startup.name }}" data-form="sa-delete-{{ startup.pk }}">
+                                            <i class="bi bi-trash"></i> O'chirish
+                                        </button>
+                                    </div>
+                                </div>
+                                <form id="sa-status-{{ startup.pk }}" method="post"
+                                      action="{% url 'startup_admin:startup_status' startup.slug %}" class="d-none">{% csrf_token %}</form>
+                                <form id="sa-delete-{{ startup.pk }}" method="post"
+                                      action="{% url 'startup_admin:startup_delete' startup.slug %}" class="d-none">{% csrf_token %}</form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="sa-empty">
+                <i class="bi bi-inboxes"></i>
+                <b>Startup topilmadi</b>
+                Filtrlarni o'zgartirib ko'ring yoki Excel'dan import qiling.
+            </div>
+            {% endif %}
+        </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="sa-pager">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if querystring %}&{{ querystring }}{% endif %}"><i class="bi bi-chevron-left"></i></a>
+            {% else %}
+            <span class="sa-pager-off"><i class="bi bi-chevron-left"></i></span>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                <span class="sa-pager-current">{{ num }}</span>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <a href="?page={{ num }}{% if querystring %}&{{ querystring }}{% endif %}">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if querystring %}&{{ querystring }}{% endif %}"><i class="bi bi-chevron-right"></i></a>
+            {% else %}
+            <span class="sa-pager-off"><i class="bi bi-chevron-right"></i></span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="text-center sa-hint">
+            Jami {{ page_obj.paginator.count }} startup — {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}-sahifa
+        </div>
+    </div>
+</div>
+
+<div class="sa-modal" id="saDeleteModal">
+    <div class="sa-modal-box">
+        <h3><i class="bi bi-exclamation-triangle text-danger"></i> O'chirishni tasdiqlang</h3>
+        <p><b id="saDeleteName"></b> startupi butunlay o'chiriladi: roadmap, vazifalar,
+           topshiriqlar, jamoa, moliya, XP tarixi — hammasi. Bu amalni qaytarib bo'lmaydi.</p>
+        <div class="sa-modal-actions">
+            <button type="button" class="sa-btn" data-sa-cancel>Bekor qilish</button>
+            <button type="button" class="sa-btn sa-btn-danger" id="saDeleteConfirm">
+                <i class="bi bi-trash"></i> O'chirish
+            </button>
+        </div>
+    </div>
+</div>
+
+{{ chart_data|json_script:"sa-chart-data" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    'use strict';
+
+    /* ---- Amallar menyusi ---- */
+    document.addEventListener('click', function (event) {
+        var toggle = event.target.closest('[data-sa-toggle]');
+        document.querySelectorAll('[data-sa-actions].open').forEach(function (box) {
+            if (!toggle || box !== toggle.closest('[data-sa-actions]')) box.classList.remove('open');
+        });
+        if (toggle) toggle.closest('[data-sa-actions]').classList.toggle('open');
+    });
+
+    /* ---- O'chirish modali ---- */
+    var modal = document.getElementById('saDeleteModal');
+    var nameBox = document.getElementById('saDeleteName');
+    var confirmBtn = document.getElementById('saDeleteConfirm');
+    var pendingForm = null;
+
+    function closeModal() {
+        modal.classList.remove('open');
+        pendingForm = null;
+    }
+
+    document.addEventListener('click', function (event) {
+        var trigger = event.target.closest('[data-sa-delete]');
+        if (trigger) {
+            pendingForm = document.getElementById(trigger.dataset.form);
+            nameBox.textContent = trigger.dataset.name || '';
+            modal.classList.add('open');
+            return;
+        }
+        if (event.target.closest('[data-sa-cancel]') || event.target === modal) closeModal();
+    });
+
+    confirmBtn.addEventListener('click', function () {
+        if (pendingForm) pendingForm.submit();
+    });
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') closeModal();
+    });
+
+    /* ---- Grafiklar ---- */
+    if (typeof Chart === 'undefined') return;
+
+    var raw = document.getElementById('sa-chart-data');
+    if (!raw) return;
+
+    var data;
+    try { data = JSON.parse(raw.textContent); }
+    catch (error) { return; }
+
+    var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    var textColor = dark ? '#cbd5e1' : '#475569';
+    var gridColor = dark ? 'rgba(148,163,184,.16)' : 'rgba(15,23,42,.08)';
+    var palette = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#0ea5e9',
+                   '#8b5cf6', '#ef4444', '#14b8a6', '#f97316', '#64748b'];
+
+    var categories = data.categories || [];
+    if (categories.length) {
+        new Chart(document.getElementById('saCategoryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: categories.map(function (row) { return row.label; }),
+                datasets: [{
+                    data: categories.map(function (row) { return row.count; }),
+                    backgroundColor: categories.map(function (row, index) { return palette[index % palette.length]; }),
+                    borderWidth: 2,
+                    borderColor: dark ? '#1a2234' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '58%',
+                plugins: {
+                    legend: { position: 'right', labels: { color: textColor, boxWidth: 12, padding: 10 } }
+                }
+            }
+        });
+    }
+
+    var stages = data.stages || [];
+    if (stages.length) {
+        new Chart(document.getElementById('saStageChart'), {
+            type: 'bar',
+            data: {
+                labels: stages.map(function (row) { return row.label; }),
+                datasets: [{
+                    label: 'Startuplar',
+                    data: stages.map(function (row) { return row.count; }),
+                    backgroundColor: 'rgba(99,102,241,.72)',
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: textColor, maxRotation: 45, minRotation: 0, font: { size: 10 } }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: textColor, precision: 0 }, grid: { color: gridColor } }
+                }
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}

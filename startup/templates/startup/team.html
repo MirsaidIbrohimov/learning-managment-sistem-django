@@ -1,0 +1,126 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — jamoa{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap" style="max-width:900px">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-people-fill"></i></span>
+    <div class="su-head-main">
+      <h1>Jamoa</h1>
+      <p>{{ startup.name }} · {{ members|length }} faol aʻzo</p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:detail' startup.slug %}">
+        <i class="bi bi-arrow-left"></i> Profil
+      </a>
+    </div>
+  </div>
+
+  {% if can_view_private %}{% include 'startup/_nav.html' with active='team' %}{% endif %}
+
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-person-check"></i> Faol aʻzolar
+      <span class="su-count">{{ members|length }}</span>
+    </h2>
+    {% for member in members %}
+      <div class="su-person">
+        <span class="su-avatar">{{ member.user.first_name|first|default:member.user.username|first|upper }}</span>
+        <span class="su-person-name">
+          {{ member.user.get_full_name|default:member.user.username }}
+          <small>{{ member.get_role_display }} · {{ member.joined_at|date:"d.m.Y" }}</small>
+        </span>
+        {% if member.user_id == startup.owner_id %}
+          <span class="su-badge is-primary"><i class="bi bi-star-fill"></i> Founder</span>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="su-note">Aʻzo yoʻq.</p>
+    {% endfor %}
+  </div>
+
+  {% if can_manage_team %}
+  <form class="su-card" method="post" action="{% url 'startup:team_invite' startup.slug %}">
+    {% csrf_token %}
+    <h2 class="su-card-title"><i class="bi bi-envelope-plus"></i> Jamoaga taklif qilish</h2>
+    <p class="su-note" style="margin-bottom:12px">
+      Foydalanuvchining LMS logini (username) va roli. Taklif qabul qilinsa aʻzo faol boʻladi.
+    </p>
+    {% include 'startup/_form.html' with form=invite_form %}
+    <div style="margin-top:14px">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Taklif yuborish</button>
+    </div>
+  </form>
+
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-hourglass-split"></i> Kutilayotgan soʻrovlar
+      <span class="su-count">{{ pending|length }}</span>
+    </h2>
+    {% for membership in pending %}
+      <form class="su-person" method="post" action="{% url 'startup:team_respond' startup.slug membership.pk %}">
+        {% csrf_token %}
+        <span class="su-avatar">{{ membership.user.first_name|first|default:membership.user.username|first|upper }}</span>
+        <span class="su-person-name">
+          {{ membership.user.get_full_name|default:membership.user.username }}
+          <small>{% if membership.is_invite %}Taklif yuborilgan{% else %}Qoʻshilish soʻrovi{% endif %} · {{ membership.joined_at|date:"d.m.Y" }}</small>
+        </span>
+        <select class="form-select form-select-sm" name="role" style="max-width:150px" aria-label="Rol">
+          {% for value, label in role_choices %}
+            <option value="{{ value }}" {% if membership.role == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button class="btn btn-sm btn-success" type="submit" name="action" value="accept">
+          <i class="bi bi-check-lg"></i>
+        </button>
+        <button class="btn btn-sm btn-outline-danger" type="submit" name="action" value="reject">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </form>
+    {% empty %}
+      <p class="su-note">Yangi soʻrov yoʻq.</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if mentors %}
+  <div class="su-card">
+    <h2 class="su-card-title"><i class="bi bi-person-badge"></i> Mentorlar</h2>
+    {% for link in mentors %}
+      <div class="su-person">
+        <span class="su-avatar">{{ link.mentor.first_name|first|default:link.mentor.username|first|upper }}</span>
+        <span class="su-person-name">
+          {{ link.mentor.get_full_name|default:link.mentor.username }}
+          <small>Mentor · {{ link.assigned_at|date:"d.m.Y" }}</small>
+        </span>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not is_member and not membership %}
+  <form class="su-card" method="post" action="{% url 'startup:team_join' startup.slug %}">
+    {% csrf_token %}
+    <h2 class="su-card-title"><i class="bi bi-person-plus"></i> Jamoaga qoʻshilish</h2>
+    <p class="su-note" style="margin-bottom:12px">
+      Soʻrov yuborsangiz startup egasi koʻrib chiqib, rol berib qabul qiladi.
+    </p>
+    <button class="btn btn-primary" type="submit"><i class="bi bi-send"></i> Soʻrov yuborish</button>
+  </form>
+  {% elif membership and membership.status == 'pending' %}
+  <div class="su-card">
+    <p class="su-note" style="margin:0">
+      <i class="bi bi-hourglass"></i> Soʻrovingiz koʻrib chiqilmoqda.
+    </p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

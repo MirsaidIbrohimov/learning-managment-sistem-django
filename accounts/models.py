@@ -2029,6 +2029,7 @@ class BlockedSection(models.Model):
         ('xabarlar', 'Xabarlar'),
         ('ijaradagi-kitoblarim', 'Ijaradagi kitoblarim'),
         ('profili', 'Profile'),
+        ('startup', 'MY StartUp'),
     )
     
     section = models.CharField(

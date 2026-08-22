@@ -11755,7 +11755,14 @@ def admin_user_view(request, pk):
     
     # Oxirgi faolliklar
     recent_activities = ActivityLog.objects.filter(user=user).order_by('-created_at')[:10]
-    
+
+    # Startup / g'oya xulosasi. Lokal import — `accounts` app'i `startup` ga
+    # modul darajasida bog'lanib qolmasin (aylanma importdan himoya).
+    # Rol bo'yicha filtr yo'q: funksiya startup ham, a'zolik ham bo'lmasa
+    # `None` qaytaradi, ya'ni shablon tab'ni o'zi chizmaydi.
+    from startup.services import student_startup_summary
+    startup_summary = student_startup_summary(user)
+
     return render(request, 'accounts/admin/user_view.html', {
         'user_obj': user,
         'certificates': certificates,
@@ -11764,6 +11771,7 @@ def admin_user_view(request, pk):
         'coin_earned': coin_earned,
         'coin_spent': coin_spent,
         'recent_activities': recent_activities,
+        'startup_summary': startup_summary,
     })
 
 

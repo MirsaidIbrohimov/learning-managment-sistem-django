@@ -1,0 +1,67 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — Roadmap{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-signpost-split"></i></span>
+    <div class="su-head-main">
+      <h1>Roadmap</h1>
+      <p>{{ startup.name }} · {{ startup.progress }}% bajarildi · {{ startup.get_current_stage_display }}</p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:detail' startup.slug %}">
+        <i class="bi bi-arrow-left"></i> Profil
+      </a>
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:task_list' startup.slug %}">
+        <i class="bi bi-list-check"></i> Vazifalar
+      </a>
+    </div>
+  </div>
+
+  {% for row in rows %}
+    <div class="su-card">
+      <h2 class="su-card-title">
+        <span class="su-stage-dot {% if row.stage.is_completed %}{% endif %}"
+              style="{% if row.stage.is_completed %}background:var(--success);border-color:var(--success);color:#fff{% elif row.stage.key == startup.current_stage %}border-color:var(--primary);color:var(--primary){% endif %}">
+          {% if row.stage.is_completed %}<i class="bi bi-check-lg"></i>{% else %}{{ row.stage.order }}{% endif %}
+        </span>
+        {{ row.stage.title }}
+        <span class="su-count">{{ row.done_count }}/{{ row.tasks|length }} · {{ row.percent }}%</span>
+      </h2>
+
+      {% include 'startup/_progress.html' with progress=row.percent %}
+
+      <div style="margin-top:12px">
+        {% for task in row.tasks %}
+          <a class="su-task {% if task.status == 'COMPLETED' %}done{% endif %}"
+             href="{% url 'startup:task_detail' startup.slug task.pk %}">
+            <i class="bi bi-{% if task.status == 'COMPLETED' %}check-circle-fill{% elif task.status == 'SUBMITTED' %}hourglass-split{% else %}circle{% endif %}"></i>
+            <span class="su-task-title">
+              {{ task.title }}
+              {% if task.assigned_to %}<small>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</small>{% endif %}
+            </span>
+            {% if task.priority == 'high' %}<span class="su-badge is-high">Muhim</span>{% endif %}
+            <span class="su-badge is-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+            <span class="su-badge"><i class="bi bi-lightning-charge"></i> {{ task.points }}</span>
+          </a>
+        {% empty %}
+          <p class="su-note">Bu bosqichda vazifa yoʻq.</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% empty %}
+    <div class="su-card">
+      <p class="su-note">Roadmap boʻsh. Administrator <code>seed_startup_roadmap</code> buyrugʻini ishga tushirishi kerak.</p>
+    </div>
+  {% endfor %}
+
+</div>
+{% endblock %}

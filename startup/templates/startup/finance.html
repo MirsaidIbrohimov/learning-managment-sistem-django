@@ -1,0 +1,96 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — moliya{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap" style="max-width:1000px">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-cash-stack"></i></span>
+    <div class="su-head-main">
+      <h1>Moliya</h1>
+      <p>{{ startup.name }} · summalar soʻmda (UZS)</p>
+    </div>
+  </div>
+
+  {% include 'startup/_nav.html' with active='finance' %}
+
+  <div class="su-stats">
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-arrow-down-circle"></i> Umumiy daromad</span>
+      <span class="su-stat-value" style="color:var(--success)">{{ finance.revenue|floatformat:0 }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-arrow-up-circle"></i> Umumiy xarajat</span>
+      <span class="su-stat-value" style="color:var(--danger)">{{ finance.expense|floatformat:0 }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-wallet2"></i> Sof foyda</span>
+      <span class="su-stat-value">{{ finance.profit|floatformat:0 }}</span>
+    </div>
+  </div>
+
+  {% if form %}
+  <form class="su-card" method="post">
+    {% csrf_token %}
+    <h2 class="su-card-title"><i class="bi bi-plus-circle"></i> Yangi yozuv</h2>
+    {% include 'startup/_form.html' %}
+    <div style="margin-top:14px">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Saqlash</button>
+    </div>
+  </form>
+  {% endif %}
+
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-journal-text"></i> Yozuvlar
+      <span class="su-count">{{ page_obj.paginator.count }}</span>
+    </h2>
+
+    {% for entry in page_obj %}
+      <div class="su-task">
+        <i class="bi bi-{% if entry.type == 'REVENUE' %}arrow-down-circle{% else %}arrow-up-circle{% endif %}"></i>
+        <span class="su-task-title">
+          {{ entry.description|default:entry.get_type_display }}
+          <small>
+            {{ entry.date|date:"d.m.Y" }}
+            {% if entry.created_by %} · {{ entry.created_by.get_full_name|default:entry.created_by.username }}{% endif %}
+          </small>
+        </span>
+        <span class="su-badge {% if entry.type == 'REVENUE' %}is-completed{% else %}is-rejected{% endif %}">
+          {% if entry.type == 'REVENUE' %}+{% else %}−{% endif %}{{ entry.amount|floatformat:0 }}
+        </span>
+        {% if can_manage_finance %}
+          <form method="post" action="{% url 'startup:finance_delete' startup.slug entry.pk %}"
+                onsubmit="return confirm('Yozuv oʻchirilsinmi?')">
+            {% csrf_token %}
+            <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Oʻchirish">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    {% empty %}
+      <p class="su-note">Hali yozuv yoʻq.</p>
+    {% endfor %}
+
+    {% if page_obj.has_other_pages %}
+      <nav class="su-filters" style="margin-top:14px">
+        {% if page_obj.has_previous %}
+          <a class="su-chip" href="?page={{ page_obj.previous_page_number }}">← Oldingi</a>
+        {% endif %}
+        <span class="su-chip active">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="su-chip" href="?page={{ page_obj.next_page_number }}">Keyingi →</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

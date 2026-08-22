@@ -1,0 +1,145 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — tahrirlash{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup_admin.css' %}">
+{% endblock %}
+
+{% block admin_content %}
+<div class="sa-page">
+    <div class="sa-aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="sa-body d-flex flex-column gap-3">
+
+        <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-pencil-square"></i> Startupni tahrirlash</h1>
+                <p>{{ startup.name }} — egasi: {{ startup.owner.get_full_name|default:startup.owner.username }}</p>
+            </div>
+            <div class="sa-hero-actions">
+                <a href="{% url 'startup_admin:startup_detail' startup.slug %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Orqaga</a>
+            </div>
+        </div>
+
+        {% if form.errors %}
+        <div class="sa-card sa-card-pad" style="border-left:4px solid #ef4444">
+            <div class="sa-section-title sa-row-error"><i class="bi bi-exclamation-triangle"></i> Formani tekshiring</div>
+            <ul class="mb-0 sa-hint">
+                {% for field in form %}
+                    {% for error in field.errors %}<li><b>{{ field.label }}:</b> {{ error }}</li>{% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="post" enctype="multipart/form-data" class="d-flex flex-column gap-3" novalidate>
+            {% csrf_token %}
+
+            <div class="sa-card sa-card-pad">
+                <h2 class="sa-section-title"><i class="bi bi-shield-lock"></i> Faqat admin uchun</h2>
+                <p class="sa-hint mb-3">
+                    Progress, bosqich va XP bu yerda yo'q — ular vazifalar bajarilishiga qarab
+                    avtomatik hisoblanadi. Ularni <code>Qayta hisoblash</code> va <code>XP</code>
+                    bo'limlari orqali boshqaring.
+                </p>
+                <div class="sa-filter-grid">
+                    <div class="sa-field">
+                        <label for="{{ form.owner.id_for_label }}">{{ form.owner.label }}</label>
+                        {{ form.owner }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+                        {{ form.status }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="sa-card sa-card-pad">
+                <h2 class="sa-section-title"><i class="bi bi-info-circle"></i> Asosiy ma'lumot</h2>
+                <div class="sa-filter-grid">
+                    <div class="sa-field" style="grid-column:span 2">
+                        <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                        {{ form.name }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.profession.id_for_label }}">{{ form.profession.label }}</label>
+                        {{ form.profession }}
+                    </div>
+                    <div class="sa-field" style="grid-column:1/-1">
+                        <label for="{{ form.short_description.id_for_label }}">{{ form.short_description.label }}</label>
+                        {{ form.short_description }}
+                    </div>
+                    <div class="sa-field" style="grid-column:1/-1">
+                        <label for="{{ form.logo.id_for_label }}">{{ form.logo.label }}</label>
+                        {{ form.logo }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="sa-card sa-card-pad">
+                <h2 class="sa-section-title"><i class="bi bi-lightbulb"></i> G'oya</h2>
+                <div class="sa-grid">
+                    <div class="sa-field">
+                        <label for="{{ form.problem.id_for_label }}">{{ form.problem.label }}</label>
+                        {{ form.problem }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.solution.id_for_label }}">{{ form.solution.label }}</label>
+                        {{ form.solution }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.target_audience.id_for_label }}">{{ form.target_audience.label }}</label>
+                        {{ form.target_audience }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.business_model.id_for_label }}">{{ form.business_model.label }}</label>
+                        {{ form.business_model }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.competitors.id_for_label }}">{{ form.competitors.label }}</label>
+                        {{ form.competitors }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="sa-card sa-card-pad">
+                <h2 class="sa-section-title"><i class="bi bi-link-45deg"></i> Havolalar</h2>
+                <div class="sa-filter-grid">
+                    <div class="sa-field">
+                        <label for="{{ form.website.id_for_label }}">{{ form.website.label }}</label>
+                        {{ form.website }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.github_url.id_for_label }}">{{ form.github_url.label }}</label>
+                        {{ form.github_url }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.telegram_url.id_for_label }}">{{ form.telegram_url.label }}</label>
+                        {{ form.telegram_url }}
+                    </div>
+                    <div class="sa-field">
+                        <label for="{{ form.instagram_url.id_for_label }}">{{ form.instagram_url.label }}</label>
+                        {{ form.instagram_url }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                <a href="{% url 'startup_admin:startup_detail' startup.slug %}" class="sa-btn">Bekor qilish</a>
+                <button type="submit" class="sa-btn sa-btn-primary"><i class="bi bi-check-lg"></i> Saqlash</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

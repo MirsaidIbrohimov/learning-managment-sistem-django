@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     'games',
     'parents',
     'quiz',
+    'startup',
     'teacher',
     'telegram_bot',
     'video_quiz',
@@ -219,6 +220,23 @@ JAZZMIN_SETTINGS = {
         "games.GameAttempt": "fas fa-chart-bar",
 
         "teacher.TeacherCertificate": "fas fa-award",
+
+        "startup": "fas fa-rocket",
+        "startup.Startup": "fas fa-rocket",
+        "startup.StageTemplate": "fas fa-map-signs",
+        "startup.TaskTemplate": "fas fa-clipboard-list",
+        "startup.StartupStage": "fas fa-flag-checkered",
+        "startup.StartupTask": "fas fa-tasks",
+        "startup.StartupTaskSubmission": "fas fa-file-upload",
+        "startup.StartupMember": "fas fa-users",
+        "startup.StartupMentor": "fas fa-user-tie",
+        "startup.StartupXPTransaction": "fas fa-bolt",
+        "startup.StartupFeedback": "fas fa-comments",
+        "startup.StartupAchievement": "fas fa-medal",
+        "startup.StartupFinance": "fas fa-money-bill-wave",
+        "startup.StartupMetric": "fas fa-chart-area",
+        "startup.PitchDeck": "fas fa-file-powerpoint",
+        "startup.StartupActivity": "fas fa-history",
     },
 
     "default_icon_parents": "fas fa-layer-group",
@@ -327,6 +345,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.unread_messages',
                 'accounts.context_processors.admin_badges',
+                'startup.context_processors.my_startup',
             ],
             # Shablon keshi FAQAT production'da: DEBUG'da keshlansa, fayl
             # o'zgarishlari server qayta ishga tushmaguncha ko'rinmaydi.

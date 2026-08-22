@@ -34,6 +34,9 @@ urlpatterns = [
     # Reyting (leaderboard)
     path('reyting/', include('api.reyting.urls')),
 
+    # MY StartUp (read-only: leaderboard, progress, tasks, team, metrics, finance)
+    path('startup/', include('api.startup.urls')),
+
     # Yordamchi admin (assistant_admin) boshqaruv API
     path('assistant/', include('api.assistant.urls')),
 

@@ -346,6 +346,7 @@ class SectionBlockMiddleware:
         'xabarlar': ['messages'],
         'ijaradagi-kitoblarim': ['books'],
         'profili': ['profile'],
+        'startup': ['startup'],
     }
     
     def __init__(self, get_response):

@@ -1,0 +1,77 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Startuplar — MY StartUp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-compass"></i></span>
+    <div class="su-head-main">
+      <h1>Startuplar</h1>
+      <p>{{ page_obj.paginator.count }} ta faol startup. Yoqganiga jamoa aʻzosi boʻlib qoʻshilishingiz mumkin.</p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:top' %}">
+        <i class="bi bi-trophy"></i> TOP
+      </a>
+      <a class="btn btn-sm btn-primary" href="{% url 'startup:dashboard' %}">
+        <i class="bi bi-speedometer2"></i> Mening startupim
+      </a>
+    </div>
+  </div>
+
+  <form method="get" class="su-filters">
+    <div class="input-group input-group-sm" style="max-width:340px">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input class="form-control" type="search" name="q" value="{{ q }}"
+             placeholder="Startup nomi yoki tavsifi…" aria-label="Qidirish">
+    </div>
+    <select class="form-select form-select-sm" name="category" style="max-width:200px"
+            aria-label="Kategoriya" onchange="this.form.submit()">
+      <option value="">Barcha kategoriyalar</option>
+      {% for value, label in category_choices %}
+        <option value="{{ value }}" {% if category == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-sm btn-primary" type="submit">Qidirish</button>
+    {% if q or category %}
+      <a class="su-chip" href="{% url 'startup:explore' %}">Tozalash</a>
+    {% endif %}
+  </form>
+
+  <div class="su-grid">
+    {% for startup in page_obj %}
+      {% include 'startup/_card.html' with startup=startup %}
+    {% empty %}
+      <div class="su-card"><p class="su-note">Startup topilmadi.</p></div>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav style="margin-top:18px" aria-label="Sahifalar">
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if category %}&category={{ category }}{% endif %}">‹</a>
+        </li>
+      {% endif %}
+      <li class="page-item active">
+        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if category %}&category={{ category }}{% endif %}">›</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}

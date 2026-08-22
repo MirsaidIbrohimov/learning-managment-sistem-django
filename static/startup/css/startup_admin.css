@@ -1,0 +1,693 @@
+/* ==========================================================================
+   Admin panel — Startuplar bo'limi (shaffof / glassmorphism)
+   Namespace: .sa-*   Faqat startup admin sahifalarida ishlatiladi.
+
+   NEGA lokal tokenlar: `static/css/dashboard.css` dagi glass tizimi
+   `--card / --border / --text` tokenlarini kutadi, admin qobig'i
+   (`base_admin.css`) esa `--card-bg / --border-color / --text-color` beradi.
+   Shuning uchun repo naqshi bo'yicha (.au-*, .uv-*, .vqa-*) bu yerda
+   o'z tokenlarimizni admin o'zgaruvchilaridan xaritalab olamiz.
+   Dark rejim admin panelda `[data-bs-theme="dark"]` orqali keladi.
+   ========================================================================== */
+
+.sa-page{
+    --sa-card: var(--card-bg, #ffffff);
+    --sa-border: var(--border-color, #e5e7eb);
+    --sa-text: var(--text-color, #0f172a);
+    --sa-muted: #64748b;
+    --sa-primary: #6366f1;
+    --sa-primary-soft: rgba(99,102,241,.12);
+    --sa-success: #10b981;
+    --sa-warning: #f59e0b;
+    --sa-danger: #ef4444;
+    --sa-info: #0ea5e9;
+    --sa-glass: rgba(255,255,255,.62);
+    --sa-glass-strong: rgba(255,255,255,.80);
+    --sa-glass-border: rgba(255,255,255,.75);
+    --sa-shadow: 0 10px 30px -12px rgba(15,23,42,.18);
+    --sa-shadow-sm: 0 4px 14px -6px rgba(15,23,42,.12);
+    --sa-radius: 18px;
+    --sa-radius-sm: 12px;
+    position: relative;
+    color: var(--sa-text);
+}
+
+[data-bs-theme="dark"] .sa-page{
+    --sa-muted: #94a3b8;
+    --sa-glass: rgba(26,34,52,.60);
+    --sa-glass-strong: rgba(26,34,52,.82);
+    --sa-glass-border: rgba(148,163,184,.18);
+    --sa-shadow: 0 10px 30px -12px rgba(0,0,0,.55);
+    --sa-shadow-sm: 0 4px 14px -6px rgba(0,0,0,.45);
+}
+
+/* ─────────────── Aurora fon (shaffoflik ko'rinsin) ─────────────── */
+
+.sa-aurora{
+    position: absolute;
+    inset: -40px -20px auto -20px;
+    height: 460px;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: 28px;
+}
+.sa-aurora span{
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    filter: blur(64px);
+    opacity: .48;
+}
+.sa-aurora span:nth-child(1){
+    width: 380px; height: 380px; top: -120px; left: -60px;
+    background: radial-gradient(circle at 30% 30%, #818cf8, #6366f1);
+    animation: saAuroraA 22s ease-in-out infinite;
+}
+.sa-aurora span:nth-child(2){
+    width: 320px; height: 320px; top: -80px; right: 8%;
+    background: radial-gradient(circle at 70% 30%, #f472b6, #ec4899);
+    animation: saAuroraB 26s ease-in-out infinite;
+}
+.sa-aurora span:nth-child(3){
+    width: 300px; height: 300px; top: 60px; left: 42%;
+    background: radial-gradient(circle at 50% 50%, #34d399, #0ea5e9);
+    animation: saAuroraC 30s ease-in-out infinite;
+}
+[data-bs-theme="dark"] .sa-aurora span{ opacity: .32; }
+
+@keyframes saAuroraA{
+    0%,100%{ transform: translate3d(0,0,0) scale(1); }
+    50%{ transform: translate3d(60px,40px,0) scale(1.12); }
+}
+@keyframes saAuroraB{
+    0%,100%{ transform: translate3d(0,0,0) scale(1); }
+    50%{ transform: translate3d(-50px,50px,0) scale(1.08); }
+}
+@keyframes saAuroraC{
+    0%,100%{ transform: translate3d(0,0,0) scale(1); }
+    50%{ transform: translate3d(40px,-30px,0) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce){
+    .sa-aurora span{ animation: none; }
+}
+
+.sa-body{ position: relative; z-index: 1; }
+
+/* ─────────────── Shisha karta ─────────────── */
+
+.sa-card{
+    background: var(--sa-glass);
+    border: 1px solid var(--sa-glass-border);
+    border-radius: var(--sa-radius);
+    box-shadow: var(--sa-shadow-sm);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+.sa-card-pad{ padding: 20px; }
+
+/* Blur ishlamasa (eski brauzer) matn o'qilishi buzilmasin */
+@supports not ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))){
+    .sa-card, .sa-hero, .sa-stat, .sa-filters, .sa-table-wrap{
+        background: var(--sa-card) !important;
+        border-color: var(--sa-border) !important;
+    }
+}
+
+/* ─────────────── Hero ─────────────── */
+
+.sa-hero{
+    position: relative;
+    padding: 26px 28px;
+    border-radius: 22px;
+    border: 1px solid var(--sa-glass-border);
+    background: linear-gradient(135deg, rgba(99,102,241,.92), rgba(236,72,153,.86));
+    box-shadow: var(--sa-shadow);
+    color: #fff;
+    overflow: hidden;
+}
+.sa-hero::after{
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 88% 12%, rgba(255,255,255,.30), transparent 55%);
+    pointer-events: none;
+}
+.sa-hero h1{
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin: 0 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.sa-hero p{ margin: 0; opacity: .92; font-size: .92rem; }
+.sa-hero-actions{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: relative;
+    z-index: 1;
+}
+.sa-hero-btn{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 15px;
+    border-radius: 11px;
+    border: 1px solid rgba(255,255,255,.42);
+    background: rgba(255,255,255,.18);
+    color: #fff;
+    font-size: .86rem;
+    font-weight: 600;
+    text-decoration: none;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background .18s ease, transform .18s ease;
+    cursor: pointer;
+}
+.sa-hero-btn:hover{ background: rgba(255,255,255,.30); color: #fff; transform: translateY(-1px); }
+
+/* ─────────────── Statistika ─────────────── */
+
+.sa-stats{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+    gap: 14px;
+}
+.sa-stat{
+    position: relative;
+    padding: 16px 18px;
+    border-radius: var(--sa-radius);
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass);
+    box-shadow: var(--sa-shadow-sm);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease;
+}
+.sa-stat:hover{ transform: translateY(-3px); box-shadow: var(--sa-shadow); }
+.sa-stat::before{
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: var(--sa-accent, var(--sa-primary));
+}
+.sa-stat-icon{
+    width: 38px; height: 38px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    color: var(--sa-accent, var(--sa-primary));
+    background: color-mix(in srgb, var(--sa-accent, var(--sa-primary)) 14%, transparent);
+    margin-bottom: 10px;
+}
+.sa-stat-value{
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--sa-text);
+}
+.sa-stat-label{
+    font-size: .78rem;
+    color: var(--sa-muted);
+    margin-top: 2px;
+}
+
+/* ─────────────── Grafik ─────────────── */
+
+.sa-charts{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 14px;
+}
+.sa-chart-head{
+    font-size: .92rem;
+    font-weight: 700;
+    color: var(--sa-text);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sa-chart-box{ position: relative; height: 250px; }
+
+/* ─────────────── Filtrlar ─────────────── */
+
+.sa-filters{
+    padding: 16px 18px;
+    border-radius: var(--sa-radius);
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass);
+    box-shadow: var(--sa-shadow-sm);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+.sa-filter-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+    align-items: end;
+}
+.sa-field label{
+    display: block;
+    font-size: .74rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--sa-muted);
+    margin-bottom: 5px;
+}
+.sa-input,
+.sa-page .form-control,
+.sa-page .form-select{
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: var(--sa-radius-sm);
+    border: 1px solid var(--sa-border);
+    background: var(--sa-glass-strong);
+    color: var(--sa-text);
+    font-size: .88rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+.sa-input:focus,
+.sa-page .form-control:focus,
+.sa-page .form-select:focus{
+    outline: none;
+    border-color: var(--sa-primary);
+    box-shadow: 0 0 0 3px var(--sa-primary-soft);
+    background: var(--sa-card);
+}
+.sa-page textarea.form-control{ min-height: 92px; resize: vertical; }
+
+.sa-btn{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: var(--sa-radius-sm);
+    border: 1px solid var(--sa-border);
+    background: var(--sa-glass-strong);
+    color: var(--sa-text);
+    font-size: .86rem;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.sa-btn:hover{ transform: translateY(-1px); box-shadow: var(--sa-shadow-sm); color: var(--sa-text); }
+.sa-btn-primary{
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: #fff;
+}
+.sa-btn-primary:hover{ color: #fff; }
+.sa-btn-success{ background: linear-gradient(135deg, #10b981, #059669); border-color: transparent; color: #fff; }
+.sa-btn-success:hover{ color: #fff; }
+.sa-btn-danger{ background: linear-gradient(135deg, #ef4444, #dc2626); border-color: transparent; color: #fff; }
+.sa-btn-danger:hover{ color: #fff; }
+.sa-btn-sm{ padding: 6px 11px; font-size: .8rem; }
+
+/* ─────────────── Jadval ─────────────── */
+
+.sa-table-wrap{
+    border-radius: var(--sa-radius);
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass);
+    box-shadow: var(--sa-shadow-sm);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    overflow: hidden;
+}
+.sa-table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .86rem;
+    margin: 0;
+}
+.sa-table thead th{
+    padding: 12px 14px;
+    text-align: left;
+    font-size: .73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--sa-muted);
+    background: color-mix(in srgb, var(--sa-primary) 8%, transparent);
+    border-bottom: 1px solid var(--sa-glass-border);
+    white-space: nowrap;
+}
+.sa-table tbody td{
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--sa-glass-border);
+    color: var(--sa-text);
+    vertical-align: middle;
+}
+.sa-table tbody tr:last-child td{ border-bottom: none; }
+.sa-table tbody tr{ transition: background .15s ease; }
+.sa-table tbody tr:hover{ background: color-mix(in srgb, var(--sa-primary) 6%, transparent); }
+
+.sa-name{ display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sa-logo{
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1px solid var(--sa-glass-border);
+}
+.sa-logo-ph{
+    width: 40px; height: 40px;
+    border-radius: 11px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    font-weight: 800;
+    font-size: .95rem;
+    color: #fff;
+    background: linear-gradient(135deg, #6366f1, #ec4899);
+}
+.sa-name-main{ min-width: 0; }
+.sa-name-main a{
+    font-weight: 700;
+    color: var(--sa-text);
+    text-decoration: none;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 260px;
+}
+.sa-name-main a:hover{ color: var(--sa-primary); }
+.sa-name-sub{
+    font-size: .76rem;
+    color: var(--sa-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 260px;
+}
+
+/* ─────────────── Badge ─────────────── */
+
+.sa-badge{
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: .74rem;
+    font-weight: 700;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+.sa-badge-active{ background: rgba(16,185,129,.14); color: #059669; border-color: rgba(16,185,129,.28); }
+.sa-badge-paused{ background: rgba(245,158,11,.14); color: #d97706; border-color: rgba(245,158,11,.28); }
+.sa-badge-archived{ background: rgba(100,116,139,.16); color: #64748b; border-color: rgba(100,116,139,.28); }
+.sa-badge-info{ background: rgba(14,165,233,.14); color: #0284c7; border-color: rgba(14,165,233,.28); }
+.sa-badge-primary{ background: rgba(99,102,241,.14); color: #4f46e5; border-color: rgba(99,102,241,.28); }
+.sa-badge-danger{ background: rgba(239,68,68,.14); color: #dc2626; border-color: rgba(239,68,68,.28); }
+.sa-badge-muted{ background: rgba(148,163,184,.16); color: var(--sa-muted); border-color: rgba(148,163,184,.28); }
+
+[data-bs-theme="dark"] .sa-badge-active{ color: #34d399; }
+[data-bs-theme="dark"] .sa-badge-paused{ color: #fbbf24; }
+[data-bs-theme="dark"] .sa-badge-info{ color: #38bdf8; }
+[data-bs-theme="dark"] .sa-badge-primary{ color: #a5b4fc; }
+[data-bs-theme="dark"] .sa-badge-danger{ color: #f87171; }
+[data-bs-theme="dark"] .sa-badge-archived{ color: #94a3b8; }
+
+/* ─────────────── Progress ─────────────── */
+
+.sa-progress{
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(148,163,184,.24);
+    overflow: hidden;
+    min-width: 78px;
+}
+.sa-progress > i{
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+}
+.sa-progress-lg{ height: 11px; }
+.sa-progress-text{ font-size: .74rem; color: var(--sa-muted); margin-top: 3px; }
+
+/* ─────────────── Amallar (dropdown) ─────────────── */
+
+.sa-actions{ position: relative; }
+.sa-actions-btn{
+    width: 34px; height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--sa-border);
+    background: var(--sa-glass-strong);
+    color: var(--sa-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+.sa-actions-btn:hover{ background: var(--sa-primary-soft); color: var(--sa-primary); }
+.sa-actions-menu{
+    position: absolute;
+    right: 0;
+    top: calc(100% + 6px);
+    min-width: 210px;
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass-strong);
+    box-shadow: 0 18px 40px -14px rgba(15,23,42,.35);
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    z-index: 40;
+    display: none;
+}
+.sa-actions.open .sa-actions-menu{ display: block; }
+.sa-actions-menu button,
+.sa-actions-menu a{
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    width: 100%;
+    padding: 8px 11px;
+    border: none;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--sa-text);
+    font-size: .84rem;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+.sa-actions-menu button:hover,
+.sa-actions-menu a:hover{ background: var(--sa-primary-soft); color: var(--sa-primary); }
+.sa-actions-menu .sa-danger:hover{ background: rgba(239,68,68,.12); color: #dc2626; }
+.sa-actions-sep{ height: 1px; margin: 5px 4px; background: var(--sa-glass-border); }
+
+/* ─────────────── Bo'sh holat ─────────────── */
+
+.sa-empty{
+    padding: 56px 24px;
+    text-align: center;
+    color: var(--sa-muted);
+}
+.sa-empty i{ font-size: 2.6rem; opacity: .35; display: block; margin-bottom: 12px; }
+.sa-empty b{ display: block; color: var(--sa-text); font-size: 1rem; margin-bottom: 4px; }
+
+/* ─────────────── Tab (detail sahifasi) ─────────────── */
+
+.sa-tabs{
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding: 6px;
+    border-radius: 14px;
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    scrollbar-width: thin;
+}
+.sa-tab{
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--sa-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    transition: background .15s ease, color .15s ease;
+}
+.sa-tab:hover{ background: var(--sa-primary-soft); color: var(--sa-primary); }
+.sa-tab.active{
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: #fff;
+}
+.sa-pane{ display: none; }
+.sa-pane.active{ display: block; }
+
+/* ─────────────── Ma'lumot ro'yxati ─────────────── */
+
+.sa-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+}
+.sa-info dt{
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--sa-muted);
+    margin-bottom: 4px;
+}
+.sa-info dd{
+    margin: 0 0 14px;
+    font-size: .89rem;
+    color: var(--sa-text);
+    white-space: pre-line;
+    word-break: break-word;
+}
+.sa-info dd:last-child{ margin-bottom: 0; }
+.sa-section-title{
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--sa-text);
+    margin: 0 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ─────────────── Modal (o'chirish tasdiqi) ─────────────── */
+
+.sa-modal{
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(15,23,42,.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+.sa-modal.open{ display: flex; }
+.sa-modal-box{
+    width: 100%;
+    max-width: 440px;
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-card);
+    box-shadow: 0 30px 70px -20px rgba(0,0,0,.5);
+    color: var(--sa-text);
+}
+.sa-modal-box h3{ font-size: 1.1rem; font-weight: 800; margin: 0 0 8px; }
+.sa-modal-box p{ font-size: .89rem; color: var(--sa-muted); margin: 0 0 18px; }
+.sa-modal-actions{ display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ─────────────── Paginatsiya ─────────────── */
+
+.sa-pager{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 16px;
+}
+.sa-pager a,
+.sa-pager span{
+    min-width: 36px;
+    padding: 7px 11px;
+    border-radius: 10px;
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass);
+    color: var(--sa-text);
+    font-size: .84rem;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.sa-pager a:hover{ background: var(--sa-primary-soft); color: var(--sa-primary); }
+.sa-pager .sa-pager-current{
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: transparent;
+    color: #fff;
+}
+.sa-pager .sa-pager-off{ opacity: .45; }
+
+/* ─────────────── Import natijasi ─────────────── */
+
+.sa-row-created{ color: #059669; font-weight: 700; }
+.sa-row-updated{ color: #0284c7; font-weight: 700; }
+.sa-row-skipped{ color: #d97706; font-weight: 700; }
+.sa-row-error{ color: #dc2626; font-weight: 700; }
+[data-bs-theme="dark"] .sa-row-created{ color: #34d399; }
+[data-bs-theme="dark"] .sa-row-updated{ color: #38bdf8; }
+[data-bs-theme="dark"] .sa-row-skipped{ color: #fbbf24; }
+[data-bs-theme="dark"] .sa-row-error{ color: #f87171; }
+
+.sa-check-grid{
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 8px;
+}
+.sa-check{
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 9px 12px;
+    border-radius: var(--sa-radius-sm);
+    border: 1px solid var(--sa-glass-border);
+    background: var(--sa-glass);
+    font-size: .85rem;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+.sa-check:hover{ border-color: var(--sa-primary); background: var(--sa-primary-soft); }
+.sa-check input{ width: 17px; height: 17px; accent-color: var(--sa-primary); cursor: pointer; }
+
+.sa-hint{
+    font-size: .82rem;
+    color: var(--sa-muted);
+    line-height: 1.65;
+}
+.sa-hint code{
+    padding: 1px 6px;
+    border-radius: 6px;
+    background: var(--sa-primary-soft);
+    color: var(--sa-primary);
+    font-size: .8rem;
+}
+
+/* ─────────────── Mobil ─────────────── */
+
+@media (max-width: 768px){
+    .sa-hero{ padding: 20px; }
+    .sa-hero h1{ font-size: 1.28rem; }
+    .sa-stats{ grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+    .sa-stat-value{ font-size: 1.3rem; }
+    .sa-card-pad{ padding: 16px; }
+    .sa-chart-box{ height: 220px; }
+    .sa-aurora{ height: 320px; }
+}
+@media (max-width: 480px){
+    .sa-stats{ grid-template-columns: 1fr 1fr; }
+    .sa-name-main a, .sa-name-sub{ max-width: 150px; }
+}

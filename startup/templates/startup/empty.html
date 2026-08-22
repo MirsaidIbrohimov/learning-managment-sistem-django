@@ -1,0 +1,73 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}MY StartUp — IT Shaharcha Zomin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-empty">
+    <div class="su-empty-icon"><i class="bi bi-rocket-takeoff"></i></div>
+    <h2>Startupingiz hali yoʻq</h2>
+    <p>
+      Gʻoyangizni real loyihaga aylantiring. IDEA bosqichidan FUNDING'gacha
+      10 qadamli roadmap, jamoa, vazifalar, mentor tekshiruvi va XP —
+      hammasi shu yerda.
+    </p>
+    <div class="d-flex flex-wrap justify-content-center gap-2">
+      <a class="btn btn-primary" href="{% url 'startup:create' %}">
+        <i class="bi bi-plus-lg"></i> Startup yaratish
+      </a>
+      <a class="btn btn-outline-secondary" href="{% url 'startup:explore' %}">
+        <i class="bi bi-compass"></i> Startuplarni koʻrish
+      </a>
+      <a class="btn btn-outline-secondary" href="{% url 'startup:top' %}">
+        <i class="bi bi-trophy"></i> TOP startuplar
+      </a>
+    </div>
+  </div>
+
+  {% if joined_memberships %}
+  <div class="su-card" style="margin-top:18px">
+    <h2 class="su-card-title">
+      <i class="bi bi-people-fill"></i> Aʻzo boʻlgan jamoalarim
+      <span class="su-count">{{ joined_memberships|length }}</span>
+    </h2>
+    {% for membership in joined_memberships %}
+      <a class="su-task" href="{% url 'startup:detail' membership.startup.slug %}">
+        <i class="bi bi-rocket"></i>
+        <span class="su-task-title">
+          {{ membership.startup.name }}
+          <small>{{ membership.get_role_display }} · {{ membership.startup.get_current_stage_display }}</small>
+        </span>
+        <span class="su-badge">{{ membership.startup.progress }}%</span>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if mentored_startups %}
+  <div class="su-card">
+    <h2 class="su-card-title">
+      <i class="bi bi-person-badge"></i> Mentorlik qilayotgan startuplarim
+      <span class="su-count">{{ mentored_startups|length }}</span>
+    </h2>
+    {% for startup in mentored_startups %}
+      <a class="su-task" href="{% url 'startup:detail' startup.slug %}">
+        <i class="bi bi-rocket"></i>
+        <span class="su-task-title">
+          {{ startup.name }}
+          <small>{{ startup.owner.get_full_name|default:startup.owner.username }} · {{ startup.get_current_stage_display }}</small>
+        </span>
+        <span class="su-badge">{{ startup.progress }}%</span>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

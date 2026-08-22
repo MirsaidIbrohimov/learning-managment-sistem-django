@@ -1,0 +1,86 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Startuplarni Excel'ga eksport{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup_admin.css' %}">
+{% endblock %}
+
+{% block admin_content %}
+<div class="sa-page">
+    <div class="sa-aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="sa-body d-flex flex-column gap-3">
+
+        <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-center">
+            <div>
+                <h1><i class="bi bi-file-earmark-excel"></i> Excel eksport</h1>
+                <p>Kerakli ustunlarni belgilang — hozirgi filtrga tushgan <b>{{ match_count }}</b> startup yuklab olinadi.</p>
+            </div>
+            <div class="sa-hero-actions">
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Ro'yxat</a>
+            </div>
+        </div>
+
+        <form method="post" class="d-flex flex-column gap-3">
+            {% csrf_token %}
+            {# Ro'yxat sahifasidagi filtrlar eksportga ham uzatiladi: admin nimani #}
+            {# ko'rgan bo'lsa, xuddi shuni yuklab oladi. #}
+            {% for key, value in filters.items %}
+                {% if value %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}
+            {% endfor %}
+
+            <div class="sa-card sa-card-pad">
+                <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+                    <h2 class="sa-section-title mb-0"><i class="bi bi-list-check"></i> Ustunlar</h2>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="sa-btn sa-btn-sm" data-sa-all><i class="bi bi-check-all"></i> Hammasi</button>
+                        <button type="button" class="sa-btn sa-btn-sm" data-sa-none><i class="bi bi-x-lg"></i> Hech biri</button>
+                        <button type="button" class="sa-btn sa-btn-sm" data-sa-default><i class="bi bi-arrow-counterclockwise"></i> Standart</button>
+                    </div>
+                </div>
+
+                <div class="sa-check-grid">
+                    {% for key, label in export_fields.items %}
+                    <label class="sa-check">
+                        <input type="checkbox" name="fields" value="{{ key }}"
+                               data-sa-default-checked="{% if key in default_fields %}1{% else %}0{% endif %}"
+                               {% if key in default_fields %}checked{% endif %}>
+                        <span>{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-btn">Bekor qilish</a>
+                <button type="submit" class="sa-btn sa-btn-success"><i class="bi bi-download"></i> .xlsx yuklab olish</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+    var boxes = document.querySelectorAll('input[name="fields"]');
+
+    function setAll(state) {
+        boxes.forEach(function (box) { box.checked = state; });
+    }
+
+    var all = document.querySelector('[data-sa-all]');
+    var none = document.querySelector('[data-sa-none]');
+    var def = document.querySelector('[data-sa-default]');
+
+    if (all) all.addEventListener('click', function () { setAll(true); });
+    if (none) none.addEventListener('click', function () { setAll(false); });
+    if (def) def.addEventListener('click', function () {
+        boxes.forEach(function (box) { box.checked = box.dataset.saDefaultChecked === '1'; });
+    });
+})();
+</script>
+{% endblock %}

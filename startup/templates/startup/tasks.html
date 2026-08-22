@@ -1,0 +1,97 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — vazifalar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-list-check"></i></span>
+    <div class="su-head-main">
+      <h1>Vazifalar</h1>
+      <p>{{ startup.name }} · {{ page_obj.paginator.count }} ta vazifa</p>
+    </div>
+    <div class="su-head-actions">
+      <a class="btn btn-sm btn-outline-secondary" href="{% url 'startup:roadmap' startup.slug %}">
+        <i class="bi bi-signpost-split"></i> Roadmap
+      </a>
+      {% if can_manage_tasks %}
+        <button class="btn btn-sm btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#suNewTask">
+          <i class="bi bi-plus-lg"></i> Vazifa qoʻshish
+        </button>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if can_manage_tasks and form %}
+  <div class="collapse" id="suNewTask">
+    <form class="su-card" method="post" action="{% url 'startup:task_create' startup.slug %}"
+          enctype="multipart/form-data" novalidate style="margin-bottom:16px">
+      {% csrf_token %}
+      <h2 class="su-card-title"><i class="bi bi-plus-circle"></i> Yangi vazifa</h2>
+      {% include 'startup/_form.html' %}
+      <button class="btn btn-primary btn-sm" style="margin-top:14px" type="submit">
+        <i class="bi bi-check-lg"></i> Saqlash
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <div class="su-filters">
+    <a class="su-chip {% if not status %}active{% endif %}" href="?">Barchasi</a>
+    {% for value, label in status_choices %}
+      <a class="su-chip {% if status == value %}active{% endif %}" href="?status={{ value }}">{{ label }}</a>
+    {% endfor %}
+    <a class="su-chip" href="?mine=1"><i class="bi bi-person"></i> Menga tegishli</a>
+  </div>
+
+  <div class="su-card">
+    {% for task in page_obj %}
+      <a class="su-task {% if task.status == 'COMPLETED' %}done{% endif %}"
+         href="{% url 'startup:task_detail' startup.slug task.pk %}">
+        <i class="bi bi-{% if task.status == 'COMPLETED' %}check-circle-fill{% elif task.status == 'SUBMITTED' %}hourglass-split{% else %}circle{% endif %}"></i>
+        <span class="su-task-title">
+          {{ task.title }}
+          <small>
+            {% if task.stage %}{{ task.stage.title }}{% endif %}
+            {% if task.assigned_to %} · {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}{% endif %}
+            {% if task.deadline %} · <i class="bi bi-calendar-event"></i> {{ task.deadline|date:"d.m.Y" }}{% endif %}
+          </small>
+        </span>
+        {% if task.is_overdue %}<span class="su-badge is-overdue">Muddat oʻtdi</span>{% endif %}
+        {% if task.priority == 'high' %}<span class="su-badge is-high">Muhim</span>{% endif %}
+        <span class="su-badge is-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+        <span class="su-badge"><i class="bi bi-lightning-charge"></i> {{ task.points }}</span>
+      </a>
+    {% empty %}
+      <p class="su-note">Vazifa topilmadi.</p>
+    {% endfor %}
+  </div>
+
+  {% if page_obj.has_other_pages %}
+  <nav style="margin-top:18px" aria-label="Sahifalar">
+    <ul class="pagination pagination-sm justify-content-center">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status %}&status={{ status }}{% endif %}">‹</a>
+        </li>
+      {% endif %}
+      <li class="page-item active">
+        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+      </li>
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status %}&status={{ status }}{% endif %}">›</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}

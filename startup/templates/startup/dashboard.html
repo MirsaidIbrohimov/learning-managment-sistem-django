@@ -1,0 +1,254 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — MY StartUp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap">
+
+  <div class="su-head">
+    {% if startup.logo %}
+      <img class="su-head-logo" src="{{ startup.logo.url }}" alt="{{ startup.name }}">
+    {% else %}
+      <span class="su-head-logo"><i class="bi bi-rocket-takeoff"></i></span>
+    {% endif %}
+    <div class="su-head-main">
+      <h1>{{ startup.name }}</h1>
+      <p>{{ startup.short_description }}</p>
+    </div>
+    <div class="su-head-actions">
+      {% if can_edit %}
+        <a class="btn btn-sm btn-primary" href="{% url 'startup:edit' startup.slug %}">
+          <i class="bi bi-pencil"></i> Tahrirlash
+        </a>
+      {% endif %}
+    </div>
+  </div>
+
+  {% include 'startup/_nav.html' with active='dashboard' %}
+
+  <div class="su-stats">
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-flag-fill"></i> Bosqich</span>
+      <span class="su-stat-value" style="font-size:1.05rem">
+        {{ stage_label }}
+        <small>{{ startup.stage_index }}/10</small>
+      </span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-lightning-charge-fill"></i> Startup XP</span>
+      <span class="su-stat-value">{{ startup.total_xp }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-check2-circle"></i> Vazifalar</span>
+      <span class="su-stat-value">{{ completed_count }}<small> / {{ total_count }}</small></span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-people-fill"></i> Jamoa</span>
+      <span class="su-stat-value">{{ members|length }}</span>
+    </div>
+    <div class="su-stat">
+      <span class="su-stat-label"><i class="bi bi-coin"></i> Mening coinim</span>
+      <span class="su-stat-value">{{ user.coins }}</span>
+    </div>
+  </div>
+
+  <div class="su-grid-2">
+    <div>
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-list-check"></i> Joriy vazifalar
+          <a class="su-count" href="{% url 'startup:task_list' startup.slug %}">Barchasi →</a>
+        </h2>
+        {% for task in open_tasks %}
+          <a class="su-task" href="{% url 'startup:task_detail' startup.slug task.pk %}">
+            <i class="bi bi-{% if task.status == 'SUBMITTED' %}hourglass-split{% else %}circle{% endif %}"></i>
+            <span class="su-task-title">
+              {{ task.title }}
+              <small>
+                {% if task.stage %}{{ task.stage.title }}{% endif %}
+                {% if task.assigned_to %} · {{ task.assigned_to.get_full_name|default:task.assigned_to.username }}{% endif %}
+              </small>
+            </span>
+            {% if task.is_overdue %}<span class="su-badge is-overdue"><i class="bi bi-exclamation-triangle"></i> Muddat oʻtdi</span>{% endif %}
+            <span class="su-badge is-{{ task.status|lower }}">{{ task.get_status_display }}</span>
+            <span class="su-badge"><i class="bi bi-lightning-charge"></i> {{ task.points }}</span>
+          </a>
+        {% empty %}
+          <p class="su-note">Ochiq vazifa yoʻq. Roadmap'dan keyingi bosqichni boshlang.</p>
+        {% endfor %}
+      </div>
+
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-signpost-split"></i> Roadmap</h2>
+        {% for stage in stages %}
+          <div class="su-stage {% if stage.is_completed %}done{% elif stage.key == startup.current_stage %}current{% endif %}">
+            <span class="su-stage-dot">
+              {% if stage.is_completed %}<i class="bi bi-check-lg"></i>{% else %}{{ stage.order }}{% endif %}
+            </span>
+            <div class="su-stage-body">
+              <h3>{{ stage.title }}</h3>
+              <span class="su-stage-meta">
+                {% if stage.is_completed %}Yakunlangan{% elif stage.key == startup.current_stage %}Joriy bosqich{% else %}Kutilmoqda{% endif %}
+              </span>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div>
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-graph-up-arrow"></i> Umumiy progress</h2>
+        <div class="su-ring">
+          <svg width="150" height="150" viewBox="0 0 120 120">
+            <circle class="su-ring-track" cx="60" cy="60" r="52" fill="none" stroke-width="10"></circle>
+            <circle class="su-ring-fill" cx="60" cy="60" r="52" fill="none" stroke-width="10"
+                    stroke-dasharray="{% widthratio startup.progress 100 327 %} 327"></circle>
+          </svg>
+          <span class="su-ring-text">
+            <b>{{ startup.progress }}%</b>
+            <span>bajarildi</span>
+          </span>
+        </div>
+      </div>
+
+      {% if overdue_tasks %}
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-exclamation-triangle-fill"></i> Muddati oʻtgan
+          <span class="su-count">{{ overdue_tasks|length }}</span>
+        </h2>
+        {% for task in overdue_tasks %}
+          <a class="su-task" href="{% url 'startup:task_detail' startup.slug task.pk %}">
+            <i class="bi bi-clock-history"></i>
+            <span class="su-task-title">{{ task.title }}<small>{{ task.deadline }}</small></span>
+          </a>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-people-fill"></i> Jamoa
+          <a class="su-count" href="{% url 'startup:team' startup.slug %}">Boshqarish →</a>
+        </h2>
+        {% for member in members %}
+          <div class="su-person">
+            <span class="su-avatar">{{ member.user.first_name|first|default:member.user.username|first|upper }}</span>
+            <span class="su-person-name">
+              {{ member.user.get_full_name|default:member.user.username }}
+              <small>{{ member.get_role_display }}</small>
+            </span>
+          </div>
+        {% endfor %}
+        {% if pending_members %}
+          <p class="su-note" style="margin-top:10px">
+            <i class="bi bi-hourglass"></i> {{ pending_members|length }} ta soʻrov kutilmoqda —
+            <a href="{% url 'startup:team' startup.slug %}">koʻrish</a>
+          </p>
+        {% endif %}
+      </div>
+
+      {% if mentors %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-person-badge"></i> Mentorlar</h2>
+        {% for link in mentors %}
+          <div class="su-person">
+            <span class="su-avatar">{{ link.mentor.first_name|first|default:link.mentor.username|first|upper }}</span>
+            <span class="su-person-name">
+              {{ link.mentor.get_full_name|default:link.mentor.username }}
+              <small>Mentor</small>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-person-badge"></i> Mentor</h2>
+        <p class="su-note">
+          Mentor hali biriktirilmagan. Vazifalarni admin yoki mentor tasdiqlaydi —
+          administratorga murojaat qiling.
+        </p>
+      </div>
+      {% endif %}
+
+      {% if achievement_board %}
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-award"></i> Yutuqlar
+          <span class="su-count">{{ achievements|length }}/{{ achievement_board|length }}</span>
+        </h2>
+        <div class="su-medals">
+          {% for item in achievement_board %}
+            <span class="su-medal {% if not item.is_unlocked %}is-locked{% endif %}"
+                  title="{{ item.description }}{% if item.xp %} · +{{ item.xp }} XP{% endif %}">
+              <i class="bi {% if item.is_unlocked %}{{ item.icon }}{% else %}bi-lock{% endif %}"></i>
+              {{ item.title }}
+            </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="su-card">
+        <h2 class="su-card-title">
+          <i class="bi bi-cash-stack"></i> Moliya
+          <a class="su-count" href="{% url 'startup:finance' startup.slug %}">Yozuvlar →</a>
+        </h2>
+        <div class="su-stats" style="margin:0">
+          <div class="su-stat">
+            <span class="su-stat-label">Daromad</span>
+            <span class="su-stat-value" style="font-size:1.05rem;color:var(--success)">{{ finance.revenue }}</span>
+          </div>
+          <div class="su-stat">
+            <span class="su-stat-label">Xarajat</span>
+            <span class="su-stat-value" style="font-size:1.05rem;color:var(--danger)">{{ finance.expense }}</span>
+          </div>
+          <div class="su-stat">
+            <span class="su-stat-label">Foyda</span>
+            <span class="su-stat-value" style="font-size:1.05rem">{{ finance.profit }}</span>
+          </div>
+        </div>
+        <p class="su-note" style="margin-top:10px">Summalar soʻmda.</p>
+      </div>
+
+      {% if feedbacks %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-chat-quote"></i> Mentor fikrlari</h2>
+        {% for item in feedbacks %}
+          <div class="su-sub">
+            <div class="su-sub-head">
+              <b>{{ item.mentor.get_full_name|default:item.mentor.username }}</b>
+              {% if item.rating %}<span class="su-badge is-primary"><i class="bi bi-star-fill"></i> {{ item.rating }}/5</span>{% endif %}
+              <time style="margin-left:auto">{{ item.created_at|date:"d.m H:i" }}</time>
+            </div>
+            <p style="margin:0;white-space:pre-line">{{ item.message }}</p>
+          </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if activities %}
+      <div class="su-card">
+        <h2 class="su-card-title"><i class="bi bi-activity"></i> Oxirgi faollik</h2>
+        <ul class="su-log">
+          {% for activity in activities %}
+            <li>
+              <i class="bi bi-dot"></i>
+              <span>{{ activity.description }}</span>
+              <time>{{ activity.created_at|date:"d.m H:i" }}</time>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

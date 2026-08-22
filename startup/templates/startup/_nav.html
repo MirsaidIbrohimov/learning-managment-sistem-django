@@ -1,0 +1,36 @@
+{% comment %}
+Startupning yopiq boʻlimlari uchun umumiy navigatsiya. `can_view_private`
+bayrogʻi view'dan keladi — bu shablon oʻzi ruxsat tekshirmaydi.
+{% endcomment %}
+<div class="su-filters" style="margin-bottom:16px">
+  {% if is_owner %}
+    <a class="su-chip {% if active == 'dashboard' %}active{% endif %}" href="{% url 'startup:dashboard' %}">
+      <i class="bi bi-speedometer2"></i> Panel
+    </a>
+  {% elif is_mentor or is_staff_admin %}
+    <a class="su-chip" href="{% url 'startup:mentor' %}">
+      <i class="bi bi-person-badge-fill"></i> Mentor paneli
+    </a>
+  {% endif %}
+  <a class="su-chip {% if active == 'detail' %}active{% endif %}" href="{% url 'startup:detail' startup.slug %}">
+    <i class="bi bi-person-badge"></i> Profil
+  </a>
+  <a class="su-chip {% if active == 'roadmap' %}active{% endif %}" href="{% url 'startup:roadmap' startup.slug %}">
+    <i class="bi bi-signpost-split"></i> Roadmap
+  </a>
+  <a class="su-chip {% if active == 'tasks' %}active{% endif %}" href="{% url 'startup:task_list' startup.slug %}">
+    <i class="bi bi-list-check"></i> Vazifalar
+  </a>
+  <a class="su-chip {% if active == 'team' %}active{% endif %}" href="{% url 'startup:team' startup.slug %}">
+    <i class="bi bi-people"></i> Jamoa
+  </a>
+  <a class="su-chip {% if active == 'finance' %}active{% endif %}" href="{% url 'startup:finance' startup.slug %}">
+    <i class="bi bi-cash-stack"></i> Moliya
+  </a>
+  <a class="su-chip {% if active == 'metrics' %}active{% endif %}" href="{% url 'startup:metrics' startup.slug %}">
+    <i class="bi bi-graph-up"></i> Metrika
+  </a>
+  <a class="su-chip {% if active == 'pitch' %}active{% endif %}" href="{% url 'startup:pitch' startup.slug %}">
+    <i class="bi bi-easel2"></i> Pitch
+  </a>
+</div>

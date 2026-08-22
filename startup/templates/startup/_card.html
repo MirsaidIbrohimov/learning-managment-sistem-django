@@ -1,0 +1,24 @@
+{% load static %}
+<a class="su-item" href="{% url 'startup:detail' startup.slug %}">
+  <div class="su-item-top">
+    {% if startup.logo %}
+      <img class="su-item-logo" src="{{ startup.logo.url }}" alt="{{ startup.name }}">
+    {% else %}
+      <span class="su-item-logo"><i class="bi bi-rocket-takeoff"></i></span>
+    {% endif %}
+    <span class="su-item-name">
+      {{ startup.name }}
+      <small>{{ startup.get_category_display }}</small>
+    </span>
+  </div>
+
+  <p class="su-item-desc">{{ startup.short_description }}</p>
+
+  {% include 'startup/_progress.html' with progress=startup.progress %}
+
+  <div class="su-item-foot">
+    <span class="su-badge"><i class="bi bi-flag"></i> {{ startup.get_current_stage_display }}</span>
+    <span><i class="bi bi-lightning-charge-fill"></i> {{ startup.total_xp }} XP</span>
+    {% if startup.member_count %}<span><i class="bi bi-people"></i> {{ startup.member_count }}</span>{% endif %}
+  </div>
+</a>

@@ -1,0 +1,36 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Startup yaratish — MY StartUp{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="su-wrap" style="max-width:900px">
+
+  <div class="su-head">
+    <span class="su-head-logo"><i class="bi bi-plus-lg"></i></span>
+    <div class="su-head-main">
+      <h1>Startup yaratish</h1>
+      <p>Nom va qisqa tavsif yetarli — qolganini keyin toʻldirasiz. Roadmap avtomatik tayyorlanadi.</p>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    <div class="su-card">
+      {% include 'startup/_form.html' %}
+    </div>
+
+    <div class="d-flex flex-wrap gap-2" style="margin-top:16px">
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-rocket-takeoff"></i> Startupni yaratish
+      </button>
+      <a class="btn btn-outline-secondary" href="{% url 'startup:dashboard' %}">Bekor qilish</a>
+    </div>
+  </form>
+
+</div>
+{% endblock %}

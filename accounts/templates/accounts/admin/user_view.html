@@ -228,6 +228,34 @@
 .uv-act-text{font-size:.82rem;font-weight:500;color:var(--text-color);line-height:1.4}
 .uv-act-time{font-size:.72rem;color:var(--bs-secondary-color, #6c757d);margin-top:1px}
 
+/* ===== Startup / G'oya tab (shaffof shisha) ===== */
+.uvs-glass{background:rgba(255,255,255,.62);border-color:rgba(255,255,255,.75);backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
+[data-bs-theme="dark"] .uvs-glass{background:rgba(26,34,52,.60);border-color:rgba(148,163,184,.18)}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+    .uvs-glass{background:var(--card-bg)}
+}
+.uvs-head{padding:18px 20px;color:#fff;background:linear-gradient(135deg,#6366f1,#ec4899);display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.uvs-logo{width:52px;height:52px;border-radius:14px;object-fit:cover;flex-shrink:0;border:1px solid rgba(255,255,255,.4)}
+.uvs-logo-ph{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;flex-shrink:0;font-size:1.3rem;font-weight:800;background:rgba(255,255,255,.22)}
+.uvs-title{font-size:1.05rem;font-weight:800;line-height:1.2}
+.uvs-sub{font-size:.8rem;opacity:.9}
+.uvs-chips{display:flex;flex-wrap:wrap;gap:6px;margin-left:auto}
+.uvs-chip{padding:4px 11px;border-radius:50px;font-size:.72rem;font-weight:700;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);white-space:nowrap}
+.uvs-bar{height:9px;border-radius:50px;background:rgba(148,163,184,.24);overflow:hidden}
+.uvs-bar>i{display:block;height:100%;border-radius:50px;background:linear-gradient(90deg,#6366f1,#ec4899)}
+.uvs-mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:16px}
+.uvs-mini-box{text-align:center;padding:12px 8px;border-radius:13px;border:1px solid var(--border-color);background:var(--bg-color, var(--bs-tertiary-bg))}
+.uvs-mini-num{font-size:1.1rem;font-weight:800;color:var(--text-color)}
+.uvs-mini-label{font-size:.7rem;font-weight:600;color:var(--bs-secondary-color, #6c757d);margin-top:2px}
+.uvs-idea{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+.uvs-idea h6{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--bs-secondary-color, #6c757d);margin:0 0 4px}
+.uvs-idea p{font-size:.86rem;color:var(--text-color);margin:0;white-space:pre-line;word-break:break-word}
+.uvs-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.uvs-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:11px;border:1px solid var(--border-color);background:var(--card-bg);color:var(--text-color);font-size:.82rem;font-weight:600;text-decoration:none;transition:.2s}
+.uvs-btn:hover{transform:translateY(-1px);border-color:#6366f1;color:#6366f1}
+.uvs-btn-primary{background:linear-gradient(135deg,#6366f1,#8b5cf6);border-color:transparent;color:#fff}
+.uvs-btn-primary:hover{color:#fff}
+
 /* ===== Responsive ===== */
 @media(max-width:900px){
     .uv-hero{flex-direction:column;text-align:center;padding:1.5rem}
@@ -340,6 +368,9 @@
         {% endif %}
         {% if recent_activities %}
         <div class="uv-tab" data-tab="activities"><i class="bi bi-activity" style="color:#3b82f6"></i> Harakatlar</div>
+        {% endif %}
+        {% if startup_summary %}
+        <div class="uv-tab" data-tab="startup"><i class="bi bi-rocket-takeoff-fill" style="color:#ec4899"></i> Startup / G'oya</div>
         {% endif %}
     </div>
 
@@ -833,6 +864,165 @@
                 {% endfor %}
             </div>
         </div>
+    </div>
+    {% endif %}
+
+    <!-- ====== TAB: STARTUP / G'OYA ====== -->
+    {% if startup_summary %}
+    <div class="uv-section" id="tab-startup">
+        {% for item in startup_summary.owned %}
+        <div class="uv-card uvs-glass">
+            <div class="uvs-head">
+                {% if item.startup.logo %}
+                <img src="{{ item.startup.logo.url }}" alt="" class="uvs-logo">
+                {% else %}
+                <div class="uvs-logo-ph">{{ item.startup.name|first|upper }}</div>
+                {% endif %}
+                <div>
+                    <div class="uvs-title">{{ item.startup.name }}</div>
+                    <div class="uvs-sub">{{ item.startup.short_description }}</div>
+                </div>
+                <div class="uvs-chips">
+                    <span class="uvs-chip">{{ item.startup.get_category_display }}</span>
+                    <span class="uvs-chip">{{ item.stage_label|truncatechars:26 }}</span>
+                    <span class="uvs-chip">{{ item.startup.total_xp }} XP</span>
+                    <span class="uvs-chip">{{ item.startup.get_status_display }}</span>
+                </div>
+            </div>
+
+            <div class="uv-card-body">
+                <div class="uv-info-label">Progress — {{ item.startup.progress }}%</div>
+                <div class="uvs-bar"><i style="width:{{ item.startup.progress }}%"></i></div>
+
+                <div class="uvs-mini">
+                    <div class="uvs-mini-box">
+                        <div class="uvs-mini-num">{{ item.task_done }} / {{ item.task_total }}</div>
+                        <div class="uvs-mini-label">Vazifalar</div>
+                    </div>
+                    <div class="uvs-mini-box">
+                        <div class="uvs-mini-num">{{ item.task_pending }}</div>
+                        <div class="uvs-mini-label">Tekshiruvda</div>
+                    </div>
+                    <div class="uvs-mini-box">
+                        <div class="uvs-mini-num">{{ item.member_count }}</div>
+                        <div class="uvs-mini-label">Jamoa</div>
+                    </div>
+                    <div class="uvs-mini-box">
+                        <div class="uvs-mini-num">{{ item.pitch_filled }} / {{ item.pitch_total }}</div>
+                        <div class="uvs-mini-label">Pitch deck</div>
+                    </div>
+                    <div class="uvs-mini-box">
+                        <div class="uvs-mini-num">{{ item.achievement_count }}</div>
+                        <div class="uvs-mini-label">Yutuqlar</div>
+                    </div>
+                    <div class="uvs-mini-box">
+                        <div class="uvs-mini-num">{{ item.finance.profit|floatformat:0 }}</div>
+                        <div class="uvs-mini-label">Foyda</div>
+                    </div>
+                </div>
+
+                <div class="uvs-idea">
+                    <div>
+                        <h6><i class="bi bi-exclamation-circle"></i> Muammo</h6>
+                        <p>{{ item.startup.problem|default:"— kiritilmagan" }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-lightbulb"></i> Yechim</h6>
+                        <p>{{ item.startup.solution|default:"— kiritilmagan" }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-people"></i> Maqsadli auditoriya</h6>
+                        <p>{{ item.startup.target_audience|default:"— kiritilmagan" }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-diagram-3"></i> Biznes model</h6>
+                        <p>{{ item.startup.business_model|default:"— kiritilmagan" }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-shuffle"></i> Raqobatchilar</h6>
+                        <p>{{ item.startup.competitors|default:"— kiritilmagan" }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-file-text"></i> To'liq tavsif</h6>
+                        <p>{{ item.startup.description|default:"— kiritilmagan" }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-person-video3"></i> Mentorlar</h6>
+                        <p>{% for mentor in item.mentors %}{{ mentor.get_full_name|default:mentor.username }}{% if not forloop.last %}, {% endif %}{% empty %}— biriktirilmagan{% endfor %}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-cash-coin"></i> Moliya</h6>
+                        <p>Daromad: {{ item.finance.revenue|floatformat:0 }} · Xarajat: {{ item.finance.expense|floatformat:0 }}</p>
+                    </div>
+                    <div>
+                        <h6><i class="bi bi-mortarboard"></i> Kurs / kasb</h6>
+                        <p>{{ item.startup.profession.name|default:"—" }}</p>
+                    </div>
+                </div>
+
+                {% if item.activities %}
+                <div class="mt-4">
+                    <div class="uv-info-label"><i class="bi bi-clock-history"></i> Oxirgi faollik</div>
+                    {% for activity in item.activities %}
+                    <div class="uv-activity-item">
+                        <div class="uv-act-ico other">
+                            {% if 'task' in activity.action_type %}<i class="bi bi-check2-square"></i>
+                            {% elif 'member' in activity.action_type or 'join' in activity.action_type %}<i class="bi bi-people"></i>
+                            {% elif 'achievement' in activity.action_type %}<i class="bi bi-trophy"></i>
+                            {% elif 'mentor' in activity.action_type or 'feedback' in activity.action_type %}<i class="bi bi-chat-square-text"></i>
+                            {% elif 'finance' in activity.action_type or 'metric' in activity.action_type %}<i class="bi bi-graph-up"></i>
+                            {% elif 'admin' in activity.action_type %}<i class="bi bi-shield-lock"></i>
+                            {% else %}<i class="bi bi-rocket-takeoff"></i>{% endif %}
+                        </div>
+                        <div>
+                            <div class="uv-act-text">{{ activity.description|truncatewords:14 }}</div>
+                            <div class="uv-act-time">{{ activity.created_at|timesince }} oldin</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="uvs-links">
+                    <a href="{% url 'startup_admin:startup_detail' item.startup.slug %}" class="uvs-btn uvs-btn-primary">
+                        <i class="bi bi-gear"></i> To'liq boshqarish
+                    </a>
+                    <a href="{% url 'startup_admin:startup_edit' item.startup.slug %}" class="uvs-btn">
+                        <i class="bi bi-pencil"></i> Tahrirlash
+                    </a>
+                    <a href="{% url 'startup:detail' item.startup.slug %}" class="uvs-btn" target="_blank" rel="noopener">
+                        <i class="bi bi-box-arrow-up-right"></i> Saytda ko'rish
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        {% if startup_summary.memberships %}
+        <div class="uv-card uvs-glass">
+            <div class="uv-card-head">
+                <div class="uv-card-ico" style="background:linear-gradient(135deg,#0ea5e9,#6366f1)"><i class="bi bi-people-fill"></i></div>
+                Boshqa startup jamoalarida
+            </div>
+            <div class="uv-card-body">
+                {% for member in startup_summary.memberships %}
+                <div class="uv-activity-item">
+                    <div class="uv-act-ico other"><i class="bi bi-rocket"></i></div>
+                    <div>
+                        <div class="uv-act-text">
+                            <a href="{% url 'startup_admin:startup_detail' member.startup.slug %}" style="color:inherit">{{ member.startup.name }}</a>
+                            — {{ member.get_role_display }}
+                        </div>
+                        <div class="uv-act-time">
+                            Egasi: {{ member.startup.owner.get_full_name|default:member.startup.owner.username }}
+                            · {{ member.joined_at|date:"d.m.Y" }}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
     {% endif %}
 </div>

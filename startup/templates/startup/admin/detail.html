@@ -1,0 +1,555 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ startup.name }} — Startuplar{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'startup/css/startup_admin.css' %}">
+{% endblock %}
+
+{% block admin_content %}
+<div class="sa-page">
+    <div class="sa-aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+    <div class="sa-body d-flex flex-column gap-3">
+
+        <div class="sa-hero d-flex flex-wrap gap-3 justify-content-between align-items-start">
+            <div class="d-flex gap-3 align-items-center">
+                {% if startup.logo %}
+                <img src="{{ startup.logo.url }}" alt="" class="sa-logo" style="width:64px;height:64px;border-radius:16px">
+                {% else %}
+                <div class="sa-logo-ph" style="width:64px;height:64px;border-radius:16px;font-size:1.5rem">{{ startup.name|first|upper }}</div>
+                {% endif %}
+                <div>
+                    <h1 style="font-size:1.42rem">{{ startup.name }}</h1>
+                    <p>{{ startup.short_description }}</p>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="sa-hero-btn" style="cursor:default"><i class="bi bi-person"></i> {{ startup.owner.get_full_name|default:startup.owner.username }}</span>
+                        <span class="sa-hero-btn" style="cursor:default"><i class="bi bi-tag"></i> {{ startup.get_category_display }}</span>
+                        <span class="sa-hero-btn" style="cursor:default"><i class="bi bi-signpost-split"></i> {{ stage_label }}</span>
+                        <span class="sa-hero-btn" style="cursor:default"><i class="bi bi-lightning-charge-fill"></i> {{ startup.total_xp }} XP</span>
+                        <span class="sa-hero-btn" style="cursor:default"><i class="bi bi-activity"></i> {{ startup.get_status_display }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sa-hero-actions">
+                <a href="{% url 'startup_admin:startup_list' %}" class="sa-hero-btn"><i class="bi bi-arrow-left"></i> Ro'yxat</a>
+                <a href="{% url 'startup_admin:startup_edit' startup.slug %}" class="sa-hero-btn"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                <a href="{% url 'startup:detail' startup.slug %}" class="sa-hero-btn" target="_blank" rel="noopener"><i class="bi bi-box-arrow-up-right"></i> Saytda</a>
+                <a href="{% url 'admin_user_view' startup.owner.id %}" class="sa-hero-btn"><i class="bi bi-person-badge"></i> Egasi profili</a>
+            </div>
+        </div>
+
+        <div class="sa-card sa-card-pad">
+            <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center">
+                <div class="flex-grow-1" style="min-width:220px">
+                    <div class="d-flex justify-content-between sa-progress-text mb-1">
+                        <span>Umumiy progress</span><b>{{ startup.progress }}%</b>
+                    </div>
+                    <div class="sa-progress sa-progress-lg"><i style="width:{{ startup.progress }}%"></i></div>
+                    <div class="sa-progress-text mt-1">
+                        Vazifalar: {{ task_done }} / {{ tasks|length }} bajarilgan
+                        {% if pending_submissions %}· <b class="sa-row-skipped">{{ pending_submissions|length }} topshiriq tekshiruv kutmoqda</b>{% endif %}
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <form method="post" action="{% url 'startup_admin:startup_recompute' startup.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="sa-btn sa-btn-sm"><i class="bi bi-arrow-repeat"></i> Qayta hisoblash</button>
+                    </form>
+                    <form method="post" action="{% url 'startup_admin:startup_status' startup.slug %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        {% if startup.status != 'active' %}
+                        <button type="submit" name="status" value="active" class="sa-btn sa-btn-sm sa-btn-success"><i class="bi bi-play-circle"></i> Faollashtirish</button>
+                        {% endif %}
+                        {% if startup.status != 'paused' %}
+                        <button type="submit" name="status" value="paused" class="sa-btn sa-btn-sm"><i class="bi bi-pause-circle"></i> To'xtatish</button>
+                        {% endif %}
+                        {% if startup.status != 'archived' %}
+                        <button type="submit" name="status" value="archived" class="sa-btn sa-btn-sm"><i class="bi bi-archive"></i> Arxivlash</button>
+                        {% endif %}
+                    </form>
+                    <button type="button" class="sa-btn sa-btn-sm sa-btn-danger" data-sa-delete><i class="bi bi-trash"></i> O'chirish</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sa-tabs" role="tablist">
+            <button type="button" class="sa-tab active" data-sa-tab="idea"><i class="bi bi-lightbulb"></i> G'oya</button>
+            <button type="button" class="sa-tab" data-sa-tab="roadmap"><i class="bi bi-signpost-2"></i> Roadmap</button>
+            <button type="button" class="sa-tab" data-sa-tab="tasks"><i class="bi bi-list-check"></i> Vazifalar</button>
+            <button type="button" class="sa-tab" data-sa-tab="reviews"><i class="bi bi-clipboard-check"></i> Topshiriqlar
+                {% if pending_submissions %}<span class="sa-badge sa-badge-paused">{{ pending_submissions|length }}</span>{% endif %}
+            </button>
+            <button type="button" class="sa-tab" data-sa-tab="team"><i class="bi bi-people"></i> Jamoa</button>
+            <button type="button" class="sa-tab" data-sa-tab="finance"><i class="bi bi-cash-coin"></i> Moliya</button>
+            <button type="button" class="sa-tab" data-sa-tab="pitch"><i class="bi bi-easel"></i> Pitch</button>
+            <button type="button" class="sa-tab" data-sa-tab="xp"><i class="bi bi-lightning-charge"></i> XP</button>
+            <button type="button" class="sa-tab" data-sa-tab="log"><i class="bi bi-clock-history"></i> Faollik</button>
+        </div>
+
+        <!-- G'oya -->
+        <div class="sa-pane active" id="sa-pane-idea">
+            <div class="sa-grid">
+                <div class="sa-card sa-card-pad sa-info">
+                    <h2 class="sa-section-title"><i class="bi bi-exclamation-circle"></i> Muammo va yechim</h2>
+                    <dl>
+                        <dt>Muammo</dt>
+                        <dd>{{ startup.problem|default:"— kiritilmagan" }}</dd>
+                        <dt>Yechim</dt>
+                        <dd>{{ startup.solution|default:"— kiritilmagan" }}</dd>
+                        <dt>Maqsadli auditoriya</dt>
+                        <dd>{{ startup.target_audience|default:"— kiritilmagan" }}</dd>
+                    </dl>
+                </div>
+                <div class="sa-card sa-card-pad sa-info">
+                    <h2 class="sa-section-title"><i class="bi bi-diagram-3"></i> Biznes</h2>
+                    <dl>
+                        <dt>Biznes model</dt>
+                        <dd>{{ startup.business_model|default:"— kiritilmagan" }}</dd>
+                        <dt>Raqobatchilar</dt>
+                        <dd>{{ startup.competitors|default:"— kiritilmagan" }}</dd>
+                        <dt>To'liq tavsif</dt>
+                        <dd>{{ startup.description|default:"— kiritilmagan" }}</dd>
+                    </dl>
+                </div>
+                <div class="sa-card sa-card-pad sa-info">
+                    <h2 class="sa-section-title"><i class="bi bi-info-circle"></i> Ma'lumot</h2>
+                    <dl>
+                        <dt>Kurs / kasb</dt>
+                        <dd>{{ startup.profession.name|default:"—" }}</dd>
+                        <dt>Yaratilgan</dt>
+                        <dd>{{ startup.created_at|date:"d.m.Y H:i" }}</dd>
+                        <dt>Yangilangan</dt>
+                        <dd>{{ startup.updated_at|date:"d.m.Y H:i" }}</dd>
+                        <dt>Havolalar</dt>
+                        <dd>
+                            {% if startup.website %}<a href="{{ startup.website }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-globe"></i> Sayt</a><br>{% endif %}
+                            {% if startup.github_url %}<a href="{{ startup.github_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i> GitHub</a><br>{% endif %}
+                            {% if startup.telegram_url %}<a href="{{ startup.telegram_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-telegram"></i> Telegram</a><br>{% endif %}
+                            {% if startup.instagram_url %}<a href="{{ startup.instagram_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-instagram"></i> Instagram</a>{% endif %}
+                            {% if not startup.website and not startup.github_url and not startup.telegram_url and not startup.instagram_url %}—{% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+
+            <div class="sa-card sa-card-pad mt-3">
+                <h2 class="sa-section-title"><i class="bi bi-award"></i> Yutuqlar</h2>
+                <div class="sa-check-grid">
+                    {% for item in achievement_board %}
+                    <div class="sa-check" style="cursor:default;{% if not item.is_unlocked %}opacity:.5{% endif %}">
+                        <i class="bi {{ item.icon }}" style="font-size:1.2rem"></i>
+                        <div>
+                            <div style="font-weight:700">{{ item.title }}</div>
+                            <div class="sa-name-sub">
+                                {% if item.is_unlocked %}{{ item.unlocked_at|date:"d.m.Y" }}{% else %}ochilmagan{% endif %}
+                                · +{{ item.xp }} XP
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Roadmap -->
+        <div class="sa-pane" id="sa-pane-roadmap">
+            <div class="sa-table-wrap">
+                <div class="table-responsive">
+                    <table class="sa-table">
+                        <thead><tr><th>#</th><th>Bosqich</th><th>Vazn</th><th>Holat</th><th>Yakunlangan</th></tr></thead>
+                        <tbody>
+                            {% for stage in stages %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td style="font-weight:600">{{ stage.title }}</td>
+                                <td>{{ stage.weight }}%</td>
+                                <td>
+                                    {% if stage.is_completed %}
+                                    <span class="sa-badge sa-badge-active"><i class="bi bi-check-circle-fill"></i> Yakunlangan</span>
+                                    {% else %}
+                                    <span class="sa-badge sa-badge-muted">Davom etmoqda</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ stage.completed_at|date:"d.m.Y H:i"|default:"—" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5"><div class="sa-empty"><i class="bi bi-signpost"></i><b>Roadmap yo'q</b>"Qayta hisoblash" tugmasini bosing.</div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vazifalar -->
+        <div class="sa-pane" id="sa-pane-tasks">
+            <div class="sa-table-wrap">
+                <div class="table-responsive">
+                    <table class="sa-table">
+                        <thead><tr><th>Vazifa</th><th>Bosqich</th><th>Mas'ul</th><th>Muddat</th><th>Ball</th><th>Holat</th></tr></thead>
+                        <tbody>
+                            {% for task in tasks %}
+                            <tr>
+                                <td style="font-weight:600">{{ task.title }}</td>
+                                <td class="sa-name-sub">{{ task.stage.title|default:"—" }}</td>
+                                <td class="sa-name-sub">{% if task.assigned_to %}{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}{% else %}—{% endif %}</td>
+                                <td class="sa-name-sub">{{ task.deadline|date:"d.m.Y"|default:"—" }}</td>
+                                <td>{{ task.points }}</td>
+                                <td>
+                                    {% if task.status == 'COMPLETED' %}<span class="sa-badge sa-badge-active">Bajarilgan</span>
+                                    {% elif task.status == 'SUBMITTED' %}<span class="sa-badge sa-badge-paused">Tekshiruvda</span>
+                                    {% elif task.status == 'IN_PROGRESS' %}<span class="sa-badge sa-badge-info">Bajarilmoqda</span>
+                                    {% else %}<span class="sa-badge sa-badge-muted">{{ task.get_status_display }}</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6"><div class="sa-empty"><i class="bi bi-list-check"></i><b>Vazifa yo'q</b></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topshiriqlar -->
+        <div class="sa-pane" id="sa-pane-reviews">
+            {% if pending_submissions %}
+            <div class="d-flex flex-column gap-3 mb-3">
+                {% for submission in pending_submissions %}
+                <div class="sa-card sa-card-pad">
+                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-start">
+                        <div style="min-width:0">
+                            <div style="font-weight:700">{{ submission.task.title }}</div>
+                            <div class="sa-name-sub">
+                                {{ submission.submitted_by.get_full_name|default:submission.submitted_by.username }}
+                                · {{ submission.submitted_at|date:"d.m.Y H:i" }}
+                            </div>
+                        </div>
+                        <span class="sa-badge sa-badge-paused">Tekshiruv kutmoqda</span>
+                    </div>
+                    {% if submission.description %}<p class="sa-hint mt-2 mb-0" style="white-space:pre-line">{{ submission.description }}</p>{% endif %}
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        {% if submission.file %}<a href="{{ submission.file.url }}" class="sa-btn sa-btn-sm" target="_blank" rel="noopener"><i class="bi bi-paperclip"></i> Fayl</a>{% endif %}
+                        {% if submission.link %}<a href="{{ submission.link }}" class="sa-btn sa-btn-sm" target="_blank" rel="noopener noreferrer"><i class="bi bi-link-45deg"></i> Havola</a>{% endif %}
+                        {% if submission.github_url %}<a href="{{ submission.github_url }}" class="sa-btn sa-btn-sm" target="_blank" rel="noopener noreferrer"><i class="bi bi-github"></i> GitHub</a>{% endif %}
+                        {% if submission.demo_url %}<a href="{{ submission.demo_url }}" class="sa-btn sa-btn-sm" target="_blank" rel="noopener noreferrer"><i class="bi bi-play-btn"></i> Demo</a>{% endif %}
+                    </div>
+                    <form method="post" action="{% url 'startup_admin:submission_review' submission.pk %}" class="mt-3 d-flex flex-wrap gap-2 align-items-end">
+                        {% csrf_token %}
+                        <div class="sa-field flex-grow-1" style="min-width:220px">
+                            <label for="sa-comment-{{ submission.pk }}">Izoh (ixtiyoriy)</label>
+                            <input type="text" id="sa-comment-{{ submission.pk }}" name="comment" class="sa-input" maxlength="500" placeholder="Fikr-mulohaza">
+                        </div>
+                        <button type="submit" name="action" value="approve" class="sa-btn sa-btn-sm sa-btn-success"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
+                        <button type="submit" name="action" value="changes" class="sa-btn sa-btn-sm"><i class="bi bi-arrow-counterclockwise"></i> O'zgartirish</button>
+                        <button type="submit" name="action" value="reject" class="sa-btn sa-btn-sm sa-btn-danger"><i class="bi bi-x-lg"></i> Rad etish</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="sa-table-wrap">
+                <div class="table-responsive">
+                    <table class="sa-table">
+                        <thead><tr><th>Vazifa</th><th>Yuboruvchi</th><th>Vaqt</th><th>Holat</th><th>Tekshirdi</th><th>Izoh</th></tr></thead>
+                        <tbody>
+                            {% for submission in submissions %}
+                            <tr>
+                                <td style="font-weight:600">{{ submission.task.title|truncatechars:40 }}</td>
+                                <td class="sa-name-sub">{{ submission.submitted_by.get_full_name|default:submission.submitted_by.username }}</td>
+                                <td class="sa-name-sub">{{ submission.submitted_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    {% if submission.status == 'approved' %}<span class="sa-badge sa-badge-active">Tasdiqlangan</span>
+                                    {% elif submission.status == 'rejected' %}<span class="sa-badge sa-badge-danger">Rad etilgan</span>
+                                    {% elif submission.status == 'pending' %}<span class="sa-badge sa-badge-paused">Kutilmoqda</span>
+                                    {% else %}<span class="sa-badge sa-badge-info">{{ submission.get_status_display }}</span>{% endif %}
+                                </td>
+                                <td class="sa-name-sub">{% if submission.reviewed_by %}{{ submission.reviewed_by.get_full_name|default:submission.reviewed_by.username }}{% else %}—{% endif %}</td>
+                                <td class="sa-name-sub">{{ submission.review_comment|truncatechars:50|default:"—" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="6"><div class="sa-empty"><i class="bi bi-clipboard"></i><b>Topshiriq yo'q</b></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Jamoa -->
+        <div class="sa-pane" id="sa-pane-team">
+            <div class="sa-grid">
+                <div class="sa-card sa-card-pad">
+                    <h2 class="sa-section-title"><i class="bi bi-people"></i> A'zolar</h2>
+                    <div class="d-flex flex-column gap-2">
+                        {% for member in members %}
+                        <div class="d-flex justify-content-between align-items-center gap-2">
+                            <div style="min-width:0">
+                                <div style="font-weight:600">{{ member.user.get_full_name|default:member.user.username }}</div>
+                                <div class="sa-name-sub">@{{ member.user.username }} · {{ member.get_role_display }}</div>
+                            </div>
+                            {% if member.status == 'active' %}<span class="sa-badge sa-badge-active">Faol</span>
+                            {% elif member.status == 'invited' %}<span class="sa-badge sa-badge-paused">Taklif</span>
+                            {% else %}<span class="sa-badge sa-badge-muted">{{ member.get_status_display }}</span>{% endif %}
+                        </div>
+                        {% empty %}
+                        <div class="sa-hint">A'zo yo'q.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="sa-card sa-card-pad">
+                    <h2 class="sa-section-title"><i class="bi bi-person-video3"></i> Mentorlar</h2>
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        {% for link in mentors %}
+                        <form method="post" action="{% url 'startup_admin:startup_mentor' startup.slug %}"
+                              class="d-flex justify-content-between align-items-center gap-2">
+                            {% csrf_token %}
+                            <div style="min-width:0">
+                                <div style="font-weight:600">{{ link.mentor.get_full_name|default:link.mentor.username }}</div>
+                                <div class="sa-name-sub">@{{ link.mentor.username }}</div>
+                            </div>
+                            <input type="hidden" name="mentor" value="{{ link.mentor.id }}">
+                            <button type="submit" name="action" value="remove" class="sa-btn sa-btn-sm sa-btn-danger">
+                                <i class="bi bi-person-dash"></i>
+                            </button>
+                        </form>
+                        {% empty %}
+                        <div class="sa-hint">Mentor biriktirilmagan.</div>
+                        {% endfor %}
+                    </div>
+                    <form method="post" action="{% url 'startup_admin:startup_mentor' startup.slug %}" class="d-flex gap-2 align-items-end">
+                        {% csrf_token %}
+                        <div class="sa-field flex-grow-1">
+                            <label for="sa-mentor-select">Mentor biriktirish</label>
+                            <select id="sa-mentor-select" name="mentor" class="sa-input" required>
+                                <option value="">Tanlang…</option>
+                                {% for candidate in mentor_candidates %}
+                                <option value="{{ candidate.id }}">{{ candidate.get_full_name|default:candidate.username }} ({{ candidate.get_role_display }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" name="action" value="add" class="sa-btn sa-btn-primary"><i class="bi bi-person-plus"></i></button>
+                    </form>
+                </div>
+
+                <div class="sa-card sa-card-pad">
+                    <h2 class="sa-section-title"><i class="bi bi-chat-quote"></i> Mentor izohlari</h2>
+                    <div class="d-flex flex-column gap-3">
+                        {% for feedback in feedbacks %}
+                        <div>
+                            <div class="sa-name-sub">
+                                {{ feedback.mentor.get_full_name|default:feedback.mentor.username }} ·
+                                {{ feedback.created_at|date:"d.m.Y H:i" }}
+                                {% if feedback.rating %}· {{ feedback.rating }}/5{% endif %}
+                            </div>
+                            <div style="font-size:.88rem;white-space:pre-line">{{ feedback.message }}</div>
+                        </div>
+                        {% empty %}
+                        <div class="sa-hint">Izoh yo'q.</div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Moliya -->
+        <div class="sa-pane" id="sa-pane-finance">
+            <div class="sa-stats mb-3">
+                <div class="sa-stat" style="--sa-accent:#10b981">
+                    <div class="sa-stat-icon"><i class="bi bi-arrow-down-circle"></i></div>
+                    <div class="sa-stat-value">{{ finance.revenue|floatformat:0 }}</div>
+                    <div class="sa-stat-label">Daromad</div>
+                </div>
+                <div class="sa-stat" style="--sa-accent:#ef4444">
+                    <div class="sa-stat-icon"><i class="bi bi-arrow-up-circle"></i></div>
+                    <div class="sa-stat-value">{{ finance.expense|floatformat:0 }}</div>
+                    <div class="sa-stat-label">Xarajat</div>
+                </div>
+                <div class="sa-stat" style="--sa-accent:#6366f1">
+                    <div class="sa-stat-icon"><i class="bi bi-wallet2"></i></div>
+                    <div class="sa-stat-value">{{ finance.profit|floatformat:0 }}</div>
+                    <div class="sa-stat-label">Foyda</div>
+                </div>
+            </div>
+
+            <div class="sa-grid">
+                <div class="sa-table-wrap">
+                    <div class="table-responsive">
+                        <table class="sa-table">
+                            <thead><tr><th>Sana</th><th>Tur</th><th>Summa</th><th>Tavsif</th></tr></thead>
+                            <tbody>
+                                {% for entry in finances %}
+                                <tr>
+                                    <td class="sa-name-sub">{{ entry.date|date:"d.m.Y" }}</td>
+                                    <td>
+                                        {% if entry.type == 'REVENUE' %}<span class="sa-badge sa-badge-active">Daromad</span>
+                                        {% else %}<span class="sa-badge sa-badge-danger">Xarajat</span>{% endif %}
+                                    </td>
+                                    <td style="font-weight:700">{{ entry.amount|floatformat:0 }}</td>
+                                    <td class="sa-name-sub">{{ entry.description|truncatechars:40|default:"—" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4"><div class="sa-empty"><i class="bi bi-cash"></i><b>Yozuv yo'q</b></div></td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="sa-table-wrap">
+                    <div class="table-responsive">
+                        <table class="sa-table">
+                            <thead><tr><th>Sana</th><th>Metrika</th><th>Qiymat</th></tr></thead>
+                            <tbody>
+                                {% for metric in metrics %}
+                                <tr>
+                                    <td class="sa-name-sub">{{ metric.date|date:"d.m.Y" }}</td>
+                                    <td style="font-weight:600">{{ metric.get_key_display }}</td>
+                                    <td>{{ metric.value|floatformat:0 }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3"><div class="sa-empty"><i class="bi bi-graph-up"></i><b>Metrika yo'q</b></div></td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pitch -->
+        <div class="sa-pane" id="sa-pane-pitch">
+            <div class="sa-card sa-card-pad sa-info">
+                {% if pitch %}
+                <h2 class="sa-section-title">
+                    <i class="bi bi-easel"></i> Pitch Deck
+                    <span class="sa-badge sa-badge-primary">{{ pitch.filled_count }} / 10 to'ldirilgan</span>
+                </h2>
+                <dl class="sa-grid">
+                    <div><dt>1. Muammo</dt><dd>{{ pitch.problem|default:"—" }}</dd></div>
+                    <div><dt>2. Yechim</dt><dd>{{ pitch.solution|default:"—" }}</dd></div>
+                    <div><dt>3. Bozor hajmi</dt><dd>{{ pitch.market|default:"—" }}</dd></div>
+                    <div><dt>4. Mahsulot</dt><dd>{{ pitch.product|default:"—" }}</dd></div>
+                    <div><dt>5. Biznes model</dt><dd>{{ pitch.business_model|default:"—" }}</dd></div>
+                    <div><dt>6. Raqobat</dt><dd>{{ pitch.competitors|default:"—" }}</dd></div>
+                    <div><dt>7. Jamoa</dt><dd>{{ pitch.team|default:"—" }}</dd></div>
+                    <div><dt>8. Natijalar</dt><dd>{{ pitch.traction|default:"—" }}</dd></div>
+                    <div><dt>9. Moliya prognozi</dt><dd>{{ pitch.financials|default:"—" }}</dd></div>
+                    <div><dt>10. Investitsiya so'rovi</dt><dd>{{ pitch.investment_ask|default:"—" }}</dd></div>
+                </dl>
+                {% else %}
+                <div class="sa-empty"><i class="bi bi-easel"></i><b>Pitch deck yo'q</b></div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- XP -->
+        <div class="sa-pane" id="sa-pane-xp">
+            <div class="sa-card sa-card-pad mb-3">
+                <h2 class="sa-section-title"><i class="bi bi-plus-circle"></i> Qo'lda XP berish</h2>
+                <form method="post" action="{% url 'startup_admin:startup_xp' startup.slug %}" class="d-flex flex-wrap gap-2 align-items-end">
+                    {% csrf_token %}
+                    <div class="sa-field" style="max-width:170px">
+                        <label for="{{ xp_form.amount.id_for_label }}">XP miqdori</label>
+                        {{ xp_form.amount }}
+                    </div>
+                    <div class="sa-field flex-grow-1" style="min-width:220px">
+                        <label for="{{ xp_form.description.id_for_label }}">Sabab (audit uchun majburiy)</label>
+                        {{ xp_form.description }}
+                    </div>
+                    <button type="submit" class="sa-btn sa-btn-primary"><i class="bi bi-lightning-charge"></i> Berish</button>
+                </form>
+            </div>
+            <div class="sa-table-wrap">
+                <div class="table-responsive">
+                    <table class="sa-table">
+                        <thead><tr><th>Vaqt</th><th>Sabab</th><th>Tavsif</th><th>Foydalanuvchi</th><th>XP</th></tr></thead>
+                        <tbody>
+                            {% for entry in xp_log %}
+                            <tr>
+                                <td class="sa-name-sub">{{ entry.created_at|date:"d.m.Y H:i" }}</td>
+                                <td><span class="sa-badge sa-badge-muted">{{ entry.reason }}</span></td>
+                                <td class="sa-name-sub">{{ entry.description|truncatechars:52|default:"—" }}</td>
+                                <td class="sa-name-sub">{% if entry.user %}{{ entry.user.get_full_name|default:entry.user.username }}{% else %}—{% endif %}</td>
+                                <td><span class="sa-badge sa-badge-primary">+{{ entry.amount }}</span></td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="5"><div class="sa-empty"><i class="bi bi-lightning"></i><b>XP tarixi bo'sh</b></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Faollik -->
+        <div class="sa-pane" id="sa-pane-log">
+            <div class="sa-table-wrap">
+                <div class="table-responsive">
+                    <table class="sa-table">
+                        <thead><tr><th>Vaqt</th><th>Amal</th><th>Tavsif</th><th>Kim</th></tr></thead>
+                        <tbody>
+                            {% for activity in activities %}
+                            <tr>
+                                <td class="sa-name-sub">{{ activity.created_at|date:"d.m.Y H:i" }}</td>
+                                <td><span class="sa-badge sa-badge-muted">{{ activity.action_type }}</span></td>
+                                <td>{{ activity.description }}</td>
+                                <td class="sa-name-sub">{% if activity.user %}{{ activity.user.get_full_name|default:activity.user.username }}{% else %}tizim{% endif %}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4"><div class="sa-empty"><i class="bi bi-clock-history"></i><b>Faollik yo'q</b></div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="sa-modal" id="saDeleteModal">
+    <div class="sa-modal-box">
+        <h3><i class="bi bi-exclamation-triangle text-danger"></i> O'chirishni tasdiqlang</h3>
+        <p><b>{{ startup.name }}</b> startupi butunlay o'chiriladi: roadmap, vazifalar,
+           topshiriqlar, jamoa, moliya, XP tarixi — hammasi. Bu amalni qaytarib bo'lmaydi.</p>
+        <div class="sa-modal-actions">
+            <button type="button" class="sa-btn" data-sa-cancel>Bekor qilish</button>
+            <form method="post" action="{% url 'startup_admin:startup_delete' startup.slug %}">
+                {% csrf_token %}
+                <button type="submit" class="sa-btn sa-btn-danger"><i class="bi bi-trash"></i> O'chirish</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict';
+
+    var tabs = document.querySelectorAll('[data-sa-tab]');
+    tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+            tabs.forEach(function (other) { other.classList.remove('active'); });
+            document.querySelectorAll('.sa-pane').forEach(function (pane) { pane.classList.remove('active'); });
+            tab.classList.add('active');
+            var pane = document.getElementById('sa-pane-' + tab.dataset.saTab);
+            if (pane) pane.classList.add('active');
+        });
+    });
+
+    var modal = document.getElementById('saDeleteModal');
+    document.addEventListener('click', function (event) {
+        if (event.target.closest('[data-sa-delete]')) { modal.classList.add('open'); return; }
+        if (event.target.closest('[data-sa-cancel]') || event.target === modal) modal.classList.remove('open');
+    });
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') modal.classList.remove('open');
+    });
+})();
+</script>
+{% endblock %}
