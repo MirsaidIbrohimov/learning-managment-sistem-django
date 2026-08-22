@@ -43,6 +43,7 @@ from .views import (
     _passed_test_lesson_counts,
     admin_survey_responses_excel,
     course_statistics_api,
+    lesson_view,
     mark_video_watched,
     student_mark_video_watched,
     student_video_watch_beat,
@@ -619,6 +620,64 @@ class VideoTemplateContractTests(TestCase):
         self.assertIn('window._vqYT.getCurrentTime()', template)
         self.assertIn('duration: Math.round(totalSeconds || 0)', template)
         self.assertIn('serverCanComplete = !!data.can_complete', template)
+        self.assertNotIn('resumeAtServer', template)
+        self.assertIn('if (event.persisted) window.location.reload()', template)
+
+
+class VideoSessionResetTests(TestCase):
+    def test_reopening_unfinished_video_resets_timer_and_playback_progress(self):
+        profession = Profession.objects.create(
+            name='Qayta boshlash kursi',
+            photo='professions/restart.jpg',
+            description='Video timer reset test',
+        )
+        lesson = Lesson.objects.create(
+            profession=profession,
+            title='Qayta boshlanadigan video',
+            lesson_type='video',
+            ai_article='Tayyor maqola',
+        )
+        video = VideoLesson.objects.create(
+            lesson=lesson,
+            video_url='https://youtu.be/bbbbbbbbbbb',
+            verified_duration_seconds=600,
+        )
+        user = CustomUser.objects.create_user(
+            username='restart-admin', password='test-password', role='admin',
+        )
+        progress = VideoProgress.objects.create(
+            user=user,
+            video=video,
+            verified_seconds=180,
+            watched_segments=[[0, 180]],
+            max_position=180,
+            last_position=180,
+            last_beat_at=timezone.now(),
+            last_credit_at=timezone.now(),
+            required_seconds=540,
+            beat_nonce='old-nonce',
+            presence_token='old-presence',
+            presence_sent_at=timezone.now(),
+            next_check_seconds=240,
+        )
+        request = RequestFactory().get(reverse('lesson_view', args=[lesson.pk]))
+        request.user = user
+
+        with patch('accounts.views.render', return_value=SimpleNamespace()):
+            lesson_view(request, lesson.pk)
+
+        progress.refresh_from_db()
+        self.assertEqual(progress.verified_seconds, 0)
+        self.assertEqual(progress.watched_segments, [])
+        self.assertEqual(progress.max_position, 0)
+        self.assertEqual(progress.last_position, 0)
+        self.assertIsNone(progress.last_beat_at)
+        self.assertIsNone(progress.last_credit_at)
+        self.assertEqual(progress.beat_nonce, '')
+        self.assertEqual(progress.presence_token, '')
+        self.assertIsNone(progress.presence_sent_at)
+        self.assertEqual(progress.next_check_seconds, 0)
+        self.assertEqual(progress.required_seconds, 540)
 
 
 class StudentTokenWatchAntiCheatTests(TestCase):

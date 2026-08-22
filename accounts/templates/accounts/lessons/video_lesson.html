@@ -1045,12 +1045,6 @@ const VIDEO_TIMER_DEBUG = {{ video_timer_debug|yesno:"true,false" }};
 function videoTimerLog(...args) {
     if (VIDEO_TIMER_DEBUG) console.debug('[VideoTimer]', ...args);
 }
-// Oldingi sessiyada server tasdiqlagan ko'rilgan nuqta (sekund). Sahifa
-// yangilanganda video shu joydan DAVOM ETADI — 0-dan emas. Aks holda server
-// `position - max_position` kredit formulasi tufayli qayta ko'rilgan qismga
-// kredit bermaydi va countdown har heartbeat'da orqaga sakrab, umuman
-// yurmay qolardi.
-const resumeAtServer = Math.max(0, parseFloat('{{ progress.last_position|default:0|unlocalize }}') || 0);
 // Sensorli qurilmada YouTube'ning native tugmalari ochiq qolishi kerak. Aks holda
 // mobil autoplay bloklanganda videoGuard native Play tugmasini ham to'sib qo'yadi.
 const useNativeMobileControls = window.matchMedia &&
@@ -1058,24 +1052,6 @@ const useNativeMobileControls = window.matchMedia &&
 
 let isVideoPlaying = false;
 let vimeoPlayer    = null;
-
-// Resume seek'i faqat BIR MARTA, iframe to'liq yuklanganidan keyin (birinchi
-// PLAYING) bajariladi. onReady'da darhol seekTo chaqirishda widgetapi xabar
-// hali about:blank turgan iframe'ga yuborilib, konsolda
-// "postMessage target origin does not match" xatosi chiqardi.
-let resumeApplied = false;
-function ensureResumeApplied() {
-    if (resumeApplied || resumeAtServer <= 1) return;
-    resumeApplied = true;
-    if (typeof getPlayerTime !== 'function' || typeof seekPlayerTo !== 'function') return;
-    // `start` parametri ishlamagan kamdan-kam holatda bitta tuzatish seek:
-    // endi iframe yuklangan, postMessage xatosi bo'lmaydi.
-    getPlayerTime(function(t) {
-        if (t != null && isFinite(t) && t < resumeAtServer - 5) {
-            seekPlayerTo(resumeAtServer);
-        }
-    });
-}
 
 /* ── Video sifati (quality) ─────────────────────────────────
  * Pleerning o'z boshqaruvi (controls:0) o'chirilgani uchun sifatni tanlash
@@ -1344,10 +1320,7 @@ if (placeholder) {
                         fs: useNativeMobileControls ? 1 : 0,
                         playsinline: 1,
                         iv_load_policy: 3,
-                        origin: window.location.origin,
-                        // Video oldingi ko'rilgan joydan O'ZI boshlanadi —
-                        // seekTo'postMessage poygasi va konsol xatosi yo'q.
-                        ...(resumeAtServer > 1 ? { start: Math.floor(resumeAtServer) } : {})
+                        origin: window.location.origin
                     },
                     events: {
                         onReady: function(e) {
@@ -1356,7 +1329,7 @@ if (placeholder) {
                         },
                         onStateChange: function(e) {
                             const s = e.data;
-                            if      (s === YT.PlayerState.PLAYING)   { ensureResumeApplied(); isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
+                            if      (s === YT.PlayerState.PLAYING)   { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
                             else if (s === YT.PlayerState.BUFFERING) { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); }
                             else if (s === YT.PlayerState.PAUSED)    { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); }
                             else if (s === YT.PlayerState.ENDED)     { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); }
@@ -1383,11 +1356,7 @@ if (placeholder) {
             iframe.onload = function() {
                 vimeoPlayer = new Vimeo.Player(iframe);
                 vlSetupQuality();
-                // Oldingi ko'rilgan joydan davom ettirish (bir marta).
-                if (resumeAtServer > 1) {
-                    vimeoPlayer.setCurrentTime(resumeAtServer).catch(function(){});
-                }
-                vimeoPlayer.on('play',        () => { ensureResumeApplied(); isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
+                vimeoPlayer.on('play',        () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
                 vimeoPlayer.on('pause',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); });
                 vimeoPlayer.on('ended',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); });
                 vimeoPlayer.on('bufferstart', () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); });
@@ -1699,19 +1668,6 @@ function getPlayerTime(cb) {
     cb(null);
 }
 
-function seekPlayerTo(seconds) {
-    try {
-        if (window._vqYT && typeof window._vqYT.seekTo === 'function') {
-            window._vqYT.seekTo(Math.max(0, seconds), true); return;
-        }
-    } catch (e) {}
-    try {
-        if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) {
-            vimeoPlayer.setCurrentTime(Math.max(0, seconds)).catch(() => {});
-        }
-    } catch (e) {}
-}
-
 /* Pleer haqiqiy davomiyligi. YouTube — sinxron, Vimeo — Promise. */
 function getPlayerDuration(cb) {
     try {
@@ -1879,6 +1835,12 @@ function tick() {
 document.addEventListener('visibilitychange', () => {
     if (document.hidden) pauseTimer("Sahifadan chiqdingiz");
     else if (isVideoPlaying) resumeTimer();
+});
+
+// Brauzer Orqaga/Oldinga tugmasida sahifani xotiradan (bfcache) tiklasa, server
+// view'i ishlamay qoladi. Qayta yuklab yangi, nollangan ko'rish sessiyasini olamiz.
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) window.location.reload();
 });
 
 // Boshlang'ich UI: davomiylik lock qilinmaguncha "—:—" ko'rsatamiz. Bu bilan
