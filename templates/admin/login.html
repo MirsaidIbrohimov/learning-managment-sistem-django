@@ -1,0 +1,502 @@
+{% load i18n static jazzmin %}
+{% get_current_language as LANGUAGE_CODE %}
+{% get_jazzmin_settings request as jazzmin_settings %}
+
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'uz' }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% trans "Kirish" %} | {{ jazzmin_settings.site_title }}</title>
+
+    <link rel="shortcut icon" href="{% static jazzmin_settings.site_icon %}" type="image/png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-1: #0b1020;
+            --bg-2: #131a35;
+            --bg-3: #1c1140;
+            --accent-1: #6366f1;
+            --accent-2: #a855f7;
+            --accent-3: #22d3ee;
+            --text: #e6ebff;
+            --text-dim: #a4adcf;
+            --danger: #ff5470;
+            --success: #22c55e;
+            --card-bg: rgba(255, 255, 255, 0.06);
+            --card-border: rgba(255, 255, 255, 0.14);
+            --input-bg: rgba(255, 255, 255, 0.04);
+            --input-border: rgba(255, 255, 255, 0.12);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: var(--text);
+            background: var(--bg-1);
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            background:
+                radial-gradient(1200px 800px at 10% 10%, rgba(99,102,241,.35), transparent 55%),
+                radial-gradient(900px 700px at 90% 90%, rgba(168,85,247,.30), transparent 60%),
+                radial-gradient(700px 500px at 80% 20%, rgba(34,211,238,.22), transparent 60%),
+                linear-gradient(180deg, var(--bg-1) 0%, var(--bg-2) 50%, var(--bg-3) 100%);
+        }
+
+        /* Animated grid backdrop */
+        .grid-bg {
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+            background-size: 42px 42px;
+            mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+            -webkit-mask-image: radial-gradient(ellipse at center, black 40%, transparent 75%);
+            animation: drift 25s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes drift {
+            from { background-position: 0 0, 0 0; }
+            to   { background-position: 420px 420px, 420px 420px; }
+        }
+
+        /* Floating orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            opacity: .55;
+            pointer-events: none;
+            animation: floaty 12s ease-in-out infinite;
+        }
+        .orb.one   { width: 320px; height: 320px; background: #6366f1; top: -60px; left: -60px; }
+        .orb.two   { width: 260px; height: 260px; background: #a855f7; bottom: -80px; right: -40px; animation-delay: -4s; }
+        .orb.three { width: 220px; height: 220px; background: #22d3ee; top: 60%; left: 50%; animation-delay: -8s; }
+        @keyframes floaty {
+            0%,100% { transform: translate(0,0) scale(1); }
+            50%     { transform: translate(30px,-20px) scale(1.08); }
+        }
+
+        .login-shell {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 440px;
+            animation: rise .7s cubic-bezier(.2,.9,.25,1);
+        }
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .brand-logo {
+            width: 76px;
+            height: 76px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            display: grid;
+            place-items: center;
+            box-shadow:
+                0 20px 40px rgba(99,102,241,.35),
+                inset 0 0 0 1px rgba(255,255,255,.15);
+            overflow: hidden;
+        }
+        .brand-logo img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .brand-title {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: .3px;
+            text-align: center;
+            background: linear-gradient(90deg, #fff, #c7d2fe);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .brand-sub {
+            font-size: 13px;
+            color: var(--text-dim);
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: .5px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 22px;
+            padding: 32px 30px;
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            box-shadow:
+                0 30px 80px rgba(0,0,0,.45),
+                inset 0 1px 0 rgba(255,255,255,.08);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .card p.hint {
+            font-size: 13.5px;
+            color: var(--text-dim);
+            margin-bottom: 22px;
+        }
+
+        .field {
+            position: relative;
+            margin-bottom: 14px;
+        }
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .input-wrap {
+            position: relative;
+        }
+        .input-wrap i.leading {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-dim);
+            font-size: 14px;
+            pointer-events: none;
+            transition: color .2s;
+        }
+        .field input {
+            width: 100%;
+            height: 48px;
+            padding: 0 44px 0 44px;
+            font-size: 14.5px;
+            color: var(--text);
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s, background .2s;
+            font-family: inherit;
+        }
+        .field input::placeholder { color: rgba(230,235,255,.35); }
+        .field input:focus {
+            border-color: rgba(99,102,241,.75);
+            background: rgba(255,255,255,.07);
+            box-shadow: 0 0 0 4px rgba(99,102,241,.18);
+        }
+        .field input:focus + .toggle-eye,
+        .field input:focus ~ i.leading { color: #a5b4fc; }
+
+        .toggle-eye {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: 0;
+            width: 32px;
+            height: 32px;
+            display: grid;
+            place-items: center;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 8px;
+            transition: color .2s, background .2s;
+        }
+        .toggle-eye:hover { color: #fff; background: rgba(255,255,255,.05); }
+
+        .row-between {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 6px 0 20px;
+            font-size: 13px;
+        }
+        .remember {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-dim);
+            cursor: pointer;
+            user-select: none;
+        }
+        .remember input {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px; height: 16px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            background: var(--input-bg);
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            transition: all .15s;
+        }
+        .remember input:checked {
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            border-color: transparent;
+        }
+        .remember input:checked::after {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            font-size: 10px;
+            color: #fff;
+        }
+        .forgot {
+            color: #c7d2fe;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color .2s;
+        }
+        .forgot:hover { color: #fff; text-decoration: underline; }
+
+        .btn-login {
+            width: 100%;
+            height: 50px;
+            border: 0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 12px 30px rgba(99,102,241,.45),
+                inset 0 1px 0 rgba(255,255,255,.2);
+            transition: transform .15s, box-shadow .2s, filter .2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .btn-login:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+            box-shadow: 0 16px 36px rgba(99,102,241,.55), inset 0 1px 0 rgba(255,255,255,.25);
+        }
+        .btn-login:active { transform: translateY(0); }
+        .btn-login::before {
+            content: "";
+            position: absolute; inset: 0;
+            background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform .8s;
+        }
+        .btn-login:hover::before { transform: translateX(100%); }
+
+        .alert {
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            font-size: 13.5px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            border: 1px solid;
+            animation: shake .35s;
+        }
+        .alert.error {
+            background: rgba(255,84,112,.10);
+            border-color: rgba(255,84,112,.35);
+            color: #ffc4cf;
+        }
+        .alert i { margin-top: 2px; }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            25%     { transform: translateX(-6px); }
+            75%     { transform: translateX(6px); }
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 12.5px;
+            color: var(--text-dim);
+        }
+        .footer-note a {
+            color: #c7d2fe;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .footer-note a:hover { color: #fff; text-decoration: underline; }
+
+        .copyright {
+            text-align: center;
+            margin-top: 22px;
+            font-size: 12px;
+            color: rgba(164,173,207,.7);
+        }
+        .copyright .dot { opacity: .5; margin: 0 6px; }
+
+        @media (max-width: 500px) {
+            body { padding: 16px; }
+            .card { padding: 26px 22px; border-radius: 18px; }
+            .brand-title { font-size: 20px; }
+            .brand-logo { width: 66px; height: 66px; border-radius: 18px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+    <div class="orb three"></div>
+
+    <div class="login-shell">
+        <div class="brand">
+            <div class="brand-logo">
+                {% if jazzmin_settings.login_logo %}
+                    <img src="{% static jazzmin_settings.login_logo %}" alt="{{ jazzmin_settings.site_header }}">
+                {% else %}
+                    <i class="fas fa-graduation-cap" style="font-size:32px;color:#fff;"></i>
+                {% endif %}
+            </div>
+            <div class="brand-title">{{ jazzmin_settings.site_header|default:"IT Shaharcha Zomin" }}</div>
+            <div class="brand-sub">// admin.panel &mdash; secure area</div>
+        </div>
+
+        <div class="card">
+            <h2>{% trans "Xush kelibsiz" %} 👋</h2>
+            <p class="hint">{% trans "Boshqaruv paneliga kirish uchun login va parolingizni kiriting." %}</p>
+
+            {% if user.is_authenticated %}
+                <div class="alert error">
+                    <i class="fas fa-triangle-exclamation"></i>
+                    <span>
+                        {% blocktrans trimmed %}
+                            Siz {{ username }} sifatida tizimga kirgansiz, lekin bu sahifaga ruxsatingiz yo'q.
+                        {% endblocktrans %}
+                    </span>
+                </div>
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert error">
+                    <i class="fas fa-circle-xmark"></i>
+                    <span>
+                        {% if form.non_field_errors %}
+                            {% for error in form.non_field_errors %}{{ error }}{% if not forloop.last %}<br>{% endif %}{% endfor %}
+                        {% else %}
+                            {% trans "Login yoki parol noto'g'ri. Iltimos, qayta urinib ko'ring." %}
+                        {% endif %}
+                    </span>
+                </div>
+            {% endif %}
+
+            <form action="{{ app_path }}" method="post" autocomplete="on" novalidate>
+                {% csrf_token %}
+
+                <div class="field">
+                    <label for="id_username">{% trans "Foydalanuvchi nomi" %}</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-user leading"></i>
+                        <input
+                            id="id_username"
+                            type="text"
+                            name="username"
+                            placeholder="{% trans 'Login' %}"
+                            autocomplete="username"
+                            autofocus
+                            required>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="id_password">{% trans "Parol" %}</label>
+                    <div class="input-wrap">
+                        <i class="fas fa-lock leading"></i>
+                        <input
+                            id="id_password"
+                            type="password"
+                            name="password"
+                            placeholder="{% trans 'Parolingiz' %}"
+                            autocomplete="current-password"
+                            required>
+                        <button type="button" class="toggle-eye" aria-label="Show password" onclick="togglePwd(this)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row-between">
+                    <label class="remember">
+                        <input type="checkbox" name="remember_me">
+                        <span>{% trans "Meni eslab qol" %}</span>
+                    </label>
+                    {% url 'admin_password_reset' as password_reset_url %}
+                    {% if password_reset_url %}
+                        <a class="forgot" href="{{ password_reset_url }}">{% trans "Parolni unutdingizmi?" %}</a>
+                    {% endif %}
+                </div>
+
+                <input type="hidden" name="next" value="{{ next }}">
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-right-to-bracket"></i>
+                    <span>{% trans "Kirish" %}</span>
+                </button>
+            </form>
+
+            <div class="footer-note">
+                <i class="fas fa-shield-halved"></i>
+                {% trans "Ulanish shifrlangan va xavfsiz" %}
+            </div>
+        </div>
+
+        <div class="copyright">
+            © {% now "Y" %} {{ jazzmin_settings.copyright|default:"IT Shaharcha Zomin" }}
+            <span class="dot">•</span>
+            <a href="/" style="color:inherit;text-decoration:none;">{% trans "Saytga qaytish" %}</a>
+        </div>
+    </div>
+
+    <script>
+        function togglePwd(btn) {
+            const input = btn.parentElement.querySelector('input');
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html>
