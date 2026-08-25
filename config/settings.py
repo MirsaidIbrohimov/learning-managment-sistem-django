@@ -695,14 +695,23 @@ TELEGRAM_HEALTH_TOKEN  = os.getenv('TELEGRAM_HEALTH_TOKEN', '').strip()
 _raw_webhook_secret = os.getenv('TELEGRAM_WEBHOOK_SECRET', '').strip()
 if _raw_webhook_secret:
     TELEGRAM_WEBHOOK_SECRET = _raw_webhook_secret
-else:
+elif TELEGRAM_BOT_TOKEN:
+    # Bot tokendan olinadi, SECRET_KEY dan emas: setWebhook boshqa muhitdan
+    # (lokal mashina, cron, brauzer) chaqirilganda SECRET_KEY har xil bo'lsa
+    # secret mos kelmaydi va server har bir update'ni 403 qiladi — bot
+    # jimgina, hech qanday xatolik ko'rsatmasdan javob bermay qo'yadi.
+    # Bot token esa barcha muhitda bir xil.
     import hashlib as _hashlib
     import hmac as _hmac
     TELEGRAM_WEBHOOK_SECRET = _hmac.new(
-        SECRET_KEY.encode('utf-8'),
-        b'telegram-webhook:' + TELEGRAM_BOT_TOKEN.encode('utf-8'),
+        TELEGRAM_BOT_TOKEN.encode('utf-8'),
+        b'telegram-webhook',
         _hashlib.sha256,
     ).hexdigest()
+else:
+    # Token yo'q — bot ishlamaydi. Secretni bo'sh qoldiramiz, shunda webhook
+    # endpoint ochiq qolmaydi (_webhook_authorized hammani rad etadi).
+    TELEGRAM_WEBHOOK_SECRET = ''
 
 # Premium custom emoji va ixtiyoriy stikerlar (telegram_bot/premium.py).
 # Botning matnli xabarlari premium animatsiyali emojilarni xabar ichida ishlatadi;

@@ -1,7 +1,9 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 {% block title %}Coin O'tkazma | IT Shaharcha{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <style>
 /* ══════════════════════════════════════
    Coin Transfer — Clean Modern UI
@@ -404,11 +406,29 @@
   .ctp-amount-inp { font-size:1.1rem; height:50px; }
   .ctp-code-inp { font-size:1.35rem; height:52px; letter-spacing:.35em; }
 }
+
+/* ===== Glass skin — home sahifasidagi shaffof shisha uslub ===== */
+.dash {
+    --card: var(--dash-glass, rgba(255,255,255,0.72));
+    --border: var(--dash-glass-border, rgba(255,255,255,0.75));
+}
+.dash .ctp-card,
+.dash .ctp-u-card,
+.dash .ctp-fee-box,
+.dash .ctp-confirm-box,
+.dash .ctp-info-box,
+.dash .ctp-success {
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--dash-shadow-sm, 0 4px 14px -6px rgba(15,23,42,0.12));
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="ctp">
+<div class="dash">
+  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+  <div class="ctp">
 
   <a href="{% url 'coin:coin_history' %}" class="ctp-back">
     <i class="bi bi-arrow-left"></i> Coin tarixiga qaytish
@@ -587,6 +607,7 @@
     </ul>
   </div>
 
+</div>
 </div>
 {% endblock %}
 

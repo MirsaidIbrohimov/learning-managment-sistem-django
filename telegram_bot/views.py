@@ -245,7 +245,15 @@ def set_webhook(request):
         if not bot_token:
             return JsonResponse({'ok': False, 'error': 'TELEGRAM_BOT_TOKEN sozlanmagan'})
 
-        site_url = getattr(settings, 'SITE_URL', 'https://itc-academy.uz').rstrip('/')
+        site_url = (getattr(settings, 'SITE_URL', '') or '').rstrip('/')
+        if not site_url.startswith(('http://', 'https://')):
+            # Bo'sh yoki nisbiy SITE_URL bilan Telegram webhookni qabul qilmaydi;
+            # ilgari bu jimgina noto'g'ri URL o'rnatishga urinardi.
+            return JsonResponse({
+                'ok': False,
+                'error': "SITE_URL sozlanmagan — .env ga to'liq domen yozing (masalan https://itc-academy.uz)",
+            })
+
         webhook_path = reverse('telegram_bot:bot_webhook')
         webhook_url = f"{site_url}{webhook_path}"
 
@@ -326,7 +334,13 @@ def bot_webhook(request):
 
     # Darhol javob qaytarish — Telegram kutmasin
     import threading
-    threading.Thread(target=_process_webhook, args=(data,), daemon=True).start()
+    worker = threading.Thread(target=_process_webhook, args=(data,), daemon=True)
+    worker.start()
+    # Shared hosting (Passenger/mod_wsgi) javob qaytgach worker jarayonini
+    # to'xtatib qo'yishi mumkin — daemon thread tugamasdan o'ladi va foydalanuvchi
+    # hech qanday javob olmaydi. Tez amallar (/start, statistika) shu yerda
+    # tugaydi; AI so'rovi cho'zilsa fonda davom etadi. Telegram 60s kutadi.
+    worker.join(timeout=25)
     return JsonResponse({'ok': True})
 
 

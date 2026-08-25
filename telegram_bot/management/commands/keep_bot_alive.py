@@ -81,20 +81,15 @@ class Command(BaseCommand):
 
             if need_reset:
                 self.stdout.write("Webhook qayta o'rnatilmoqda...")
-                # Avval o'chirish
-                requests.post(
-                    f"https://api.telegram.org/bot{bot_token}/deleteWebhook",
-                    json={'drop_pending_updates': pending > 100},
-                    timeout=10,
-                )
-                time.sleep(1)
-                # Keyin qayta o'rnatish
+                # deleteWebhook chaqirilmaydi: setWebhook URL'ni o'zi
+                # almashtiradi, ketma-ket ikkita chaqiruv esa 429 beradi.
                 resp = requests.post(
                     f"https://api.telegram.org/bot{bot_token}/setWebhook",
                     json={
                         'url': webhook_url,
                         'max_connections': 40,
-                        'drop_pending_updates': False,
+                        'drop_pending_updates': pending > 100,
+                        'allowed_updates': ['message', 'callback_query'],
                         'secret_token': getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', ''),
                     },
                     timeout=10,
@@ -104,6 +99,9 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(
                         f"Webhook o'rnatildi: {webhook_url}"
                     ))
+                elif data.get('error_code') == 429:
+                    # Keyingi keep-alive siklida qayta uriniladi.
+                    self.stdout.write("Telegram cheklovi (429) — keyingi siklda qayta uriniladi.")
                 else:
                     self.stderr.write(f"Webhook xatolik: {data}")
             else:

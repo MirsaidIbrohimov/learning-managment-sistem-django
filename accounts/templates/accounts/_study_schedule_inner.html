@@ -27,6 +27,46 @@
 [data-bs-theme="dark"] .ss-day:hover,
 [data-bs-theme="dark"] .ss-group-item:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.35); }
 
+/* ===== GLASS MODE — home sahifasidagi shaffof shisha uslub ===== */
+.ss-wrap.ss-glass {
+    --card-bg: var(--dash-glass, rgba(255,255,255,0.72));
+    --bg-color: color-mix(in srgb, var(--dash-accent, #6366f1) 7%, transparent);
+    --border-color: var(--dash-glass-border, rgba(255,255,255,0.75));
+    --text-color: var(--dash-text, #111827);
+    --text-muted: var(--dash-muted, #6b7280);
+}
+.ss-wrap.ss-glass .ss-count,
+.ss-wrap.ss-glass .ss-today-block,
+.ss-wrap.ss-glass .ss-day,
+.ss-wrap.ss-glass .ss-groups-block,
+.ss-wrap.ss-glass .ss-empty {
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    border-color: var(--dash-glass-border, rgba(255,255,255,0.75));
+    box-shadow: var(--dash-shadow-sm, 0 4px 14px -6px rgba(15,23,42,0.12));
+}
+.ss-wrap.ss-glass .ss-day:hover,
+.ss-wrap.ss-glass .ss-group-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--dash-shadow, 0 10px 30px -12px rgba(15,23,42,0.18)), var(--dash-glow, 0 0 0 0 transparent);
+}
+.ss-wrap.ss-glass .ss-count::before {
+    background: linear-gradient(180deg, var(--dash-accent, #6366f1), var(--dash-accent-2, #8b5cf6));
+}
+.ss-wrap.ss-glass .ss-today-item.ongoing { box-shadow: 0 4px 14px rgba(239,68,68,0.18); }
+.ss-wrap.ss-glass .ss-day.today {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--dash-accent, #6366f1) 22%, transparent);
+}
+.ss-wrap.ss-glass .ss-count-icon {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--dash-accent, #6366f1) 18%, transparent), color-mix(in srgb, var(--dash-accent-2, #8b5cf6) 18%, transparent));
+}
+.ss-wrap.ss-glass .ss-day-count { background: color-mix(in srgb, var(--dash-accent, #6366f1) 10%, transparent); }
+.ss-wrap.ss-glass .ss-mini-day { background: color-mix(in srgb, var(--dash-text, #111) 6%, transparent); }
+.ss-wrap.ss-glass .ss-mini-day.on {
+    background: linear-gradient(135deg, var(--dash-accent, #6366f1), var(--dash-accent-2, #8b5cf6));
+    color: #fff;
+}
+
 @keyframes fadeUp {
     from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
@@ -551,7 +591,7 @@
 }
 </style>
 
-<div class="ss-wrap">
+<div class="ss-wrap ss-glass">
     <!-- Hero -->
     <div class="ss-hero">
         <div class="ss-hero-content">

@@ -17,18 +17,18 @@ class TelegramBotConfig(AppConfig):
         global _bot_started
         if _bot_started:
             return
-        
+
         # migrate, collectstatic kabi buyruqlarda botni ishga tushirmaslik
         skip_commands = {'migrate', 'collectstatic', 'makemigrations', 'createsuperuser', 'shell', 'dbshell', 'check'}
         if skip_commands.intersection(sys.argv):
             return
-        
+
         from django.conf import settings
         if not getattr(settings, 'TELEGRAM_BOT_TOKEN', None):
             return
-        
+
         _bot_started = True
-        
+
         is_runserver = 'runserver' in sys.argv
         if is_runserver:
             # Lokal: runserver da reloader ikki marta chaqiradi
@@ -37,10 +37,26 @@ class TelegramBotConfig(AppConfig):
             # Polling rejimida ishga tushirish
             t = threading.Thread(target=self._run_bot, daemon=True)
             t.start()
-        else:
+        elif not self._is_cli_process():
             # Production (Passenger/WSGI): webhook o'rnatish
             t = threading.Thread(target=self._setup_webhook, daemon=True)
             t.start()
+
+    @staticmethod
+    def _is_cli_process():
+        """Jarayon manage.py buyrug'i yoki qo'lda yozilgan skriptmi?
+
+        Har qanday management buyruq (yoki django.setup() chaqiruvchi skript)
+        ham ready() ni ishga tushiradi. Webhookni shu yerdan o'rnatish ikki
+        muammo tug'diradi: `setup_webhook` buyrug'i bilan bir vaqtda ketib
+        Telegram'dan 429 oladi, va lokal mashinadan ishlatilgan har qanday
+        skript production webhookni o'z sozlamalari bilan almashtirib qo'yadi.
+        Webhook faqat veb-jarayon (Passenger/WSGI) ishga tushganda o'rnatiladi.
+        """
+        argv0 = sys.argv[0] if sys.argv else ''
+        if not argv0 or argv0 == '-c':          # python -c ..., REPL
+            return True
+        return os.path.basename(argv0) in ('manage.py', 'django-admin', 'django-admin.py')
 
     def _setup_webhook(self):
         """Production serverda webhook o'rnatish (retry bilan)"""
@@ -49,45 +65,36 @@ class TelegramBotConfig(AppConfig):
         from django.conf import settings
 
         bot_token = getattr(settings, 'TELEGRAM_BOT_TOKEN', '')
-        site_url = getattr(settings, 'SITE_URL', '').rstrip('/')
-        if not site_url:
-            print("SITE_URL sozlanmagan, webhook o'rnatilmadi!")
+        site_url = (getattr(settings, 'SITE_URL', '') or '').rstrip('/')
+        secret = getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', '')
+        if not site_url.startswith('https://'):
+            # HTTPS bo'lmagan yoki bo'sh URL bilan Telegram webhookni qabul
+            # qilmaydi; noto'g'ri qiymatni yuborsak mavjud ishlaydigan
+            # webhookni buzib qo'yamiz.
+            print(f"SITE_URL HTTPS domen emas ({site_url!r}), webhook o'rnatilmadi!")
+            return
+        if not secret:
+            print("TELEGRAM_WEBHOOK_SECRET bo'sh, webhook o'rnatilmadi!")
             return
 
         webhook_url = f"{site_url}/telegrambotlms/webhook/"
 
         for attempt in range(3):
             try:
-                # Mavjud holatni faqat log uchun o'qiymiz. `setWebhook` ATAYLAB
-                # har ishga tushishda qayta chaqiriladi: getWebhookInfo
-                # `secret_token` o'rnatilganini KO'RSATMAYDI, shuning uchun
-                # "URL bir xil" deb o'tkazib yuborilsa, secret hech qachon
-                # ro'yxatga olinmay qoladi va bot_webhook barcha update'ni
-                # 403 bilan rad etadi.
-                resp = requests.get(
-                    f"https://api.telegram.org/bot{bot_token}/getWebhookInfo",
-                    timeout=10
-                )
-                info = resp.json().get('result', {})
-                last_error = info.get('last_error_message', '')
-
-                if last_error:
-                    print(f"Webhook xatolik bor, qayta o'rnatilmoqda: {last_error}")
-                    requests.post(
-                        f"https://api.telegram.org/bot{bot_token}/deleteWebhook",
-                        timeout=10
-                    )
-                    time.sleep(1)
-
-                # Webhook o'rnatish
+                # `setWebhook` ATAYLAB har ishga tushishda qayta chaqiriladi:
+                # getWebhookInfo `secret_token` o'rnatilganini KO'RSATMAYDI,
+                # shuning uchun "URL bir xil" deb o'tkazib yuborilsa, secret
+                # hech qachon ro'yxatga olinmay qoladi va bot_webhook barcha
+                # update'ni 403 bilan rad etadi.
                 resp = requests.post(
                     f"https://api.telegram.org/bot{bot_token}/setWebhook",
                     json={
                         'url': webhook_url,
                         'max_connections': 40,
+                        'allowed_updates': ['message', 'callback_query'],
                         # bot_webhook shu tokenni X-Telegram-Bot-Api-Secret-Token
                         # sarlavhasida talab qiladi.
-                        'secret_token': getattr(settings, 'TELEGRAM_WEBHOOK_SECRET', ''),
+                        'secret_token': secret,
                     },
                     timeout=10
                 )
@@ -95,8 +102,12 @@ class TelegramBotConfig(AppConfig):
                 if result.get('ok'):
                     print(f"Telegram webhook o'rnatildi: {webhook_url}")
                     return
-                else:
-                    print(f"Webhook o'rnatishda xatolik: {result}")
+                if result.get('error_code') == 429:
+                    wait = (result.get('parameters', {}) or {}).get('retry_after', 1) + 1
+                    print(f"Telegram cheklovi (429), {wait}s kutilmoqda...")
+                    time.sleep(wait)
+                    continue
+                print(f"Webhook o'rnatishda xatolik: {result}")
             except Exception as e:
                 print(f"Webhook setup xatolik (urinish {attempt + 1}): {e}")
 
