@@ -17825,25 +17825,33 @@ def payment_wall(request):
     from .models import TezCheckPaymentOrder
     online_orders = TezCheckPaymentOrder.objects.filter(student=user).order_by('-created_at')[:8]
 
-    shortage = max(0, int(ps.monthly_fee) - int(balance.amount))
+    monthly_fee = int(ps.monthly_fee or 200000)
+    half_month_fee = int(round(monthly_fee / 2))
+    balance_amount = int(balance.amount)
+    shortage = max(0, monthly_fee - balance_amount)
+    has_partial_balance = balance_amount > 0 and shortage > 0
     today = timezone.localdate()
     days_late = max(0, (today - balance.next_payment_date).days) if balance.next_payment_date else 0
     grace_days = max(0, int(getattr(settings, 'TEZCHECK_LATE_GRACE_DAYS', 5)))
 
     from .models import calculate_extension_from_amount
     balance_preview_date, balance_days, _, balance_desc = calculate_extension_from_amount(
-        balance.amount, ps.monthly_fee or 200000, base_date=today
+        balance.amount, monthly_fee, base_date=today
     )
     can_pay = balance_days > 0
-    daily_fee = int(round((ps.monthly_fee or 200000) / 30))
+    daily_fee = int(round(monthly_fee / 30))
 
     return render(request, 'accounts/payment_wall.html', {
         'balance': balance,
         'ps': ps,
+        'monthly_fee': monthly_fee,
+        'half_month_fee': half_month_fee,
+        'balance_amount': balance_amount,
+        'shortage': shortage,
+        'has_partial_balance': has_partial_balance,
         'topups': topups,
         'pay_records': pay_records,
         'online_orders': online_orders,
-        'shortage': shortage,
         'can_pay': can_pay,
         'balance_days': balance_days,
         'balance_desc': balance_desc,
