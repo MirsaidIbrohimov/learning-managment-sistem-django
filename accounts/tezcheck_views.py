@@ -314,6 +314,7 @@ def _apply_refund(order, data, *, partial=False):
         message_type='payment', recipient=order.student,
     )
 
+from django.db.models import Count, Q, Sum
 
 @login_required
 def admin_tezcheck_payments(request):
@@ -323,13 +324,29 @@ def admin_tezcheck_payments(request):
         return redirect('home')
     from django.core.paginator import Paginator
 
+    all_orders = TezCheckPaymentOrder.objects.all()
+
+    # Hisobot va KPI ko'rsatkichlari
+    stats = all_orders.aggregate(
+        total_count=Count('id'),
+        paid_count=Count('id', filter=Q(status=TezCheckPaymentOrder.STATUS_PAID)),
+        paid_sum=Sum('amount_minor', filter=Q(status=TezCheckPaymentOrder.STATUS_PAID)),
+        pending_count=Count('id', filter=Q(status=TezCheckPaymentOrder.STATUS_PENDING)),
+        review_count=Count('id', filter=Q(status=TezCheckPaymentOrder.STATUS_REVIEW)),
+        failed_count=Count('id', filter=Q(status__in=[
+            TezCheckPaymentOrder.STATUS_FAILED,
+            TezCheckPaymentOrder.STATUS_EXPIRED,
+            TezCheckPaymentOrder.STATUS_CANCELLED,
+        ])),
+    )
+    total_paid_som = (stats['paid_sum'] or 0) // 100
+
     orders = TezCheckPaymentOrder.objects.select_related('student').prefetch_related('webhook_events')
     status_filter = request.GET.get('status', '').strip()
     query = request.GET.get('q', '').strip()
     if status_filter in dict(TezCheckPaymentOrder.STATUS_CHOICES):
         orders = orders.filter(status=status_filter)
     if query:
-        from django.db.models import Q
         orders = orders.filter(
             Q(student__username__icontains=query)
             | Q(student__first_name__icontains=query)
@@ -337,9 +354,16 @@ def admin_tezcheck_payments(request):
             | Q(student__phone__icontains=query)
             | Q(external_reference__icontains=query)
             | Q(bill_reference__icontains=query)
+            | Q(bill_id__icontains=query)
+            | Q(payment_id__icontains=query)
         )
-    page = Paginator(orders, 30).get_page(request.GET.get('page'))
+    page = Paginator(orders, 25).get_page(request.GET.get('page'))
     recent_events = TezCheckWebhookEvent.objects.select_related('order', 'order__student')[:30]
+
+    # Webhook statistikasi
+    total_webhooks = TezCheckWebhookEvent.objects.count()
+    failed_webhooks = TezCheckWebhookEvent.objects.filter(Q(processed=False) | Q(signature_valid=False)).count()
+
     return render(request, 'accounts/admin/tezcheck_payments.html', {
         'orders': page,
         'page_obj': page,
@@ -347,6 +371,16 @@ def admin_tezcheck_payments(request):
         'query': query,
         'status_choices': TezCheckPaymentOrder.STATUS_CHOICES,
         'recent_events': recent_events,
+        'stats': {
+            'total_count': stats['total_count'] or 0,
+            'paid_count': stats['paid_count'] or 0,
+            'total_paid_som': total_paid_som,
+            'pending_count': stats['pending_count'] or 0,
+            'review_count': stats['review_count'] or 0,
+            'failed_count': stats['failed_count'] or 0,
+            'total_webhooks': total_webhooks,
+            'failed_webhooks': failed_webhooks,
+        },
         'integration_configured': bool(
             settings.TEZCHECK_API_TOKEN and settings.TEZCHECK_CASH_DESK_CODE
             and settings.TEZCHECK_WEBHOOK_SECRET
