@@ -2420,6 +2420,10 @@ class AssistantActionLog(models.Model):
             models.Index(fields=['action_code', '-created_at']),
         ]
 
+    def __str__(self):
+        who = self.user.username if self.user else 'system'
+        return f"{who} - {self.action_code} ({self.created_at:%Y-%m-%d %H:%M})"
+
 
 # ════════════════════════════════════════════════════════════════
 #  ONLINE PAYMENT — Payme & Click
@@ -2498,10 +2502,91 @@ class ClickTransaction(models.Model):
         student_str = self.student.get_full_name() if self.student else "—"
         return f"Click #{self.click_trans_id} | {student_str} | {self.amount} so'm"
 
-    def __str__(self):
-        who = self.user.username if self.user else 'system'
-        return f"{who} - {self.action_code} ({self.created_at:%Y-%m-%d %H:%M})"
 
+
+# ─────────────────────────────────────────────
+#  TEZCHECK ONLINE PAYMENT ORDERS AND WEBHOOK AUDIT
+# ─────────────────────────────────────────────
+
+class TezCheckPaymentOrder(models.Model):
+    """LMSdagi oylik to'lovni Tezcheck hisobiga bog'laydi."""
+    STATUS_PENDING = 'pending'
+    STATUS_PAID = 'paid'
+    STATUS_FAILED = 'failed'
+    STATUS_EXPIRED = 'expired'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_REFUNDED = 'refunded'
+    STATUS_REVIEW = 'review'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Kutilmoqda'), (STATUS_PAID, "To'langan"),
+        (STATUS_FAILED, 'Amalga oshmadi'), (STATUS_EXPIRED, "Muddati o'tgan"),
+        (STATUS_CANCELLED, 'Bekor qilingan'), (STATUS_REFUNDED, 'Qaytarilgan'),
+        (STATUS_REVIEW, 'Tekshiruv kerak'),
+    ]
+    student = models.ForeignKey(
+        'CustomUser', on_delete=models.PROTECT,
+        related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
+    )
+    external_reference = models.CharField(max_length=128, unique=True)
+    bill_id = models.CharField(max_length=100, blank=True, db_index=True)
+    bill_reference = models.CharField(max_length=100, blank=True)
+    payment_id = models.CharField(max_length=100, blank=True, db_index=True)
+    payment_url = models.URLField(max_length=1000, blank=True)
+    amount_minor = models.PositiveBigIntegerField(verbose_name='Summa (tiyin)')
+    fee_minor = models.PositiveBigIntegerField(default=0, verbose_name='Komissiya (tiyin)')
+    net_minor = models.PositiveBigIntegerField(default=0, verbose_name='Sof tushum (tiyin)')
+    currency = models.CharField(max_length=3, default='UZS')
+    provider_code = models.CharField(max_length=40, blank=True)
+    environment = models.CharField(max_length=20, blank=True)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING, db_index=True)
+    billing_month = models.PositiveSmallIntegerField()
+    billing_year = models.PositiveSmallIntegerField()
+    paid_at = models.DateTimeField(null=True, blank=True)
+    available_until = models.DateTimeField(null=True, blank=True)
+    last_error = models.CharField(max_length=500, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Tezcheck toʻlov buyurtmasi'
+        verbose_name_plural = 'Tezcheck toʻlov buyurtmalari'
+
+    def __str__(self):
+        return f"{self.external_reference} — {self.student} — {self.get_status_display()}"
+
+    @property
+    def amount_som(self):
+        return self.amount_minor // 100
+
+    @property
+    def net_som(self):
+        return self.net_minor // 100
+
+
+class TezCheckWebhookEvent(models.Model):
+    """Webhook takrorlanmasligi va to'lov auditi uchun kiruvchi hodisa."""
+    event_id = models.CharField(max_length=100, unique=True)
+    event_type = models.CharField(max_length=80, blank=True)
+    delivery_id = models.CharField(max_length=100, blank=True)
+    order = models.ForeignKey(
+        TezCheckPaymentOrder, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='webhook_events',
+    )
+    payload = models.JSONField(default=dict)
+    signature_valid = models.BooleanField(default=False)
+    processed = models.BooleanField(default=False, db_index=True)
+    processing_error = models.CharField(max_length=500, blank=True)
+    received_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-received_at']
+        verbose_name = 'Tezcheck webhook hodisasi'
+        verbose_name_plural = 'Tezcheck webhook hodisalari'
+
+    def __str__(self):
+        return f"{self.event_id} — {self.event_type}"
 
 
 # ─────────────────────────────────────────────

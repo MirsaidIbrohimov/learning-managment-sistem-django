@@ -1,6 +1,7 @@
 import threading
 import os
 from functools import lru_cache
+from django.conf import settings
 from django.shortcuts import render, redirect
 from django.core.cache import cache
 from django.urls import resolve
@@ -138,7 +139,7 @@ class BlockedUserMiddleware:
     API so'rovlari 403 qaytaradi.
     """
     # Bu URL larga bloklangan user ham kira oladi
-    ALLOWED_PATHS = ('/tolov/', '/logout/', '/static/', '/media/', '/api/v1/games/')
+    ALLOWED_PATHS = ('/tolov/', '/tolovlarim/', '/tezcheck/', '/logout/', '/static/', '/media/', '/api/v1/games/')
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -178,16 +179,20 @@ class BlockedUserMiddleware:
         # Kursni tugatgan (muzlatilgan) o'quvchilar oylik to'lovga tekshirilmaydi
         if getattr(user, 'is_finished', False):
             return
-        cache_key = f'payment_check_{user.id}'
-        if cache.get(cache_key):
-            return
-        cache.set(cache_key, True, 3600)
         try:
             bal = StudentBalance.objects.get(user=user)
             if bal.is_contract or not bal.next_payment_date:
                 return
             today = timezone.now().date()
             if bal.next_payment_date <= today:
+                # Keep account access during the configured grace period.
+                grace_days = max(0, int(getattr(settings, 'TEZCHECK_LATE_GRACE_DAYS', 5)))
+                if today < bal.next_payment_date + timedelta(days=grace_days):
+                    return
+                cache_key = f'payment_check_{user.id}'
+                if cache.get(cache_key):
+                    return
+                cache.set(cache_key, True, 3600)
                 # Balansdan avtomatik yechib, keyingi oyga surishga urinamiz
                 if bal.advance_due_payment():
                     return

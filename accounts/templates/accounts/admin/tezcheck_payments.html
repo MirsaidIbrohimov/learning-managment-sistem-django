@@ -1,0 +1,94 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load custom_filters %}
+{% block title %}Tezcheck to'lovlari{% endblock %}
+{% block page_title %}Tezcheck to'lovlari{% endblock %}
+{% block admin_content %}
+<style>
+.tz-wrap{max-width:1500px;margin:auto}.tz-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:20px;margin-bottom:18px}
+.tz-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.tz-table{width:100%;border-collapse:collapse;margin-top:16px}
+.tz-table th,.tz-table td{padding:11px 9px;border-bottom:1px solid var(--border-color);text-align:left;vertical-align:top;font-size:.86rem}
+.tz-table th{font-size:.75rem;opacity:.75}.tz-pill{display:inline-block;padding:4px 9px;border-radius:30px;background:rgba(148,163,184,.15);font-size:.75rem}
+.tz-paid{color:#16a34a}.tz-review{color:#dc2626}.tz-toolbar{display:flex;gap:8px;flex-wrap:wrap}.tz-toolbar input,.tz-toolbar select{min-width:150px}
+.tz-muted{opacity:.7;font-size:.78rem}.tz-json{max-width:380px;white-space:pre-wrap;word-break:break-word;font:11px/1.4 monospace}
+@media(max-width:850px){.tz-scroll{overflow:auto}.tz-table{min-width:900px}}
+</style>
+<div class="tz-wrap">
+    <div class="tz-card tz-head">
+        <div>
+            <h2 style="margin:0;font-size:1.2rem;">Onlayn to'lov nazorati</h2>
+            <div class="tz-muted">To'lov buyurtmalari, provayder holatlari va webhook auditi</div>
+        </div>
+        <span class="tz-pill {% if integration_configured %}tz-paid{% else %}tz-review{% endif %}">
+            {% if integration_configured %}API kalitlari sozlangan{% else %}API kalitlari to'liq emas{% endif %}
+        </span>
+    </div>
+
+    <div class="tz-card">
+        <form method="get" class="tz-toolbar">
+            <input class="form-control" type="search" name="q" value="{{ query }}" placeholder="O'quvchi, telefon yoki buyurtma">
+            <select class="form-select" name="status">
+                <option value="">Barcha holatlar</option>
+                {% for value,label in status_choices %}
+                <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button class="btn btn-primary" type="submit">Qidirish</button>
+            <a class="btn btn-outline-secondary" href="{% url 'admin_tezcheck_payments' %}">Tozalash</a>
+        </form>
+        <div class="tz-scroll">
+            <table class="tz-table">
+                <thead><tr><th>Vaqt</th><th>O'quvchi</th><th>Davr</th><th>Summa</th><th>Holat</th><th>Provayder</th><th>Havola / ID</th><th>Izoh</th></tr></thead>
+                <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.created_at|date:'d.m.Y H:i' }}</td>
+                    <td><strong>{{ order.student.full_name }}</strong><br><span class="tz-muted">{{ order.student.phone|default:order.student.username }} · #{{ order.student.student_id }}</span></td>
+                    <td>{{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }}</td>
+                    <td>{{ order.amount_som|space_num }} so'm<br><span class="tz-muted">Sof: {{ order.net_som|space_num }} so'm</span></td>
+                    <td><span class="tz-pill {% if order.status == 'paid' %}tz-paid{% elif order.status == 'review' %}tz-review{% endif %}">{{ order.get_status_display }}</span>
+                        {% if order.environment %}<div class="tz-muted">{{ order.environment }}</div>{% endif %}</td>
+                    <td>{{ order.provider_code|default:'—' }}{% if order.payment_id %}<div class="tz-muted">{{ order.payment_id }}</div>{% endif %}</td>
+                    <td>{% if order.payment_url and order.status == 'pending' %}<a href="{{ order.payment_url }}" target="_blank" rel="noopener">To'lov havolasi</a>{% endif %}
+                        <div class="tz-muted">{{ order.bill_reference|default:order.external_reference }}</div></td>
+                    <td>{{ order.last_error|default:'—' }}
+                        {% if order.bill_id and order.status != 'paid' %}
+                        <form method="post" action="{% url 'admin_sync_tezcheck_payment' order.pk %}" class="mt-1">
+                            {% csrf_token %}<button class="btn btn-sm btn-outline-primary" type="submit">Holatni tekshirish</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" style="text-align:center;padding:28px;">To'lov buyurtmalari topilmadi.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-3 d-flex gap-2 align-items-center">
+            {% if page_obj.has_previous %}<a class="btn btn-sm btn-outline-secondary" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">Oldingi</a>{% endif %}
+            <span class="tz-muted">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}<a class="btn btn-sm btn-outline-secondary" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">Keyingi</a>{% endif %}
+        </nav>
+        {% endif %}
+    </div>
+
+    <div class="tz-card">
+        <h3 style="font-size:1rem;">So'nggi webhook hodisalari</h3>
+        <div class="tz-scroll"><table class="tz-table">
+            <thead><tr><th>Qabul qilingan</th><th>Hodisa</th><th>Buyurtma</th><th>Imzo</th><th>Qayta ishlash</th><th>Izoh</th></tr></thead>
+            <tbody>
+            {% for event in recent_events %}
+            <tr>
+                <td>{{ event.received_at|date:'d.m.Y H:i:s' }}</td><td>{{ event.event_type }}<div class="tz-muted">{{ event.event_id }}</div></td>
+                <td>{% if event.order %}{{ event.order.external_reference }} · {{ event.order.student.full_name }}{% else %}—{% endif %}</td>
+                <td>{% if event.signature_valid %}<span class="tz-paid">To'g'ri</span>{% else %}<span class="tz-review">Noto'g'ri</span>{% endif %}</td>
+                <td>{% if event.processed %}<span class="tz-paid">Bajarildi</span>{% else %}<span class="tz-review">Kutmoqda</span>{% endif %}</td>
+                <td>{{ event.processing_error|default:'—' }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="6">Hali webhook kelmagan.</td></tr>{% endfor %}
+            </tbody>
+        </table></div>
+    </div>
+</div>
+{% endblock %}

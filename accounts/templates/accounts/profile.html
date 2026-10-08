@@ -436,6 +436,11 @@
                         <i class="bi bi-file-earmark-check me-1"></i>Shartnoma rejimi
                     </div>
                     {% endif %}
+                    {% if user.role == 'student' and not student_balance.is_contract %}
+                    <a href="{% url 'student_payments' %}" class="btn btn-sm btn-outline-primary mt-2">
+                        <i class="bi bi-credit-card me-1"></i>To'lovlarni boshqarish
+                    </a>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}

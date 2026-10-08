@@ -656,6 +656,19 @@ CLICK_MERCHANT_ID      = os.getenv('CLICK_MERCHANT_ID', '').strip()
 CLICK_SECRET_KEY       = os.getenv('CLICK_SECRET_KEY', '').strip()
 CLICK_MERCHANT_USER_ID = os.getenv('CLICK_MERCHANT_USER_ID', '').strip()
 
+# Tezcheck merchant API. Credentials stay server-side and are never rendered
+# into templates or sent to the browser.
+TEZCHECK_API_BASE_URL = os.getenv(
+    'TEZCHECK_API_BASE_URL',
+    'https://api.tezcheck.uz/api/merchant/v1',
+).strip().rstrip('/')
+TEZCHECK_API_TOKEN = os.getenv('TEZCHECK_API_TOKEN', '').strip()
+TEZCHECK_CASH_DESK_CODE = os.getenv('TEZCHECK_CASH_DESK_CODE', '').strip()
+TEZCHECK_WEBHOOK_SECRET = os.getenv('TEZCHECK_WEBHOOK_SECRET', '').strip()
+TEZCHECK_RETURN_URL = os.getenv('TEZCHECK_RETURN_URL', '').strip()
+TEZCHECK_SIGN_REQUESTS = os.getenv('TEZCHECK_SIGN_REQUESTS', 'true').strip().lower() in ('1', 'true', 'yes', 'on')
+TEZCHECK_LATE_GRACE_DAYS = max(0, int(os.getenv('TEZCHECK_LATE_GRACE_DAYS', '5')))
+
 # ══════════════════════════════════════════════════════════════════
 # ADMIN PANEL YO'LI
 # ══════════════════════════════════════════════════════════════════

@@ -17785,7 +17785,7 @@ def payment_wall(request):
     user = request.user
 
     # Agar bloklanmagan bo'lsa (yoki admin) → home
-    if not user.is_blocked and not request.GET.get('preview'):
+    if not user.is_blocked and not request.GET.get('preview') and request.resolver_match.url_name != 'student_payments':
         return redirect('home')
 
     # Balans va to'lov holati
@@ -17808,16 +17808,25 @@ def payment_wall(request):
     # Oylik to'lov tarixi
     from .models import PaymentRecord
     pay_records = PaymentRecord.objects.filter(user=user).order_by('-year', '-month')[:12]
+    from .models import TezCheckPaymentOrder
+    online_orders = TezCheckPaymentOrder.objects.filter(student=user).order_by('-created_at')[:8]
 
     shortage = max(0, int(ps.monthly_fee) - int(balance.amount))
+    today = timezone.localdate()
+    days_late = max(0, (today - balance.next_payment_date).days) if balance.next_payment_date else 0
+    grace_days = max(0, int(getattr(settings, 'TEZCHECK_LATE_GRACE_DAYS', 5)))
 
     return render(request, 'accounts/payment_wall.html', {
         'balance': balance,
         'ps': ps,
         'topups': topups,
         'pay_records': pay_records,
+        'online_orders': online_orders,
         'shortage': shortage,
         'can_pay': balance.amount >= ps.monthly_fee,
+        'days_late': days_late,
+        'grace_days': grace_days,
+        'grace_days_left': max(0, grace_days - days_late),
     })
 
 

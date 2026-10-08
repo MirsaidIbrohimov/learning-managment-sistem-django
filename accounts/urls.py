@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 from . import views
 from . import payment_views
+from . import tezcheck_views
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
 from .api import notify_views as notify_api
@@ -355,12 +356,16 @@ urlpatterns = [
     path('survey/<int:pk>/fill/', views.fill_survey, name='fill_survey'),
 
     # Online to'lov (Payme & Click)
+    path('tezcheck/create-payment/', tezcheck_views.tezcheck_create_payment, name='tezcheck_create_payment'),
+    path('tezcheck/return/', tezcheck_views.tezcheck_return, name='tezcheck_return'),
+    path('tezcheck/webhook/', tezcheck_views.tezcheck_webhook, name='tezcheck_webhook'),
     path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),
     path('click/prepare/', payment_views.click_prepare, name='click_prepare'),
     path('click/complete/', payment_views.click_complete, name='click_complete'),
 
     # Balans tizimi
     path('tolov/', views.payment_wall, name='payment_wall'),
+    path('tolovlarim/', views.payment_wall, name='student_payments'),
     path('dashboard/balans/', views.admin_balance_management, name='admin_balance_management'),
     path('dashboard/balans/<int:student_id>/topup/', views.admin_balance_topup, name='admin_balance_topup'),
     path('dashboard/balans/<int:student_id>/deduct/', views.admin_balance_deduct, name='admin_balance_deduct'),
@@ -370,6 +375,8 @@ urlpatterns = [
 
     # Oylik to'lovlar
     path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
+    path('dashboard/tezcheck/', tezcheck_views.admin_tezcheck_payments, name='admin_tezcheck_payments'),
+    path('dashboard/tezcheck/<int:pk>/sync/', tezcheck_views.admin_sync_tezcheck_payment, name='admin_sync_tezcheck_payment'),
     path('dashboard/tolovlar/<int:pk>/mark-paid/', views.admin_mark_paid, name='admin_mark_paid'),
     path('dashboard/tolovlar/<int:pk>/mark-unpaid/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
     path('dashboard/tolovlar/<int:pk>/history/', views.admin_payment_history, name='admin_payment_history'),

@@ -1,10 +1,15 @@
 {% load custom_filters %}
 <!DOCTYPE html>
-<html lang="uz" data-bs-theme="dark">
+<html lang="uz" data-bs-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>To'lov — IT Shaharcha LMS</title>
+<script>
+    try {
+        document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light');
+    } catch (_) {}
+</script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
 <style>
@@ -18,6 +23,30 @@
     --pw-green: #22c55e;
     --pw-red: #ef4444;
     --pw-yellow: #f59e0b;
+    --pw-backdrop: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.12) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(239,68,68,0.08) 0%, transparent 60%), linear-gradient(180deg, #0b0d17 0%, #080a14 100%);
+    --pw-line: rgba(255,255,255,0.06);
+    --pw-success-text: #86efac;
+    --pw-danger-text: #fca5a5;
+    --pw-accent-text: #a5b4fc;
+    --pw-warning-text: #fbbf24;
+    --pw-date-text: #2dd4bf;
+}
+
+[data-bs-theme="dark"] { color-scheme: dark; }
+[data-bs-theme="light"] {
+    color-scheme: light;
+    --pw-bg: #f3f5fb;
+    --pw-card: rgba(255,255,255,0.96);
+    --pw-border: rgba(71,85,105,0.16);
+    --pw-muted: #64748b;
+    --pw-text: #1e293b;
+    --pw-backdrop: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.10) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 80% 80%, rgba(239,68,68,0.06) 0%, transparent 60%), linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+    --pw-line: rgba(15,23,42,0.08);
+    --pw-success-text: #15803d;
+    --pw-danger-text: #b91c1c;
+    --pw-accent-text: #4338ca;
+    --pw-warning-text: #a16207;
+    --pw-date-text: #0f766e;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -33,10 +62,7 @@ body {
 /* Animated background */
 .pw-bg {
     position: fixed; inset: 0; z-index: 0;
-    background:
-        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(99,102,241,0.12) 0%, transparent 60%),
-        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(239,68,68,0.08) 0%, transparent 60%),
-        linear-gradient(180deg, #0b0d17 0%, #080a14 100%);
+    background: var(--pw-backdrop);
 }
 .pw-bg-orb {
     position: absolute; border-radius: 50%;
@@ -83,6 +109,18 @@ body {
     transition: all 0.2s;
 }
 .pw-logout:hover { background: rgba(239,68,68,0.15); color: #fca5a5; }
+.pw-theme {
+    display:inline-flex;align-items:center;gap:.4rem;padding:.42rem .75rem;border-radius:10px;
+    border:1px solid var(--pw-border);background:var(--pw-card);color:var(--pw-text);
+    font-size:.82rem;font-weight:650;cursor:pointer
+}
+.pw-theme:hover { border-color:var(--pw-accent); }
+.pw-theme:focus-visible { outline:3px solid rgba(99,102,241,.4);outline-offset:2px; }
+@media(max-width:420px) {
+    .pw-theme span { display:none; }
+    .pw-topbar { gap:.5rem; }
+    .pw-wrap { padding-left:.75rem;padding-right:.75rem; }
+}
 
 /* Main grid */
 .pw-grid {
@@ -153,7 +191,7 @@ body {
 .pw-info-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 0.6rem 0;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-bottom: 1px solid var(--pw-line);
     font-size: 0.84rem;
 }
 .pw-info-row:last-child { border-bottom: none; }
@@ -178,10 +216,10 @@ body {
 }
 .pw-balance-amount {
     font-size: 2.4rem; font-weight: 900; line-height: 1;
-    color: #a5b4fc;
+    color: var(--pw-accent-text);
 }
-.pw-balance-amount.sufficient { color: #86efac; }
-.pw-balance-amount.insufficient { color: #fca5a5; }
+.pw-balance-amount.sufficient { color: var(--pw-success-text); }
+.pw-balance-amount.insufficient { color: var(--pw-danger-text); }
 .pw-balance-currency { font-size: 1rem; font-weight: 600; opacity: 0.7; margin-left: 0.3rem; }
 .pw-balance-monthly {
     margin-top: 0.5rem; font-size: 0.8rem; color: var(--pw-muted);
@@ -198,11 +236,11 @@ body {
 }
 .pw-pay-info.can-pay {
     background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.2);
-    color: #86efac;
+    color: var(--pw-success-text);
 }
 .pw-pay-info.cant-pay {
     background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2);
-    color: #fca5a5;
+    color: var(--pw-danger-text);
 }
 .pw-pay-info i { font-size: 1.2rem; flex-shrink: 0; }
 .pw-pay-btn {
@@ -217,7 +255,7 @@ body {
 }
 .pw-pay-btn.enabled:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(34,197,94,0.4); }
 .pw-pay-btn.disabled {
-    background: rgba(255,255,255,0.06); color: #64748b;
+    background: var(--pw-line); color: var(--pw-muted);
     cursor: not-allowed;
 }
 .pw-shortage {
@@ -243,18 +281,18 @@ body {
 /* Topup rows */
 .pw-topup-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0.6rem 0; border-bottom: 1px solid var(--pw-line);
     font-size: 0.82rem;
 }
 .pw-topup-row:last-child { border-bottom: none; }
-.pw-topup-amount { font-weight: 700; color: #86efac; }
+.pw-topup-amount { font-weight: 700; color: var(--pw-success-text); }
 .pw-topup-meta { color: var(--pw-muted); font-size: 0.75rem; margin-top: 1px; }
 .pw-topup-date { color: var(--pw-muted); font-size: 0.75rem; white-space: nowrap; }
 
 /* Pay record rows */
 .pw-pay-row {
     display: flex; align-items: center; gap: 0.75rem;
-    padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 0.6rem 0; border-bottom: 1px solid var(--pw-line);
     font-size: 0.82rem;
 }
 .pw-pay-row:last-child { border-bottom: none; }
@@ -262,8 +300,8 @@ body {
 .pw-pay-dot.paid { background: #22c55e; }
 .pw-pay-dot.unpaid { background: #ef4444; }
 .pw-pay-month { flex: 1; }
-.pw-pay-status-paid { color: #86efac; font-weight: 700; font-size: 0.75rem; }
-.pw-pay-status-unpaid { color: #fca5a5; font-weight: 700; font-size: 0.75rem; }
+.pw-pay-status-paid { color: var(--pw-success-text); font-weight: 700; font-size: 0.75rem; }
+.pw-pay-status-unpaid { color: var(--pw-danger-text); font-weight: 700; font-size: 0.75rem; }
 
 /* Alert messages */
 .pw-alert {
@@ -280,7 +318,16 @@ body {
     font-size: 0.82rem; color: var(--pw-muted); line-height: 1.6;
     max-width: 1000px; margin-left: auto; margin-right: auto;
 }
-.pw-info-box i { color: #a5b4fc; }
+.pw-info-box i { color: var(--pw-accent-text); }
+
+[data-bs-theme="light"] .pw-logout { color:#b91c1c; }
+[data-bs-theme="light"] .pw-student-id-badge { color:#4338ca; }
+[data-bs-theme="light"] .pw-blocked-badge { color:#b91c1c; }
+[data-bs-theme="light"] .pw-shortage strong { color:#a16207; }
+[data-bs-theme="light"] .pw-pay-info.can-pay { color:#166534; }
+[data-bs-theme="light"] .pw-pay-info.cant-pay { color:#991b1b; }
+[data-bs-theme="light"] .pw-alert.success { color:#166534; }
+[data-bs-theme="light"] .pw-alert.error { color:#991b1b; }
 
 /* Divider */
 .pw-divider {
@@ -303,9 +350,15 @@ body {
             <div class="pw-logo-icon"><i class="bi bi-mortarboard-fill"></i></div>
             IT Shaharcha LMS
         </a>
-        <a href="{% url 'logout' %}" class="pw-logout">
-            <i class="bi bi-box-arrow-right"></i> Chiqish
-        </a>
+        <div style="display:flex;align-items:center;gap:.5rem;">
+            <button type="button" class="pw-theme" id="pwThemeToggle" aria-label="Rang mavzusini almashtirish">
+                <i class="bi bi-moon-fill" id="pwThemeIcon" aria-hidden="true"></i>
+                <span id="pwThemeLabel">Qorong'i</span>
+            </button>
+            <a href="{% url 'logout' %}" class="pw-logout">
+                <i class="bi bi-box-arrow-right"></i> Chiqish
+            </a>
+        </div>
     </div>
 
     <!-- Django messages -->
@@ -340,7 +393,8 @@ body {
                 {% endif %}
                 <div style="margin-top:0.5rem;">
                     <span class="pw-blocked-badge">
-                        <i class="bi bi-lock-fill"></i> Akkaunt bloklangan
+                        <i class="bi bi-{% if request.user.is_blocked %}lock-fill{% else %}check-circle-fill{% endif %}"></i>
+                        {% if request.user.is_blocked %}To'lov sababli cheklangan{% else %}Akkaunt faol{% endif %}
                     </span>
                 </div>
             </div>
@@ -367,7 +421,7 @@ body {
                 </div>
                 <div class="pw-info-row">
                     <span class="pw-info-label"><i class="bi bi-calendar-month me-1"></i>Oylik to'lov</span>
-                    <span class="pw-info-value" style="color:#fbbf24;">{{ ps.monthly_fee|space_num }} so'm</span>
+                    <span class="pw-info-value" style="color:var(--pw-warning-text);">{{ ps.monthly_fee|space_num }} so'm</span>
                 </div>
 
                 <!-- To'lovlar tarixi (oxirgi 6 oy) -->
@@ -409,19 +463,34 @@ body {
                     </div>
                     <div class="pw-balance-monthly">
                         <i class="bi bi-arrow-down-circle"></i>
-                        Oylik to'lov: <strong style="color:#fbbf24;margin-left:0.3rem;">{{ ps.monthly_fee|space_num }} so'm</strong>
+                        Oylik to'lov: <strong style="color:var(--pw-warning-text);margin-left:0.3rem;">{{ ps.monthly_fee|space_num }} so'm</strong>
                     </div>
                     {% if balance.next_payment_date %}
                     <div class="pw-balance-monthly" style="margin-top:4px;">
                         <i class="bi bi-calendar-check"></i>
-                        Keyingi to'lov sanasi: <strong style="color:#2dd4bf;margin-left:0.3rem;">{{ balance.next_payment_date|date:"d.m.Y" }}</strong>
+                        Keyingi to'lov sanasi: <strong style="color:var(--pw-date-text);margin-left:0.3rem;">{{ balance.next_payment_date|date:"d.m.Y" }}</strong>
                     </div>
+                    {% if days_late > 0 and days_late < grace_days %}
+                    <div class="pw-balance-monthly" style="margin-top:4px;color:var(--pw-warning-text);">
+                        <i class="bi bi-hourglass-split"></i>
+                        Kechikish imtiyozi: yana {{ grace_days_left }} kun
+                    </div>
+                    {% endif %}
                     {% endif %}
                 </div>
 
                 <!-- Pay action -->
                 <div class="pw-pay-section">
-                    {% if can_pay %}
+                    {% if not balance.is_contract %}
+                    <form method="post" action="{% url 'tezcheck_create_payment' %}" style="margin-bottom:0.75rem;">
+                        {% csrf_token %}
+                        <button type="submit" class="pw-pay-btn enabled">
+                            <i class="bi bi-credit-card-fill"></i>
+                            Tezcheck orqali onlayn to'lash
+                        </button>
+                    </form>
+                    {% endif %}
+                    {% if can_pay and request.user.is_blocked %}
                     <div class="pw-pay-info can-pay">
                         <i class="bi bi-check-circle-fill"></i>
                         <span>Balansda yetarli mablag' bor. Tugmani bosing va akkauntingiz darhol faollashadi.</span>
@@ -437,8 +506,9 @@ body {
                     {% else %}
                     <div class="pw-pay-info cant-pay">
                         <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span>Balans yetarli emas. Admin yoki yordamchi adminga murojaat qiling.</span>
+                        <span>{% if can_pay %}Hisobingiz faol. Balansdagi mablag' muddati kelganda ishlatiladi.{% else %}Balans yetarli emas. Onlayn to'lov qiling yoki balansni to'ldirish uchun administratorga murojaat qiling.{% endif %}</span>
                     </div>
+                    {% if not can_pay %}
                     <button class="pw-pay-btn disabled" disabled>
                         <i class="bi bi-lock-fill"></i>
                         Balans yetarli emas
@@ -447,8 +517,25 @@ body {
                         Yetishmayotgan miqdor: <strong>{{ shortage|space_num }} so'm</strong>
                     </div>
                     {% endif %}
+                    {% endif %}
                 </div>
             </div>
+
+            {% if online_orders %}
+            <div class="pw-card" style="padding:1.25rem 1.5rem;">
+                <div class="pw-section-title"><i class="bi bi-receipt-cutoff"></i> Onlayn to'lovlar</div>
+                {% for order in online_orders %}
+                <div class="pw-pay-row">
+                    <span class="pw-pay-dot {% if order.status == 'paid' %}paid{% else %}unpaid{% endif %}"></span>
+                    <span class="pw-pay-month">{{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }} · {{ order.amount_som|space_num }} so'm</span>
+                    <span class="pw-pay-status-{% if order.status == 'paid' %}paid{% else %}unpaid{% endif %}">{{ order.get_status_display }}</span>
+                    {% if order.payment_url and order.status == 'pending' %}
+                    <a href="{{ order.payment_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">To'lash</a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             <!-- Top-up history card -->
             {% if topups %}
@@ -477,13 +564,35 @@ body {
     <!-- Info box -->
     <div class="pw-info-box" style="margin-top:1.5rem;">
         <i class="bi bi-info-circle-fill"></i>
-        <strong>Qanday to'lash mumkin?</strong> — Admin yoki yordamchi adminga murojaat qiling va naqd to'lov amalga oshiring.
-        To'lov kiritilgandan so'ng balansiz avtomatik yangilanadi va siz "Balansdan to'lab, akkauntni ochish" tugmasini bosib tizimga kirishingiz mumkin.
+        <strong>Qanday to'lash mumkin?</strong> — Tezcheck orqali onlayn to'lang yoki admin/yordamchi adminga murojaat qilib balansni to'ldiring.
+        To'lov tasdiqlangach, holat va hisobingiz avtomatik yangilanadi.
         Savollar uchun: <strong>ID #{% if request.user.student_id %}{{ request.user.student_id }}{% else %}—{% endif %}</strong>
     </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    (function () {
+        const root = document.documentElement;
+        const button = document.getElementById('pwThemeToggle');
+        const icon = document.getElementById('pwThemeIcon');
+        const label = document.getElementById('pwThemeLabel');
+        function paintTheme(theme) {
+            root.setAttribute('data-bs-theme', theme);
+            icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+            label.textContent = theme === 'dark' ? 'Yorugʻ' : 'Qorongʻi';
+            button.setAttribute('aria-label', theme === 'dark' ? 'Yorugʻ mavzuga oʻtish' : 'Qorongʻi mavzuga oʻtish');
+        }
+        let saved = 'light';
+        try { saved = localStorage.getItem('theme') || 'light'; } catch (_) {}
+        paintTheme(saved === 'dark' ? 'dark' : 'light');
+        button.addEventListener('click', function () {
+            const next = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+            paintTheme(next);
+            try { localStorage.setItem('theme', next); } catch (_) {}
+        });
+    })();
+</script>
 </body>
 </html>
