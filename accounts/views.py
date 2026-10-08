@@ -941,6 +941,10 @@ def login_view(request):
                 login(request, user)
                 user.last_activity = timezone.now()
                 user.save(update_fields=["last_activity"])
+                # Sessiyani ro'yxatdan o'tkazamiz — aks holda DeviceLimitMiddleware
+                # faol UserSession topa olmay, o'quvchini /tolov/ ga yetmasdan
+                # chiqarib yuboradi (to'lov sahifasi faqat bir marta ko'rinardi).
+                _register_device_and_session(request, user)
                 _reason = getattr(user, 'blocked_reason', '') or ''
                 messages.warning(
                     request,
