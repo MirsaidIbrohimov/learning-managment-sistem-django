@@ -2602,6 +2602,56 @@ def _balance_add_one_month(d):
     return d.replace(year=year, month=month, day=day)
 
 
+def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
+    """
+    To'lov summasiga qarab to'lov muddatini aqlli (proporsional) hisoblash:
+    - Oylik to'lovga teng yoki undan ortiq bo'lsa: to'liq oylar + qoldiqqa kunlar.
+    - Oylik to'lovdan kam bo'lsa: proporsional kunlar (30 kunlik oy hisobida).
+      Misol: 400 000 so'mlik kursga 200 000 to'lansa -> 15 kun.
+      Misol: 350 000 so'mlik kursga 100 000 to'lansa -> 9 kun.
+    Qaytaradi: (new_date, total_days_added, used_amount, description)
+    Agar summa kamida 1 kunga yetmasa: (None, 0, 0, '')
+    """
+    from datetime import date, timedelta
+    from decimal import Decimal
+
+    if base_date is None:
+        base_date = date.today()
+
+    try:
+        amount = Decimal(str(amount or 0))
+        monthly_fee = Decimal(str(monthly_fee or 200000))
+    except Exception:
+        return None, 0, 0, ''
+
+    if monthly_fee <= 0 or amount <= 0:
+        return None, 0, 0, ''
+
+    curr_date = base_date
+    full_months = int(amount // monthly_fee)
+    remainder = amount % monthly_fee
+
+    for _ in range(full_months):
+        curr_date = _balance_add_one_month(curr_date)
+
+    extra_days = int(round((remainder * Decimal('30')) / monthly_fee))
+    if extra_days > 0:
+        curr_date = curr_date + timedelta(days=extra_days)
+
+    total_days = (curr_date - base_date).days
+    if total_days <= 0:
+        return None, 0, 0, ''
+
+    desc_parts = []
+    if full_months > 0:
+        desc_parts.append(f"{full_months} oy")
+    if extra_days > 0:
+        desc_parts.append(f"{extra_days} kun")
+    desc = " + ".join(desc_parts)
+
+    return curr_date, total_days, int(amount), desc
+
+
 class StudentBalance(models.Model):
     """
     Har bir o'quvchining naqd pul balansi (so'mda).
@@ -2687,6 +2737,28 @@ class StudentBalance(models.Model):
                             'notes': "Balansdan avtomatik yechildi (avto-uzaytirish)",
                         }
                     )
+
+                # Agar to'liq oyga yetmasa, qoldiq mablag'ga proporsional kunlar qo'shish (masalan 200 000 -> 15 kun)
+                if bal.next_payment_date and bal.next_payment_date <= today and bal.amount > 0:
+                    new_date, added_days, used_amt, desc = calculate_extension_from_amount(
+                        bal.amount, monthly_fee, base_date=bal.next_payment_date
+                    )
+                    if new_date and added_days > 0:
+                        bal.amount -= used_amt
+                        pay_month = bal.next_payment_date.month
+                        pay_year = bal.next_payment_date.year
+                        bal.next_payment_date = new_date
+                        charged = True
+                        PaymentRecord.objects.update_or_create(
+                            user_id=bal.user_id, month=pay_month, year=pay_year,
+                            defaults={
+                                'amount': used_amt,
+                                'is_paid': True,
+                                'paid_date': today,
+                                'paid_amount': used_amt,
+                                'notes': f"Balansdan qisman to'lov ({desc}) avto-uzaytirildi",
+                            }
+                        )
 
                 if charged:
                     bal.save(update_fields=['amount', 'next_payment_date', 'updated_at'])

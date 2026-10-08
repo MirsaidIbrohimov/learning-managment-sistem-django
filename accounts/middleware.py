@@ -580,7 +580,9 @@ class SecurityHeadersMiddleware:
             f"frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com { _external_games_frame_src() }".strip(),
             "frame-ancestors 'none'",
             "base-uri 'self'",
-            "form-action 'self'",
+            # form-action redirect manziliga ham qo'llanadi: /tezcheck/create-payment/
+            # POST'dan keyin tezcheck.uz to'lov sahifasiga redirect bo'ladi.
+            "form-action 'self' https://itc-academy.uz https://*.itc-academy.uz http://itc-academy.uz http://*.itc-academy.uz https://tezcheck.uz https://*.tezcheck.uz https://checkout.uz https://*.checkout.uz",
         ]
         response['Content-Security-Policy'] = '; '.join(csp_directives)
         

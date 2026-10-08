@@ -482,31 +482,65 @@ body {
                 <!-- Pay action -->
                 <div class="pw-pay-section">
                     {% if not balance.is_contract %}
-                    <form method="post" action="{% url 'tezcheck_create_payment' %}" style="margin-bottom:0.75rem;">
+                    <form method="post" action="{% url 'tezcheck_create_payment' %}" id="tezcheck-form" style="margin-bottom:1.25rem;">
                         {% csrf_token %}
+                        <div style="margin-bottom:0.75rem;">
+                            <label style="display:block;font-size:0.8rem;font-weight:700;color:var(--pw-muted);margin-bottom:0.4rem;">
+                                <i class="bi bi-cash-stack"></i> Tezcheck orqali to'lov summasi:
+                            </label>
+                            <div style="display:flex;gap:0.5rem;margin-bottom:0.5rem;">
+                                <input type="number" name="amount" id="tz-amount-input"
+                                       value="{{ ps.monthly_fee|default:200000|stringformat:'d' }}"
+                                       min="1000" step="5000"
+                                       class="form-control"
+                                       style="background:rgba(255,255,255,0.05);border:1px solid var(--pw-border);color:var(--pw-text);border-radius:10px;padding:0.6rem 0.8rem;font-weight:700;font-size:1.05rem;"
+                                       required>
+                                <span style="align-self:center;font-weight:700;color:var(--pw-muted);font-size:0.85rem;">so'm</span>
+                            </div>
+                            <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.6rem;">
+                                <button type="button" class="btn btn-sm tz-quick-btn" data-amt="{{ ps.monthly_fee|default:200000|stringformat:'d' }}"
+                                        style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(99,102,241,0.15);color:#a5b4fc;border:1px solid rgba(99,102,241,0.3);border-radius:8px;">
+                                    To'liq oy
+                                </button>
+                                <button type="button" class="btn btn-sm tz-quick-btn" data-amt="{% widthratio ps.monthly_fee|default:200000 2 1 %}"
+                                        style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:8px;">
+                                    15 kun (yarim oy)
+                                </button>
+                                <button type="button" class="btn btn-sm tz-quick-btn" data-amt="{% widthratio ps.monthly_fee|default:200000 3 1 %}"
+                                        style="font-size:0.75rem;padding:0.25rem 0.6rem;background:rgba(99,102,241,0.1);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:8px;">
+                                    10 kun
+                                </button>
+                            </div>
+                            <div id="tz-preview-box" style="font-size:0.8rem;color:#38bdf8;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:8px;padding:0.5rem 0.75rem;display:flex;align-items:center;gap:0.5rem;">
+                                <i class="bi bi-info-circle-fill"></i>
+                                <span>Muddat uzaytiriladi: <strong id="tz-preview-text">1 oy (30 kun)</strong></span>
+                            </div>
+                        </div>
+
                         <button type="submit" class="pw-pay-btn enabled">
                             <i class="bi bi-credit-card-fill"></i>
-                            Tezcheck orqali onlayn to'lash
+                            Tezcheck orqali to'lash
                         </button>
                     </form>
                     {% endif %}
+
                     {% if can_pay and request.user.is_blocked %}
                     <div class="pw-pay-info can-pay">
                         <i class="bi bi-check-circle-fill"></i>
-                        <span>Balansda yetarli mablag' bor. Tugmani bosing va akkauntingiz darhol faollashadi.</span>
+                        <span>Balansda mablag' bor (<strong>{{ balance_desc }}</strong> ta'lim uchun yetarli). Tugmani bosing va akkauntingiz darhol ochiladi.</span>
                     </div>
                     <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="pay">
                         <button type="submit" class="pw-pay-btn enabled">
                             <i class="bi bi-unlock-fill"></i>
-                            Balansdan to'lab, akkauntni ochish
+                            Balansdan to'lab, akkauntni ochish ({{ balance_desc }})
                         </button>
                     </form>
                     {% else %}
                     <div class="pw-pay-info cant-pay">
                         <i class="bi bi-exclamation-triangle-fill"></i>
-                        <span>{% if can_pay %}Hisobingiz faol. Balansdagi mablag' muddati kelganda ishlatiladi.{% else %}Balans yetarli emas. Onlayn to'lov qiling yoki balansni to'ldirish uchun administratorga murojaat qiling.{% endif %}</span>
+                        <span>{% if can_pay %}Hisobingiz faol. Balansdagi mablag' ({{ balance_desc }}) muddati kelganda avtomatik ishlatiladi.{% else %}Balansda kamida 1 kunlik mablag' ({{ daily_fee|space_num }} so'm) bo'lishi kerak. Yuqorida Tezcheck orqali to'lang yoki administratorga murojaat qiling.{% endif %}</span>
                     </div>
                     {% if not can_pay %}
                     <button class="pw-pay-btn disabled" disabled>
@@ -514,7 +548,7 @@ body {
                         Balans yetarli emas
                     </button>
                     <div class="pw-shortage">
-                        Yetishmayotgan miqdor: <strong>{{ shortage|space_num }} so'm</strong>
+                        Kamida 1 kunlik to'lov: <strong>{{ daily_fee|space_num }} so'm</strong>
                     </div>
                     {% endif %}
                     {% endif %}
@@ -592,6 +626,46 @@ body {
             paintTheme(next);
             try { localStorage.setItem('theme', next); } catch (_) {}
         });
+    })();
+
+    // Tezcheck to'lov summasi o'zgarganda kunlarni jonli hisoblash
+    (function () {
+        const amtInput = document.getElementById('tz-amount-input');
+        const previewText = document.getElementById('tz-preview-text');
+        const monthlyFee = {{ ps.monthly_fee|default:200000|stringformat:'d' }};
+        if (!amtInput || !previewText || !monthlyFee) return;
+
+        function updatePreview() {
+            const val = parseFloat(amtInput.value) || 0;
+            if (val <= 0) {
+                previewText.textContent = "0 kun";
+                return;
+            }
+            const fullMonths = Math.floor(val / monthlyFee);
+            const remainder = val % monthlyFee;
+            const extraDays = Math.round((remainder * 30) / monthlyFee);
+            const parts = [];
+            if (fullMonths > 0) parts.push(fullMonths + " oy");
+            if (extraDays > 0) parts.push(extraDays + " kun");
+            if (parts.length === 0) {
+                const minDays = Math.max(1, Math.round((val * 30) / monthlyFee));
+                previewText.textContent = minDays + " kun";
+            } else {
+                previewText.textContent = parts.join(" + ");
+            }
+        }
+
+        amtInput.addEventListener('input', updatePreview);
+        document.querySelectorAll('.tz-quick-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const amt = this.getAttribute('data-amt');
+                if (amt) {
+                    amtInput.value = amt;
+                    updatePreview();
+                }
+            });
+        });
+        updatePreview();
     })();
 </script>
 </body>

@@ -687,13 +687,15 @@ def _add_one_month(d):
 
 def _auto_deduct_and_unblock(user):
     """
-    O'quvchi balansidan oylik to'lovni yechib, unblock qilishga urinadi.
+    O'quvchi balansidan oylik yoki qisman to'lovni yechib, unblock qilishga urinadi.
+    - Balans oylik to'lovdan kam bo'lsa (masalan 400 minglik to'lovga 200 ming bo'lsa),
+      proporsional kunlar (15 kun) hisoblanadi va foydalanuvchi blokdan chiqariladi.
     True  → muvaffaqiyatli yechildi va unblock bo'ldi.
-    False → balans yetarli emas, foydalanuvchi hali ham blokli.
+    False → balans yetarli emas (kamida 1 kunga yetmaydi), foydalanuvchi hali ham blokli.
     Shartnoma rejimida bo'lsa — to'lov olinmaydi, to'g'ridan to'g'ri unblock.
     """
     from django.utils import timezone
-    from .models import StudentBalance, PaymentStatus, PaymentRecord
+    from .models import StudentBalance, PaymentStatus, PaymentRecord, calculate_extension_from_amount
 
     try:
         balance = StudentBalance.objects.select_for_update().get(user=user)
@@ -714,15 +716,21 @@ def _auto_deduct_and_unblock(user):
             return True
 
         monthly_fee = ps.monthly_fee or 200000
-        if balance.amount < monthly_fee:
+        if balance.amount <= 0:
+            return False
+
+        # Boshlang'ich sana: agar mavjud to'lov muddati bugundan keyin bo'lsa, o'shandan davom ettiramiz
+        base_date = balance.next_payment_date if (balance.next_payment_date and balance.next_payment_date > today) else today
+
+        next_date, added_days, used_amount, desc = calculate_extension_from_amount(
+            balance.amount, monthly_fee, base_date=base_date
+        )
+
+        if not next_date or added_days < 1:
             return False
 
         # Balansdan yechish
-        balance.amount -= monthly_fee
-
-        # Keyingi to'lov sanasi = bugun + 1 oy (xuddi shu kun)
-        next_date = _add_one_month(today)
-
+        balance.amount -= used_amount
         balance.next_payment_date = next_date
         balance.save(update_fields=['amount', 'next_payment_date', 'updated_at'])
 
@@ -737,14 +745,15 @@ def _auto_deduct_and_unblock(user):
         ps.paid_until = next_date
         ps.save()
 
-        # PaymentRecord — joriy oy uchun yozuv
+        # PaymentRecord — yozuv
         PaymentRecord.objects.update_or_create(
             user=user, month=today.month, year=today.year,
             defaults={
                 'is_paid': True,
                 'paid_date': today,
-                'paid_amount': monthly_fee,
-                'notes': f'Balansdan avtomatik yechildi. Keyingi to\'lov: {next_date}',
+                'paid_amount': used_amount,
+                'amount': used_amount,
+                'notes': f"Balansdan to'landi ({desc}). Keyingi to'lov: {next_date.strftime('%d.%m.%Y')}",
             }
         )
         return True
@@ -17796,7 +17805,7 @@ def payment_wall(request):
     balance, _ = StudentBalance.objects.get_or_create(user=user)
     ps, _ = PaymentStatus.objects.get_or_create(user=user)
 
-    # To'liq to'lov urinishi — POST orqali yoki avtomatik
+    # To'liq yoki qisman to'lov urinishi — POST orqali yoki avtomatik
     if request.method == 'POST' and request.POST.get('action') == 'pay':
         from django.db import transaction
         with transaction.atomic():
@@ -17804,7 +17813,8 @@ def payment_wall(request):
                 messages.success(request, "✅ To'lov muvaffaqiyatli amalga oshirildi! Akkauntingiz faollashtirildi.")
                 return redirect('home')
             else:
-                messages.error(request, f"❌ Balans yetarli emas. Kerakli summa: {int(ps.monthly_fee):,} so'm".replace(',', ' '))
+                daily_min = int(round((ps.monthly_fee or 200000) / 30))
+                messages.error(request, f"❌ Balans yetarli emas. Kamida 1 kunlik mablag' ({daily_min:,} so'm) bo'lishi kerak.".replace(',', ' '))
 
     # Top-up tarixi (oxirgi 10)
     topups = BalanceTopUp.objects.filter(student=user).select_related('added_by')[:10]
@@ -17820,6 +17830,13 @@ def payment_wall(request):
     days_late = max(0, (today - balance.next_payment_date).days) if balance.next_payment_date else 0
     grace_days = max(0, int(getattr(settings, 'TEZCHECK_LATE_GRACE_DAYS', 5)))
 
+    from .models import calculate_extension_from_amount
+    balance_preview_date, balance_days, _, balance_desc = calculate_extension_from_amount(
+        balance.amount, ps.monthly_fee or 200000, base_date=today
+    )
+    can_pay = balance_days > 0
+    daily_fee = int(round((ps.monthly_fee or 200000) / 30))
+
     return render(request, 'accounts/payment_wall.html', {
         'balance': balance,
         'ps': ps,
@@ -17827,7 +17844,11 @@ def payment_wall(request):
         'pay_records': pay_records,
         'online_orders': online_orders,
         'shortage': shortage,
-        'can_pay': balance.amount >= ps.monthly_fee,
+        'can_pay': can_pay,
+        'balance_days': balance_days,
+        'balance_desc': balance_desc,
+        'balance_preview_date': balance_preview_date,
+        'daily_fee': daily_fee,
         'days_late': days_late,
         'grace_days': grace_days,
         'grace_days_left': max(0, grace_days - days_late),

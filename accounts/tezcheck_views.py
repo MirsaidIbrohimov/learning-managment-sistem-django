@@ -58,6 +58,9 @@ def tezcheck_create_payment(request):
         messages.info(request, "Joriy oy to'lovi allaqachon qabul qilingan.")
         return redirect('student_payments')
     month, year, amount = period
+    custom_amount_raw = request.POST.get('amount', '').replace(' ', '').replace(',', '')
+    if custom_amount_raw.isdigit() and int(custom_amount_raw) >= 1000:
+        amount = int(custom_amount_raw)
     amount_minor = int(Decimal(amount) * 100)
     if amount_minor <= 0:
         messages.error(request, "To'lov summasi noto'g'ri. Administratorga murojaat qiling.")
@@ -230,20 +233,31 @@ def _apply_successful_payment(order, data):
     status.is_paid = not unpaid_before
     status.last_payment_date = paid_on
     if not unpaid_before:
-        from .models import _balance_add_one_month
-        paid_until = _balance_add_one_month(paid_on)
-        status.paid_until = paid_until
+        paid_sum = Decimal(order.amount_minor) / 100
+        monthly_fee = status.monthly_fee or 200000
+        from .models import calculate_extension_from_amount
         balance, _ = StudentBalance.objects.get_or_create(user=order.student)
+        base_date = balance.next_payment_date if (balance.next_payment_date and balance.next_payment_date > paid_on) else paid_on
+
+        paid_until, added_days, _, desc = calculate_extension_from_amount(
+            paid_sum, monthly_fee, base_date=base_date
+        )
+        if not paid_until:
+            from .models import _balance_add_one_month
+            paid_until = _balance_add_one_month(paid_on)
+            desc = "1 oy"
+
+        status.paid_until = paid_until
         if not balance.is_contract:
             balance.next_payment_date = paid_until
             balance.save(update_fields=['next_payment_date', 'updated_at'])
-        if order.student.is_blocked and status.auto_blocked:
+        if order.student.is_blocked:
             order.student.is_blocked = False
             order.student.save(update_fields=['is_blocked'])
             status.auto_blocked = False
             Message.objects.create(
                 title='✅ Hisobingiz ochildi',
-                content="To'lov Tezcheck orqali qabul qilindi. Hisobingiz faollashtirildi.",
+                content=f"To'lov Tezcheck orqali qabul qilindi ({desc}). Hisobingiz faollashtirildi.",
                 message_type='system', recipient=order.student,
             )
     status.save()
