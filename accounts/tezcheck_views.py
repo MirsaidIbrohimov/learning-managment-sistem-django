@@ -46,15 +46,25 @@ def _student_billing_period(user):
 def tezcheck_create_payment(request):
     """Create/reuse the logged-in student's fixed-amount monthly payment bill."""
     user = request.user
+    logger.info(
+        'Tezcheck checkout POST received: user_id=%s role=%s',
+        user.pk, getattr(user, 'role', ''),
+    )
     if not user.is_learner:
+        logger.warning(
+            'Tezcheck checkout rejected: user_id=%s role=%s reason=not_learner',
+            user.pk, getattr(user, 'role', ''),
+        )
         messages.error(request, "Onlayn to'lov faqat o'quvchilar uchun.")
         return redirect('home')
     if StudentBalance.objects.filter(user=user, is_contract=True).exists():
+        logger.info('Tezcheck checkout skipped: user_id=%s reason=contract', user.pk)
         messages.info(request, "Siz shartnoma asosida to'laysiz. To'lov bo'yicha administratorga murojaat qiling.")
         return redirect('payment_wall')
 
     period = _student_billing_period(user)
     if period is None:
+        logger.info('Tezcheck checkout skipped: user_id=%s reason=current_period_paid', user.pk)
         messages.info(request, "Joriy oy to'lovi allaqachon qabul qilingan.")
         return redirect('student_payments')
     month, year, amount = period
@@ -69,6 +79,10 @@ def tezcheck_create_payment(request):
         student=user, billing_month=month, billing_year=year,
     ).order_by('-created_at')
     if period_orders.filter(status=TezCheckPaymentOrder.STATUS_PAID).exists():
+        logger.info(
+            'Tezcheck checkout skipped: user_id=%s billing_period=%s-%s reason=already_paid',
+            user.pk, year, month,
+        )
         messages.success(request, "Ushbu davr uchun to'lov qabul qilingan.")
         return redirect('payment_wall')
     # Mavjud pending buyurtmani tekshiramiz
@@ -114,8 +128,13 @@ def tezcheck_create_payment(request):
                     return redirect(order.payment_url)
             except Exception:
                 # API xatosi bo'lsa (masalan bill topilmadi yoki token yangilangan), eski havolani tashlab yangi yaratamiz
+                logger.exception(
+                    'Tezcheck pending bill holatini tekshirib bo‘lmadi: user_id=%s order_id=%s',
+                    user.pk, order.pk,
+                )
                 order.status = TezCheckPaymentOrder.STATUS_EXPIRED
-                order.save(update_fields=['status', 'updated_at'])
+                order.last_error = 'Eski Tezcheck havolasining holatini tekshirib bo‘lmadi; yangisi yaratilmoqda.'
+                order.save(update_fields=['status', 'last_error', 'updated_at'])
                 order = None
 
     # Yangi buyurtma yaratish
@@ -139,7 +158,23 @@ def tezcheck_create_payment(request):
     except TezCheckError as exc:
         order.last_error = str(exc)[:500]
         order.save(update_fields=['last_error', 'updated_at'])
+        logger.warning(
+            'Tezcheck checkout yaratilmadi: user_id=%s order_id=%s reason=%s',
+            user.pk, order.pk, exc,
+        )
         messages.error(request, str(exc))
+        return redirect('payment_wall')
+    except Exception:
+        logger.exception(
+            'Tezcheck checkout yaratishda kutilmagan xato: user_id=%s order_id=%s',
+            user.pk, order.pk,
+        )
+        order.last_error = 'To‘lov havolasini yaratishda kutilmagan xato.'
+        order.save(update_fields=['last_error', 'updated_at'])
+        messages.error(
+            request,
+            "To'lov sahifasini ochib bo'lmadi. Xatolik qayd etildi; keyinroq qayta urinib ko'ring.",
+        )
         return redirect('payment_wall')
     order.bill_id = bill_data['bill_id']
     order.bill_reference = bill_data['bill_reference']
@@ -153,6 +188,10 @@ def tezcheck_create_payment(request):
         'bill_id', 'bill_reference', 'payment_url', 'available_until',
         'status', 'last_error', 'updated_at',
     ])
+    logger.info(
+        'Tezcheck checkout created: user_id=%s order_id=%s billing_period=%s-%s',
+        user.pk, order.pk, year, month,
+    )
     return redirect(order.payment_url)
 
 

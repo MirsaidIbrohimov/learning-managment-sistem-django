@@ -425,6 +425,54 @@ body {
 }
 .pw-info-box i { color: var(--pw-accent-text); }
 
+.pw-payment-methods {
+    margin-top: 0.75rem;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid var(--pw-border);
+    border-radius: 12px;
+    background: rgba(255,255,255,0.025);
+}
+.pw-payment-methods-title {
+    color: var(--pw-muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.55rem;
+}
+.pw-payment-methods-list {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+.pw-payment-method {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.32rem 0.55rem;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--pw-border);
+    color: var(--pw-text);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+}
+.pw-payment-method.click { color: #ff765e; }
+.pw-payment-method.payme { color: #58a6ff; }
+.pw-payment-method.uzum { color: #c4a1ff; }
+.pw-payment-method.paynet { color: #ffb454; }
+.pw-payment-method.humo { color: #61d6c5; }
+.pw-payment-method.uzcard { color: #75a7ff; }
+.pw-payment-methods-note {
+    margin-top: 0.55rem;
+    color: var(--pw-muted);
+    font-size: 0.74rem;
+    line-height: 1.45;
+}
+
 [data-bs-theme="light"] .pw-logout { color:#b91c1c; }
 [data-bs-theme="light"] .pw-student-id-badge { color:#4338ca; }
 [data-bs-theme="light"] .pw-blocked-badge { color:#b91c1c; }
@@ -674,6 +722,21 @@ body {
                             <i class="bi bi-credit-card-fill"></i>
                             <span id="btn-pay-text">Online to'lash</span>
                         </button>
+
+                        <div class="pw-payment-methods" aria-label="Onlayn to'lov usullari">
+                            <div class="pw-payment-methods-title">Qulay usulda onlayn to'lang</div>
+                            <div class="pw-payment-methods-list">
+                                <span class="pw-payment-method click">click</span>
+                                <span class="pw-payment-method payme">payme</span>
+                                <span class="pw-payment-method uzum"><i class="bi bi-wallet2"></i> Uzum Pay</span>
+                                <span class="pw-payment-method paynet">PAYNET</span>
+                                <span class="pw-payment-method humo"><i class="bi bi-credit-card-2-front"></i> HUMO</span>
+                                <span class="pw-payment-method uzcard"><i class="bi bi-credit-card-2-front"></i> Uzcard</span>
+                            </div>
+                            <div class="pw-payment-methods-note">
+                                To'lovni Click, Payme, Uzum Pay yoki Paynet orqali, shuningdek HUMO va Uzcard kartalari bilan amalga oshiring.
+                            </div>
+                        </div>
                     </form>
                     {% endif %}
 
@@ -743,7 +806,7 @@ body {
     <!-- Info box -->
     <div class="pw-info-box" style="margin-top:1.5rem;">
         <i class="bi bi-info-circle-fill"></i>
-        <strong>Qanday to'lash mumkin?</strong> — Tezcheck orqali onlayn to'lang yoki admin/yordamchi adminga murojaat qilib balansni to'ldiring.
+        <strong>Qanday to'lash mumkin?</strong> — Online to'lovni Click, Payme, Uzum Pay, Paynet orqali yoki HUMO va Uzcard kartalari bilan amalga oshiring. Zarur bo'lsa, admin/yordamchi adminga murojaat qilib balansni ham to'ldirishingiz mumkin.
         To'lov tasdiqlangach, holat va hisobingiz avtomatik yangilanadi.
         Savollar uchun: <strong>ID #{% if request.user.student_id %}{{ request.user.student_id }}{% else %}—{% endif %}</strong>
     </div>
