@@ -46,7 +46,7 @@ def _student_billing_period(user):
 def tezcheck_create_payment(request):
     """Create/reuse the logged-in student's fixed-amount monthly payment bill."""
     user = request.user
-    if not user.is_student or user.is_admin:
+    if not user.is_learner:
         messages.error(request, "Onlayn to'lov faqat o'quvchilar uchun.")
         return redirect('home')
     if StudentBalance.objects.filter(user=user, is_contract=True).exists():

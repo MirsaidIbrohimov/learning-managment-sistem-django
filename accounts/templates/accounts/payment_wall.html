@@ -414,6 +414,7 @@ body {
 }
 .pw-alert.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25); color: #86efac; }
 .pw-alert.error { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.2); color: #fca5a5; }
+.pw-alert.info { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: #93c5fd; }
 
 /* Info box bottom */
 .pw-info-box {
@@ -432,6 +433,7 @@ body {
 [data-bs-theme="light"] .pw-pay-info.cant-pay { color:#991b1b; }
 [data-bs-theme="light"] .pw-alert.success { color:#166534; }
 [data-bs-theme="light"] .pw-alert.error { color:#991b1b; }
+[data-bs-theme="light"] .pw-alert.info { color:#1d4ed8; }
 
 /* Divider */
 .pw-divider {
@@ -469,8 +471,8 @@ body {
     {% if messages %}
     <div style="max-width:1000px;margin:0 auto 1rem;width:100%;">
         {% for msg in messages %}
-        <div class="pw-alert {% if 'muvaffaqiyatli' in msg.message %}success{% else %}error{% endif %}">
-            <i class="bi bi-{% if 'muvaffaqiyatli' in msg.message %}check-circle-fill{% else %}exclamation-triangle-fill{% endif %}"></i>
+        <div class="pw-alert {% if 'success' in msg.tags %}success{% elif 'error' in msg.tags %}error{% else %}info{% endif %}">
+            <i class="bi bi-{% if 'success' in msg.tags %}check-circle-fill{% elif 'error' in msg.tags %}exclamation-triangle-fill{% else %}info-circle-fill{% endif %}"></i>
             {{ msg }}
         </div>
         {% endfor %}
@@ -670,7 +672,7 @@ body {
                         <!-- To'lash tugmasi -->
                         <button type="submit" class="pw-pay-btn enabled" id="tz-submit-btn">
                             <i class="bi bi-credit-card-fill"></i>
-                            <span id="btn-pay-text">Tezcheck orqali to'lash: {{ monthly_fee|space_num }} so'm</span>
+                            <span id="btn-pay-text">Online to'lash</span>
                         </button>
                     </form>
                     {% endif %}
@@ -815,7 +817,7 @@ body {
                 previewDays.textContent = res.text;
             }
         }
-        if (btnPayText) btnPayText.textContent = "Tezcheck orqali to'lash: " + formatNumber(amount) + " so'm";
+        if (btnPayText) btnPayText.textContent = "Online to'lash";
     }
 
     window.selectPlan = function(card, amount) {

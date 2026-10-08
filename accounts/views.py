@@ -17791,14 +17791,17 @@ def fill_survey(request, pk):
 @login_required
 def payment_wall(request):
     """
-    Bloklangan o'quvchi ko'radigan to'lov devori sahifasi.
-    Balans yetarli bo'lsa → avtomatik unblock va home ga redirect.
+    O'quvchining to'lov sahifasi; kerak bo'lsa balans orqali akkauntni ochadi.
     """
     from .models import StudentBalance, PaymentStatus, BalanceTopUp
     user = request.user
 
-    # Agar bloklanmagan bo'lsa (yoki admin) → home
-    if not user.is_blocked and not request.GET.get('preview') and request.resolver_match.url_name != 'student_payments':
+    # To'lov sahifasi barcha o'quvchilarga ochiq bo'lishi kerak. Oldingi
+    # tekshiruv bloklanmagan o'quvchini /tolov/ dan chiqarib yuborib,
+    # online payment formiga yetib kelishiga yo'l qo'ymas edi.
+    if (not user.is_learner and not request.GET.get('preview')
+            and request.resolver_match.url_name != 'student_payments'):
+        messages.error(request, "To'lov sahifasi faqat o'quvchilar uchun mavjud.")
         return redirect('home')
 
     # Balans va to'lov holati
