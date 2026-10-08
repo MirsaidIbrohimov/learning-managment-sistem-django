@@ -639,14 +639,14 @@ body {
                             <div style="display:flex;gap:0.5rem;align-items:center;">
                                 <input type="number" id="tz-amount-custom"
                                        value="{{ monthly_fee }}"
-                                       min="1000" step="5000"
-                                       placeholder="Masalan: 100 000"
+                                       min="1000" step="1"
+                                       placeholder="Masalan: 60 000"
                                        class="form-control"
                                        style="background:rgba(255,255,255,0.06);border:1px solid var(--pw-border);color:var(--pw-text);border-radius:10px;padding:0.6rem 0.8rem;font-weight:700;font-size:1.05rem;">
                                 <span style="font-weight:700;color:var(--pw-muted);font-size:0.85rem;">so'm</span>
                             </div>
-                            <div style="font-size:0.75rem;color:var(--pw-muted);margin-top:0.35rem;">
-                                * Har {{ daily_fee|space_num }} so'm uchun taxminan 1 kunlik o'qish muddati qo'shiladi.
+                            <div style="font-size:0.75rem;color:var(--pw-muted);margin-top:0.35rem;" id="custom-calc-note">
+                                * Har {{ daily_fee|space_num }} so'm uchun 1 kunlik muddat beriladi. Ortiqcha mablag' balansingizda saqlanadi.
                             </div>
                         </div>
 
@@ -786,25 +786,36 @@ body {
     }
 
     function calculateDays(amount) {
-        if (!amount || amount <= 0) return '0 kun';
+        if (!amount || amount <= 0) return { text: '0 kun', remainder: 0 };
         const fullMonths = Math.floor(amount / monthlyFee);
-        const remainder = amount % monthlyFee;
-        const extraDays = Math.round((remainder * 30) / monthlyFee);
+        const remAfterMonths = amount % monthlyFee;
+        const extraDays = Math.round((remAfterMonths * 30) / monthlyFee);
+        const dayCost = monthlyFee / 30;
+        const usedForDays = Math.round(fullMonths * monthlyFee + (extraDays * dayCost));
+        const leftover = Math.max(0, amount - usedForDays);
+
         const parts = [];
         if (fullMonths > 0) parts.push(fullMonths + ' oy');
         if (extraDays > 0) parts.push(extraDays + ' kun');
         if (parts.length === 0) {
             const minDays = Math.max(1, Math.round((amount * 30) / monthlyFee));
-            return minDays + ' kun';
+            return { text: minDays + ' kun', remainder: leftover };
         }
-        return parts.join(' + ');
+        return { text: parts.join(' + '), remainder: leftover };
     }
 
     function updateDisplay(amount) {
         amount = parseInt(amount) || 0;
         if (amtHidden) amtHidden.value = amount;
         if (previewAmount) previewAmount.textContent = formatNumber(amount) + " so'm";
-        if (previewDays) previewDays.textContent = calculateDays(amount);
+        const res = calculateDays(amount);
+        if (previewDays) {
+            if (res.remainder > 0) {
+                previewDays.innerHTML = res.text + ' <span style="font-size:0.75rem;font-weight:normal;color:var(--pw-muted);">(qoldiq ' + formatNumber(res.remainder) + " so'm balansda qoladi)</span>";
+            } else {
+                previewDays.textContent = res.text;
+            }
+        }
         if (btnPayText) btnPayText.textContent = "Tezcheck orqali to'lash: " + formatNumber(amount) + " so'm";
     }
 

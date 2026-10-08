@@ -2649,7 +2649,15 @@ def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
         desc_parts.append(f"{extra_days} kun")
     desc = " + ".join(desc_parts)
 
-    return curr_date, total_days, int(amount), desc
+    # Hisoblangan kunlar uchun sarflanadigan haqiqiy summa (ortiqcha tiyinlar/qoldiq balansda qolishi uchun)
+    # Misol: 60 000 so'm kiritilganda 4 kunlik to'lov (masalan 53 333 so'm) yechiladi, qolgan ~6 667 so'm balansda qoladi.
+    # Agar to'liq oylar bo'lsa: full_months * monthly_fee + extra_days uchun qiymat
+    day_unit_cost = monthly_fee / Decimal('30')
+    actual_used_amount = int(full_months * monthly_fee + (extra_days * day_unit_cost))
+    if actual_used_amount > int(amount):
+        actual_used_amount = int(amount)
+
+    return curr_date, total_days, actual_used_amount, desc
 
 
 class StudentBalance(models.Model):
