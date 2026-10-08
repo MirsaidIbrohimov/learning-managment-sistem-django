@@ -71,69 +71,55 @@ def tezcheck_create_payment(request):
     if period_orders.filter(status=TezCheckPaymentOrder.STATUS_PAID).exists():
         messages.success(request, "Ushbu davr uchun to'lov qabul qilingan.")
         return redirect('payment_wall')
-    order = period_orders.first()
-    if order and order.status == TezCheckPaymentOrder.STATUS_PENDING and order.available_until and order.available_until <= timezone.now():
-        # Expiry of a bill does not prove the payment failed. Reconcile first
-        # because Tezcheck can report an expired bill that was already paid.
-        try:
-            state_data = fetch_bill(order.bill_id) if order.bill_id else {}
-        except TezCheckError as exc:
-            messages.warning(request, f"To'lov holati aniq emas: {exc}")
-            return redirect('student_payments')
-        bill = state_data.get('bill') or {}
-        payment = state_data.get('payment') or {}
-        if bill.get('external_reference') != order.external_reference:
-            order.status = TezCheckPaymentOrder.STATUS_REVIEW
-            order.last_error = 'Tezcheck bill tashqi raqami LMS buyurtmasiga mos emas.'
-            order.save(update_fields=['status', 'last_error', 'updated_at'])
-            messages.error(request, 'To‘lov buyrug‘i tekshiruvga yuborildi.')
-            return redirect('student_payments')
-        if bill.get('paid') is True and payment.get('state') == 'succeeded':
-            with transaction.atomic():
-                locked = TezCheckPaymentOrder.objects.select_for_update().get(pk=order.pk)
-                _apply_successful_payment(locked, {
-                    'amount_minor': payment.get('amount_minor'),
-                    'currency': payment.get('currency'),
-                    'environment': payment.get('environment'),
-                    'payment_id': payment.get('id'),
-                    'fee_minor': payment.get('fee_minor'),
-                    'net_minor': payment.get('net_minor'),
-                    'provider_code': payment.get('provider_code'),
-                })
-            order.refresh_from_db()
-            if order.status == TezCheckPaymentOrder.STATUS_PAID:
-                messages.success(request, "To'lov holati Tezcheck'dan tekshirildi va tasdiqlandi.")
-            else:
-                messages.warning(request, order.last_error or 'To‘lov hali jonli to‘lov sifatida tasdiqlanmadi.')
-            return redirect('student_payments')
-        if bill.get('state') in ('expired', 'revoked', 'exhausted'):
-            order.status = TezCheckPaymentOrder.STATUS_EXPIRED
-            order.last_error = "To'lov havolasi muddati tugagan."
-            order.save(update_fields=['status', 'last_error', 'updated_at'])
-        else:
-            messages.info(request, "To'lov hali yakunlanmagan. Hozirgi havola orqali davom eting.")
-            if order.payment_url:
-                return redirect(order.payment_url)
-            return redirect('student_payments')
-    if order and order.status == TezCheckPaymentOrder.STATUS_PENDING and order.payment_url:
-        return redirect(order.payment_url)
-    if order and order.status == TezCheckPaymentOrder.STATUS_REVIEW:
-        messages.warning(request, "To'lov buyurtmangiz administrator tekshiruvini kutmoqda.")
-        return redirect('student_payments')
-    if (
-        order and order.status == TezCheckPaymentOrder.STATUS_PENDING
-        and not order.bill_id and not order.payment_url
-        and order.created_at <= timezone.now() - timedelta(hours=23)
-    ):
-        order.status = TezCheckPaymentOrder.STATUS_REVIEW
-        order.last_error = 'API javobi noaniq qolgan; idempotency muddati tugashidan oldin admin tekshiruvi kerak.'
-        order.save(update_fields=['status', 'last_error', 'updated_at'])
-        messages.warning(request, "To'lov buyrug'i xavfsiz tekshiruv uchun administratorga yuborildi.")
-        return redirect('student_payments')
+    # Mavjud pending buyurtmani tekshiramiz
+    order = period_orders.filter(status=TezCheckPaymentOrder.STATUS_PENDING).first()
+    if order:
+        is_diff_amount = (order.amount_minor != amount_minor)
+        is_too_old = (order.created_at <= timezone.now() - timedelta(minutes=15))
+        is_expired_date = bool(order.available_until and order.available_until <= timezone.now())
 
-    # Reuse a pending order without a saved URL after an ambiguous network
-    # timeout. The stable Idempotency-Key lets Tezcheck return the first bill.
-    if not order or order.status != TezCheckPaymentOrder.STATUS_PENDING:
+        if is_diff_amount or is_too_old or is_expired_date:
+            # Eskirgan yoki summasi boshqa bo'lsa, eskirgan deb belgilab yangisini yaratamiz
+            order.status = TezCheckPaymentOrder.STATUS_EXPIRED
+            order.last_error = "Yangi to'lov so'rovi sababli eskirgan deb belgilandi."
+            order.save(update_fields=['status', 'last_error', 'updated_at'])
+            order = None
+        elif order.payment_url and order.bill_id:
+            # 15 daqiqa ichida yaratilgan bo'lsa, Tezcheck API orqali holatini aniqlaymiz
+            try:
+                state_data = fetch_bill(order.bill_id)
+                bill = state_data.get('bill') or {}
+                payment = state_data.get('payment') or {}
+                if bill.get('paid') is True and payment.get('state') == 'succeeded':
+                    with transaction.atomic():
+                        locked = TezCheckPaymentOrder.objects.select_for_update().get(pk=order.pk)
+                        _apply_successful_payment(locked, {
+                            'amount_minor': payment.get('amount_minor'),
+                            'currency': payment.get('currency'),
+                            'environment': payment.get('environment'),
+                            'payment_id': payment.get('id'),
+                            'fee_minor': payment.get('fee_minor'),
+                            'net_minor': payment.get('net_minor'),
+                            'provider_code': payment.get('provider_code'),
+                        })
+                    messages.success(request, "To'lov allaqachon tasdiqlangan!")
+                    return redirect('student_payments')
+                elif bill.get('state') in ('expired', 'revoked', 'exhausted', 'canceled'):
+                    order.status = TezCheckPaymentOrder.STATUS_EXPIRED
+                    order.last_error = f"TezCheck bill holati: {bill.get('state')}"
+                    order.save(update_fields=['status', 'last_error', 'updated_at'])
+                    order = None
+                else:
+                    # Havola haqiqatan ham hali mavjud va faol
+                    return redirect(order.payment_url)
+            except Exception:
+                # API xatosi bo'lsa (masalan bill topilmadi yoki token yangilangan), eski havolani tashlab yangi yaratamiz
+                order.status = TezCheckPaymentOrder.STATUS_EXPIRED
+                order.save(update_fields=['status', 'updated_at'])
+                order = None
+
+    # Yangi buyurtma yaratish
+    if not order:
         attempt = period_orders.count() + 1
         external_ref = f'LMS-{user.pk}-{year}{month:02d}-{attempt}'
         try:
@@ -145,7 +131,6 @@ def tezcheck_create_payment(request):
                 amount_minor=amount_minor,
             )
         except IntegrityError:
-            # Two simultaneous clicks chose the same attempt number.
             order = get_object_or_404(TezCheckPaymentOrder, external_reference=external_ref, student=user)
 
     return_url = settings.TEZCHECK_RETURN_URL or request.build_absolute_uri(reverse('tezcheck_return'))
