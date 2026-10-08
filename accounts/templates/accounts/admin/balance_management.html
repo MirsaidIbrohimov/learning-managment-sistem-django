@@ -666,6 +666,11 @@ document.getElementById('topupForm').addEventListener('submit', async function(e
                 balEl.textContent = fmtNum(data.new_balance) + ' so\'m';
                 balEl.className = 'bm-balance ' + (data.new_balance === 0 ? 'zero' : 'ok');
             }
+            // Update next payment date in table if changed
+            if (data.next_payment_date) {
+                const dateEl = document.getElementById('date-' + currentStudentId);
+                if (dateEl) dateEl.textContent = data.next_payment_date;
+            }
             // Update status badge if auto-unblocked
             if (data.auto_unblocked) {
                 const row = document.getElementById('row-' + currentStudentId);

@@ -2631,10 +2631,17 @@ def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
     full_months = int(amount // monthly_fee)
     remainder = amount % monthly_fee
 
+    # 1 kunlik narx (oyiga 30 kun hisobida)
+    day_unit_cost = monthly_fee / Decimal('30')
+
     for _ in range(full_months):
         curr_date = _balance_add_one_month(curr_date)
 
-    extra_days = int(round((remainder * Decimal('30')) / monthly_fee))
+    # Muhim: round() o'rniga int() (butun qism) olinadi!
+    # Masalan: 400 000 oylik to'lovda 1 kunlik qiymat ~13 333 so'm.
+    # Agar 4 000 so'm kiritilsa, 4000 // 13333 = 0 kun bo'ladi, 1 kunga ham yetmagani uchun
+    # hech qanday kun qo'shilmaydi va pul balansda tegilmasdan saqlanadi.
+    extra_days = int((remainder * Decimal('30')) // monthly_fee) if monthly_fee > 0 else 0
     if extra_days > 0:
         curr_date = curr_date + timedelta(days=extra_days)
 
@@ -2649,10 +2656,7 @@ def calculate_extension_from_amount(amount, monthly_fee, base_date=None):
         desc_parts.append(f"{extra_days} kun")
     desc = " + ".join(desc_parts)
 
-    # Hisoblangan kunlar uchun sarflanadigan haqiqiy summa (ortiqcha tiyinlar/qoldiq balansda qolishi uchun)
-    # Misol: 60 000 so'm kiritilganda 4 kunlik to'lov (masalan 53 333 so'm) yechiladi, qolgan ~6 667 so'm balansda qoladi.
-    # Agar to'liq oylar bo'lsa: full_months * monthly_fee + extra_days uchun qiymat
-    day_unit_cost = monthly_fee / Decimal('30')
+    # Hisoblangan kunlar uchun sarflanadigan haqiqiy summa (ortiqcha summa balansda qolishi uchun)
     actual_used_amount = int(full_months * monthly_fee + (extra_days * day_unit_cost))
     if actual_used_amount > int(amount):
         actual_used_amount = int(amount)
@@ -2675,10 +2679,18 @@ class StudentBalance(models.Model):
         max_digits=14, decimal_places=0, default=0,
         verbose_name="Balans (so'm)"
     )
-    # Shartnoma rejimi: True bo'lsa oylik yechilmaydi va balans sahifasida ko'rinmaydi
+    # Shartnoma rejimi: True bo'lsa oylik yechilmaydi va o'quvchi avtomatik bloklanmaydi
     is_contract = models.BooleanField(
         default=False,
         verbose_name="Shartnoma rejimi"
+    )
+    contract_name = models.CharField(
+        max_length=150, blank=True, default='',
+        verbose_name="Shartnoma nomi (masalan: PQ-9)"
+    )
+    contract_amount = models.DecimalField(
+        max_digits=14, decimal_places=0, default=0,
+        verbose_name="Shartnomadan keladigan summa (so'm)"
     )
     # Keyingi to'lov sanasi — shu sana kelganda user avtomatik bloklanadi
     next_payment_date = models.DateField(

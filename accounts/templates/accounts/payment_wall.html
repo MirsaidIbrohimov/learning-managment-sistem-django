@@ -789,7 +789,7 @@ body {
         if (!amount || amount <= 0) return { text: '0 kun', remainder: 0 };
         const fullMonths = Math.floor(amount / monthlyFee);
         const remAfterMonths = amount % monthlyFee;
-        const extraDays = Math.round((remAfterMonths * 30) / monthlyFee);
+        const extraDays = Math.floor((remAfterMonths * 30) / monthlyFee);
         const dayCost = monthlyFee / 30;
         const usedForDays = Math.round(fullMonths * monthlyFee + (extraDays * dayCost));
         const leftover = Math.max(0, amount - usedForDays);
@@ -798,8 +798,7 @@ body {
         if (fullMonths > 0) parts.push(fullMonths + ' oy');
         if (extraDays > 0) parts.push(extraDays + ' kun');
         if (parts.length === 0) {
-            const minDays = Math.max(1, Math.round((amount * 30) / monthlyFee));
-            return { text: minDays + ' kun', remainder: leftover };
+            return { text: '0 kun (kamida ' + formatNumber(Math.round(dayCost)) + " so'm kerak)", remainder: amount };
         }
         return { text: parts.join(' + '), remainder: leftover };
     }

@@ -18131,6 +18131,7 @@ def admin_balance_topup(request, student_id):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             from django.http import JsonResponse
             balance.refresh_from_db()
+            next_date_fmt = balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None
             return JsonResponse({
                 'success': True,
                 'new_balance': int(balance.amount),
@@ -18139,6 +18140,7 @@ def admin_balance_topup(request, student_id):
                 'student_name': student.full_name,
                 'amount': amount,
                 'amount_fmt': f"{amount:,}".replace(',', ' '),
+                'next_payment_date': next_date_fmt,
             })
 
         if auto_unblocked:
