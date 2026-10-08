@@ -17898,6 +17898,13 @@ def _balance_sweep_overdue():
         # Dashboard moliya keshini yangilaymiz — qarzdorlik darhol to'g'ri chiqsin
         cache.delete('admin_finance_stats')
 
+    # Har kuni o'quvchilarga to'lov sanasidan 3, 2, 1 kun oldin Telegram botdan eslatma yuborish
+    try:
+        from telegram_bot.utils import notify_payment_reminders
+        notify_payment_reminders()
+    except Exception:
+        pass
+
 
 def _balance_management_context(request):
     """
@@ -17990,6 +17997,12 @@ def _balance_management_context(request):
     total_balance = StudentBalance.objects.filter(
         is_contract=False, user__role='student', user__is_finished=False
     ).aggregate(t=Sum('amount'))['t'] or 0
+
+    # Shartnomalardan keladigan umumiy summa
+    total_contract_sum = StudentBalance.objects.filter(
+        is_contract=True, user__is_finished=False
+    ).aggregate(t=Sum('contract_amount'))['t'] or 0
+
     topup_today = BalanceTopUp.objects.filter(
         created_at__date=today, operation='add'
     ).aggregate(t=Sum('amount'))['t'] or 0
@@ -18022,6 +18035,8 @@ def _balance_management_context(request):
         'view': view,
         'filter': flt,
         'total_balance': total_balance,
+        'total_contract_sum': total_contract_sum,
+        'total_all_sum': total_balance + total_contract_sum,
         'topup_today': topup_today,
         'blocked_count': blocked_count,
         'contract_count': contract_count,
@@ -18244,6 +18259,9 @@ def admin_balance_history(request, student_id):
         'monthly_fee': int(ps.monthly_fee or 0),
         'monthly_fee_fmt': f"{int(ps.monthly_fee or 0):,}".replace(',', ' '),
         'is_contract': balance.is_contract,
+        'contract_name': balance.contract_name or '',
+        'contract_amount': int(balance.contract_amount or 0),
+        'contract_amount_fmt': f"{int(balance.contract_amount or 0):,}".replace(',', ' '),
         'next_payment_date': balance.next_payment_date.strftime('%d.%m.%Y') if balance.next_payment_date else None,
         'topups': [
             {
@@ -18294,19 +18312,31 @@ def admin_balance_set_fee(request, student_id):
     mode = request.POST.get('mode', 'amount')
 
     if mode == 'contract':
+        contract_name = request.POST.get('contract_name', '').strip()[:150]
+        contract_amount_raw = request.POST.get('contract_amount', '0').replace(' ', '').replace(',', '')
+        try:
+            contract_amount = int(float(contract_amount_raw))
+            if contract_amount < 0:
+                contract_amount = 0
+        except (ValueError, TypeError):
+            contract_amount = 0
+
         balance.is_contract = True
+        balance.contract_name = contract_name
+        balance.contract_amount = contract_amount
         balance.next_payment_date = None
-        balance.save(update_fields=['is_contract', 'next_payment_date'])
+        balance.save(update_fields=['is_contract', 'contract_name', 'contract_amount', 'next_payment_date', 'updated_at'])
         ps.save()
         # Shartnoma rejimidagi o'quvchining oylik to'lovga umuman aloqasi
-        # bo'lmasligi kerak. To'lanmagan oylik yozuvlarini o'chiramiz — aks holda
-        # ular oylik to'lovlar sahifasi/eslatma/hisobotlarda "To'lanmagan" bo'lib
-        # ko'rinishda davom etadi. To'langan (haqiqiy) tarix saqlab qolinadi.
+        # bo'lmasligi kerak. To'lanmagan oylik yozuvlarini o'chiramiz.
         from .models import PaymentRecord
         PaymentRecord.objects.filter(user=student, is_paid=False).delete()
         return JsonResponse({
             'success': True,
             'mode': 'contract',
+            'contract_name': balance.contract_name,
+            'contract_amount': int(balance.contract_amount),
+            'contract_amount_fmt': f"{int(balance.contract_amount):,}".replace(',', ' '),
             'fee': 0,
         })
 

@@ -564,8 +564,8 @@ def notify_payment_reminders():
     except Exception:
         pass
 
-    # Muddatdan 3..1 kun oldin va 1/3 kun o'tganda eslatma yuboriladi.
-    target_dates = [today + timedelta(days=d) for d in (1, 2, 3, -1, -3)]
+    # Muddatdan 3, 2, 1 kun oldin, to'lov kuni (0) va 1/3 kun o'tganda eslatma yuboriladi.
+    target_dates = [today + timedelta(days=d) for d in (0, 1, 2, 3, -1, -3)]
 
     balances = StudentBalance.objects.filter(
         is_contract=False,
@@ -594,11 +594,13 @@ def notify_payment_reminders():
             )
 
         sid = getattr(student, 'student_id', None) or '-'
-        timing_text = (
-            f"⏰ To'lov muddati <b>{abs(days_left)} kun o'tdi</b> ({bal.next_payment_date.strftime('%d.%m.%Y')})"
-            if days_left < 0 else
-            f"⏳ To'lov sanasiga <b>{days_left} kun</b> qoldi ({bal.next_payment_date.strftime('%d.%m.%Y')})"
-        )
+        if days_left < 0:
+            timing_text = f"⏰ To'lov muddati <b>{abs(days_left)} kun o'tdi</b> ({bal.next_payment_date.strftime('%d.%m.%Y')})"
+        elif days_left == 0:
+            timing_text = f"⏰ Bugun to'lovning <b>so'nggi kuni!</b> ({bal.next_payment_date.strftime('%d.%m.%Y')})"
+        else:
+            timing_text = f"⏳ To'lov sanasiga <b>{days_left} kun</b> qoldi ({bal.next_payment_date.strftime('%d.%m.%Y')})"
+
         text = (
             "\U0001f514 <b>To'lov eslatmasi</b>\n\n"
             f"\U0001f194 ID: <b>{sid}</b>\n"
@@ -606,7 +608,8 @@ def notify_payment_reminders():
             f"{timing_text}\n"
             f"\U0001f4b3 Joriy balans: <b>{_fmt_som(bal.amount)}</b>\n"
             f"\U0001f4cc Oylik to'lov: <b>{_fmt_som(monthly_fee)}</b>\n\n"
-            f"{status_line}"
+            f"{status_line}\n\n"
+            "🌐 <b>Onlayn to'lov qilish:</b> https://itc-academy.uz/tolov/"
         )
         notify_user(student.telegram_id, text)
         count += 1

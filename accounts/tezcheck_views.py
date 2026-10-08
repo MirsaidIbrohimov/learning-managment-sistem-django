@@ -274,6 +274,41 @@ def _apply_successful_payment(order, data):
         message_type='system', recipient=order.student,
     )
 
+    # Telegram bot orqali adminga va o'quvchiga bildirishnoma
+    try:
+        from telegram_bot.utils import notify_admins, notify_user
+        student = order.student
+        sid = getattr(student, 'student_id', '') or student.username
+        s_name = getattr(student, 'full_name', '') or student.username
+        amt_fmt = f"{order.amount_som:,}".replace(",", " ")
+        paid_dt_str = timezone.localtime(order.paid_at).strftime('%d.%m.%Y %H:%M') if order.paid_at else ''
+        prov_label = order.provider_code or 'TezCheck'
+
+        admin_txt = (
+            "💳 <b>Yangi onlayn to'lov qabul qilindi!</b>\n\n"
+            f"👤 O'quvchi: <b>{s_name}</b> (ID: #{sid})\n"
+            f"💰 Summa: <b>{amt_fmt} so'm</b>\n"
+            f"📅 To'lov oyi: <b>{order.billing_month:02d}/{order.billing_year}</b>\n"
+            f"🌐 Tizim: <b>TezCheck ({prov_label})</b>\n"
+            f"🆔 Buyurtma: <code>{order.external_reference}</code>\n"
+            f"⏰ Vaqt: <b>{paid_dt_str}</b>"
+        )
+        notify_admins(admin_txt)
+
+        if getattr(student, 'telegram_id', None):
+            user_txt = (
+                "✅ <b>To'lovingiz muvaffaqiyatli qabul qilindi!</b>\n\n"
+                f"👤 O'quvchi: <b>{s_name}</b>\n"
+                f"💰 Summa: <b>{amt_fmt} so'm</b>\n"
+                f"📅 To'lov oyi: <b>{order.billing_month:02d}/{order.billing_year}</b>\n"
+                f"🌐 Tizim: <b>TezCheck ({prov_label})</b>\n"
+                f"🆔 Buyurtma: <code>{order.external_reference}</code>\n\n"
+                "Rahmat, o'qishlaringizda omad tilaymiz!"
+            )
+            notify_user(student.telegram_id, user_txt)
+    except Exception:
+        pass
+
 
 def _apply_refund(order, data, *, partial=False):
     """Remove paid-month status after a full refund; flag partial refunds."""

@@ -2737,6 +2737,7 @@ class StudentBalance(models.Model):
                 monthly_fee = (ps.monthly_fee if ps else 0) or 200000
 
                 charged = False
+                initial_amount = bal.amount
                 guard = 0
                 while bal.next_payment_date and bal.next_payment_date <= today and guard < 24:
                     guard += 1
@@ -2791,6 +2792,39 @@ class StudentBalance(models.Model):
                         ps.auto_blocked = False
                         ps.paid_until = bal.next_payment_date
                         ps.save()
+
+                    # Avto-to'lov haqida adminga va o'quvchiga Telegram bot orqali bildirishnoma
+                    try:
+                        from telegram_bot.utils import notify_admins, notify_user
+                        student = bal.user
+                        s_name = getattr(student, 'full_name', '') or student.username
+                        sid = getattr(student, 'student_id', '') or student.username
+                        next_dt_str = bal.next_payment_date.strftime('%d.%m.%Y') if bal.next_payment_date else '—'
+                        deducted = initial_amount - bal.amount
+                        charged_fmt = f"{int(deducted):,}".replace(",", " ")
+                        rem_fmt = f"{int(bal.amount):,}".replace(",", " ")
+
+                        admin_txt = (
+                            "🔄 <b>Balansdan avto-to'lov yechildi!</b>\n\n"
+                            f"👤 O'quvchi: <b>{s_name}</b> (ID: #{sid})\n"
+                            f"💰 Yechilgan summa: <b>{charged_fmt} so'm</b>\n"
+                            f"📅 Keyingi to'lov sanasi: <b>{next_dt_str}</b>\n"
+                            f"💳 Qolgan balans: <b>{rem_fmt} so'm</b>"
+                        )
+                        notify_admins(admin_txt)
+
+                        if getattr(student, 'telegram_id', None):
+                            user_txt = (
+                                "🔄 <b>Oylik to'lov balansingizdan yechildi!</b>\n\n"
+                                f"👤 O'quvchi: <b>{s_name}</b>\n"
+                                f"💰 Yechilgan summa: <b>{charged_fmt} so'm</b>\n"
+                                f"📅 Keyingi to'lov sanangiz: <b>{next_dt_str}</b>\n"
+                                f"💳 Qolgan balansingiz: <b>{rem_fmt} so'm</b>\n\n"
+                                "Ta'limingiz muvaffaqiyatli uzaytirildi!"
+                            )
+                            notify_user(student.telegram_id, user_txt)
+                    except Exception:
+                        pass
 
                 # Hali ham muddat o'tgan bo'lsa → balans yetmadi → bloklash kerak
                 if bal.next_payment_date and bal.next_payment_date <= today:

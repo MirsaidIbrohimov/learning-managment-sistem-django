@@ -227,11 +227,11 @@
 <div class="bm-page">
 
     <!-- Stats -->
-    <div class="bm-stats">
+    <div class="bm-stats" style="grid-template-columns:repeat(4,1fr);">
         <div class="bm-stat c-indigo">
             <div class="bm-si c-indigo"><i class="bi bi-wallet2"></i></div>
             <div class="bm-sn">{{ total_balance|space_num }}</div>
-            <div class="bm-sl">Umumiy balans (so'm)</div>
+            <div class="bm-sl">Oddiy o'quvchilar balansi (so'm)</div>
         </div>
         <div class="bm-stat c-green">
             <div class="bm-si c-green"><i class="bi bi-plus-circle"></i></div>
@@ -242,6 +242,11 @@
             <div class="bm-si c-red"><i class="bi bi-lock-fill"></i></div>
             <div class="bm-sn">{{ blocked_count }}</div>
             <div class="bm-sl">Bloklangan o'quvchilar</div>
+        </div>
+        <div class="bm-stat" style="border-top-color:#f59e0b;">
+            <div class="bm-si" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="bi bi-file-earmark-text"></i></div>
+            <div class="bm-sn">{{ total_contract_sum|space_num }}</div>
+            <div class="bm-sl">Shartnomalar summasi ({{ contract_count }} ta)</div>
         </div>
     </div>
 
@@ -323,16 +328,29 @@
                         </td>
                         <td style="color:var(--yo-text-muted);" id="fee-cell-{{ student.pk }}">
                             <span id="fee-{{ student.pk }}">
-                                {% if student.student_balance.is_contract %}Shartnoma{% elif student.payment_status %}{{ student.payment_status.monthly_fee|space_num }} so'm{% else %}200 000 so'm{% endif %}
+                                {% if student.student_balance.is_contract %}
+                                    <span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;font-size:.78rem;font-weight:700;">
+                                        <i class="bi bi-file-earmark-text"></i> {{ student.student_balance.contract_name|default:"Shartnoma" }}
+                                    </span>
+                                    {% if student.student_balance.contract_amount %}
+                                        <div style="font-size:.75rem;color:#10b981;font-weight:700;margin-top:2px;">
+                                            +{{ student.student_balance.contract_amount|space_num }} so'm
+                                        </div>
+                                    {% endif %}
+                                {% elif student.payment_status %}
+                                    {{ student.payment_status.monthly_fee|space_num }} so'm
+                                {% else %}
+                                    200 000 so'm
+                                {% endif %}
                             </span>
                             <button class="bm-fee-btn ms-1" title="To'lov sozla"
-                                onclick="openFeeModal({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }}, '{% if student.student_balance.next_payment_date %}{{ student.student_balance.next_payment_date|date:"Y-m-d" }}{% endif %}')">
+                                onclick="openFeeModal({{ student.pk }}, '{{ student.full_name|escapejs }}', {{ student.payment_status.monthly_fee|default:200000 }}, '{% if student.student_balance.next_payment_date %}{{ student.student_balance.next_payment_date|date:"Y-m-d" }}{% endif %}', {% if student.student_balance.is_contract %}true{% else %}false{% endif %}, '{{ student.student_balance.contract_name|default:""|escapejs }}', {{ student.student_balance.contract_amount|default:0 }})">
                                 <i class="bi bi-pencil-fill"></i>
                             </button>
                         </td>
                         <td style="font-size:.78rem;color:var(--yo-text-muted);" id="date-{{ student.pk }}">
                             {% if student.student_balance.is_contract %}
-                                <span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#fbbf24;">Shartnoma</span>
+                                <span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#fbbf24;">Shartnoma (Avto-blok yo'q)</span>
                             {% elif student.student_balance.next_payment_date %}
                                 {{ student.student_balance.next_payment_date|date:"d.m.Y" }}
                                 {% if student.pay_state == 'overdue' %}<span class="bm-pay-badge overdue">Muddati o'tgan</span>
@@ -495,9 +513,22 @@
                 </div>
             </div>
             <div id="feeModeContract" style="display:none;">
-                <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:1rem;margin-bottom:12px;font-size:.86rem;color:#86efac;">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Shartnoma rejimida oylik to'lov yechilmaydi va Balans Boshqaruvi sahifasida ko'rinmaydi.
+                <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:.85rem;margin-bottom:12px;font-size:.84rem;color:#fbbf24;">
+                    <i class="bi bi-shield-check me-1"></i>
+                    <strong>Shartnoma rejimi:</strong> O'quvchidan oylik to'lov olinmaydi va tizim uni <strong>avtomatik bloklamaydi</strong>.
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:4px;">Shartnoma nomi</label>
+                    <input type="text" id="contractNameInput" name="contract_name" placeholder="Masalan: PQ-9 shartnoma, Grant..."
+                           style="background:var(--yo-input-bg);border:2px solid var(--yo-border);color:var(--yo-input-text);border-radius:12px;padding:.55rem .9rem;width:100%;font-size:.9rem;outline:none;">
+                </div>
+                <div style="margin-bottom:6px;">
+                    <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:4px;">Shartnomadan keladigan summa (so'm)</label>
+                    <input type="number" id="contractAmountInput" name="contract_amount" placeholder="Masalan: 3500000" min="0"
+                           style="background:var(--yo-input-bg);border:2px solid var(--yo-border);color:var(--yo-input-text);border-radius:12px;padding:.55rem .9rem;width:100%;font-size:.9rem;outline:none;">
+                    <div style="font-size:.74rem;color:var(--yo-text-muted);margin-top:3px;">
+                        * Ushbu summa Balans Boshqaruvi statistikasida shartnomalardan umumiy tushum sifatida hisoblanadi.
+                    </div>
                 </div>
             </div>
             <div id="feeDateSection">
@@ -706,12 +737,19 @@ function _updateFeeTabStyles(activeMode) {
         b.style.color      = isActive ? '#fff' : '#64748b';
     });
 }
-function openFeeModal(id, name, currentFee, currentDate) {
+function openFeeModal(id, name, currentFee, currentDate, isContract, contractName, contractAmount) {
     feeStudentId = id;
     document.getElementById('feeStudentName').textContent = name;
     document.getElementById('feeInput').value = currentFee || 200000;
     document.getElementById('feeDateInput').value = currentDate || '';
-    toggleFeeMode('amount');
+    document.getElementById('contractNameInput').value = contractName || '';
+    document.getElementById('contractAmountInput').value = contractAmount || '';
+
+    if (isContract) {
+        toggleFeeMode('contract');
+    } else {
+        toggleFeeMode('amount');
+    }
     document.getElementById('feeModal').classList.add('show');
 }
 function closeFeeModal() {
@@ -746,9 +784,15 @@ document.getElementById('feeForm').addEventListener('submit', async function(e) 
             const feeEl  = document.getElementById('fee-'  + feeStudentId);
             const dateEl = document.getElementById('date-' + feeStudentId);
             if (data.mode === 'contract') {
-                if (feeEl)  feeEl.textContent = 'Shartnoma';
-                if (dateEl) dateEl.textContent = '—';
-                showToast('success', '✅ Shartnoma rejimi belgilandi');
+                if (feeEl) {
+                    const cName = data.contract_name || 'Shartnoma';
+                    const cAmtHtml = data.contract_amount > 0 ? `<div style="font-size:.75rem;color:#10b981;font-weight:700;margin-top:2px;">+${data.contract_amount_fmt} so'm</div>` : '';
+                    feeEl.innerHTML = `<span class="badge" style="background:rgba(245,158,11,.15);color:#d97706;font-size:.78rem;font-weight:700;"><i class="bi bi-file-earmark-text"></i> ${cName}</span>${cAmtHtml}`;
+                }
+                if (dateEl) {
+                    dateEl.innerHTML = '<span class="bm-pay-badge" style="background:rgba(245,158,11,.14);color:#f59e0b;">Shartnoma (Avto-blok yo\'q)</span>';
+                }
+                showToast('success', `✅ Shartnoma rejimi belgilandi: ${data.contract_name || 'Shartnoma'}` + (data.contract_amount > 0 ? ` (${data.contract_amount_fmt} so'm)` : ''));
             } else {
                 if (feeEl)  feeEl.textContent = fmtNum(data.fee) + ' so\'m';
                 if (dateEl && data.next_payment_date) dateEl.textContent = data.next_payment_date;

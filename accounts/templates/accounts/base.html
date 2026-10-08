@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="uz" data-bs-theme="light">
 
 <head>
@@ -1387,6 +1387,49 @@
     {% endif %}
 
     <main class="main-container">
+        {% if student_payment_reminder %}
+        <div class="container-xl px-3 pt-3 mb-2" id="studentPayBannerWrap">
+            <div class="alert d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 rounded-4 shadow-sm position-relative" id="studentPayBanner" style="background:{% if student_payment_reminder.is_enough %}linear-gradient(135deg, rgba(16,185,129,0.12), rgba(59,130,246,0.12)){% else %}linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.12)){% endif %}; border:1px solid {% if student_payment_reminder.is_enough %}rgba(16,185,129,0.3){% else %}rgba(245,158,11,0.35){% endif %};">
+                <div class="d-flex align-items-center gap-3">
+                    <div style="width:42px;height:42px;border-radius:12px;background:{% if student_payment_reminder.is_enough %}rgba(16,185,129,0.2){% else %}rgba(245,158,11,0.25){% endif %};color:{% if student_payment_reminder.is_enough %}#10b981{% else %}#d97706{% endif %};display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0;">
+                        <i class="bi {% if student_payment_reminder.is_enough %}bi-shield-check{% else %}bi-exclamation-triangle-fill{% endif %}"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold" style="color:var(--bs-heading-color, #0f172a);font-size:0.92rem;">
+                            {% if student_payment_reminder.is_enough %}
+                                To'lov eslatmasi · Balansingizda mablag' yetarli
+                            {% else %}
+                                ⚠️ Oylik to'lov muddati yaqinlashmoqda!
+                            {% endif %}
+                        </div>
+                        <div class="small" style="color:var(--bs-body-color, #334155);opacity:.9;margin-top:2px;">
+                            {% if student_payment_reminder.days_left < 0 %}
+                                To'lov muddati <b>{{ student_payment_reminder.days_left|stringformat:"d"|slice:"1:" }} kun o'tdi</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
+                            {% elif student_payment_reminder.days_left == 0 %}
+                                Bugun to'lovning <b>so'nggi kuni!</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
+                            {% else %}
+                                To'lov sanasiga <b>{{ student_payment_reminder.days_left }} kun qoldi</b> ({{ student_payment_reminder.due_date|date:'d.m.Y' }}).
+                            {% endif %}
+                            Joriy balans: <b>{{ student_payment_reminder.balance|floatformat:0 }} so'm</b>
+                            {% if not student_payment_reminder.is_enough %}
+                                · Yana <b class="text-danger">{{ student_payment_reminder.needed|floatformat:0 }} so'm</b> kerak.
+                            {% else %}
+                                · Mablag' o'z vaqtida avtomatik yechiladi.
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 ms-auto">
+                    {% if not student_payment_reminder.is_enough %}
+                    <a href="{% url 'payment_wall' %}" class="btn btn-sm fw-bold px-3 py-2 rounded-3 text-white" style="background:linear-gradient(135deg, #2563eb, #1d4ed8);box-shadow:0 4px 12px rgba(37,99,235,.25);white-space:nowrap;">
+                        <i class="bi bi-credit-card me-1"></i>To'lov qilish
+                    </a>
+                    {% endif %}
+                    <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('studentPayBannerWrap').style.display='none';"></button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 

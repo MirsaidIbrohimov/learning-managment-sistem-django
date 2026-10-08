@@ -79,3 +79,45 @@ def admin_badges(request):
     }
     cache.set(cache_key, badges, 120)
     return badges
+
+
+def student_payment_reminder(request):
+    """
+    O'quvchi saytga kirganda to'lov sanasi yaqinlashgani haqida ogohlantirish.
+    To'lov sanasiga 3 kun yoki undan kam qolgan (yoki muddati o'tgan) bo'lsa,
+    foydalanuvchiga eslatma ko'rsatish uchun ma'lumot beradi.
+    Shartnomadagi o'quvchilarga ko'rsatilmaydi.
+    """
+    user = getattr(request, "user", None)
+    if not user or not user.is_authenticated or getattr(user, "role", "") != "student":
+        return {}
+
+    from datetime import date
+    from .models import StudentBalance, PaymentStatus
+
+    bal = StudentBalance.objects.filter(user=user).first()
+    if not bal or bal.is_contract or not bal.next_payment_date:
+        return {}
+
+    today = date.today()
+    days_left = (bal.next_payment_date - today).days
+
+    # 3 kundan ko'p qolgan bo'lsa eslatma shart emas
+    if days_left > 3:
+        return {}
+
+    ps = PaymentStatus.objects.filter(user=user).first()
+    monthly_fee = (ps.monthly_fee if ps else 0) or 200000
+    enough_balance = bal.amount >= monthly_fee
+
+    return {
+        'student_payment_reminder': {
+            'days_left': days_left,
+            'due_date': bal.next_payment_date,
+            'balance': bal.amount,
+            'monthly_fee': monthly_fee,
+            'is_enough': enough_balance,
+            'needed': max(0, monthly_fee - bal.amount),
+        }
+    }
+
