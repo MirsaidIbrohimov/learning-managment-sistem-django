@@ -359,7 +359,7 @@ def issue_course_certificate(student, profession, issued_by=None):
                 f"   ⏳ Amal qilish muddati: {cert.valid_until.strftime('%d.%m.%Y')}\n\n"
                 f"📜 Sertifikatingizni kurs sahifasidan yoki profilingizdagi "
                 f"\"Sertifikatlarim\" bo'limidan yuklab olishingiz mumkin.\n\n"
-                f"💜 Hurmat bilan,\nIT Shaharcha jamoasi"
+                f"💜 Hurmat bilan,\nIT Creative jamoasi"
             ),
             message_type='achievement',
         )

@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════
-   IT SHAHARCHA — REAL-TIME BILDIRISHNOMA MOTORI
+   IT Creative — REAL-TIME BILDIRISHNOMA MOTORI
    Barcha sahifalarda ishlaydi (base.html'ga ulangan).
 
    Loyihada websocket yo'q (ASGI/Channels/Redis o'rnatilmagan), shuning

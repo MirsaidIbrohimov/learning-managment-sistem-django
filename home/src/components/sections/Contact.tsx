@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Phone, Mail, MapPin, Send, MessageCircle, Instagram, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -82,7 +82,7 @@ const Contact = () => {
             {[
               { icon: Phone, label: "Telefon", value: "+998 97 521 66 86", sub: "Dush-Shan, 09:00-19:00" },
               { icon: Mail, label: "Email", value: "itpark0071@gmail.com", sub: "24/7 javob beramiz" },
-              { icon: MapPin, label: "Manzil", value: "Zomin IT Park, IT Shaharcha", sub: "Jizzax viloyati, Zomin tumani" },
+              { icon: MapPin, label: "Manzil", value: "Zomin IT Park, IT Creative", sub: "Jizzax viloyati, Zomin tumani" },
             ].map((c) => (
               <div key={c.label} className="group flex items-start gap-4 p-5 rounded-2xl glass hover:border-primary/40 transition-all">
                 <div className="w-12 h-12 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow shrink-0 group-hover:scale-110 transition-transform">
@@ -100,7 +100,7 @@ const Contact = () => {
               {[
                 { Icon: MessageCircle, href: "https://t.me/husanbek_coder", label: "Telegram" },
                 { Icon: Send, href: "https://t.me/husanbek_coder", label: "Telegram channel" },
-                { Icon: Instagram, href: "https://instagram.com/it_Shaharcha_zomin", label: "Instagram" },
+                { Icon: Instagram, href: "https://instagram.com/itc.academy", label: "Instagram" },
               ].map((s) => (
                 <a
                   key={s.label}

@@ -1,5 +1,5 @@
 """
-IT Shaharcha — Keng qamrovli xavfsizlik moduli
+IT Creative — Keng qamrovli xavfsizlik moduli
 ================================================
 • Rate limiting   — IP + identifier asosida, har bir endpoint uchun
 • IP bloklash     — qora ro'yxat (cache-based, avtomatik va qo'lda)

@@ -1650,7 +1650,7 @@ class ITShaharchaApplicationTests(TestCase):
         self.assertEqual(app.age, 14)
         self.assertEqual(app.neighborhood, 'Oqtepa')
         self.assertTrue(app.is_shaharcha)
-        self.assertEqual(app.course_interest, 'Kompyuter savodxonligi (IT Shaharcha)')
+        self.assertEqual(app.course_interest, 'Kompyuter savodxonligi (IT Creative)')
 
     def test_admin_applications_filtering(self):
         # Create normal application
@@ -1661,7 +1661,7 @@ class ITShaharchaApplicationTests(TestCase):
         # Create shaharcha application
         CourseApplication.objects.create(
             first_name='Shaharcha', last_name='User', phone='+998902222222',
-            course_interest='Kompyuter savodxonligi (IT Shaharcha)',
+            course_interest='Kompyuter savodxonligi (IT Creative)',
             school_number='10-maktab', age=15, neighborhood='Birlik',
             is_shaharcha=True
         )
@@ -1686,7 +1686,7 @@ class ITShaharchaApplicationTests(TestCase):
     def test_excel_export_access_and_format(self):
         CourseApplication.objects.create(
             first_name='Shaharcha', last_name='User', phone='+998902222222',
-            course_interest='Kompyuter savodxonligi (IT Shaharcha)',
+            course_interest='Kompyuter savodxonligi (IT Creative)',
             school_number='10-maktab', age=15, neighborhood='Birlik',
             is_shaharcha=True
         )

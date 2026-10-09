@@ -327,6 +327,8 @@ urlpatterns = [
     
     # Ariza
     path('ariza/', views.ariza_view, name='ariza'),
+    path('qabul-it-creative/', views.qabul_it_shaharcha_view, name='qabul_it_creative'),
+    # Keep the previous URL available for existing links while promoting the new brand URL.
     path('qabul-it-shaharcha/', views.qabul_it_shaharcha_view, name='qabul_it_shaharcha'),
     path('dashboard/applications/', views.admin_applications, name='admin_applications'),
     path('dashboard/applications/excel-shaharcha/', views.export_shaharcha_applications_excel, name='export_shaharcha_applications_excel'),

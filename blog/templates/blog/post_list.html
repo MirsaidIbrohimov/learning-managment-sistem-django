@@ -1,6 +1,27 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
-{% block title %}Blog Postlar — IT Shaharcha{% endblock %}
+{% block title %}IT blog: dasturlash va texnologiya maqolalari — IT Creative Academy{% endblock %}
+{% block meta_description %}IT Creative Academy blogida dasturlash, sun’iy intellekt, IT kasblari va texnologiyalar bo‘yicha yangiliklar, amaliy qo‘llanmalar va maslahatlarni o‘qing.{% endblock %}
+{% block meta_robots %}{% if search_query or filter_type %}noindex, follow{% else %}index, follow{% endif %}{% endblock %}
+{% block og_title %}IT blog: dasturlash va texnologiya maqolalari — IT Creative Academy{% endblock %}
+{% block og_description %}Dasturlash, sun’iy intellekt, IT kasblari va texnologiyalar bo‘yicha yangiliklar hamda amaliy qo‘llanmalar.{% endblock %}
+{% block og_url %}https://itc-academy.uz/blog/{% if posts.number > 1 %}?page={{ posts.number }}{% endif %}{% endblock %}
+{% block twitter_title %}IT blog — IT Creative Academy{% endblock %}
+{% block twitter_description %}Dasturlash va texnologiya bo‘yicha amaliy maqolalar va yangiliklar.{% endblock %}
+{% block canonical %}https://itc-academy.uz/blog/{% if posts.number > 1 %}?page={{ posts.number }}{% endif %}{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "IT Creative Academy blogi",
+  "url": "https://itc-academy.uz/blog/",
+  "inLanguage": "uz-UZ",
+  "publisher": {"@type": "Organization", "name": "IT Creative Academy", "url": "https://itc-academy.uz/"}
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">

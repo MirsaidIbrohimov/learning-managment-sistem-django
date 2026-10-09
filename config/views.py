@@ -1,8 +1,11 @@
 from pathlib import Path
+from urllib.parse import urljoin
+from xml.etree import ElementTree as ET
 
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.views.decorators.cache import cache_control
 
 BASE_DIR = Path(settings.BASE_DIR)
@@ -34,9 +37,40 @@ def robots_txt(request):
     return _serve_root_file(request, 'robots.txt', 'text/plain; charset=utf-8')
 
 
-@cache_control(max_age=86400)
 def sitemap_xml(request):
-    return _serve_root_file(request, 'sitemap.xml', 'application/xml; charset=utf-8')
+    """Build a crawlable sitemap for public landing and published blog pages."""
+    sitemap_ns = 'http://www.sitemaps.org/schemas/sitemap/0.9'
+    image_ns = 'http://www.google.com/schemas/sitemap-image/1.1'
+    ET.register_namespace('', sitemap_ns)
+    ET.register_namespace('image', image_ns)
+
+    origin = getattr(settings, 'SEO_CANONICAL_ORIGIN', 'https://itc-academy.uz').rstrip('/') + '/'
+    root = ET.Element(f'{{{sitemap_ns}}}urlset')
+    public_paths = ('/', '/ariza/', reverse('qabul_it_creative'), reverse('blog:post_list'))
+    for path in public_paths:
+        url_node = ET.SubElement(root, f'{{{sitemap_ns}}}url')
+        ET.SubElement(url_node, f'{{{sitemap_ns}}}loc').text = urljoin(origin, path.lstrip('/'))
+
+    from blog.models import Post
+
+    for post in Post.objects.filter(is_published=True).only(
+        'pk', 'title', 'image', 'updated_at', 'created_at'
+    ).iterator():
+        path = reverse('blog:post_detail', args=[post.pk])
+        url_node = ET.SubElement(root, f'{{{sitemap_ns}}}url')
+        ET.SubElement(url_node, f'{{{sitemap_ns}}}loc').text = urljoin(origin, path.lstrip('/'))
+        lastmod = post.updated_at or post.created_at
+        if lastmod:
+            ET.SubElement(url_node, f'{{{sitemap_ns}}}lastmod').text = lastmod.date().isoformat()
+        if post.image:
+            image_node = ET.SubElement(url_node, f'{{{image_ns}}}image')
+            ET.SubElement(image_node, f'{{{image_ns}}}loc').text = urljoin(origin, post.image.url.lstrip('/'))
+            ET.SubElement(image_node, f'{{{image_ns}}}title').text = post.title
+
+    xml = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+    response = HttpResponse(xml, content_type='application/xml; charset=utf-8')
+    response['Cache-Control'] = 'public, max-age=3600'
+    return response
 
 
 @cache_control(max_age=86400)

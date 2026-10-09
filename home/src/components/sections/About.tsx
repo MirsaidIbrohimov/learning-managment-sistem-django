@@ -35,7 +35,7 @@ const About = () => {
           </h2>
           <p className="text-lg text-muted-foreground leading-relaxed">
             ITC Academy — <strong className="text-foreground/90">Zomin IT Park</strong> va{" "}
-            <strong className="text-foreground/90">IT shaharcha</strong> hududida joylashgan zamonaviy
+            <strong className="text-foreground/90">IT Creative</strong> hududida joylashgan zamonaviy
             o'quv markaz. <strong className="text-foreground/90">Suyunov Husan</strong> boshchiligida
             faoliyat yuritib, yoshlarni xalqaro standartlardagi IT mutaxassislarga aylantirib kelmoqda.
             Bizning vazifamiz — har bir o'quvchini real bozor talablariga moslashtirilgan professional

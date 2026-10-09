@@ -5,34 +5,38 @@
     {% load static %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LMS - O'quv Markazi{% endblock %}</title>
+    <title>{% block title %}IT Creative Academy — Zomin, Jizzax IT kurslari{% endblock %}</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="IT Shaharcha Zomin - Zomin IT Park, IT Shaharcha. Zomin hududida eng yaxshi dasturlash kurslari. Python, Django, Web dasturlash, Frontend, Backend kurslari. Yoshlar uchun bepul IT kurslar. Suyunov Husan - Husanbek Coder tomonidan tashkil etilgan IT o'quv markazi.">
-    <meta name="keywords" content="it park zomin, zomin it park, it Shaharcha zomin, zomin it Shaharcha, it Shaharcha zomin, zomin it Shaharcha, zomin it academy, zomin dasturlash kurslari, it kurslar zomin, zomin hududida it park, jizzax zomin it park, zomin yoshlar uchun it markaz, zomin dasturchilar maktabi, zomin web dasturlash kursi, zomin python kurslari, zomin frontend backend kurslari, zomin it o'quv markazi, zomin it parkda dasturlash o'rganish, zomin it Shaharchada it kurslar, it Shaharcha zomin dasturlash darslari, zomin yoshlar uchun bepul it kurslar, zomin hududida web dasturlash o'rganish, zomin python va django kurslari, zomin it park manzili, it Shaharcha zomin manzil, zomin it Shaharcha qayerda, zomin it kurslar narxi, zomin it markaz telefon raqam, suyunov husan, husanbek coder, zomin dasturlash, zomin it, jizzax it kurslar, o'zbekiston it kurslar, bepul dasturlash kurslari, python kurslari uzbekistan, django kurslari, web development zomin, frontend developer zomin, backend developer zomin, full stack developer zomin">
-    <meta name="author" content="Suyunov Husan - Husanbek Coder, IT Shaharcha Zomin">
-    <meta name="robots" content="index, follow">
+    <meta name="description" content="{% block meta_description %}IT Creative Academy — Zomin, Jizzaxdagi dasturlash va IT kasblari markazi. Python, web dasturlash, frontend, backend, dizayn va sun’iy intellektni amaliy o‘rganing.{% endblock %}">
+    <meta name="author" content="{% block meta_author %}IT Creative Academy{% endblock %}">
+    <meta name="robots" content="{% block meta_robots %}noindex, follow{% endblock %}">
     <meta name="language" content="Uzbek">
     <meta name="geo.region" content="UZ-JI">
     <meta name="geo.placename" content="Zomin, Jizzax, O'zbekiston">
     <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
     <meta name="yandex-verification" content="cd990bcc7a097bea" />
     <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="IT Shaharcha Zomin - Zomin IT Park | Dasturlash Kurslari">
-    <meta property="og:description" content="Zomin IT Park va IT Shaharchada professional dasturlash kurslari. Python, Django, Web dasturlash, Frontend, Backend. Suyunov Husan tomonidan tashkil etilgan.">
-    <meta property="og:site_name" content="IT Shaharcha Zomin">
+    <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+    <meta property="og:title" content="{% block og_title %}IT Creative Academy — Zomin, Jizzax IT kurslari{% endblock %}">
+    <meta property="og:description" content="{% block og_description %}Zomin va Jizzaxda dasturlash, web texnologiyalari va sun’iy intellekt bo‘yicha amaliy IT ta’lim.{% endblock %}">
+    <meta property="og:site_name" content="IT Creative Academy">
+    <meta property="og:url" content="{% block og_url %}https://itc-academy.uz{{ request.path }}{% endblock %}">
+    <meta property="og:image" content="{% block og_image %}https://itc-academy.uz/static/images/logo.png{% endblock %}">
     <meta property="og:locale" content="uz_UZ">
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="IT Shaharcha Zomin - Zomin IT Park | Dasturlash Kurslari">
-    <meta name="twitter:description" content="Zomin IT Park va IT Shaharchada professional dasturlash kurslari. Python, Django, Web dasturlash kurslari.">
+    <meta name="twitter:title" content="{% block twitter_title %}IT Creative Academy — Zomin IT kurslari{% endblock %}">
+    <meta name="twitter:description" content="{% block twitter_description %}Zomin va Jizzaxda dasturlash hamda zamonaviy IT kasblarini amaliy o‘rganing.{% endblock %}">
+    <meta name="twitter:image" content="{% block twitter_image %}https://itc-academy.uz/static/images/logo.png{% endblock %}">
     
     <!-- Additional SEO -->
-    <link rel="canonical" href="{% block canonical %}{% endblock %}">
+    <link rel="canonical" href="{% block canonical %}https://itc-academy.uz{{ request.path }}{% endblock %}">
     <meta name="theme-color" content="#0d6efd">
     <link rel="icon" href="{% static 'img/fav.ico' %}">
+
+    {% block extra_head %}{% endblock %}
 
 
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
@@ -459,7 +463,7 @@
       <span class="ldr-sweep"></span>
       <span class="ldr-logo">IT</span>
     </div>
-    <div class="ldr-word">IT Shaharcha Zomin</div>
+    <div class="ldr-word">IT Creative Zomin</div>
     <div class="ldr-status" id="ldrStatus" role="status">Bilim tarmog‘iga ulanmoqda</div>
     <div class="ldr-bar"><i></i></div>
   </div>
@@ -511,8 +515,8 @@
 
         <!-- Brand -->
         <a class="nb-brand" href="{% url 'home' %}">
-          <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Shaharcha"></div>
-          <span class="nb-brand-text">IT <span class="nb-sep">|</span> Shaharcha</span>
+          <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></div>
+          <span class="nb-brand-text">IT <span class="nb-sep">|</span> Creative</span>
         </a>
 
         <!-- Desktop Links -->
@@ -578,7 +582,7 @@
                 </a>
                 <a href="https://youtube.com/@IT_Creative" target="_blank" class="social-link-item youtube-item">
                   <div class="social-link-icon youtube-bg"><i class="bi bi-youtube"></i></div>
-                  <div><div class="fw-semibold" style="font-size:.85rem;">YouTube</div><small class="text-muted">IT Shaharcha</small></div>
+                  <div><div class="fw-semibold" style="font-size:.85rem;">YouTube</div><small class="text-muted">IT Creative</small></div>
                   <i class="bi bi-arrow-up-right ms-auto" style="font-size:.7rem;opacity:.4;"></i>
                 </a>
               </div>
@@ -695,8 +699,8 @@
     <div class="nb-mobile-panel" id="nbMobilePanel">
       <div class="nb-mobile-header">
         <div class="nb-brand" style="pointer-events:none;">
-          <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Shaharcha"></div>
-          <span class="nb-brand-text">IT <span class="nb-sep">|</span> Shaharcha</span>
+          <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></div>
+          <span class="nb-brand-text">IT <span class="nb-sep">|</span> Creative</span>
         </div>
         <button class="nb-mobile-close" id="nbMobileClose"><i class="bi bi-x-lg"></i></button>
       </div>
@@ -1301,7 +1305,7 @@
                     <div class="social-link-icon youtube-bg"><i class="bi bi-youtube"></i></div>
                     <div>
                         <div class="fw-semibold">YouTube</div>
-                        <small class="text-muted">IT Shaharcha</small>
+                        <small class="text-muted">IT Creative</small>
                     </div>
                     <i class="bi bi-arrow-up-right ms-auto"></i>
                 </a>
@@ -1467,8 +1471,8 @@
         <div class="sf-grid">
           <div>
             <div class="sf-brand">
-              <span class="sf-brand-ic"><img src="{% static 'img/logo.png' %}" alt="IT Shaharcha"></span>
-              <span class="sf-brand-tx">IT Shaharcha</span>
+              <span class="sf-brand-ic"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></span>
+              <span class="sf-brand-tx">IT Creative</span>
             </div>
             <div class="sf-desc">Zamonaviy bilim maskani — kod yoz, o'rgan va kelajagingni qur. Har bir dars seni maqsadingga yaqinlashtiradi.</div>
             <div class="sf-social">
@@ -1499,7 +1503,7 @@
           </div>
         </div>
         <div class="sf-bottom">
-          <div>&copy; <span id="sfYear">2026</span> IT Shaharcha Zomin. Barcha huquqlar himoyalangan.</div>
+          <div>&copy; <span id="sfYear">2026</span> IT Creative Zomin. Barcha huquqlar himoyalangan.</div>
           <div class="made">Mehr bilan yaratildi <i class="bi bi-heart-fill"></i> IT Creative</div>
         </div>
       </div>

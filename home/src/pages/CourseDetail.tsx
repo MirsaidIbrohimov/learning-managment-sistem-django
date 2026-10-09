@@ -373,7 +373,7 @@ const CourseDetail = () => {
             </ul>
             <div className="mt-6 pt-6 border-t border-border space-y-2 font-mono text-xs text-muted-foreground">
               <div><span className="text-primary">$</span> dars-jadvali: {course.schedule}</div>
-              <div><span className="text-primary">$</span> joylashuv: Zomin IT Park, Suyunov Husan IT shaharcha</div>
+              <div><span className="text-primary">$</span> joylashuv: Zomin IT Park, Suyunov Husan IT Creative</div>
             </div>
           </motion.div>
         </section>

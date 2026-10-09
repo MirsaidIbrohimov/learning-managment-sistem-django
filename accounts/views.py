@@ -1675,7 +1675,7 @@ _DQ_OK = '[correct]'
 _DQ_FAIL = '[wrong]'
 
 _DAILY_QUOTES = (
-    ("Bugun qilgan kichik qadamingiz — ertangi katta natijangiz.", "IT Shaharcha"),
+    ("Bugun qilgan kichik qadamingiz — ertangi katta natijangiz.", "IT Creative"),
     ("Kod yozishni o'rganish — fikrlashni o'rganishdir.", "Steve Jobs"),
     ("Mukammallikni kutib o'tirmang, boshlang va yo'lda o'rganing.", "Kent Beck"),
     ("Har kuni 1% yaxshilanish — bir yilda 37 barobar o'sish.", "James Clear"),
@@ -1683,13 +1683,13 @@ _DAILY_QUOTES = (
     ("Xatolar — muvaffaqiyatga olib boruvchi eng qisqa yo'l.", "Thomas Edison"),
     ("Bilim — yagona boylik, uni sarflaganingiz sari ko'payadi.", "Xalq maqoli"),
     ("Murakkab masalani kichik bo'laklarga bo'l — u oddiy bo'lib qoladi.", "Rene Descartes"),
-    ("Bugun o'rganmagan narsangizni ertaga kimdir sizdan yaxshi biladi.", "IT Shaharcha"),
+    ("Bugun o'rganmagan narsangizni ertaga kimdir sizdan yaxshi biladi.", "IT Creative"),
     ("Izchillik iste'doddan kuchli.", "Xalq maqoli"),
     ("Yaxshi kod — izohga muhtoj bo'lmagan kod.", "Martin Fowler"),
     ("O'rganish to'xtaganda o'sish ham to'xtaydi.", "Benjamin Franklin"),
     ("Sabr — bu kutish emas, kutayotganda ishlashdir.", "Xalq maqoli"),
     ("Kichik loyihalar katta dasturchilarni tarbiyalaydi.", "Linus Torvalds"),
-    ("Bugungi mashqingiz — ertangi ishonchingiz.", "IT Shaharcha"),
+    ("Bugungi mashqingiz — ertangi ishonchingiz.", "IT Creative"),
 )
 
 
@@ -2650,7 +2650,7 @@ def global_search(request):
             teacher = p.teachers.first()
         except Exception:
             teacher = None
-        t_name = teacher.get_full_name() if teacher else 'IT Shaharcha'
+        t_name = teacher.get_full_name() if teacher else 'IT Creative'
         try:
             t_photo = teacher.photo.url if (teacher and teacher.photo) else ''
         except Exception:
@@ -9986,7 +9986,7 @@ def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
                 f"tekshirilishini kutmoqda. O'quvchilar Sizning bahoyingiz va "
                 f"izohlaringizni intiqlik bilan kutishmoqda.\n\n"
                 f"Iltimos, imkon qadar tezroq ko'rib chiqishingizni so'raymiz.\n\n"
-                f"Hurmat bilan,\nIT Shaharcha ma'muriyati"
+                f"Hurmat bilan,\nIT Creative ma'muriyati"
             ),
         },
         {
@@ -9999,7 +9999,7 @@ def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
                 f"{oldest_hours} soatdan buyon kutmoqda).\n\n"
                 f"O'quv jarayonining sifatini ta'minlash maqsadida vazifalarni "
                 f"o'z vaqtida tekshirish muhim ekanligini eslatib o'tamiz.\n\n"
-                f"Hurmat bilan,\nIT Shaharcha ma'muriyati"
+                f"Hurmat bilan,\nIT Creative ma'muriyati"
             ),
         },
         {
@@ -10014,7 +10014,7 @@ def _teacher_reminder_templates(course_name, pending_count, oldest_hours):
                 f"baholanishi va tegishli choralar (jarima) qo'llanilishi "
                 f"mumkinligini rasman ma'lum qilamiz.\n\n"
                 f"Iltimos, ishga mas'uliyat bilan yondashing.\n\n"
-                f"Hurmat bilan,\nIT Shaharcha ma'muriyati"
+                f"Hurmat bilan,\nIT Creative ma'muriyati"
             ),
         },
     ]
@@ -16619,7 +16619,7 @@ def ariza_view(request):
 
 
 def qabul_it_shaharcha_view(request):
-    """IT Shaharcha bepul ta'limda Kompyuter savodxonligi yo'nalishida qabul uchun ariza qoldirish"""
+    """IT Creative bepul ta'limda Kompyuter savodxonligi yo'nalishida qabul uchun ariza qoldirish"""
     success = False
     
     if request.method == 'POST':
@@ -16643,7 +16643,7 @@ def qabul_it_shaharcha_view(request):
                 first_name=first_name,
                 last_name=last_name,
                 phone=phone,
-                course_interest="Kompyuter savodxonligi (IT Shaharcha)",
+                course_interest="Kompyuter savodxonligi (IT Creative)",
                 school_number=school_number,
                 age=age,
                 neighborhood=neighborhood,
@@ -16652,7 +16652,7 @@ def qabul_it_shaharcha_view(request):
             
             # Send Telegram notification to admins and assistants
             msg_text = (
-                f"🌟 <b>IT Shaharcha: Yangi ariza!</b>\n\n"
+                f"🌟 <b>IT Creative: Yangi ariza!</b>\n\n"
                 f"👤 <b>Ism Familiya:</b> {first_name} {last_name}\n"
                 f"📱 <b>Telefon:</b> {phone}\n"
                 f"🏫 <b>Maktab:</b> {school_number or 'Kiritilmagan'}\n"
@@ -16671,7 +16671,7 @@ def qabul_it_shaharcha_view(request):
 
 @login_required
 def export_shaharcha_applications_excel(request):
-    """IT Shaharcha arizalarini Excel formatida yuklab olish"""
+    """IT Creative arizalarini Excel formatida yuklab olish"""
     if not (request.user.is_admin or (request.user.role == 'assistant_admin' and request.user.has_assistant_perm('applications.view'))):
         return HttpResponse("Ruxsat etilmagan", status=403)
         
@@ -16683,7 +16683,7 @@ def export_shaharcha_applications_excel(request):
     
     wb = openpyxl.Workbook()
     ws = wb.active
-    ws.title = "IT Shaharcha"
+    ws.title = "IT Creative"
     
     # Styling
     font_title = Font(name='Calibri', size=15, bold=True, color='FFFFFF')
@@ -16705,7 +16705,7 @@ def export_shaharcha_applications_excel(request):
     
     # Title row
     ws.merge_cells('A1:J1')
-    ws['A1'] = "IT SHAHARCHA KOMPYUTER SAVODXONLIGI ARIZALARI"
+    ws['A1'] = "IT Creative KOMPYUTER SAVODXONLIGI ARIZALARI"
     ws['A1'].font = font_title
     ws['A1'].fill = fill_title
     ws['A1'].alignment = align_center
@@ -16768,7 +16768,7 @@ def export_shaharcha_applications_excel(request):
         ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
         
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename=it_shaharcha_arizalar_{timezone.now().strftime("%Y%m%d_%H%M")}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename=it_creative_arizalar_{timezone.now().strftime("%Y%m%d_%H%M")}.xlsx'
     wb.save(response)
     return response
 

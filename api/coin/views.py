@@ -17,6 +17,7 @@ from django.utils import timezone
 
 from api.permissions import CoinTransferRateThrottle, IsNotBlocked
 from coin.models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog, CoinTransfer
+from coin.pricing import get_product_price
 from accounts.models import CustomUser, PremiumRequest, Message
 from telegram_bot.utils import notify_group, notify_user, notify_admins
 from .serializers import (
@@ -26,8 +27,6 @@ from .serializers import (
     CoinTransferSearchResultSerializer, CoinTransferInitSerializer,
     CoinTransferConfirmSerializer, CoinTransferDetailSerializer,
 )
-
-PREMIUM_DISCOUNT = 0.05
 
 PREMIUM_PLANS_BASE = {
     'weekly': {'name': 'Haftalik', 'days': 7, 'percent': 25, 'min_price': 500},
@@ -59,12 +58,6 @@ def can_user_buy_premium(user):
     if not user.date_joined:
         return False
     return (timezone.now() - user.date_joined).days >= 30
-
-
-def get_discounted_price(product, user):
-    if user.is_premium:
-        return math.floor(product.coin_price * (1 - PREMIUM_DISCOUNT))
-    return product.coin_price
 
 
 class ProductListView(generics.ListAPIView):
@@ -235,7 +228,7 @@ def purchase_product(request, pk):
             status=status.HTTP_403_FORBIDDEN
         )
     product = get_object_or_404(Product, pk=pk)
-    final_price = get_discounted_price(product, request.user)
+    final_price = get_product_price(product, request.user)
     has_discount = request.user.is_premium and final_price < product.coin_price
 
     # Balans va zaxira TEKSHIRUVI yechish bilan bir atomic blokda bo'lishi

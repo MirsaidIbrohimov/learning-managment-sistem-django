@@ -2,7 +2,38 @@
 {% load static %}
 {% load widget_tweaks custom_filters %}
 
-{% block title %}{{ post.title }} — IT Shaharcha{% endblock %}
+{% block title %}{{ post.title }} — IT Creative Academy{% endblock %}
+{% block meta_description %}{{ post.content|striptags|truncatechars:160 }}{% endblock %}
+{% block meta_robots %}index, follow, max-image-preview:large{% endblock %}
+{% block og_type %}article{% endblock %}
+{% block og_title %}{{ post.title }} — IT Creative Academy{% endblock %}
+{% block og_description %}{{ post.content|striptags|truncatechars:200 }}{% endblock %}
+{% block og_url %}https://itc-academy.uz{{ request.path }}{% endblock %}
+{% block og_image %}{% if post.image %}https://itc-academy.uz{{ post.image.url }}{% else %}https://itc-academy.uz/static/images/logo.png{% endif %}{% endblock %}
+{% block twitter_title %}{{ post.title }} — IT Creative Academy{% endblock %}
+{% block twitter_description %}{{ post.content|striptags|truncatechars:200 }}{% endblock %}
+{% block twitter_image %}{% if post.image %}https://itc-academy.uz{{ post.image.url }}{% else %}https://itc-academy.uz/static/images/logo.png{% endif %}{% endblock %}
+{% block canonical %}https://itc-academy.uz{{ request.path }}{% endblock %}
+
+{% block extra_head %}
+<meta property="article:published_time" content="{{ post.created_at|date:'c' }}">
+<meta property="article:modified_time" content="{{ post.updated_at|date:'c' }}">
+<meta property="article:author" content="{{ post.author.get_full_name|default:'IT Creative Academy' }}">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{ post.title|escapejs }}",
+  "description": "{{ post.content|striptags|truncatechars:300|escapejs }}",
+  "datePublished": "{{ post.created_at|date:'c' }}",
+  "dateModified": "{{ post.updated_at|date:'c' }}",
+  "author": {"@type": "Person", "name": "{{ post.author.get_full_name|default:'IT Creative Academy'|escapejs }}"},
+  "publisher": {"@type": "Organization", "name": "IT Creative Academy", "url": "https://itc-academy.uz/"},
+  "mainEntityOfPage": {"@type": "WebPage", "@id": "https://itc-academy.uz{{ request.path }}"}{% if post.image %},
+  "image": ["https://itc-academy.uz{{ post.image.url }}"]{% endif %}
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -318,7 +349,7 @@
   <!-- Hero Banner -->
   <div class="pd-hero">
     <div class="pd-hero-img">
-      {% if post.image %}<img src="{{ post.image.url }}" alt="">{% endif %}
+      {% if post.image %}<img src="{{ post.image.url }}" alt="{{ post.title }} — IT Creative Academy" fetchpriority="high" decoding="async">{% endif %}
     </div>
     <div class="pd-hero-grid"></div>
     <div class="pd-hero-orb pd-hero-orb1"></div>
@@ -393,6 +424,7 @@
       </div>
 
       <!-- Form -->
+      {% if user.is_authenticated %}
       <div class="pd-cmt-form-wrap">
         <form method="post">
           {% csrf_token %}
@@ -414,6 +446,11 @@
           </div>
         </form>
       </div>
+      {% else %}
+      <div class="pd-cmt-form-wrap">
+        <p>Izoh qoldirish uchun <a href="{% url 'login' %}?next={{ request.path|urlencode }}">hisobingizga kiring</a>.</p>
+      </div>
+      {% endif %}
 
       <!-- List -->
       <div class="pd-cmt-list">

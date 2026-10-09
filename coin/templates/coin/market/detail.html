@@ -36,6 +36,9 @@
     font-variant-numeric: tabular-nums;
 }
 .dt-badge.price { background: var(--mkt-gold-soft); color: var(--mkt-gold-dark); font-family: var(--mkt-mono); }
+.dt-badge.price del { opacity: .55; font-size: .76rem; }
+.dt-badge.price .dt-discounted-price { color: #059669; }
+.dt-badge.price .dt-discount-label { font-family: inherit; font-size: .65rem; font-weight: 800; color: #047857; }
 .dt-badge.stock { background: var(--mkt-ok-soft); color: #059669; }
 .dt-badge.out { background: var(--mkt-bad-soft); color: #dc2626; }
 .dt-badge.balance { background: var(--mkt-info-soft); color: var(--mkt-info); font-family: var(--mkt-mono); }
@@ -222,12 +225,16 @@
             document.getElementById('dtImageWrap').innerHTML = `<img class="dt-img" src="${esc(p.image)}" alt="${esc(p.name)}">`;
 
             const outOfStock = p.stock<=0;
-            const canAfford = userCoins >= p.coin_price;
+            const payPrice = p.discounted_price;
+            const canAfford = userCoins >= payPrice;
+            const priceMarkup = p.has_discount
+                ? `<del>${esc(p.coin_price)}</del> <strong class="dt-discounted-price">${esc(payPrice)}</strong> <small class="dt-discount-label">−${esc(p.discount_percent)}% Premium</small> coin`
+                : `${esc(p.coin_price)} coin`;
             document.getElementById('dtInfo').innerHTML = `
                 <h1 class="dt-title">${esc(p.name)}</h1>
                 <p class="dt-desc">${esc(p.description||'')}</p>
                 <div class="dt-meta">
-                    <span class="dt-badge price"><i class="bi bi-coin"></i> ${esc(p.coin_price)} coin</span>
+                    <span class="dt-badge price"><i class="bi bi-coin"></i> ${priceMarkup}</span>
                     <span class="dt-badge ${outOfStock?'out':'stock'}"><i class="bi bi-${outOfStock?'x-circle':'box-seam'}"></i> ${outOfStock?'Tugagan':'Omborda: '+esc(p.stock)+' ta'}</span>
                     <span class="dt-badge balance"><i class="bi bi-wallet2"></i> Balans: ${esc(userCoins)}</span>
                 </div>
@@ -305,9 +312,9 @@
         if(!product) return;
         document.getElementById('modalInfo').innerHTML = `
             <div><span>Mahsulot:</span><span><b>${esc(product.name)}</b></span></div>
-            <div><span>Narxi:</span><span><b>${esc(product.coin_price)} coin</b></span></div>
+            <div><span>Narxi:</span><span><b>${esc(product.discounted_price)} coin</b>${product.has_discount?` <del style="opacity:.55">${esc(product.coin_price)}</del> <small class="text-success">−${esc(product.discount_percent)}% Premium</small>`:''}</span></div>
             <div><span>Balansingiz:</span><span>${esc(userCoins)} coin</span></div>
-            <div class="dt-modal-total"><span>Qoldiq:</span><span>${esc(userCoins-product.coin_price)} coin</span></div>`;
+            <div class="dt-modal-total"><span>Qoldiq:</span><span>${esc(userCoins-product.discounted_price)} coin</span></div>`;
         document.getElementById('purchaseModal').classList.add('show');
     };
     window.closeModal = function() { document.getElementById('purchaseModal').classList.remove('show'); };

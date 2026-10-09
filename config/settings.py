@@ -137,11 +137,11 @@ SESSION_SAVE_EVERY_REQUEST = False
 # ============================
 
 JAZZMIN_SETTINGS = {
-    "site_title": "IT Shaharcha Zomin Admin",
-    "site_header": "IT Shaharcha Zomin 🚀",
-    "site_brand": "IT Shaharcha Zomin",
+    "site_title": "IT Creative Zomin Admin",
+    "site_header": "IT Creative Zomin 🚀",
+    "site_brand": "IT Creative Zomin",
     "welcome_sign": "Xush kelibsiz!",
-    "copyright": "IT Shaharcha Zomin",
+    "copyright": "IT Creative Zomin",
 
     # LOGO (agar static/images/logo.png bo‘lsa)
     "site_logo": "images/logo.png",
@@ -158,7 +158,7 @@ JAZZMIN_SETTINGS = {
     "topmenu_links": [
         {"name": "🌐 Sayt", "url": "/", "new_window": True},
         {"name": "📊 Statistika", "url": "admin:index"},
-        {"name": "🎥 IT Shaharcha Zomin", "url": "https://youtube.com/@ITCreative", "new_window": True},
+        {"name": "🎥 IT Creative Zomin", "url": "https://youtube.com/@ITCreative", "new_window": True},
         {"model": "accounts.CustomUser"},
     ],
 
@@ -291,6 +291,11 @@ JAZZMIN_UI_TWEAKS = {
 
 
 AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Canonical public origin used by SEO links, structured data and sitemap.xml.
+SEO_CANONICAL_ORIGIN = os.getenv(
+    'SEO_CANONICAL_ORIGIN', 'https://itc-academy.uz'
+).rstrip('/')
 
 MIDDLEWARE = [
     # ── 1. Xavfsizlik (eng birinchi — hamma narsadan oldin) ───────────────

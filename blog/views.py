@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import redirect_to_login
 from django.contrib import messages
 from django.db.models import Q
 from django.urls import reverse
@@ -8,14 +9,12 @@ from .models import Post, PostComment, PostLike, CommentLike
 from .forms import PostForm, CommentForm
 from coin.models import ActivityLog
 from telegram_bot.utils import notify_group, notify_user
-import random
 
-@login_required
 def post_list(request):
     search_query = request.GET.get('q')
     filter_type = request.GET.get('type')
     
-    posts_qs = Post.objects.all()
+    posts_qs = Post.objects.filter(is_published=True)
     
     if search_query:
         posts_qs = posts_qs.filter(
@@ -26,17 +25,8 @@ def post_list(request):
     if filter_type:
         posts_qs = posts_qs.filter(post_type=filter_type)
     
-    # Eng oxirgi post birinchi, qolganlari random
-    latest_post = posts_qs.order_by('-created_at').first()
-    rest_posts = list(posts_qs.exclude(pk=latest_post.pk)) if latest_post else []
-    random.shuffle(rest_posts)
-    
-    if latest_post:
-        all_posts = [latest_post] + rest_posts
-    else:
-        all_posts = rest_posts
-    
-    paginator = Paginator(all_posts, 6)
+    # Deterministic ordering keeps pagination stable for search crawlers.
+    paginator = Paginator(posts_qs.order_by('-created_at', '-pk'), 6)
     page_number = request.GET.get('page')
     posts = paginator.get_page(page_number)
     
@@ -46,17 +36,21 @@ def post_list(request):
         'filter_type': filter_type
     })
 
-@login_required
 def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk)
+    post = get_object_or_404(Post, pk=pk, is_published=True)
     comments = post.comments.all()
-    is_liked = post.likes.filter(user=request.user).exists()
-    liked_comment_ids = list(CommentLike.objects.filter(
-        user=request.user, 
-        comment__in=comments
-    ).values_list('comment_id', flat=True))
+    is_liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
+    liked_comment_ids = (
+        list(CommentLike.objects.filter(
+            user=request.user,
+            comment__in=comments,
+        ).values_list('comment_id', flat=True))
+        if request.user.is_authenticated else []
+    )
     
     if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path(), login_url='login')
         form = CommentForm(request.POST)
         if form.is_valid():
             # 1 soatda 1 ta izoh cheklovi

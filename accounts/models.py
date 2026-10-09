@@ -2100,7 +2100,7 @@ class CourseApplication(models.Model):
     school_number = models.CharField(max_length=100, blank=True, null=True, verbose_name="Maktab raqami")
     age = models.IntegerField(blank=True, null=True, verbose_name="Yoshi")
     neighborhood = models.CharField(max_length=150, blank=True, null=True, verbose_name="Mahalla nomi")
-    is_shaharcha = models.BooleanField(default=False, verbose_name="IT Shaharcha arizasimi")
+    is_shaharcha = models.BooleanField(default=False, verbose_name="IT Creative arizasimi")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new', verbose_name="Holat")
     admin_note = models.TextField(blank=True, null=True, verbose_name="Admin izohi")
     handled_by = models.ForeignKey(

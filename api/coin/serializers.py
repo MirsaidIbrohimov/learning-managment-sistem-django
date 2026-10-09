@@ -1,15 +1,34 @@
 from rest_framework import serializers
 from coin.models import Product, ProductLike, ProductComment, ProductPurchase, CoinTransaction, ActivityLog
+from coin.pricing import get_product_price, has_product_discount
 
 
 class ProductSerializer(serializers.ModelSerializer):
     likes_count = serializers.IntegerField(read_only=True)
     comments_count = serializers.IntegerField(read_only=True)
     is_liked = serializers.SerializerMethodField()
+    discounted_price = serializers.SerializerMethodField()
+    has_discount = serializers.SerializerMethodField()
+    discount_percent = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
-        fields = ['id', 'name', 'description', 'image', 'coin_price', 'stock', 'is_active', 'likes_count', 'comments_count', 'is_liked', 'created_at']
+        fields = ['id', 'name', 'description', 'image', 'coin_price', 'discounted_price', 'has_discount', 'discount_percent', 'stock', 'is_active', 'likes_count', 'comments_count', 'is_liked', 'created_at']
+
+    def _user(self):
+        request = self.context.get('request')
+        return request.user if request and request.user.is_authenticated else None
+
+    def get_discounted_price(self, obj):
+        user = self._user()
+        return get_product_price(obj, user) if user else obj.coin_price
+
+    def get_has_discount(self, obj):
+        user = self._user()
+        return has_product_discount(obj, user) if user else False
+
+    def get_discount_percent(self, obj):
+        return 5 if self.get_has_discount(obj) else 0
 
     def get_is_liked(self, obj):
         request = self.context.get('request')

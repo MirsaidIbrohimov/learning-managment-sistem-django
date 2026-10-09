@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="static/images/logo.png" alt="IT Shaharcha Zomin Logo" width="120" />
+  <img src="static/images/logo.png" alt="IT Creative Zomin Logo" width="120" />
 </p>
 
-<h1 align="center">🚀 IT Shaharcha Zomin — Learning Management System</h1>
+<h1 align="center">🚀 IT Creative Zomin — Learning Management System</h1>
 
 <p align="center">
   <strong>O'zbekiston IT ta'lim markazlari uchun to'liq funksional ta'lim boshqaruv tizimi</strong>
@@ -47,7 +47,7 @@
 
 ## 📖 Loyiha haqida
 
-**IT Shaharcha Zomin LMS** — bu IT ta'lim markazlari uchun yaratilgan to'liq funksional ta'lim boshqaruv tizimi. Tizim o'quvchilar, o'qituvchilar, adminlar va ota-onalar uchun alohida dashboardlar bilan ta'minlangan.
+**IT Creative Zomin LMS** — bu IT ta'lim markazlari uchun yaratilgan to'liq funksional ta'lim boshqaruv tizimi. Tizim o'quvchilar, o'qituvchilar, adminlar va ota-onalar uchun alohida dashboardlar bilan ta'minlangan.
 
 ### ✨ Asosiy imkoniyatlar
 
@@ -827,7 +827,7 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 
 <p align="center">
   <strong>Husanbek Suyunov</strong><br/>
-  <em>Full-Stack Developer | IT Shaharcha Zomin asoschisi</em>
+  <em>Full-Stack Developer | IT Creative Zomin asoschisi</em>
 </p>
 
 <p align="center">
@@ -838,7 +838,7 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 ---
 
 <p align="center">
-  <sub>© 2024-2026 Suyunov Husan | IT Shaharcha Zomin. Barcha huquqlar himoyalangan.</sub>
+  <sub>© 2024-2026 Suyunov Husan | IT Creative Zomin. Barcha huquqlar himoyalangan.</sub>
 </p>
 
 Claude edit test

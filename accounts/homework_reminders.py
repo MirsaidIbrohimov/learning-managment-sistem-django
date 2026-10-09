@@ -35,7 +35,7 @@ def _final_warning_text(teacher_name, course_name, student_name, lesson_title, h
         f"❗️ Siz ishga nisbatan mas'uliyatsizlik qilmoqdasiz va "
         f"<b>jarimaga tortilishingiz mumkin</b>.\n"
         f"Iltimos, ishga mas'uliyatli bo'ling va vazifani darhol tekshiring!\n\n"
-        f"— <i>IT Shaharcha ma'muriyati</i>"
+        f"— <i>IT Creative ma'muriyati</i>"
     )
 
 
@@ -65,7 +65,7 @@ def _teacher_reminder_text(level, teacher_name, course_name, student_name, lesso
         f"📝 Dars: {lesson_title}\n"
         f"⏰ Topshirilganiga: <b>{hours} soat</b>\n\n"
         f"{tone}\n\n"
-        f"— <i>IT Shaharcha ma'muriyati</i>"
+        f"— <i>IT Creative ma'muriyati</i>"
     )
 
 

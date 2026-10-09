@@ -143,13 +143,16 @@
 
 .mk-card-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
 .mk-price {
-    display: flex; align-items: center; gap: 0.35rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.35rem;
     font-family: var(--mkt-mono);
     font-size: 1.05rem; font-weight: 800; color: var(--mkt-gold-dark);
     background: var(--mkt-gold-soft);
     padding: 0.32rem 0.7rem; border-radius: 11px;
 }
 .mk-price i { font-size: 0.95rem; }
+.mk-price del { color: var(--mkt-dim); font-size: .76rem; font-weight: 600; }
+.mk-price .mk-price-current { color: #059669; }
+.mk-price .mk-price-discount { font-family: inherit; font-size: .62rem; font-weight: 800; color: #047857; }
 .mk-card-stats { display: flex; gap: 0.7rem; font-size: 0.8rem; color: var(--mkt-dim); }
 .mk-card-stats span { display: flex; align-items: center; gap: 0.25rem; font-weight: 600; }
 
@@ -513,6 +516,9 @@
                         + (p.comments_count > 0 ? '<span><i class="bi bi-chat-dots-fill"></i> '+p.comments_count+' izoh</span>' : '')
                         + '</div>'
                     : '';
+                const priceMarkup = p.has_discount
+                    ? `<div class="mk-price"><i class="bi bi-coin"></i><del>${formatNum(p.coin_price)}</del><strong class="mk-price-current">${formatNum(p.discounted_price)}</strong><span class="mk-price-discount">−${p.discount_percent}% Premium</span></div>`
+                    : `<div class="mk-price"><i class="bi bi-coin"></i> ${formatNum(p.coin_price)}</div>`;
                 return `<div class="mk-card" style="animation-delay:${i*70}ms">
                     ${trendingRibbon}
                     <div class="mk-card-img-wrap">
@@ -524,7 +530,7 @@
                         <p class="mk-card-desc">${esc((p.description||'').substring(0,100))}${p.description&&p.description.length>100?'...':''}</p>
                         ${socialProof}
                         <div class="mk-card-footer">
-                            <div class="mk-price"><i class="bi bi-coin"></i> ${formatNum(p.coin_price)}</div>
+                            ${priceMarkup}
                             <div class="mk-card-stats">
                                 <span><i class="bi bi-heart${p.is_liked?'-fill':''}" style="color:${p.is_liked?'#ef4444':'inherit'}"></i> ${p.likes_count}</span>
                                 <span><i class="bi bi-chat-dots"></i> ${p.comments_count}</span>

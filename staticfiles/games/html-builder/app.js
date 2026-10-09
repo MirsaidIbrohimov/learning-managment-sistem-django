@@ -46,7 +46,7 @@ const DEFAULTS = {
   ul: ['Birinchi', 'Ikkinchi', 'Uchinchi'], ol: ['Birinchi qadam', 'Ikkinchi qadam', 'Uchinchi qadam'],
   div: "Bo'sh bo'lim", nav: ['Bosh sahifa', 'Haqida', "Bog'lanish"],
   input: 'Ismingizni kiriting…', form: 'Forma',
-  footer: '© 2026 IT Shaharcha LMS',
+  footer: '© 2026 IT Creative LMS',
 };
 
 // ─── LEVELS (per mode) ────────────────────────────────────
