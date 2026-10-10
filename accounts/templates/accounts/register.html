@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ro'yxatdan o'tish | IT Creative Zomin</title>
+<title>Ro'yxatdan o'tish | IT Creative Academy</title>
 <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
@@ -23,9 +23,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<script src="{% static 'js/auth-theme.js' %}" defer></script>
 <script src="{% static 'js/auth-page.js' %}" defer></script>
 </head>
-<body>
+<body class="auth-blue auth-register">
 
 <!-- Fon qatlamlari -->
 <div class="bg-aura" aria-hidden="true">
@@ -39,12 +40,10 @@
 <!-- Yuqori panel -->
 <header class="hud">
   <a class="hud-brand" href="{% url 'login' %}">
-    <span class="hud-logo">IT</span>
-    <span class="hud-name">IT Creative Zomin</span>
+    <img class="hud-logo-img" src="{% static 'img/logo.png' %}" alt="">
+    <span class="hud-name">IT Creative Academy<span>ZOMIN</span></span>
   </a>
-  <button type="button" class="tgl" id="themeToggle" aria-label="Tema almashtirish" aria-pressed="false">
-    <span class="tgl-knob"><i class="bi bi-moon-stars-fill"></i><i class="bi bi-sun-fill"></i></span>
-  </button>
+  <div class="hud-actions"><nav class="auth-nav" aria-label="Autentifikatsiya"><a href="{% url 'login' %}">Kirish</a><a class="active" href="{% url 'register' %}">Ro'yxatdan o'tish</a></nav><button type="button" class="theme-switch" id="themeToggle" aria-label="Qorong'i rejimga o'tish" aria-pressed="false"><i class="bi bi-moon-stars-fill"></i><span>Dark</span></button></div>
 </header>
 
 <main class="stage stage--rev">
@@ -58,8 +57,8 @@
     <section class="card">
     <div class="c-head">
       <span class="c-logo">IT</span>
-      <h2 class="c-title">Ro'yxatdan o'tish</h2>
-      <p class="c-sub">O'quvchi akkauntini yarating — 2 qadam kifoya</p>
+      <h2 class="c-title">Yangi hisob yarating</h2>
+      <p class="c-sub">Bilim olish sayohatingizni boshlang.</p>
     </div>
 
     <!-- Qadamlar -->
@@ -167,20 +166,16 @@
 
   <!-- O'ng: fon ustidagi brend matni -->
   <section class="pane-scene" aria-hidden="true">
-    <span class="scene-eyebrow"><span class="dot"></span> Yangi a'zo bo'ling</span>
-    <h1 class="scene-title">IT Creative jamoamizga<br><span class="grad">qo'shiling!</span></h1>
-    <p class="scene-sub">Kelajakdagi dasturchi yo'lini biz bilan boshlaydi. Ro'yxatdan o'ting va bilim tarmog'iga qo'shiling.</p>
-
-    <div class="scene-stats">
-      <div class="st"><span class="st-num" data-count="500" data-suffix="+">0</span><span class="st-lab">O'quvchi</span></div>
-      <div class="st"><span class="st-num" data-count="12" data-suffix="">0</span><span class="st-lab">Yo'nalish</span></div>
-      <div class="st"><span class="st-num" data-count="2" data-suffix=" daqiqa">0</span><span class="st-lab">Ro'yxatdan o'tish</span></div>
-    </div>
-
-    <div class="chips">
-      <span class="chip"><i class="bi bi-1-circle-fill"></i> Ma'lumotlarni kiriting</span>
-      <span class="chip"><i class="bi bi-2-circle-fill"></i> Parol yarating</span>
-      <span class="chip"><i class="bi bi-rocket-takeoff-fill"></i> O'qishni boshlang!</span>
+    <div class="study-scene">
+      <img class="portrait-slide is-active" src="{% static 'img/auth-portraits/student-1.webp' %}" alt="Talaba noutbukda ishlamoqda"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-2.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-3.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-4.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-5.webp' %}" alt="" aria-hidden="true"><div class="scene-glow"></div>
+      <div class="scene-copy"><span class="scene-eyebrow"><span class="dot"></span> IT CREATIVE ACADEMY · ZOMIN</span><h1 class="scene-title">Bilim bilan<br><span class="grad">yuksaling.</span></h1><p class="scene-sub">Har bir yangi dars — katta kelajak sari bir qadam.</p></div>
+      <div class="learning-cards">
+        <div class="learning-card"><i class="bi bi-play-circle-fill"></i><span><b>Darslar</b><small>Video, test va materiallar</small></span></div>
+        <div class="learning-card"><i class="bi bi-graph-up-arrow"></i><span><b>O'zlashtirish</b><small>Natijalarni kuzatish</small></span></div>
+        <div class="learning-card"><i class="bi bi-people-fill"></i><span><b>Jamoa</b><small>Ustozlar va do'stlar</small></span></div>
+      </div>
+      <div class="quote-card"><i class="bi bi-quote"></i>Bilim — kelajakka yetaklaydigan eng kuchli vosita.</div>
+      <div class="scene-spark spark-one"></div><div class="scene-spark spark-two"></div>
     </div>
   </section>
 
@@ -195,7 +190,6 @@ document.addEventListener('DOMContentLoaded', function () {
      Fon buzilsa ham forma qadamlari ishlashda davom etishi kerak. */
   try { A.mountScene(document.getElementById('bg3d'), { side: 'left' }); }
   catch (e) { document.documentElement.classList.add('no3d'); }
-  A.initTheme(document.getElementById('themeToggle'));
   window.addEventListener('load', function () { window.dispatchEvent(new Event('resize')); });
 
   /* Server xatosi bo'lsa parol qadamidan boshlaymiz */
@@ -340,3 +334,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
+

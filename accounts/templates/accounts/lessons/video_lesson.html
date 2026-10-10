@@ -212,7 +212,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 #videoGuard .vl-pp-flash.show { animation: vlPP 0.5s ease-out; }
 @keyframes vlPP { 0% { opacity: 0; transform: translate(-50%,-50%) scale(0.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1.1); } }
 
-/* ── Custom control bar (volume + fullscreen) ────────
+/* ── Custom control bar (seek + volume + fullscreen) ────────
    videoGuard ustida turadi (z-index: 6 > 5), shuning uchun bu tugmalar
    bosilganda videoGuard'ning play/pause hodisasi ishga tushmaydi. */
 #vlControls {
@@ -230,6 +230,10 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 }
 #videoBox:hover #vlControls,
 #vlControls.vl-show { opacity: 1; pointer-events: auto; }
+@media (hover: none), (pointer: coarse) {
+    #vlControls { opacity: 1; pointer-events: auto; gap: 6px; padding: 6px 8px; }
+    #vlControls .vl-ctrl-btn { width: 32px; height: 32px; }
+}
 .vl-ctrl-btn {
     width: 34px; height: 34px;
     border: 0; border-radius: 50%;
@@ -784,6 +788,42 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 .vl-celeb-btn:hover { filter: brightness(1.08); }
 .vl-celeb-btn:active { transform: scale(.97); }
 
+/* ── Video ko'rish tasdig'i ────────────────────────── */
+.vl-presence-backdrop {
+    position: fixed; inset: 0; z-index: 10001;
+    display: grid; place-items: center; padding: 20px;
+    background: rgba(5, 18, 36, .62);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    animation: vlFadeIn .2s ease;
+}
+.vl-presence-modal {
+    width: min(430px, 100%); padding: 30px 28px 26px;
+    text-align: center; color: var(--vl-text);
+    background: var(--vl-card); border: 1px solid var(--vl-border);
+    border-radius: 24px; box-shadow: 0 24px 70px rgba(0,0,0,.32);
+    animation: vlCelebPop .32s cubic-bezier(.2,.8,.2,1);
+}
+.vl-presence-icon {
+    width: 62px; height: 62px; margin: 0 auto 16px;
+    display: grid; place-items: center; border-radius: 20px;
+    color: #fff; font-size: 1.65rem;
+    background: linear-gradient(135deg, #1389ff, #5758e8);
+    box-shadow: 0 10px 28px rgba(19,137,255,.28);
+}
+.vl-presence-title { margin: 0 0 8px; font-size: 1.2rem; font-weight: 800; }
+.vl-presence-copy { margin: 0; color: var(--vl-muted); font-size: .92rem; line-height: 1.6; }
+.vl-presence-btn {
+    width: 100%; margin-top: 22px; padding: 13px 18px;
+    border: 0; border-radius: 14px; color: #fff; font-weight: 750;
+    background: linear-gradient(110deg, #147ce5, #329cf3);
+    box-shadow: 0 8px 22px rgba(20,124,229,.24); cursor: pointer;
+    transition: transform .18s ease, filter .18s ease;
+}
+.vl-presence-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.vl-presence-btn:active { transform: scale(.98); }
+.vl-presence-btn:focus-visible { outline: 3px solid #83c8ff; outline-offset: 3px; }
+@media (max-width: 576px) { .vl-presence-modal { padding: 26px 20px 22px; } }
+
 /* Confetti */
 .vl-confetti { position:fixed;inset:0;z-index:10000;pointer-events:none;overflow:hidden; }
 .vl-confetti-piece {
@@ -1047,6 +1087,7 @@ const isVimeo   = {{ video.is_vimeo|yesno:"true,false" }};
 const isYouTube = {{ video.is_youtube|yesno:"true,false" }};
 const videoId   = "{{ video.get_video_id|default:'' }}";
 const vimeoEmbedUrl = "{{ video.get_embed_url|default:''|escapejs }}";
+const resumeAt = {{ resume_at|default:0|unlocalize }};
 const VIDEO_TIMER_DEBUG = {{ video_timer_debug|yesno:"true,false" }};
 function videoTimerLog(...args) {
     if (VIDEO_TIMER_DEBUG) console.debug('[VideoTimer]', ...args);
@@ -1141,8 +1182,8 @@ function vlSetupQuality() {
 }
 
 /* ── Video ustidagi himoya qatlami ──
- * Pleerning O'ZINI (seek bar / progress bar) bilan ishlashni butunlay to'sadi:
- * oldinga ham, orqaga ham o'tkazib bo'lmaydi. Bosilganda faqat play/pause. */
+ * Native pleyer panelidagi seek nazoratini to'sadi; seek maxsus tugmalar orqali
+ * bajariladi. Bosilganda qatlamning bo'sh joyi play/pause qiladi. */
 function flashPP(nowPaused) {
     const f = document.querySelector('#videoGuard .vl-pp-flash');
     if (!f) return;
@@ -1181,8 +1222,8 @@ function addVideoGuard() {
 }
 
 /* ── Custom controls: volume + fullscreen ──
- * Pleerning o'z boshqaruvi (seek bar bilan) o'chirilgan, shu sabab bu yerda
- * faqat ovoz va to'liq ekran uchun tugmalar qo'shamiz. Bu tugmalar
+ * Pleerning o'z boshqaruvi o'chirilgan, shu sabab bu yerda
+ * seek, ovoz va to'liq ekran uchun tugmalar qo'shamiz. Bu tugmalar
  * videoGuard'dan yuqori z-index'da (6 > 5) turadi va event.stopPropagation
  * qiladi — shuning uchun play/pause bosilmaydi. */
 function addCustomControls(box) {
@@ -1190,6 +1231,8 @@ function addCustomControls(box) {
     const bar = document.createElement('div');
     bar.id = 'vlControls';
     bar.innerHTML = `
+        <button class="vl-ctrl-btn" id="vlSeekBackBtn" title="10 soniya orqaga" aria-label="10 soniya orqaga"><i class="bi bi-rewind-fill"></i></button>
+        <button class="vl-ctrl-btn" id="vlSeekForwardBtn" title="10 soniya oldinga" aria-label="10 soniya oldinga"><i class="bi bi-fast-forward-fill"></i></button>
         <button class="vl-ctrl-btn" id="vlMuteBtn" title="Ovozni o'chirish"><i class="bi bi-volume-up-fill"></i></button>
         <div class="vl-vol-wrap">
             <input type="range" min="0" max="100" value="100" step="1" class="vl-vol-slider" id="vlVolSlider">
@@ -1211,6 +1254,35 @@ function addCustomControls(box) {
     const muteBtn   = document.getElementById('vlMuteBtn');
     const volSlider = document.getElementById('vlVolSlider');
     const fsBtn     = document.getElementById('vlFsBtn');
+    const seekBackBtn = document.getElementById('vlSeekBackBtn');
+    const seekForwardBtn = document.getElementById('vlSeekForwardBtn');
+
+    function seekBy(delta) {
+        const seek = function(current, duration) {
+            if (!isFinite(current)) return;
+            const target = Math.max(0, Math.min(isFinite(duration) && duration > 0 ? duration : Infinity, current + delta));
+            try {
+                if (window._vqYT && typeof window._vqYT.seekTo === 'function') {
+                    window._vqYT.seekTo(target, true);
+                } else if (vimeoPlayer) {
+                    vimeoPlayer.setCurrentTime(target).catch(function(){});
+                }
+            } catch (e) {}
+            // Seek qilingan masofani ko'rilgan segment sifatida hisoblamaymiz;
+            // keyingi tick yangi pozitsiyadan o'lchashni boshlaydi.
+            lastPos = null;
+            lastWall = null;
+            setTimeout(function(){ sendBeat(); }, 250);
+        };
+        if (window._vqYT && typeof window._vqYT.getCurrentTime === 'function') {
+            seek(window._vqYT.getCurrentTime(), window._vqYT.getDuration());
+        } else if (vimeoPlayer) {
+            Promise.all([vimeoPlayer.getCurrentTime(), vimeoPlayer.getDuration()])
+                .then(function(values){ seek(values[0], values[1]); }).catch(function(){});
+        }
+    }
+    seekBackBtn.addEventListener('click', function(){ seekBy(-10); });
+    seekForwardBtn.addEventListener('click', function(){ seekBy(10); });
 
     let currentVol = 100;
     let isMuted    = false;
@@ -1319,6 +1391,7 @@ if (placeholder) {
                     // Play va fullscreen ishlashi uchun controls/fs yoqiladi.
                     playerVars: {
                         autoplay: 1,
+                        start: Math.floor(resumeAt),
                         rel: 0,
                         modestbranding: 1,
                         controls: useNativeMobileControls ? 1 : 0,
@@ -1361,6 +1434,11 @@ if (placeholder) {
         if (isVimeo) {
             iframe.onload = function() {
                 vimeoPlayer = new Vimeo.Player(iframe);
+                if (resumeAt > 0) {
+                    vimeoPlayer.ready().then(function(){
+                        return vimeoPlayer.setCurrentTime(resumeAt);
+                    }).catch(function(){});
+                }
                 vlSetupQuality();
                 vimeoPlayer.on('play',        () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
                 vimeoPlayer.on('pause',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); });
@@ -1383,8 +1461,8 @@ if (placeholder) {
  * Timer endi VIDEO POZITSIYASIGA bog'langan (wall-clock emas):
  *   • watchedTime = pleerning currentTime bo'yicha maksimal yetilgan soniya
  *   • Talab: video davomiyligining kamida 90% ko'rilishi
- *   • Oldinga o'tkazish TAQIQLANGAN (seek forward -> orqaga qaytariladi),
- *     orqaga (rewind) — bemalol.
+ *   • Seek timerning vaqt bazasini o'zgartirmaydi; o'tkazilgan qism ko'rilgan
+ *     deb sanalmaydi, orqaga qayta ko'rish progressni kamaytirmaydi.
  *   • Modal quiz ochilganda video pauza qilinadi (player_widget.html),
  *     shuning uchun watchedTime ham to'xtaydi.
  */
@@ -1470,12 +1548,37 @@ let finalBeatPending  = false;
 function answerPresenceChallenge(challenge) {
     if (!challenge || !challenge.token || presencePrompting) return;
     presencePrompting = true;
-    const confirmed = window.confirm(
-        "Video darsni ko'rishni davom ettiryapsizmi?\n\n" +
-        'Davom etish uchun OK tugmasini bosing.'
-    );
-    presencePrompting = false;
-    if (confirmed) sendBeat(challenge.token);
+    // Diqqat tekshiruvi paytida video ko'rinmay davom etib ketmasin.
+    try {
+        if (window._vqYT && typeof window._vqYT.pauseVideo === 'function') window._vqYT.pauseVideo();
+        else if (vimeoPlayer) vimeoPlayer.pause().catch(function(){});
+    } catch (e) {}
+
+    const overlay = document.createElement('div');
+    overlay.className = 'vl-presence-backdrop';
+    overlay.innerHTML = `
+        <section class="vl-presence-modal" role="dialog" aria-modal="true" aria-labelledby="vlPresenceTitle" aria-describedby="vlPresenceCopy">
+            <div class="vl-presence-icon" aria-hidden="true"><i class="bi bi-eye-fill"></i></div>
+            <h2 class="vl-presence-title" id="vlPresenceTitle">Darsni kuzatyapsizmi?</h2>
+            <p class="vl-presence-copy" id="vlPresenceCopy">Ko'rish jarayonini davom ettirish uchun tasdiqlang. Javobingizdan so'ng video davom etadi.</p>
+            <button class="vl-presence-btn" type="button"><i class="bi bi-play-fill me-1"></i> Ha, davom etaman</button>
+        </section>`;
+    document.body.appendChild(overlay);
+    const confirmBtn = overlay.querySelector('.vl-presence-btn');
+    confirmBtn.focus();
+    confirmBtn.addEventListener('click', function() {
+        if (!overlay.isConnected) return;
+        overlay.remove();
+        presencePrompting = false;
+        try {
+            if (window._vqYT && typeof window._vqYT.playVideo === 'function') window._vqYT.playVideo();
+            else if (vimeoPlayer) vimeoPlayer.play().catch(function(){});
+        } catch (e) {}
+        // Tasdiqlash beat'ni videoni qayta boshlash bilan birga yuboradi.
+        // Bu brauzer confirm dialogi sababli sahifadan chiqib ketish holatini
+        // oldini oladi va serverga aynan shu tekshiruv javobini yetkazadi.
+        sendBeat(challenge.token, true);
+    });
 }
 
 function sendBeat(presenceToken, playingOverride) {
@@ -1846,7 +1949,11 @@ document.addEventListener('visibilitychange', () => {
 // Brauzer Orqaga/Oldinga tugmasida sahifani xotiradan (bfcache) tiklasa, server
 // view'i ishlamay qoladi. Qayta yuklab yangi, nollangan ko'rish sessiyasini olamiz.
 window.addEventListener('pageshow', function(event) {
-    if (event.persisted) window.location.reload();
+    if (event.persisted && isVideoPlaying) {
+        lastPos = null;
+        lastWall = null;
+        sendBeat();
+    }
 });
 
 // Boshlang'ich UI: davomiylik lock qilinmaguncha "—:—" ko'rsatamiz. Bu bilan

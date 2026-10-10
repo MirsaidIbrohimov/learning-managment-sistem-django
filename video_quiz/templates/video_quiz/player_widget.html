@@ -180,6 +180,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
                 <h4 id="vqpResTitle"></h4>
                 <div class="coin-fx" id="vqpResCoin"></div>
                 <div class="vqp-explain" id="vqpExplain" style="display:none;"></div>
+                <small id="vqpResumeHint" style="display:block;margin:8px 0;color:#94a3b8;"></small>
                 <button type="button" class="vqp-continue" id="vqpContinue">
                     <i class="bi bi-play-fill"></i> Davom etish
                 </button>
@@ -208,6 +209,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
     let modalOpen = false;
     let selected = null;
     let progTimer = null;      // countdown intervali
+    let autoContinueTimer = null;
     let secondsLeft = 0;       // qolgan vaqt (soniya)
     let deadline = 0;          // wall-clock muddat (ms) — fon tabda ham aniq ishlaydi
     let timedOut = false;      // shu savol vaqt tugab avtomatik yopilganmi
@@ -357,6 +359,19 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         clearInterval(progTimer);
         deadline = 0;
     }
+    function scheduleAutoContinue() {
+        clearTimeout(autoContinueTimer);
+        let seconds = 7;
+        const hint = document.getElementById('vqpResumeHint');
+        function tick() {
+            if (!modalOpen || !current || !current.answered) return;
+            if (hint) hint.textContent = 'Video ' + seconds + ' soniyada davom etadi. Hoziroq davom etish uchun tugmani bosing.';
+            if (seconds <= 0) { finishQuiz(); return; }
+            seconds -= 1;
+            autoContinueTimer = setTimeout(tick, 1000);
+        }
+        tick();
+    }
     // Tab qayta faollashganda muddatni darhol tekshirish (fon tabda interval
     // 1 daqiqagacha kechikishi mumkin)
     document.addEventListener('visibilitychange', function() {
@@ -419,7 +434,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             coinEl.textContent = '';
             exp.textContent = '⚠️ ' + data.error;
             exp.style.display = 'block';
-            current.answered = true;
+            current.answered = data.error.toLowerCase().includes('allaqachon');
         } else {
             // Tarmoq uzildi — natija ko'rsatiladi; yozuv pagehide beacon yoki
             // keyingi ochilishda amalga oshadi (answered=false qoldiriladi)
@@ -428,6 +443,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             exp.style.display = 'block';
         }
         soundNo();
+        if (current.answered) scheduleAutoContinue();
     }
 
     /* ---------- Modal ---------- */
@@ -445,6 +461,7 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
         document.getElementById('vqpQ').textContent = q.question;
         const d = document.getElementById('vqpDesc');
         d.textContent = q.description || ''; d.style.display = q.description ? '' : 'none';
+        document.getElementById('vqpResumeHint').textContent = '';
         document.getElementById('vqpRew').textContent = q.reward_coin;
         document.getElementById('vqpPen').textContent = q.penalty_coin;
         document.getElementById('vqpResult').style.display = 'none';
@@ -533,9 +550,12 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
             toast('🪙 ' + data.coins_change + ' Coin');
         }
         current.answered = true;
+        scheduleAutoContinue();
     }
 
     function finishQuiz() {
+        clearTimeout(autoContinueTimer);
+        autoContinueTimer = null;
         if (current) current.answered = true;
         modalOpen = false; current = null;
         overlay.classList.remove('open');

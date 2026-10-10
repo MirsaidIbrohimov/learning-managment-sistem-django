@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kirish | IT Creative Zomin</title>
+<title>Kirish | IT Creative Academy</title>
 <meta name="google-site-verification" content="7e2y7dlJOd2NSMK_LDh-nBAxzrsB-DTnJJRf5-Fmg2M" />
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
@@ -23,9 +23,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<script src="{% static 'js/auth-theme.js' %}" defer></script>
 <script src="{% static 'js/auth-page.js' %}" defer></script>
 </head>
-<body>
+<body class="auth-blue auth-login">
 
 <!-- Fon qatlamlari -->
 <div class="bg-aura" aria-hidden="true">
@@ -39,40 +40,29 @@
 <!-- Yuqori panel -->
 <header class="hud">
   <a class="hud-brand" href="{% url 'login' %}">
-    <span class="hud-logo">IT</span>
-    <span class="hud-name">IT Creative Zomin</span>
+    <img class="hud-logo-img" src="{% static 'img/logo.png' %}" alt="">
+    <span class="hud-name">IT Creative Academy<span>ZOMIN</span></span>
   </a>
-  <button type="button" class="tgl" id="themeToggle" aria-label="Tema almashtirish" aria-pressed="false">
-    <span class="tgl-knob"><i class="bi bi-moon-stars-fill"></i><i class="bi bi-sun-fill"></i></span>
-  </button>
+  <div class="hud-actions">
+    <nav class="auth-nav" aria-label="Autentifikatsiya"><a class="active" href="{% url 'login' %}">Kirish</a><a href="{% url 'register' %}">Ro'yxatdan o'tish</a></nav>
+    <button type="button" class="theme-switch" id="themeToggle" aria-label="Qorong'i rejimga o'tish" aria-pressed="false"><i class="bi bi-moon-stars-fill"></i><span>Dark</span></button>
+  </div>
 </header>
 
 <main class="stage">
 
   <!-- Chap: fon ustidagi brend matni -->
   <section class="pane-scene" aria-hidden="true">
-    <span class="scene-eyebrow"><span class="dot"></span> Onlayn ta'lim platformasi</span>
-    <h1 class="scene-title">Kelajak shahriga<br><span class="grad">xush kelibsiz!</span></h1>
-    <p class="scene-sub">IT Creative Zomin — dasturlash olamiga birinchi qadamni birga qo'yamiz. Bilim tarmog'iga ulaning.</p>
-
-    <div class="scene-stats">
-      <div class="st"><span class="st-num" data-count="500" data-suffix="+">0</span><span class="st-lab">O'quvchi</span></div>
-      <div class="st"><span class="st-num" data-count="12" data-suffix="">0</span><span class="st-lab">Yo'nalish</span></div>
-      <div class="st"><span class="st-num" data-count="98" data-suffix="%">0</span><span class="st-lab">Mamnunlik</span></div>
-    </div>
-
-    <div class="fact-bar" id="factBar">
-      <span class="fact-ico"><i class="bi bi-lightbulb-fill"></i></span>
-      <span>
-        <span class="fact-lab">Kunning fakti</span>
-        <span class="fact-txt" id="factText">Har kuni 20 daqiqa kod yozish bir yilda 120 soatdan ortiq amaliyot beradi.</span>
-      </span>
-    </div>
-
-    <div class="chips">
-      <span class="chip"><i class="bi bi-mortarboard-fill"></i> 500+ o'quvchi</span>
-      <span class="chip"><i class="bi bi-code-slash"></i> Amaliy darslar</span>
-      <span class="chip"><i class="bi bi-trophy-fill"></i> Sertifikatlar</span>
+    <div class="study-scene">
+      <img class="portrait-slide is-active" src="{% static 'img/auth-portraits/student-1.webp' %}" alt="Talaba noutbukda ishlamoqda"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-2.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-3.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-4.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-5.webp' %}" alt="" aria-hidden="true"><div class="scene-glow"></div>
+      <div class="scene-copy"><span class="scene-eyebrow"><span class="dot"></span> IT CREATIVE ACADEMY · ZOMIN</span><h1 class="scene-title">Bilim bilan<br><span class="grad">yuksaling.</span></h1><p class="scene-sub">Har bir yangi dars — katta kelajak sari bir qadam.</p></div>
+      <div class="learning-cards">
+        <div class="learning-card"><i class="bi bi-play-circle-fill"></i><span><b>Darslar</b><small>Video, test va materiallar</small></span></div>
+        <div class="learning-card"><i class="bi bi-graph-up-arrow"></i><span><b>O'zlashtirish</b><small>Natijalarni kuzatish</small></span></div>
+        <div class="learning-card"><i class="bi bi-people-fill"></i><span><b>Jamoa</b><small>Ustozlar va do'stlar</small></span></div>
+      </div>
+      <div class="quote-card"><i class="bi bi-quote"></i>Bilim — kelajakka yetaklaydigan eng kuchli vosita.</div>
+      <div class="scene-spark spark-one"></div><div class="scene-spark spark-two"></div>
     </div>
   </section>
 
@@ -85,8 +75,8 @@
     <section class="card">
     <div class="c-head">
       <span class="c-logo">IT</span>
-      <h2 class="c-title">Tizimga kirish</h2>
-      <p class="c-sub">Akkauntingizga qulay usulda kiring</p>
+      <h2 class="c-title">Xush kelibsiz! 👋</h2>
+      <p class="c-sub">Akkauntingizga kiring va o'qish jarayonini davom ettiring.</p>
     </div>
 
     <!-- Rejim tablari -->
@@ -110,7 +100,7 @@
         <input type="hidden" name="login_mode" value="username">
         <input type="hidden" name="login_token" value="{{ login_token }}">
         <div class="hp" aria-hidden="true"><label for="wu1">Website</label><input type="text" name="website_url" id="wu1" autocomplete="off" tabindex="-1"></div>
-        <div class="f">
+      <div class="f">
           <label class="f-lab" for="{{ form.username.id_for_label }}"><i class="bi bi-person"></i> Username</label>
           <div class="iw">
             <span class="fico"><i class="bi bi-person"></i></span>
@@ -125,8 +115,9 @@
             <button type="button" class="pw-eye" data-pw="{{ form.password.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
           </div>
           <span class="caps-hint" data-caps-for="{{ form.password.id_for_label }}"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</span>
-        </div>
-        <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
+      </div>
+      <div class="login-options"><label class="remember-choice"><input type="checkbox" name="remember_me"><span class="remember-box" aria-hidden="true"><i class="bi bi-check-lg"></i></span><span>Meni eslab qol</span></label><a href="{% url 'password_reset_request' %}" class="link">Parolni unutdingizmi?</a></div>
+      <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Kirish</span></button>
       </form>
     </div>
 
@@ -183,10 +174,14 @@
 
     <!-- Havolalar -->
     <div class="links">
-      <a href="{% url 'password_reset_request' %}" class="link"><i class="bi bi-key"></i> Parolni unutdingizmi?</a>
-      <hr class="divider">
       <span class="muted">Akkauntingiz yo'qmi?</span>
       <a href="{% url 'register' %}" class="link" style="font-weight:700">Ro'yxatdan o'ting <i class="bi bi-arrow-right"></i></a>
+      <div class="social-divider"><span>Yoki quyidagilar orqali kiring</span></div>
+      <div class="social-login" aria-label="Boshqa kirish imkoniyatlari">
+        <button type="button" class="social-button" aria-label="Google orqali kirish — hozircha mavjud emas" title="Hozircha mavjud emas"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.09-1.92 3.27-4.75 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.65l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.15v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.11A6.6 6.6 0 0 1 5.5 12c0-.73.13-1.44.34-2.11V7.05H2.15A11 11 0 0 0 1 12c0 1.78.43 3.46 1.15 4.95l3.69-2.84z"/><path fill="#EA4335" d="M12 5.36c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1a11 11 0 0 0-9.85 6.05l3.69 2.84C6.71 7.29 9.14 5.36 12 5.36z"/></svg><span>Google</span></button>
+        <button type="button" class="social-button" aria-label="Apple orqali kirish — hozircha mavjud emas" title="Hozircha mavjud emas"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.37 1.43c0 1.14-.42 2.2-1.2 3.08-.91 1.03-2.4 1.82-3.69 1.72-.16-1.1.46-2.27 1.2-3.03.82-.87 2.25-1.53 3.69-1.77zm4.45 16.24c-.62 1.4-.92 2.03-1.72 3.27-1.12 1.67-2.7 3.75-4.65 3.76-1.73.02-2.18-1.12-4.53-1.1-2.35.01-2.85 1.12-4.58 1.1-1.95-.02-3.44-1.88-4.56-3.55-3.12-4.67-3.45-10.15-1.52-13.07 1.37-2.08 3.54-3.3 5.58-3.3 2.08 0 3.38 1.14 5.1 1.14 1.67 0 2.69-1.14 5.08-1.14 1.8 0 3.71.98 5.08 2.67-4.47 2.45-3.75 8.84.72 10.22z"/></svg><span>Apple</span></button>
+        <button type="button" class="social-button" aria-label="Facebook orqali kirish — hozircha mavjud emas" title="Hozircha mavjud emas"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#1877F2" d="M24 12a12 12 0 1 0-13.88 11.86v-8.39H7.08V12h3.04V9.35c0-3 1.79-4.66 4.52-4.66 1.31 0 2.68.24 2.68.24v2.95h-1.51c-1.49 0-1.95.92-1.95 1.87V12h3.32l-.53 3.47h-2.79v8.39A12 12 0 0 0 24 12z"/></svg><span>Facebook</span></button>
+      </div>
       <hr class="divider">
       <a href="{% url 'parent_login' %}" class="link" style="color:var(--tx2)"><i class="bi bi-people"></i> Ota-ona sifatida kirish</a>
     </div>
@@ -208,8 +203,6 @@ document.addEventListener('DOMContentLoaded', function () {
      Fon buzilsa ham forma ishlashda davom etishi kerak. */
   try { A.mountScene(document.getElementById('bg3d'), { side: 'right' }); }
   catch (e) { document.documentElement.classList.add('no3d'); }
-  A.initTheme(document.getElementById('themeToggle'));
-
   /* Tablar */
   A.initSegTabs(document.getElementById('loginSeg'));
   window.addEventListener('load', function () { window.dispatchEvent(new Event('resize')); });
@@ -284,3 +277,6 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 </body>
 </html>
+
+
+

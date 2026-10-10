@@ -4080,7 +4080,6 @@ def lesson_view(request, pk):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-        _reset_unfinished_video_session(progress)
         # Sahifa render QILINISHIDANOQ talab vaqti server tomonda yakuniy
         # holatda bo'lishi kerak: aks holda birinchi heartbeat'da
         # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
@@ -4103,6 +4102,7 @@ def lesson_view(request, pk):
             threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
+        context['resume_at'] = progress.last_position if not progress.watched else 0
         context['video_coin_amount'] = _video_watch_coin_amount(video, request.user)
         return render(request, 'accounts/lessons/video_lesson.html', context)
     
@@ -4264,28 +4264,6 @@ def _video_watch_coin_amount(video, user):
     seconds = video.gating_duration_seconds
     minutes = max(1, round(seconds / 60)) if seconds else max(1, int(video.duration or 0))
     return minutes * (2 if user.is_premium else 1)
-
-
-def _reset_unfinished_video_session(progress):
-    """Tugallanmagan video qayta ochilganda ko'rish timerini boshidan boshlaydi."""
-    if progress.watched:
-        return
-
-    progress.verified_seconds = 0
-    progress.watched_segments = []
-    progress.max_position = 0
-    progress.last_position = 0
-    progress.last_beat_at = None
-    progress.last_credit_at = None
-    progress.beat_nonce = ''
-    progress.presence_token = ''
-    progress.presence_sent_at = None
-    progress.next_check_seconds = 0
-    progress.save(update_fields=[
-        'verified_seconds', 'watched_segments', 'max_position', 'last_position',
-        'last_beat_at', 'last_credit_at', 'beat_nonce', 'presence_token',
-        'presence_sent_at', 'next_check_seconds',
-    ])
 
 
 # ── Server tomonlama ko'rish nazorati ────────────────────────────────────────
@@ -6526,7 +6504,6 @@ def student_lesson_view(request, token):
     if lesson.lesson_type == 'video':
         video = lesson.video
         progress, _ = VideoProgress.objects.get_or_create(user=request.user, video=video)
-        _reset_unfinished_video_session(progress)
         # Sahifa render QILINISHIDANOQ talab vaqti server tomonda yakuniy
         # holatda bo'lishi kerak: aks holda birinchi heartbeat'da
         # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
@@ -6548,6 +6525,7 @@ def student_lesson_view(request, token):
             threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
+        context['resume_at'] = progress.last_position if not progress.watched else 0
         context['video_coin_amount'] = _video_watch_coin_amount(video, request.user)
         return render(request, 'accounts/lessons/video_lesson.html', context)
 
