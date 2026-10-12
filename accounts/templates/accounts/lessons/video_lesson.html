@@ -1535,17 +1535,10 @@ const BEAT_INTERVAL_MS = 8000;
 const BEAT_TIMEOUT_MS = 12000;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
-// Sahifa avval to'liq video vaqtini ko'rsatib, birinchi heartbeatda oldin
-// ko'rilgan vaqtni birdan ayirib yubormasin. DB'da talab mavjud bo'lsa,
-// countdown birinchi kadrdayoq server tasdiqlagan qolgan vaqtdan boshlanadi.
-let serverRemaining = initialServerRequired > 0
-    ? Math.max(0, initialServerRequired - initialServerVerified)
-    : null;
 // Ekrandagi countdown server tasdiqlagan qolgan vaqtdan davom etadi. Har
-// heartbeat bazani yangilaydi; kredit olinmagan oraliq bo'lsa noto'g'ri 0:00 da
-// qotib qolish o'rniga serverdagi haqiqiy qolgan vaqt ko'rsatiladi.
-let displayRemainingStart = null;
-let displayWatchedStart   = 0;
+// heartbeat serverdan qayta bazalanmaydi; kechikkan javob countdownni ortga
+// qaytarmaydi.
+let lastDisplayedRemaining = null;
 let beatInFlight      = false;
 let beatNonce         = '';
 let presencePrompting = false;
@@ -1632,41 +1625,28 @@ function sendBeat(presenceToken, playingOverride) {
         .then(data => {
             if (!data || !data.ok) return;
             beatNonce         = data.nonce || '';
-            serverRemaining   = data.remaining;
             serverCanComplete = !!data.can_complete;
             if (Array.isArray(data.watched_segments)) {
                 watchedSegments = data.watched_segments;
-                watchedTime = Math.max(0, Number(data.verified_seconds) || 0);
+                // Server javobi heartbeat paytida kechikishi mumkin. UI progress
+                // hech qachon eskiroq javob sabab ortga qaytmasin.
+                watchedTime = Math.max(
+                    watchedTime,
+                    initialServerVerified,
+                    Math.max(0, Number(data.verified_seconds) || 0)
+                );
             }
             videoTimerLog('Current position:', Math.round(t));
             videoTimerLog('Watched:', Math.round(Number(data.verified_seconds) || 0));
             videoTimerLog('Progress:', `${Number(data.watched_percentage) || 0}%`);
 
-            // ── Countdown sinxronlashi (silliq, sakrashsiz) ──
-            // Server har heartbeat'da qiymat yuboradi. Kichik farqlar —
-            // yaxitlash (0.1s qadam), beat kechikishi, kichik kredit
-            // farqlari — countdownni ORQAGA/OLDINGA sakratadi. Shuning uchun
-            // server bazasi FAQAT mazmunli farq bo'lganda qabul qilinadi.
+            // Server talabini yangilash mumkin, lekin qolgan vaqt bitta
+            // monoton watchedTime qiymatidan hisoblanadi.
             const srvRequired   = Number(data.required_seconds) || 0;
-            const srvRemaining  = Math.max(0, Number(data.remaining) || 0);
-            const localRemaining = (displayRemainingStart != null)
-                ? Math.max(0, displayRemainingStart - Math.max(0, watchedTime - displayWatchedStart))
-                : null;
-
             if (srvRequired > 0 && Math.abs(srvRequired - (requiredTime || 0)) > 1) {
                 // Server provider'dan haqiqiy durationni topganda eski/manual
                 // talab oshishi ham, kamayishi ham mumkin.
                 requiredTime = srvRequired;
-                displayRemainingStart = srvRemaining;
-                displayWatchedStart = watchedTime;
-            } else if (data.remaining != null && !isReady && !serverCanComplete) {
-                // Server qolgan vaqtini faqat 5 soniyadan katta farqda
-                // qabul qilamiz — kichik jitterlarni lokal hisob yutadi va
-                // countdown uzluksiz, silliq kamayib boradi.
-                if (localRemaining == null || Math.abs(srvRemaining - localRemaining) > 5) {
-                    displayRemainingStart = srvRemaining;
-                    displayWatchedStart = watchedTime;
-                }
             }
             if (data.seek_detected) {
                 videoTimerLog('Seek detected');
@@ -1838,15 +1818,13 @@ function lockDuration(seconds) {
     videoTimerLog('Duration:', Math.round(totalSeconds));
     const rewardSeconds = dbSeconds >= 60 ? dbSeconds : totalSeconds;
     setRewardCoinAmount(Math.max(1, Math.round(rewardSeconds / 60)) * coinMultiplier);
-    // UI: countdown endi to'g'ri qiymatga to'ldiriladi (birinchi tikda ham darrov).
+    // Boshlang'ich countdown joriy qolgan progressdan olinadi.
     if (!isReady) {
-        displayRemainingStart = serverRemaining != null
-            ? Math.max(0, serverRemaining)
-            : Math.max(0, requiredTime - watchedTime);
-        displayWatchedStart = watchedTime;
-        countdownEl.textContent = formatTime(displayRemainingStart);
+        const initialRemaining = Math.max(0, requiredTime - watchedTime);
+        lastDisplayedRemaining = initialRemaining;
+        countdownEl.textContent = formatTime(initialRemaining);
         const progress = Math.max(0, Math.min(1,
-            (requiredTime - displayRemainingStart) / requiredTime));
+            (requiredTime - initialRemaining) / requiredTime));
         ringFill.style.strokeDashoffset = circumference * (1 - progress);
     }
 }
@@ -1890,12 +1868,13 @@ function updateTimerUI() {
         showMarkWatchedButton();
         return;
     }
-    if (!durationLocked || displayRemainingStart == null) return;
+    if (!durationLocked) return;
 
-    // Server heartbeat qiymati faqat yakunlash huquqi uchun ishlatiladi. Ekran
-    // qiymati esa boshlang'ich nuqtadan beri qonuniy ijro etilgan vaqtga kamayadi.
-    const playedSinceDisplayStart = Math.max(0, watchedTime - displayWatchedStart);
-    const remaining = Math.max(0, displayRemainingStart - playedSinceDisplayStart);
+    const calculatedRemaining = Math.max(0, requiredTime - watchedTime);
+    const remaining = lastDisplayedRemaining == null
+        ? calculatedRemaining
+        : Math.min(lastDisplayedRemaining, calculatedRemaining);
+    lastDisplayedRemaining = remaining;
     const progress = Math.max(0, Math.min(1, (requiredTime - remaining) / requiredTime));
     countdownEl.textContent = formatTime(remaining);
     ringFill.style.strokeDashoffset = circumference * (1 - progress);
@@ -1963,7 +1942,11 @@ function tick() {
 
         if (isVideoPlaying && !document.hidden && positionDelta > 0) {
             mergeClientSegment(lastPos, Math.min(t, lastPos + maxStep));
-            watchedTime = Math.max(initialServerVerified, clientWatchedSeconds());
+            watchedTime = Math.max(
+                watchedTime,
+                initialServerVerified,
+                clientWatchedSeconds()
+            );
         }
 
         lastPos = t; lastWall = now;

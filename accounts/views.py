@@ -4102,9 +4102,7 @@ def lesson_view(request, pk):
             threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
-        # Seek qilingan last_position resume uchun ishonchli emas: progress
-        # faqat server tasdiqlagan segmentlardan tiklanishi kerak.
-        context['resume_at'] = _video_resume_position(progress) if not progress.watched else 0
+        context['resume_at'] = progress.last_position if not progress.watched else 0
         context['video_coin_amount'] = _video_watch_coin_amount(video, request.user)
         return render(request, 'accounts/lessons/video_lesson.html', context)
     
@@ -4396,17 +4394,6 @@ def _notify_admin_watch_suspicion(progress, video):
         )
     except Exception as e:
         print(f"Watch suspicion notify xatolik: {e}")
-
-
-def _video_resume_position(progress):
-    """Oxirgi uzluksiz tasdiqlangan segment oxiridan videoni davom ettiradi."""
-    segments, _ = _merged_watch_segments(
-        progress.watched_segments,
-        duration=float(progress.video.gating_duration_seconds or 0),
-    )
-    if not segments and progress.verified_seconds > 0:
-        return float(progress.verified_seconds)
-    return float(segments[-1][1]) if segments else 0
 
 
 def _clean_seconds(value, limit=86400):
@@ -6540,7 +6527,7 @@ def student_lesson_view(request, token):
             threading.Thread(target=_bg_generate, daemon=True).start()
         context['video'] = video
         context['progress'] = progress
-        context['resume_at'] = _video_resume_position(progress) if not progress.watched else 0
+        context['resume_at'] = progress.last_position if not progress.watched else 0
         context['video_coin_amount'] = _video_watch_coin_amount(video, request.user)
         return render(request, 'accounts/lessons/video_lesson.html', context)
 
