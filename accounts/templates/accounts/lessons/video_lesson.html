@@ -1533,6 +1533,10 @@ function clientWatchedSeconds() {
 }
 let serverVerifiedFloor = initialServerVerified;
 let watchedTime = Math.max(serverVerifiedFloor, clientWatchedSeconds());
+let serverRemaining = initialServerRequired > 0
+    ? Math.max(0, initialServerRequired - initialServerVerified)
+    : null;
+let serverRemainingWatchedAt = watchedTime;
 let isReady     = false;  // 90% ga yetdi
 
 /* ── Server tomonlama tasdiqlash (anti-cheat) ──────────────────────────────
@@ -1557,6 +1561,7 @@ let presencePrompting = false;
 let finalBeatPending  = false;
 let resetPending      = false;
 let beatRetryTimer    = null;
+let lastFinalizationRequestAt = 0;
 let idlePromptTimer   = null;
 let presenceCountdown = null;
 let presenceOverlay   = null;
@@ -1719,6 +1724,8 @@ function sendBeat(presenceToken, playingOverride, resetProgress) {
                     verifiedResumeAt = 0;
                     serverCanComplete = false;
                     if (Number(data.required_seconds) > 0) requiredTime = Number(data.required_seconds);
+                    serverRemaining = Number(data.remaining ?? data.required_seconds) || 0;
+                    serverRemainingWatchedAt = 0;
                     lastDisplayedRemaining = durationLocked ? Math.max(0, requiredTime || 0) : null;
                     lastPos = null;
                     lastWall = null;
@@ -1734,6 +1741,16 @@ function sendBeat(presenceToken, playingOverride, resetProgress) {
                         serverVerifiedFloor,
                         Math.max(0, Number(data.verified_seconds) || 0)
                     );
+                    if (data.remaining != null && Number.isFinite(Number(data.remaining))) {
+                        const receivedRemaining = Math.max(0, Number(data.remaining));
+                        const currentEstimate = serverRemaining == null
+                            ? receivedRemaining
+                            : Math.max(0, serverRemaining - Math.max(0, watchedTime - serverRemainingWatchedAt));
+                        // Heartbeat javobi lokal taxmindan ortda bo'lishi mumkin.
+                        // Kattaroq qiymatni qayta qabul qilsak sekundlar ortga sakraydi.
+                        serverRemaining = Math.min(currentEstimate, receivedRemaining);
+                        serverRemainingWatchedAt = watchedTime;
+                    }
                 }
             }
             videoTimerLog('Current position:', Math.round(t));
@@ -1747,6 +1764,10 @@ function sendBeat(presenceToken, playingOverride, resetProgress) {
                 // Server provider'dan haqiqiy durationni topganda eski/manual
                 // talab oshishi ham, kamayishi ham mumkin.
                 requiredTime = srvRequired;
+                if (serverRemaining == null) {
+                    serverRemaining = Math.max(0, srvRequired - watchedTime);
+                    serverRemainingWatchedAt = watchedTime;
+                }
             }
             if (data.seek_detected) {
                 videoTimerLog('Seek detected');
@@ -2002,18 +2023,33 @@ function updateTimerUI() {
     }
     if (!durationLocked) return;
 
-    const calculatedRemaining = Math.max(0, requiredTime - watchedTime);
+    const localRemaining = Math.max(0, requiredTime - watchedTime);
+    const serverEstimate = serverRemaining == null
+        ? localRemaining
+        : Math.max(0, serverRemaining - Math.max(0, watchedTime - serverRemainingWatchedAt));
+    // Tugma server tasdig'iga bog'liq. Shuning uchun hisoblagich ham server
+    // tasdig'ini kutadi va lokal progress serverdan oldinga o'tib 00 ko'rsatmaydi.
+    const safeRemaining = serverCanComplete ? 0 : Math.max(1, serverEstimate);
     const remaining = lastDisplayedRemaining == null
-        ? calculatedRemaining
-        : Math.min(lastDisplayedRemaining, calculatedRemaining);
+        ? safeRemaining
+        : Math.min(lastDisplayedRemaining, safeRemaining);
     lastDisplayedRemaining = remaining;
     const progress = Math.max(0, Math.min(1, (requiredTime - remaining) / requiredTime));
     countdownEl.textContent = formatTime(remaining);
     ringFill.style.strokeDashoffset = circumference * (1 - progress);
 
-    if (remaining <= 0) {
-        timerLabel.textContent = 'Tekshirilmoqda';
-        statusText.textContent = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
+    if (localRemaining <= 1 && !serverCanComplete) {
+        if (serverEstimate > 1) {
+            timerLabel.textContent = 'Server tasdig\'i';
+            statusText.textContent = `Server yana ${formatTime(serverEstimate)} ko\'rish vaqtini tasdiqlashi kerak.`;
+        } else {
+            timerLabel.textContent = 'Tekshirilmoqda';
+            statusText.textContent = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
+        }
+        if (Date.now() - lastFinalizationRequestAt >= 2500) {
+            lastFinalizationRequestAt = Date.now();
+            sendBeat();
+        }
     }
 }
 
