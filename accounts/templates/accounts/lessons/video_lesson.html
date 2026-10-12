@@ -1233,6 +1233,7 @@ function addCustomControls(box) {
     bar.innerHTML = `
         <button class="vl-ctrl-btn" id="vlSeekBackBtn" title="10 soniya orqaga" aria-label="10 soniya orqaga"><i class="bi bi-rewind-fill"></i></button>
         <button class="vl-ctrl-btn" id="vlSeekForwardBtn" title="10 soniya oldinga" aria-label="10 soniya oldinga"><i class="bi bi-fast-forward-fill"></i></button>
+        <button class="vl-ctrl-btn" id="vlTimerResetBtn" title="Tasdiqlangan joydan davom ettirish" aria-label="Tasdiqlangan joydan davom ettirish"><i class="bi bi-arrow-counterclockwise"></i></button>
         <button class="vl-ctrl-btn" id="vlMuteBtn" title="Ovozni o'chirish"><i class="bi bi-volume-up-fill"></i></button>
         <div class="vl-vol-wrap">
             <input type="range" min="0" max="100" value="100" step="1" class="vl-vol-slider" id="vlVolSlider">
@@ -1256,6 +1257,7 @@ function addCustomControls(box) {
     const fsBtn     = document.getElementById('vlFsBtn');
     const seekBackBtn = document.getElementById('vlSeekBackBtn');
     const seekForwardBtn = document.getElementById('vlSeekForwardBtn');
+    const timerResetBtn = document.getElementById('vlTimerResetBtn');
 
     function seekBy(delta) {
         const seek = function(current, duration) {
@@ -1283,6 +1285,9 @@ function addCustomControls(box) {
     }
     seekBackBtn.addEventListener('click', function(){ seekBy(-10); });
     seekForwardBtn.addEventListener('click', function(){ seekBy(10); });
+    timerResetBtn.addEventListener('click', function() {
+        seekToVerifiedPosition();
+    });
 
     let currentVol = 100;
     let isMuted    = false;
@@ -1475,6 +1480,7 @@ const DB_FALLBACK_DELAY_MS = 12000;  // pleer 12 sek ichida getDuration bermasa 
 const circumference = 2 * Math.PI * 18;
 const initialServerRequired = {{ progress.required_seconds|default:0|unlocalize }};
 const initialServerVerified = {{ progress.verified_seconds|default:0|unlocalize }};
+const verifiedResumeAt = {{ resume_at|default:0|unlocalize }};
 
 // totalSeconds/requiredTime dastlab NULL — countdown "—:—" ko'rinishida turadi.
 let totalSeconds   = null;
@@ -1544,6 +1550,7 @@ let beatInFlight      = false;
 let beatNonce         = '';
 let presencePrompting = false;
 let finalBeatPending  = false;
+let beatRetryTimer    = null;
 
 function answerPresenceChallenge(challenge) {
     if (!challenge || !challenge.token || presencePrompting) return;
@@ -1681,10 +1688,33 @@ function sendBeat(presenceToken, playingOverride) {
                 finalBeatPending = false;
                 setTimeout(() => sendBeat('', true), 0);
             }
+            // Browserlar fon tabda setInterval'ni sekinlashtiradi yoki to'xtatadi.
+            // Ko'rish davom etayotgan bo'lsa, tarmoq uzilishidan so'ng beatni
+            // avtomatik qayta yuborib, server nonce'ini yana sinxronlaymiz.
+            if (!serverCanComplete && isVideoPlaying && !document.hidden) {
+                clearTimeout(beatRetryTimer);
+                beatRetryTimer = setTimeout(() => sendBeat(), 3000);
+            }
         });
     });
 }
-setInterval(() => sendBeat(), BEAT_INTERVAL_MS);
+setInterval(() => {
+    if (!document.hidden) sendBeat();
+}, BEAT_INTERVAL_MS);
+
+function seekToVerifiedPosition() {
+    const target = Math.max(0, verifiedResumeAt || initialServerVerified || 0);
+    try {
+        if (window._vqYT && typeof window._vqYT.seekTo === 'function') {
+            window._vqYT.seekTo(target, true);
+        } else if (vimeoPlayer) {
+            vimeoPlayer.setCurrentTime(target).catch(function(){});
+        }
+    } catch (e) {}
+    lastPos = null;
+    lastWall = null;
+    setTimeout(() => sendBeat(), 400);
+}
 let lastPos     = null;   // oldingi tikdagi pleer pozitsiyasi (soniya)
 let lastWall    = null;   // oldingi tik vaqti (ms) — real vaqt hisobi uchun
 
