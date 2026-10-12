@@ -4298,10 +4298,10 @@ PRESENCE_FIRST_MIN    = 120   # birinchi tekshiruv (tasdiqlangan soniyada)
 PRESENCE_FIRST_MAX    = 240
 PRESENCE_INTERVAL_MIN = 300   # keyingilari: 5–9 daqiqa
 PRESENCE_INTERVAL_MAX = 540
-PRESENCE_DEADLINE     = 30    # javob berish muddati (soniya)
+PRESENCE_DEADLINE     = 10    # tasdiqlash uchun aniq muddat (soniya)
 
 # Shubha bali shu chegaradan oshsa adminga BIR MARTA xabar beriladi.
-# Progress hech qachon avtomatik o'chirilmaydi — qarorni odam qabul qiladi.
+# To'rt soniyalik liveness tasdig'i o'tkazib yuborilsa, progress qayta boshlanadi.
 SUSPICION_NOTIFY_AT = 20
 
 
@@ -4518,8 +4518,8 @@ def _process_watch_beat(request, video, progress_pk):
       3) tasodifiy tiriklik tekshiruvi va video ichidagi testlar javobsiz
          qolmasin.
 
-    Hech bir tekshiruv darsni YOPMAYDI va yig'ilgan `verified_seconds` hech
-    qachon kamaymaydi — eng yomon holatda kredit vaqtincha to'xtaydi.
+    Presence tekshiruvi o'tkazib yuborilsa, mavjud progress ataylab nolga
+    tushiriladi; bu UI timer va serverdagi progressni bir xil holatga keltiradi.
     """
     try:
         payload = json.loads(request.body.decode('utf-8') or '{}')
@@ -4560,6 +4560,48 @@ def _process_watch_beat(request, video, progress_pk):
 
     notify_admin = False
 
+    # Foydalanuvchi presence oynasidagi 10 soniyalik muddatni o'tkazib yuborsa,
+    # klient aniq reset so'rovini yuboradi. Reset foydalanuvchi+video qatorini
+    # lock qilib bajariladi, shuning uchun parallel heartbeat eski progressni
+    # qayta yozib yubora olmaydi.
+    if payload.get('reset_progress') is True:
+        with transaction.atomic():
+            progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
+            required = _resolve_required_seconds(progress, video)
+            progress.verified_seconds = 0
+            progress.watched_segments = []
+            progress.last_position = 0
+            progress.max_position = 0
+            progress.last_beat_at = now
+            progress.last_credit_at = None
+            progress.presence_token = ''
+            progress.presence_sent_at = None
+            progress.next_check_seconds = 0
+            progress.beat_nonce = _new_token()
+            progress.save(update_fields=[
+                'verified_seconds', 'watched_segments', 'last_position',
+                'max_position', 'last_beat_at', 'last_credit_at',
+                'presence_token', 'presence_sent_at', 'next_check_seconds',
+                'beat_nonce',
+            ])
+        return {
+            'ok': True,
+            'progress_reset': True,
+            'verified_seconds': 0,
+            'required_seconds': required,
+            'remaining': required,
+            'can_complete': False,
+            'seek_blocked': False,
+            'seek_detected': False,
+            'resume_at': 0,
+            'nonce': progress.beat_nonce,
+            'credited': 0,
+            'blocked': 'presence_timeout',
+            'watched_segments': [],
+            'watched_percentage': 0,
+            'duration': video.gating_duration_seconds,
+        }
+
     with transaction.atomic():
         progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
         required = _resolve_required_seconds(progress, video)
@@ -4584,22 +4626,20 @@ def _process_watch_beat(request, video, progress_pk):
         blocked_by = None
 
         # ── 1. Tiriklik tekshiruvi (presence) ──
-        if progress.presence_token and presence_reply == progress.presence_token:
-            # Kechikkan javob ham qabul qilinadi: muddat o'tgani uchun qo'shimcha
-            # jazo yo'q — kredit shunchaki javob kelmaguncha to'xtab turgan edi.
-            progress.presence_token = ''
-            progress.presence_sent_at = None
-            _schedule_next_presence(progress)
-        elif progress.presence_token:
+        if progress.presence_token:
             if progress.presence_sent_at is None:
                 blocked_by = 'presence'      # muddat o'tgan va allaqachon sanalgan
-            elif (now - progress.presence_sent_at).total_seconds() > PRESENCE_DEADLINE:
-                # `presence_sent_at = None` — "bu o'tkazib yuborish sanaldi"
-                # belgisi; aks holda har beatda bal oshib ketardi.
+            elif (now - progress.presence_sent_at).total_seconds() >= PRESENCE_DEADLINE:
+                # 10 soniyadan keyingi javob kechikkan hisoblanadi. Progress
+                # alohida timeout reset so'rovida nolga tushiriladi.
                 progress.presence_failures += 1
                 progress.presence_sent_at = None
                 suspicion += 2
                 blocked_by = 'presence'
+            elif presence_reply == progress.presence_token:
+                progress.presence_token = ''
+                progress.presence_sent_at = None
+                _schedule_next_presence(progress)
 
         # ── 2. Nonce zanjiri ──
         # Har javobda yangi bir martalik nonce beriladi: eski javobni qayta

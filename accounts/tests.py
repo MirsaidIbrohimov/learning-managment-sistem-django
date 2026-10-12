@@ -966,8 +966,8 @@ class VideoWatchLivenessTests(TestCase):
 
     # ── tiriklik tekshiruvi ──
 
-    def test_presence_challenge_pauses_credit_until_answered(self):
-        """Tugma bosilmasa kredit to'xtaydi; kechikkan javob ham qabul qilinadi."""
+    def test_presence_challenge_expires_after_ten_seconds(self):
+        """Muddat o'tgan presence token kechikkan javob bilan qabul qilinmaydi."""
         self._beat(0)
         # Birinchi tekshiruv 2–4 daqiqadan keyin chiqadi — testda yaqinlashtiramiz.
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
@@ -977,33 +977,31 @@ class VideoWatchLivenessTests(TestCase):
         self._elapse(30)
         challenged = self._beat(30)
         self.assertIn('presence', challenged)
-        self.assertEqual(challenged['presence']['deadline'], 30)
+        self.assertEqual(challenged['presence']['deadline'], 10)
         self.assertGreater(challenged['credited'], 0)   # tekshiruv kreditni yemaydi
         earned = self._progress().verified_seconds
 
-        # Javob bermay 40 soniya o'tdi.
+        # O'n soniyadan keyingi javob endi yaroqsiz.
         self._elapse(30)
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
-            presence_sent_at=timezone.now() - timedelta(seconds=40)
+            presence_sent_at=timezone.now() - timedelta(seconds=11)
         )
-        ignored = self._beat(60, answer_presence=False)
+        ignored = self._beat(60)
         self.assertEqual(ignored['blocked'], 'presence')
         self.assertEqual(ignored['credited'], 0)
         self.assertEqual(self._progress().presence_failures, 1)
         self.assertEqual(self._progress().verified_seconds, earned)
 
-        # Yana javob yo'q — bal va hisob ikki marta yozilmaydi.
-        self._elapse(30)
-        still_ignored = self._beat(90, answer_presence=False)
-        self.assertEqual(still_ignored['blocked'], 'presence')
-        self.assertEqual(self._progress().presence_failures, 1)
-
-        # Kech bo'lsa ham javob berdi — kredit davom etadi, jazo yo'q.
-        self._elapse(30)
-        answered = self._beat(120)
-        self.assertIsNone(answered['blocked'])
-        self.assertGreater(answered['credited'], 0)
-        self.assertGreater(self._progress().verified_seconds, earned)
+        # Klientning o'n soniyalik muddati tugagach server progressni ham nol qiladi.
+        reset = self._beat(0, answer_presence=False, extra={'reset_progress': True})
+        self.assertTrue(reset['progress_reset'])
+        progress = self._progress()
+        self.assertEqual(progress.verified_seconds, 0)
+        self.assertEqual(progress.watched_segments, [])
+        self.assertEqual(progress.last_position, 0)
+        self.assertEqual(progress.max_position, 0)
+        self.assertEqual(progress.presence_token, '')
+        self.assertEqual(reset['remaining'], reset['required_seconds'])
 
     def test_quiz_answer_satisfies_presence_check(self):
         """Video testiga javob berish tiriklik isboti — ikki marta bezovta qilmaymiz."""

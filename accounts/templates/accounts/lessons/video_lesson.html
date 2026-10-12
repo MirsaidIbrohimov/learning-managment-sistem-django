@@ -812,6 +812,15 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 }
 .vl-presence-title { margin: 0 0 8px; font-size: 1.2rem; font-weight: 800; }
 .vl-presence-copy { margin: 0; color: var(--vl-muted); font-size: .92rem; line-height: 1.6; }
+.vl-presence-countdown { margin-top: 12px; color: #fca5a5; font-weight: 800; }
+.vl-warning-icon {
+    width: 62px; height: 62px; margin: 0 auto 16px;
+    display: grid; place-items: center; border-radius: 20px;
+    color: #fff; font-size: 1.65rem;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    box-shadow: 0 10px 28px rgba(239,68,68,.24);
+}
+.vl-warning-copy { margin: 0; color: var(--vl-text-2); font-size: .96rem; line-height: 1.65; }
 .vl-presence-btn {
     width: 100%; margin-top: 22px; padding: 13px 18px;
     border: 0; border-radius: 14px; color: #fff; font-weight: 750;
@@ -1480,7 +1489,7 @@ const DB_FALLBACK_DELAY_MS = 12000;  // pleer 12 sek ichida getDuration bermasa 
 const circumference = 2 * Math.PI * 18;
 const initialServerRequired = {{ progress.required_seconds|default:0|unlocalize }};
 const initialServerVerified = {{ progress.verified_seconds|default:0|unlocalize }};
-const verifiedResumeAt = {{ resume_at|default:0|unlocalize }};
+let verifiedResumeAt = {{ resume_at|default:0|unlocalize }};
 
 // totalSeconds/requiredTime dastlab NULL — countdown "—:—" ko'rinishida turadi.
 let totalSeconds   = null;
@@ -1522,7 +1531,8 @@ function mergeClientSegment(start, end) {
 function clientWatchedSeconds() {
     return watchedSegments.reduce((sum, segment) => sum + segment[1] - segment[0], 0);
 }
-let watchedTime = Math.max(initialServerVerified, clientWatchedSeconds());
+let serverVerifiedFloor = initialServerVerified;
+let watchedTime = Math.max(serverVerifiedFloor, clientWatchedSeconds());
 let isReady     = false;  // 90% ga yetdi
 
 /* ── Server tomonlama tasdiqlash (anti-cheat) ──────────────────────────────
@@ -1533,6 +1543,8 @@ let isReady     = false;  // 90% ga yetdi
  */
 const BEAT_INTERVAL_MS = 8000;
 const BEAT_TIMEOUT_MS = 12000;
+const IDLE_PROMPT_MS = 25000;
+const PRESENCE_ANSWER_SECONDS = 10;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
 // Ekrandagi countdown server tasdiqlagan qolgan vaqtdan davom etadi. Har
@@ -1543,11 +1555,24 @@ let beatInFlight      = false;
 let beatNonce         = '';
 let presencePrompting = false;
 let finalBeatPending  = false;
+let resetPending      = false;
 let beatRetryTimer    = null;
+let idlePromptTimer   = null;
+let presenceCountdown = null;
+let presenceOverlay   = null;
+let lastPointerMoveAt = 0;
 
 function answerPresenceChallenge(challenge) {
     if (!challenge || !challenge.token || presencePrompting) return;
+    showPresencePrompt(challenge);
+}
+
+function showPresencePrompt(challenge) {
+    if (presencePrompting || serverCanComplete || document.hidden) return;
     presencePrompting = true;
+    clearTimeout(idlePromptTimer);
+    isVideoPlaying = false;
+    pauseTimer('Tasdiq kutilmoqda');
     // Diqqat tekshiruvi paytida video ko'rinmay davom etib ketmasin.
     try {
         if (window._vqYT && typeof window._vqYT.pauseVideo === 'function') window._vqYT.pauseVideo();
@@ -1555,20 +1580,43 @@ function answerPresenceChallenge(challenge) {
     } catch (e) {}
 
     const overlay = document.createElement('div');
+    presenceOverlay = overlay;
     overlay.className = 'vl-presence-backdrop';
     overlay.innerHTML = `
         <section class="vl-presence-modal" role="dialog" aria-modal="true" aria-labelledby="vlPresenceTitle" aria-describedby="vlPresenceCopy">
             <div class="vl-presence-icon" aria-hidden="true"><i class="bi bi-eye-fill"></i></div>
             <h2 class="vl-presence-title" id="vlPresenceTitle">Darsni kuzatyapsizmi?</h2>
-            <p class="vl-presence-copy" id="vlPresenceCopy">Ko'rish jarayonini davom ettirish uchun tasdiqlang. Javobingizdan so'ng video davom etadi.</p>
+            <p class="vl-presence-copy" id="vlPresenceCopy">${PRESENCE_ANSWER_SECONDS} soniya ichida “Ha, davom etaman” tugmasini bosing. Aks holda dars progressi boshidan boshlanadi.</p>
+            <div class="vl-presence-countdown" aria-live="polite">${PRESENCE_ANSWER_SECONDS} soniya</div>
             <button class="vl-presence-btn" type="button"><i class="bi bi-play-fill me-1"></i> Ha, davom etaman</button>
         </section>`;
     document.body.appendChild(overlay);
     const confirmBtn = overlay.querySelector('.vl-presence-btn');
     confirmBtn.focus();
+    let secondsLeft = PRESENCE_ANSWER_SECONDS;
+    const countdownEl = overlay.querySelector('.vl-presence-countdown');
+    presenceCountdown = setInterval(function() {
+        secondsLeft -= 1;
+        if (secondsLeft <= 0) {
+            clearInterval(presenceCountdown);
+            presenceCountdown = null;
+            presencePrompting = false;
+            presenceOverlay = null;
+            overlay.remove();
+            sendBeat('', false, true);
+            const warning = 'Darslikka nisbatan e’tiborsizlik qilmang, iltimos. Video darslikni qaytadan diqqat bilan ko‘ring.';
+            statusText.textContent = warning;
+            showProgressResetWarning();
+            return;
+        }
+        countdownEl.textContent = secondsLeft + ' soniya';
+    }, 1000);
     confirmBtn.addEventListener('click', function() {
         if (!overlay.isConnected) return;
+        clearInterval(presenceCountdown);
+        presenceCountdown = null;
         overlay.remove();
+        presenceOverlay = null;
         presencePrompting = false;
         try {
             if (window._vqYT && typeof window._vqYT.playVideo === 'function') window._vqYT.playVideo();
@@ -1577,21 +1625,57 @@ function answerPresenceChallenge(challenge) {
         // Tasdiqlash beat'ni videoni qayta boshlash bilan birga yuboradi.
         // Bu brauzer confirm dialogi sababli sahifadan chiqib ketish holatini
         // oldini oladi va serverga aynan shu tekshiruv javobini yetkazadi.
-        sendBeat(challenge.token, true);
+        sendBeat(challenge && challenge.token ? challenge.token : '', true);
+        scheduleIdlePrompt();
     });
 }
 
-function sendBeat(presenceToken, playingOverride) {
-    if (serverCanComplete) return;
+function showProgressResetWarning() {
+    const overlay = document.createElement('div');
+    overlay.className = 'vl-presence-backdrop';
+    overlay.innerHTML = `
+        <section class="vl-presence-modal" role="alertdialog" aria-modal="true" aria-labelledby="vlResetWarningTitle" aria-describedby="vlResetWarningCopy">
+            <div class="vl-warning-icon" aria-hidden="true"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <h2 class="vl-presence-title" id="vlResetWarningTitle">Iltimos, darsga e’tibor bering</h2>
+            <p class="vl-warning-copy" id="vlResetWarningCopy">Darslikka nisbatan e’tiborsizlik qilmang, iltimos. Video darslikni qaytadan diqqat bilan ko‘ring.</p>
+            <button class="vl-presence-btn" type="button">Tushundim</button>
+        </section>`;
+    document.body.appendChild(overlay);
+    const dismiss = overlay.querySelector('.vl-presence-btn');
+    dismiss.focus();
+    dismiss.addEventListener('click', function() { overlay.remove(); });
+}
+
+function sendBeat(presenceToken, playingOverride, resetProgress) {
+    if (serverCanComplete && !resetProgress) return;
     if (beatInFlight) {
         // Vimeo getCurrentTime() Promise qaytaradi. Shu orada interval yoki
         // ENDED kelsa ikkinchi bir xil nonce'li so'rov yubormaymiz; oxirgi beatni
         // navbatga qo'yamiz. Aks holda server halol beatni replay deb bloklardi.
         if (playingOverride === true) finalBeatPending = true;
+        if (resetProgress) resetPending = true;
         return;
     }
     beatInFlight = true;
-    getPlayerTime(function(t) {
+    let playerReadTimedOut = false;
+    const playerReadTimeout = setTimeout(function() {
+        playerReadTimedOut = true;
+        beatInFlight = false;
+        if (resetPending) {
+            resetPending = false;
+            sendBeat('', false, true);
+        } else if (isVideoPlaying && !document.hidden) {
+            clearTimeout(beatRetryTimer);
+            beatRetryTimer = setTimeout(() => sendBeat(), 1000);
+        }
+    }, 3000);
+    const readPlayerTime = resetProgress
+        ? function(callback) { callback(0); }
+        : getPlayerTime;
+    readPlayerTime(function(t) {
+        if (playerReadTimedOut) return;
+        clearTimeout(playerReadTimeout);
+        if (resetProgress) t = 0;
         if (t == null || !isFinite(t)) {
             beatInFlight = false;
             return;
@@ -1618,7 +1702,8 @@ function sendBeat(presenceToken, playingOverride) {
                 playing: playingOverride === true ? true : isVideoPlaying,
                 hidden: document.hidden,
                 nonce: beatNonce,
-                presence_token: presenceToken || ''
+                presence_token: presenceToken || '',
+                reset_progress: resetProgress === true
             })
         })
         .then(r => r.ok ? r.json() : null)
@@ -1628,13 +1713,28 @@ function sendBeat(presenceToken, playingOverride) {
             serverCanComplete = !!data.can_complete;
             if (Array.isArray(data.watched_segments)) {
                 watchedSegments = data.watched_segments;
-                // Server javobi heartbeat paytida kechikishi mumkin. UI progress
-                // hech qachon eskiroq javob sabab ortga qaytmasin.
-                watchedTime = Math.max(
-                    watchedTime,
-                    initialServerVerified,
-                    Math.max(0, Number(data.verified_seconds) || 0)
-                );
+                if (data.progress_reset) {
+                    serverVerifiedFloor = 0;
+                    watchedTime = 0;
+                    verifiedResumeAt = 0;
+                    serverCanComplete = false;
+                    if (Number(data.required_seconds) > 0) requiredTime = Number(data.required_seconds);
+                    lastDisplayedRemaining = durationLocked ? Math.max(0, requiredTime || 0) : null;
+                    lastPos = null;
+                    lastWall = null;
+                    try {
+                        if (window._vqYT && typeof window._vqYT.seekTo === 'function') window._vqYT.seekTo(0, true);
+                        else if (vimeoPlayer) vimeoPlayer.setCurrentTime(0).catch(function(){});
+                    } catch (e) {}
+                } else {
+                    // Server javobi heartbeat paytida kechikishi mumkin. UI progress
+                    // hech qachon eskiroq javob sabab ortga qaytmasin.
+                    watchedTime = Math.max(
+                        watchedTime,
+                        serverVerifiedFloor,
+                        Math.max(0, Number(data.verified_seconds) || 0)
+                    );
+                }
             }
             videoTimerLog('Current position:', Math.round(t));
             videoTimerLog('Watched:', Math.round(Number(data.verified_seconds) || 0));
@@ -1653,6 +1753,10 @@ function sendBeat(presenceToken, playingOverride) {
                 statusText.textContent = "Sakrab o'tilgan qism progressga qo'shilmadi";
             }
             updateTimerUI();
+            if (data.progress_reset) {
+                statusText.textContent = 'Darslikka nisbatan e’tiborsizlik qilmang, iltimos. Video darslikni qaytadan diqqat bilan ko‘ring.';
+                timerLabel.textContent = 'Qolgan vaqt';
+            }
             videoTimerLog('Progress synced');
             if (serverCanComplete) videoTimerLog('90% reached');
             receivedPresence = data.presence || null;
@@ -1661,6 +1765,11 @@ function sendBeat(presenceToken, playingOverride) {
         .finally(() => {
             if (timeoutId) clearTimeout(timeoutId);
             beatInFlight = false;
+            if (resetPending) {
+                resetPending = false;
+                setTimeout(() => sendBeat('', false, true), 0);
+                return;
+            }
             // Confirm oynasi ochilganda yangi beat erkin yuborilishi uchun buni
             // faqat joriy so'rov to'liq tugagandan keyin chaqiramiz.
             answerPresenceChallenge(receivedPresence);
@@ -1682,6 +1791,27 @@ setInterval(() => {
     if (!document.hidden) sendBeat();
 }, BEAT_INTERVAL_MS);
 
+function scheduleIdlePrompt() {
+    clearTimeout(idlePromptTimer);
+    if (!isVideoPlaying || document.hidden || presencePrompting || serverCanComplete) return;
+    idlePromptTimer = setTimeout(function() {
+        if (isVideoPlaying && !document.hidden && !presencePrompting) showPresencePrompt(null);
+    }, IDLE_PROMPT_MS);
+}
+
+function recordUserActivity(event) {
+    if (event && event.type === 'pointermove') {
+        const now = Date.now();
+        if (now - lastPointerMoveAt < 1000) return;
+        lastPointerMoveAt = now;
+    }
+    scheduleIdlePrompt();
+}
+
+['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel'].forEach(function(eventName) {
+    document.addEventListener(eventName, recordUserActivity, { passive: true });
+});
+
 function seekToVerifiedPosition() {
     const target = Math.max(0, verifiedResumeAt || initialServerVerified || 0);
     try {
@@ -1697,6 +1827,7 @@ function seekToVerifiedPosition() {
 }
 let lastPos     = null;   // oldingi tikdagi pleer pozitsiyasi (soniya)
 let lastWall    = null;   // oldingi tik vaqti (ms) — real vaqt hisobi uchun
+let timerReadInFlight = false;
 
 const countdownEl    = document.getElementById('countdown');
 const ringFill       = document.getElementById('ringFill');
@@ -1769,6 +1900,7 @@ function resumeTimer() {
     // Ijro boshlangan zahoti boshlang'ich nuqtani qayd etamiz: serverdagi
     // hisob shu nuqtadan boshlanadi.
     sendBeat();
+    scheduleIdlePrompt();
 }
 
 /* ── Pleer bilan aloqa (YouTube + Vimeo) ──────────── */
@@ -1917,8 +2049,22 @@ function completeOnEnded() {
  */
 function tick() {
     if (!durationLocked) resolveDuration();
+    // Vimeo currentTime asinxron qaytadi. Bir nechta o'qishni navbatga
+    // to'plamaslik va eski javob yangi bazani bosmasligi uchun bittadan olamiz.
+    if (timerReadInFlight) return;
+    timerReadInFlight = true;
+    let readTimedOut = false;
+    const readTimeout = setTimeout(function() {
+        readTimedOut = true;
+        timerReadInFlight = false;
+        lastPos = null;
+        lastWall = null;
+    }, 1800);
 
     getPlayerTime(function(t) {
+        if (readTimedOut) return;
+        clearTimeout(readTimeout);
+        timerReadInFlight = false;
         if (t == null || !isFinite(t)) return;
         const now    = Date.now();
         const wallDt = (lastWall == null) ? 0 : (now - lastWall) / 1000;
@@ -1944,7 +2090,7 @@ function tick() {
             mergeClientSegment(lastPos, Math.min(t, lastPos + maxStep));
             watchedTime = Math.max(
                 watchedTime,
-                initialServerVerified,
+                serverVerifiedFloor,
                 clientWatchedSeconds()
             );
         }
@@ -1955,7 +2101,10 @@ function tick() {
 }
 
 document.addEventListener('visibilitychange', () => {
-    if (document.hidden) pauseTimer("Sahifadan chiqdingiz");
+    if (document.hidden) {
+        clearTimeout(idlePromptTimer);
+        pauseTimer("Sahifadan chiqdingiz");
+    }
     else if (isVideoPlaying) resumeTimer();
 });
 
