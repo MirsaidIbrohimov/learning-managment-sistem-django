@@ -11,6 +11,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from datetime import timedelta, date, datetime
 import json
+import math
 import random
 import secrets
 import time
@@ -1098,20 +1099,19 @@ def login_location_record(request):
         return JsonResponse({'ok': False, 'error': 'Joylashuv yozuvi uchun login tasdig‘i topilmadi.'}, status=403)
     if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         return JsonResponse({'ok': False, 'error': 'Noto‘g‘ri so‘rov.'}, status=400)
-    if request.POST.get('action') == 'skip':
-        request.session.pop('location_capture_pending', None)
-        return JsonResponse({'ok': True, 'skipped': True})
     try:
         latitude = float(request.POST.get('latitude', ''))
         longitude = float(request.POST.get('longitude', ''))
-        accuracy = float(request.POST.get('accuracy', ''))
     except (TypeError, ValueError):
         return JsonResponse({'ok': False, 'error': 'Koordinatalar noto‘g‘ri.'}, status=400)
-    if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+    try:
+        accuracy = float(request.POST.get('accuracy', ''))
+        if not math.isfinite(accuracy) or accuracy < 0:
+            accuracy = None
+    except (TypeError, ValueError):
+        accuracy = None
+    if not (math.isfinite(latitude) and math.isfinite(longitude) and -90 <= latitude <= 90 and -180 <= longitude <= 180):
         return JsonResponse({'ok': False, 'error': 'Koordinatalar diapazondan tashqarida.'}, status=400)
-    if not (0 <= accuracy <= 100000):
-        return JsonResponse({'ok': False, 'error': 'Aniqlik qiymati noto‘g‘ri.'}, status=400)
-
     from decimal import Decimal
     lat = Decimal(str(round(latitude, 6)))
     lon = Decimal(str(round(longitude, 6)))
@@ -1121,7 +1121,9 @@ def login_location_record(request):
         latitude=lat,
         longitude=lon,
         map_url=map_url,
-        accuracy_meters=min(int(round(accuracy)), 100000),
+        # Tarmoq orqali aniqlangan joylashuv ba'zan juda katta radius qaytaradi.
+        # Bu joylashuv yozuvini rad etmasin; bazada yuqori chegaraga qisqartiramiz.
+        accuracy_meters=min(int(round(accuracy)), 100000) if accuracy is not None else None,
     )
     request.session.pop('location_capture_pending', None)
     address = ''
@@ -4653,6 +4655,8 @@ def _process_watch_beat(request, video, progress_pk):
             progress.max_position = 0
             progress.last_beat_at = now
             progress.last_credit_at = None
+            progress.playback_started_at = None
+            progress.requirement_met_at = None
             progress.presence_token = ''
             progress.presence_sent_at = None
             progress.next_check_seconds = 0
@@ -4660,6 +4664,7 @@ def _process_watch_beat(request, video, progress_pk):
             progress.save(update_fields=[
                 'verified_seconds', 'watched_segments', 'last_position',
                 'max_position', 'last_beat_at', 'last_credit_at',
+                'playback_started_at', 'requirement_met_at',
                 'presence_token', 'presence_sent_at', 'next_check_seconds',
                 'beat_nonce',
             ])
@@ -4801,6 +4806,22 @@ def _process_watch_beat(request, video, progress_pk):
             progress.next_check_seconds = progress.verified_seconds + random.uniform(
                 PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
             )
+
+        # Dars sahifasi ochilgan vaqt emas, server tasdiqlagan birinchi PLAYING
+        # beat ijro boshlanishi sifatida qayd qilinadi.
+        if (
+            progress.playback_started_at is None
+            and position is not None and playing and not hidden and not stale_client
+            and blocked_by not in ('nonce', 'presence', 'paused', 'hidden', 'stale_client')
+        ):
+            progress.playback_started_at = now
+
+        if (
+            progress.requirement_met_at is None
+            and required and progress.is_requirement_met
+        ):
+            progress.requirement_met_at = now
+
         presence_challenge = None
         if progress.presence_token:
             # Javob kutilmoqda. Tokenni qayta yuboramiz: mijoz javobni tarmoq
@@ -4827,6 +4848,7 @@ def _process_watch_beat(request, video, progress_pk):
             'max_position', 'last_position', 'verified_seconds', 'watched_segments', 'last_beat_at',
             'last_credit_at', 'cheat_attempts', 'beat_nonce', 'presence_token',
             'presence_sent_at', 'next_check_seconds', 'presence_failures',
+            'playback_started_at', 'requirement_met_at',
             'suspicion_score', 'suspicion_notified',
         ])
 
@@ -4837,8 +4859,13 @@ def _process_watch_beat(request, video, progress_pk):
         'ok': True,
         'verified_seconds': round(progress.verified_seconds, 1),
         'required_seconds': required,
-        'remaining': max(0, round(required - progress.verified_seconds, 1)) if required else None,
+        'remaining': (
+            0 if progress.is_requirement_met
+            else max(0, round(required - progress.verified_seconds, 1))
+        ) if required else None,
         'can_complete': progress.is_requirement_met,
+        'playback_started_at': timezone.localtime(progress.playback_started_at).isoformat() if progress.playback_started_at else None,
+        'requirement_met_at': timezone.localtime(progress.requirement_met_at).isoformat() if progress.requirement_met_at else None,
         'seek_blocked': cheated,
         'seek_detected': cheated,
         'resume_at': None,

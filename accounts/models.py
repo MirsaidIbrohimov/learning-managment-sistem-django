@@ -828,6 +828,12 @@ class VideoProgress(models.Model):
     video = models.ForeignKey(VideoLesson, on_delete=models.CASCADE, db_index=True)
     watched = models.BooleanField(default=False, db_index=True)
     watched_at = models.DateTimeField(null=True, blank=True)
+    playback_started_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Birinchi haqiqiy ijro vaqti"
+    )
+    requirement_met_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="90% serverda tasdiqlangan vaqt"
+    )
     coin_awarded = models.BooleanField(default=False)
 
     # ── Server tomonlama ko'rish hisobi (anti-cheat) ──
@@ -902,7 +908,9 @@ class VideoProgress(models.Model):
             return True
         if not self.required_seconds:
             return False
-        return self.verified_seconds >= self.required_seconds
+        # Beat kreditlari float sifatida yig'iladi; masalan 539.999999999
+        # 540 soniya bo'lishi kerak bo'lgan chegarani tasodifan o'tkazmasin.
+        return round(float(self.verified_seconds or 0), 1) >= self.required_seconds
 
 
 class Homework(models.Model):

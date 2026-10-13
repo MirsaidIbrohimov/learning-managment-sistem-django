@@ -969,7 +969,7 @@ class VideoWatchLivenessTests(TestCase):
     def test_presence_challenge_expires_after_ten_seconds(self):
         """Muddat o'tgan presence token kechikkan javob bilan qabul qilinmaydi."""
         self._beat(0)
-        # Birinchi tekshiruv 2–4 daqiqadan keyin chiqadi — testda yaqinlashtiramiz.
+        # Birinchi tekshiruv 60 soniyadan keyin chiqadi — testda yaqinlashtiramiz.
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
             next_check_seconds=1
         )
@@ -1002,6 +1002,49 @@ class VideoWatchLivenessTests(TestCase):
         self.assertEqual(progress.max_position, 0)
         self.assertEqual(progress.presence_token, '')
         self.assertEqual(reset['remaining'], reset['required_seconds'])
+
+    def test_ten_minute_video_reaches_90_percent_from_server_playback_time(self):
+        """10 daqiqalik videoda 9 daqiqa haqiqiy ijro serverda 90% bo'ladi."""
+        self.video.verified_duration_seconds = 600
+        self.video.save(update_fields=['verified_duration_seconds'])
+
+        first = self._beat(0)
+        self.assertEqual(first['required_seconds'], 540)
+        self.assertIsNotNone(self._progress().playback_started_at)
+
+        position = 0
+        while position < 536:
+            position = min(position + 8, 536)
+            self._elapse(8 if position < 536 else position - (position - 8))
+            result = self._beat(position)
+            if result.get('presence'):
+                # O'quvchi darhol javob berdi: prompt payti video pauzada,
+                # shuning uchun bu oraliqni ko'rish kreditiga qo'shmaymiz.
+                self._elapse(1)
+                result = self._beat(position)
+        self._elapse(4)
+        result = self._beat(540)
+
+        progress = self._progress()
+        self.assertTrue(result['can_complete'], result)
+        self.assertGreaterEqual(progress.verified_seconds, 540)
+        self.assertIsNotNone(progress.requirement_met_at)
+        response, payload = self._mark_watched()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(payload['success'])
+
+    def test_float_rounding_at_90_percent_does_not_stick_at_one_second(self):
+        """Kasr aniqligi sabab 0:01 da qolgan progress serverda yakunlanadi."""
+        self._beat(0)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            required_seconds=540,
+            verified_seconds=539.999999999,
+        )
+        progress = self._progress()
+        self.assertTrue(progress.is_requirement_met)
+        response, payload = self._mark_watched()
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(payload['success'])
 
     def test_quiz_answer_satisfies_presence_check(self):
         """Video testiga javob berish tiriklik isboti — ikki marta bezovta qilmaymiz."""
