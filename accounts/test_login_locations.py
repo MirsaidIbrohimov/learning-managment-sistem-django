@@ -31,7 +31,18 @@ class LoginLocationFlowTests(TestCase):
         response = self.client.get(reverse('login_location_consent'))
         self.assertContains(response, 'Joylashuvingizni ulashasizmi?')
         self.assertContains(response, 'Joylashuvni ulashish')
-        self.assertNotContains(response, 'Hozir emas')
+        self.assertContains(response, 'Keyinroq davom etish')
+
+    def test_user_can_skip_location_and_continue(self):
+        self.client.force_login(self.user)
+        session = self.client.session
+        session['location_capture_pending'] = True
+        session.save()
+
+        response = self.client.get(reverse('login_location_skip'))
+
+        self.assertRedirects(response, reverse('home'), fetch_redirect_response=False)
+        self.assertNotIn('location_capture_pending', self.client.session)
 
     @patch('requests.get')
     def test_location_is_saved_after_user_consent_and_geocoded(self, mock_get):

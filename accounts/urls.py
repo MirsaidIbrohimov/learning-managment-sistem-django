@@ -14,6 +14,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('login/location-consent/', views.login_location_consent, name='login_location_consent'),
     path('login/location-record/', views.login_location_record, name='login_location_record'),
+    path('login/location-skip/', views.login_location_skip, name='login_location_skip'),
     path('logout/', views.logout_view, name='logout'),
 
     # Professions & Courses

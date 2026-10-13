@@ -1092,6 +1092,13 @@ def login_location_consent(request):
 
 
 @login_required
+def login_location_skip(request):
+    """Joylashuvni ulashmasdan login jarayonini davom ettiradi."""
+    request.session.pop('location_capture_pending', None)
+    return redirect('home')
+
+
+@login_required
 @require_POST
 def login_location_record(request):
     """Brauzer ruxsati bilan olingan koordinatani joriy foydalanuvchiga bog'laydi."""
