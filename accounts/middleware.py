@@ -536,7 +536,13 @@ class SecurityHeadersMiddleware:
         response['X-Content-Type-Options'] = 'nosniff'
         response['X-XSS-Protection'] = '0'  # Zamonaviy brauzerlarda CSP ishlatiladi
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+        # Geolokatsiya faqat login'dan keyingi rozilik sahifasida kerak.
+        # Global `geolocation=()` browser API'sini shu sahifada ham bloklab,
+        # foydalanuvchi rozilik oynasini ko'rishiga yo'l qo'ymas edi.
+        if request.path.rstrip('/') == '/login/location-consent':
+            response['Permissions-Policy'] = 'geolocation=(self), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
+        else:
+            response['Permissions-Policy'] = 'geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()'
         response['Cross-Origin-Opener-Policy'] = 'same-origin'
         response['Cross-Origin-Resource-Policy'] = 'same-origin'
 

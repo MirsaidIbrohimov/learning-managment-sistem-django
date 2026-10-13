@@ -1,8 +1,10 @@
 from unittest.mock import Mock, patch
 from django.contrib.auth import get_user_model
-from django.test import TestCase, override_settings
+from django.http import HttpResponse
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from accounts.models import LoginLocation
+from accounts.middleware import SecurityHeadersMiddleware
 
 
 @override_settings(MIDDLEWARE=[
@@ -77,3 +79,11 @@ class LoginLocationFlowTests(TestCase):
         response = self.client.get(reverse('admin_user_view', args=[self.user.pk]))
         self.assertContains(response, 'Joylashuvlari')
         self.assertContains(response, 'Zomin, Jizzax')
+
+    def test_geolocation_policy_is_allowed_only_on_consent_page(self):
+        factory = RequestFactory()
+        middleware = SecurityHeadersMiddleware(lambda request: HttpResponse('ok'))
+        consent_response = middleware(factory.get('/login/location-consent/'))
+        profile_response = middleware(factory.get('/profile/'))
+        self.assertIn('geolocation=(self)', consent_response['Permissions-Policy'])
+        self.assertIn('geolocation=()', profile_response['Permissions-Policy'])
