@@ -53,12 +53,17 @@
 
 /* ===== Tabs ===== */
 .uv-tabs{display:flex;gap:5px;margin-bottom:1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.uv-tabs-wrap{position:relative;min-width:0}
+.uv-tabs-wrap .uv-tabs{padding:2px 38px;scroll-behavior:smooth;overscroll-behavior-x:contain}
+.uv-tabs-scroll{position:absolute;z-index:2;top:50%;transform:translateY(-50%);width:32px;height:32px;border:1px solid var(--border-color);border-radius:10px;background:var(--card-bg);color:var(--text-color);display:grid;place-items:center;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.12)}
+.uv-tabs-scroll:hover{border-color:#6366f1;color:#6366f1}.uv-tabs-scroll.left{left:0}.uv-tabs-scroll.right{right:0}
 .uv-tabs::-webkit-scrollbar{display:none}
 .uv-tab{display:flex;align-items:center;gap:7px;padding:9px 15px;border-radius:12px;cursor:pointer;background:var(--card-bg);border:2px solid var(--border-color);font-weight:600;font-size:.8rem;color:var(--text-color);transition:.25s;white-space:nowrap;user-select:none}
 .uv-tab:hover{border-color:#6366f1;background:rgba(99,102,241,.04);transform:translateY(-1px)}
 .uv-tab.active{border-color:#6366f1;background:rgba(99,102,241,.08);color:#6366f1}
 .uv-tab i{font-size:.95rem}
 .uv-tab .cnt{padding:1px 7px;border-radius:6px;font-size:.68rem;font-weight:700;background:rgba(99,102,241,.1);color:#6366f1;margin-left:2px}
+.uv-location-list{display:grid;gap:10px}.uv-location-item{display:flex;align-items:center;gap:13px;min-width:0;padding:14px;border:1px solid var(--border-color);border-radius:15px;background:var(--card-bg)}.uv-location-pin{width:40px;height:40px;flex:none;display:grid;place-items:center;border-radius:12px;background:rgba(6,182,212,.12);color:#0891b2;font-size:18px}.uv-location-main{flex:1;min-width:0}.uv-location-address{font-weight:750;color:var(--text-color);overflow-wrap:anywhere}.uv-location-meta{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:5px;color:var(--bs-secondary-color,#6c757d);font-size:.75rem}.uv-location-meta span{display:inline-flex;align-items:center;gap:4px}.uv-location-coords{font-family:ui-monospace,monospace}.uv-location-map,.uv-page-link{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;padding:8px 11px;border:1px solid rgba(99,102,241,.25);border-radius:10px;color:#6366f1;text-decoration:none;font-size:.78rem;font-weight:700;background:rgba(99,102,241,.06)}.uv-location-map:hover,.uv-page-link:not(.disabled):hover{background:#6366f1;color:white}.uv-location-pagination{display:flex;align-items:center;justify-content:center;gap:14px;margin-top:18px}.uv-page-count{color:var(--bs-secondary-color,#6c757d);font-size:.83rem;font-weight:700}.uv-page-link.disabled{opacity:.45}.uv-location-empty{padding:34px 16px;text-align:center;color:var(--bs-secondary-color,#6c757d)}.uv-location-empty>span{display:grid;place-items:center;width:56px;height:56px;border-radius:18px;margin:0 auto 12px;background:rgba(6,182,212,.1);color:#0891b2;font-size:25px}.uv-location-empty strong{display:block;color:var(--text-color)}.uv-location-empty p{max-width:430px;margin:7px auto 0;font-size:.85rem}
 
 /* ===== Sections ===== */
 .uv-section{display:none;animation:scaleIn .22s ease}
@@ -266,11 +271,12 @@
     .uv-parent-grid{grid-template-columns:1fr}
     .uv-coin-stats{grid-template-columns:1fr}
     .uv-stats-grid{grid-template-columns:1fr 1fr}
-    .uv-tabs{gap:4px}
+    .uv-tabs{gap:4px}.uv-tabs-wrap .uv-tabs{padding-inline:36px}
     .uv-tab{padding:7px 11px;font-size:.76rem}
     .uv-course-header{flex-direction:column;align-items:flex-start}
 }
 @media(max-width:575px){
+    .uv-location-item{align-items:flex-start;flex-wrap:wrap}.uv-location-main{width:calc(100% - 54px)}.uv-location-map{margin-left:53px}
     .uv-stats-grid{grid-template-columns:1fr 1fr}
 }
 </style>
@@ -351,7 +357,9 @@
     </div>
 
     <!-- ====== TABS ====== -->
-    <div class="uv-tabs">
+    <div class="uv-tabs-wrap">
+    <button class="uv-tabs-scroll left" type="button" aria-label="Tablarni chapga surish" data-tabs-scroll="-1"><i class="bi bi-chevron-left"></i></button>
+    <div class="uv-tabs" id="userProfileTabs">
         <div class="uv-tab active" data-tab="personal"><i class="bi bi-person-fill" style="color:#6366f1"></i> Shaxsiy</div>
         <div class="uv-tab" data-tab="passport"><i class="bi bi-credit-card-2-front-fill" style="color:#22c55e"></i> Pasport</div>
         <div class="uv-tab" data-tab="parents"><i class="bi bi-people-fill" style="color:#3b82f6"></i> Ota-ona</div>
@@ -372,6 +380,9 @@
         {% if startup_summary %}
         <div class="uv-tab" data-tab="startup"><i class="bi bi-rocket-takeoff-fill" style="color:#ec4899"></i> Startup / G'oya</div>
         {% endif %}
+        <div class="uv-tab" data-tab="locations"><i class="bi bi-geo-alt-fill" style="color:#06b6d4"></i> Joylashuvlari <span class="cnt">{{ login_locations.paginator.count }}</span></div>
+    </div>
+    <button class="uv-tabs-scroll right" type="button" aria-label="Tablarni o‘ngga surish" data-tabs-scroll="1"><i class="bi bi-chevron-right"></i></button>
     </div>
 
     <!-- ====== TAB: SHAXSIY ====== -->
@@ -1025,6 +1036,42 @@
         {% endif %}
     </div>
     {% endif %}
+
+    <!-- ===== TAB: JOYLASHUVLARI ===== -->
+    <div class="uv-section" id="tab-locations">
+        <div class="uv-card">
+            <div class="uv-card-head">
+                <div class="uv-card-ico" style="background:linear-gradient(135deg,#06b6d4,#3b82f6)"><i class="bi bi-geo-alt-fill"></i></div>
+                Login joylashuvlari
+                <span class="uv-card-head-badge" style="background:rgba(6,182,212,.12);color:#0891b2">{{ login_locations.paginator.count }} ta kirish</span>
+            </div>
+            <div class="uv-card-body">
+                {% if login_locations.object_list %}
+                    <div class="uv-location-list">
+                        {% for item in login_locations %}
+                        <article class="uv-location-item">
+                            <div class="uv-location-pin"><i class="bi bi-geo-alt-fill"></i></div>
+                            <div class="uv-location-main">
+                                <div class="uv-location-address">{{ item.address|default:"Manzil aniqlanmadi" }}</div>
+                                <div class="uv-location-meta"><span><i class="bi bi-clock"></i> {{ item.logged_in_at|date:"d.m.Y H:i" }}</span><span><i class="bi bi-bullseye"></i> ±{{ item.accuracy_meters|default:"—" }} m</span><span class="uv-location-coords">{{ item.latitude }}, {{ item.longitude }}</span></div>
+                            </div>
+                            <a class="uv-location-map" href="{{ item.map_url }}" target="_blank" rel="noopener noreferrer"><i class="bi bi-map"></i> Xaritada ko‘rish</a>
+                        </article>
+                        {% endfor %}
+                    </div>
+                    {% if login_locations.paginator.num_pages > 1 %}
+                    <nav class="uv-location-pagination" aria-label="Joylashuvlar sahifalari">
+                        {% if login_locations.has_previous %}<a href="?locations_page={{ login_locations.previous_page_number }}#tab-locations" class="uv-page-link"><i class="bi bi-chevron-left"></i> Oldingi</a>{% else %}<span class="uv-page-link disabled"><i class="bi bi-chevron-left"></i> Oldingi</span>{% endif %}
+                        <span class="uv-page-count">{{ login_locations.number }} / {{ login_locations.paginator.num_pages }}</span>
+                        {% if login_locations.has_next %}<a href="?locations_page={{ login_locations.next_page_number }}#tab-locations" class="uv-page-link">Keyingi <i class="bi bi-chevron-right"></i></a>{% else %}<span class="uv-page-link disabled">Keyingi <i class="bi bi-chevron-right"></i></span>{% endif %}
+                    </nav>
+                    {% endif %}
+                {% else %}
+                    <div class="uv-location-empty"><span><i class="bi bi-geo"></i></span><strong>Hozircha joylashuv yozuvlari yo‘q</strong><p>Foydalanuvchi keyingi loginida joylashuvni ulashishga rozilik bersa, kirish vaqti va manzili shu yerda ko‘rinadi.</p></div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1041,6 +1088,16 @@ document.addEventListener('DOMContentLoaded',function(){
             if(el) el.classList.add('active');
         });
     });
+    var tabScroller=document.getElementById('userProfileTabs');
+    document.querySelectorAll('[data-tabs-scroll]').forEach(function(button){
+        button.addEventListener('click',function(){
+            if(tabScroller) tabScroller.scrollBy({left:Number(button.dataset.tabsScroll)*Math.max(220,tabScroller.clientWidth*.7),behavior:'smooth'});
+        });
+    });
+    if(window.location.hash==='#tab-locations'){
+        var locationTab=document.querySelector('.uv-tab[data-tab="locations"]');
+        if(locationTab) locationTab.click();
+    }
 });
 </script>
 {% endblock %}

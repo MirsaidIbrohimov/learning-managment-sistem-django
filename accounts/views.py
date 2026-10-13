@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
@@ -24,7 +24,7 @@ from .models import (
     Profession, Section, CustomUser, CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     TestUserAnswer, Dictionary, DictionaryWord, Certificate, Message, PaymentStatus, PaymentRecord, HelpRequest, Discount,
-    UserDevice, UserSession, SystemReport, PasswordResetRequest,
+    UserDevice, UserSession, SystemReport, PasswordResetRequest, LoginLocation,
     Parent, ParentMessage, PremiumRequest, BlockedSection, MaintenanceMode,
     CourseApplication, SpeakingTask, SpeakingSubmission, LoginAttempt, DailySectionAccess,
     DailyLessonAccess, FinalTestPayment, StudentLessonToken, StudentCourseToken,
@@ -42,6 +42,7 @@ from quiz.models import Attempt, Quiz, QuizSettings
 
 from django.core.management import call_command
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from telegram_bot.utils import notify_admins, notify_user, notify_group, notify_application_recipients
 
 
@@ -1050,9 +1051,14 @@ def login_view(request):
         # Har login'da qayta so'raladi — o'tkazib yuborish (skip) belgisini tozalaymiz
         request.session.pop('profile_verify_skipped', None)
 
+        # Geolokatsiya muvaffaqiyatli login'dan keyin, alohida rozilik bilan olinadi.
+        # Boshqa zarur login oqimlari (to'lov, profil, so'rovnoma) ustuvor qoladi.
+        request.session['location_capture_pending'] = True
+
         # Profil to'liq bo'lmasa complete_profile sahifasiga yo'naltirish
         # (hujjat tasdig'i — pasport yoki metrika — shu formaning ichida)
         if user.role == 'student' and not user.is_profile_completed:
+            request.session.pop('location_capture_pending', None)
             return redirect('complete_profile')
 
         # So'rovnoma tekshirish (login qilganda)
@@ -1065,14 +1071,87 @@ def login_view(request):
             models.Q(target_role='all') | models.Q(target_role=user.role)
         ).first()
         if pending_survey:
+            request.session.pop('location_capture_pending', None)
             return redirect('fill_survey', pk=pending_survey.pk)
 
-        return redirect('home')
+        return redirect('login_location_consent')
 
     else:
         form = LoginForm()
 
     return _login_render(request, form, 'username')
+
+
+@login_required
+def login_location_consent(request):
+    """Login'dan keyingi rozilik oynasi; mavjud redirect manzili saqlanadi."""
+    if not request.session.get('location_capture_pending', False):
+        return redirect('home')
+    return render(request, 'accounts/login_location_consent.html')
+
+
+@login_required
+@require_POST
+def login_location_record(request):
+    """Brauzer ruxsati bilan olingan koordinatani joriy foydalanuvchiga bog'laydi."""
+    if not request.session.get('location_capture_pending', False):
+        return JsonResponse({'ok': False, 'error': 'Joylashuv yozuvi uchun login tasdig‘i topilmadi.'}, status=403)
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return JsonResponse({'ok': False, 'error': 'Noto‘g‘ri so‘rov.'}, status=400)
+    if request.POST.get('action') == 'skip':
+        request.session.pop('location_capture_pending', None)
+        return JsonResponse({'ok': True, 'skipped': True})
+    try:
+        latitude = float(request.POST.get('latitude', ''))
+        longitude = float(request.POST.get('longitude', ''))
+        accuracy = float(request.POST.get('accuracy', ''))
+    except (TypeError, ValueError):
+        return JsonResponse({'ok': False, 'error': 'Koordinatalar noto‘g‘ri.'}, status=400)
+    if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+        return JsonResponse({'ok': False, 'error': 'Koordinatalar diapazondan tashqarida.'}, status=400)
+    if not (0 <= accuracy <= 100000):
+        return JsonResponse({'ok': False, 'error': 'Aniqlik qiymati noto‘g‘ri.'}, status=400)
+
+    from decimal import Decimal
+    lat = Decimal(str(round(latitude, 6)))
+    lon = Decimal(str(round(longitude, 6)))
+    map_url = f'https://www.google.com/maps?q={lat},{lon}'
+    location = LoginLocation.objects.create(
+        user=request.user,
+        latitude=lat,
+        longitude=lon,
+        map_url=map_url,
+        accuracy_meters=min(int(round(accuracy)), 100000),
+    )
+    request.session.pop('location_capture_pending', None)
+    address = ''
+    try:
+        import requests
+        response = requests.get(
+            'https://nominatim.openstreetmap.org/reverse',
+            params={'format': 'jsonv2', 'lat': str(lat), 'lon': str(lon), 'zoom': 16, 'addressdetails': 1},
+            headers={'User-Agent': 'ITCreativeLMS/1.0 (login location lookup)'},
+            timeout=2.5,
+        )
+        if response.ok:
+            payload = response.json()
+            parts = payload.get('address') or {}
+            locality = (
+                parts.get('city') or parts.get('town') or parts.get('village')
+                or parts.get('municipality') or parts.get('county') or ''
+            )
+            district = parts.get('county') or parts.get('district') or ''
+            region = parts.get('state') or parts.get('region') or ''
+            address = ', '.join(dict.fromkeys(part for part in (locality, district, region, parts.get('country')) if part))
+            if not address:
+                address = (payload.get('display_name') or '')[:255]
+    except Exception:
+        # Reverse geocoding tashqi xizmatga bog'liq; koordinata va map link saqlanib qoladi.
+        pass
+    if address:
+        location.address = address[:255]
+        location.save(update_fields=['address'])
+    return JsonResponse({'ok': True, 'address': address})
 
 
 def logout_view(request):
@@ -4294,10 +4373,10 @@ BEAT_SEEK_TOLERANCE  = 5.0   # max_position'dan shuncha oldinga o'tish kechirila
 # Vaqt o'tishining o'zi yetarli emas edi: konsoldan soxta pozitsiya yuboruvchi
 # skript videoni umuman o'ynatmasdan, tabni fonda qoldirib kredit yig'ib
 # ketardi. Shuning uchun server tasodifiy vaqtda tugma bosishni talab qiladi.
-PRESENCE_FIRST_MIN    = 120   # birinchi tekshiruv (tasdiqlangan soniyada)
-PRESENCE_FIRST_MAX    = 240
-PRESENCE_INTERVAL_MIN = 300   # keyingilari: 5–9 daqiqa
-PRESENCE_INTERVAL_MAX = 540
+PRESENCE_FIRST_MIN    = 60    # birinchi tekshiruv (tasdiqlangan soniyada)
+PRESENCE_FIRST_MAX    = 60
+PRESENCE_INTERVAL_MIN = 60    # keyingi tekshiruvlar: har bir daqiqada
+PRESENCE_INTERVAL_MAX = 60
 PRESENCE_DEADLINE     = 10    # tasdiqlash uchun aniq muddat (soniya)
 
 # Shubha bali shu chegaradan oshsa adminga BIR MARTA xabar beriladi.
@@ -11788,6 +11867,7 @@ def admin_user_view(request, pk):
     
     # Oxirgi faolliklar
     recent_activities = ActivityLog.objects.filter(user=user).order_by('-created_at')[:10]
+    login_locations = Paginator(user.login_locations.all(), 10).get_page(request.GET.get('locations_page', 1))
 
     # Startup / g'oya xulosasi. Lokal import — `accounts` app'i `startup` ga
     # modul darajasida bog'lanib qolmasin (aylanma importdan himoya).
@@ -11804,6 +11884,7 @@ def admin_user_view(request, pk):
         'coin_earned': coin_earned,
         'coin_spent': coin_spent,
         'recent_activities': recent_activities,
+        'login_locations': login_locations,
         'startup_summary': startup_summary,
     })
 

@@ -2183,6 +2183,28 @@ class LoginAttempt(models.Model):
         return secrets.token_hex(32)
 
 
+class LoginLocation(models.Model):
+    """Foydalanuvchi roziligi bilan yoziladigan login va joylashuv tarixi."""
+    user = models.ForeignKey(
+        CustomUser, on_delete=models.CASCADE, related_name='login_locations',
+        verbose_name='Foydalanuvchi',
+    )
+    logged_in_at = models.DateTimeField(default=timezone.now, db_index=True, verbose_name='Kirish vaqti')
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name='Kenglik')
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, verbose_name='Uzunlik')
+    address = models.CharField(max_length=255, blank=True, verbose_name='Manzil')
+    map_url = models.URLField(max_length=500, blank=True, verbose_name='Xarita havolasi')
+    accuracy_meters = models.PositiveIntegerField(null=True, blank=True, verbose_name='Aniqlik (metr)')
+
+    class Meta:
+        ordering = ['-logged_in_at', '-pk']
+        verbose_name = 'Login joylashuvi'
+        verbose_name_plural = 'Login joylashuvlari'
+
+    def __str__(self):
+        return f'{self.user} — {self.address or "Manzil aniqlanmagan"} ({self.logged_in_at:%Y-%m-%d %H:%M})'
+
+
 class DailyLessonAccess(models.Model):
     """O'quvchi bir kunda faqat bitta yangi darsga kirishi mumkin.
     Oldin bajarilgan darslarga erkin kirish bor."""
