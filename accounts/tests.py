@@ -278,6 +278,29 @@ class VideoWatchCoinRewardTests(TestCase):
             CoinTransaction.objects.filter(user=user, amount=10).count(), 1,
         )
 
+    def test_legacy_completed_video_is_not_rewarded_again(self):
+        user = CustomUser.objects.create_user(
+            username='legacy-video-complete', password='test-password', role='admin',
+        )
+        VideoProgress.objects.create(
+            user=user, video=self.video, watched=True, coin_awarded=False,
+            verified_seconds=600, required_seconds=540,
+        )
+        request = self.factory.post(
+            reverse('mark_video_watched', args=[self.video.pk]),
+            data='{}', content_type='application/json',
+        )
+        request.user = user
+        response = mark_video_watched(request, self.video.pk)
+        payload = json.loads(response.content)
+
+        user.refresh_from_db()
+        progress = VideoProgress.objects.get(user=user, video=self.video)
+        self.assertTrue(payload['success'])
+        self.assertEqual(payload['coin_amount'], 0)
+        self.assertEqual(user.coins, 0)
+        self.assertTrue(progress.coin_awarded)
+
 
 class VideoWatchAntiCheatTests(TestCase):
     """Konsoldan timerni chetlab o'tish urinishlari serverda to'xtatilishi."""
@@ -625,7 +648,7 @@ class VideoTemplateContractTests(TestCase):
 
 
 class VideoSessionResetTests(TestCase):
-    def test_reopening_unfinished_video_resets_timer_and_playback_progress(self):
+    def test_reopening_unfinished_video_preserves_timer_and_playback_progress(self):
         profession = Profession.objects.create(
             name='Qayta boshlash kursi',
             photo='professions/restart.jpg',
@@ -667,16 +690,16 @@ class VideoSessionResetTests(TestCase):
             lesson_view(request, lesson.pk)
 
         progress.refresh_from_db()
-        self.assertEqual(progress.verified_seconds, 0)
-        self.assertEqual(progress.watched_segments, [])
-        self.assertEqual(progress.max_position, 0)
-        self.assertEqual(progress.last_position, 0)
-        self.assertIsNone(progress.last_beat_at)
-        self.assertIsNone(progress.last_credit_at)
-        self.assertEqual(progress.beat_nonce, '')
-        self.assertEqual(progress.presence_token, '')
-        self.assertIsNone(progress.presence_sent_at)
-        self.assertEqual(progress.next_check_seconds, 0)
+        self.assertEqual(progress.verified_seconds, 180)
+        self.assertEqual(progress.watched_segments, [[0, 180]])
+        self.assertEqual(progress.max_position, 180)
+        self.assertEqual(progress.last_position, 180)
+        self.assertIsNotNone(progress.last_beat_at)
+        self.assertIsNotNone(progress.last_credit_at)
+        self.assertEqual(progress.beat_nonce, 'old-nonce')
+        self.assertEqual(progress.presence_token, 'old-presence')
+        self.assertIsNotNone(progress.presence_sent_at)
+        self.assertEqual(progress.next_check_seconds, 240)
         self.assertEqual(progress.required_seconds, 540)
 
 
@@ -992,16 +1015,17 @@ class VideoWatchLivenessTests(TestCase):
         self.assertEqual(self._progress().presence_failures, 1)
         self.assertEqual(self._progress().verified_seconds, earned)
 
-        # Klientning o'n soniyalik muddati tugagach server progressni ham nol qiladi.
+        # Attention timeout kreditni to'xtatadi, lekin tasdiqlangan segmentlarni saqlaydi.
         reset = self._beat(0, answer_presence=False, extra={'reset_progress': True})
-        self.assertTrue(reset['progress_reset'])
+        self.assertFalse(reset['progress_reset'])
+        self.assertTrue(reset['presence_expired'])
         progress = self._progress()
-        self.assertEqual(progress.verified_seconds, 0)
-        self.assertEqual(progress.watched_segments, [])
-        self.assertEqual(progress.last_position, 0)
-        self.assertEqual(progress.max_position, 0)
+        self.assertEqual(progress.verified_seconds, earned)
+        self.assertGreater(progress.watched_segments[0][1], 0)
+        self.assertEqual(progress.last_position, progress.max_position)
         self.assertEqual(progress.presence_token, '')
-        self.assertEqual(reset['remaining'], reset['required_seconds'])
+        self.assertEqual(reset['verified_seconds'], earned)
+        self.assertEqual(reset['resume_at'], progress.max_position)
 
     def test_ten_minute_video_reaches_90_percent_from_server_playback_time(self):
         """10 daqiqalik videoda 9 daqiqa haqiqiy ijro serverda 90% bo'ladi."""

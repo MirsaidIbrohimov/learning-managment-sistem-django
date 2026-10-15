@@ -4648,48 +4648,45 @@ def _process_watch_beat(request, video, progress_pk):
 
     notify_admin = False
 
-    # Foydalanuvchi presence oynasidagi 10 soniyalik muddatni o'tkazib yuborsa,
-    # klient aniq reset so'rovini yuboradi. Reset foydalanuvchi+video qatorini
-    # lock qilib bajariladi, shuning uchun parallel heartbeat eski progressni
-    # qayta yozib yubora olmaydi.
+    # Presence oynasi o'tkazib yuborilganda ko'rilgan segmentlar saqlanadi.
+    # Faqat ijro bazasini oxirgi server tasdiqlagan pozitsiyaga qaytaramiz:
+    # foydalanuvchi video davom ettirishidan oldin o'tkazib yuborilgan qism
+    # baribir sanalmaydi, lekin sahifa yangilanishi/diqqat uzilishi progressni
+    # o'chirib yubormaydi.
     if payload.get('reset_progress') is True:
         with transaction.atomic():
             progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
             required = _resolve_required_seconds(progress, video)
-            progress.verified_seconds = 0
-            progress.watched_segments = []
-            progress.last_position = 0
-            progress.max_position = 0
+            progress.last_position = progress.max_position
             progress.last_beat_at = now
             progress.last_credit_at = None
-            progress.playback_started_at = None
-            progress.requirement_met_at = None
             progress.presence_token = ''
             progress.presence_sent_at = None
             progress.next_check_seconds = 0
             progress.beat_nonce = _new_token()
             progress.save(update_fields=[
-                'verified_seconds', 'watched_segments', 'last_position',
-                'max_position', 'last_beat_at', 'last_credit_at',
-                'playback_started_at', 'requirement_met_at',
+                'last_position', 'last_beat_at', 'last_credit_at',
                 'presence_token', 'presence_sent_at', 'next_check_seconds',
                 'beat_nonce',
             ])
         return {
             'ok': True,
-            'progress_reset': True,
-            'verified_seconds': 0,
+            'progress_reset': False,
+            'presence_expired': True,
+            'verified_seconds': round(progress.verified_seconds, 1),
             'required_seconds': required,
-            'remaining': required,
-            'can_complete': False,
+            'remaining': max(0, round(required - progress.verified_seconds, 1)) if required else None,
+            'can_complete': progress.is_requirement_met,
             'seek_blocked': False,
             'seek_detected': False,
-            'resume_at': 0,
+            'resume_at': progress.max_position,
             'nonce': progress.beat_nonce,
             'credited': 0,
             'blocked': 'presence_timeout',
-            'watched_segments': [],
-            'watched_percentage': 0,
+            'watched_segments': progress.watched_segments,
+            'watched_percentage': round(
+                min(100, progress.verified_seconds * 100 / video.gating_duration_seconds), 1
+            ) if video.gating_duration_seconds else 0,
             'duration': video.gating_duration_seconds,
         }
 
@@ -4768,15 +4765,14 @@ def _process_watch_beat(request, video, progress_pk):
             )
 
             if advance > allowed_advance:
-                # Sakrab o'tilgan oraliqqa kredit yo'q. Yangi pozitsiyani baza
-                # qilamiz, lekin haqiqiy max_position'dan uzoqdagi seekni
-                # pozitsiya bazasi sifatida qabul qilmaymiz. Aks holda undan
-                # ortga qaytish keyingi beatlarda ham timer hisobini buzardi.
+                # Sakrab o'tilgan oraliqqa kredit yo'q. Yangi joyni faqat
+                # playback bazasi qilamiz: undan keyingi ketma-ket ijro server
+                # soati bilan tasdiqlangandagina yangi segment sifatida sanaladi.
+                # max_position esa haqiqiy ko'rilgan hudud bo'lib qoladi.
                 cheated = True
                 progress.cheat_attempts += 1
                 suspicion += 2
-                if position <= progress.max_position + BEAT_SEEK_TOLERANCE:
-                    progress.last_position = position
+                progress.last_position = position
             else:
                 segment_start = progress.last_position
                 progress.last_position = position
@@ -5010,12 +5006,17 @@ def _complete_video_watch(request, video):
             progress.watched_at = timezone.now()
             completed_now = True
 
-        if not progress.coin_awarded:
+        # Coin faqat birinchi completion so'rovida beriladi. Eski yozuvlarda
+        # watched=True bo'lib coin_awarded=False bo'lishi mumkin; qayta ochish
+        # ularni orqaga qarab mukofotlamasligi kerak.
+        if completed_now and not progress.coin_awarded:
             request.user.add_coins(
                 coin_amount, f"Video darslik ko'rildi: {video.lesson.title}",
             )
             progress.coin_awarded = True
             awarded = True
+        elif progress.watched and not progress.coin_awarded:
+            progress.coin_awarded = True
 
         progress.save(update_fields=[
             'watched', 'watched_at', 'coin_awarded',

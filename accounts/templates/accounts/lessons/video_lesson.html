@@ -1619,7 +1619,7 @@ function showPresencePrompt(challenge) {
         <section class="vl-presence-modal" role="dialog" aria-modal="true" aria-labelledby="vlPresenceTitle" aria-describedby="vlPresenceCopy">
             <div class="vl-presence-icon" aria-hidden="true"><i class="bi bi-eye-fill"></i></div>
             <h2 class="vl-presence-title" id="vlPresenceTitle">Darsni kuzatyapsizmi?</h2>
-            <p class="vl-presence-copy" id="vlPresenceCopy">${PRESENCE_ANSWER_SECONDS} soniya ichida “Ha, davom etaman” tugmasini bosing. Aks holda dars progressi boshidan boshlanadi.</p>
+            <p class="vl-presence-copy" id="vlPresenceCopy">${PRESENCE_ANSWER_SECONDS} soniya ichida “Ha, davom etaman” tugmasini bosing. Aks holda video to‘xtaydi, tasdiqlangan progress saqlanadi.</p>
             <div class="vl-presence-countdown" aria-live="polite">${PRESENCE_ANSWER_SECONDS} soniya</div>
             <button class="vl-presence-btn" type="button"><i class="bi bi-play-fill me-1"></i> Ha, davom etaman</button>
         </section>`;
@@ -1638,7 +1638,7 @@ function showPresencePrompt(challenge) {
             overlay.remove();
             presenceRestoreFullscreen = false;
             sendBeat('', false, true);
-            const warning = 'Darslikka nisbatan e’tiborsizlik qilmang, iltimos. Video darslikni qaytadan diqqat bilan ko‘ring.';
+            const warning = 'Tasdiqlash vaqti tugadi. Tasdiqlangan progress saqlandi; videoni davom ettirish uchun ijroni qayta bosing.';
             statusText.textContent = warning;
             showProgressResetWarning();
             return;
@@ -1679,7 +1679,7 @@ function showProgressResetWarning() {
         <section class="vl-presence-modal" role="alertdialog" aria-modal="true" aria-labelledby="vlResetWarningTitle" aria-describedby="vlResetWarningCopy">
             <div class="vl-warning-icon" aria-hidden="true"><i class="bi bi-exclamation-triangle-fill"></i></div>
             <h2 class="vl-presence-title" id="vlResetWarningTitle">Iltimos, darsga e’tibor bering</h2>
-            <p class="vl-warning-copy" id="vlResetWarningCopy">Darslikka nisbatan e’tiborsizlik qilmang, iltimos. Video darslikni qaytadan diqqat bilan ko‘ring.</p>
+            <p class="vl-warning-copy" id="vlResetWarningCopy">Tasdiqlash vaqti tugadi. Tasdiqlangan progress saqlandi; videoni ijro etib davom ettiring.</p>
             <button class="vl-presence-btn" type="button">Tushundim</button>
         </section>`;
     const videoBox = document.getElementById('videoBox');
@@ -1794,6 +1794,20 @@ function sendBeat(presenceToken, playingOverride, resetProgress) {
                         serverRemainingPlayedAt = playedClockSeconds;
                     }
                 }
+            }
+            if (data.presence_expired) {
+                const resumePosition = Math.max(0, Number(data.resume_at) || 0);
+                verifiedResumeAt = resumePosition;
+                lastPos = null;
+                lastWall = null;
+                try {
+                    if (window._vqYT && typeof window._vqYT.seekTo === 'function') {
+                        window._vqYT.seekTo(resumePosition, true);
+                    } else if (vimeoPlayer) {
+                        vimeoPlayer.setCurrentTime(resumePosition).catch(function(){});
+                    }
+                } catch (e) {}
+                statusText.textContent = 'Tasdiqlangan progress saqlandi. Videoni ijro etib davom eting.';
             }
             videoTimerLog('Current position:', Math.round(t));
             videoTimerLog('Watched:', Math.round(Number(data.verified_seconds) || 0));
@@ -2011,6 +2025,44 @@ function getPlayerTime(cb) {
     cb(null);
 }
 
+/*
+ * Player events are occasionally dropped (especially around YouTube buffering
+ * and iframe reconnects). Reconcile the cached state with the player API so a
+ * missed PLAYING event cannot leave the countdown frozen while playback runs.
+ */
+function reconcilePlaybackState() {
+    if (document.hidden || !isVideoPlaying || typeof pauseTimer !== 'function') return;
+    if (window._vqYT && typeof window._vqYT.getPlayerState === 'function') {
+        try {
+            const state = window._vqYT.getPlayerState();
+            if (state === YT.PlayerState.PLAYING) {
+                if (!isVideoPlaying) {
+                    isVideoPlaying = true;
+                    if (typeof resumeTimer === 'function') resumeTimer();
+                }
+            } else if (state === YT.PlayerState.BUFFERING || state === YT.PlayerState.PAUSED || state === YT.PlayerState.ENDED) {
+                if (isVideoPlaying) {
+                    isVideoPlaying = false;
+                    pauseTimer(state === YT.PlayerState.BUFFERING ? 'Yuklanmoqda...' : state === YT.PlayerState.ENDED ? 'Tugadi' : "To'xtatildi");
+                }
+            }
+        } catch (e) {}
+        return;
+    }
+    if (typeof vimeoPlayer !== 'undefined' && vimeoPlayer) {
+        vimeoPlayer.getPaused().then(function(paused) {
+            if (document.hidden) return;
+            if (!paused && !isVideoPlaying) {
+                isVideoPlaying = true;
+                if (typeof resumeTimer === 'function') resumeTimer();
+            } else if (paused && isVideoPlaying) {
+                isVideoPlaying = false;
+                pauseTimer("To'xtatildi");
+            }
+        }).catch(function() {});
+    }
+}
+
 /* Pleer haqiqiy davomiyligi. YouTube — sinxron, Vimeo — Promise. */
 function getPlayerDuration(cb) {
     try {
@@ -2158,6 +2210,7 @@ function completeOnEnded() {
  * qo'shiladi. Katta pozitsiya farqi seek hisoblanadi va oralig'i tashlanadi.
  */
 function tick() {
+    reconcilePlaybackState();
     if (!durationLocked) resolveDuration();
     // Vimeo currentTime asinxron qaytadi. Bir nechta o'qishni navbatga
     // to'plamaslik va eski javob yangi bazani bosmasligi uchun bittadan olamiz.
@@ -2218,14 +2271,10 @@ document.addEventListener('visibilitychange', () => {
     else if (isVideoPlaying) resumeTimer();
 });
 
-// Brauzer Orqaga/Oldinga tugmasida sahifani xotiradan (bfcache) tiklasa, server
-// view'i ishlamay qoladi. Qayta yuklab yangi, nollangan ko'rish sessiyasini olamiz.
+// bfcache eski player callbacklari va bir martalik nonce'ni tiklashi mumkin.
+// Progress serverda qoladi, sahifa qayta yuklanishi yangi nonce oladi.
 window.addEventListener('pageshow', function(event) {
-    if (event.persisted && isVideoPlaying) {
-        lastPos = null;
-        lastWall = null;
-        sendBeat();
-    }
+    if (event.persisted) window.location.reload();
 });
 
 // Boshlang'ich UI: davomiylik lock qilinmaguncha "—:—" ko'rsatamiz. Bu bilan
