@@ -1053,6 +1053,7 @@ def login_view(request):
         request.session.pop('profile_verify_skipped', None)
 
         # Geolokatsiya muvaffaqiyatli login'dan keyin, alohida rozilik bilan olinadi.
+        # Brauzerda saqlangan qurilma roziligi 30 kun amal qiladi.
         # Boshqa zarur login oqimlari (to'lov, profil, so'rovnoma) ustuvor qoladi.
         request.session['location_capture_pending'] = True
 
@@ -1087,6 +1088,13 @@ def login_view(request):
 def login_location_consent(request):
     """Login'dan keyingi rozilik oynasi; mavjud redirect manzili saqlanadi."""
     if not request.session.get('location_capture_pending', False):
+        return redirect('home')
+    try:
+        consent_expires_at = int(request.COOKIES.get('location_device_consent_until', '0'))
+    except (TypeError, ValueError):
+        consent_expires_at = 0
+    if consent_expires_at > int(time.time()):
+        request.session.pop('location_capture_pending', None)
         return redirect('home')
     return render(request, 'accounts/login_location_consent.html')
 
@@ -1160,7 +1168,13 @@ def login_location_record(request):
     if address:
         location.address = address[:255]
         location.save(update_fields=['address'])
-    return JsonResponse({'ok': True, 'address': address})
+    response = JsonResponse({'ok': True, 'address': address})
+    consent_max_age = 30 * 24 * 60 * 60
+    response.set_cookie(
+        'location_device_consent_until', str(int(time.time()) + consent_max_age), max_age=consent_max_age,
+        httponly=True, secure=request.is_secure(), samesite='Lax', path='/',
+    )
+    return response
 
 
 def logout_view(request):
@@ -4805,6 +4819,14 @@ def _process_watch_beat(request, video, progress_pk):
                     progress.max_position = max(progress.max_position, segment_end)
                     if credited > 0:
                         progress.last_credit_at = now
+
+        if (
+            duration > 0
+            and progress.max_position >= duration - BEAT_SEEK_TOLERANCE
+            and required
+            and progress.verified_seconds >= (required - 5)
+        ):
+            progress.verified_seconds = max(progress.verified_seconds, float(required))
 
         # ── 6. Navbatdagi tiriklik tekshiruvini yuborish ──
         if progress.next_check_seconds <= 0:

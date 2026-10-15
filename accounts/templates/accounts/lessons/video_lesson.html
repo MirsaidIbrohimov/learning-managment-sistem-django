@@ -2160,7 +2160,7 @@ function updateTimerUI() {
         : Math.max(0, serverRemaining - Math.max(0, playedClockSeconds - serverRemainingPlayedAt));
     // Tugma server tasdig'iga bog'liq. Shuning uchun hisoblagich ham server
     // tasdig'ini kutadi va lokal progress serverdan oldinga o'tib 00 ko'rsatmaydi.
-    const safeRemaining = serverCanComplete ? 0 : Math.max(1, serverEstimate);
+    const safeRemaining = (serverCanComplete || serverEstimate <= 0 || localRemaining <= 0) ? 0 : Math.max(1, serverEstimate);
     const remaining = lastDisplayedRemaining == null
         ? safeRemaining
         : Math.min(lastDisplayedRemaining, safeRemaining);
@@ -2177,9 +2177,9 @@ function updateTimerUI() {
             timerLabel.textContent = 'Tekshirilmoqda';
             statusText.textContent = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
         }
-        if (Date.now() - lastFinalizationRequestAt >= 6000) {
+        if (Date.now() - lastFinalizationRequestAt >= 2000) {
             lastFinalizationRequestAt = Date.now();
-            sendBeat();
+            sendBeat('', true);
         }
     }
 }

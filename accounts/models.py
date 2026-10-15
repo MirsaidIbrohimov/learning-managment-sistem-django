@@ -910,7 +910,7 @@ class VideoProgress(models.Model):
             return False
         # Beat kreditlari float sifatida yig'iladi; masalan 539.999999999
         # 540 soniya bo'lishi kerak bo'lgan chegarani tasodifan o'tkazmasin.
-        return round(float(self.verified_seconds or 0), 1) >= self.required_seconds
+        return round(float(self.verified_seconds or 0), 1) >= max(1, self.required_seconds - 2)
 
 
 class Homework(models.Model):
