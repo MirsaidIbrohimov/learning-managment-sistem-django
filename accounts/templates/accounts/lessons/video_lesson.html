@@ -1425,7 +1425,7 @@ if (placeholder) {
                         onStateChange: function(e) {
                             const s = e.data;
                             if      (s === YT.PlayerState.PLAYING)   { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); }
-                            else if (s === YT.PlayerState.BUFFERING) { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); }
+                            else if (s === YT.PlayerState.BUFFERING) { /* Buferlanishda timerni o'chirmaymiz */ }
                             else if (s === YT.PlayerState.PAUSED)    { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); }
                             else if (s === YT.PlayerState.ENDED)     { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); }
                         }
@@ -1459,7 +1459,7 @@ if (placeholder) {
                 vimeoPlayer.on('play',        () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); vlSetupQuality(); });
                 vimeoPlayer.on('pause',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("To'xtatildi"); });
                 vimeoPlayer.on('ended',       () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Tugadi"); if (typeof completeOnEnded === 'function') completeOnEnded(); });
-                vimeoPlayer.on('bufferstart', () => { isVideoPlaying = false; if (typeof pauseTimer === 'function') pauseTimer("Yuklanmoqda..."); });
+                vimeoPlayer.on('bufferstart', () => { /* buferlanishda timerni o'chirmaymiz */ });
                 vimeoPlayer.on('bufferend',   () => { isVideoPlaying = true;  if (typeof resumeTimer === 'function') resumeTimer(); });
             };
             // onload avval ulanadi: keshlangan Vimeo iframe juda tez yuklansa ham
@@ -1551,8 +1551,8 @@ let isReady     = false;  // 90% ga yetdi
  */
 const BEAT_INTERVAL_MS = 8000;
 const BEAT_TIMEOUT_MS = 12000;
-const IDLE_PROMPT_MS = 60000;
-const PRESENCE_ANSWER_SECONDS = 10;
+const IDLE_PROMPT_MS = 600000;
+const PRESENCE_ANSWER_SECONDS = 30;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
 // Ekrandagi countdown server tasdiqlagan qolgan vaqtdan davom etadi. Har
@@ -1841,7 +1841,12 @@ function sendBeat(presenceToken, playingOverride, resetProgress) {
                 acknowledgedPresenceToken = '';
             }
         })
-        .catch(() => {})
+        .catch(() => {
+            if (!serverCanComplete && isVideoPlaying && !document.hidden) {
+                clearTimeout(beatRetryTimer);
+                beatRetryTimer = setTimeout(() => sendBeat(), 6000);
+            }
+        })
         .finally(() => {
             if (timeoutId) clearTimeout(timeoutId);
             beatInFlight = false;
@@ -1867,7 +1872,7 @@ function sendBeat(presenceToken, playingOverride, resetProgress) {
             // Browserlar fon tabda setInterval'ni sekinlashtiradi yoki to'xtatadi.
             // Ko'rish davom etayotgan bo'lsa, tarmoq uzilishidan so'ng beatni
             // avtomatik qayta yuborib, server nonce'ini yana sinxronlaymiz.
-            if (!serverCanComplete && isVideoPlaying && !document.hidden) {
+            if (false) {
                 clearTimeout(beatRetryTimer);
                 beatRetryTimer = setTimeout(() => sendBeat(), 3000);
             }
@@ -2031,7 +2036,7 @@ function getPlayerTime(cb) {
  * missed PLAYING event cannot leave the countdown frozen while playback runs.
  */
 function reconcilePlaybackState() {
-    if (document.hidden || !isVideoPlaying || typeof pauseTimer !== 'function') return;
+    if (document.hidden || typeof pauseTimer !== 'function') return;
     if (window._vqYT && typeof window._vqYT.getPlayerState === 'function') {
         try {
             const state = window._vqYT.getPlayerState();
@@ -2040,10 +2045,10 @@ function reconcilePlaybackState() {
                     isVideoPlaying = true;
                     if (typeof resumeTimer === 'function') resumeTimer();
                 }
-            } else if (state === YT.PlayerState.BUFFERING || state === YT.PlayerState.PAUSED || state === YT.PlayerState.ENDED) {
+            } else if (state === YT.PlayerState.PAUSED || state === YT.PlayerState.ENDED) {
                 if (isVideoPlaying) {
                     isVideoPlaying = false;
-                    pauseTimer(state === YT.PlayerState.BUFFERING ? 'Yuklanmoqda...' : state === YT.PlayerState.ENDED ? 'Tugadi' : "To'xtatildi");
+                    pauseTimer(state === YT.PlayerState.ENDED ? 'Tugadi' : "To'xtatildi");
                 }
             }
         } catch (e) {}
@@ -2172,7 +2177,7 @@ function updateTimerUI() {
             timerLabel.textContent = 'Tekshirilmoqda';
             statusText.textContent = 'Ko\'rish vaqti serverda tasdiqlanmoqda…';
         }
-        if (Date.now() - lastFinalizationRequestAt >= 2500) {
+        if (Date.now() - lastFinalizationRequestAt >= 6000) {
             lastFinalizationRequestAt = Date.now();
             sendBeat();
         }
@@ -2247,6 +2252,11 @@ function tick() {
             videoTimerLog('Seek detected');
             lastPos = t; lastWall = now;
             return;
+        }
+
+        if (!isVideoPlaying && !document.hidden && positionDelta > 0.05) {
+            isVideoPlaying = true;
+            if (typeof resumeTimer === 'function') resumeTimer();
         }
 
         if (isVideoPlaying && !document.hidden && positionDelta > 0) {

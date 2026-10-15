@@ -989,10 +989,10 @@ class VideoWatchLivenessTests(TestCase):
 
     # ── tiriklik tekshiruvi ──
 
-    def test_presence_challenge_expires_after_ten_seconds(self):
+    def test_presence_challenge_expires_after_deadline(self):
         """Muddat o'tgan presence token kechikkan javob bilan qabul qilinmaydi."""
         self._beat(0)
-        # Birinchi tekshiruv 60 soniyadan keyin chiqadi — testda yaqinlashtiramiz.
+        # Birinchi tekshiruv testda yaqinlashtiramiz.
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
             next_check_seconds=1
         )
@@ -1000,14 +1000,14 @@ class VideoWatchLivenessTests(TestCase):
         self._elapse(30)
         challenged = self._beat(30)
         self.assertIn('presence', challenged)
-        self.assertEqual(challenged['presence']['deadline'], 10)
+        self.assertEqual(challenged['presence']['deadline'], 30)
         self.assertGreater(challenged['credited'], 0)   # tekshiruv kreditni yemaydi
         earned = self._progress().verified_seconds
 
-        # O'n soniyadan keyingi javob endi yaroqsiz.
+        # O'ttiz soniyadan keyingi javob endi yaroqsiz.
         self._elapse(30)
         VideoProgress.objects.filter(user=self.user, video=self.video).update(
-            presence_sent_at=timezone.now() - timedelta(seconds=11)
+            presence_sent_at=timezone.now() - timedelta(seconds=31)
         )
         ignored = self._beat(60)
         self.assertEqual(ignored['blocked'], 'presence')

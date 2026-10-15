@@ -4382,11 +4382,11 @@ BEAT_SEEK_TOLERANCE  = 5.0   # max_position'dan shuncha oldinga o'tish kechirila
 # Vaqt o'tishining o'zi yetarli emas edi: konsoldan soxta pozitsiya yuboruvchi
 # skript videoni umuman o'ynatmasdan, tabni fonda qoldirib kredit yig'ib
 # ketardi. Shuning uchun server tasodifiy vaqtda tugma bosishni talab qiladi.
-PRESENCE_FIRST_MIN    = 60    # birinchi tekshiruv (tasdiqlangan soniyada)
-PRESENCE_FIRST_MAX    = 60
-PRESENCE_INTERVAL_MIN = 60    # keyingi tekshiruvlar: har bir daqiqada
-PRESENCE_INTERVAL_MAX = 60
-PRESENCE_DEADLINE     = 10    # tasdiqlash uchun aniq muddat (soniya)
+PRESENCE_FIRST_MIN    = 600   # birinchi tekshiruv: 10 daqiqadan so'ng (avval 60 soniya edi)
+PRESENCE_FIRST_MAX    = 900   # 15 daqiqa
+PRESENCE_INTERVAL_MIN = 600   # keyingi tekshiruvlar: har 10-15 daqiqada
+PRESENCE_INTERVAL_MAX = 900
+PRESENCE_DEADLINE     = 30    # tasdiqlash uchun qulay muddat (30 soniya, avval 10 soniya edi)
 
 # Shubha bali shu chegaradan oshsa adminga BIR MARTA xabar beriladi.
 # To'rt soniyalik liveness tasdig'i o'tkazib yuborilsa, progress qayta boshlanadi.
@@ -4641,10 +4641,10 @@ def _process_watch_beat(request, video, progress_pk):
     # intervalidan qisqa videoda oxirgi kredit talabga yetmay qolib, dars
     # hech qachon yopilmaydi. Sakrash tekshiruvi (advance) ham shu
     # effektiv pozitsiya bilan o'lchanadi, ya'ni cheklov ochilmaydi.
-    if position is not None and video.verified_duration_seconds:
-        end_pos = float(video.verified_duration_seconds)
-        if end_pos > 0 and position >= end_pos - BEAT_SEEK_TOLERANCE:
-            position = end_pos
+    duration_sec = float(video.gating_duration_seconds or 0)
+    if position is not None and duration_sec > 0:
+        if position >= duration_sec - BEAT_SEEK_TOLERANCE:
+            position = duration_sec
 
     notify_admin = False
 
@@ -4663,6 +4663,8 @@ def _process_watch_beat(request, video, progress_pk):
             progress.presence_token = ''
             progress.presence_sent_at = None
             progress.next_check_seconds = 0
+            if progress.beat_nonce:
+                cache.set(f"prev_beat_nonce:{progress.pk}", progress.beat_nonce, 120)
             progress.beat_nonce = _new_token()
             progress.save(update_fields=[
                 'last_position', 'last_beat_at', 'last_credit_at',
@@ -4904,7 +4906,7 @@ def _beat_rate_limited(request, video_key):
     bloklanardi. Beat so'rovi allaqachon `@login_required`, ya'ni kimligi aniq.
     """
     key = f"video_watch_beat:{request.user.pk}:{video_key}"
-    if is_rate_limited(key, limit=40, window_seconds=60):
+    if is_rate_limited(key, limit=50, window_seconds=60):
         return JsonResponse({
             'ok': False,
             'error': "Juda ko'p so'rov yuborildi. Biroz kutib turing.",
