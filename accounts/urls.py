@@ -3,6 +3,7 @@ from . import views
 from . import payment_views
 from . import tezcheck_views
 from . import exam_payments
+from . import exam_admin
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
 from .api import notify_views as notify_api
@@ -200,6 +201,7 @@ urlpatterns = [
     path('dashboard/users/<int:pk>/finished/', views.admin_user_finished, name='admin_user_finished'),
     path('dashboard/users/<int:pk>/delete/', views.admin_user_delete, name='admin_user_delete'),
     path('dashboard/users/<int:user_pk>/daily-limit/<int:profession_pk>/', views.admin_user_daily_limit, name='admin_user_daily_limit'),
+    path('dashboard/users/<int:user_pk>/final-exam/<int:profession_pk>/<int:quiz_pk>/grant-retry/', exam_admin.admin_grant_exam_retry, name='admin_grant_exam_retry'),
     path('dashboard/users/<int:pk>/statistics/', views.student_statistics, name='user_statistics'),
     path('dashboard/users/<int:pk>/statistics/pdf/', views.export_student_pdf, name='user_statistics_pdf'),
     path('dashboard/users/<int:pk>/certificate/', views.issue_certificate, name='issue_certificate'),

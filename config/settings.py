@@ -35,6 +35,17 @@ RUNNING_TESTS = 'test' in sys.argv or 'pytest' in sys.modules
 RUNNING_DEV_SERVER = 'runserver' in sys.argv
 
 load_dotenv(BASE_DIR / '.env')
+
+# Outgoing email (password recovery). Credentials belong only in .env.
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com').strip()
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() in ('true', '1', 'yes')
+EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'false').lower() in ('true', '1', 'yes')
+EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', '').strip() or EMAIL_HOST_USER or 'webmaster@localhost'
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Video davomiyligini SERVER tomonda aniqlash uchun (anti-cheat asosi). Bo'sh
 # bo'lsa zaxira manbalar sinaladi; ular ham ishlamasa admin qo'lda kiritadi.

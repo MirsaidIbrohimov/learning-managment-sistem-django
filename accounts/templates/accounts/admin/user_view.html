@@ -797,6 +797,29 @@
                     </div>
                     {% endif %}
                 </div>
+                <div class="uv-limit-info" style="margin-top:18px">
+                    <strong>Yakuniy imtihon</strong>
+                    {% for exam in item.final_exams %}
+                    <div style="margin-top:12px">
+                        <div>{{ exam.quiz.title }}</div>
+                        {% if exam.result %}
+                        <p>Qatnashgan · Oxirgi natija: <strong>{{ exam.result.score }}%</strong> ·
+                            {% if exam.result.passed %}O‘tgan{% else %}O‘tolmagan{% endif %}
+                            <span class="muted">({{ exam.result.submitted_at|default:exam.result.started_at|date:"d.m.Y H:i" }})</span>
+                        </p>
+                        {% elif exam.participated %}<p>Qatnashgan · Yakunlangan natija yo‘q.</p>
+                        {% else %}<p>Hali qatnashmagan.</p>{% endif %}
+                        {% if exam.active %}<p>Davom etayotgan urinish mavjud.</p>{% endif %}
+                        {% if exam.retry_available %}<p>Bir marta qayta topshirish imkoniyati mavjud.</p>{% endif %}
+                        {% if exam.can_grant %}
+                        <form method="post" action="{% url 'admin_grant_exam_retry' user_obj.pk item.profession.pk exam.quiz.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="uv-limit-btn off">Imkon berish (1 ta bepul urinish)</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    {% empty %}<p style="margin-top:12px">Yakuniy imtihon hali sozlanmagan.</p>{% endfor %}
+                </div>
                 <div class="uv-limit-actions">
                     <form method="POST" action="{% url 'admin_user_daily_limit' user_pk=user_obj.pk profession_pk=item.profession.pk %}" class="uv-limit-form">
                         {% csrf_token %}
@@ -1094,6 +1117,10 @@ document.addEventListener('DOMContentLoaded',function(){
             if(tabScroller) tabScroller.scrollBy({left:Number(button.dataset.tabsScroll)*Math.max(220,tabScroller.clientWidth*.7),behavior:'smooth'});
         });
     });
+    if(window.location.hash==='#tab-daily-limit'){
+        var examTab=document.querySelector('.uv-tab[data-tab="daily-limit"]');
+        if(examTab) examTab.click();
+    }
     if(window.location.hash==='#tab-locations'){
         var locationTab=document.querySelector('.uv-tab[data-tab="locations"]');
         if(locationTab) locationTab.click();

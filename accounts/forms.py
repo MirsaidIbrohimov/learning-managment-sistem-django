@@ -665,31 +665,16 @@ class PasswordResetRequestForm(forms.Form):
             'placeholder': 'Username'
         })
     )
-    new_password1 = forms.CharField(
-        widget=forms.PasswordInput(attrs={
+    email = forms.EmailField(
+        max_length=254,
+        label='Elektron manzil',
+        widget=forms.EmailInput(attrs={
             'class': 'form-control ps-5',
-            'placeholder': 'Yangi parol'
-        })
+            'placeholder': 'siz@example.com',
+            'autocomplete': 'email',
+            'autocapitalize': 'none',
+        }),
     )
-    new_password2 = forms.CharField(
-        widget=forms.PasswordInput(attrs={
-            'class': 'form-control ps-5',
-            'placeholder': 'Yangi parolni tasdiqlang'
-        })
-    )
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        password1 = cleaned_data.get('new_password1')
-        password2 = cleaned_data.get('new_password2')
-        
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Parollar mos kelmaydi!")
-        
-        if password1 and len(password1) < 6:
-            raise forms.ValidationError("Parol kamida 6 ta belgidan iborat bo'lishi kerak!")
-        
-        return cleaned_data
 
 
 class StudentProfileCompleteForm(forms.ModelForm):

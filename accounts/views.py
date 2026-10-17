@@ -11898,6 +11898,7 @@ def admin_user_view(request, pk):
             })
     
     # Kunlik limit boshqaruvi (o'quvchi o'qiyotgan kurslar bo'yicha)
+    from .exam_admin import final_exam_summary
     daily_limit_courses = []
     if user.role == 'student':
         today = timezone.localdate()
@@ -11922,6 +11923,7 @@ def admin_user_view(request, pk):
                 'course_default': enrollment.profession.daily_section_limit,
                 'is_active': enrollment.daily_limit_effective,
                 'today_section': today_access.section if today_access else None,
+                'final_exams': final_exam_summary(user, enrollment.profession),
             })
 
     # Coin statistikasi
@@ -14839,59 +14841,8 @@ def reject_unenroll_request(request, pk):
 
 
 def password_reset_request_view(request):
-    if request.user.is_authenticated:
-        return redirect('home')
-    
-    # Rate limiting — parol tiklash uchun
-    if request.method == 'POST':
-        blocked, msg = check_rate_limit(
-            request, 'password_reset',
-            identifier=request.POST.get('username', ''),
-            ip_limit=3, id_limit=3, window=3600
-        )
-        if blocked:
-            messages.error(request, msg)
-            return render(request, 'accounts/password_reset_request.html', {'form': PasswordResetRequestForm()})
-    
-    if request.method == 'POST':
-        form = PasswordResetRequestForm(request.POST)
-        if form.is_valid():
-            username = form.cleaned_data['username']
-            new_password = form.cleaned_data['new_password1']
-            
-            try:
-                user = CustomUser.objects.get(username=username)
-            except CustomUser.DoesNotExist:
-                messages.success(request, "Parol tiklash so'rovi yuborildi! Admin tasdiqlashini kuting.")
-                return redirect('login')
-            
-            existing_request = PasswordResetRequest.objects.filter(user=user, status='pending').first()
-            if existing_request:
-                messages.warning(request, "Sizning parol tiklash so'rovingiz allaqachon yuborilgan va ko'rib chiqilmoqda!")
-                return redirect('login')
-            
-            from django.contrib.auth.hashers import make_password
-            hashed_password = make_password(new_password)
-            
-            PasswordResetRequest.objects.create(
-                user=user,
-                new_password=hashed_password
-            )
-            notify_admins(
-                f"🔑 <b>Parol tiklash so'rovi!</b>\n\n"
-                f"👤 {user.first_name} {user.last_name}\n"
-                f"🆔 @{user.username}"
-            )
-            
-            messages.success(request, "Parol tiklash so'rovi yuborildi! Admin tasdiqlashini kuting.")
-            return redirect('login')
-        else:
-            for error in form.non_field_errors():
-                messages.error(request, error)
-    else:
-        form = PasswordResetRequestForm()
-    
-    return render(request, 'accounts/password_reset_request.html', {'form': form})
+    from .password_recovery import email_password_reset
+    return email_password_reset(request)
 
 
 @login_required
