@@ -30,7 +30,23 @@ def _message_context(notification):
     name = user.get_full_name() or user.username
     details = []
     url_name, args = 'login', []
-    if notification.kind == 'welcome':
+    if notification.kind == 'login':
+        subject = 'Hisobingizga kirildi / Вход в аккаунт'
+        headings = ('Hisobingizga yangi kirish', 'Новый вход в ваш аккаунт')
+        paragraphs = (
+            "Hisobingizga quyidagi qurilmadan kirildi. Agar bu siz bo‘lmasangiz, parolingizni darhol almashtiring va administrator bilan bog‘laning. Ma’lumotlar brauzer bergan qiymatlardir; aniq model, seriya raqami va IMEI brauzerdan olinmaydi. Windows NT 10.0 Windows 10 yoki 11 bo‘lishi mumkin.",
+            'В ваш аккаунт выполнен вход. Если это были не вы, немедленно смените пароль и свяжитесь с администратором. Данные предоставлены браузером; точная модель, серийный номер и IMEI недоступны. Windows NT 10.0 может означать Windows 10 или 11.',
+        )
+        details = [('Username / Логин', user.username)] + [
+            (label, data.get(key, 'Aniqlanmadi')) for key, label in (
+                ('device', 'Qurilma / Устройство'), ('device_type', 'Qurilma turi / Тип устройства'),
+                ('os', 'Operatsion tizim / ОС'), ('browser', 'Brauzer / Браузер'),
+                ('ip', 'IP manzil / IP-адрес'), ('time', 'Kirish vaqti / Время входа'),
+                ('user_agent', 'User-Agent'),
+            )
+        ]
+        labels = ('Hisobni ochish', 'Открыть аккаунт')
+    elif notification.kind == 'welcome':
         subject = 'Xush kelibsiz! / Добро пожаловать!'
         headings = ('IT Creative Academy oilasiga xush kelibsiz!', 'Добро пожаловать в IT Creative Academy!')
         paragraphs = ('Ro‘yxatdan muvaffaqiyatli o‘tdingiz. Yangi bilim va yutuqlar sari ilk qadamingiz bilan tabriklaymiz!', 'Вы успешно зарегистрировались. Поздравляем с первым шагом к новым знаниям и достижениям!')
