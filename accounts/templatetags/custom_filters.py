@@ -9,6 +9,12 @@ register = template.Library()
 
 
 @register.filter
+def is_web_project(text):
+    from accounts.web_homework import decode_project
+    return decode_project(text) is not None
+
+
+@register.filter
 def submission_plain(text):
     """Rich-editor (contenteditable) HTML javobini toza, o'qiladigan matnga aylantiradi.
 
@@ -18,6 +24,10 @@ def submission_plain(text):
     (auto-escape qilinib ko'rsatiladi — XSS xavfsiz, kod/matn o'z holicha o'qiladi)."""
     if not text:
         return ''
+    from accounts.web_homework import decode_project, project_source
+    project = decode_project(str(text))
+    if project is not None:
+        return project_source(project)
     t = str(text)
     t = re.sub(r'</(div|p|h[1-6]|li|tr|pre)\s*>', '\n', t, flags=re.IGNORECASE)
     t = re.sub(r'<br\s*/?>', '\n', t, flags=re.IGNORECASE)

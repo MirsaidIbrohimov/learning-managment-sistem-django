@@ -594,7 +594,7 @@
                         <!-- Davr -->
                         <td style="white-space: nowrap;">
                             <span class="badge bg-secondary-subtle text-secondary-emphasis px-2 py-1 rounded-2 fw-bold font-monospace">
-                                {{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }}
+                                {% if order.purpose == 'exam' %}Imtihon{% else %}{{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }}{% endif %}
                             </span>
                         </td>
 

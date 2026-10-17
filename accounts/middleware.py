@@ -601,7 +601,7 @@ class ProfileCompletionMiddleware:
     """
     EXEMPT_URLS = [
         'complete_profile', 'logout', 'login', 'register', 'admin',
-        'payment_wall', 'tezcheck_create_payment', 'tezcheck_return',
+        'payment_wall', 'tezcheck_create_payment', 'tezcheck_return', 'exam_checkout', 'exam_checkout_status',
     ]
 
     def __init__(self, get_response):

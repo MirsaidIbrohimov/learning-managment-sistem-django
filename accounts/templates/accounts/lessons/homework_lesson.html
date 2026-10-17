@@ -3,6 +3,7 @@
 {% block title %}{{ lesson.title }} — Uy vazifasi{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/homework_code.css' %}">
 <style>
 /* ══════════════════════════════════════════════════════════
    HOMEWORK STUDIO · 2026 — Warm Redesign
@@ -898,7 +899,7 @@
             </div>
             <div class="sp-type-card text-card" id="typeText" onclick="setType('text')">
               <i class="bi bi-code-square" style="color:var(--sp-accent2)"></i>
-              <span>Matn yozish</span>
+              <span>HTML / CSS / JS</span>
             </div>
           </div>
 
@@ -923,29 +924,10 @@
             </div>
           </div>
 
-          <!-- Text editor -->
           <div id="textSection" style="display:none">
-            <div class="sp-editor-wrap">
-              <div class="sp-toolbar">
-                <button class="sp-tb-btn" onclick="fmt('bold')" title="Bold"><i class="bi bi-type-bold"></i></button>
-                <button class="sp-tb-btn" onclick="fmt('italic')" title="Italic"><i class="bi bi-type-italic"></i></button>
-                <button class="sp-tb-btn" onclick="fmt('underline')" title="Underline"><i class="bi bi-type-underline"></i></button>
-                <div class="sp-toolbar-sep"></div>
-                <button class="sp-tb-btn" onclick="fmt('insertUnorderedList')" title="Bullet list"><i class="bi bi-list-ul"></i></button>
-                <button class="sp-tb-btn" onclick="fmt('insertOrderedList')" title="Numbered list"><i class="bi bi-list-ol"></i></button>
-                <div class="sp-toolbar-sep"></div>
-                <button class="sp-tb-btn" onclick="wrapCode()" title="Code block"><i class="bi bi-code-slash"></i></button>
-                <button class="sp-tb-btn" onclick="fmt('justifyLeft')" title="Chapga"><i class="bi bi-text-left"></i></button>
-                <button class="sp-tb-btn" onclick="fmt('justifyCenter')" title="Markazga"><i class="bi bi-text-center"></i></button>
-                <div class="sp-toolbar-sep"></div>
-                <button class="sp-tb-btn" onclick="fmt('undo')" title="Orqaga"><i class="bi bi-arrow-counterclockwise"></i></button>
-                <button class="sp-tb-btn" onclick="fmt('redo')" title="Oldinga"><i class="bi bi-arrow-clockwise"></i></button>
-              </div>
-              <div class="sp-editor-area" id="editorArea" contenteditable="true"
-                   onkeyup="updateWordCount()" oninput="updateWordCount()"
-                   placeholder="Vazifangizni shu yerga yozing..."></div>
-              <div class="sp-word-count" id="wordCount">0 so'z</div>
-            </div>
+            <p>HTML, CSS va JavaScript kodingizni yozing. Natijani ko‘rish uchun “Ishga tushirish” tugmasini bosing.</p>
+            <div id="codeEditor"></div>
+            <small id="codeDraftStatus" aria-live="polite"></small>
           </div>
 
           <button type="button" class="sp-submit-btn" id="submitBtn" onclick="doSubmit()">
@@ -1128,6 +1110,7 @@
   <div id="spToastWrap"></div>
 </div><!-- /#hwApp -->
 
+<script src="{% static 'js/homework_code.js' %}"></script>
 <script>
 /* ─────────────────────────────────────────────
    CONFIG
@@ -1151,6 +1134,23 @@ const API = {
 let hwState = { homework: null, submission: null, versionCount: 0, isTeacher: false };
 let submitType = 'file';
 let editTimerInterval = null;
+let codeEditor = null;
+const codeDraftKey = 'homework-code:{{ request.user.pk }}:' + LESSON_PK;
+function initCodeEditor() {
+  if (codeEditor) return;
+  const submitted = HomeworkCode.decode(hwState.submission?.text_content);
+  let project = submitted || {html:'', css:'', js:''};
+  try { project = JSON.parse(localStorage.getItem(codeDraftKey)) || project; } catch (_) {}
+  if (!project || !['html','css','js'].every(k => typeof project[k] === 'string')) project = {html:'',css:'',js:''};
+  codeEditor = HomeworkCode.create(document.getElementById('codeEditor'), project, true);
+  document.getElementById('codeEditor').addEventListener('input', () => {
+    try {
+      localStorage.setItem(codeDraftKey, JSON.stringify(codeEditor.get()));
+      document.getElementById('codeDraftStatus').textContent = 'Qoralama shu brauzerda saqlandi';
+    } catch (_) { document.getElementById('codeDraftStatus').textContent = 'Qoralama saqlanmadi. Kodingizni nusxalab oling.'; }
+  });
+}
+
 
 const STATUS_MAP = {
   pending:   { cls:'s-pending',   icon:'bi-hourglass-split',  label:'Ko\'rib chiqilmoqda', sub:'Javobingiz tekshiruvda...',  emoji:'⏳', banner:'b-pending'  },
@@ -1174,6 +1174,7 @@ async function loadDetail() {
     hwState.versionCount = r.version_count || 0;
     hwState.isTeacher    = r.is_teacher || false;
     renderAll();
+    initCodeEditor();
   } catch (e) {
     toast('Ma\'lumot yuklanmadi: ' + e.message, 'error');
   }
@@ -1322,7 +1323,7 @@ function renderStatus() {
   // Sidebar rows
   document.getElementById('sbVersion').textContent = `v${sub.version}`;
   document.getElementById('sbDate').textContent    = sub.submitted_at;
-  document.getElementById('sbType').textContent    = sub.submission_type === 'file' ? 'Fayl' : 'Matn';
+  document.getElementById('sbType').textContent    = sub.submission_type === 'file' ? 'Fayl' : (HomeworkCode.decode(sub.text_content) ? 'Kod' : 'Matn');
   document.getElementById('sbLateRow').style.display = sub.is_late ? '' : 'none';
 
   // Coin block
@@ -1437,6 +1438,8 @@ function renderTeacherFeedback(sub) {
 
 function toPlainText(htmlStr) {
   if (!htmlStr) return '';
+  const project = HomeworkCode.decode(htmlStr);
+  if (project) return HomeworkCode.source(project);
   var t = String(htmlStr)
     .replace(/<\/(div|p|h[1-6]|li|tr|pre)\s*>/gi, '\n')
     .replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, '');
@@ -1471,6 +1474,15 @@ function renderSubmissionPreview(sub) {
   } else {
     wrap.style.display = 'none';
   }
+  const project = HomeworkCode.decode(sub.text_content);
+  if (project && sub.submission_type === 'text') {
+    wrap.replaceChildren();
+    const title = document.createElement('strong');
+    title.textContent = 'Yuborilgan kod (v' + sub.version + ')';
+    const studio = document.createElement('div');
+    wrap.append(title, studio);
+    HomeworkCode.create(studio, project, false);
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -1498,6 +1510,7 @@ function renderSubmitForm() {
 }
 
 function setType(t) {
+  if (t === 'text') initCodeEditor();
   submitType = t;
   document.getElementById('fileSection').style.display = t==='file' ? '' : 'none';
   document.getElementById('textSection').style.display = t==='text' ? '' : 'none';
@@ -1528,16 +1541,6 @@ function dropFile(e) {
 /* ─────────────────────────────────────────────
    TEXT EDITOR
 ───────────────────────────────────────────── */
-function fmt(cmd) { document.execCommand(cmd,false,null); document.getElementById('editorArea').focus(); }
-function wrapCode() {
-  const sel = window.getSelection();
-  if (sel && sel.toString()) document.execCommand('insertHTML',false,`<pre><code>${escapeHtml(sel.toString())}</code></pre>`);
-}
-function updateWordCount() {
-  const txt = document.getElementById('editorArea').innerText || '';
-  document.getElementById('wordCount').textContent = `${txt.trim().split(/\s+/).filter(Boolean).length} so'z`;
-}
-
 /* ─────────────────────────────────────────────
    SUBMIT
 ───────────────────────────────────────────── */
@@ -1559,9 +1562,10 @@ async function doSubmit() {
       fd.append('file', fi.files[0]);
       await uploadWithProgress(API.submit, fd);
     } else {
-      const content = document.getElementById('editorArea').innerHTML;
-      if (!content.trim()) { toast('Matn yozing','error'); return; }
-      fd.append('text_content', content);
+      const project = codeEditor.get();
+      if (!Object.values(project).some(v => v.trim())) { toast('Avval kod yozing','error'); return; }
+      fd.append('text_content', 'HTML CSS JavaScript loyiha');
+      fd.append('code_project', JSON.stringify(project));
       handleSubmitResponse(await api(API.submit,'POST',fd));
     }
   } catch(e) { toast('Xato: '+e.message,'error'); }
@@ -1601,8 +1605,10 @@ function handleSubmitResponse(r) {
     renderStatus(); renderSubmitForm(); switchTab('desc');
     document.getElementById('fileInput').value = '';
     document.getElementById('fileChosen').style.display = 'none';
-    document.getElementById('editorArea').innerHTML = '';
-    updateWordCount();
+    if (submitType === 'text') {
+      try { localStorage.removeItem(codeDraftKey); } catch (_) {}
+      document.getElementById('codeDraftStatus').textContent = 'Kod topshirildi';
+    }
   } else {
     toast(r.error || 'Xato yuz berdi','error');
   }

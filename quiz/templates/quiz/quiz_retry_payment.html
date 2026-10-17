@@ -152,50 +152,7 @@
                 </div>
                 {% endif %}
 
-                {% if pending_payment %}
-                <div class="state-box pending">
-                    <i class="bi bi-hourglass-split"></i>
-                    <p>To'lov chekingiz tekshirilmoqda...</p>
-                    <small>Admin yoki o'qituvchi tasdiqlashini kuting. Tasdiqlangach, shu sahifaga qaytib qayta urinishingiz mumkin bo'ladi.</small>
-                </div>
-                {% elif approved_payment %}
-                <div class="state-box approved">
-                    <i class="bi bi-check-circle-fill"></i>
-                    <p>To'lovingiz tasdiqlangan!</p>
-                    <small>Endi testni qayta topshirishingiz mumkin.</small>
-                    <div>
-                        <a href="{% url 'quizui:quiz_take' quiz.pk %}" class="retry-btn">
-                            <i class="bi bi-arrow-repeat"></i> Qayta topshirish
-                        </a>
-                    </div>
-                </div>
-                {% else %}
-                <div class="price-box">
-                    <div class="price">{{ settings.retry_payment_amount|floatformat:0 }} so'm</div>
-                    <div class="price-label">Qayta urinish narxi</div>
-                </div>
-
-                {% if rejected_payment %}
-                <div class="hint-box">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>Oldingi chekingiz rad etildi{% if rejected_payment.reject_reason %}:</strong> {{ rejected_payment.reject_reason }}{% else %}.</strong>{% endif %}
-                    Iltimos, yangi chek yuklang.
-                </div>
-                {% endif %}
-
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-                    <label class="file-field" id="fileField">
-                        <i class="bi bi-cloud-arrow-up"></i>
-                        <span id="fileFieldLabel">To'lov chekini yuklash uchun bosing</span>
-                        <input type="file" name="receipt_image" accept="image/*" required
-                               onchange="document.getElementById('fileField').classList.add('has-file'); document.getElementById('fileFieldLabel').textContent = this.files[0] ? this.files[0].name : 'To\'lov chekini yuklash uchun bosing';">
-                    </label>
-                    <button type="submit" class="submit-btn">
-                        <i class="bi bi-upload"></i> Chekni yuborish
-                    </button>
-                </form>
-                {% endif %}
+                {% include 'accounts/includes/exam_checkout.html' %}
 
             </div>
         </div>

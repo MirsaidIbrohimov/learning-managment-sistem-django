@@ -5776,6 +5776,10 @@ def _get_ai_grade(homework_description, student_answer):
 def _read_submission_content(submission):
     """Submission mazmunini o'qish (matn, fayl yoki rasm)"""
     if submission.submission_type == 'text' and submission.text_content:
+        from .web_homework import decode_project, project_source
+        project = decode_project(submission.text_content)
+        if project is not None:
+            return project_source(project)
         return submission.text_content
     elif submission.submission_type == 'file' and submission.file:
         import os
@@ -17241,6 +17245,10 @@ def admin_certificate_delete(request, pk):
 def final_test_payment(request, pk):
     """Yakuniy test uchun to'lov cheki yuklash"""
     test = get_object_or_404(Test, pk=pk, test_type='final')
+    from quiz.models import Quiz
+    migrated = Quiz.objects.filter(lesson=test.lesson).first()
+    if migrated:
+        return redirect('quizui:quiz_retry_payment_request', pk=migrated.pk)
     
     # Birinchi marta bo'lsa — bepul
     existing_result = TestResult.objects.filter(test=test, student=request.user).exists()
@@ -17282,6 +17290,8 @@ def final_test_payment(request, pk):
         'approved_payment': approved_payment,
         'rejected_payment': rejected_payment,
     }
+    from .exam_payments import exam_context
+    context.update(exam_context(request.user, 'test', test.pk))
     return render(request, 'accounts/lessons/final_test_payment.html', context)
 
 
@@ -17986,7 +17996,7 @@ def payment_wall(request):
     from .models import PaymentRecord
     pay_records = PaymentRecord.objects.filter(user=user).order_by('-year', '-month')[:12]
     from .models import TezCheckPaymentOrder
-    online_orders = TezCheckPaymentOrder.objects.filter(student=user).order_by('-created_at')[:8]
+    online_orders = TezCheckPaymentOrder.objects.filter(student=user, purpose='monthly').order_by('-created_at')[:8]
 
     monthly_fee = int(ps.monthly_fee or 200000)
     half_month_fee = int(round(monthly_fee / 2))

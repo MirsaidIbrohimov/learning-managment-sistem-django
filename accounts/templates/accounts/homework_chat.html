@@ -1,4 +1,5 @@
 {% extends 'accounts/base.html' %}
+{% load custom_filters %}
 {% block title %}{{ submission.homework.lesson.title }} - Muhokama{% endblock %}
 {% block content %}
 <style>
@@ -736,7 +737,11 @@
                 {% elif submission.submission_type == 'text' and submission.text_content %}
                 <div class="hw-text-content">
                     <div style="font-weight: 600; margin-bottom: 8px; font-size: 13px; color: var(--hw-text2);"><i class="bi bi-file-text me-1"></i> Yuborilgan matn</div>
+                    {% if submission.text_content|is_web_project %}
+                    {% include 'accounts/includes/homework_code_review.html' %}
+                    {% else %}
                     <iframe srcdoc="{{ submission.text_content }}" sandbox="allow-same-origin" style="width:100%;border:none;min-height:80px;max-height:200px;" onload="this.style.height=Math.min(this.contentDocument.body.scrollHeight,200)+'px';"></iframe>
+                    {% endif %}
                 </div>
                 {% endif %}
 
@@ -778,6 +783,9 @@
                         </div>
                     </div>
 
+                    {% if submission.text_content|is_web_project %}
+                    <a class="hw-revision-btn" href="{% url 'lesson_view' submission.homework.lesson.pk %}">Kodni muharrirda tahrirlash va qayta topshirish</a>
+                    {% else %}
                     <form method="POST" enctype="multipart/form-data" id="resubmit-form">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="resubmit">
@@ -791,6 +799,7 @@
                             <i class="bi bi-arrow-repeat me-1"></i> Qayta topshirish (−{{ resubmit_cost }} <i class="bi bi-coin"></i>)
                         </button>
                     </form>
+                    {% endif %}
                 </div>
             </div>
             {% endif %}

@@ -24,6 +24,7 @@ Security layers:
 """
 
 import json
+from accounts.web_homework import encode_project
 import os
 import re
 import time
@@ -443,7 +444,7 @@ def hw_submit(request, lesson_pk):
 
     # ── Text submission ────────────────────────────────
     else:
-        raw_text = request.POST.get('text_content', '').strip()
+        raw_text = request.POST.get('text_content', 'HTML CSS JavaScript loyiha' if 'code_project' in request.POST else '').strip()
         if not raw_text:
             return _err("Matn kiritishingiz kerak")
         if len(raw_text) < 10:
@@ -451,7 +452,10 @@ def hw_submit(request, lesson_pk):
         if len(raw_text) > 200_000:
             return _err("Matn juda uzun (max 200 000 belgi)")
 
-        clean_text = _sanitize_html(raw_text)
+        try:
+            clean_text = encode_project(request.POST['code_project']) if 'code_project' in request.POST else _sanitize_html(raw_text)
+        except ValueError as exc:
+            return _err(str(exc))
 
     is_late = hw.is_deadline_passed
     if is_resubmission:
@@ -564,12 +568,15 @@ def hw_edit(request, lesson_pk):
         sub.text_content    = None
         sub.save(update_fields=['file', 'submission_type', 'text_content'])
     else:
-        raw_text = request.POST.get('text_content', '').strip()
+        raw_text = request.POST.get('text_content', 'HTML CSS JavaScript loyiha' if 'code_project' in request.POST else '').strip()
         if not raw_text:
             return _err("Matn kiritishingiz kerak")
         if len(raw_text) > 200_000:
             return _err("Matn juda uzun")
-        sub.text_content    = _sanitize_html(raw_text)
+        try:
+            sub.text_content = encode_project(request.POST['code_project']) if 'code_project' in request.POST else _sanitize_html(raw_text)
+        except ValueError as exc:
+            return _err(str(exc))
         sub.submission_type = 'text'
         sub.file            = None
         sub.save(update_fields=['text_content', 'submission_type', 'file'])

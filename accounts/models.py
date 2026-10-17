@@ -2539,7 +2539,7 @@ class ClickTransaction(models.Model):
 # ─────────────────────────────────────────────
 
 class TezCheckPaymentOrder(models.Model):
-    """LMSdagi oylik to'lovni Tezcheck hisobiga bog'laydi."""
+    """Oylik yoki imtihon to'lovini Tezcheck hisobiga bog'laydi."""
     STATUS_PENDING = 'pending'
     STATUS_PAID = 'paid'
     STATUS_FAILED = 'failed'
@@ -2557,6 +2557,11 @@ class TezCheckPaymentOrder(models.Model):
         'CustomUser', on_delete=models.PROTECT,
         related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
     )
+    purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon')])
+    exam_test = models.ForeignKey('Test', null=True, blank=True, on_delete=models.PROTECT)
+    exam_quiz = models.ForeignKey('quiz.Quiz', null=True, blank=True, on_delete=models.PROTECT)
+    final_payment = models.ForeignKey('FinalTestPayment', null=True, blank=True, on_delete=models.SET_NULL)
+    quiz_payment = models.ForeignKey('quiz.QuizRetryPayment', null=True, blank=True, on_delete=models.SET_NULL)
     external_reference = models.CharField(max_length=128, unique=True)
     bill_id = models.CharField(max_length=100, blank=True, db_index=True)
     bill_reference = models.CharField(max_length=100, blank=True)

@@ -76,6 +76,7 @@ def tezcheck_create_payment(request):
         messages.error(request, "To'lov summasi noto'g'ri. Administratorga murojaat qiling.")
         return redirect('payment_wall')
     period_orders = TezCheckPaymentOrder.objects.filter(
+        purpose='monthly',
         student=user, billing_month=month, billing_year=year,
     ).order_by('-created_at')
     if period_orders.filter(status=TezCheckPaymentOrder.STATUS_PAID).exists():
@@ -203,7 +204,7 @@ def tezcheck_return(request):
 
 
 def _apply_successful_payment(order, data):
-    """Atomically record one live payment against the matching monthly period."""
+    """Apply a verified live payment to its monthly period or exam retry."""
     if order.status == TezCheckPaymentOrder.STATUS_PAID:
         return
     try:
@@ -222,6 +223,11 @@ def _apply_successful_payment(order, data):
         order.environment = str(data.get('environment') or '')
         order.last_error = 'Jonli bo‘lmagan to‘lov; admin tekshiruvi talab qilinadi.'
         order.save(update_fields=['status', 'environment', 'last_error', 'updated_at'])
+        return
+
+    if order.purpose == 'exam':
+        from .exam_payments import apply_exam_payment
+        apply_exam_payment(order, data)
         return
 
     paid_on = timezone.localdate()
@@ -351,6 +357,10 @@ def _apply_successful_payment(order, data):
 
 def _apply_refund(order, data, *, partial=False):
     """Remove paid-month status after a full refund; flag partial refunds."""
+    if order.purpose == 'exam':
+        from .exam_payments import refund_exam_payment
+        refund_exam_payment(order, data, partial=partial)
+        return
     order.payment_id = str(data.get('payment_id') or order.payment_id)
     order.fee_minor = max(0, int(data.get('fee_minor') or order.fee_minor))
     order.net_minor = max(0, int(data.get('net_minor') or 0))

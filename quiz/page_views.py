@@ -339,6 +339,7 @@ class QuizRetryPaymentRequestView(StudentRequiredMixin, View):
         return quiz, settings_, None
 
     def _build_context(self, request, quiz, settings_):
+        from accounts.exam_payments import exam_context
         pending_payment = QuizRetryPayment.objects.filter(
             student=request.user, quiz=quiz, status='pending',
         ).first()
@@ -353,6 +354,7 @@ class QuizRetryPaymentRequestView(StudentRequiredMixin, View):
                 student=request.user, quiz=quiz, status='rejected',
             ).first()
         return {
+            **exam_context(request.user, 'quiz', quiz.pk),
             'quiz': quiz,
             'settings': settings_,
             'pending_payment': pending_payment,

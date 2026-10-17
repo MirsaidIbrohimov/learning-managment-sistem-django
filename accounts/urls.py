@@ -2,6 +2,7 @@ from django.urls import path, re_path
 from . import views
 from . import payment_views
 from . import tezcheck_views
+from . import exam_payments
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
 from .api import notify_views as notify_api
@@ -362,6 +363,8 @@ urlpatterns = [
 
     # Online to'lov (Payme & Click)
     path('tezcheck/create-payment/', tezcheck_views.tezcheck_create_payment, name='tezcheck_create_payment'),
+    path('tezcheck/exam/<str:kind>/<int:pk>/', exam_payments.create_exam_checkout, name='exam_checkout'),
+    path('tezcheck/exam-status/<int:pk>/', exam_payments.exam_checkout_status, name='exam_checkout_status'),
     path('tezcheck/return/', tezcheck_views.tezcheck_return, name='tezcheck_return'),
     path('tezcheck/webhook/', tezcheck_views.tezcheck_webhook, name='tezcheck_webhook'),
     path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),
