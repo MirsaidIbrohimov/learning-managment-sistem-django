@@ -4,6 +4,7 @@ from . import payment_views
 from . import tezcheck_views
 from . import exam_payments
 from . import password_recovery
+from . import email_verification
 from . import exam_admin
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
@@ -15,6 +16,8 @@ urlpatterns = [
     path('search/', views.global_search, name='global_search'),
     path('register/', views.register_view, name='register'),
     path('login/', views.login_view, name='login'),
+    path('email/verify/<str:token>/', email_verification.verify_email, name='verify_email'),
+    path('email/verify-resend/', email_verification.resend_verification, name='resend_email_verification'),
     path('login/location-consent/', views.login_location_consent, name='login_location_consent'),
     path('login/location-record/', views.login_location_record, name='login_location_record'),
     path('login/location-skip/', views.login_location_skip, name='login_location_skip'),

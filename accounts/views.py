@@ -498,8 +498,11 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            from .email_notifications import queue_email
-            queue_email(user, 'welcome', f'welcome:{user.pk}')
+            from .email_verification import send_verification
+            if send_verification(user, request):
+                messages.info(request, 'Emailingizga tasdiqlash havolasi yuborildi. Havolani ochmaguncha email hisobga bog‘lanmaydi.')
+            else:
+                messages.warning(request, 'Email hali bog‘lanmagan. Tasdiqlash havolasi yuborilmadi; profil orqali qayta yuboring.')
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             notify_admins(
                 f"👤 <b>Yangi foydalanuvchi ro'yxatdan o'tdi!</b>\n\n"
@@ -7544,10 +7547,23 @@ def teacher_public_profile(request, pk):
 
 @login_required
 def profile_edit_view(request):
+    original_email = request.user.email
     if request.method == 'POST':
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            form.save()
+            user = form.save(commit=False)
+            if user.email.strip().lower() != original_email.strip().lower():
+                from .email_verification import stage_email, send_verification
+                stage_email(user, user.email)
+                user.email = original_email
+                user.save()
+                if user.pending_email:
+                    if send_verification(user, request):
+                        messages.info(request, 'Yangi emailga tasdiqlash havolasi yuborildi. Hali bog‘lanmagan.')
+                    else:
+                        messages.warning(request, 'Tasdiqlash havolasi yuborilmadi. Qayta yuborishni bosing.')
+            else:
+                user.save()
             messages.success(request, "Profil muvaffaqiyatli yangilandi!")
             return redirect('profile')
     else:

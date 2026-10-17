@@ -1434,6 +1434,17 @@
             </div>
         </div>
         {% endif %}
+        {% if request.user.is_authenticated and request.user.pending_email %}
+        <div class="alert alert-warning" role="status">
+            <strong>Email hali bog‘lanmagan:</strong> {{ request.user.pending_email }}.
+            Emailga yuborilgan havolani ochib tasdiqlang.
+            <form method="post" action="{% url 'resend_email_verification' %}" class="mt-2">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-outline-primary">Tasdiqlash havolasini qayta yuborish</button>
+                <a href="{% url 'profile_edit' %}" class="btn btn-sm btn-outline-secondary">Emailni o‘zgartirish</a>
+            </form>
+        </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 

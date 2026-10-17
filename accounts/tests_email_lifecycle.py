@@ -95,7 +95,7 @@ class EmailLifecycleTests(TestCase):
         mail.get_connection()
         mail.outbox.clear()
 
-    def test_registration_queues_and_sends_bilingual_welcome(self):
+    def test_registration_sends_welcome_only_after_email_verification(self):
         with patch('accounts.views.notify_admins'), patch('accounts.views.notify_group'), self.captureOnCommitCallbacks(execute=True):
             response = self.client.post(reverse('register'), {
                 'first_name': 'Sarvinoz', 'last_name': 'Valiyeva', 'username': 'new-email-student',
@@ -103,6 +103,14 @@ class EmailLifecycleTests(TestCase):
                 'password1': 'Str0ng-Password!x9', 'password2': 'Str0ng-Password!x9',
             })
         self.assertEqual(response.status_code, 302)
+        registered = CustomUser.objects.get(username='new-email-student')
+        self.assertEqual(registered.email, '')
+        self.assertEqual(registered.pending_email, 'new@example.com')
+        self.assertFalse(UserEmailNotification.objects.filter(user=registered).exists())
+        verification_path = re.search(r'https://lms.example.com(/email/verify/[^\s]+)', mail.outbox[0].body)[1]
+        mail.outbox.clear()
+        with self.captureOnCommitCallbacks(execute=True):
+            self.client.get(verification_path)
         notification = UserEmailNotification.objects.get(kind='welcome')
         self.assertIsNotNone(notification.sent_at)
         self.assertEqual(mail.outbox[0].to, ['new@example.com'])

@@ -85,6 +85,9 @@ class RegisterForm(UserCreationForm):
         user.role = 'student'
         user.is_staff = False
         user.is_superuser = False
+        from .email_verification import stage_email
+        stage_email(user, self.cleaned_data['email'])
+        user.email = ''
         if commit:
             user.save()
         return user

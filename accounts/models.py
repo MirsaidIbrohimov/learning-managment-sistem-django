@@ -103,6 +103,8 @@ from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
 class CustomUser(AbstractUser):
+    pending_email = models.EmailField(blank=True)
+    email_verification_nonce = models.CharField(max_length=64, blank=True)
 
     ROLE_CHOICES = (
         ('admin', 'Admin'),
@@ -1690,6 +1692,11 @@ class EmailRecoveryToken(models.Model):
     expires_at = models.DateTimeField()
     used_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+class VerifiedEmailBinding(models.Model):
+    email = models.EmailField(unique=True)
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
 
 
 class EmailLoginChallenge(models.Model):

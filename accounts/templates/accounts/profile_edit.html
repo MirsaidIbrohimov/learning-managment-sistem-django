@@ -537,6 +537,15 @@
             <div class="col-md-6">
                 <label class="pe-label"><i class="bi bi-envelope"></i> Email</label>
                 {{ form.email }}
+                {% if request.user.email %}
+                <small class="d-block mt-1">Bog‘langan email: {{ request.user.email }}</small>
+                {% else %}
+                <small class="d-block mt-1">Email bog‘lanmagan.</small>
+                {% endif %}
+                {% if request.user.pending_email %}
+                <small class="d-block mt-1">Tasdiqlash kutilmoqda: {{ request.user.pending_email }}</small>
+                {% endif %}
+                <small class="d-block mt-1">Yangi email faqat yuborilgan havola orqali tasdiqlangach bog‘lanadi.</small>
             </div>
         </div>
     </div>
