@@ -297,7 +297,8 @@ def tool_block_user(user_id):
         return json.dumps({'success': True, 'already': True, 'user': _user_name(u),
                            'note': 'Foydalanuvchi allaqachon bloklangan.'},
                           ensure_ascii=False), []
-    CustomUser.objects.filter(pk=u.pk).update(is_blocked=True)
+    u.is_blocked = True
+    u.save(update_fields=['is_blocked'])
     return json.dumps({'success': True, 'action': 'blocked', 'user': _user_name(u),
                        'user_id': u.pk,
                        'note': 'Foydalanuvchi muvaffaqiyatli bloklandi.'},

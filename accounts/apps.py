@@ -15,6 +15,11 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
+        from . import email_signals  # noqa: F401 — register transactional email hooks
+        if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
+            return
+        if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') != 'true' and '--noreload' not in sys.argv:
+            return
         if os.environ.get('RUN_MAIN') == 'true' or not os.environ.get('RUN_MAIN'):
             # Ikki marta ishga tushishini oldini olish
             if getattr(self.__class__, '_ai_checker_started', False):
@@ -36,6 +41,23 @@ class AccountsConfig(AppConfig):
 
             t = threading.Thread(target=self._ai_homework_loop, daemon=True)
             t.start()
+            threading.Thread(target=self._email_notification_loop, daemon=True, name='lms-email-notifications').start()
+
+    @staticmethod
+    def _email_notification_loop():
+        time.sleep(30)
+        while True:
+            try:
+                from django.core.management import call_command
+                from django.db import close_old_connections
+                from io import StringIO
+                close_old_connections()
+                call_command('send_email_notifications', stdout=StringIO())
+                close_old_connections()
+            except Exception as exc:
+                import logging
+                logging.getLogger(__name__).warning('Email worker failed: %s', type(exc).__name__)
+            time.sleep(60)
 
     @staticmethod
     def _ai_homework_loop():

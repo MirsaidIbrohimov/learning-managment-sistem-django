@@ -1682,6 +1682,29 @@ class Discount(models.Model):
         return True
 
 
+class EmailRecoveryToken(models.Model):
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='email_recovery_tokens')
+    token_hash = models.CharField(max_length=64, unique=True)
+    password_stamp = models.CharField(max_length=64)
+    pending_password_hash = models.CharField(max_length=255, blank=True, default='')
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class UserEmailNotification(models.Model):
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='email_notifications')
+    kind = models.CharField(max_length=24)
+    dedup_key = models.CharField(max_length=200, unique=True)
+    payload = models.JSONField(default=dict)
+    sent_at = models.DateTimeField(null=True, blank=True)
+    cancelled = models.BooleanField(default=False)
+    attempts = models.PositiveIntegerField(default=0)
+    next_attempt_at = models.DateTimeField(default=timezone.now, db_index=True)
+    last_error = models.CharField(max_length=100, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
 class PasswordResetRequest(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Kutilmoqda'),

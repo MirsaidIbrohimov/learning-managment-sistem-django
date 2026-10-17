@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"></head><body style="margin:0;background:#f1f5f9;padding:24px 12px;font-family:Arial,sans-serif;color:#172033">
+<table role="presentation" style="width:100%;max-width:600px;margin:auto;border-spacing:0;background:#fff;border-radius:20px;overflow:hidden">
+<tr><td style="background:#312e81;padding:28px 30px;color:#fff"><strong style="letter-spacing:2px;font-size:17px">IT CREATIVE ACADEMY</strong><p style="margin:8px 0 0;font-size:13px;color:#c7d2fe">Bilim. Amaliyot. Natija. / Знания. Практика. Результат.</p></td></tr>
+{% for section in sections %}<tr><td lang="{% if forloop.first %}uz{% else %}ru{% endif %}" style="padding:28px 30px;border-bottom:1px solid #e2e8f0">
+<p style="font-size:11px;letter-spacing:2px;color:#64748b">{{ section.language }}</p>
+<h1 style="font-size:24px;line-height:1.3;margin:12px 0 20px;color:#312e81">{{ section.heading }}</h1>
+<p style="line-height:1.7;font-weight:bold">{{ section.greeting }}</p><p style="line-height:1.7;color:#475569">{{ section.paragraph }}</p>
+{% if details %}<div style="margin:20px 0;padding:16px;background:#eef2ff;border-radius:12px">{% for label,value in details %}<p style="font-size:13px;line-height:1.7;margin:6px 0;color:#475569">{{ label }}<br><strong style="color:#172033;font-size:15px">{{ value }}</strong></p>{% endfor %}</div>{% endif %}
+<a href="{{ action_url }}" style="display:inline-block;margin-top:12px;background:#4f46e5;color:#fff;text-decoration:none;padding:14px 22px;border-radius:10px;font-size:14px;font-weight:bold">{{ section.button }}</a>
+</td></tr>{% endfor %}
+<tr><td style="padding:20px 30px;color:#64748b;font-size:12px;line-height:1.7">Bu xabar IT Creative Academy tomonidan avtomatik yuborildi. Savollar uchun administrator bilan bog‘laning.<br>Это автоматическое письмо IT Creative Academy. По вопросам свяжитесь с администратором.</td></tr>
+</table></body></html>

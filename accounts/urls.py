@@ -3,6 +3,7 @@ from . import views
 from . import payment_views
 from . import tezcheck_views
 from . import exam_payments
+from . import password_recovery
 from . import exam_admin
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
@@ -289,6 +290,9 @@ urlpatterns = [
     
     # Parol tiklash
     path('password-reset-request/', views.password_reset_request_view, name='password_reset_request'),
+    path('password-reset-captcha/', password_recovery.password_recovery_captcha, name='password_reset_captcha'),
+    path('password-reset/open/<str:token>/', password_recovery.open_recovery_link, name='open_recovery_link'),
+    path('password-reset/set-password/', password_recovery.choose_recovery_password, name='choose_recovery_password'),
     path('dashboard/password-reset-requests/', views.admin_password_reset_requests, name='admin_password_reset_requests'),
     path('dashboard/password-reset-requests/<int:pk>/approve/', views.approve_password_reset, name='approve_password_reset'),
     path('dashboard/password-reset-requests/<int:pk>/reject/', views.reject_password_reset, name='reject_password_reset'),

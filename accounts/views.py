@@ -498,7 +498,9 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+            from .email_notifications import queue_email
+            queue_email(user, 'welcome', f'welcome:{user.pk}')
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
             notify_admins(
                 f"👤 <b>Yangi foydalanuvchi ro'yxatdan o'tdi!</b>\n\n"
                 f"📛 {user.first_name} {user.last_name}\n"
@@ -949,7 +951,7 @@ def login_view(request):
                 _record_successful_login(ip_address, user.username, user_agent, login_token)
                 request.session.pop('login_token', None)
                 request.session.pop('brute_notified', None)
-                login(request, user)
+                login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
                 user.last_activity = timezone.now()
                 user.save(update_fields=["last_activity"])
                 # Sessiyani ro'yxatdan o'tkazamiz — aks holda DeviceLimitMiddleware
@@ -971,7 +973,7 @@ def login_view(request):
         # Token va brute_notified ni tozalash
         request.session.pop('login_token', None)
         request.session.pop('brute_notified', None)
-        login(request, user)
+        login(request, user, backend=getattr(user, 'backend', 'django.contrib.auth.backends.ModelBackend'))
 
         user.last_activity = timezone.now()
         user.save(update_fields=["last_activity"])
@@ -7550,7 +7552,7 @@ def change_password_view(request):
             else:
                 request.user.set_password(form.cleaned_data['new_password1'])
                 request.user.save()
-                login(request, request.user)
+                login(request, request.user, backend=request.session.get('_auth_user_backend', 'django.contrib.auth.backends.ModelBackend'))
                 
                 # Xavfsizlik xabari
                 from .notifications import check_password_changed

@@ -285,6 +285,7 @@ class UserProfileForm(forms.ModelForm):
 
 
 class AdminUserEditForm(forms.ModelForm):
+    email = forms.EmailField(required=False, max_length=254, widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'email@example.com'}))
     first_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     last_name = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'class': 'form-control'}))
     username = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'form-control'}))
@@ -332,7 +333,7 @@ class AdminUserEditForm(forms.ModelForm):
     class Meta:
         model = CustomUser
         fields = [
-            'first_name', 'last_name', 'username', 'phone', 'role', 'profession', 'assistant_role',
+            'first_name', 'last_name', 'username', 'email', 'phone', 'role', 'profession', 'assistant_role',
             'photo', 'bio', 'is_blocked', 'address', 'birth_date', 'id_card', 'birth_certificate',
             'gender', 'nationality', 'passport_series', 'passport_number', 'jshshir', 'passport_issued_date',
             'father_name', 'father_phone', 'father_deceased',

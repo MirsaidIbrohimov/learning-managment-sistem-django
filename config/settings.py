@@ -36,12 +36,20 @@ RUNNING_DEV_SERVER = 'runserver' in sys.argv
 
 load_dotenv(BASE_DIR / '.env')
 
+AUTHENTICATION_BACKENDS = [
+    'accounts.auth_backends.PendingRecoveryPasswordBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
 # Outgoing email (password recovery). Credentials belong only in .env.
 EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com').strip()
 EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '').strip()
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
+if EMAIL_HOST.lower() == 'smtp.gmail.com':
+    # Google displays App passwords in groups separated by spaces.
+    EMAIL_HOST_PASSWORD = EMAIL_HOST_PASSWORD.replace(' ', '')
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'true').lower() in ('true', '1', 'yes')
 EMAIL_USE_SSL = os.getenv('EMAIL_USE_SSL', 'false').lower() in ('true', '1', 'yes')
 EMAIL_TIMEOUT = int(os.getenv('EMAIL_TIMEOUT', '15'))

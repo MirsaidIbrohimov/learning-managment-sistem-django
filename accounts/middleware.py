@@ -139,7 +139,7 @@ class BlockedUserMiddleware:
     API so'rovlari 403 qaytaradi.
     """
     # Bu URL larga bloklangan user ham kira oladi
-    ALLOWED_PATHS = ('/tolov/', '/tolovlarim/', '/tezcheck/', '/logout/', '/static/', '/media/', '/api/v1/games/')
+    ALLOWED_PATHS = ('/tolov/', '/tolovlarim/', '/tezcheck/', '/password-reset/', '/logout/', '/static/', '/media/', '/api/v1/games/')
 
     def __init__(self, get_response):
         self.get_response = get_response
@@ -197,7 +197,8 @@ class BlockedUserMiddleware:
                 if bal.advance_due_payment():
                     return
                 # Balans yetmadi -> bloklash
-                CustomUser.objects.filter(pk=user.pk).update(is_blocked=True)
+                user.is_blocked = True
+                user.save(update_fields=['is_blocked'])
                 cache.set(f'auto_blocked_{user.id}', True, 10)
                 from .models import PaymentStatus
                 PaymentStatus.objects.filter(user=user).update(
@@ -409,7 +410,7 @@ class DeviceLimitMiddleware:
     avvalgi sessiya avtomatik chiqariladi. (Qurilma soni cheklanmagan.)
     """
     
-    EXEMPT_URLS = ['login', 'logout', 'register']
+    EXEMPT_URLS = ['login', 'logout', 'register', 'open_recovery_link', 'choose_recovery_password']
     
     def __init__(self, get_response):
         self.get_response = get_response
@@ -535,7 +536,7 @@ class SecurityHeadersMiddleware:
         # XSS himoya
         response['X-Content-Type-Options'] = 'nosniff'
         response['X-XSS-Protection'] = '0'  # Zamonaviy brauzerlarda CSP ishlatiladi
-        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.setdefault('Referrer-Policy', 'strict-origin-when-cross-origin')
         # Geolokatsiya faqat login'dan keyingi rozilik sahifasida kerak.
         # Global `geolocation=()` browser API'sini shu sahifada ham bloklab,
         # foydalanuvchi rozilik oynasini ko'rishiga yo'l qo'ymas edi.
@@ -600,7 +601,7 @@ class ProfileCompletionMiddleware:
     Profil to'ldirilmagan studentlarni complete_profile sahifasiga yo'naltiradi.
     """
     EXEMPT_URLS = [
-        'complete_profile', 'logout', 'login', 'register', 'admin',
+        'complete_profile', 'logout', 'login', 'register', 'admin', 'open_recovery_link', 'choose_recovery_password',
         'payment_wall', 'tezcheck_create_payment', 'tezcheck_return', 'exam_checkout', 'exam_checkout_status',
     ]
 
