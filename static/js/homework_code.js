@@ -26,6 +26,15 @@
     const controls = document.createElement('div');
     controls.className = 'hw-code-controls';
     root.append(controls); controls.append(language);
+    const pythonOptions = document.createElement('div'); pythonOptions.className='hw-python-options';
+    const versionLabel=document.createElement('label');versionLabel.textContent='Python versiyasi';
+    const version=document.createElement('select');version.setAttribute('aria-label','Python versiyasi');
+    for(const v of ['3.12','3.13','3.14']){const o=document.createElement('option');o.value=v;o.textContent='Python '+v;version.append(o);}
+    version.value=project.version || '3.12';version.disabled=!editable;versionLabel.append(version);
+    const inputLabel=document.createElement('label');inputLabel.textContent='input() uchun ma’lumotlar (har bir javob alohida qatorda)';
+    const stdin=document.createElement('textarea');stdin.value=project.stdin || '';stdin.rows=3;stdin.placeholder='Ali\n20';stdin.setAttribute('aria-label','Python kirish ma’lumotlari');inputLabel.append(stdin);
+    pythonOptions.append(versionLabel,inputLabel);root.append(pythonOptions);
+    version.addEventListener('change',()=>{stop();root.dispatchEvent(new Event('input',{bubbles:true}));});
     const panes = document.createElement('div');
     panes.className = 'hw-code-panes';
     for (const [key, label] of [['html', 'HTML'], ['css', 'CSS'], ['js', 'JavaScript'], ['code', 'Kod']]) {
@@ -52,15 +61,29 @@
     const output = document.createElement('pre');
     output.className = 'hw-code-console';
     output.setAttribute('aria-live', 'polite'); root.append(output);
+    let stopPython = null; let pythonTimer = null;
     let frame = null;
     let runToken = '';
-    const get = () => language.value === 'web' ? Object.fromEntries(['html','css','js'].map(k=>[k,editors[k].value])) : {language:language.value,code:editors.code.value};
+    const get = () => language.value === 'web' ? Object.fromEntries(['html','css','js'].map(k=>[k,editors[k].value])) : {language:language.value,code:editors.code.value,...(language.value==='python'?{version:version.value,stdin:stdin.value}:{})};
     const hint=document.createElement('p');hint.className='hw-code-hint';root.append(hint);
-    function refresh(){const web=language.value==='web';for(const [k,a] of Object.entries(editors)) a.parentElement.hidden=web?k==='code':k!=='code';panes.classList.toggle('hw-code-single',!web);result.hidden=!web;hint.textContent=web?'HTML, CSS va JavaScript natijasini ko\u2018ring.':'Kod ustozga yuboriladi. Bu til brauzerda bajarilmaydi.';}
+    function refresh(){const web=language.value==='web';for(const [k,a] of Object.entries(editors)) a.parentElement.hidden=web?k==='code':k!=='code';panes.classList.toggle('hw-code-single',!web);result.hidden=!web;pythonOptions.hidden=language.value!=='python';hint.textContent=language.value==='python'?'Python kodini ishga tushiring. Birinchi yuklanish biroz vaqt oladi. input() javoblarini yuqoridagi maydonga yozing.':web?'HTML, CSS va JavaScript natijasini ko\u2018ring.':'Kod ustozga yuboriladi. Bu til brauzerda bajarilmaydi.';}
     language.addEventListener('change',()=>{stop();refresh();root.dispatchEvent(new Event('input',{bubbles:true}));});refresh();
-    function stop() { if (frame) frame.remove(); frame = null; runToken = ''; }
+    function stop() { clearTimeout(pythonTimer); if(stopPython){stopPython();stopPython=null;output.textContent += '\nTo\u2018xtatildi.\n';} if (frame) frame.remove(); frame = null; runToken = ''; }
     function run() {
       stop(); output.textContent = '';
+      if(language.value==='python'){
+        if(!window.HomeworkPython){output.textContent='Python moduli yuklanmadi. Sahifani yangilang.';return;}
+        output.textContent='Python '+version.value+' yuklanmoqda...\n';
+        const finish=()=>{clearTimeout(pythonTimer);if(stopPython)stopPython();stopPython=null;};
+        const timeout=ms=>{clearTimeout(pythonTimer);pythonTimer=setTimeout(()=>{finish();output.textContent+='\nVaqt tugadi. Kodni tekshiring yoki qayta urinib ko\u2018ring.\n';},ms);};
+        timeout(120000);
+        stopPython=HomeworkPython.start(root,{version:version.value,code:editors.code.value,stdin:stdin.value},message=>{
+          if(message.type==='running'){timeout(15000);output.textContent+='Python '+message.text+'\n';}
+          else if(message.type==='done'){output.textContent+='\nBajarildi.\n';finish();}
+          else if(message.type==='error'){output.textContent+='\n'+message.text+'\n';finish();}
+          else output.textContent=(output.textContent+message.text+(message.type==='status'?'\n':'')).slice(-60000);
+        });return;
+      }
       if(language.value!=='web'){output.textContent='Bu til brauzerda bajarilmaydi.';return;}
       runToken = Math.random().toString(36).slice(2);
       const p = get();
@@ -91,7 +114,7 @@
     function toggle(){const full=root.classList.toggle('hw-code-fullscreen');expand.textContent=full?'Kichraytirish (Esc)':'To\u2018liq ekran';expand.setAttribute('aria-pressed',String(full));}
     expand.addEventListener('click',toggle);controls.append(expand);
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('hw-code-fullscreen'))toggle();});
-    return {get,set(p){language.value=p.language||'web';for(const k of Object.keys(editors))editors[k].value=p[k]||'';stop();refresh();},stop};
+    return {get,set(p){language.value=p.language||'web';version.value=p.version||'3.12';stdin.value=p.stdin||'';for(const k of Object.keys(editors))editors[k].value=p[k]||'';stop();refresh();},stop};
   }
   window.HomeworkCode = {decode, source, create, valid};
   document.addEventListener('DOMContentLoaded', () => {

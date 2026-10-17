@@ -69,3 +69,18 @@ class WebHomeworkTests(TestCase):
     def test_closing_tags_and_entities_roundtrip(self):
         project = dict(self.project, html='</pre><script>alert(1)</script>&lt;b&gt;', js='console.log("</script>")')
         self.assertEqual(decode_project(encode_project(json.dumps(project))), project)
+
+    def test_python_project_metadata_roundtrip(self):
+        project = {'language': 'python', 'code': 'print(input())', 'version': '3.13', 'stdin': 'Ali\n'}
+        response = self.post_code('api_hw_submit', project)
+        self.assertEqual(response.status_code, 200)
+        sub = HomeworkSubmission.objects.get(homework=self.homework)
+        self.assertEqual(decode_project(sub.text_content), project)
+        self.assertIn('3.13', submission_plain(sub.text_content))
+
+    def test_python_invalid_version_and_empty_code(self):
+        for project in (
+            {'language': 'python', 'code': 'print(1)', 'version': '2.7'},
+            {'language': 'python', 'code': ' ', 'version': '3.12', 'stdin': 'Ali'},
+        ):
+            self.assertEqual(self.post_code('api_hw_submit', project).status_code, 400)
