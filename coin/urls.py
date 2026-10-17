@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import payments
 
 app_name = 'coin'
 
@@ -8,6 +9,9 @@ urlpatterns = [
     path('coin-history/', views.coin_history, name='coin_history'),
     path('coin-transfer/', views.coin_transfer, name='coin_transfer'),
     path('market/', views.market_list, name='market_list'),
+    path('market/coins/checkout/', payments.create_coin_checkout, name='coin_checkout'),
+    path('market/coins/<int:pk>/return/', payments.coin_payment_return, name='coin_payment_return'),
+    path('market/coins/<int:pk>/status/', payments.coin_payment_status, name='coin_payment_status'),
     path('market/premium/', views.premium_page, name='buy_premium'),
     path('market/buy-premium/', views.buy_premium_page, name='buy_premium_page'),
     path('market/extend-premium/', views.extend_premium_page, name='extend_premium_page'),

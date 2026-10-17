@@ -693,6 +693,8 @@ TEZCHECK_WEBHOOK_SECRET = os.getenv('TEZCHECK_WEBHOOK_SECRET', '').strip()
 TEZCHECK_RETURN_URL = os.getenv('TEZCHECK_RETURN_URL', '').strip()
 TEZCHECK_SIGN_REQUESTS = os.getenv('TEZCHECK_SIGN_REQUESTS', 'true').strip().lower() in ('1', 'true', 'yes', 'on')
 TEZCHECK_LATE_GRACE_DAYS = max(0, int(os.getenv('TEZCHECK_LATE_GRACE_DAYS', '5')))
+TEZCHECK_COIN_MIN_SOM = os.getenv('TEZCHECK_COIN_MIN_SOM', '')
+TEZCHECK_COIN_MAX_SOM = os.getenv('TEZCHECK_COIN_MAX_SOM', '')
 
 # ══════════════════════════════════════════════════════════════════
 # ADMIN PANEL YO'LI

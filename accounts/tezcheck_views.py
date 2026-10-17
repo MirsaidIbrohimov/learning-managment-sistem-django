@@ -205,6 +205,10 @@ def tezcheck_return(request):
 
 def _apply_successful_payment(order, data):
     """Apply a verified live payment to its monthly period or exam retry."""
+    if order.purpose == 'coins':
+        from coin.payments import apply_coin_payment
+        apply_coin_payment(order, data)
+        return
     if order.status == TezCheckPaymentOrder.STATUS_PAID:
         return
     try:
@@ -357,6 +361,10 @@ def _apply_successful_payment(order, data):
 
 def _apply_refund(order, data, *, partial=False):
     """Remove paid-month status after a full refund; flag partial refunds."""
+    if order.purpose == 'coins':
+        order.last_error = 'Tanga to‘lovi qaytarilishi administrator tekshiruvini talab qiladi.'
+        order.save(update_fields=['last_error', 'updated_at'])
+        return
     if order.purpose == 'exam':
         from .exam_payments import refund_exam_payment
         refund_exam_payment(order, data, partial=partial)
@@ -501,6 +509,11 @@ def admin_sync_tezcheck_payment(request, pk):
 
     bill = response_data.get('bill') or {}
     payment = response_data.get('payment') or {}
+    if order.purpose == 'coins':
+        from coin.payments import reconcile_coin_order
+        reconcile_coin_order(order, response_data)
+        messages.info(request, 'Tanga to‘lovi holati tekshirildi.')
+        return redirect('admin_tezcheck_payments')
     if bill.get('external_reference') != order.external_reference:
         order.status = TezCheckPaymentOrder.STATUS_REVIEW
         order.last_error = 'Tezcheck bill tashqi raqami LMS buyurtmasiga mos emas.'
@@ -588,6 +601,16 @@ def tezcheck_webhook(request):
             retry_later = True
         else:
             event.save(update_fields=['order'])
+            if (order.purpose == 'coins' and order.coin_transaction_id
+                    and payload.get('type') in ('payment.succeeded', 'payment.failed', 'payment.canceled', 'payment.expired')):
+                event.processed = True
+                event.processed_at = timezone.now()
+                event.save(update_fields=['processed', 'processed_at'])
+                return HttpResponse(status=200)
+            if order.purpose == 'coins' and (not order.bill_id or data.get('bill_id') != order.bill_id):
+                event.processing_error = 'Tanga buyurtmasining bill ID qiymati mos emas yoki hali saqlanmagan.'
+                event.save(update_fields=['processing_error'])
+                return HttpResponse(status=503)
             if order.bill_id and data.get('bill_id') and data.get('bill_id') != order.bill_id:
                 order.status = TezCheckPaymentOrder.STATUS_REVIEW
                 order.last_error = 'Webhookdagi bill_id LMS buyurtmasiga mos emas.'
@@ -607,7 +630,8 @@ def tezcheck_webhook(request):
                     problem = data.get('problem')
                     if not isinstance(problem, dict):
                         problem = {}
-                    order.last_error = str(problem.get('category') or payload.get('type') or '')[:500]
+                    order.last_error = (str(payload.get('type')) if order.purpose == 'coins'
+                                        else str(problem.get('category') or payload.get('type') or ''))[:500]
                     order.save(update_fields=['last_error', 'updated_at'])
                 elif payload.get('type') in ('payment.refunded', 'payment.partially_refunded'):
                     _apply_refund(

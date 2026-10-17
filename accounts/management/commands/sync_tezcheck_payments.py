@@ -36,6 +36,14 @@ class Command(BaseCommand):
 
             bill = response_data.get('bill') or {}
             payment = response_data.get('payment') or {}
+            if order.purpose == 'coins':
+                from coin.payments import reconcile_coin_order
+                reconcile_coin_order(order, response_data)
+                order.refresh_from_db()
+                confirmed += int(order.status == 'paid')
+                expired += int(order.status in ('expired', 'cancelled'))
+                errors += int(order.status == 'review')
+                continue
             with transaction.atomic():
                 locked = TezCheckPaymentOrder.objects.select_for_update().get(pk=order.pk)
                 if locked.status != TezCheckPaymentOrder.STATUS_PENDING:

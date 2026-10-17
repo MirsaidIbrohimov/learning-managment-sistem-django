@@ -26,7 +26,7 @@ def create_bill(*, order, return_url):
     url_path = '/bills'
     body = json.dumps({
         'amount_minor': order.amount_minor,
-        'title': (f"Yakuniy imtihon — #{order.student_id}" if getattr(order, 'purpose', 'monthly') == 'exam' else f"Oylik to'lov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"),
+        'title': (f"Tanga xaridi — {order.amount_som} tanga" if order.purpose == 'coins' else f"Yakuniy imtihon — #{order.student_id}" if getattr(order, 'purpose', 'monthly') == 'exam' else f"Oylik to'lov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"),
         'description': f"O'quvchi ID: {order.student_id}; LMS buyurtmasi: {order.external_reference}",
         'external_reference': order.external_reference,
         'return_url': return_url,

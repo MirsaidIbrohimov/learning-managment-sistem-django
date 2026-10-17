@@ -2597,7 +2597,9 @@ class TezCheckPaymentOrder(models.Model):
         'CustomUser', on_delete=models.PROTECT,
         related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
     )
-    purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon')])
+    purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi')])
+    coin_transaction = models.OneToOneField('coin.CoinTransaction', null=True, blank=True, on_delete=models.PROTECT, related_name='payment_order')
+    coin_payment_key = models.CharField(max_length=100, null=True, blank=True, unique=True)
     exam_test = models.ForeignKey('Test', null=True, blank=True, on_delete=models.PROTECT)
     exam_quiz = models.ForeignKey('quiz.Quiz', null=True, blank=True, on_delete=models.PROTECT)
     final_payment = models.ForeignKey('FinalTestPayment', null=True, blank=True, on_delete=models.SET_NULL)

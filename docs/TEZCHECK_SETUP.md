@@ -1,5 +1,17 @@
 # Tezcheck payment setup
 
+## Market tanga xaridi
+
+- Kurs qat’iy: 1 so‘m = 1 tanga. API uchun summa 100 ga ko‘paytirilib tiyinlarda yuboriladi.
+- Loyiha egasi tasdiqlagan chegaralar: minimum **1 000 so‘m**, maksimum **1 000 000 so‘m**. Lokal `.env` va `.env.example` shu qiymatlar bilan sozlangan; serverga ham shu sozlamalarni kiriting.
+- `TEZCHECK_COIN_MIN_SOM` va `TEZCHECK_COIN_MAX_SOM` ni merchant shartnomasi yoki kabinetida tasdiqlangan **so‘m** chegaralari bilan to‘ldiring. Mavjud integratsiyada provayder chegaralari hujjatlashtirilmagan; qiymatlar yoki API/webhook konfiguratsiyasi bo‘lmasa checkout yopiq turadi.
+- `python manage.py migrate` yangi `0133_coin_checkout` migratsiyasini ham qo‘llaydi.
+- Merchant return URL ruxsatlariga `/market/coins/<buyurtma-id>/return/` manzillarini qo‘shing (loyiha asosiy URL prefiksini hisobga oling). Coin xaridi umumiy oylik return sozlamasidan foydalanmaydi.
+- Mavjud `/tezcheck/webhook/` imzoli callback orqali balansga yozadi. Brauzer qaytishi tangalarni bermaydi. Status tekshiruvi mahalliy holatni ko‘pi bilan 24 marta, 5 soniya interval bilan o‘qiydi; webhook kelmasa quyidagi mavjud sync komandasini jadval asosida bajaring.
+- Buyurtma, mavjud `CustomUser.coins` balansi va `CoinTransaction` atomik yangilanadi. Bir buyurtmaga bitta ledger yozuvi va bir provayder tranzaksiyasiga bitta coin xaridi DB unique cheklovlari bilan himoyalangan.
+- Test-provider `environment=test` javobi balansni o‘zgartirmaydi va tekshiruv holatiga tushadi. Avtomatik testlar API chaqiruvlarini mock qiladi; ular haqiqiy provayder sandbox sinovining o‘rnini bosmaydi. Haqiqiy pul yuborish talab etilmaydi.
+- Qaytarish/dispute holatlari administrator tekshiruvini talab qiladi: sarflangan tangalar avtomatik qaytarilmaydi va oylik/imtihon xizmatlari o‘zgartirilmaydi.
+
 ## Environment values
 
 Set these values in the server-side .env file. Never add the API token or webhook secret to frontend code or commit them.

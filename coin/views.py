@@ -33,7 +33,17 @@ def coin_transfer(request):
 @login_required
 def market_list(request):
     """Market sahifasi — data API orqali yuklanadi"""
-    return render(request, 'coin/market/list.html')
+    from .payments import market_context
+    context = market_context(request.user)
+    if request.GET.get('coin_order'):
+        from accounts.models import TezCheckPaymentOrder
+        raw = request.GET['coin_order']
+        if not raw.isascii() or not raw.isdigit() or len(raw) > 18:
+            from django.http import Http404
+            raise Http404
+        context['coin_return_order'] = get_object_or_404(
+            TezCheckPaymentOrder, pk=int(raw), student=request.user, purpose='coins')
+    return render(request, 'coin/market/list.html', context)
 
 
 @login_required

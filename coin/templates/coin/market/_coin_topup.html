@@ -1,0 +1,37 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/coin_topup.css' %}">
+<section id="coin-topup" class="ct-panel" aria-labelledby="ct-title">
+  <div class="ct-heading">
+    <div><span class="ct-eyebrow"><i class="bi bi-coin" aria-hidden="true"></i> LMS Market · Tanga sotib olish</span>
+      <h2 id="ct-title">Istagan mahsulotingizga bir qadam yaqinlashing</h2>
+      <p>Balansingizni to‘ldiring va Marketdagi mahsulotlarni tangalar bilan xarid qiling.</p>
+    </div>
+    <div class="ct-wallet"><i class="bi bi-wallet2" aria-hidden="true"></i><span>Joriy balans<strong><span id="ct-balance" data-value="{{ request.user.coins }}">{{ request.user.coins }}</span> tanga</strong></span></div>
+  </div>
+  <div class="ct-rate"><i class="bi bi-coin" aria-hidden="true"></i> 1 tanga = 1 so‘m</div>
+  <form id="ct-form" action="{% url 'coin:coin_checkout' %}" method="post" data-ready="{{ coin_checkout_ready|yesno:'true,false' }}" data-min="{{ coin_limits.0|default:0 }}" data-max="{{ coin_limits.1|default:0 }}">
+    {% csrf_token %}<input type="hidden" name="token" value="{{ coin_checkout_token }}">
+    <fieldset><legend>Tanga miqdorini tanlang</legend>
+      <div class="ct-packages">
+        {% for amount in coin_packages %}<label class="ct-package">
+          <input type="radio" name="package" value="{{ amount }}" {% if forloop.first %}checked{% endif %}>
+          <span class="ct-package-face"><i class="bi bi-coin" aria-hidden="true"></i><strong data-ct-number="{{ amount }}">{{ amount }}</strong><span>tanga</span><small><span data-ct-number="{{ amount }}">{{ amount }}</span> so‘m</small><span class="ct-selected">✓ Tanlangan</span></span>
+        </label>{% endfor %}
+      </div>
+      <label for="ct-custom" class="ct-custom-label">Boshqa miqdor</label>
+      <input id="ct-custom" class="ct-custom" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Masalan, 15 000" aria-describedby="ct-limits ct-error">
+      <p id="ct-limits" class="ct-hint">{% if coin_limits %}Ruxsat etilgan miqdor: <span data-ct-number="{{ coin_limits.0 }}">{{ coin_limits.0 }}</span> – <span data-ct-number="{{ coin_limits.1 }}">{{ coin_limits.1 }}</span> so‘m.{% else %}To‘lov chegaralari sozlanmoqda.{% endif %}</p>
+    </fieldset>
+    <div class="ct-summary" aria-live="polite"><span>Olasiz: <strong id="ct-receive">10 000 tanga</strong></span><span>To‘laysiz: <strong id="ct-pay">10 000 so‘m</strong></span></div>
+    <p id="ct-error" class="ct-error" role="alert"></p>
+    {% if not coin_checkout_ready %}<p class="ct-hint">Tanga to‘lovi hozircha sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
+    <button type="submit" id="ct-submit" class="ct-submit" {% if not coin_checkout_ready %}disabled{% endif %}><i class="bi bi-credit-card" aria-hidden="true"></i> Tezchek orqali to‘lash</button>
+    <noscript><p>To‘lov yaratish uchun brauzeringizda JavaScript yoqilgan bo‘lishi kerak.</p></noscript>
+  </form>
+  <div id="ct-result" role="status" aria-live="polite" {% if coin_return_order %}data-return-status-url="{% url 'coin:coin_payment_status' coin_return_order.pk %}"{% endif %} hidden></div>
+  <button id="ct-recheck" type="button" class="ct-recheck" hidden>Holatni qayta tekshirish</button>
+  {% if coin_orders %}<details class="ct-history" open><summary>Tanga xaridlari</summary>
+    {% for order in coin_orders %}<div class="ct-history-row"><time datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:'d.m.Y H:i' }}</time><span><strong data-ct-number="{{ order.amount_som }}">{{ order.amount_som }}</strong> tanga</span><span><span data-ct-number="{{ order.amount_som }}">{{ order.amount_som }}</span> so‘m</span><button type="button" class="ct-order-status" data-status-url="{% url 'coin:coin_payment_status' order.pk %}" data-order="{{ order.pk }}">{{ order.get_status_display }}</button></div>{% endfor %}
+  </details>{% endif %}
+</section>
+<script src="{% static 'js/coin_topup.js' %}" defer></script>

@@ -220,6 +220,7 @@
 
 {% block content %}
 <div class="mkt-wrap dash learning-glass market-glass">
+    {% include 'coin/market/_coin_topup.html' %}
     <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
     <!-- HERO -->
     <div class="mkt-hero">
@@ -563,6 +564,7 @@
         }
     }
 
+    document.addEventListener('coin-payment-confirmed', () => { loadSummaryAndPlans(); loadProducts(page); });
     window.loadPage = function(p) { loadProducts(p); window.scrollTo({top:0,behavior:'smooth'}); };
 
     window.toggleLike = async function(id, btn) {
