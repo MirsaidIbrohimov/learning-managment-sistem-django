@@ -3,14 +3,24 @@
   'use strict';
   const prefix = 'LMS_WEB_PROJECT_V1\n';
   function decode(content) {
-    if (!content || !content.startsWith('<pre>' + prefix)) return null;
+    if (typeof content !== 'string' || content.length > 1000000 || !content.startsWith('<pre>' + prefix) || !content.endsWith('</pre>')) return null;
     try {
-      const doc = new DOMParser().parseFromString(content, 'text/html');
-      const project = JSON.parse(doc.body.textContent.slice(prefix.length));
+      // Decode entities as text, without parsing student markup into a document.
+      const text = document.createElement('textarea');
+      text.innerHTML = content.slice(5, -6);
+      const project = JSON.parse(text.value.slice(prefix.length));
       return valid(project) ? project : null;
     } catch (_) { return null; }
   }
-  function valid(p) { return p && (['html','css','js'].every(k => typeof p[k] === 'string') || (typeof p.language === 'string' && typeof p.code === 'string')); }
+  function valid(p) {
+    if (!p || typeof p !== 'object' || Array.isArray(p)) return false;
+    const keys = Object.keys(p);
+    if (!Object.values(p).every(v => typeof v === 'string') || Object.values(p).reduce((n, v) => n + v.length, 0) > 150000) return false;
+    if (keys.length === 3 && ['html','css','js'].every(k => Object.hasOwn(p, k))) return true;
+    return keys.every(k => ['language','code','version','stdin'].includes(k)) && Object.hasOwn(p, 'code') &&
+      typeof p.language === 'string' && p.language.trim().length > 0 && p.language.length <= 60 &&
+      (!Object.hasOwn(p, 'version') || (p.language === 'python' && ['3.12','3.13','3.14'].includes(p.version))) && (p.stdin || '').length <= 20000;
+  }
   function source(p) {
     if ('language' in p) return p.language + '\n' + p.code;
     return `--- index.html ---\n${p.html}\n\n--- style.css ---\n${p.css}\n\n--- script.js ---\n${p.js}`;
@@ -71,6 +81,7 @@
     function stop() { clearTimeout(pythonTimer); if(stopPython){stopPython();stopPython=null;output.textContent += '\nTo\u2018xtatildi.\n';} if (frame) frame.remove(); frame = null; runToken = ''; }
     function run() {
       stop(); output.textContent = '';
+      if (!valid(get())) { output.textContent = 'Kod yoki kirish ma\u2019lumotlari hajmi limitdan oshdi.'; return; }
       if(language.value==='python'){
         if(!window.HomeworkPython){output.textContent='Python moduli yuklanmadi. Sahifani yangilang.';return;}
         output.textContent='Python '+version.value+' yuklanmoqda...\n';
@@ -87,9 +98,8 @@
       if(language.value!=='web'){output.textContent='Bu til brauzerda bajarilmaydi.';return;}
       runToken = Math.random().toString(36).slice(2);
       const p = get();
-      const doc = new DOMParser().parseFromString(p.html, 'text/html');
       // A fresh document prevents user markup from preceding the sandbox policy.
-      const policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
+      const policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'";
       // JSON escaping keeps closing script/style tags in source completely intact.
       const scriptJSON = value => JSON.stringify(value).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
       const runner = `(function(){const style=document.createElement('style');style.textContent=${scriptJSON(p.css)};document.head.append(style);const script=document.createElement('script');script.textContent=${scriptJSON(p.js)};document.body.append(script);})();`;
@@ -97,13 +107,19 @@
       frame = document.createElement('iframe');
       frame.title = 'Kod natijasi';
       frame.setAttribute('sandbox', 'allow-scripts');
+      frame.setAttribute('credentialless', '');
+      frame.setAttribute('allow', "camera 'none'; microphone 'none'; geolocation 'none'; clipboard-read 'none'; clipboard-write 'none'; payment 'none'; usb 'none'");
       frame.referrerPolicy = 'no-referrer';
-      frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + policy + '"><script>' + bridge + '</scr' + 'ipt>' + doc.head.innerHTML + '</head><body>' + doc.body.innerHTML + '<script>' + runner + '</scr' + 'ipt></body></html>';
+      const preview = '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + policy + '"><script>' + bridge + '</scr' + 'ipt></head><body>' + p.html + '<script>' + runner + '</scr' + 'ipt></body></html>';
+      // The trusted outer frame's frame-src policy blocks even self-navigation
+      // of the student frame (location.href, meta refresh, links). srcdoc is local.
+      const shell = `(function(){const child=document.createElement('iframe');child.sandbox='allow-scripts';child.referrerPolicy='no-referrer';child.setAttribute('credentialless','');child.title='Web loyiha';child.style='width:100%;height:100vh;border:0';let count=0;addEventListener('message',e=>{if(e.source!==child.contentWindow||!e.data||e.data.hwConsole!==${scriptJSON(runToken)}||typeof e.data.text!=='string'||!['log','info','warn','error'].includes(e.data.level)||count++>=150)return;parent.postMessage({hwConsole:${scriptJSON(runToken)},level:e.data.level,text:e.data.text.slice(0,4000)},'*')});child.srcdoc=${scriptJSON(preview)};document.body.append(child)})();`;
+      frame.srcdoc = '<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="' + policy + '"></head><body style="margin:0"><script>' + shell + '</scr' + 'ipt></body></html>';
       result.append(frame);
     }
     window.addEventListener('message', e => {
-      if (frame && e.source === frame.contentWindow && e.data && e.data.hwConsole === runToken && typeof e.data.text === 'string') {
-        output.textContent = (output.textContent + '[' + e.data.level + '] ' + e.data.text + '\n').slice(-25000);
+      if (frame && e.source === frame.contentWindow && e.data && e.data.hwConsole === runToken && typeof e.data.text === 'string' && ['log','info','warn','error'].includes(e.data.level)) {
+        output.textContent = (output.textContent + '[' + e.data.level + '] ' + e.data.text.slice(0,4000) + '\n').slice(-25000);
       }
     });
     for (const [text, fn] of [['▶ Ishga tushirish', run], ['■ To‘xtatish', stop]]) {

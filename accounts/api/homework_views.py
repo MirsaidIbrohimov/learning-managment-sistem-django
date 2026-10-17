@@ -416,6 +416,8 @@ def hw_submit(request, lesson_pk):
         return _err("Topshirish muddati tugagan va kech topshirishga ruxsat yo'q.")
 
     submission_type = request.POST.get('submission_type', 'file')
+    if submission_type not in ('file', 'text'):
+        return _err("Topshirish turi noto'g'ri")
     if hw.file_only or hw.handwritten_only:
         submission_type = 'file'
     uploaded = None
@@ -553,11 +555,17 @@ def hw_edit(request, lesson_pk):
         return _err("Tahrirlash muddati tugagan (1 soat)")
 
     submission_type = request.POST.get('submission_type', sub.submission_type)
+    if submission_type not in ('file', 'text'):
+        return _err("Topshirish turi noto'g'ri")
+    if (hw.file_only or hw.handwritten_only) and submission_type != 'file':
+        return _err("Bu vazifa uchun fayl yuborishingiz kerak")
 
     if submission_type == 'file':
         uploaded = request.FILES.get('file')
         if not uploaded:
             return _err("Yangi fayl tanlanmagan")
+        if hw.handwritten_only and os.path.splitext(uploaded.name)[1].lower() not in ('.jpg', '.jpeg', '.png'):
+            return _err("Faqat rasm (.jpg, .jpeg, .png) formatida qabul qilinadi")
         extra_exts = set(hw.get_allowed_formats_list()) if hw.get_allowed_formats_list() else None
         ok, err = _validate_file(uploaded, extra_exts)
         if not ok:

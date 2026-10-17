@@ -84,3 +84,16 @@ class WebHomeworkTests(TestCase):
             {'language': 'python', 'code': ' ', 'version': '3.12', 'stdin': 'Ali'},
         ):
             self.assertEqual(self.post_code('api_hw_submit', project).status_code, 400)
+
+    def test_edit_cannot_bypass_file_only_requirement(self):
+        self.assertEqual(self.post_code('api_hw_submit', self.project).status_code, 200)
+        self.homework.file_only = True
+        self.homework.save(update_fields=['file_only'])
+        self.assertEqual(self.post_code('api_hw_edit', self.project).status_code, 400)
+
+    def test_unknown_submission_type_is_rejected(self):
+        response = self.client.post(reverse('api_hw_submit', args=[self.lesson.pk]), {
+            'submission_type': 'admin', 'code_project': json.dumps(self.project),
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(HomeworkSubmission.objects.filter(homework=self.homework).exists())

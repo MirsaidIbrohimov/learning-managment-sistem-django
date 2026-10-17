@@ -26,7 +26,7 @@ test('Python editor preserves version/stdin and terminates execution on completi
   editor.set({language:'python',code:'print(42)',version:'3.14',stdin:''});assert.equal(editor.get().version,'3.14');
 });
 test('runner isolates closing script tags and uses the selected runtime',()=>{
-  const context={window:{addEventListener(){},removeEventListener(){}},document};vm.createContext(context);
+  const context={window:{addEventListener(){},removeEventListener(){}},document,setTimeout:()=>1,clearTimeout(){}};vm.createContext(context);
   vm.runInContext(fs.readFileSync('static/js/homework_python.js','utf8'),context);
   const root=new Element();const stop=context.window.HomeworkPython.start(root,{version:'3.12',stdin:'',code:'print("</script><script>bad</script>")'},()=>{});
   const frame=root.children[0],src=frame.srcdoc;

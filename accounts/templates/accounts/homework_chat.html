@@ -740,7 +740,7 @@
                     {% if submission.text_content|is_web_project %}
                     {% include 'accounts/includes/homework_code_review.html' %}
                     {% else %}
-                    <iframe srcdoc="{{ submission.text_content }}" sandbox="allow-same-origin" style="width:100%;border:none;min-height:80px;max-height:200px;" onload="this.style.height=Math.min(this.contentDocument.body.scrollHeight,200)+'px';"></iframe>
+                    <div style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:200px;overflow:auto;">{{ submission.text_content|submission_plain }}</div>
                     {% endif %}
                 </div>
                 {% endif %}
