@@ -899,7 +899,7 @@
             </div>
             <div class="sp-type-card text-card" id="typeText" onclick="setType('text')">
               <i class="bi bi-code-square" style="color:var(--sp-accent2)"></i>
-              <span>HTML / CSS / JS</span>
+              <span>Kod yozish</span>
             </div>
           </div>
 
@@ -925,7 +925,7 @@
           </div>
 
           <div id="textSection" style="display:none">
-            <p>HTML, CSS va JavaScript kodingizni yozing. Natijani ko‘rish uchun “Ishga tushirish” tugmasini bosing.</p>
+            <p>Dasturlash tilini tanlang va kodingizni yozing. Natijani ko‘rish uchun “Ishga tushirish” tugmasini bosing.</p>
             <div id="codeEditor"></div>
             <small id="codeDraftStatus" aria-live="polite"></small>
           </div>
@@ -1141,7 +1141,7 @@ function initCodeEditor() {
   const submitted = HomeworkCode.decode(hwState.submission?.text_content);
   let project = submitted || {html:'', css:'', js:''};
   try { project = JSON.parse(localStorage.getItem(codeDraftKey)) || project; } catch (_) {}
-  if (!project || !['html','css','js'].every(k => typeof project[k] === 'string')) project = {html:'',css:'',js:''};
+  if (!project || !HomeworkCode.valid(project)) project = {html:'',css:'',js:''};
   codeEditor = HomeworkCode.create(document.getElementById('codeEditor'), project, true);
   document.getElementById('codeEditor').addEventListener('input', () => {
     try {
@@ -1563,8 +1563,8 @@ async function doSubmit() {
       await uploadWithProgress(API.submit, fd);
     } else {
       const project = codeEditor.get();
-      if (!Object.values(project).some(v => v.trim())) { toast('Avval kod yozing','error'); return; }
-      fd.append('text_content', 'HTML CSS JavaScript loyiha');
+      if (!(project.code !== undefined ? project.code.trim() : Object.values(project).some(v => v.trim()))) { toast('Avval kod yozing','error'); return; }
+      fd.append('text_content', 'Dasturlash vazifasi');
       fd.append('code_project', JSON.stringify(project));
       handleSubmitResponse(await api(API.submit,'POST',fd));
     }

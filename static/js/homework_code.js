@@ -7,25 +7,32 @@
     try {
       const doc = new DOMParser().parseFromString(content, 'text/html');
       const project = JSON.parse(doc.body.textContent.slice(prefix.length));
-      return ['html', 'css', 'js'].every(k => typeof project[k] === 'string') ? project : null;
+      return valid(project) ? project : null;
     } catch (_) { return null; }
   }
+  function valid(p) { return p && (['html','css','js'].every(k => typeof p[k] === 'string') || (typeof p.language === 'string' && typeof p.code === 'string')); }
   function source(p) {
+    if ('language' in p) return p.language + '\n' + p.code;
     return `--- index.html ---\n${p.html}\n\n--- style.css ---\n${p.css}\n\n--- script.js ---\n${p.js}`;
   }
   function create(root, project, editable) {
     root.classList.add('hw-code');
     const editors = {};
+    const language = document.createElement('select'); language.setAttribute('aria-label','Dasturlash tili');
+    const languages = {web:'HTML / CSS / JavaScript',python:'Python',php:'PHP',javascript:'JavaScript',typescript:'TypeScript',java:'Java',cpp:'C++',c:'C',csharp:'C#',go:'Go',rust:'Rust',ruby:'Ruby',swift:'Swift',kotlin:'Kotlin',sql:'SQL',bash:'Bash',other:'Boshqa til'};
+    if(project.language) languages[project.language] = languages[project.language] || project.language;
+    for(const [key,name] of Object.entries(languages)){const o=document.createElement('option');o.value=key;o.textContent=name;language.append(o);}
+    language.value=project.language || 'web';language.disabled=!editable;
     const controls = document.createElement('div');
     controls.className = 'hw-code-controls';
-    root.append(controls);
+    root.append(controls); controls.append(language);
     const panes = document.createElement('div');
     panes.className = 'hw-code-panes';
-    for (const [key, label] of [['html', 'HTML'], ['css', 'CSS'], ['js', 'JavaScript']]) {
+    for (const [key, label] of [['html', 'HTML'], ['css', 'CSS'], ['js', 'JavaScript'], ['code', 'Kod']]) {
       const field = document.createElement('label');
       field.textContent = label;
       const area = document.createElement('textarea');
-      area.value = project[key];
+      area.value = project[key] || '';
       area.spellcheck = false;
       area.readOnly = !editable;
       area.setAttribute('aria-label', label + ' kodi');
@@ -47,10 +54,14 @@
     output.setAttribute('aria-live', 'polite'); root.append(output);
     let frame = null;
     let runToken = '';
-    const get = () => Object.fromEntries(Object.entries(editors).map(([k, el]) => [k, el.value]));
+    const get = () => language.value === 'web' ? Object.fromEntries(['html','css','js'].map(k=>[k,editors[k].value])) : {language:language.value,code:editors.code.value};
+    const hint=document.createElement('p');hint.className='hw-code-hint';root.append(hint);
+    function refresh(){const web=language.value==='web';for(const [k,a] of Object.entries(editors)) a.parentElement.hidden=web?k==='code':k!=='code';panes.classList.toggle('hw-code-single',!web);result.hidden=!web;hint.textContent=web?'HTML, CSS va JavaScript natijasini ko\u2018ring.':'Kod ustozga yuboriladi. Bu til brauzerda bajarilmaydi.';}
+    language.addEventListener('change',()=>{stop();refresh();root.dispatchEvent(new Event('input',{bubbles:true}));});refresh();
     function stop() { if (frame) frame.remove(); frame = null; runToken = ''; }
     function run() {
       stop(); output.textContent = '';
+      if(language.value!=='web'){output.textContent='Bu til brauzerda bajarilmaydi.';return;}
       runToken = Math.random().toString(36).slice(2);
       const p = get();
       const doc = new DOMParser().parseFromString(p.html, 'text/html');
@@ -76,9 +87,13 @@
       const btn = document.createElement('button'); btn.type = 'button'; btn.textContent = text;
       btn.className = 'sp-dl-btn'; btn.addEventListener('click', fn); controls.append(btn);
     }
-    return {get, set(p) { for (const k of Object.keys(editors)) editors[k].value = p[k] || ''; }, stop};
+    const expand=document.createElement('button');expand.type='button';expand.className='sp-dl-btn';expand.textContent='To\u2018liq ekran';
+    function toggle(){const full=root.classList.toggle('hw-code-fullscreen');expand.textContent=full?'Kichraytirish (Esc)':'To\u2018liq ekran';expand.setAttribute('aria-pressed',String(full));}
+    expand.addEventListener('click',toggle);controls.append(expand);
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('hw-code-fullscreen'))toggle();});
+    return {get,set(p){language.value=p.language||'web';for(const k of Object.keys(editors))editors[k].value=p[k]||'';stop();refresh();},stop};
   }
-  window.HomeworkCode = {decode, source, create};
+  window.HomeworkCode = {decode, source, create, valid};
   document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('[data-homework-code-review]').forEach(root => {
       const data = root.querySelector('textarea');
