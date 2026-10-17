@@ -790,7 +790,7 @@ def login_view(request):
         request.session['login_token'] = login_token
 
     if request.method == 'POST':
-        form = LoginForm(request.POST)
+        form = LoginForm(request.POST if login_mode == 'username' else None)
         # login_token ATAYLAB POST dan olinmaydi. Ilgari
         #     login_token = request.POST.get('login_token', login_token)
         # deb yozilgan edi — hidden field mijoz nazoratida bo'lgani uchun
@@ -802,7 +802,9 @@ def login_view(request):
         request.session['login_token'] = login_token
 
         # 🛡️ IP-based rate limiting
-        if login_mode == 'telegram':
+        if login_mode == 'email':
+            login_identifier = 'email:' + request.session.get('email_login_token', login_token)[:64]
+        elif login_mode == 'telegram':
             # Telegram kodi — akkaunt identifikatori EMAS, balki taxmin
             # qilinayotgan sirning o'zi. Uni identifier qilib berilganda har
             # taxmin yangi kalitga tushib, id_limit hech qachon ishlamaydi.
@@ -851,8 +853,20 @@ def login_view(request):
                 request.session['brute_notified'] = True
             return _login_render(request, form, login_mode)
 
+        # Email codes use the same successful-login/session flow as other methods.
+        if login_mode == 'email':
+            from .email_login import request_code, verify_code
+            if request.POST.get('email_action') == 'send':
+                messages.info(request, request_code(request))
+                return _login_render(request, form, 'email')
+            user = verify_code(request)
+            if user is None:
+                _record_failed_login(ip_address, 'email_code:invalid', user_agent, login_token)
+                messages.error(request, 'Kod noto‘g‘ri, muddati tugagan yoki ishlatilgan. Yangi kod so‘rang.')
+                return _login_render(request, form, 'email')
+
         # Telegram kod orqali login
-        if login_mode == 'telegram':
+        elif login_mode == 'telegram':
             telegram_code = request.POST.get('telegram_code', '').strip()
             if not telegram_code:
                 messages.error(request, "Iltimos, kodni kiriting! ⚠️")

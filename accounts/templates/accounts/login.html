@@ -22,7 +22,7 @@
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=email-login-2">
 <script src="{% static 'js/auth-theme.js' %}" defer></script>
 <script src="{% static 'js/auth-page.js' %}" defer></script>
 </head>
@@ -82,7 +82,7 @@
     <!-- Rejim tablari -->
     <div class="seg" id="loginSeg">
       <span class="seg-pill" aria-hidden="true"></span>
-      <button type="button" class="seg-btn {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}on{% endif %}" data-target="paneUsername">
+      <button type="button" class="seg-btn {% if login_mode == 'username' or login_mode not in 'phone,telegram,email' %}on{% endif %}" data-target="paneUsername">
         <i class="bi bi-person-fill"></i> Username
       </button>
       <button type="button" class="seg-btn {% if login_mode == 'phone' %}on{% endif %}" data-target="panePhone">
@@ -91,10 +91,43 @@
       <button type="button" class="seg-btn {% if login_mode == 'telegram' %}on{% endif %}" data-target="paneTelegram">
         <i class="bi bi-telegram"></i> Telegram
       </button>
+      <button type="button" class="seg-btn {% if login_mode == 'email' %}on{% endif %}" data-target="paneEmail">
+        <i class="bi bi-envelope"></i> Email
+      </button>
+    </div>
+
+    <div id="paneEmail" class="pane {% if login_mode == 'email' %}on{% endif %}">
+      <form method="POST" class="login-form">
+        {% csrf_token %}
+        <input type="hidden" name="login_mode" value="email">
+        <input type="hidden" name="email_action" value="send">
+        <div class="hp" aria-hidden="true"><label for="wu4">Website</label><input type="text" name="website_url" id="wu4" autocomplete="off" tabindex="-1"></div>
+        <div class="f">
+          <label class="f-lab" for="emailLoginAddress">Email manzil</label>
+          <div class="iw">
+            <span class="fico"><i class="bi bi-envelope"></i></span>
+            <input type="email" name="email" id="emailLoginAddress" placeholder="siz@example.com" autocomplete="email" maxlength="254" required value="{{ request.POST.email }}">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-main"><i class="bi bi-envelope"></i><span>{% if request.session.email_login_token %}Kodni qayta yuborish{% else %}Kod yuborish{% endif %}</span></button>
+      </form>
+      {% if request.session.email_login_token %}
+      <form method="POST" class="login-form email-verify-form">
+        {% csrf_token %}
+        <input type="hidden" name="login_mode" value="email">
+        <input type="hidden" name="email_action" value="verify">
+        <p class="email-code-hint">Emailga yuborilgan 6 belgili kodni kiriting. Kod 2 daqiqa amal qiladi.</p>
+        <div class="f">
+          <label class="f-lab" for="emailLoginCode">Tasdiqlash kodi</label>
+          <input type="text" id="emailLoginCode" name="email_code" class="tg-code" placeholder="A7B2C9" minlength="6" maxlength="6" pattern="[A-Za-z0-9]{6}" autocomplete="one-time-code" autocapitalize="characters" spellcheck="false" required>
+        </div>
+        <button type="submit" class="btn btn-main"><i class="bi bi-box-arrow-in-right"></i><span>Email orqali kirish</span></button>
+      </form>
+      {% endif %}
     </div>
 
     <!-- USERNAME -->
-    <div id="paneUsername" class="pane {% if login_mode == 'username' or login_mode not in 'phone,telegram' %}on{% endif %}">
+    <div id="paneUsername" class="pane {% if login_mode == 'username' or login_mode not in 'phone,telegram,email' %}on{% endif %}">
       <form method="POST" class="login-form">
         {% csrf_token %}
         <input type="hidden" name="login_mode" value="username">
@@ -271,8 +304,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* Xabarlar */
   {% if messages %}{% for message in messages %}A.toast("{{ message|escapejs }}", "{{ message.tags }}");{% endfor %}{% endif %}
+  {% if login_mode == 'username' %}
   {% if form.username.errors %}A.toast("Username noto'g'ri yoki mavjud emas", "error");{% endif %}
   {% if form.password.errors %}A.toast("Parol noto'g'ri kiritildi!", "error");{% endif %}
+  {% endif %}
 });
 </script>
 </body>

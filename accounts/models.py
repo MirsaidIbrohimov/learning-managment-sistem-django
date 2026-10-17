@@ -1692,6 +1692,16 @@ class EmailRecoveryToken(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
 
+class EmailLoginChallenge(models.Model):
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    token = models.CharField(max_length=64, unique=True)
+    email = models.EmailField()
+    code_hash = models.CharField(max_length=128)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    used = models.BooleanField(default=False)
+
+
 class UserEmailNotification(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='email_notifications')
     kind = models.CharField(max_length=24)
