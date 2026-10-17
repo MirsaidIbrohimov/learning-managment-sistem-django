@@ -431,7 +431,7 @@
                 Onlayn to'lov nazorati
             </h1>
             <div class="tz-hero-subtitle">
-                Tezcheck hisoblari, kassa buyurtmalari, real vaqt holatlari va webhook auditi
+                Onlayn to‘lov hisoblari, kassa buyurtmalari, real vaqt holatlari va webhook auditi
             </div>
         </div>
         <div>
@@ -671,7 +671,7 @@
                             {% if order.bill_id and order.status != 'paid' %}
                                 <form method="post" action="{% url 'admin_sync_tezcheck_payment' order.pk %}" style="display: inline-block;">
                                     {% csrf_token %}
-                                    <button class="tz-btn-sync" type="submit" title="Tezcheck API orqali holatni tekshirish va LMS ga sinxronizatsiya qilish">
+                                    <button class="tz-btn-sync" type="submit" title="Onlayn to‘lov holatini tekshirish va LMS ga sinxronizatsiya qilish">
                                         <i class="bi bi-arrow-repeat"></i> Tekshirish
                                     </button>
                                 </form>
@@ -792,7 +792,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="6" class="text-center py-4 text-muted">
-                            Hali Tezcheck'dan webhook xabarlari kelmagan.
+                            Hali onlayn to‘lov tizimidan webhook xabarlari kelmagan.
                         </td>
                     </tr>
                     {% endfor %}

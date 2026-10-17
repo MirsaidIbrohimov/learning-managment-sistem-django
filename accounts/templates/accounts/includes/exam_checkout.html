@@ -8,7 +8,7 @@
     <p>Oldin yuklangan chekingiz tekshirilmoqda. Qaytadan to‘lov qilmang.</p>
   {% else %}
     <p style="font-size:24px;font-weight:700;margin:14px 0">{% if quiz %}{{ settings.retry_payment_amount|floatformat:0 }}{% else %}65 000{% endif %} so‘m</p>
-    <p>Tezcheck orqali to‘lang. To‘lov tasdiqlangach, qayta urinish avtomatik ochiladi.</p>
+    <p>Onlayn to‘lang. To‘lov tasdiqlangach, qayta urinish avtomatik ochiladi.</p>
     {% if exam_order.status == 'review' %}
       <p role="status">To‘lov administrator tekshiruvini kutmoqda. {{ exam_order.last_error }}</p>
     {% else %}
@@ -16,7 +16,7 @@
       {% if exam_order.status == 'refunded' %}<p>Oldingi to‘lov qaytarilgan.</p>{% endif %}
       <form method="post" action="{% url 'exam_checkout' exam_kind exam_pk %}" style="margin-top:18px">
         {% csrf_token %}
-        <button type="submit" class="submit-btn">{% if exam_order.status == 'pending' and exam_order.payment_url %}To‘lovni davom ettirish / tekshirish{% else %}Tezcheck orqali to‘lash{% endif %}</button>
+        <button type="submit" class="submit-btn">{% if exam_order.status == 'pending' and exam_order.payment_url %}To‘lovni davom ettirish / tekshirish{% else %}Onlayn to‘lash{% endif %}</button>
       </form>
     {% endif %}
   {% endif %}
