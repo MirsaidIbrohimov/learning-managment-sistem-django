@@ -251,7 +251,7 @@ class UserProfileForm(forms.ModelForm):
     )
 
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Yashash manzilingiz'}))
-    birth_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    birth_date = forms.DateField(required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}))
     id_card = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
     birth_certificate = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
 

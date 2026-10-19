@@ -7346,6 +7346,22 @@ def complete_profile(request):
 # Profile views
 @login_required
 def profile_view(request):
+    profile_fields = ('first_name', 'last_name', 'phone', 'email', 'photo', 'birth_date', 'address', 'bio')
+    profile_filled = sum(bool(getattr(request.user, field, None)) for field in profile_fields)
+    profile_summary = {
+        'completion': round(profile_filled / len(profile_fields) * 100),
+        'filled': profile_filled,
+        'total': len(profile_fields),
+    }
+    if request.user.is_teacher:
+        teaching_courses = request.user.teaching_professions.all()
+        profile_summary['courses'] = teaching_courses.count()
+        profile_summary['students'] = CourseEnrollment.objects.filter(
+            profession__in=teaching_courses, user__role='student'
+        ).values('user_id').distinct().count()
+        profile_summary['pending'] = HomeworkSubmission.objects.filter(
+            homework__lesson__profession__in=teaching_courses, status='pending'
+        ).count()
     certificates = Certificate.objects.filter(student=request.user).select_related('profession')
     enrollments = request.user.enrollments.all().select_related('profession')
     
@@ -7393,6 +7409,7 @@ def profile_view(request):
     profile_xp_pct = profile_xp_in_level  # 100 XP bir daraja => foiz = darajadagi XP
 
     return render(request, 'accounts/profile.html', {
+        'profile_summary': profile_summary,
         'certificates': certificates,
         'enrollments': enrollments,
         'completed_courses': completed_courses,

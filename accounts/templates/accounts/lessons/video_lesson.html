@@ -861,13 +861,11 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
     .vl-celeb-modal { padding: 28px 20px 22px; width: 92%; }
 }
 </style>
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-<link rel="stylesheet" href="{% static 'css/student_learning_glass.css' %}">
+<link rel="stylesheet" href="{% static 'css/video_studio.css' %}">
 {% endblock %}
 
 {% block content %}
-<div class="vl-wrap dash learning-glass video-glass">
-    <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="vl-wrap video-studio">
     <div class="vl-shell">
 
     <!-- Back -->
@@ -876,8 +874,9 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
     {% else %}
     <a href="{% url 'profession_detail' profession.pk %}" class="vl-back">
     {% endif %}
-        <i class="bi bi-chevron-left"></i> Orqaga
+        <i class="bi bi-chevron-left"></i> Kursga qaytish
     </a>
+    <div class="studio-heading"><div><span class="studio-eyebrow">IT CREATIVE / VIDEO DARSLIK</span><p>{{ profession.name }}</p></div><button class="studio-focus" id="studioFocus" type="button" aria-pressed="false"><i class="bi bi-arrows-angle-expand"></i> Keng ko‘rinish</button></div>
 
     <!-- Two-column grid -->
     <div class="vl-grid">
@@ -887,6 +886,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 
             <!-- Title + tags -->
             <div class="vl-card vl-header" style="margin-bottom:12px;">
+                <span class="studio-eyebrow">BUGUNGI MAVZU</span>
                 <h1 class="vl-title">{{ lesson.title }}</h1>
                 {% with prompt="«"|add:lesson.title|add:"» mavzusini menga sodda tilda, misollar bilan tushuntiring." %}
                 <div style="margin:10px 0 2px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt %}</div>
@@ -908,7 +908,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
             <div class="vl-card" style="margin-bottom:12px;">
                 <div class="vl-video-wrap" id="videoBox">
                     {% if video.has_video %}
-                        <div id="videoPlaceholder" class="vl-placeholder">
+                        <div id="videoPlaceholder" class="vl-placeholder" role="button" tabindex="0" aria-label="Video darsni boshlash">
                             {% if video.get_thumbnail %}
                             <img src="{{ video.get_thumbnail }}" alt="">
                             {% endif %}
@@ -917,7 +917,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
                             </div>
                             <span class="vl-play-hint">Boshlash uchun bosing</span>
                         </div>
-                        <iframe id="videoFrame" class="d-none" allowfullscreen
+                        <iframe id="videoFrame" class="d-none" title="{{ lesson.title }} — video dars" allowfullscreen
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     {% else %}
                         <div class="vl-placeholder vl-no-video">
@@ -931,9 +931,10 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
             </div>
 
             <!-- AI Article -->
+            <div class="studio-player-note"><i class="bi bi-info-circle"></i><span>Video ko‘rish jarayoni avtomatik saqlanadi. Dars davomida ishtirokingizni tasdiqlash so‘ralishi mumkin.</span></div>
             {% if lesson.ai_article %}
             <div class="vl-card vl-ai-card" id="aiCard">
-                <div class="vl-ai-header" onclick="document.getElementById('aiCard').classList.toggle('collapsed')">
+                <div class="vl-ai-header" role="button" tabindex="0" aria-expanded="true" aria-controls="lessonArticle" onclick="this.setAttribute('aria-expanded', !document.getElementById('aiCard').classList.toggle('collapsed'))" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click();}">
                     <div class="vl-ai-icon"><i class="bi bi-sparkles"></i></div>
                     <div class="vl-ai-meta">
                         <h5 class="vl-ai-title">{{ lesson.title }}</h5>
@@ -941,7 +942,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
                     </div>
                     <i class="bi bi-chevron-up vl-ai-chev"></i>
                 </div>
-                <div class="vl-ai-body">
+                <div class="vl-ai-body" id="lessonArticle">
                     {{ lesson.ai_article|safe_html }}
                 </div>
             </div>
@@ -951,6 +952,7 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 
         <!-- ═══ RIGHT: Progress panel + Next lesson ═════════ -->
         <div class="vl-right">
+            <div class="studio-sidebar-heading"><span class="studio-eyebrow">MENING NATIJAM</span><h2>Dars jarayoni</h2></div>
 
             {% if video.has_video %}
 
@@ -1081,6 +1083,18 @@ body { background: var(--vl-bg) var(--vl-bg-grad) fixed !important; }
 {% endblock %}
 
 {% block extra_js %}
+<script src="{% static 'js/video_presence.js' %}"></script>
+<script>
+document.getElementById('studioFocus').addEventListener('click', function () {
+    const expanded = document.querySelector('.video-studio').classList.toggle('studio-wide');
+    this.setAttribute('aria-pressed', String(expanded));
+    this.innerHTML = expanded ? '<i class="bi bi-arrows-angle-contract"></i> Oddiy ko‘rinish' : '<i class="bi bi-arrows-angle-expand"></i> Keng ko‘rinish';
+});
+const studioPlaceholder = document.getElementById('videoPlaceholder');
+if (studioPlaceholder) studioPlaceholder.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); this.click(); }
+});
+</script>
 {% if video.is_vimeo %}
 <script src="https://player.vimeo.com/api/player.js"></script>
 {% endif %}
@@ -1581,14 +1595,17 @@ function showPresencePrompt(challenge) {
     overlay.innerHTML = `
         <section class="vl-presence-modal" role="dialog" aria-modal="true" aria-labelledby="vlPresenceTitle" aria-describedby="vlPresenceCopy">
             <div class="vl-presence-icon" aria-hidden="true"><i class="bi bi-eye-fill"></i></div>
-            <h2 class="vl-presence-title" id="vlPresenceTitle">Darsni kuzatyapsizmi?</h2>
-            <p class="vl-presence-copy" id="vlPresenceCopy">${PRESENCE_ANSWER_SECONDS} soniya ichida “Ha, davom etaman” tugmasini bosing. Aks holda video to‘xtaydi, tasdiqlangan progress saqlanadi.</p>
+            <span class="studio-eyebrow">QISQA TANAFFUS</span>
+            <h2 class="vl-presence-title" id="vlPresenceTitle">Shu yerdamisiz?</h2>
+            <p class="vl-presence-copy" id="vlPresenceCopy">Video vaqtincha to‘xtatildi. ${PRESENCE_ANSWER_SECONDS} soniya ichida tasdiqlang va darsni davom ettiring.</p>
             <div class="vl-presence-countdown" aria-live="polite">${PRESENCE_ANSWER_SECONDS} soniya</div>
             <button class="vl-presence-btn" type="button"><i class="bi bi-play-fill me-1"></i> Ha, davom etaman</button>
         </section>`;
     (fullscreenElement === videoBox ? videoBox : document.body).appendChild(overlay);
+    const restoreFocus = document.activeElement;
+    const stopPositioning = window.placeVideoPresence(overlay);
     const confirmBtn = overlay.querySelector('.vl-presence-btn');
-    confirmBtn.focus();
+    confirmBtn.focus({preventScroll: true});
     let secondsLeft = PRESENCE_ANSWER_SECONDS;
     const countdownEl = overlay.querySelector('.vl-presence-countdown');
     presenceCountdown = setInterval(function() {
@@ -1598,6 +1615,7 @@ function showPresencePrompt(challenge) {
             presenceCountdown = null;
             presencePrompting = false;
             presenceOverlay = null;
+            stopPositioning();
             overlay.remove();
             presenceRestoreFullscreen = false;
             sendBeat('', false, true);
@@ -1612,7 +1630,9 @@ function showPresencePrompt(challenge) {
         if (!overlay.isConnected) return;
         clearInterval(presenceCountdown);
         presenceCountdown = null;
+        stopPositioning();
         overlay.remove();
+        if (restoreFocus && restoreFocus.isConnected) restoreFocus.focus({preventScroll: true});
         presenceOverlay = null;
         presencePrompting = false;
         if (presenceRestoreFullscreen) {

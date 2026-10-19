@@ -1,0 +1,24 @@
+﻿<section class="account-panel dossier" id="personal-info">
+    <div class="account-section-heading"><div><span class="account-eyebrow">01 / SHAXSIY MA’LUMOTLAR</span><h2>Men haqimda</h2></div><a class="account-button" href="{% url 'profile_edit' %}#personal"><i class="bi bi-pencil"></i> Tahrirlash</a></div>
+    <dl class="dossier-grid">
+        <div><dt>Ism</dt><dd>{{ user.first_name|default:"Kiritilmagan" }}</dd></div><div><dt>Familiya</dt><dd>{{ user.last_name|default:"Kiritilmagan" }}</dd></div>
+        <div><dt>Tug‘ilgan sana</dt><dd>{{ user.birth_date|date:"d.m.Y"|default:"Kiritilmagan" }}</dd></div><div><dt>Jinsi</dt><dd>{{ user.get_gender_display|default:"Kiritilmagan" }}</dd></div>
+        <div><dt>Telefon raqami</dt><dd>{{ user.phone|default:"Kiritilmagan" }}</dd></div><div><dt>Email</dt><dd>{{ user.email|default:"Kiritilmagan" }}</dd></div>
+        <div><dt>Millati</dt><dd>{{ user.nationality|default:"Kiritilmagan" }}</dd></div><div><dt>Manzil</dt><dd>{{ user.address|default:"Kiritilmagan" }}</dd></div>
+    </dl>
+    {% if user.pending_email %}<p class="account-notice"><i class="bi bi-envelope"></i> {{ user.pending_email }} — email tasdiqlanishi kutilmoqda.</p>{% endif %}
+    <div class="dossier-bio"><h3>Qisqacha tanishuv</h3><p>{{ user.bio|default:"O‘zingiz haqingizda hali ma’lumot kiritmagansiz."|linebreaksbr }}</p></div>
+    {% if user.obektivka %}<details class="account-disclosure"><summary>Obyektivkani ko‘rish</summary><p>{{ user.obektivka|linebreaksbr }}</p></details>{% endif %}
+</section>
+{% if user.role == 'student' %}
+<section class="account-panel dossier" id="education-info">
+    <div class="account-section-heading"><div><span class="account-eyebrow">02 / TA’LIM VA OILA</span><h2>Qo‘shimcha ma’lumotlar</h2></div></div>
+    <dl class="dossier-grid"><div><dt>Yo‘nalish</dt><dd>{{ user.profession.name|default:"Belgilanmagan" }}</dd></div><div><dt>Maktab</dt><dd>{{ user.school_name|default:"Kiritilmagan" }}{% if user.school_number %} · {{ user.school_number }}-maktab{% endif %}</dd></div><div><dt>Otasining ismi</dt><dd>{{ user.father_name|default:"Kiritilmagan" }}{% if user.father_deceased %} (vafot etgan){% endif %}</dd></div><div><dt>Otasining telefoni</dt><dd>{{ user.father_phone|default:"Kiritilmagan" }}</dd></div><div><dt>Onasining ismi</dt><dd>{{ user.mother_name|default:"Kiritilmagan" }}{% if user.mother_deceased %} (vafot etgan){% endif %}</dd></div><div><dt>Onasining telefoni</dt><dd>{{ user.mother_phone|default:"Kiritilmagan" }}</dd></div><div><dt>Ota-ona aloqa raqami</dt><dd>{{ user.parent_phone|default:"Kiritilmagan" }}</dd></div></dl>
+    <p class="account-caption">Ta’lim va oila ma’lumotlarini tuzatish uchun administratorga murojaat qiling.</p>
+</section>
+{% endif %}
+<section class="account-panel dossier" id="documents-info">
+    <div class="account-section-heading"><div><span class="account-eyebrow">HUJJATLAR</span><h2>Shaxsiy hujjatlarim</h2></div><a class="account-button" href="{% url 'profile_edit' %}#documents"><i class="bi bi-upload"></i> Fayl yuklash</a></div>
+    <div class="document-tiles"><div><i class="bi bi-person-vcard"></i><span><strong>ID karta / Pasport</strong><small>{% if user.id_card %}Fayl yuklangan{% else %}Fayl yuklanmagan{% endif %}</small></span>{% if user.id_card %}<a href="{{ user.id_card.url }}" target="_blank" rel="noopener" aria-label="ID karta yoki pasportni ko‘rish">Ko‘rish ↗</a>{% endif %}</div><div><i class="bi bi-file-earmark-text"></i><span><strong>Tug‘ilganlik guvohnomasi</strong><small>{% if user.birth_certificate %}Fayl yuklangan{% else %}Fayl yuklanmagan{% endif %}</small></span>{% if user.birth_certificate %}<a href="{{ user.birth_certificate.url }}" target="_blank" rel="noopener" aria-label="Tug‘ilganlik guvohnomasini ko‘rish">Ko‘rish ↗</a>{% endif %}</div></div>
+    <details class="account-disclosure"><summary>Hujjat rekvizitlarini ko‘rish</summary><dl class="dossier-grid"><div><dt>Hujjat turi</dt><dd>{{ user.get_document_type_display|default:"Kiritilmagan" }}</dd></div><div><dt>Pasport seriyasi va raqami</dt><dd>{{ user.passport_series|default:"—" }} {{ user.passport_number|default:"—" }}</dd></div><div><dt>JSHSHIR</dt><dd>{{ user.jshshir|default:"Kiritilmagan" }}</dd></div><div><dt>Berilgan sana</dt><dd>{{ user.passport_issued_date|date:"d.m.Y"|default:"Kiritilmagan" }}</dd></div><div><dt>Metrika seriyasi va raqami</dt><dd>{{ user.metrka_series|default:"—" }} {{ user.metrka_number|default:"—" }}</dd></div></dl><p class="account-caption">Rekvizitlarni tuzatish uchun administratorga murojaat qiling.</p></details>
+</section>
