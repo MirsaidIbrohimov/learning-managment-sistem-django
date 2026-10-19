@@ -1528,7 +1528,7 @@ let isReady     = false;  // 90% ga yetdi
  */
 const BEAT_INTERVAL_MS = 8000;
 const BEAT_TIMEOUT_MS = 12000;
-const IDLE_PROMPT_MS = 600000;
+const IDLE_PROMPT_MS = 60000;
 const PRESENCE_ANSWER_SECONDS = 30;
 const BEAT_URL = '{% if student_token %}{% url "student_video_watch_beat" student_token.token %}{% else %}{% url "video_watch_beat" video.pk %}{% endif %}';
 let serverCanComplete = false;
@@ -1872,8 +1872,8 @@ function scheduleIdlePrompt() {
     idlePromptTimer = setTimeout(function() {
         idlePromptTimer = null;
         if (isVideoPlaying && !document.hidden && !presencePrompting) {
-            // Server tasdiqlagan aniq 60 soniyalik oralig'dan keyin liveness
-            // challenge so'raymiz; modal faqat server tokeni kelganda ochiladi.
+            // Qo'shimcha sinxronlash; tekshiruv muddatini server belgilaydi.
+            // Modal faqat server tokeni kelganda ochiladi.
             sendBeat('', true);
             scheduleIdlePrompt();
         }

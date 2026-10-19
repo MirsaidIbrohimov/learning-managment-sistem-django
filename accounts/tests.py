@@ -1087,6 +1087,40 @@ class VideoWatchLivenessTests(TestCase):
         self.assertIsNone(progress.presence_sent_at)
         self.assertGreater(progress.next_check_seconds, progress.verified_seconds)
 
+    def test_presence_appears_within_two_minutes_of_verified_playback(self):
+        self._beat(0)
+        due = self._progress().next_check_seconds
+        self.assertGreaterEqual(due, 60)
+        self.assertLessEqual(due, 120)
+        for position in range(8, 137, 8):
+            self._elapse(8)
+            result = self._beat(position, answer_presence=False)
+            if result.get('presence'):
+                break
+        else:
+            self.fail('No presence challenge after two minutes plus heartbeat tolerance')
+        self._elapse(1)
+        self._beat(position)
+        progress = self._progress()
+        remaining = progress.next_check_seconds - progress.verified_seconds
+        self.assertGreaterEqual(remaining, 119)
+        self.assertLessEqual(remaining, 180)
+
+    def test_legacy_presence_schedule_is_shortened_without_sliding(self):
+        self._beat(0)
+        VideoProgress.objects.filter(user=self.user, video=self.video).update(
+            next_check_seconds=900,
+        )
+        self._elapse(8)
+        self._beat(8)
+        progress = self._progress()
+        due = progress.next_check_seconds
+        self.assertGreaterEqual(due - progress.verified_seconds, 60)
+        self.assertLessEqual(due - progress.verified_seconds, 120)
+        self._elapse(8)
+        self._beat(16)
+        self.assertEqual(self._progress().next_check_seconds, due)
+
     # ── video ichidagi testlar ──
 
     def test_unanswered_quiz_stops_credit_at_its_second(self):

@@ -4415,10 +4415,10 @@ BEAT_SEEK_TOLERANCE  = 5.0   # max_position'dan shuncha oldinga o'tish kechirila
 # Vaqt o'tishining o'zi yetarli emas edi: konsoldan soxta pozitsiya yuboruvchi
 # skript videoni umuman o'ynatmasdan, tabni fonda qoldirib kredit yig'ib
 # ketardi. Shuning uchun server tasodifiy vaqtda tugma bosishni talab qiladi.
-PRESENCE_FIRST_MIN    = 600   # birinchi tekshiruv: 10 daqiqadan so'ng (avval 60 soniya edi)
-PRESENCE_FIRST_MAX    = 900   # 15 daqiqa
-PRESENCE_INTERVAL_MIN = 600   # keyingi tekshiruvlar: har 10-15 daqiqada
-PRESENCE_INTERVAL_MAX = 900
+PRESENCE_FIRST_MIN    = 60    # birinchi tekshiruv: 1-2 daqiqa haqiqiy ko'rishdan keyin
+PRESENCE_FIRST_MAX    = 120
+PRESENCE_INTERVAL_MIN = 120   # keyingi tekshiruvlar: har 2-3 daqiqada
+PRESENCE_INTERVAL_MAX = 180
 PRESENCE_DEADLINE     = 30    # tasdiqlash uchun qulay muddat (30 soniya, avval 10 soniya edi)
 
 # Shubha bali shu chegaradan oshsa adminga BIR MARTA xabar beriladi.
@@ -4849,6 +4849,15 @@ def _process_watch_beat(request, video, progress_pk):
 
         # ── 6. Navbatdagi tiriklik tekshiruvini yuborish ──
         if progress.next_check_seconds <= 0:
+            progress.next_check_seconds = progress.verified_seconds + random.uniform(
+                PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
+            )
+        elif (
+            not progress.presence_token
+            and progress.next_check_seconds - progress.verified_seconds > PRESENCE_INTERVAL_MAX
+        ):
+            # Oldingi 10-15 daqiqalik jadvalni bir marta qisqartiramiz.
+            # Har heartbeat'da muddatni surish tekshiruvni cheksiz kechiktiradi.
             progress.next_check_seconds = progress.verified_seconds + random.uniform(
                 PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
             )
