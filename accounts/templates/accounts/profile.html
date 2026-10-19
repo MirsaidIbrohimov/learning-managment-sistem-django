@@ -1,415 +1,39 @@
 {% extends 'accounts/base.html' %}
 {% load static custom_filters %}
-
-{% block title %}Profil | LMS - IT Creative{% endblock %}
-
-{% block extra_css %}
-<meta charset="utf-8">
-<style>
-/* ===== ANIMATIONS ===== */
-@keyframes pFadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pFadeScale{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
-@keyframes pSlideIn{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:translateX(0)}}
-@keyframes pSlideRight{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
-.a-up{animation:pFadeUp .55s ease both}.a-scale{animation:pFadeScale .5s ease both}.a-left{animation:pSlideIn .5s ease both}.a-right{animation:pSlideRight .5s ease both}
-.d1{animation-delay:.05s}.d2{animation-delay:.1s}.d3{animation-delay:.15s}.d4{animation-delay:.2s}
-.d5{animation-delay:.25s}.d6{animation-delay:.3s}.d7{animation-delay:.35s}.d8{animation-delay:.4s}
-
-/* ===== THEME ===== */
-.pf{--card:rgba(255,255,255,.92);--border:rgba(0,0,0,.06);--text:#1d1d1f;--muted:#86868b;--accent:#6366f1;--accent-bg:rgba(99,102,241,.08);--success:#34c759;--success-bg:rgba(52,199,89,.08);--warn:#ff9f0a;--warn-bg:rgba(255,159,10,.08);--purple:#af52de;--purple-bg:rgba(175,82,222,.08);--red:#ff3b30;--red-bg:rgba(255,59,48,.08);max-width:1100px;margin:0 auto;padding:0 0 3rem}
-[data-bs-theme="dark"] .pf{--card:rgba(28,28,30,.92);--border:rgba(255,255,255,.08);--text:#f5f5f7;--muted:#98989d;--accent-bg:rgba(99,102,241,.15);--success-bg:rgba(52,199,89,.15);--warn-bg:rgba(255,159,10,.15);--purple-bg:rgba(175,82,222,.15);--red-bg:rgba(255,59,48,.15)}
-
-/* ===== HERO BANNER ===== */
-.pf-banner{height:180px;background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 40%,#a855f7 70%,#d946ef 100%);border-radius:0 0 32px 32px;position:relative;overflow:hidden;margin-bottom:-60px}
-.pf-banner::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23fff' fill-opacity='.06'%3E%3Cpath d='M20 18v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4z'/%3E%3C/g%3E%3C/svg%3E")}
-.pf-banner::after{content:'';position:absolute;top:-50%;right:-10%;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.08)}
-
-/* ===== CARD ===== */
-.pf-card{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.08);transition:all .3s}
-[data-bs-theme="dark"] .pf-card{box-shadow:0 8px 32px rgba(0,0,0,.3)}
-
-/* ===== LEFT CARD ===== */
-.pf-left{position:relative;z-index:2}
-
-/* ===== AVATAR ===== */
-.pf-ava-wrap{position:relative;display:inline-block}
-.pf-ava{width:130px;height:130px;border-radius:50%;object-fit:cover;border:5px solid var(--card);box-shadow:0 8px 28px rgba(0,0,0,.15);transition:transform .4s}
-.pf-ava:hover{transform:scale(1.05)}
-.pf-ava-fb{width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:3rem;font-weight:800;border:5px solid var(--card);box-shadow:0 8px 28px rgba(0,0,0,.15)}
-.pf-ava-click{cursor:pointer;position:relative}
-.pf-ava-click::after{content:'\f52a';font-family:'bootstrap-icons';position:absolute;bottom:6px;right:6px;width:30px;height:30px;border-radius:50%;background:rgba(99,102,241,.9);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;opacity:0;transition:opacity .3s;backdrop-filter:blur(4px)}
-.pf-ava-click:hover::after{opacity:1}
-.pf-online{position:absolute;bottom:8px;right:8px;width:18px;height:18px;border-radius:50%;border:3px solid var(--card);z-index:3}
-.pf-online.on{background:var(--success);box-shadow:0 0 0 0 rgba(52,199,89,.4);animation:pf-pulse 2s infinite}
-.pf-online.off{background:var(--muted)}
-@keyframes pf-pulse{0%,100%{box-shadow:0 0 0 0 rgba(52,199,89,.4)}50%{box-shadow:0 0 0 8px rgba(52,199,89,0)}}
-
-/* ===== ROLE ===== */
-.pf-role{display:inline-flex;align-items:center;gap:.3rem;padding:.25rem .8rem;border-radius:50px;font-size:.78rem;font-weight:700}
-.pf-role-admin{background:rgba(220,38,38,.12);color:#dc2626}
-.pf-role-teacher{background:rgba(37,99,235,.12);color:#2563eb}
-.pf-role-student{background:var(--success-bg);color:var(--success)}
-
-/* ===== COIN ===== */
-.pf-coin{background:linear-gradient(135deg,#facc15,#f59e0b);border-radius:14px;padding:.55rem 1.1rem;font-weight:700;color:#111;font-size:.9rem;display:inline-flex;align-items:center;gap:.4rem}
-
-/* ===== QUICK STATS ===== */
-.pf-qstats{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem}
-.pf-qs{background:var(--card);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:18px;padding:1rem;text-align:center;transition:all .3s}
-.pf-qs:hover{transform:translateY(-4px);box-shadow:0 10px 28px rgba(0,0,0,.08)}
-[data-bs-theme="dark"] .pf-qs:hover{box-shadow:0 10px 28px rgba(0,0,0,.3)}
-.pf-qs-icon{width:42px;height:42px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;margin-bottom:.4rem}
-.pf-qs-num{font-size:1.5rem;font-weight:800;color:var(--text);line-height:1}
-.pf-qs-label{font-size:.72rem;color:var(--muted);margin-top:.15rem;font-weight:500}
-
-/* ===== SECTION CARD ===== */
-.pf-sec{padding:1.5rem;margin-bottom:1.25rem}
-.pf-sec-title{display:flex;align-items:center;gap:.5rem;font-size:1rem;font-weight:800;color:var(--text);margin-bottom:1rem}
-.pf-sec-title i.ib{width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;font-size:.95rem}
-
-/* ===== INFO ROWS ===== */
-.pf-row{display:flex;align-items:center;gap:.7rem;padding:.7rem 0;border-bottom:1px solid var(--border);transition:padding .2s}
-.pf-row:last-child{border-bottom:none}
-.pf-row:hover{padding-left:6px}
-.pf-row-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
-.pf-row-label{font-size:.72rem;color:var(--muted);font-weight:500}
-.pf-row-val{font-size:.88rem;font-weight:600;color:var(--text)}
-
-/* ===== BUTTONS ===== */
-.pf-btns .btn{border-radius:50px;font-weight:600;font-size:.85rem;transition:all .3s}
-.pf-btns .btn:hover{transform:translateY(-2px)}
-
-/* ===== STUDENT ID CARD ===== */
-.sid-card{
-  position:relative;overflow:hidden;
-  background:linear-gradient(135deg,#0f0c1e 0%,#1a1040 50%,#0d1829 100%);
-  border:1px solid rgba(99,102,241,.35);
-  border-radius:18px;padding:1.1rem 1.25rem;cursor:pointer;
-  text-align:left;
-  box-shadow:0 8px 28px rgba(99,102,241,.18),inset 0 0 0 1px rgba(255,255,255,.04);
-  transition:all .25s cubic-bezier(.4,0,.2,1);
-  user-select:none;
-}
-.sid-card::before{
-  content:'';position:absolute;top:-40px;right:-40px;
-  width:130px;height:130px;border-radius:50%;
-  background:rgba(99,102,241,.12);filter:blur(30px);pointer-events:none;
-}
-.sid-card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 14px 40px rgba(99,102,241,.28),inset 0 0 0 1px rgba(99,102,241,.2);
-  border-color:rgba(99,102,241,.55);
-}
-.sid-card.copied{
-  border-color:#34c759;
-  box-shadow:0 0 0 3px rgba(52,199,89,.25),0 12px 32px rgba(52,199,89,.15);
-}
-.sid-label{
-  font-size:.68rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
-  color:rgba(165,180,252,.7);margin-bottom:.35rem;
-  display:flex;align-items:center;gap:.35rem;
-}
-.sid-number{
-  font-size:2.1rem;font-weight:900;letter-spacing:.18em;
-  background:linear-gradient(135deg,#e0e7ff,#818cf8 40%,#a78bfa);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;line-height:1.1;margin-bottom:.5rem;
-  font-variant-numeric:tabular-nums;
-}
-.sid-copy-hint{font-size:.68rem;color:rgba(148,163,184,.6);display:flex;align-items:center;gap:.3rem;margin-bottom:.75rem;}
-.sid-logos{display:flex;gap:.5rem;align-items:center;}
-.sid-logo{
-  display:inline-flex;align-items:center;justify-content:center;
-  padding:.22rem .65rem;border-radius:7px;font-size:.7rem;font-weight:800;
-  letter-spacing:.02em;
-}
-.sid-logo.payme{background:#00c2ff;color:#fff;}
-.sid-logo.click{background:#f15a2b;color:#fff;}
-
-/* ===== MINI ITEM ===== */
-.pf-mini{background:var(--bs-tertiary-bg);border-radius:16px;padding:.85rem;transition:all .3s cubic-bezier(.4,0,.2,1)}
-.pf-mini:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(0,0,0,.1)}
-
-/* ===== PREMIUM ===== */
-@keyframes pm-glow{0%,100%{box-shadow:0 0 20px rgba(245,158,11,.2),0 0 60px rgba(245,158,11,.05)}50%{box-shadow:0 0 35px rgba(245,158,11,.4),0 0 80px rgba(245,158,11,.1)}}
-@keyframes pm-rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-@keyframes pm-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-@keyframes pm-sparkle{0%,100%{opacity:0;transform:scale(0) rotate(0deg)}50%{opacity:1;transform:scale(1) rotate(180deg)}}
-@keyframes pm-shine{0%{left:-100%}100%{left:200%}}
-@keyframes pm-gradient{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
-@keyframes pm-pulse-ring{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.3);opacity:0}}
-@keyframes pm-badge-bounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-5px) scale(1.1)}}
-
-/* Premium Banner */
-.pf-banner.pm{background:linear-gradient(135deg,#f59e0b 0%,#d97706 30%,#b45309 60%,#f59e0b 100%);background-size:200% auto;animation:pm-gradient 4s linear infinite}
-
-/* Premium Left Card */
-.pf-card.pm-left{border:2px solid rgba(245,158,11,.3);animation:pm-glow 3s ease-in-out infinite;position:relative;overflow:hidden}
-.pf-card.pm-left::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b,#d97706);background-size:200% 100%;animation:pm-gradient 3s linear infinite;z-index:1}
-.pf-card.pm-left::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(245,158,11,.06),transparent);animation:pm-shine 4s ease-in-out infinite;pointer-events:none}
-
-/* Premium Avatar */
-.pm-ava-wrap{animation:pm-float 4s ease-in-out infinite}
-.pm-ava-wrap .pf-ava,.pm-ava-wrap .pf-ava-fb{border-color:transparent;box-shadow:0 0 0 4px rgba(245,158,11,.5),0 8px 25px rgba(245,158,11,.3)}
-.pm-ring{position:absolute;inset:-8px;border-radius:50%;border:2px dashed rgba(245,158,11,.4);animation:pm-rotate 12s linear infinite;pointer-events:none}
-.pm-ring-2{position:absolute;inset:-14px;border-radius:50%;border:1px dotted rgba(245,158,11,.2);animation:pm-rotate 20s linear infinite reverse;pointer-events:none}
-.pm-pulse{position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(245,158,11,.4);animation:pm-pulse-ring 2s ease-out infinite;pointer-events:none}
-.pm-sparkle{position:absolute;color:#f59e0b;font-size:.8rem;pointer-events:none}
-.pm-sparkle:nth-child(1){top:-5px;right:10px;animation:pm-sparkle 2s ease-in-out infinite}
-.pm-sparkle:nth-child(2){bottom:5px;left:5px;animation:pm-sparkle 2s ease-in-out .5s infinite}
-.pm-sparkle:nth-child(3){top:20px;left:-5px;animation:pm-sparkle 2s ease-in-out 1s infinite}
-.pm-sparkle:nth-child(4){bottom:20px;right:0;animation:pm-sparkle 2s ease-in-out 1.5s infinite}
-
-/* Premium Badge */
-.pm-badge{display:inline-flex;align-items:center;gap:.4rem;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;font-weight:700;font-size:.78rem;padding:.35rem .9rem;border-radius:2rem;box-shadow:0 4px 15px rgba(245,158,11,.4);animation:pm-badge-bounce 3s ease-in-out infinite;position:relative;overflow:hidden}
-.pm-badge::after{content:'';position:absolute;top:0;left:-100%;width:50%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.3),transparent);animation:pm-shine 2.5s ease-in-out infinite}
-
-/* Premium Name */
-.pm-name{background:linear-gradient(135deg,#f59e0b,#d97706,#f59e0b);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:pm-gradient 3s linear infinite;font-weight:800}
-
-/* Premium Coin */
-.pf-coin.pm-coin{background:linear-gradient(135deg,#f59e0b,#d97706,#b45309);background-size:200% auto;animation:pm-gradient 4s ease infinite;box-shadow:0 4px 20px rgba(245,158,11,.4);color:#fff;position:relative;overflow:hidden}
-.pf-coin.pm-coin::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);animation:pm-shine 3s ease-in-out infinite}
-
-/* Premium Quick Stats */
-.pf-qs.pm-qs{border:1px solid rgba(245,158,11,.15);position:relative;overflow:hidden}
-.pf-qs.pm-qs::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b);background-size:200% 100%;animation:pm-gradient 3s linear infinite}
-.pf-qs.pm-qs:hover{border-color:rgba(245,158,11,.3);box-shadow:0 10px 28px rgba(245,158,11,.12)}
-
-/* Premium Right Cards */
-.pf-card.pm-right{border:1px solid rgba(245,158,11,.15);position:relative;overflow:hidden}
-.pf-card.pm-right::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#d97706,#f59e0b);background-size:200% 100%;animation:pm-gradient 3s linear infinite;z-index:1}
-.pf-card.pm-right .pf-mini{border:1px solid rgba(245,158,11,.1)}
-.pf-card.pm-right .pf-mini:hover{border-color:rgba(245,158,11,.3);box-shadow:0 8px 24px rgba(245,158,11,.12)}
-
-/* Premium Buttons */
-.pm-btns .btn-primary{background:linear-gradient(135deg,#f59e0b,#d97706);border:none;box-shadow:0 4px 15px rgba(245,158,11,.3)}
-.pm-btns .btn-primary:hover{box-shadow:0 6px 20px rgba(245,158,11,.4)}
-.pm-btns .btn-outline-primary{border-color:rgba(245,158,11,.4);color:#f59e0b}
-.pm-btns .btn-outline-primary:hover{background:rgba(245,158,11,.1);border-color:#f59e0b;color:#f59e0b}
-.pm-btns .btn-outline-success{border-color:rgba(245,158,11,.3);color:#f59e0b}
-.pm-btns .btn-outline-success:hover{background:rgba(245,158,11,.1);border-color:#f59e0b;color:#f59e0b}
-.pm-btns .btn-outline-secondary{border-color:rgba(245,158,11,.2)}
-.pm-btns .btn-outline-secondary:hover{border-color:rgba(245,158,11,.4);color:#f59e0b;background:rgba(245,158,11,.05)}
-
-/* Premium Particles */
-.pm-particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;border-radius:24px}
-.pm-particles span{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(245,158,11,.3)}
-.pm-particles span:nth-child(1){top:15%;left:10%;animation:pm-float 3s ease-in-out infinite}
-.pm-particles span:nth-child(2){top:60%;right:15%;animation:pm-float 4s ease-in-out .5s infinite}
-.pm-particles span:nth-child(3){bottom:20%;left:30%;animation:pm-float 3.5s ease-in-out 1s infinite}
-.pm-particles span:nth-child(4){top:30%;right:25%;animation:pm-float 4.5s ease-in-out 1.5s infinite}
-.pm-particles span:nth-child(5){bottom:40%;left:60%;animation:pm-float 3s ease-in-out .8s infinite}
-.pm-particles span:nth-child(6){top:70%;left:80%;animation:pm-float 5s ease-in-out .3s infinite}
-
-/* ===== LIGHTBOX ===== */
-.photo-lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:all .3s ease;cursor:zoom-out}
-.photo-lightbox.active{opacity:1;visibility:visible}
-.photo-lightbox-img{max-width:90vw;max-height:85vh;border-radius:20px;object-fit:contain;box-shadow:0 20px 60px rgba(0,0,0,.5);transform:scale(.85);transition:transform .35s cubic-bezier(.4,0,.2,1)}
-.photo-lightbox.active .photo-lightbox-img{transform:scale(1)}
-.photo-lightbox-close{position:absolute;top:1.5rem;right:1.5rem;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:1.3rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(8px)}
-.photo-lightbox-close:hover{background:rgba(255,255,255,.25);transform:scale(1.1)}
-.photo-lightbox-name{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.1);backdrop-filter:blur(12px);padding:.6rem 1.5rem;border-radius:2rem;color:#fff;font-weight:700;font-size:.95rem;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:991px){.pf-qstats{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:640px){
-    .pf-banner{height:140px;border-radius:0 0 24px 24px;margin-bottom:-40px}
-    .pf-ava,.pf-ava-fb{width:100px;height:100px}
-    .pf-qstats{grid-template-columns:repeat(3,1fr);gap:.5rem}
-    .pf-qs{padding:.7rem}
-    .pf-qs-num{font-size:1.2rem}
-    .pf-sec{padding:1.15rem}
-}
-</style>
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-<link rel="stylesheet" href="{% static 'css/student_learning_glass.css' %}">
-{% endblock %}
-
+{% block title %}Hisobim | IT Creative{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
 {% block content %}
-<div class="pf dash learning-glass profile-glass">
-<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-
-<!-- ===== BANNER ===== -->
-<div class="pf-banner a-up {% if user.is_premium %}pm{% endif %}"></div>
-
-{% if messages %}
-<div class="container mt-3">
-{% for message in messages %}
-<div class="alert alert-{{ message.tags }} alert-dismissible fade show" style="border-radius:16px">
-    {{ message }}
-    <button class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-</div>
-{% endif %}
-
-<div class="container">
-<div class="row g-4">
-
-<!-- ================= LEFT ================= -->
-<div class="col-lg-4">
-<div class="pf-card pf-left p-4 text-center a-up d2 {% if user.is_premium %}pm-left{% endif %}">
-
-    {% if user.is_premium %}
-    <div class="pm-particles"><span></span><span></span><span></span><span></span><span></span><span></span></div>
-    {% endif %}
-
-    <!-- Avatar -->
-    <div class="pf-ava-wrap mb-3 {% if user.is_premium %}pm-ava-wrap{% endif %}">
-        {% if user.is_premium %}
-        <div class="pm-ring"></div>
-        <div class="pm-ring-2"></div>
-        <div class="pm-pulse"></div>
-        <span class="pm-sparkle">✦</span>
-        <span class="pm-sparkle">✦</span>
-        <span class="pm-sparkle">✦</span>
-        <span class="pm-sparkle">✦</span>
-        {% endif %}
-        {% if user.photo %}
-        <img src="{{ user.photo.url }}" class="pf-ava pf-ava-click" onclick="openPhotoLightbox('{{ user.photo.url }}')">
-        {% else %}
-        <div class="pf-ava-fb">{{ user.get_initials }}</div>
-        {% endif %}
-        <div class="pf-online {% if user.is_online %}on{% else %}off{% endif %}"></div>
-    </div>
-
-    <!-- Name & Role -->
-    <h4 class="fw-bold mb-1 {% if user.is_premium %}pm-name{% endif %}">{{ user|premium_name }}</h4>
-    {% if user.is_premium %}
-    <div class="pm-badge mb-2"><i class="bi bi-gem"></i> Premium</div>
-    {% endif %}
-    <p class="mb-2" style="color:var(--muted);font-size:.88rem">@{{ user.username }}</p>
-
-    <span class="pf-role
-        {% if user.role == 'admin' %}pf-role-admin
-        {% elif user.role == 'teacher' %}pf-role-teacher
-        {% else %}pf-role-student{% endif %}">
-        <i class="bi {% if user.role == 'admin' %}bi-shield-fill{% elif user.role == 'teacher' %}bi-mortarboard-fill{% else %}bi-person-fill{% endif %} me-1"></i>
-        {% if user.role == 'admin' %}Admin{% elif user.role == 'teacher' %}O'qituvchi{% else %}O'quvchi{% endif %}
-    </span>
-
-    <div class="my-3">
-        <div class="pf-coin {% if user.is_premium %}pm-coin{% endif %}">
-            <i class="bi bi-coin"></i> {{ user.coins }} coin
-        </div>
-
-        {% if user.student_id %}
-        <!-- Student ID card -->
-        <div class="sid-card mt-3" id="sidCard" title="Nusxa olish uchun bosing" onclick="copySid()">
-            <div class="sid-label"><i class="bi bi-person-badge-fill"></i> ID Raqam</div>
-            <div class="sid-number" id="sidNumber">{{ user.student_id }}</div>
-            <div class="sid-copy-hint"><i class="bi bi-clipboard"></i> Bosib nusxa oling</div>
-            <div class="sid-logos">
-                <span class="sid-logo payme">Payme</span>
-                <span class="sid-logo click">Click</span>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Buttons -->
-    <div class="d-grid gap-2 pf-btns {% if user.is_premium %}pm-btns{% endif %}">
-        <a href="{% url 'profile_edit' %}" class="btn btn-primary rounded-pill">
-            <i class="bi bi-pencil me-1"></i>Tahrirlash
-        </a>
-        <a href="{% url 'change_password' %}" class="btn btn-outline-primary rounded-pill">
-            <i class="bi bi-key me-1"></i>Parol o'zgartirish
-        </a>
-        <a href="{% url 'my_statistics' %}" class="btn btn-outline-success rounded-pill">
-            <i class="bi bi-graph-up me-1"></i>Statistika
-        </a>
-        <a href="{% url 'video_quiz:student_history' %}" class="btn btn-outline-info rounded-pill">
-            <i class="bi bi-play-circle me-1"></i>Video test tarixi
-        </a>
-        <a href="{% url 'my_devices' %}" class="btn btn-outline-secondary rounded-pill">
-            <i class="bi bi-laptop me-1"></i>Qurilmalar
-        </a>
-
-        {% if user.telegram_id %}
-        <div class="d-flex align-items-center justify-content-between rounded-pill px-3 py-2 mt-1" style="background:rgba(0,136,204,0.1);border:1.5px solid rgba(0,136,204,0.3);">
-            <span class="small fw-semibold" style="color:#0088cc;">
-                <i class="bi bi-telegram me-1"></i>
-                {% if user.telegram_username %}@{{ user.telegram_username }}{% else %}Ulangan ✅{% endif %}
-            </span>
-            <form method="POST" action="{% url 'telegram_bot:unlink_telegram' %}" class="d-inline" id="tgUnlinkForm">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" style="font-size:0.7rem;">
-                    <i class="bi bi-x-lg"></i> Uzish
-                </button>
-            </form>
-        </div>
-
-        {% else %}
-        <a href="{% url 'telegram_bot:link_telegram' %}" class="btn rounded-pill fw-semibold" style="background:linear-gradient(135deg,#0088cc,#00aaff);color:#fff;border:none;">
-            <i class="bi bi-telegram me-1"></i>Telegramni ulash
-        </a>
-        {% endif %}
-    </div>
-
-</div>
-</div>
-
-<!-- ================= RIGHT ================= -->
-<div class="col-lg-8">
-
-<!-- XP / Daraja (bosh sahifa uslubida) -->
-<style>
-.pf-xp{position:relative;overflow:hidden;border-radius:24px;padding:22px;margin-bottom:18px;display:flex;align-items:center;gap:22px;flex-wrap:wrap;background:linear-gradient(135deg,#6366f1,#8b5cf6 55%,#a855f7);color:#fff;box-shadow:0 14px 34px rgba(99,102,241,.32)}
-.pf-xp::after{content:'';position:absolute;top:-40%;right:-6%;width:240px;height:240px;border-radius:50%;background:rgba(255,255,255,.10);pointer-events:none}
-.pf-xp>*{position:relative;z-index:1}
-.pf-xp-ring{--pct:0;position:relative;width:104px;height:104px;flex:0 0 auto;border-radius:50%;display:grid;place-items:center;text-align:center;background:conic-gradient(#fff calc(var(--pct)*1%),rgba(255,255,255,.25) 0)}
-.pf-xp-ring::after{content:'';position:absolute;width:82px;height:82px;border-radius:50%;background:linear-gradient(135deg,#6b41e0,#8b5cf6)}
-.pf-xp-ring b{position:relative;z-index:1;font-size:1.7rem;font-weight:800;line-height:1}
-.pf-xp-ring small{position:relative;z-index:1;display:block;font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;opacity:.88;margin-top:2px}
-.pf-xp-main{flex:1;min-width:200px}
-.pf-xp-main h3{font-size:1.25rem;font-weight:800;margin:0 0 4px}
-.pf-xp-main p{margin:0 0 12px;font-size:.86rem;opacity:.92}
-.pf-xp-chips{display:flex;gap:10px;flex-wrap:wrap}
-.pf-xp-chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:14px;padding:8px 14px;backdrop-filter:blur(6px)}
-.pf-xp-chip .n{font-size:1.15rem;font-weight:800;line-height:1}
-.pf-xp-chip .l{font-size:.66rem;opacity:.85;font-weight:600;margin-top:2px}
-</style>
-<div class="pf-xp a-up d1">
-  <div class="pf-xp-ring" style="--pct:{{ profile_xp_pct|default:0 }}" aria-hidden="true">
-    <span><b>{{ profile_level|default:1 }}</b><small>daraja</small></span>
-  </div>
-  <div class="pf-xp-main">
-    <h3>{{ profile_xp|default:0 }} XP yig'ildi</h3>
-    <p>Keyingi darajagacha yana <b>{{ profile_xp_to_next|default:100 }} XP</b> kerak</p>
-    <div class="pf-xp-chips">
-      <div class="pf-xp-chip"><div class="n">{{ user.coins|default:0 }}</div><div class="l">Coin / XP</div></div>
-      <div class="pf-xp-chip"><div class="n">{{ user.streak_days|default:0 }}</div><div class="l">Streak (kun)</div></div>
-      <div class="pf-xp-chip"><div class="n">{{ certificates|length }}</div><div class="l">Sertifikat</div></div>
-    </div>
-  </div>
-</div>
-
-<!-- Quick Stats -->
-<div class="pf-qstats">
-    <div class="pf-qs a-scale d2 {% if user.is_premium %}pm-qs{% endif %}">
-        <div class="pf-qs-icon" style="background:var(--warn-bg);color:var(--warn);">
-            <i class="bi bi-coin"></i>
-        </div>
-        <div class="pf-qs-num">{{ user.coins }}</div>
-        <div class="pf-qs-label">Coinlar</div>
-    </div>
-    <div class="pf-qs a-scale d3 {% if user.is_premium %}pm-qs{% endif %}">
-        <div class="pf-qs-icon" style="background:var(--accent-bg);color:var(--accent);">
-            <i class="bi bi-book-fill"></i>
-        </div>
-        <div class="pf-qs-num">{{ active_courses|length }}</div>
-        <div class="pf-qs-label">Faol kurslar</div>
-    </div>
-    <div class="pf-qs a-scale d4 {% if user.is_premium %}pm-qs{% endif %}">
-        <div class="pf-qs-icon" style="background:var(--success-bg);color:var(--success);">
-            <i class="bi bi-award-fill"></i>
-        </div>
-        <div class="pf-qs-num">{{ certificates|length }}</div>
-        <div class="pf-qs-label">Sertifikatlar</div>
-    </div>
-</div>
-
+<div class="account-page">
+    <header class="account-heading"><div><span class="account-eyebrow">SHAXSIY KABINET</span><h1>Hisobim</h1><p>Ma’lumotlaringiz, faoliyatingiz va hisob sozlamalari.</p></div><a class="account-button primary" href="{% url 'profile_edit' %}"><i class="bi bi-pencil-square"></i> Profilni tahrirlash</a></header>
+    {% for message in messages %}<div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>{% endfor %}
+    <section class="account-identity">
+        <div class="account-avatar">{% if user.photo %}<a href="{{ user.photo.url }}" target="_blank" rel="noopener" aria-label="Profil rasmini ochish"><img src="{{ user.photo.url }}" alt="{{ user.full_name }} profil rasmi"></a>{% else %}{{ user.get_initials }}{% endif %}</div>
+        <div class="account-name"><div class="account-badges"><span class="account-badge">{% if user.is_admin %}Administrator{% elif user.is_teacher %}O‘qituvchi{% else %}{{ user.get_role_display }}{% endif %}</span>{% if user.is_premium %}<span class="account-badge premium"><i class="bi bi-gem"></i> Premium</span>{% endif %}</div><h2>{{ user.full_name|default:user.username }}</h2><p>@{{ user.username }} <span>•</span> {{ user.date_joined|date:"M Y" }} dan beri</p></div>
+        <div class="account-identity-note"><i class="bi bi-shield-check"></i><span>IT Creative Academy<small>{% if user.is_admin %}Boshqaruv kabinetingiz{% elif user.is_teacher %}Ta’lim berish maydoningiz{% else %}Rivojlanish maydoningiz{% endif %}</small></span></div>
+    </section>
+    <div class="account-layout">
+    <aside class="account-sidebar">
+        <section class="account-panel"><h2>Shaxsiy ma’lumotlar</h2><dl class="account-details"><div><dt>Telefon raqami</dt><dd>{{ user.phone|default:"Kiritilmagan" }}</dd></div><div><dt>Email</dt><dd>{{ user.email|default:"Kiritilmagan" }}</dd></div><div><dt>Tug‘ilgan sana</dt><dd>{{ user.birth_date|date:"d.m.Y"|default:"Kiritilmagan" }}</dd></div><div><dt>Manzil</dt><dd>{{ user.address|default:"Kiritilmagan" }}</dd></div></dl>{% if user.bio %}<div class="account-bio"><h3>Men haqimda</h3>{{ user.bio|linebreaksbr }}</div>{% endif %}
+        {% if user.id_card or user.birth_certificate %}<div class="account-documents">{% if user.id_card %}<a href="{{ user.id_card.url }}" target="_blank" rel="noopener">ID karta <i class="bi bi-arrow-up-right"></i></a>{% endif %}{% if user.birth_certificate %}<a href="{{ user.birth_certificate.url }}" target="_blank" rel="noopener">Guvohnoma <i class="bi bi-arrow-up-right"></i></a>{% endif %}</div>{% endif %}</section>
+        <section class="account-panel"><h2>Hisob va xavfsizlik</h2><a class="account-link" href="{% url 'change_password' %}"><i class="bi bi-key"></i><span>Parolni o‘zgartirish<small>Hisobingizni himoya qiling</small></span><i class="bi bi-chevron-right"></i></a><a class="account-link" href="{% url 'my_devices' %}"><i class="bi bi-laptop"></i><span>Qurilmalar<small>Kirish seanslarini boshqaring</small></span><i class="bi bi-chevron-right"></i></a>
+        <div class="account-telegram"><i class="bi bi-telegram"></i><div><strong>Telegram</strong><small>{% if user.telegram_id %}{{ user.telegram_username|default:"Ulangan" }}{% else %}Bildirishnomalarni oling{% endif %}</small></div>{% if user.telegram_id %}<form method="post" action="{% url 'telegram_bot:unlink_telegram' %}" id="tgUnlinkForm">{% csrf_token %}<button type="submit" class="account-button">Uzish</button></form>{% else %}<a class="account-button" href="{% url 'telegram_bot:link_telegram' %}">Ulash</a>{% endif %}</div></section>
+        {% if user.role == 'student' and user.student_id %}<button type="button" class="sid-card" id="sidCard" onclick="copySid()"><span class="sid-label">O‘QUVCHI ID RAQAMI <i class="bi bi-person-badge"></i></span><strong id="sidNumber">{{ user.student_id }}</strong><span class="sid-copy-hint" aria-live="polite"><i class="bi bi-copy"></i> Nusxa olish</span></button>{% endif %}
+    </aside>
+    <main class="account-main">
+    {% if user.is_admin %}
+        <section class="account-feature"><span class="account-eyebrow">BOSHQARUV</span><h2>Ta’lim jarayoni nazoratingizda.</h2><p>Foydalanuvchilar, guruhlar va markaz natijalarini bir joydan boshqaring.</p><a class="account-button" href="{% url 'admin_dashboard' %}">Boshqaruv paneli <i class="bi bi-arrow-up-right"></i></a><i class="bi bi-grid-1x2 feature-icon" aria-hidden="true"></i></section>
+        <section class="account-panel"><div class="account-section-heading"><h2>Ish maydoni</h2><span>Administrator</span></div><div class="account-tools">
+            <a href="{% url 'admin_users' %}"><i class="bi bi-people"></i><h3>Foydalanuvchilar</h3><p>O‘quvchilar va jamoa hisoblari</p><span>Ko‘rish →</span></a><a href="{% url 'admin_study_groups' %}"><i class="bi bi-collection"></i><h3>O‘quv guruhlari</h3><p>Guruhlar va dars jarayoni</p><span>Boshqarish →</span></a><a href="{% url 'admin_statistics' %}"><i class="bi bi-bar-chart"></i><h3>Statistika</h3><p>Markazning umumiy natijalari</p><span>Ko‘rish →</span></a><a href="{% url 'admin_payments' %}"><i class="bi bi-wallet2"></i><h3>To‘lovlar</h3><p>O‘quvchilarning to‘lov holati</p><span>Ko‘rish →</span></a>
+        </div></section>
+    {% elif user.is_teacher %}
+        <section class="account-feature"><span class="account-eyebrow">O‘QITUVCHI KABINETI</span><h2>Bilim ulashing. Natijani kuzating.</h2><p>Kurslaringiz, o‘quvchilaringiz va tekshirish uchun topshirilgan vazifalar.</p><a class="account-button" href="{% url 'teacher:dashboard' %}">O‘qituvchi paneli <i class="bi bi-arrow-up-right"></i></a><i class="bi bi-easel2 feature-icon" aria-hidden="true"></i></section>
+        <section class="account-panel"><div class="account-section-heading"><h2>Ish maydoni</h2><span>O‘qituvchi</span></div><div class="account-tools">
+            <a href="{% url 'teacher:courses' %}"><i class="bi bi-journal-bookmark"></i><h3>Kurslarim</h3><p>Darslar va o‘quv materiallari</p><span>Boshqarish →</span></a><a href="{% url 'teacher:my_students' %}"><i class="bi bi-people"></i><h3>O‘quvchilarim</h3><p>O‘quvchilar bilan ishlash</p><span>Ko‘rish →</span></a><a href="{% url 'teacher:homeworks' %}"><i class="bi bi-clipboard-check"></i><h3>Uyga vazifalar</h3><p>Topshiriqlarni tekshirish va baholash</p><span>Tekshirish →</span></a><a href="{% url 'teacher:statistics' %}"><i class="bi bi-graph-up-arrow"></i><h3>Natijalar</h3><p>O‘quv jarayoni statistikasi</p><span>Ko‘rish →</span></a><a href="{% url 'teacher:certificates' %}"><i class="bi bi-award"></i><h3>Sertifikatlarim</h3><p>Kasbiy yutuqlar va malaka</p><span>Ko‘rish →</span></a><a href="{% url 'teacher:earnings' %}"><i class="bi bi-wallet2"></i><h3>Daromadlarim</h3><p>Darslar bo‘yicha hisob-kitob</p><span>Ko‘rish →</span></a>
+        </div></section>
+    {% elif user.role == 'student' %}
+        <section class="account-feature"><span class="account-eyebrow">O‘QISH JARAYONIM</span><h2>Har bir qadam — yangi imkoniyat.</h2><p>{{ profile_level }}-daraja · Keyingi darajagacha {{ profile_xp_to_next }} XP</p><div class="account-progress"><span>Jami {{ profile_xp }} XP</span><span>{{ profile_xp_pct }} / 100</span><progress value="{{ profile_xp_pct }}" max="100" aria-label="Keyingi darajaga erishish"></progress></div></section>
+        <div class="account-metrics"><div><i class="bi bi-book"></i><strong>{{ active_courses|length }}</strong><span>Faol kurslar</span></div><div><i class="bi bi-coin"></i><strong>{{ user.coins|default:0 }}</strong><span>Coin balansi</span></div><div><i class="bi bi-award"></i><strong>{{ certificates|length }}</strong><span>Sertifikatlar</span></div></div>
+        <div class="account-shortcuts"><a href="{% url 'my_statistics' %}"><i class="bi bi-graph-up"></i> Mening statistikam ↗</a><a href="{% url 'video_quiz:student_history' %}"><i class="bi bi-play-circle"></i> Video test tarixi ↗</a></div>
 <!-- Coin & Ball statistika -->
 <div class="row g-3 mb-4">
     <div class="col-md-6">
@@ -484,60 +108,9 @@
     </div>
 </div>
 
-<!-- Ma'lumotlar -->
-<div class="pf-card pf-sec a-up d3 {% if user.is_premium %}pm-right{% endif %}">
-    <div class="pf-sec-title">
-        <i class="bi bi-person-lines-fill ib" style="background:var(--accent-bg);color:var(--accent);"></i>
-        Ma'lumotlar
-    </div>
-
-    <div class="pf-row">
-        <div class="pf-row-icon" style="background:var(--accent-bg);color:var(--accent);"><i class="bi bi-phone-fill"></i></div>
-        <div><div class="pf-row-label">Telefon</div><div class="pf-row-val">{{ user.phone }}</div></div>
-    </div>
-    <div class="pf-row">
-        <div class="pf-row-icon" style="background:var(--success-bg);color:var(--success);"><i class="bi bi-calendar-check-fill"></i></div>
-        <div><div class="pf-row-label">Ro'yxatdan o'tgan</div><div class="pf-row-val">{{ user.date_joined|date:"d.m.Y" }}</div></div>
-    </div>
-    <div class="pf-row">
-        <div class="pf-row-icon" style="background:var(--red-bg);color:var(--red);"><i class="bi bi-geo-alt-fill"></i></div>
-        <div><div class="pf-row-label">Manzil</div><div class="pf-row-val">{% if user.address %}{{ user.address }}{% else %}—{% endif %}</div></div>
-    </div>
-    <div class="pf-row">
-        <div class="pf-row-icon" style="background:var(--warn-bg);color:var(--warn);"><i class="bi bi-cake2-fill"></i></div>
-        <div><div class="pf-row-label">Tug'ilgan sana</div><div class="pf-row-val">{% if user.birth_date %}{{ user.birth_date|date:"d.m.Y" }}{% else %}—{% endif %}</div></div>
-    </div>
-
-    {% if user.bio %}
-    <div class="pf-row" style="flex-direction:column;align-items:flex-start;gap:.3rem;">
-        <div class="d-flex align-items-center gap-2">
-            <div class="pf-row-icon" style="background:var(--purple-bg);color:var(--purple);"><i class="bi bi-chat-quote-fill"></i></div>
-            <div class="pf-row-label">O'zi haqida</div>
-        </div>
-        <div class="pf-row-val" style="padding-left:2.7rem;font-weight:400;line-height:1.6;white-space:pre-line">{{ user.bio }}</div>
-    </div>
-    {% endif %}
-
-    {% if user.id_card or user.birth_certificate %}
-    <div class="pf-row">
-        <div class="pf-row-icon" style="background:var(--accent-bg);color:var(--accent);"><i class="bi bi-folder-fill"></i></div>
-        <div>
-            <div class="pf-row-label mb-1">Hujjatlar</div>
-            {% if user.id_card %}
-            <a href="{{ user.id_card.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill me-1" style="font-size:.78rem">
-                <i class="bi bi-person-badge me-1"></i>ID karta
-            </a>
-            {% endif %}
-            {% if user.birth_certificate %}
-            <a href="{{ user.birth_certificate.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill" style="font-size:.78rem">
-                <i class="bi bi-file-earmark-text me-1"></i>Guvohnoma
-            </a>
-            {% endif %}
-        </div>
-    </div>
-    {% endif %}
-</div>
-
+{% if not active_courses and not completed_courses %}
+<section class="account-panel account-empty"><i class="bi bi-journal-bookmark"></i><h2>O‘quv yo‘lingiz shu yerdan boshlanadi</h2><p>Kursga qo‘shilganingizdan so‘ng, u shu yerda ko‘rinadi.</p></section>
+{% endif %}
 <!-- Faol kurslar -->
 {% if active_courses %}
 <div class="pf-card pf-sec a-up d4 {% if user.is_premium %}pm-right{% endif %}">
@@ -551,7 +124,7 @@
         <div class="pf-mini">
             <a href="{% url 'profession_detail' enrollment.profession.pk %}" class="text-decoration-none text-body">
                 <div class="d-flex align-items-center gap-3 mb-2">
-                    <img src="{{ enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">
+                    {% if enrollment.profession.photo %}<img alt="" src="{{ enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">{% endif %}
                     <div>
                         <b>{{ enrollment.profession.name }}</b><br>
                         <small style="color:var(--muted)">{{ enrollment.enrolled_at|date:"d.m.Y" }}</small>
@@ -587,7 +160,7 @@
     <div class="col-md-6">
         <div class="pf-mini" style="border:2px solid rgba(52,199,89,.25)">
             <div class="d-flex align-items-center gap-3 mb-2">
-                <img src="{{ item.enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">
+                {% if item.enrollment.profession.photo %}<img alt="" src="{{ item.enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">{% endif %}
                 <div class="flex-grow-1">
                     <b>{{ item.enrollment.profession.name }}</b>
                     <span class="badge bg-success ms-1" style="font-size:.65rem">Tugallandi</span><br>
@@ -604,9 +177,9 @@
                     <i class="bi bi-lock me-1"></i>Kursdoshlar <span class="badge bg-warning text-dark">Premium</span>
                 </a>
                 {% endif %}
-                <a href="{{ item.certificate.file.url }}" target="_blank" class="btn btn-sm btn-success rounded-pill">
+                {% if item.certificate.file %}<a href="{{ item.certificate.file.url }}" target="_blank" class="btn btn-sm btn-success rounded-pill">
                     <i class="bi bi-award me-1"></i>Sertifikat
-                </a>
+                </a>{% endif %}
             </div>
         </div>
     </div>
@@ -653,11 +226,11 @@
                 {% endif %}
             </div>
             <div class="d-flex gap-2">
-                <a href="{{ cert.file.url }}" target="_blank" download class="btn btn-sm btn-success rounded-pill flex-grow-1">
+                {% if cert.file %}<a href="{{ cert.file.url }}" target="_blank" download class="btn btn-sm btn-success rounded-pill flex-grow-1">
                     <i class="bi bi-file-pdf me-1"></i>Yuklab olish
                 </a>
-                <a href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
-                    <i class="bi bi-shield-check"></i>
+                {% endif %}<a href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                    <i class="bi bi-shield-check"></i><span class="visually-hidden">Sertifikatni tekshirish</span>
                 </a>
             </div>
         </div>
@@ -671,20 +244,7 @@
     </div>
     {% endif %}
 </div>
-
-</div>
-</div>
-</div>
-
-<!-- Lightbox -->
-<div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox(event)">
-    <button class="photo-lightbox-close" onclick="closePhotoLightbox(event)"><i class="bi bi-x-lg"></i></button>
-    <img src="" class="photo-lightbox-img" id="lightboxImg" alt="">
-    <div class="photo-lightbox-name"><i class="bi bi-person-circle"></i> {{ user.full_name }}</div>
-</div>
-
-</div>
-
+{% endif %}</main></div></div>
 {% if user.telegram_id %}
 <!-- Telegram uzish tasdiqlash modali — custom overlay -->
 <style>
@@ -695,16 +255,16 @@
 .tg-unlink-box input[type="text"]{width:100%;height:52px;border:2px solid var(--border-color,#dee2e6);border-radius:14px;font-size:1.5rem;font-weight:800;text-align:center;letter-spacing:.4em;background:var(--bs-body-bg,#fff);color:var(--bs-body-color,#333);outline:none;transition:border-color .2s}
 .tg-unlink-box input[type="text"]:focus{border-color:#0088cc;box-shadow:0 0 0 3px rgba(0,136,204,.15)}
 </style>
-<div class="tg-unlink-overlay" id="tgUnlinkOverlay">
+<div class="tg-unlink-overlay" id="tgUnlinkOverlay" role="dialog" aria-modal="true" aria-labelledby="tgUnlinkTitle">
     <div class="tg-unlink-box">
         <div style="width:64px;height:64px;border-radius:50%;background:rgba(0,136,204,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
             <i class="bi bi-telegram" style="font-size:1.8rem;color:#0088cc;"></i>
         </div>
-        <h6 class="fw-bold mb-1">Telegramni uzish</h6>
+        <h6 class="fw-bold mb-1" id="tgUnlinkTitle">Telegramni uzish</h6>
         <p class="text-muted small mb-3">Telegramingizga yuborilgan 6 xonali kodni kiriting</p>
         <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm">
             {% csrf_token %}
-            <input type="text" name="unlink_code" id="tgUnlinkCodeInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="off">
+            <input aria-label="Telegram tasdiqlash kodi" required type="text" name="unlink_code" id="tgUnlinkCodeInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="off">
             <div class="d-grid gap-2 mt-3">
                 <button type="submit" class="btn btn-danger rounded-pill fw-bold py-2">
                     <i class="bi bi-check-lg me-1"></i> Tasdiqlash
@@ -718,9 +278,6 @@
 {% endif %}
 
 <script>
-function openPhotoLightbox(url){var lb=document.getElementById('photoLightbox');document.getElementById('lightboxImg').src=url;lb.classList.add('active');document.body.style.overflow='hidden'}
-function closePhotoLightbox(e){if(e.target.closest('.photo-lightbox-img'))return;var lb=document.getElementById('photoLightbox');lb.classList.remove('active');document.body.style.overflow=''}
-document.addEventListener('keydown',function(e){if(e.key==='Escape'){var lb=document.getElementById('photoLightbox');if(lb.classList.contains('active')){lb.classList.remove('active');document.body.style.overflow=''}}});
 
 {% if user.telegram_id %}
 (function(){

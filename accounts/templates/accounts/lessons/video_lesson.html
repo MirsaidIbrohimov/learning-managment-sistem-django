@@ -1103,29 +1103,11 @@ const VIDEO_TIMER_DEBUG = {{ video_timer_debug|yesno:"true,false" }};
 function videoTimerLog(...args) {
     if (VIDEO_TIMER_DEBUG) console.debug('[VideoTimer]', ...args);
 }
-// Sensorli qurilmada YouTube'ning native tugmalari ochiq qolishi kerak. Aks holda
-// mobil autoplay bloklanganda videoGuard native Play tugmasini ham to'sib qo'yadi.
-const useNativeMobileControls = window.matchMedia &&
-    window.matchMedia('(hover: none), (pointer: coarse)').matches;
-
 let isVideoPlaying = false;
 let vimeoPlayer    = null;
 
-/* ── Video sifati (quality) ─────────────────────────────────
- * Pleerning o'z boshqaruvi (controls:0) o'chirilgani uchun sifatni tanlash
- * uchun o'zimizning menyuni to'ldiramiz.
- *   • YouTube: getAvailableQualityLevels() + setPlaybackQuality() (best-effort —
- *     zamonaviy YouTube ba'zan sifatni avtomatik boshqaradi).
- *   • Vimeo:   getQualities() + setQuality() (ishonchli ishlaydi).
- */
+/* Vimeo uses custom quality controls; YouTube requires native settings. */
 let qualityReady = false;
-
-// YouTube sifat kodlarini o'qiladigan yorliqqa aylantirish.
-const YT_QUALITY_LABELS = {
-    highres: '4K', hd2160: '2160p', hd1440: '1440p', hd1080: '1080p',
-    hd720: '720p', large: '480p', medium: '360p', small: '240p',
-    tiny: '144p', auto: 'Avto',
-};
 
 function vlBuildQualityMenu(options, onSelect) {
     // options: [{value, label, active}] — birinchi bo'lib "Avto" keladi.
@@ -1156,25 +1138,7 @@ function vlBuildQualityMenu(options, onSelect) {
 
 function vlSetupQuality() {
     if (qualityReady) return;
-    // ── YouTube ──
-    try {
-        if (window._vqYT && typeof window._vqYT.getAvailableQualityLevels === 'function') {
-            const levels = window._vqYT.getAvailableQualityLevels() || [];
-            if (!levels.length) return;   // hali tayyor emas — keyingi PLAYING'da qayta urinamiz
-            const current = (typeof window._vqYT.getPlaybackQuality === 'function')
-                ? window._vqYT.getPlaybackQuality() : 'auto';
-            const opts = [{ value: 'default', label: 'Avto', active: current === 'auto' || current === 'default' }];
-            levels.filter(l => l !== 'auto').forEach(function(l) {
-                opts.push({ value: l, label: YT_QUALITY_LABELS[l] || l, active: l === current });
-            });
-            vlBuildQualityMenu(opts, function(v) {
-                try { window._vqYT.setPlaybackQuality(v === 'default' ? 'default' : v); } catch (e) {}
-            });
-            qualityReady = true;
-            return;
-        }
-    } catch (e) {}
-    // ── Vimeo ──
+    if (isYouTube) return;
     try {
         if (vimeoPlayer && typeof vimeoPlayer.getQualities === 'function') {
             vimeoPlayer.getQualities().then(function(qs) {
@@ -1388,7 +1352,7 @@ if (placeholder) {
     placeholder.addEventListener('click', function() {
         placeholder.classList.add('d-none');
         iframe.classList.remove('d-none');
-        if (!isYouTube || !useNativeMobileControls) {
+        if (!isYouTube) {
             addVideoGuard();   // desktopda pleer boshqaruvini to'sadigan qatlam
         }
 
@@ -1402,17 +1366,16 @@ if (placeholder) {
             function onYouTubeIframeAPIReady() {
                 window._vqYT = new YT.Player('ytPlayer', {
                     videoId: videoId,
-                    // controls:0 — seek bar yo'q; disablekb:1 — klaviatura bilan
-                    // o'tkazish yo'q. Telefonda esa autoplay bloklansa ham native
-                    // Play va fullscreen ishlashi uchun controls/fs yoqiladi.
+                    // Native settings allow quality selection on all devices.
+                    // Progress tracking still excludes skipped segments.
                     playerVars: {
                         autoplay: 1,
                         start: Math.floor(resumeAt),
                         rel: 0,
                         modestbranding: 1,
-                        controls: useNativeMobileControls ? 1 : 0,
-                        disablekb: useNativeMobileControls ? 0 : 1,
-                        fs: useNativeMobileControls ? 1 : 0,
+                        controls: 1,
+                        disablekb: 0,
+                        fs: 1,
                         playsinline: 1,
                         iv_load_policy: 3,
                         origin: window.location.origin
