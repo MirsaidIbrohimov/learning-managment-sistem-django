@@ -795,8 +795,12 @@ body {
                     <span class="pw-pay-dot {% if order.status == 'paid' %}paid{% else %}unpaid{% endif %}"></span>
                     <span class="pw-pay-month">{{ order.billing_month|stringformat:'02d' }}/{{ order.billing_year }} · {{ order.amount_som|space_num }} so'm</span>
                     <span class="pw-pay-status-{% if order.status == 'paid' %}paid{% else %}unpaid{% endif %}">{{ order.get_status_display }}</span>
-                    {% if order.payment_url and order.status == 'pending' %}
-                    <a href="{{ order.payment_url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary">To'lash</a>
+                    {% if order.status == 'pending' or order.status == 'expired' or order.status == 'cancelled' or order.status == 'failed' %}
+                    <form method="post" action="{% url 'tezcheck_create_payment' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="amount" value="{{ order.amount_som }}">
+                        <button type="submit" class="btn btn-sm btn-outline-primary">{% if order.status == 'pending' %}Tekshirish va to‘lash{% else %}Yangi havola olish{% endif %}</button>
+                    </form>
                     {% endif %}
                 </div>
                 {% endfor %}

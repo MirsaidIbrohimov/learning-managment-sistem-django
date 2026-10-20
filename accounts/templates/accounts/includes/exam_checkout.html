@@ -16,8 +16,10 @@
       {% if exam_order.status == 'refunded' %}<p>Oldingi to‘lov qaytarilgan.</p>{% endif %}
       <form method="post" action="{% url 'exam_checkout' exam_kind exam_pk %}" style="margin-top:18px">
         {% csrf_token %}
-        <button type="submit" class="submit-btn">{% if exam_order.status == 'pending' and exam_order.payment_url %}To‘lovni davom ettirish / tekshirish{% else %}Onlayn to‘lash{% endif %}</button>
+        <input type="hidden" name="checkout_token" value="{{ exam_checkout_token }}">
+        <button type="submit" class="submit-btn">Yangi to‘lov havolasini ochish</button>
       </form>
+      <p style="font-size:13px;opacity:.75;margin-top:10px">Oldingi to‘lov avval tekshiriladi. To‘lov o‘tgan bo‘lsa, qaytadan to‘lash talab qilinmaydi.</p>
     {% endif %}
   {% endif %}
   <p style="font-size:13px;opacity:.75;margin-top:14px">Bitta to‘lov — bitta qayta urinish.</p>

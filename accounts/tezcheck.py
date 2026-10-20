@@ -16,6 +16,10 @@ class TezCheckError(Exception):
     """Safe integration error; never contains credentials."""
 
 
+class TezCheckBillUnavailable(TezCheckError):
+    """Provider explicitly confirms the old bill no longer exists."""
+
+
 def create_bill(*, order, return_url):
     """Create one fixed-amount bill; callers persist the returned URL at once."""
     token = getattr(settings, 'TEZCHECK_API_TOKEN', '')
@@ -26,7 +30,7 @@ def create_bill(*, order, return_url):
     url_path = '/bills'
     body = json.dumps({
         'amount_minor': order.amount_minor,
-        'title': (f"Tanga xaridi — {order.amount_som} tanga" if order.purpose == 'coins' else f"Yakuniy imtihon — #{order.student_id}" if getattr(order, 'purpose', 'monthly') == 'exam' else f"Oylik to'lov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"),
+        'title': (f"Tanga xaridi — {order.coin_quantity if order.coin_quantity is not None else order.amount_som} tanga" if order.purpose == 'coins' else f"Yakuniy imtihon — #{order.student_id}" if getattr(order, 'purpose', 'monthly') == 'exam' else f"Oylik to'lov {order.billing_month:02d}/{order.billing_year} — #{order.student_id}"),
         'description': f"O'quvchi ID: {order.student_id}; LMS buyurtmasi: {order.external_reference}",
         'external_reference': order.external_reference,
         'return_url': return_url,
@@ -106,6 +110,8 @@ def fetch_bill(bill_id):
     endpoint = settings.TEZCHECK_API_BASE_URL.rstrip('/') + path
     try:
         response = requests.post(endpoint, data=body, headers=headers, timeout=(5, 15))
+        if response.status_code in (404, 410):
+            raise TezCheckBillUnavailable('Oldingi to‘lov havolasi endi mavjud emas.')
         payload = response.json()
     except (requests.RequestException, ValueError) as exc:
         logger.warning('Tezcheck bill holatini olishda xato: %s', type(exc).__name__)

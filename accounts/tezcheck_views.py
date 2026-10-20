@@ -1,6 +1,7 @@
 """Tezcheck checkout and webhook endpoints."""
 import json
 import logging
+import uuid
 from datetime import timedelta
 from decimal import Decimal
 
@@ -16,10 +17,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .models import (
-    AssistantActionLog, Message, PaymentRecord, PaymentStatus, StudentBalance,
+    AssistantActionLog, CustomUser, Message, PaymentRecord, PaymentStatus, StudentBalance,
     TezCheckPaymentOrder, TezCheckWebhookEvent,
 )
-from .tezcheck import TezCheckError, create_bill, fetch_bill, verify_webhook_signature
+from .tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill, verify_webhook_signature
+from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +45,7 @@ def _student_billing_period(user):
 
 @login_required
 @require_POST
+@transaction.atomic
 def tezcheck_create_payment(request):
     """Create/reuse the logged-in student's fixed-amount monthly payment bill."""
     user = request.user
@@ -62,6 +65,7 @@ def tezcheck_create_payment(request):
         messages.info(request, "Siz shartnoma asosida to'laysiz. To'lov bo'yicha administratorga murojaat qiling.")
         return redirect('payment_wall')
 
+    CustomUser.objects.select_for_update().get(pk=user.pk)
     period = _student_billing_period(user)
     if period is None:
         logger.info('Tezcheck checkout skipped: user_id=%s reason=current_period_paid', user.pk)
@@ -86,62 +90,47 @@ def tezcheck_create_payment(request):
         )
         messages.success(request, "Ushbu davr uchun to'lov qabul qilingan.")
         return redirect('payment_wall')
-    # Mavjud pending buyurtmani tekshiramiz
+    if period_orders.filter(status=TezCheckPaymentOrder.STATUS_REVIEW).exists():
+        messages.info(request, 'Oldingi to‘lov tekshiruvda. Qayta to‘lov qilmang; administratorga murojaat qiling.')
+        return redirect('payment_wall')
     order = period_orders.filter(status=TezCheckPaymentOrder.STATUS_PENDING).first()
     if order:
-        is_diff_amount = (order.amount_minor != amount_minor)
-        is_too_old = (order.created_at <= timezone.now() - timedelta(minutes=15))
-        is_expired_date = bool(order.available_until and order.available_until <= timezone.now())
-
-        if is_diff_amount or is_too_old or is_expired_date:
-            # Eskirgan yoki summasi boshqa bo'lsa, eskirgan deb belgilab yangisini yaratamiz
-            order.status = TezCheckPaymentOrder.STATUS_EXPIRED
-            order.last_error = "Yangi to'lov so'rovi sababli eskirgan deb belgilandi."
-            order.save(update_fields=['status', 'last_error', 'updated_at'])
-            order = None
-        elif order.payment_url and order.bill_id:
-            # 15 daqiqa ichida yaratilgan bo'lsa, Tezcheck API orqali holatini aniqlaymiz
-            try:
-                state_data = fetch_bill(order.bill_id)
-                bill = state_data.get('bill') or {}
-                payment = state_data.get('payment') or {}
+        try:
+            if order.bill_id:
+                try:
+                    state_data = fetch_bill(order.bill_id)
+                    bill, payment = validate_bill(order, state_data)
+                except TezCheckBillUnavailable:
+                    bill, payment = {'state': 'expired'}, {}
                 if bill.get('paid') is True and payment.get('state') == 'succeeded':
-                    with transaction.atomic():
-                        locked = TezCheckPaymentOrder.objects.select_for_update().get(pk=order.pk)
-                        _apply_successful_payment(locked, {
-                            'amount_minor': payment.get('amount_minor'),
-                            'currency': payment.get('currency'),
-                            'environment': payment.get('environment'),
-                            'payment_id': payment.get('id'),
-                            'fee_minor': payment.get('fee_minor'),
-                            'net_minor': payment.get('net_minor'),
-                            'provider_code': payment.get('provider_code'),
-                        })
-                    messages.success(request, "To'lov allaqachon tasdiqlangan!")
+                    locked = TezCheckPaymentOrder.objects.select_for_update().get(pk=order.pk)
+                    _apply_successful_payment(locked, {
+                        'amount_minor': payment.get('amount_minor'), 'currency': payment.get('currency'),
+                        'environment': payment.get('environment'), 'payment_id': payment.get('id'),
+                        'fee_minor': payment.get('fee_minor'), 'net_minor': payment.get('net_minor'),
+                        'provider_code': payment.get('provider_code'),
+                    })
+                    messages.info(request, 'Oldingi to‘lov holati yangilandi.')
                     return redirect('student_payments')
-                elif bill.get('state') in ('expired', 'revoked', 'exhausted', 'canceled'):
-                    order.status = TezCheckPaymentOrder.STATUS_EXPIRED
-                    order.last_error = f"TezCheck bill holati: {bill.get('state')}"
-                    order.save(update_fields=['status', 'last_error', 'updated_at'])
-                    order = None
-                else:
-                    # Havola haqiqatan ham hali mavjud va faol
-                    return redirect(order.payment_url)
-            except Exception:
-                # API xatosi bo'lsa (masalan bill topilmadi yoki token yangilangan), eski havolani tashlab yangi yaratamiz
-                logger.exception(
-                    'Tezcheck pending bill holatini tekshirib bo‘lmadi: user_id=%s order_id=%s',
-                    user.pk, order.pk,
-                )
-                order.status = TezCheckPaymentOrder.STATUS_EXPIRED
-                order.last_error = 'Eski Tezcheck havolasining holatini tekshirib bo‘lmadi; yangisi yaratilmoqda.'
-                order.save(update_fields=['status', 'last_error', 'updated_at'])
+                if bill.get('paid') is True or payment.get('state') == 'succeeded':
+                    raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
+            else:
+                bill = {}
+            if order.amount_minor != amount_minor or checkout_expired(order, bill):
+                if not retire_checkout(order):
+                    messages.info(request, 'Oldingi to‘lov holati yangilandi. Qayta to‘lov talab qilinmaydi.')
+                    return redirect('student_payments')
                 order = None
+            elif order.payment_url and order.bill_id:
+                return redirect(order.payment_url)
+        except TezCheckError as exc:
+            # A timeout is not proof of non-payment. Never charge again blindly.
+            messages.error(request, str(exc))
+            return redirect('payment_wall')
 
     # Yangi buyurtma yaratish
     if not order:
-        attempt = period_orders.count() + 1
-        external_ref = f'LMS-{user.pk}-{year}{month:02d}-{attempt}'
+        external_ref = f'LMS-{user.pk}-{year}{month:02d}-{uuid.uuid4().hex}'
         try:
             order = TezCheckPaymentOrder.objects.create(
                 student=user,
@@ -155,7 +144,18 @@ def tezcheck_create_payment(request):
 
     return_url = settings.TEZCHECK_RETURN_URL or request.build_absolute_uri(reverse('tezcheck_return'))
     try:
-        bill_data = create_bill(order=order, return_url=return_url)
+        for attempt in range(2):
+            bill_data = create_bill(order=order, return_url=return_url)
+            if store_bill(order, bill_data):
+                break
+            if not retire_checkout(order):
+                return redirect('student_payments')
+            if attempt == 1:
+                raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
+            order = TezCheckPaymentOrder.objects.create(
+                student=user, billing_month=month, billing_year=year, amount_minor=amount_minor,
+                external_reference=f'LMS-{user.pk}-{year}{month:02d}-{uuid.uuid4().hex}',
+            )
     except TezCheckError as exc:
         order.last_error = str(exc)[:500]
         order.save(update_fields=['last_error', 'updated_at'])
@@ -177,18 +177,6 @@ def tezcheck_create_payment(request):
             "To'lov sahifasini ochib bo'lmadi. Xatolik qayd etildi; keyinroq qayta urinib ko'ring.",
         )
         return redirect('payment_wall')
-    order.bill_id = bill_data['bill_id']
-    order.bill_reference = bill_data['bill_reference']
-    order.payment_url = bill_data['payment_url']
-    if bill_data['available_until']:
-        from django.utils.dateparse import parse_datetime
-        order.available_until = parse_datetime(bill_data['available_until'])
-    order.status = TezCheckPaymentOrder.STATUS_PENDING
-    order.last_error = ''
-    order.save(update_fields=[
-        'bill_id', 'bill_reference', 'payment_url', 'available_until',
-        'status', 'last_error', 'updated_at',
-    ])
     logger.info(
         'Tezcheck checkout created: user_id=%s order_id=%s billing_period=%s-%s',
         user.pk, order.pk, year, month,

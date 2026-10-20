@@ -9,11 +9,12 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST, require_GET
 
 from .models import CourseEnrollment, CustomUser, FinalTestPayment, Message, Test, TestResult, TezCheckPaymentOrder
-from .tezcheck import TezCheckError, create_bill, fetch_bill
+from .tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
+from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 
 
 def payment_page(kind, pk):
@@ -22,7 +23,8 @@ def payment_page(kind, pk):
 
 def exam_context(user, kind, pk):
     lookup = {'exam_quiz_id': pk} if kind == 'quiz' else {'exam_test_id': pk}
-    return {'exam_kind': kind, 'exam_pk': pk, 'exam_order': TezCheckPaymentOrder.objects.filter(student=user, purpose='exam', **lookup).first()}
+    return {'exam_kind': kind, 'exam_pk': pk, 'exam_checkout_token': str(uuid.uuid4()),
+            'exam_order': TezCheckPaymentOrder.objects.filter(student=user, purpose='exam', **lookup).first()}
 
 
 def _target(user, kind, pk):
@@ -50,6 +52,7 @@ def _payment_data(payment):
 
 
 @login_required
+@never_cache
 @require_POST
 @transaction.atomic
 def create_exam_checkout(request, kind, pk):
@@ -64,6 +67,12 @@ def create_exam_checkout(request, kind, pk):
     CustomUser.objects.select_for_update().get(pk=request.user.pk)
     model, target, order_target, amount, attempted = _target(request.user, kind, pk)
     page = payment_page(kind, pk)
+    raw_token = request.POST.get('checkout_token')
+    try:
+        reference = f'LMS-EXAM-{request.user.pk}-{kind}-{pk}-{uuid.UUID(raw_token).hex}' if raw_token else None
+    except (ValueError, TypeError, AttributeError):
+        messages.info(request, 'To‘lov sahifasini yangilab, qayta urinib ko‘ring.')
+        return redirect(page)
     if not attempted:
         messages.info(request, 'Birinchi urinish bepul.')
         return redirect(page)
@@ -81,36 +90,52 @@ def create_exam_checkout(request, kind, pk):
     order = orders.filter(status='pending').first()
     try:
         if order and order.bill_id:
-            result = fetch_bill(order.bill_id)
-            bill, payment = result.get('bill') or {}, result.get('payment') or {}
-            if bill.get('external_reference') != order.external_reference:
-                raise TezCheckError('To‘lov hisob raqami mos emas. Administratorga murojaat qiling.')
-            if bill.get('paid') is True and payment.get('state') == 'succeeded':
+            try:
+                result = fetch_bill(order.bill_id)
+                bill, payment = validate_bill(order, result)
+            except TezCheckBillUnavailable:
+                if not retire_checkout(order):
+                    return redirect(page)
+                order = None
+                bill, payment = {}, {}
+            if order and bill.get('paid') is True and payment.get('state') == 'succeeded':
                 from .tezcheck_views import _apply_successful_payment
                 _apply_successful_payment(order, _payment_data(payment))
                 return redirect(page)
-            if bill.get('state') in ('expired', 'revoked', 'exhausted', 'canceled'):
-                order.status = 'expired'
-                order.save(update_fields=['status', 'updated_at'])
+            if order and (bill.get('paid') is True or payment.get('state') == 'succeeded'):
+                raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
+            if order and (checkout_expired(order, bill) or order.amount_minor != amount_minor
+                          or (reference and reference != order.external_reference
+                              and not order.external_reference.startswith(reference + '-R'))):
+                if not retire_checkout(order):
+                    return redirect(page)
                 order = None
-            else:
+            elif order and order.payment_url:
                 return redirect(order.payment_url)
-        if order is None:
-            today = timezone.localdate()
-            order = TezCheckPaymentOrder.objects.create(
-                student=request.user, purpose='exam', **order_target,
-                billing_month=today.month, billing_year=today.year, amount_minor=amount_minor,
-                external_reference='LMS-EXAM-' + uuid.uuid4().hex,
-            )
-        # A missing URL may mean an interrupted request: use the same idempotency key.
-        result = create_bill(order=order, return_url=request.build_absolute_uri(page))
-        order.bill_id = result['bill_id']
-        order.bill_reference = result['bill_reference']
-        order.payment_url = result['payment_url']
-        order.available_until = parse_datetime(result['available_until']) if result.get('available_until') else None
-        order.last_error = ''
-        order.save()
-        return redirect(order.payment_url)
+        for attempt in range(2):
+            if order is None:
+                today = timezone.localdate()
+                # A repeated POST from the same page keeps its idempotency key.
+                if reference:
+                    retries = orders.filter(external_reference__startswith=reference + '-R').count()
+                    candidate = reference if attempt == 0 else f'{reference}-R{retries + 1}'
+                else:
+                    candidate = 'LMS-EXAM-' + uuid.uuid4().hex
+                order, _ = TezCheckPaymentOrder.objects.get_or_create(
+                    external_reference=candidate,
+                    defaults=dict(student=request.user, purpose='exam', **order_target,
+                                  billing_month=today.month, billing_year=today.year, amount_minor=amount_minor),
+                )
+                if order.status != 'pending':
+                    order = None
+                    continue
+            result = create_bill(order=order, return_url=request.build_absolute_uri(page))
+            if store_bill(order, result):
+                return redirect(order.payment_url)
+            if not retire_checkout(order):
+                return redirect(page)
+            order = None
+        raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
     except TezCheckError as exc:
         if order:
             order.last_error = str(exc)[:500]
@@ -120,6 +145,7 @@ def create_exam_checkout(request, kind, pk):
 
 
 @login_required
+@never_cache
 @require_GET
 def exam_checkout_status(request, pk):
     order = get_object_or_404(TezCheckPaymentOrder, pk=pk, student=request.user, purpose='exam')

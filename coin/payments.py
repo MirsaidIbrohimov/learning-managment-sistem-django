@@ -7,17 +7,17 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.dateparse import parse_datetime
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
 
 from accounts.models import CustomUser, TezCheckPaymentOrder as Order
-from accounts.tezcheck import TezCheckError, create_bill
+from accounts.tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
+from accounts.checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 from .models import CoinTransaction
 from .topup_pricing import pricing_data, pricing_token, quote
 
@@ -163,6 +163,7 @@ def create_coin_checkout(request):
     return response
 
 
+@transaction.atomic
 def _create_coin_checkout(request):
     if not checkout_ready():
         return JsonResponse({'error': 'Tanga to‘lovi sozlanmoqda. Administratorga murojaat qiling.'}, status=503)
@@ -178,14 +179,44 @@ def _create_coin_checkout(request):
     except (ValueError, TypeError, AttributeError):
         return JsonResponse({'error': 'Sahifani yangilang va qayta urinib ko‘ring.'}, status=400)
     reference = f'COIN-{request.user.pk}-{token}'
-    existing = Order.objects.filter(external_reference=reference).first()
+    root_reference = reference
+    CustomUser.objects.select_for_update().get(pk=request.user.pk)
+    chain = Order.objects.filter(student=request.user, purpose='coins').filter(
+        Q(external_reference=reference) | Q(external_reference__startswith=reference + '-R'))
+    existing = chain.order_by('-created_at', '-pk').first()
     pricing = pricing_data()
     purchase = quote(amount, pricing)
+    snapshot = dict(purchase, rate=pricing['rate'])
     if existing:
+        reference = existing.external_reference
         previous_coins = existing.coin_quantity if existing.coin_quantity is not None else existing.amount_som
         if previous_coins != amount:
             return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
         payable = existing.amount_som
+        snapshot = existing.coin_pricing_snapshot
+        if existing.coin_transaction_id or existing.status in ('paid', 'refunded', 'review'):
+            return JsonResponse({'error': 'Bu buyurtma yakunlangan yoki tekshirilmoqda. Market sahifasini yangilang.'}, status=409)
+        if existing.bill_id:
+            state = {}
+            try:
+                state = fetch_bill(existing.bill_id)
+                bill, payment = validate_bill(existing, state)
+                reconcile_coin_order(existing, state)
+            except TezCheckBillUnavailable:
+                bill = {'state': 'expired'}
+            except TezCheckError as exc:
+                return JsonResponse({'error': str(exc)}, status=502)
+            if existing.coin_transaction_id or existing.status in ('paid', 'review'):
+                return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
+            if bill.get('paid') is True or (state.get('payment') or {}).get('state') == 'succeeded':
+                return JsonResponse({'error': 'Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang.'}, status=409)
+        else:
+            bill = {}
+        if existing.status != 'pending' or checkout_expired(existing, bill):
+            if not retire_checkout(existing):
+                return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
+            reference = root_reference + '-R' + str(chain.count())
+            existing = None
     else:
         from django.core import signing
         shown_pricing = request.POST.get('pricing_token')
@@ -205,27 +236,33 @@ def _create_coin_checkout(request):
     order, _ = Order.objects.get_or_create(
         external_reference=reference,
         defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': payable * 100,
-                  'coin_quantity': amount, 'coin_pricing_snapshot': dict(purchase, rate=pricing['rate']),
+                  'coin_quantity': amount, 'coin_pricing_snapshot': snapshot,
                   'billing_month': today.month, 'billing_year': today.year},
     )
     if (order.coin_quantity if order.coin_quantity is not None else order.amount_som) != amount:
         return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
     if order.coin_transaction_id or order.status != 'pending':
         return JsonResponse({'error': 'Bu buyurtma yakunlangan. Sahifani yangilang.'}, status=409)
-    if order.payment_url:
+    if order.payment_url and order.bill_id:
         return JsonResponse({'payment_url': order.payment_url})
-    return_url = request.build_absolute_uri(reverse('coin:coin_payment_return', args=[order.pk]))
     try:
-        result = create_bill(order=order, return_url=return_url)
+        for attempt in range(2):
+            return_url = request.build_absolute_uri(reverse('coin:coin_payment_return', args=[order.pk]))
+            result = create_bill(order=order, return_url=return_url)
+            if store_bill(order, result):
+                return JsonResponse({'payment_url': order.payment_url})
+            if not retire_checkout(order):
+                return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
+            if attempt == 1:
+                raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
+            order, _ = Order.objects.get_or_create(
+                external_reference=f'COIN-{request.user.pk}-{token}-R{chain.count()}',
+                defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': payable * 100,
+                          'coin_quantity': amount, 'coin_pricing_snapshot': order.coin_pricing_snapshot,
+                          'billing_month': today.month, 'billing_year': today.year},
+            )
     except TezCheckError as exc:
         return JsonResponse({'error': str(exc)}, status=502)
-    # Do not overwrite paid/review state if a webhook arrived during creation.
-    Order.objects.filter(pk=order.pk).update(
-        bill_id=result['bill_id'], bill_reference=result['bill_reference'],
-        payment_url=result['payment_url'],
-        available_until=parse_datetime(result['available_until']) if result['available_until'] else None,
-    )
-    return JsonResponse({'payment_url': result['payment_url']})
 
 
 @login_required
