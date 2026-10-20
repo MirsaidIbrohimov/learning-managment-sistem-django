@@ -5,7 +5,6 @@ from django.core.management.base import BaseCommand, CommandError
 
 from accounts.public_cache import get_performance_cache
 
-
 class Command(BaseCommand):
     help = 'Verify landing/dashboard cache read and write permissions.'
 
