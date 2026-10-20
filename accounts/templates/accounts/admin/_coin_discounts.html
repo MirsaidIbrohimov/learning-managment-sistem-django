@@ -1,39 +1,39 @@
-<section class="ios-card p-4 mb-4" aria-labelledby="coin-pricing-title">
-  <h4 id="coin-pricing-title"><i class="bi bi-coin me-2"></i>Coin sotib olish narxi va chegirmalari</h4>
-  <p>Hozirgi narx: <strong>{{ coin_rate }} so‘m = 1 coin</strong>. Narx Marketdagi yangi xaridlarga qo‘llanadi.</p>
-  <div class="row g-4">
-    <div class="col-lg-4">
-      <form method="post" class="coin-config-form">
-        {% csrf_token %}<input type="hidden" name="coin_action" value="rate">
-        {{ coin_rate_form.as_p }}
-        <button class="btn btn-primary" type="submit">Narxni saqlash</button>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/coin_discounts.css' %}?v=20261020-2">
+<section class="cd-hub" aria-labelledby="coin-pricing-title">
+  <div class="cd-intro"><div><span class="cd-eyebrow">MARKET SOZLAMALARI</span><h2 id="coin-pricing-title">Tangalar va bayram aksiyalari</h2><p>Narxni belgilang. Aksiya yarating. Natijani oldindan ko‘ring.</p></div><span class="cd-status">● {{ coin_active_count }} ta faol aksiya</span></div>
+  <div class="cd-layout">
+    <section class="cd-card cd-rate-card">
+      <div class="cd-step"><i class="bi bi-coin"></i> 01 · TANGA NARXI</div><h3>Bitta tanga qancha turadi?</h3><p class="cd-muted">Saqlangan narx marketdagi barcha yangi coin xaridlariga qo‘llanadi.</p>
+      <div class="cd-current"><span>Hozirgi narx</span><strong>1 tanga = {{ coin_rate }} so‘m</strong></div>
+      <form method="post" id="cd-rate-form">{% csrf_token %}<input type="hidden" name="coin_action" value="rate">{{ coin_rate_form.non_field_errors }}
+        <label for="id_som_per_coin">1 tanga narxi (so‘m)</label>{{ coin_rate_form.som_per_coin }}{{ coin_rate_form.som_per_coin.errors }}
+        <div class="cd-example"><i class="bi bi-calculator"></i><span>Masalan, <b>10 000 tanga</b><br><strong id="cd-rate-example">—</strong> <small>(chegirmasiz)</small></span></div>
+        <button class="cd-button cd-primary" type="submit"><i class="bi bi-check2-circle"></i> Narxni saqlash</button><p class="cd-help">Qiymatni o‘zgartirgach, «Narxni saqlash»ni bosing.</p>
       </form>
-    </div>
-    <div class="col-lg-8">
-      <h5>Yangi coin chegirmasi</h5>
-      <form method="post" class="coin-config-form">
-        {% csrf_token %}<input type="hidden" name="coin_action" value="add">
-        {{ coin_discount_form.as_p }}
-        <button class="btn btn-success" type="submit">Chegirmani qo‘shish</button>
+    </section>
+    <section class="cd-card" id="coin-campaign-form">
+      <div class="cd-step"><i class="bi bi-gift"></i> 02 · AKSIYA YARATISH</div><h3>{% if coin_editing %}Aksiyani tahrirlash{% else %}Bayramga maxsus taklif{% endif %}</h3><p class="cd-muted">Bezakni tanlang — marketda alohida aksiya kartasi chiqadi.</p>
+      <form method="post" id="cd-campaign-form">{% csrf_token %}<input type="hidden" name="coin_action" value="{% if coin_editing %}edit{% else %}add{% endif %}">{% if coin_editing %}<input type="hidden" name="discount_id" value="{{ coin_editing.pk }}">{% endif %}{{ coin_discount_form.non_field_errors }}
+        <div class="cd-fields">
+          <div class="cd-wide"><label for="id_name">Aksiya nomi</label>{{ coin_discount_form.name }}{{ coin_discount_form.name.errors }}<small>Masalan: Navro‘z sovg‘asi yoki Yangi yil aksiyasi</small></div>
+          <div><label for="id_theme">Bayram bezagi</label>{{ coin_discount_form.theme }}{{ coin_discount_form.theme.errors }}</div><div><label for="id_discount_type">Chegirma turi</label>{{ coin_discount_form.discount_type }}{{ coin_discount_form.discount_type.errors }}</div>
+          <div><label for="id_value">Chegirma <span id="cd-value-unit">(%)</span></label>{{ coin_discount_form.value }}{{ coin_discount_form.value.errors }}</div><div><label for="id_min_coins">Kamida nechta tanga?</label>{{ coin_discount_form.min_coins }}{{ coin_discount_form.min_coins.errors }}<small>Shu miqdordan boshlab chegirma ishlaydi.</small></div>
+        </div>
+        <label class="cd-switch-label" for="id_is_active">{{ coin_discount_form.is_active }}<span><b>Saqlash bilan aksiyani yoqish</b><small>Saytga bildirishnoma va Telegram guruhiga xabar yuboriladi.</small></span></label>
+        <div class="cd-form-actions"><button class="cd-button cd-primary" type="submit"><i class="bi bi-plus-lg"></i> {% if coin_editing %}O‘zgarishlarni saqlash{% else %}Aksiyani yaratish{% endif %}</button>{% if coin_editing %}<a class="cd-button cd-secondary" href="{% url 'admin_discounts' %}">Bekor qilish</a>{% endif %}</div>
       </form>
-    </div>
+    </section>
   </div>
-  <p class="mt-3">Chegirmalar qo‘shilmaydi: xaridorga eng foydalisi avtomatik tanlanadi. Yoqilganda saytda bildirishnoma va ulangan Telegram guruhiga xabar yuboriladi.</p>
-  <div class="table-responsive">
-    <table class="table align-middle">
-      <thead><tr><th>Aksiya</th><th>Chegirma</th><th>Eng kam xarid</th><th>Holati</th><th>Amal</th></tr></thead>
-      <tbody>{% for discount in coin_discounts %}
-        <tr><td>{{ discount.name }}</td><td>{{ discount.value }}{% if discount.discount_type == 'percentage' %}%{% else %} so‘m{% endif %}</td><td>{{ discount.min_coins }} coin</td>
-          <td>{% if discount.is_active %}<span class="badge bg-success">Yoqilgan</span>{% else %}<span class="badge bg-secondary">O‘chirilgan</span>{% endif %}</td>
-          <td><form method="post">{% csrf_token %}<input type="hidden" name="discount_id" value="{{ discount.pk }}"><input type="hidden" name="coin_action" value="{% if discount.is_active %}disable{% else %}enable{% endif %}"><button type="submit" class="btn btn-sm {% if discount.is_active %}btn-outline-danger{% else %}btn-outline-success{% endif %}">{% if discount.is_active %}O‘chirish{% else %}Yoqish va xabar berish{% endif %}</button></form></td>
-        </tr>
-      {% empty %}<tr><td colspan="5">Hali coin xaridi uchun chegirma yo‘q.</td></tr>{% endfor %}</tbody>
-    </table>
-  </div>
+  <section class="cd-preview-section"><div><span class="cd-eyebrow">OLDINDAN KO‘RISH</span><h3>Marketda shunday ko‘rinadi</h3><p class="cd-muted">Misol: <b id="cd-preview-coins">10 000</b> tanga xaridi. Hisob saqlangan narx bo‘yicha.</p></div>
+    <article class="cp-offer" data-theme="celebration" id="cd-preview" aria-live="polite"><div class="cp-art" aria-hidden="true">✦<span>🎁</span>✧</div><div class="cp-copy"><span class="cp-label">MAXSUS TAKLIF</span><h3 id="cd-preview-name">Bayram aksiyasi</h3><p id="cd-preview-min">Kamida 1 tanga xaridida</p></div><div class="cp-value"><strong id="cd-preview-value">−20%</strong><span><del id="cd-preview-old">—</del> <b id="cd-preview-pay">—</b></span></div></article>
+  </section>
+  <div class="cd-list-heading"><h3>Aksiyalaringiz</h3><p class="cd-muted">Yoqilgan aksiyalar marketda ko‘rinadi. Xaridga eng foydali bittasi qo‘llanadi.</p></div>
+  <div class="cd-campaigns">{% for discount in coin_discounts %}<article class="cd-campaign {% if not discount.is_active %}cd-inactive{% endif %}">
+    <div class="cd-campaign-top"><span class="cd-tag {% if discount.is_active %}cd-tag-active{% endif %}">{% if discount.is_active %}● Yoqilgan{% else %}○ O‘chirilgan{% endif %}</span><span class="cd-muted">{{ discount.get_theme_display }}</span></div>
+    <h4>{{ discount.name }}</h4><div class="cd-campaign-amount">−{{ discount.value }}<small>{% if discount.discount_type == 'percentage' %}%{% else %} so‘m{% endif %}</small></div><p class="cd-muted">Kamida <b>{{ discount.min_coins }} tanga</b> xaridida</p>
+    <div class="cd-campaign-actions"><a href="?edit_coin={{ discount.pk }}#coin-campaign-form" class="cd-button cd-secondary"><i class="bi bi-pencil"></i> Tahrirlash</a><form method="post">{% csrf_token %}<input type="hidden" name="discount_id" value="{{ discount.pk }}"><input type="hidden" name="coin_action" value="{% if discount.is_active %}disable{% else %}enable{% endif %}"><button type="submit" class="cd-button {% if discount.is_active %}cd-secondary{% else %}cd-primary{% endif %}">{% if discount.is_active %}O‘chirish{% else %}Yoqish{% endif %}</button></form></div>
+    </article>{% empty %}<div class="cd-empty"><i class="bi bi-gift"></i><h4>Birinchi aksiyangizni yarating</h4><p>Yuqorida nom, bezak va chegirma miqdorini belgilang.</p></div>{% endfor %}</div>
 </section>
-<style>
-.coin-config-form label { display:block; font-weight:600; margin-bottom:.3rem; }
-.coin-config-form input:not([type=hidden]):not([type=checkbox]), .coin-config-form select { width:100%; padding:.6rem .8rem; border:1px solid var(--card-border); border-radius:10px; background:var(--card-bg); color:var(--text-main); }
-.coin-config-form input[type=checkbox] { margin-right:.4rem; }
-.coin-config-form .errorlist { color:var(--bs-danger); }
-</style>
+{{ coin_rate|json_script:'cd-saved-rate' }}
+<script src="{% static 'js/coin_discounts.js' %}?v=20261020-2" defer></script>

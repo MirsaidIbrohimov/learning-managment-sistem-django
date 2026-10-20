@@ -7,7 +7,7 @@ def pricing_data():
     return {
         'rate': CoinPricingSettings.current().som_per_coin,
         'discounts': list(CoinPurchaseDiscount.objects.filter(is_active=True).order_by('pk').values(
-            'id', 'name', 'discount_type', 'value', 'min_coins')),
+            'id', 'name', 'theme', 'discount_type', 'value', 'min_coins')),
     }
 
 

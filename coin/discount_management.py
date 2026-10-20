@@ -22,13 +22,15 @@ class CoinDiscountForm(forms.ModelForm):
     value = forms.IntegerField(min_value=1, max_value=2147483647, label='Qiymati')
     min_coins = forms.IntegerField(min_value=1, max_value=2147483647, label='Eng kam coin miqdori')
     is_active = forms.BooleanField(required=False, label='Darhol yoqish va xabar berish')
+    theme = forms.ChoiceField(choices=CoinPurchaseDiscount.THEME_CHOICES, required=False, label='Bayram bezagi')
 
     class Meta:
         model = CoinPurchaseDiscount
-        fields = ['name', 'discount_type', 'value', 'min_coins', 'is_active']
+        fields = ['name', 'theme', 'discount_type', 'value', 'min_coins', 'is_active']
 
     def clean(self):
         data = super().clean()
+        data['theme'] = data.get('theme') or 'celebration'
         if data.get('discount_type') == 'percentage' and data.get('value', 0) > 99:
             self.add_error('value', 'Foiz 1 dan 99 gacha bo‘lishi kerak.')
         return data
@@ -50,21 +52,28 @@ def manage(request):
     """Called after the existing administrator permission check."""
     settings = CoinPricingSettings.current()
     rate_form = CoinRateForm(instance=settings)
-    discount_form = CoinDiscountForm(initial={'min_coins': 1})
+    editing = None
+    edit_id = request.GET.get('edit_coin')
+    if edit_id and edit_id.isascii() and edit_id.isdigit():
+        editing = get_object_or_404(CoinPurchaseDiscount, pk=int(edit_id))
+    discount_form = CoinDiscountForm(instance=editing, initial={'min_coins': 1, 'theme': 'celebration'} if not editing else None)
     if request.method == 'POST':
         action = request.POST.get('coin_action')
         if action == 'rate':
             rate_form = CoinRateForm(request.POST, instance=settings)
             if rate_form.is_valid():
                 rate_form.save()
-                messages.success(request, 'Coin narxi yangilandi.')
+                messages.success(request, f'Narx saqlandi: 1 tanga = {rate_form.instance.som_per_coin} so‘m. Marketdagi yangi xaridlar shu narxda hisoblanadi.')
                 return redirect('admin_discounts')
-        elif action == 'add':
-            discount_form = CoinDiscountForm(request.POST)
+        elif action in ('add', 'edit'):
+            if action == 'edit':
+                editing = get_object_or_404(CoinPurchaseDiscount, pk=request.POST.get('discount_id'))
+            was_active = bool(editing and editing.is_active)
+            discount_form = CoinDiscountForm(request.POST, instance=editing)
             if discount_form.is_valid():
                 with transaction.atomic():
                     discount = discount_form.save()
-                    if discount.is_active:
+                    if discount.is_active and (not was_active or discount_form.has_changed()):
                         announce(discount, request.user)
                 messages.success(request, 'Coin chegirmasi saqlandi.')
                 return redirect('admin_discounts')
@@ -77,5 +86,7 @@ def manage(request):
                     announce(discount, request.user)
             messages.success(request, 'Coin chegirmasi yoqildi.' if enabled else 'Coin chegirmasi o‘chirildi.')
             return redirect('admin_discounts')
-    return {'coin_rate_form': rate_form, 'coin_discount_form': discount_form,
-            'coin_discounts': CoinPurchaseDiscount.objects.all(), 'coin_rate': settings.som_per_coin}
+    discounts = list(CoinPurchaseDiscount.objects.all())
+    return {'coin_rate_form': rate_form, 'coin_discount_form': discount_form, 'coin_editing': editing,
+            'coin_discounts': discounts, 'coin_active_count': sum(d.is_active for d in discounts),
+            'coin_rate': CoinPricingSettings.current().som_per_coin}

@@ -10,7 +10,7 @@ from accounts.context_processors import unread_messages
 from accounts.models import CoinPricingSettings, CoinPurchaseDiscount, CustomUser, Message, TezCheckPaymentOrder
 from accounts.views import admin_discounts
 from coin.discount_management import CoinDiscountForm, CoinRateForm, manage
-from coin.payments import apply_coin_payment, coin_payment_status, create_coin_checkout, market_context
+from coin.payments import apply_coin_payment, coin_payment_status, coin_pricing, create_coin_checkout, market_context
 from coin.topup_pricing import pricing_data, pricing_token, quote
 
 
@@ -157,3 +157,39 @@ class CoinPricingTests(TestCase):
         self.assertIn('1 tanga = 2 so‘m', html)
         self.assertIn('&lt;Aksiya&gt;', html)
         self.assertEqual(context['coin_packages'][0]['payable'], 16000)
+
+    def test_open_market_refreshes_saved_admin_rate(self):
+        first = pricing_data()
+        manage(self.request(dict(coin_action='rate', som_per_coin=2), admin=True))
+        request = self.factory.get('/market/coins/pricing/')
+        request.user = self.user
+        response = coin_pricing(request)
+        self.assertIn('no-store', response['Cache-Control'])
+        data = json.loads(response.content)
+        self.assertEqual(first['rate'], 1)
+        self.assertEqual(data['pricing']['rate'], 2)
+        self.assertEqual(data['packages'][0]['payable'], 20000)
+        self.assertEqual(self.checkout(pricing_token=data['pricing_token']).status_code, 200)
+        self.assertEqual(TezCheckPaymentOrder.objects.get().amount_minor, 2000000)
+
+    def test_holiday_theme_is_saved_and_visible(self):
+        manage(self.request(dict(coin_action='add', name='Navroz', theme='navruz',
+                                 discount_type='percentage', value=20, min_coins=1), admin=True))
+        campaign = CoinPurchaseDiscount.objects.get()
+        self.assertEqual(campaign.theme, 'navruz')
+        campaign.is_active = True
+        campaign.save()
+        context = market_context(self.user)
+        html = render_to_string('coin/market/_coin_topup.html', context, request=self.request({}))
+        self.assertIn('data-theme="navruz"', html)
+        self.assertIn('ct-offers-section', html)
+        self.assertIn('coin_topup.js?v=', html)
+
+    def test_admin_can_edit_existing_disabled_campaign(self):
+        campaign = self.campaign(is_active=False)
+        manage(self.request(dict(coin_action='edit', discount_id=campaign.pk, name='Yangi yil',
+                                 theme='newyear', discount_type='fixed', value=500, min_coins=1000), admin=True))
+        campaign.refresh_from_db()
+        self.assertEqual((campaign.theme, campaign.discount_type, campaign.value), ('newyear', 'fixed', 500))
+        self.assertFalse(campaign.is_active)
+        self.assertEqual(Message.objects.count(), 0)

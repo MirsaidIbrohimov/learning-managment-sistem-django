@@ -11,7 +11,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
+from django.views.decorators.cache import never_cache
 
 from accounts.models import CustomUser, TezCheckPaymentOrder as Order
 from accounts.tezcheck import TezCheckError, create_bill
@@ -48,6 +49,19 @@ def market_context(user):
         'coin_checkout_token': str(uuid.uuid4()),
         'coin_orders': Order.objects.filter(student=user, purpose='coins')[:10],
     }
+
+
+@login_required
+@never_cache
+@require_GET
+def coin_pricing(request):
+    """Refresh an already open market from the same tariff used by checkout."""
+    data = pricing_data()
+    return JsonResponse({
+        'pricing': data, 'pricing_token': pricing_token(data),
+        'packages': [quote(coins, data) for coins in (10000, 25000, 50000, 100000)],
+        'limits': payment_limits(), 'ready': checkout_ready(),
+    })
 
 
 @transaction.atomic

@@ -8,6 +8,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.core.paginator import Paginator
 from django.db.models import Sum
+from django.views.decorators.cache import never_cache
 from accounts.models import CustomUser, PremiumRequest, Message
 from .models import (
     Product, ProductLike, ProductComment, ProductPurchase, 
@@ -31,6 +32,7 @@ def coin_transfer(request):
 
 
 @login_required
+@never_cache
 def market_list(request):
     """Market sahifasi — data API orqali yuklanadi"""
     from .payments import market_context

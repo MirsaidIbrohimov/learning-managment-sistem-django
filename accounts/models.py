@@ -1657,7 +1657,9 @@ class CoinPricingSettings(models.Model):
 
 
 class CoinPurchaseDiscount(models.Model):
+    THEME_CHOICES = [('celebration', 'Bayramona'), ('navruz', 'Navro‘z'), ('newyear', 'Yangi yil'), ('eid', 'Hayit'), ('simple', 'Oddiy aksiya')]
     name = models.CharField(max_length=120)
+    theme = models.CharField(max_length=16, choices=THEME_CHOICES, default='celebration')
     discount_type = models.CharField(max_length=10, choices=[('percentage', 'Foiz'), ('fixed', "So'm")])
     value = models.PositiveIntegerField()
     min_coins = models.PositiveIntegerField(default=1)
