@@ -6,7 +6,7 @@ from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.views.decorators.cache import cache_control
+from django.views.decorators.cache import cache_control, cache_page
 
 BASE_DIR = Path(settings.BASE_DIR)
 
@@ -32,11 +32,14 @@ def _serve_root_file(request, filename, content_type):
     )
 
 
-@cache_control(max_age=86400)
+@cache_page(300, key_prefix='public-robots-v1')
+@cache_control(public=True, max_age=300)
 def robots_txt(request):
     return _serve_root_file(request, 'robots.txt', 'text/plain; charset=utf-8')
 
 
+@cache_page(300, key_prefix='public-sitemap-v1')
+@cache_control(public=True, max_age=300)
 def sitemap_xml(request):
     """Build a crawlable sitemap for public landing and published blog pages."""
     sitemap_ns = 'http://www.sitemaps.org/schemas/sitemap/0.9'
@@ -69,7 +72,7 @@ def sitemap_xml(request):
 
     xml = ET.tostring(root, encoding='utf-8', xml_declaration=True)
     response = HttpResponse(xml, content_type='application/xml; charset=utf-8')
-    response['Cache-Control'] = 'public, max-age=3600'
+    response['Cache-Control'] = 'public, max-age=300'
     return response
 
 

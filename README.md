@@ -843,6 +843,23 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 
 Claude edit test
 
+## Sayt tezligini oshirish: Redis, query, Nginx va Passenger
+
+Staging testlari, har bosqichdan keyin RPS/TTFB o‘lchovi, cPanel/Engintron
+konfiguratsiya template'lari va rollback amallari: **[docs/performance.md](docs/performance.md)**.
+Mavjud SQLite saqlanadi. Redis default o‘chiq; avval hostingda mavjudligini
+tekshiring. Shaxsiy/CSRF sahifalar umumiy Nginx cache'ga qo‘yilmaydi.
+
+```bash
+python -m pip install -r requirements.txt
+python manage.py check --settings=settings.production
+python manage.py test accounts.test_performance config.test_public_cache blog.tests backup.tests
+python scripts/benchmark_http.py https://STAGING_DOMAIN/ --requests 50 --concurrency 5
+```
+
+Production profili uchun `.env`da `DEBUG=False` va amaldagi secret/host sozlamalari
+kerak. Haqiqiy `.env` o‘zgartirilmagan. Production deploy/yuklama testi bajarilmagan.
+
 ## Har kuni DB backup: Telegram (Ubuntu staging)
 
 Tekshirilgan joylashuvlar: `manage.py`, `config/settings.py`, `config/urls.py`,

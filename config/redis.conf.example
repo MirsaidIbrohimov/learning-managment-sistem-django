@@ -1,0 +1,14 @@
+# Merge into an administrator-managed, dedicated Redis instance; do not replace
+# a shared hosting Redis configuration. No public port and no embedded secrets.
+bind 127.0.0.1 ::1
+protected-mode yes
+port 6379
+maxmemory 128mb
+# Shared rate-limit keys must not silently disappear under memory pressure.
+maxmemory-policy noeviction
+# Data is rebuildable: sessions remain durable in Django's DB (cached_db).
+save ""
+appendonly no
+# Use an ACL/password or Unix socket permissions on multi-tenant hosts.
+# Loopback alone does not isolate unrelated cPanel users. Redis URL credentials
+# belong in the server's private .env, not in this template or CLI arguments.

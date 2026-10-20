@@ -74,7 +74,7 @@ def _env_bool(name, default=False):
 # Default False — DEBUG yoqilishi uchun .env da ATAYLAB DEBUG=True yozilishi shart.
 # Pastdagi barcha cookie/HSTS/SSL himoyalari `not DEBUG` ga bog'langan, shuning
 # uchun bu qiymatni qattiq `True` qilib qoldirish ularning hammasini o'chiradi.    _env_bool('DEBUG', False)
-DEBUG = True
+DEBUG = _env_bool('DEBUG', False)
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv('SECRET_KEY') or ''
@@ -433,6 +433,34 @@ CACHES = {
     }
 }
 
+# Opt in only after Redis is provisioned and checked in staging.
+USE_REDIS_CACHE = _env_bool('USE_REDIS_CACHE', False)
+if USE_REDIS_CACHE:
+    CACHES = {
+        alias: {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': os.getenv(env_key, default_url),
+            'KEY_PREFIX': os.getenv('CACHE_KEY_PREFIX', 'lms-v1') + ':' + alias,
+            'TIMEOUT': 300,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+                'SOCKET_CONNECT_TIMEOUT': 1,
+                'SOCKET_TIMEOUT': 1,
+                # Rate limit keys also use default: do not silently fail open.
+                'IGNORE_EXCEPTIONS': False,
+                'CONNECTION_POOL_KWARGS': {'max_connections': 20},
+            },
+        }
+        for alias, env_key, default_url in (
+            ('default', 'REDIS_CACHE_URL', 'redis://127.0.0.1:6379/1'),
+            ('sessions', 'REDIS_SESSION_URL', 'redis://127.0.0.1:6379/2'),
+        )
+    }
+LANDING_CACHE_SECONDS = max(0, int(os.getenv('LANDING_CACHE_SECONDS', '60')))
+# Preserve existing startup behavior until a single external worker is scheduled.
+RUN_INPROCESS_WORKERS = _env_bool('RUN_INPROCESS_WORKERS', True)
+RUN_STARTUP_TEMPLATE_REPAIR = _env_bool('RUN_STARTUP_TEMPLATE_REPAIR', True)
+
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
@@ -587,6 +615,10 @@ CSRF_TRUSTED_ORIGINS   = [
 # sessiya yo'lidan olib tashlanadi. Ko'p jarayonli serverda eng ishonchli
 # variant; hisoblar aralashib ketishining oldini oladi.
 SESSION_ENGINE           = 'django.contrib.sessions.backends.db'
+if USE_REDIS_CACHE and _env_bool('REDIS_SESSIONS_ENABLED', False):
+    # Keep the existing DB sessions as the durable source and rollback path.
+    SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+    SESSION_CACHE_ALIAS = 'sessions'
 SESSION_COOKIE_HTTPONLY  = True
 SESSION_COOKIE_SECURE    = not (DEBUG or _PLAIN_HTTP_OK)
 SESSION_COOKIE_SAMESITE  = 'Lax'

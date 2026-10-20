@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.core.paginator import Paginator
 from .models import Post, PostComment, PostLike, CommentLike
 from .forms import PostForm, CommentForm
+from .querysets import published_posts_with_counts
 from coin.models import ActivityLog
 from telegram_bot.utils import notify_group, notify_user
 
@@ -14,7 +15,7 @@ def post_list(request):
     search_query = request.GET.get('q')
     filter_type = request.GET.get('type')
     
-    posts_qs = Post.objects.filter(is_published=True)
+    posts_qs = published_posts_with_counts()
     
     if search_query:
         posts_qs = posts_qs.filter(
@@ -37,8 +38,8 @@ def post_list(request):
     })
 
 def post_detail(request, pk):
-    post = get_object_or_404(Post, pk=pk, is_published=True)
-    comments = post.comments.all()
+    post = get_object_or_404(Post.objects.select_related('author'), pk=pk, is_published=True)
+    comments = post.comments.select_related('user').all()
     is_liked = request.user.is_authenticated and post.likes.filter(user=request.user).exists()
     liked_comment_ids = (
         list(CommentLike.objects.filter(

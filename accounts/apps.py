@@ -15,6 +15,7 @@ class AccountsConfig(AppConfig):
     name = 'accounts'
 
     def ready(self):
+        from django.conf import settings
         from . import email_signals  # noqa: F401 — register transactional email hooks
         if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
             return
@@ -29,7 +30,7 @@ class AccountsConfig(AppConfig):
             # ── Auto-tuzatish: shablonlardagi UTF-8 bo'lmagan baytlar ──
             # (UnicodeDecodeError 0x97 kabi xatolar serverda qayta ishga
             #  tushganda avtomatik tuzatiladi — qo'lda hech narsa kerak emas)
-            if not _FIX_SKIP.intersection(sys.argv):
+            if settings.RUN_STARTUP_TEMPLATE_REPAIR and not _FIX_SKIP.intersection(sys.argv):
                 try:
                     from accounts.management.commands.fix_encoding import repair_templates
                     fixed, scanned = repair_templates(dry=False, log=lambda m: None)
@@ -39,9 +40,10 @@ class AccountsConfig(AppConfig):
                 except Exception as e:
                     print(f"[fix_encoding] Auto-tuzatish xatosi (e'tiborsiz): {e}")
 
-            t = threading.Thread(target=self._ai_homework_loop, daemon=True)
-            t.start()
-            threading.Thread(target=self._email_notification_loop, daemon=True, name='lms-email-notifications').start()
+            if settings.RUN_INPROCESS_WORKERS:
+                t = threading.Thread(target=self._ai_homework_loop, daemon=True)
+                t.start()
+                threading.Thread(target=self._email_notification_loop, daemon=True, name='lms-email-notifications').start()
 
     @staticmethod
     def _email_notification_loop():

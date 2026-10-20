@@ -43,6 +43,7 @@ from quiz.models import Attempt, Quiz, QuizSettings
 
 from django.core.management import call_command
 from django.core.cache import cache
+from .public_cache import landing_data
 from django.core.paginator import Paginator
 from telegram_bot.utils import notify_admins, notify_user, notify_group, notify_application_recipients
 
@@ -1990,16 +1991,7 @@ def daily_question_answer(request):
 def home_view(request):
     # Landing sahifa — login qilmagan foydalanuvchilar uchun
     if not request.user.is_authenticated:
-        landing_professions = Profession.objects.filter(is_blocked=False)[:6]
-        posts = Post.objects.filter(is_published=True)[:3]
-        total_students = cache.get('total_students_count')
-        if total_students is None:
-            total_students = CustomUser.objects.filter(role='student').count()
-            cache.set('total_students_count', total_students, 300)
-        total_courses = cache.get('total_courses_count')
-        if total_courses is None:
-            total_courses = Profession.objects.count()
-            cache.set('total_courses_count', total_courses, 300)
+        public_data = landing_data()
         success = False
 
         if request.method == 'POST':
@@ -2029,10 +2021,7 @@ def home_view(request):
                 success = True
 
         return render(request, 'landing.html', {
-            'professions': landing_professions,
-            'posts': posts,
-            'total_students': total_students,
-            'total_courses': total_courses,
+            **public_data,
             'success': success,
         })
 
@@ -2075,7 +2064,10 @@ def home_view(request):
     elif request.user.is_admin:
         quick_courses = list(Profession.objects.all()[:3])
     if request.user.is_learner or request.user.is_admin:
-        my_enrollments = request.user.enrollments.select_related('profession').all()[:4]
+        my_enrollments = request.user.enrollments.select_related('profession').prefetch_related(
+            models.Prefetch('profession__teachers', queryset=CustomUser.objects.order_by('pk'),
+                            to_attr='dashboard_teachers')
+        ).all()[:4]
         if my_enrollments:
             prof_ids = [e.profession_id for e in my_enrollments]
             
@@ -2112,7 +2104,7 @@ def home_view(request):
                     completed = watched_counts.get(pid, 0) + passed_counts.get(pid, 0) + done_hw_counts.get(pid, 0)
                     progress = min(100, round((completed / total_items) * 100))
                 try:
-                    teacher = prof.teachers.first()
+                    teacher = next(iter(prof.dashboard_teachers), None)
                     teacher_name = teacher.get_full_name() if teacher else ''
                 except Exception:
                     teacher_name = ''
