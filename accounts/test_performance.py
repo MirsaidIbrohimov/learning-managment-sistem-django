@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from tempfile import TemporaryDirectory
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.cache import cache
@@ -46,6 +47,24 @@ class PerformanceQueryTests(TestCase):
             self.assertEqual(len(second['posts']), len(first['posts']))
             self.assertNotIn('user', second)
             self.assertNotIn('csrf_token', second)
+
+    def test_landing_file_cache_is_shared_between_backend_instances(self):
+        with TemporaryDirectory() as directory:
+            backend = {
+                'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+                'LOCATION': directory,
+            }
+            with override_settings(
+                CACHES={'first': backend, 'second': backend},
+                PERFORMANCE_CACHE_ALIAS='first',
+            ):
+                with self.assertNumQueries(4):
+                    first = landing_data()
+                with override_settings(PERFORMANCE_CACHE_ALIAS='second'):
+                    with self.assertNumQueries(0):
+                        second = landing_data()
+                self.assertEqual(first['total_students'], second['total_students'])
+                self.assertEqual(first['professions'][0].pk, second['professions'][0].pk)
 
     def test_blog_page_query_count_does_not_grow_per_post(self):
         def capture(request, template, context):

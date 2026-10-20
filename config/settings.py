@@ -457,6 +457,24 @@ if USE_REDIS_CACHE:
             ('sessions', 'REDIS_SESSION_URL', 'redis://127.0.0.1:6379/2'),
         )
     }
+# Share expensive, disposable page data across Passenger processes without Redis.
+# Keep security counters and locks on their existing backend: file cache does not
+# provide the atomic operations required for those uses.
+USE_FILE_CACHE = _env_bool('USE_FILE_CACHE', True) and not RUNNING_TESTS
+PERFORMANCE_CACHE_ALIAS = 'default'
+if USE_FILE_CACHE and not USE_REDIS_CACHE:
+    import hashlib
+    _cache_namespace = hashlib.sha256(str(BASE_DIR).encode()).hexdigest()[:12]
+    CACHES['performance'] = {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.getenv('FILE_CACHE_DIR') or str(
+            Path.home() / '.cache' / ('lms-' + _cache_namespace)),
+        'KEY_PREFIX': os.getenv('CACHE_KEY_PREFIX', 'lms-v1') + ':performance',
+        'TIMEOUT': 300,
+        'OPTIONS': {'MAX_ENTRIES': 2000},
+    }
+    PERFORMANCE_CACHE_ALIAS = 'performance'
+
 LANDING_CACHE_SECONDS = max(0, int(os.getenv('LANDING_CACHE_SECONDS', '60')))
 # Preserve existing startup behavior until a single external worker is scheduled.
 RUN_INPROCESS_WORKERS = _env_bool('RUN_INPROCESS_WORKERS', True)

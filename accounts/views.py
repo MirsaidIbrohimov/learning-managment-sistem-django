@@ -43,7 +43,7 @@ from quiz.models import Attempt, Quiz, QuizSettings
 
 from django.core.management import call_command
 from django.core.cache import cache
-from .public_cache import landing_data
+from .public_cache import landing_data, get_performance_cache
 from django.core.paginator import Paginator
 from telegram_bot.utils import notify_admins, notify_user, notify_group, notify_application_recipients
 
@@ -1466,7 +1466,7 @@ def _home_teacher(request):
 
 def _home_admin(request):
     """Admin uchun bosh sahifa: umumiy statistika, kutilayotgan ishlar, faollik."""
-    stats = cache.get('home_admin_stats')
+    stats = get_performance_cache().get('home_admin_stats')
     if stats is None:
         stats = {
             'students': CustomUser.objects.filter(role='student').count(),
@@ -1476,7 +1476,7 @@ def _home_admin(request):
             'blocked': CustomUser.objects.filter(is_blocked=True).count(),
             'enrollments': CourseEnrollment.objects.count(),
         }
-        cache.set('home_admin_stats', stats, 120)
+        get_performance_cache().set('home_admin_stats', stats, 120)
 
     week_ago = timezone.now() - timedelta(days=7)
     new_users_week = CustomUser.objects.filter(date_joined__gte=week_ago).count()
@@ -1671,7 +1671,7 @@ def _home_assistant(request):
         pending.append(item)
     pending_total = sum(i['count'] for i in pending)
 
-    stats = cache.get('home_assistant_stats')
+    stats = get_performance_cache().get('home_assistant_stats')
     if stats is None:
         stats = {
             'students': CustomUser.objects.filter(role='student').count(),
@@ -1679,7 +1679,7 @@ def _home_assistant(request):
             'parents': Parent.objects.count(),
             'blocked': CustomUser.objects.filter(is_blocked=True).count(),
         }
-        cache.set('home_assistant_stats', stats, 120)
+        get_performance_cache().set('home_assistant_stats', stats, 120)
 
     stat_cards = [
         {'label': "O'quvchilar", 'value': stats['students'], 'icon': 'mortarboard', 'color': 'accent'},
@@ -2042,18 +2042,18 @@ def home_view(request):
         lesson_count=Count('lessons')
     ).all()[:6]
 
-    total_students = cache.get('total_students_count')
+    total_students = get_performance_cache().get('total_students_count')
     if total_students is None:
         total_students = CustomUser.objects.filter(role='student').count()
-        cache.set('total_students_count', total_students, 300)
-    total_courses = cache.get('total_courses_count')
+        get_performance_cache().set('total_students_count', total_students, 300)
+    total_courses = get_performance_cache().get('total_courses_count')
     if total_courses is None:
         total_courses = Profession.objects.count()
-        cache.set('total_courses_count', total_courses, 300)
-    total_lessons = cache.get('total_lessons_count')
+        get_performance_cache().set('total_courses_count', total_courses, 300)
+    total_lessons = get_performance_cache().get('total_lessons_count')
     if total_lessons is None:
         total_lessons = Lesson.objects.count()
-        cache.set('total_lessons_count', total_lessons, 300)
+        get_performance_cache().set('total_lessons_count', total_lessons, 300)
 
     # --- O'quvchi uchun kurslari ---
     my_enrollments = []
@@ -10644,7 +10644,7 @@ def admin_dashboard(request):
         messages.error(request, "Sizda admin paneliga kirish huquqi yo'q!")
         return redirect('home')
     
-    dash_stats = cache.get('admin_dash_stats')
+    dash_stats = get_performance_cache().get('admin_dash_stats')
     if dash_stats is None:
         dash_stats = {
             'total_users': CustomUser.objects.count(),
@@ -10660,7 +10660,7 @@ def admin_dashboard(request):
             'total_certificates': Certificate.objects.count(),
             'total_coins': CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0,
         }
-        cache.set('admin_dash_stats', dash_stats, 120)
+        get_performance_cache().set('admin_dash_stats', dash_stats, 120)
     total_users = dash_stats['total_users']
     total_teachers = dash_stats['total_teachers']
     total_students = dash_stats['total_students']
@@ -10678,7 +10678,7 @@ def admin_dashboard(request):
     total_coins = dash_stats['total_coins']
     
     # Test natijalari (cached)
-    test_cache = cache.get('admin_test_stats')
+    test_cache = get_performance_cache().get('admin_test_stats')
     if test_cache is None:
         fa = TestResult.first_attempts()
         test_cache = {
@@ -10686,7 +10686,7 @@ def admin_dashboard(request):
             'passed': fa.filter(passed=True).count(),
             'avg': fa.aggregate(avg=Avg('score'))['avg'] or 0,
         }
-        cache.set('admin_test_stats', test_cache, 300)
+        get_performance_cache().set('admin_test_stats', test_cache, 300)
     total_test_results = test_cache['total']
     passed_tests = test_cache['passed']
     avg_test_score = test_cache['avg']
@@ -10753,7 +10753,7 @@ def admin_dashboard(request):
     else:
         _prev_m, _prev_y = _cur_m - 1, _cur_y
 
-    finance = cache.get('admin_finance_stats')
+    finance = get_performance_cache().get('admin_finance_stats')
     if finance is None:
         _paid_agg = PaymentRecord.objects.filter(
             is_paid=True, month=_cur_m, year=_cur_y
@@ -10782,9 +10782,9 @@ def admin_dashboard(request):
             'month_unpaid': int(_unpaid_agg['s'] or 0),
             'month_unpaid_count': _unpaid_agg['c'] or 0,
         }
-        cache.set('admin_finance_stats', finance, 300)
+        get_performance_cache().set('admin_finance_stats', finance, 300)
 
-    growth = cache.get('admin_growth_stats')
+    growth = get_performance_cache().get('admin_growth_stats')
     if growth is None:
         _month_start = _now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         _new_this_month = CustomUser.objects.filter(date_joined__gte=_month_start).count()
@@ -10801,10 +10801,10 @@ def admin_dashboard(request):
             'new_prev_month': _new_prev_month,
             'user_change': _user_change,
         }
-        cache.set('admin_growth_stats', growth, 300)
+        get_performance_cache().set('admin_growth_stats', growth, 300)
 
     # Kurslar samaradorligi jadvali (top 10, o'quvchilar soni bo'yicha)
-    course_perf = cache.get('admin_course_perf')
+    course_perf = get_performance_cache().get('admin_course_perf')
     if course_perf is None:
         _perf_qs = Profession.objects.annotate(
             student_total=Count(
@@ -10834,7 +10834,7 @@ def admin_dashboard(request):
                 'pending': _pending_map.get(p.pk, 0),
                 'avg_score': round(_score_map.get(p.pk) or 0, 1),
             })
-        cache.set('admin_course_perf', course_perf, 300)
+        get_performance_cache().set('admin_course_perf', course_perf, 300)
 
     context = {
         'maintenance': maintenance,
@@ -17151,7 +17151,7 @@ def _balance_sweep_overdue():
             pass
     if charged_any:
         # Dashboard moliya keshini yangilaymiz — qarzdorlik darhol to'g'ri chiqsin
-        cache.delete('admin_finance_stats')
+        get_performance_cache().delete('admin_finance_stats')
 
     # Har kuni o'quvchilarga to'lov sanasidan 3, 2, 1 kun oldin Telegram botdan eslatma yuborish
     try:

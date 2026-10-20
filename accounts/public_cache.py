@@ -1,6 +1,10 @@
 """Cache public landing DATA, preserving fresh CSRF tokens and user responses."""
 from django.conf import settings
-from django.core.cache import cache
+from django.core.cache import caches
+
+
+def get_performance_cache():
+    return caches[settings.PERFORMANCE_CACHE_ALIAS]
 
 
 def landing_data():
@@ -8,6 +12,7 @@ def landing_data():
     from blog.models import Post
 
     ttl = settings.LANDING_CACHE_SECONDS
+    cache = get_performance_cache()
     key = 'landing-public-data:v1'
     data = cache.get(key) if ttl else None
     if data is None:
