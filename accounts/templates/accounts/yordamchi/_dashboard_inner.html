@@ -68,7 +68,6 @@
         <button class="asst-tab" data-pane="attendance">рџ•’ Davomat</button>
         <button class="asst-tab" data-pane="certs">рџЏ† Sertifikat so'rovlari</button>
         <button class="asst-tab" data-pane="users">рџ‘Ґ Foydalanuvchilar</button>
-        <button class="asst-tab" data-pane="passwords">рџ”‘ Parol tiklash</button>
         <button class="asst-tab" data-pane="parents">рџ‘ЁвЂЌрџ‘©вЂЌрџ‘§ Ota-onalar</button>
         <button class="asst-tab" data-pane="requests">рџ“‹ So'rovlar</button>
         <button class="asst-tab" data-pane="messages">рџ’¬ Xabarlar</button>
@@ -86,7 +85,6 @@
     <div id="pane-attendance" class="asst-pane"></div>
     <div id="pane-certs" class="asst-pane"></div>
     <div id="pane-users" class="asst-pane"></div>
-    <div id="pane-passwords" class="asst-pane"></div>
     <div id="pane-parents" class="asst-pane"></div>
     <div id="pane-requests" class="asst-pane"></div>
     <div id="pane-messages" class="asst-pane"></div>
@@ -377,39 +375,6 @@ async function toggleBlock(id) {
     try {
         await api(`/users/${id}/toggle-block/`, { method:'POST' });
         loadUsers();
-    } catch(e) { alert('Xato: ' + e.message); }
-}
-
-// ============== PASSWORD RESETS ==============
-async function loadPasswords() {
-    const pane = document.getElementById('pane-passwords');
-    pane.innerHTML = `
-        <div class="asst-section">
-            <div class="asst-section-title"><i class="bi bi-key"></i> Parol tiklash so'rovlari</div>
-            <div id="pwList" class="asst-loading">Yuklanmoqda...</div>
-        </div>`;
-    try {
-        const data = await api('/password-resets/?status=pending');
-        const list = rows(data);
-        document.getElementById('pwList').innerHTML = list.length ? `
-            <table class="asst-table"><thead><tr>
-                <th>#</th><th>Foydalanuvchi</th><th>Telefon</th><th>Status</th><th>Sana</th><th>Amallar</th>
-            </tr></thead><tbody>
-            ${list.map(r => `<tr>
-                <td>${r.id}</td><td>${esc(r.user_name)}</td><td>${esc(r.user_phone)}</td>
-                <td>${statusBadge(r.status)}</td><td>${(r.created_at||'').slice(0,16).replace('T',' ')}</td>
-                <td><div class="asst-actions">
-                    <button class="asst-btn asst-btn-success" onclick="reviewPw(${r.id},'approve')">Tasdiqlash</button>
-                    <button class="asst-btn asst-btn-danger" onclick="reviewPw(${r.id},'reject')">Rad etish</button>
-                </div></td>
-            </tr>`).join('')}
-            </tbody></table>` : '<div class="asst-empty">Yangi so\'rovlar yo\'q</div>';
-    } catch(e) { document.getElementById('pwList').innerHTML = `<div class="asst-empty">Xato: ${esc(e.message)}</div>`; }
-}
-async function reviewPw(id, action) {
-    try {
-        await api(`/password-resets/${id}/review/`, { method:'POST', body: JSON.stringify({ action }) });
-        loadPasswords();
     } catch(e) { alert('Xato: ' + e.message); }
 }
 
@@ -764,7 +729,7 @@ async function deleteSurvey(id) {
 const loaders = {
     homework: loadHomework, tests: loadTests, lessons: loadLessons,
     attendance: loadAttendance, certs: loadCerts, users: loadUsers,
-    passwords: loadPasswords, parents: loadParents, requests: loadRequests,
+    parents: loadParents, requests: loadRequests,
     messages: loadMessages, blog: loadBlog, library: loadLibrary,
     help: loadHelp, applications: loadApplications, surveys: loadSurveys,
 };

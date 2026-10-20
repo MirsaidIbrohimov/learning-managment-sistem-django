@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST
 from accounts.models import CustomUser, TezCheckPaymentOrder as Order
 from accounts.tezcheck import TezCheckError, create_bill
 from .models import CoinTransaction
+from .topup_pricing import pricing_data, pricing_token, quote
 
 
 def payment_limits():
@@ -37,8 +38,11 @@ def checkout_ready():
 
 def market_context(user):
     limits = payment_limits()
+    pricing = pricing_data()
     return {
-        'coin_packages': (10000, 25000, 50000, 100000),
+        'coin_packages': [quote(amount, pricing) for amount in (10000, 25000, 50000, 100000)],
+        'coin_pricing': pricing,
+        'coin_pricing_token': pricing_token(pricing),
         'coin_limits': limits,
         'coin_checkout_ready': checkout_ready(),
         'coin_checkout_token': str(uuid.uuid4()),
@@ -83,7 +87,10 @@ def apply_coin_payment(order, data):
     # Unique key also prevents one provider transaction funding two coin orders.
     locked.coin_payment_key = payment_id
     locked.save(update_fields=['coin_payment_key'])
-    coins = locked.amount_minor // 100
+    # Preserve the quote at checkout, including when tariffs change before payment.
+    coins = locked.coin_quantity if locked.coin_quantity is not None else locked.amount_minor // 100
+    if coins <= 0:
+        raise ValueError('Coin quantity must be positive')
     # A single SQL increment protects concurrent purchases/rewards from lost updates.
     CustomUser.objects.filter(pk=locked.student_id).update(coins=F('coins') + coins)
     locked.coin_transaction = CoinTransaction.objects.create(
@@ -135,21 +142,44 @@ def create_coin_checkout(request):
     if len(raw) > 20 or not re.fullmatch(r'[0-9]+(?: [0-9]{3})*', raw):
         return JsonResponse({'error': 'Musbat butun tanga miqdorini kiriting.'}, status=400)
     amount = int(raw.replace(' ', ''))
-    low, high = payment_limits()
-    if not low <= amount <= high:
-        return JsonResponse({'error': f'Miqdor {low:,} va {high:,} so‘m orasida bo‘lishi kerak.'.replace(',', ' ')}, status=400)
+    if not 1 <= amount <= 2147483647:
+        return JsonResponse({'error': 'Coin miqdori ruxsat etilgan oraliqda emas.'}, status=400)
     try:
         token = str(uuid.UUID(request.POST.get('token', '')))
     except (ValueError, TypeError, AttributeError):
         return JsonResponse({'error': 'Sahifani yangilang va qayta urinib ko‘ring.'}, status=400)
+    reference = f'COIN-{request.user.pk}-{token}'
+    existing = Order.objects.filter(external_reference=reference).first()
+    pricing = pricing_data()
+    purchase = quote(amount, pricing)
+    if existing:
+        previous_coins = existing.coin_quantity if existing.coin_quantity is not None else existing.amount_som
+        if previous_coins != amount:
+            return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
+        payable = existing.amount_som
+    else:
+        from django.core import signing
+        shown_pricing = request.POST.get('pricing_token')
+        if shown_pricing:
+            try:
+                matches = signing.loads(shown_pricing, salt='coin-pricing') == pricing
+            except signing.BadSignature:
+                matches = False
+            if not matches:
+                return JsonResponse({'error': 'Coin narxi yoki chegirma o‘zgardi. Sahifani yangilang.'}, status=409)
+        payable = purchase['payable']
+        low, high = payment_limits()
+        if not low <= payable <= high:
+            return JsonResponse({'error': f'To‘lov {low:,} va {high:,} so‘m orasida bo‘lishi kerak.'.replace(',', ' ')}, status=400)
     today = timezone.localdate()
     # User-scoped unique checkout token makes retries reuse the provider idempotency key.
     order, _ = Order.objects.get_or_create(
-        external_reference=f'COIN-{request.user.pk}-{token}',
-        defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': amount * 100,
+        external_reference=reference,
+        defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': payable * 100,
+                  'coin_quantity': amount, 'coin_pricing_snapshot': dict(purchase, rate=pricing['rate']),
                   'billing_month': today.month, 'billing_year': today.year},
     )
-    if order.amount_minor != amount * 100:
+    if (order.coin_quantity if order.coin_quantity is not None else order.amount_som) != amount:
         return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
     if order.coin_transaction_id or order.status != 'pending':
         return JsonResponse({'error': 'Bu buyurtma yakunlangan. Sahifani yangilang.'}, status=409)
@@ -185,5 +215,5 @@ def coin_payment_status(request, pk):
     if display_status == 'pending':
         display_status = {'payment.failed': 'failed', 'payment.canceled': 'cancelled',
                           'payment.expired': 'expired'}.get(order.last_error, display_status)
-    return JsonResponse({'status': display_status, 'coins': order.amount_som,
+    return JsonResponse({'status': display_status, 'coins': order.coin_quantity if order.coin_quantity is not None else order.amount_som,
                          'balance': request.user.coins, 'credited': bool(order.coin_transaction_id)})

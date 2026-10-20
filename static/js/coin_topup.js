@@ -10,17 +10,31 @@
   const error = document.getElementById('ct-error'), radios = [...form.querySelectorAll('[name=package]')];
   const result = document.getElementById('ct-result'), recheck = document.getElementById('ct-recheck');
   const csrf = form.querySelector('[name=csrfmiddlewaretoken]').value;
+  const pricing = JSON.parse(document.getElementById('ct-pricing').textContent);
+  function quote(coins) {
+    const gross = coins * pricing.rate;
+    let payable = gross, selected = null;
+    for (const discount of pricing.discounts) {
+      if (coins < discount.min_coins) continue;
+      const price = Math.max(1, discount.discount_type === 'percentage'
+        ? Math.ceil(gross * (100 - discount.value) / 100) : gross - discount.value);
+      if (price < payable) { payable = price; selected = discount; }
+    }
+    return {payable, selected};
+  }
   let amount = 10000, busy = false, pollGeneration = 0, currentUrl;
   function update() {
     const raw = custom.value;
     const valid = /^[0-9]+(?: [0-9]{3})*$/.test(raw);
     amount = raw ? (valid ? Number(raw.replaceAll(' ', '')) : NaN) : Number(radios.find(r => r.checked)?.value);
-    const ok = Number.isSafeInteger(amount) && amount >= Number(form.dataset.min) && amount <= Number(form.dataset.max) && amount > 0;
+    const purchase = quote(amount);
+    const ok = Number.isSafeInteger(amount) && amount > 0 && amount <= 2147483647 && Number.isSafeInteger(purchase.payable) && purchase.payable >= Number(form.dataset.min) && purchase.payable <= Number(form.dataset.max);
     error.textContent = ok || form.dataset.ready !== 'true' ? '' : 'Ruxsat etilgan oraliqdagi musbat butun miqdorni tanlang.';
     custom.setAttribute('aria-invalid', raw && !ok ? 'true' : 'false');
     const readable = Number.isSafeInteger(amount) && amount > 0;
     document.getElementById('ct-receive').textContent = (readable ? fmt(amount) : '—') + ' tanga';
-    document.getElementById('ct-pay').textContent = (readable ? fmt(amount) : '—') + ' so‘m';
+    document.getElementById('ct-pay').textContent = (readable ? fmt(purchase.payable) : '—') + ' so‘m';
+    document.getElementById('ct-discount').textContent = readable && purchase.selected ? purchase.selected.name + ' chegirmasi qo‘llandi.' : '';
     submit.disabled = busy || !ok || form.dataset.ready !== 'true';
   }
   radios.forEach(r => r.addEventListener('change', () => { custom.value = ''; update(); }));

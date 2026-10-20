@@ -1487,8 +1487,6 @@ def _home_admin(request):
          'url_name': 'admin_help_requests', 'icon': 'life-preserver'},
         {'label': "Yangi arizalar", 'count': CourseApplication.objects.filter(status='new').count(),
          'url_name': 'admin_applications', 'icon': 'inbox'},
-        {'label': "Parol tiklash so'rovlari", 'count': PasswordResetRequest.objects.filter(status='pending').count(),
-         'url_name': 'admin_password_reset_requests', 'icon': 'key'},
         {'label': "Kursga yozilish so'rovlari", 'count': CourseEnrollmentRequest.objects.filter(status='pending').count(),
          'url_name': 'admin_enrollment_requests', 'icon': 'person-plus'},
         {'label': "Premium so'rovlari", 'count': PremiumRequest.objects.filter(status='pending').count(),
@@ -1610,11 +1608,9 @@ def _home_admin(request):
         ("O'qituvchi qo'shish", 'admin_add_teacher', 'person-plus'),
         ("Kurs qo'shish", 'admin_profession_add', 'folder-plus'),
         ("Kurslar", 'admin_professions', 'collection-play'),
-        ("To'lovlar", 'admin_payments', 'cash-stack'),
         ("Coin boshqaruvi", 'admin_manage_coins', 'coin'),
         ("Xabarlar", 'admin_messages', 'envelope'),
         ("So'rovnomalar", 'admin_surveys', 'clipboard-data'),
-        ("Hisobotlar", 'admin_reports', 'file-earmark-bar-graph'),
         ("Kutubxona", 'admin_books', 'book'),
         ("Xavfsizlik", 'admin_security_events', 'shield-lock'),
         ("Davomat", 'admin_teacher_attendance', 'calendar-check'),
@@ -8251,238 +8247,10 @@ def admin_messages(request):
 from django.core.paginator import Paginator
 
 # Admin: Payment management
-@login_required
-def admin_payments(request):
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
-    # Yordamchi admin oylik to'lovlarni O'ZINING alohida panelida ko'radi
-    if request.user.is_assistant_admin:
-        return redirect('yordamchi_payments')
-
-    from datetime import date
-    today = date.today()
-    selected_month = _to_int(request.GET.get('month'), today.month)
-    selected_year = _to_int(request.GET.get('year'), today.year)
-    search_query = request.GET.get('q', '').strip()
-    filter_status = request.GET.get('status', '')
-
-    # Tugatgan va shartnoma rejimidagi o'quvchilarni to'lovlar sahifasida ko'rsatmaymiz
-    qs = (
-        CustomUser.objects.filter(role='student', is_finished=False)
-        .exclude(student_balance__is_contract=True)
-        .select_related('payment_status')
-    )
-
-    # Har bir studentga PaymentStatus yaratish
-    existing_ids = set(PaymentStatus.objects.filter(user__role='student', user__is_finished=False).values_list('user_id', flat=True))
-    all_student_ids = set(qs.values_list('id', flat=True))
-    missing = all_student_ids - existing_ids
-    if missing:
-        PaymentStatus.objects.bulk_create([
-            PaymentStatus(user_id=uid) for uid in missing
-        ], ignore_conflicts=True)
-        qs = (
-            CustomUser.objects.filter(role='student', is_finished=False)
-            .exclude(student_balance__is_contract=True)
-            .select_related('payment_status')
-        )
-
-    # PaymentRecord yaratish (tanlangan oy uchun)
-    existing_record_ids = set(
-        PaymentRecord.objects.filter(month=selected_month, year=selected_year)
-        .values_list('user_id', flat=True)
-    )
-    missing_records = all_student_ids - existing_record_ids
-    if missing_records:
-        # 🔁 Carryover: yangi oy summasi OLDINGI oy yozuvidan meros olinadi
-        # (bo'lmasa PaymentStatus.monthly_fee, u ham bo'lmasa 200000). Shunda
-        # ustoz/admin har oy oylik summani qayta kiritmaydi — sozlama o'zi ko'chadi.
-        _prev_m, _prev_y = (12, selected_year - 1) if selected_month == 1 else (selected_month - 1, selected_year)
-        prev_fees = dict(
-            PaymentRecord.objects.filter(month=_prev_m, year=_prev_y, user_id__in=missing_records)
-            .values_list('user_id', 'amount')
-        )
-        ps_fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_records)}
-        PaymentRecord.objects.bulk_create([
-            PaymentRecord(
-                user_id=uid, month=selected_month, year=selected_year,
-                amount=prev_fees.get(uid) or ps_fees.get(uid) or 200000,
-            )
-            for uid in missing_records
-        ], ignore_conflicts=True)
-
-    # Search
-    if search_query:
-        qs = qs.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query) |
-            Q(username__icontains=search_query) |
-            Q(phone__icontains=search_query)
-        )
-
-    # Records dict
-    records = PaymentRecord.objects.filter(month=selected_month, year=selected_year).select_related('user')
-    records_dict = {r.user_id: r for r in records}
-
-    # Filter by status
-    if filter_status == 'paid':
-        qs = qs.filter(pk__in=[r.user_id for r in records if r.is_paid])
-    elif filter_status == 'unpaid':
-        qs = qs.filter(pk__in=[r.user_id for r in records if not r.is_paid])
-    elif filter_status == 'blocked':
-        qs = qs.filter(is_blocked=True)
-
-    students_list = list(qs.order_by('first_name', 'last_name'))
-    for s in students_list:
-        s.current_record = records_dict.get(s.pk)
-
-    # 🔝 Saralash: to'lovi belgilanmagan (to'lanmagan) va to'lov sanasi
-    # yaqinlashayotgan o'quvchilar avtomatik TEPA qatorlarda turadi;
-    # to'lagani belgilanganlar pastga tushadi.
-    from datetime import date as _date
-    from .models import StudentBalance as _SB
-    _today = _date.today()
-    _bal_dates = dict(
-        _SB.objects.filter(user_id__in=[s.pk for s in students_list])
-        .values_list('user_id', 'next_payment_date')
-    )
-
-    def _pay_sort_key(s):
-        rec = s.current_record
-        unpaid = 0 if not (rec and rec.is_paid) else 1  # to'lanmaganlar (0) tepada
-        npd = _bal_dates.get(s.pk)
-        days_left = (npd - _today).days if npd else 99999  # yaqin sana tepada
-        return (unpaid, days_left, (s.first_name or '').lower(), (s.last_name or '').lower())
-
-    students_list.sort(key=_pay_sort_key)
-
-    paginator = Paginator(students_list, 30)
-    students = paginator.get_page(request.GET.get('page'))
-
-    # Stats — tugatgan va shartnoma rejimidagi o'quvchilar qarzdorlikka kirmaydi
-    active_student_ids = list(
-        CustomUser.objects.filter(role='student', is_finished=False)
-        .exclude(student_balance__is_contract=True)
-        .values_list('id', flat=True)
-    )
-    all_records = PaymentRecord.objects.filter(month=selected_month, year=selected_year, user_id__in=active_student_ids)
-    total_students = len(active_student_ids)
-    total_expected = all_records.aggregate(t=Sum('amount'))['t'] or 0
-    total_paid_sum = all_records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
-    total_paid_count = all_records.filter(is_paid=True).count()
-    total_unpaid = all_records.filter(is_paid=False).count()
-    blocked_count = CustomUser.objects.filter(role='student', is_finished=False, is_blocked=True).count()
-    total_debt = max(0, total_expected - total_paid_sum)
-
-    # Oylik tarix (6 oy)
-    MONTH_SHORT = {1:'Yan',2:'Fev',3:'Mar',4:'Apr',5:'May',6:'Iyn',7:'Iyl',8:'Avg',9:'Sen',10:'Okt',11:'Noy',12:'Dek'}
-    monthly_history = []
-    for i in range(5, -1, -1):
-        m = selected_month - i
-        y = selected_year
-        while m <= 0:
-            m += 12
-            y -= 1
-        mr = PaymentRecord.objects.filter(month=m, year=y)
-        monthly_history.append({
-            'month': m, 'year': y,
-            'name': MONTH_SHORT.get(m, ''),
-            'paid': mr.filter(is_paid=True).aggregate(s=Sum('paid_amount'))['s'] or 0,
-            'expected': mr.aggregate(s=Sum('amount'))['s'] or 0,
-            'paid_count': mr.filter(is_paid=True).count(),
-            'total_count': mr.count(),
-        })
-
-    months = [(i, PaymentRecord.MONTH_NAMES[i]) for i in range(1, 13)]
-    years = list(range(2024, today.year + 2))
-
-    return render(request, 'accounts/admin/payments.html', {
-        'students': students,
-        'total_students': total_students,
-        'total_expected': total_expected,
-        'total_paid_sum': total_paid_sum,
-        'total_paid_count': total_paid_count,
-        'total_unpaid': total_unpaid,
-        'blocked_count': blocked_count,
-        'selected_month': selected_month,
-        'selected_year': selected_year,
-        'months': months,
-        'years': years,
-        'search_query': search_query,
-        'filter_status': filter_status,
-        'monthly_history': monthly_history,
-        'total_debt': total_debt,
-        'today': today,
-    })
 
 
-@login_required
-def admin_mark_paid(request, pk):
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
-
-    from datetime import date
-    user = get_object_or_404(CustomUser, pk=pk)
-    payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
-
-    month = _to_int(request.POST.get('month'), date.today().month)
-    year = _to_int(request.POST.get('year'), date.today().year)
-    paid_amount = request.POST.get('paid_amount', '')
-    notes = request.POST.get('notes', '')
-
-    record, _ = PaymentRecord.objects.get_or_create(
-        user=user, month=month, year=year,
-        defaults={'amount': payment_status.monthly_fee}
-    )
-    record.paid_amount = _to_int(paid_amount, record.amount)
-    record.is_paid = True
-    record.paid_date = date.today()
-    record.notes = notes
-    record.recorded_by = request.user
-    record.save()
-
-    payment_status.is_paid = True
-    payment_status.last_payment_date = date.today()
-    payment_status.save()
-
-    if user.is_blocked and payment_status.auto_blocked:
-        user.is_blocked = False
-        user.save()
-        payment_status.auto_blocked = False
-        payment_status.save()
-        Message.objects.create(
-            title="✅ Hisobingiz ochildi",
-            content="To'lov qabul qilindi. Hisobingiz faollashtirildi.",
-            message_type='system', recipient=user, sender=request.user
-        )
-
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'name': user.full_name, 'paid_amount': record.paid_amount, 'debt': record.debt})
-    messages.success(request, f"{user.full_name} to'lovi belgilandi!")
-    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
 
-@login_required
-def admin_mark_unpaid(request, pk):
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
-
-    from datetime import date
-    user = get_object_or_404(CustomUser, pk=pk)
-    month = _to_int(request.POST.get('month'), date.today().month)
-    year = _to_int(request.POST.get('year'), date.today().year)
-
-    record = PaymentRecord.objects.filter(user=user, month=month, year=year).first()
-    if record:
-        record.is_paid = False
-        record.paid_amount = 0
-        record.paid_date = None
-        record.save()
-
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return JsonResponse({'success': True, 'name': user.full_name})
-    messages.warning(request, f"{user.full_name} to'lovi bekor qilindi!")
-    return redirect(f'/dashboard/tolovlar/?month={month}&year={year}')
 
 
 @login_required
@@ -8724,26 +8492,6 @@ def admin_set_monthly_fee(request, pk):
     return redirect(f'/dashboard/tolovlar/?month={month}&year={year}' if month else 'admin_payments')
 
 
-@login_required
-def admin_payment_history(request, pk):
-    if not request.user.is_admin:
-        return redirect('home')
-
-    user = get_object_or_404(CustomUser, pk=pk, role='student')
-    records = PaymentRecord.objects.filter(user=user).order_by('-year', '-month')
-    payment_status, _ = PaymentStatus.objects.get_or_create(user=user)
-
-    total_expected = records.aggregate(t=Sum('amount'))['t'] or 0
-    total_paid = records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
-
-    return render(request, 'accounts/admin/payment_history.html', {
-        'student': user,
-        'records': records,
-        'payment_status': payment_status,
-        'total_expected': total_expected,
-        'total_paid': total_paid,
-        'total_debt': max(0, total_expected - total_paid),
-    })
 
 
 @login_required
@@ -12469,269 +12217,6 @@ def _filter_options(selected):
     }
 
 
-@login_required
-def admin_statistics(request):
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    today = timezone.now().date()
-    now = timezone.now()
-
-    # ===== FILTRLAR (yil / oy / kurs yo'nalishi) =====
-    f = _parse_stats_filters(request)
-    start_date, end_date, profession = f['start_date'], f['end_date'], f['profession']
-
-    def date_range(field):
-        """DateTimeField uchun sana oralig'i lookup lug'ati."""
-        kw = {}
-        if start_date:
-            kw[f'{field}__date__gte'] = start_date
-        if end_date:
-            kw[f'{field}__date__lt'] = end_date
-        return kw
-
-    # ===== BASIC COUNTS (filtrlangan) =====
-    users_qs = CustomUser.objects.all()
-    students_qs = CustomUser.objects.filter(role='student')
-    teachers_qs = CustomUser.objects.filter(role='teacher')
-    if profession:
-        students_qs = students_qs.filter(enrollments__profession=profession).distinct()
-        teachers_qs = teachers_qs.filter(profession=profession).distinct()
-        users_qs = CustomUser.objects.filter(
-            Q(enrollments__profession=profession) | Q(profession=profession)
-        ).distinct()
-    if start_date or end_date:
-        djf = date_range('date_joined')
-        users_qs = users_qs.filter(**djf)
-        students_qs = students_qs.filter(**djf)
-        teachers_qs = teachers_qs.filter(**djf)
-
-    total_users = users_qs.count()
-    total_teachers = teachers_qs.count()
-    total_students = students_qs.count()
-    total_admins = CustomUser.objects.filter(role='admin').count()
-    blocked_users = users_qs.filter(is_blocked=True).count()
-    online_users = CustomUser.objects.filter(
-        last_activity__gte=now - timedelta(seconds=300)
-    ).count()
-    
-    # ===== GROWTH: this month vs last month =====
-    this_month_start = today.replace(day=1)
-    last_month_end = this_month_start - timedelta(days=1)
-    last_month_start = last_month_end.replace(day=1)
-    
-    new_users_this_month = CustomUser.objects.filter(date_joined__date__gte=this_month_start).count()
-    new_users_last_month = CustomUser.objects.filter(
-        date_joined__date__gte=last_month_start,
-        date_joined__date__lt=this_month_start
-    ).count()
-    
-    if new_users_last_month > 0:
-        growth_percent = round(((new_users_this_month - new_users_last_month) / new_users_last_month) * 100)
-    else:
-        growth_percent = 100 if new_users_this_month > 0 else 0
-    
-    # ===== PROFESSION STATS (filtrlangan) =====
-    enroll_date_q = Q()
-    if start_date:
-        enroll_date_q &= Q(enrollments__enrolled_at__date__gte=start_date)
-    if end_date:
-        enroll_date_q &= Q(enrollments__enrolled_at__date__lt=end_date)
-
-    prof_qs = Profession.objects.all()
-    if profession:
-        prof_qs = prof_qs.filter(pk=profession.pk)
-    profession_stats = prof_qs.annotate(
-        student_count=Count('enrollments', filter=Q(enrollments__user__role='student') & enroll_date_q),
-        teacher_count=Count('students', filter=Q(students__role='teacher')),
-        total=Count('enrollments', filter=enroll_date_q)
-    ).order_by('-total')
-
-    # Registratsiya uchun asos (kurs yo'nalishi bo'yicha)
-    reg_base = CustomUser.objects.all()
-    if profession:
-        reg_base = CustomUser.objects.filter(
-            Q(enrollments__profession=profession) | Q(profession=profession)
-        ).distinct()
-
-    # ===== DAILY REGISTRATIONS (last 7 days for chart) =====
-    daily_registrations = []
-    for i in range(6, -1, -1):
-        day = today - timedelta(days=i)
-        count = reg_base.filter(date_joined__date=day).count()
-        daily_registrations.append({'date': day, 'count': count})
-    
-    # ===== MONTHLY REGISTRATIONS =====
-    # Yil tanlangan bo'lsa -> o'sha yilning 12 oyi, aks holda oxirgi 6 oy.
-    monthly_registrations = []
-    month_names = ['', 'Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyn', 'Iyl', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek']
-    if f['year']:
-        yr = f['year']
-        for mth in range(1, 13):
-            m_start = date(yr, mth, 1)
-            m_end = date(yr + 1, 1, 1) if mth == 12 else date(yr, mth + 1, 1)
-            count = reg_base.filter(date_joined__date__gte=m_start, date_joined__date__lt=m_end).count()
-            monthly_registrations.append({'month': month_names[mth], 'year': yr, 'count': count})
-    else:
-        for i in range(5, -1, -1):
-            m_date = today - timedelta(days=i*30)
-            m_start = m_date.replace(day=1)
-            if m_date.month == 12:
-                m_end = m_date.replace(year=m_date.year+1, month=1, day=1)
-            else:
-                m_end = m_date.replace(month=m_date.month+1, day=1)
-            count = reg_base.filter(date_joined__date__gte=m_start, date_joined__date__lt=m_end).count()
-            monthly_registrations.append({
-                'month': month_names[m_date.month],
-                'year': m_date.year,
-                'count': count,
-            })
-    max_monthly = max((m['count'] for m in monthly_registrations), default=1) or 1
-    for m in monthly_registrations:
-        m['pct'] = round(m['count'] / max_monthly * 100)
-    
-    # ===== TEST ANALYTICS (filtrlangan) =====
-    tests_qs = Test.objects.all()
-    if profession:
-        tests_qs = tests_qs.filter(lesson__profession=profession)
-    total_tests = tests_qs.count()
-
-    tr_qs = TestResult.objects.all()
-    if profession:
-        tr_qs = tr_qs.filter(test__lesson__profession=profession)
-    tr_qs = tr_qs.filter(**date_range('completed_at'))
-    total_test_results = tr_qs.count()
-    avg_test_score = tr_qs.aggregate(avg=Avg('score'))['avg'] or 0
-    test_pass_rate = 0
-    if total_test_results > 0:
-        passed_tests = tr_qs.filter(passed=True).count()
-        test_pass_rate = round((passed_tests / total_test_results) * 100)
-    
-    # ===== HOMEWORK ANALYTICS (filtrlangan) =====
-    hw_qs = HomeworkSubmission.objects.all()
-    if profession:
-        hw_qs = hw_qs.filter(homework__lesson__profession=profession)
-    hw_qs = hw_qs.filter(**date_range('submitted_at'))
-    total_hw_submissions = hw_qs.count()
-    hw_pending = hw_qs.filter(status='pending').count()
-    hw_graded = hw_qs.filter(status='graded').count()
-    hw_accepted = hw_qs.filter(status='accepted').count()
-    hw_avg_grade = hw_qs.filter(grade__isnull=False).aggregate(avg=Avg('grade'))['avg'] or 0
-    
-    # ===== VIDEO ANALYTICS (filtrlangan) =====
-    videos_qs = VideoLesson.objects.all()
-    if profession:
-        videos_qs = videos_qs.filter(lesson__profession=profession)
-    total_videos = videos_qs.count()
-    total_video_minutes = videos_qs.aggregate(total=Sum('duration'))['total'] or 0
-    vp_qs = VideoProgress.objects.filter(watched=True)
-    if profession:
-        vp_qs = vp_qs.filter(video__lesson__profession=profession)
-    vp_qs = vp_qs.filter(**date_range('watched_at'))
-    videos_watched = vp_qs.count()
-    
-    # ===== LESSON COUNTS (filtrlangan) =====
-    lessons_qs = Lesson.objects.all()
-    if profession:
-        lessons_qs = lessons_qs.filter(profession=profession)
-    total_lessons = lessons_qs.count()
-    video_lessons_count = lessons_qs.filter(lesson_type='video').count()
-    test_lessons_count = lessons_qs.filter(lesson_type='test').count()
-    hw_lessons_count = lessons_qs.filter(lesson_type='homework').count()
-    
-    # ===== PAYMENT ANALYTICS (filtrlangan) =====
-    pay_qs = PaymentRecord.objects.all()
-    if f['year'] and f['month']:
-        pay_qs = pay_qs.filter(year=f['year'], month=f['month'])
-    elif f['year']:
-        pay_qs = pay_qs.filter(year=f['year'])
-    elif f['month']:
-        pay_qs = pay_qs.filter(month=f['month'], year=today.year)
-    else:
-        pay_qs = pay_qs.filter(month=today.month, year=today.year)
-    paid_this_month = pay_qs.filter(is_paid=True).count()
-    unpaid_this_month = pay_qs.filter(is_paid=False).count()
-    total_revenue_this_month = pay_qs.aggregate(total=Sum('paid_amount'))['total'] or 0
-    
-    # ===== TOP STUDENTS (by test scores, filtrlangan) =====
-    result_q = Q()
-    if profession:
-        result_q &= Q(test_results__test__lesson__profession=profession)
-    if start_date:
-        result_q &= Q(test_results__completed_at__date__gte=start_date)
-    if end_date:
-        result_q &= Q(test_results__completed_at__date__lt=end_date)
-    top_students = CustomUser.objects.filter(role='student').annotate(
-        avg_score=Avg('test_results__score', filter=result_q),
-        tests_taken=Count('test_results', filter=result_q)
-    ).filter(tests_taken__gt=0).order_by('-avg_score')[:5]
-    
-    # ===== RECENT ACTIVITY (filtrlangan) =====
-    recent_test_results = TestResult.objects.select_related(
-        'student', 'test__lesson__profession'
-    )
-    if profession:
-        recent_test_results = recent_test_results.filter(test__lesson__profession=profession)
-    recent_test_results = recent_test_results.filter(**date_range('completed_at')).order_by('-completed_at')[:8]
-    
-    recent_submissions = HomeworkSubmission.objects.select_related(
-        'student', 'homework__lesson__profession'
-    )
-    if profession:
-        recent_submissions = recent_submissions.filter(homework__lesson__profession=profession)
-    recent_submissions = recent_submissions.filter(**date_range('submitted_at')).order_by('-submitted_at')[:8]
-    
-    # ===== PREMIUM STATS =====
-    premium_users = users_qs.filter(is_premium=True).count()
-    
-    context = {
-        'total_users': total_users,
-        'total_teachers': total_teachers,
-        'total_students': total_students,
-        'total_admins': total_admins,
-        'blocked_users': blocked_users,
-        'online_users': online_users,
-        'new_users_this_month': new_users_this_month,
-        'growth_percent': growth_percent,
-        'profession_stats': profession_stats,
-        'daily_registrations': daily_registrations,
-        'monthly_registrations': monthly_registrations,
-        # Test analytics
-        'total_tests': total_tests,
-        'total_test_results': total_test_results,
-        'avg_test_score': round(avg_test_score, 1),
-        'test_pass_rate': test_pass_rate,
-        # Homework analytics
-        'total_hw_submissions': total_hw_submissions,
-        'hw_pending': hw_pending,
-        'hw_graded': hw_graded,
-        'hw_accepted': hw_accepted,
-        'hw_avg_grade': round(hw_avg_grade, 1),
-        # Video analytics
-        'total_videos': total_videos,
-        'total_video_minutes': total_video_minutes,
-        'videos_watched': videos_watched,
-        # Lesson counts
-        'total_lessons': total_lessons,
-        'video_lessons_count': video_lessons_count,
-        'test_lessons_count': test_lessons_count,
-        'hw_lessons_count': hw_lessons_count,
-        # Payment
-        'paid_this_month': paid_this_month,
-        'unpaid_this_month': unpaid_this_month,
-        'total_revenue_this_month': total_revenue_this_month,
-        # Top students
-        'top_students': top_students,
-        # Recent activity
-        'recent_test_results': recent_test_results,
-        'recent_submissions': recent_submissions,
-        # Premium
-        'premium_users': premium_users,
-    }
-    # Filtr sozlamalari (yil / oy / kurs yo'nalishi)
-    context.update(_filter_options(f))
-    
-    return render(request, 'accounts/admin/statistics.html', context)
 
 
 @login_required
@@ -13356,6 +12841,10 @@ def admin_discounts(request):
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
     
+    from coin.discount_management import manage
+    coin_context = manage(request)
+    if not isinstance(coin_context, dict):
+        return coin_context
     discounts = Discount.objects.select_related('profession').all()
     
     profession_id = request.GET.get('profession')
@@ -13381,6 +12870,7 @@ def admin_discounts(request):
         'active_discounts': Discount.objects.filter(is_active=True).count(),
         'inactive_discounts': Discount.objects.filter(is_active=False).count(),
     }
+    context.update(coin_context)
     return render(request, 'accounts/admin/discounts.html', context)
 
 
@@ -14293,136 +13783,8 @@ def admin_logout_all_user_devices(request, pk):
 
 
 # ============ SYSTEM REPORTS ============
-@login_required
-def admin_reports(request):
-    """Oylik hisobotlar ro'yxati"""
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    reports = SystemReport.objects.all()
-    
-    # Filter by type
-    report_type = request.GET.get('type')
-    if report_type:
-        reports = reports.filter(report_type=report_type)
-    
-    return render(request, 'accounts/admin/reports.html', {'reports': reports})
 
 
-@login_required
-def generate_report(request):
-    """Yangi hisobot yaratish"""
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    if request.method == 'POST':
-        report_type = request.POST.get('report_type', 'monthly')
-        date_from_str = request.POST.get('date_from')
-        date_to_str = request.POST.get('date_to')
-        
-        from datetime import datetime
-        
-        if date_from_str and date_to_str:
-            date_from = datetime.strptime(date_from_str, '%Y-%m-%d').date()
-            date_to = datetime.strptime(date_to_str, '%Y-%m-%d').date()
-        else:
-            # Default: oxirgi bir oy
-            date_to = timezone.now().date()
-            if report_type == 'weekly':
-                date_from = date_to - timedelta(days=7)
-            elif report_type == 'daily':
-                date_from = date_to
-            else:  # monthly
-                date_from = date_to - timedelta(days=30)
-        
-        # Hisobot nomini yaratish
-        type_names = {'daily': 'Kunlik', 'weekly': 'Haftalik', 'monthly': 'Oylik', 'custom': 'Maxsus'}
-        title = f"{type_names.get(report_type, 'Hisobot')} hisobot - {date_from.strftime('%d.%m.%Y')} - {date_to.strftime('%d.%m.%Y')}"
-        
-        # Statistikalarni yig'ish
-        # Umumiy
-        total_users = CustomUser.objects.count()
-        total_students = CustomUser.objects.filter(role='student').count()
-        total_teachers = CustomUser.objects.filter(role='teacher').count()
-        new_users = CustomUser.objects.filter(date_joined__date__gte=date_from, date_joined__date__lte=date_to).count()
-        
-        total_courses = Profession.objects.count()
-        total_lessons = Lesson.objects.count()
-        total_videos = VideoLesson.objects.count()
-        total_tests = Test.objects.count()
-        total_homeworks = Homework.objects.count()
-        
-        # Davr ichida
-        new_enrollments = CourseEnrollment.objects.filter(enrolled_at__date__gte=date_from, enrolled_at__date__lte=date_to).count()
-        test_submissions = TestResult.objects.filter(completed_at__date__gte=date_from, completed_at__date__lte=date_to).count()
-        homework_submissions = HomeworkSubmission.objects.filter(submitted_at__date__gte=date_from, submitted_at__date__lte=date_to).count()
-        video_views = VideoProgress.objects.filter(watched_at__date__gte=date_from, watched_at__date__lte=date_to, watched=True).count()
-        
-        # Deploy (Coding tizimi olib tashlandi — 0 qoldiriladi)
-        total_deploys = 0
-        new_deploys = 0
-        deploy_views = 0
-
-        # Coin
-        total_coins = CustomUser.objects.aggregate(total=Sum('coins'))['total'] or 0
-        coins_earned = CoinTransaction.objects.filter(
-            action='add',
-            created_at__date__gte=date_from,
-            created_at__date__lte=date_to
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        coins_spent = CoinTransaction.objects.filter(
-            action__in=['remove', 'purchase'],
-            created_at__date__gte=date_from,
-            created_at__date__lte=date_to
-        ).aggregate(total=Sum('amount'))['total'] or 0
-        
-        # Sertifikat
-        total_certificates = Certificate.objects.count()
-        new_certificates = Certificate.objects.filter(issued_at__date__gte=date_from, issued_at__date__lte=date_to).count()
-        
-        # Harakatlar
-        total_activities = ActivityLog.objects.filter(created_at__date__gte=date_from, created_at__date__lte=date_to).count()
-        
-        # Report yaratish
-        report = SystemReport.objects.create(
-            title=title,
-            report_type=report_type,
-            date_from=date_from,
-            date_to=date_to,
-            total_users=total_users,
-            total_students=total_students,
-            total_teachers=total_teachers,
-            new_users=new_users,
-            total_courses=total_courses,
-            total_lessons=total_lessons,
-            total_videos=total_videos,
-            total_tests=total_tests,
-            total_homeworks=total_homeworks,
-            new_enrollments=new_enrollments,
-            test_submissions=test_submissions,
-            homework_submissions=homework_submissions,
-            video_views=video_views,
-            total_deploys=total_deploys,
-            new_deploys=new_deploys,
-            deploy_views=deploy_views,
-            total_coins=total_coins,
-            coins_earned=coins_earned,
-            coins_spent=abs(coins_spent),
-            total_certificates=total_certificates,
-            new_certificates=new_certificates,
-            total_activities=total_activities,
-            created_by=request.user,
-        )
-        
-        # PDF yaratish
-        generate_report_pdf(report)
-        
-        messages.success(request, f"'{title}' hisoboti muvaffaqiyatli yaratildi!")
-        return redirect('admin_reports')
-    
-    return render(request, 'accounts/admin/generate_report.html')
 
 
 def generate_report_pdf(report):
@@ -14539,52 +13901,10 @@ def generate_report_pdf(report):
     report.save()
 
 
-@login_required
-def download_report(request, pk):
-    """Hisobotni PDF sifatida yuklab olish"""
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    report = get_object_or_404(SystemReport, pk=pk)
-    
-    if not report.pdf_file:
-        # PDF mavjud bo'lmasa, yaratish
-        generate_report_pdf(report)
-    
-    response = HttpResponse(report.pdf_file.read(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{report.title}.pdf"'
-    return response
 
 
-@login_required
-def delete_report(request, pk):
-    """Hisobotni o'chirish"""
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    report = get_object_or_404(SystemReport, pk=pk)
-    
-    if request.method == 'POST':
-        # PDF faylni ham o'chirish
-        if report.pdf_file:
-            report.pdf_file.delete()
-        report.delete()
-        messages.success(request, "Hisobot o'chirildi!")
-    
-    return redirect('admin_reports')
 
 
-@login_required
-def view_report(request, pk):
-    """Hisobotni ko'rish"""
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    report = get_object_or_404(SystemReport, pk=pk)
-    return render(request, 'accounts/admin/view_report.html', {'report': report})
 
 
 # ============ KURSGA YOZILISH SO'ROVLARI ============
@@ -14903,99 +14223,10 @@ def password_reset_request_view(request):
     return email_password_reset(request)
 
 
-@login_required
-def admin_password_reset_requests(request):
-    if not request.user.is_admin:
-        messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
-        return redirect('home')
-    
-    status_filter = request.GET.get('status', '')
-    search = request.GET.get('q', '')
-    
-    requests_qs = PasswordResetRequest.objects.select_related('user', 'reviewed_by')
-    
-    if status_filter:
-        requests_qs = requests_qs.filter(status=status_filter)
-    
-    if search:
-        requests_qs = requests_qs.filter(
-            Q(user__username__icontains=search) |
-            Q(user__first_name__icontains=search) |
-            Q(user__last_name__icontains=search) |
-            Q(user__phone__icontains=search)
-        )
-    
-    pending_count = PasswordResetRequest.objects.filter(status='pending').count()
-    approved_count = PasswordResetRequest.objects.filter(status='approved').count()
-    rejected_count = PasswordResetRequest.objects.filter(status='rejected').count()
-    
-    context = {
-        'password_requests': requests_qs,
-        'pending_count': pending_count,
-        'approved_count': approved_count,
-        'rejected_count': rejected_count,
-        'status_filter': status_filter,
-        'search': search,
-    }
-    
-    return render(request, 'accounts/admin/password_reset_requests.html', context)
 
 
-@login_required
-def approve_password_reset(request, pk):
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    reset_request = get_object_or_404(PasswordResetRequest, pk=pk, status='pending')
-    
-    if request.method == 'POST':
-        user = reset_request.user
-        user.password = reset_request.new_password
-        user.save()
-        
-        reset_request.status = 'approved'
-        reset_request.reviewed_by = request.user
-        reset_request.save()
-        
-        Message.objects.create(
-            title="Parolingiz o'zgartirildi",
-            content="Sizning parol tiklash so'rovingiz tasdiqlandi. Endi yangi parol bilan tizimga kirishingiz mumkin.",
-            message_type='security',
-            recipient=user,
-            sender=request.user
-        )
-        
-        messages.success(request, f"{user.full_name} uchun parol muvaffaqiyatli o'zgartirildi!")
-    
-    return redirect('admin_password_reset_requests')
 
 
-@login_required
-def reject_password_reset(request, pk):
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    reset_request = get_object_or_404(PasswordResetRequest, pk=pk, status='pending')
-    
-    if request.method == 'POST':
-        admin_message = request.POST.get('admin_message', "Sizning parol tiklash so'rovingiz rad etildi.")
-        
-        reset_request.status = 'rejected'
-        reset_request.admin_message = admin_message
-        reset_request.reviewed_by = request.user
-        reset_request.save()
-        
-        Message.objects.create(
-            title="Parol tiklash so'rovi rad etildi",
-            content=f"Sizning parol tiklash so'rovingiz rad etildi.\n\nSabab: {admin_message}",
-            message_type='security',
-            recipient=reset_request.user,
-            sender=request.user
-        )
-        
-        messages.warning(request, f"{reset_request.user.full_name} ning parol tiklash so'rovi rad etildi!")
-    
-    return redirect('admin_password_reset_requests')
 
 
 @login_required
@@ -16791,159 +16022,8 @@ def ariza_view(request):
     })
 
 
-def qabul_it_shaharcha_view(request):
-    """IT Creative bepul ta'limda Kompyuter savodxonligi yo'nalishida qabul uchun ariza qoldirish"""
-    success = False
-    
-    if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        raw_phone = request.POST.get('phone', '').strip()
-        phone_digits = ''.join(c for c in raw_phone if c.isdigit())
-        if phone_digits.startswith('998') and len(phone_digits) == 12:
-            phone_digits = phone_digits[3:]
-        phone = '+998' + phone_digits if phone_digits else raw_phone
-        
-        school_number = request.POST.get('school_number', '').strip()
-        try:
-            age = int(request.POST.get('age', '0').strip())
-        except ValueError:
-            age = None
-        neighborhood = request.POST.get('neighborhood', '').strip()
-        
-        if first_name and last_name and phone and age and neighborhood:
-            application = CourseApplication.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                course_interest="Kompyuter savodxonligi (IT Creative)",
-                school_number=school_number,
-                age=age,
-                neighborhood=neighborhood,
-                is_shaharcha=True
-            )
-            
-            # Send Telegram notification to admins and assistants
-            msg_text = (
-                f"🌟 <b>IT Creative: Yangi ariza!</b>\n\n"
-                f"👤 <b>Ism Familiya:</b> {first_name} {last_name}\n"
-                f"📱 <b>Telefon:</b> {phone}\n"
-                f"🏫 <b>Maktab:</b> {school_number or 'Kiritilmagan'}\n"
-                f"🎂 <b>Yoshi:</b> {age}\n"
-                f"📍 <b>Mahalla:</b> {neighborhood}\n"
-                f"📚 <b>Yo'nalish:</b> Kompyuter savodxonligi (Bepul)\n\n"
-                f"📞 Tez orada bog'laning!"
-            )
-            notify_application_recipients(msg_text)
-            success = True
-            
-    return render(request, 'accounts/qabul_it_shaharcha.html', {
-        'success': success,
-    })
 
 
-@login_required
-def export_shaharcha_applications_excel(request):
-    """IT Creative arizalarini Excel formatida yuklab olish"""
-    if not (request.user.is_admin or (request.user.role == 'assistant_admin' and request.user.has_assistant_perm('applications.view'))):
-        return HttpResponse("Ruxsat etilmagan", status=403)
-        
-    applications = CourseApplication.objects.filter(is_shaharcha=True).order_by('-created_at')
-    
-    import openpyxl
-    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from openpyxl.utils import get_column_letter
-    
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "IT Creative"
-    
-    # Styling
-    font_title = Font(name='Calibri', size=15, bold=True, color='FFFFFF')
-    font_header = Font(name='Calibri', size=11, bold=True, color='FFFFFF')
-    font_data = Font(name='Calibri', size=11)
-    
-    fill_title = PatternFill(start_color='1F4E78', end_color='1F4E78', fill_type='solid')
-    fill_header = PatternFill(start_color='2F5597', end_color='2F5597', fill_type='solid')
-    
-    align_center = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    align_left = Alignment(horizontal='left', vertical='center', wrap_text=True)
-    
-    border_thin = Border(
-        left=Side(style='thin', color='D9D9D9'),
-        right=Side(style='thin', color='D9D9D9'),
-        top=Side(style='thin', color='D9D9D9'),
-        bottom=Side(style='thin', color='D9D9D9')
-    )
-    
-    # Title row
-    ws.merge_cells('A1:J1')
-    ws['A1'] = "IT Creative KOMPYUTER SAVODXONLIGI ARIZALARI"
-    ws['A1'].font = font_title
-    ws['A1'].fill = fill_title
-    ws['A1'].alignment = align_center
-    ws.row_dimensions[1].height = 40
-    
-    headers = [
-        "ID", "Ism", "Familiya", "Telefon", 
-        "Maktab raqami", "Yoshi", "Mahalla nomi", 
-        "Holat", "Kim bog'landi", "Yuborilgan sana"
-    ]
-    
-    for col_idx, header in enumerate(headers, 1):
-        cell = ws.cell(row=2, column=col_idx)
-        cell.value = header
-        cell.font = font_header
-        cell.fill = fill_header
-        cell.alignment = align_center
-        cell.border = border_thin
-    ws.row_dimensions[2].height = 25
-    
-    row_num = 3
-    for app in applications:
-        status_display = dict(CourseApplication.STATUS_CHOICES).get(app.status, app.status)
-        handled_by_display = app.handled_by.get_full_name() if app.handled_by else "—"
-        created_at_str = app.created_at.astimezone(timezone.get_current_timezone()).strftime("%d.%m.%Y %H:%M") if app.created_at else ""
-        
-        row_data = [
-            app.pk,
-            app.first_name,
-            app.last_name,
-            app.phone,
-            app.school_number or "—",
-            app.age or "—",
-            app.neighborhood or "—",
-            status_display,
-            handled_by_display,
-            created_at_str
-        ]
-        
-        for col_idx, val in enumerate(row_data, 1):
-            cell = ws.cell(row=row_num, column=col_idx)
-            cell.value = val
-            cell.font = font_data
-            cell.border = border_thin
-            if col_idx in [1, 4, 6, 8, 10]:
-                cell.alignment = align_center
-            else:
-                cell.alignment = align_left
-        ws.row_dimensions[row_num].height = 20
-        row_num += 1
-        
-    for col in ws.columns:
-        max_len = 0
-        col_letter = get_column_letter(col[0].column)
-        for cell in col:
-            if cell.row == 1:
-                continue
-            if cell.value:
-                max_len = max(max_len, len(str(cell.value)))
-        ws.column_dimensions[col_letter].width = max(max_len + 4, 12)
-        
-    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-    response['Content-Disposition'] = f'attachment; filename=it_creative_arizalar_{timezone.now().strftime("%Y%m%d_%H%M")}.xlsx'
-    wb.save(response)
-    return response
 
 
 @login_required
@@ -16952,9 +16032,10 @@ def admin_applications(request):
     if not request.user.is_admin:
         return redirect('home')
     
-    app_type = request.GET.get('type', 'course')
-    if app_type not in ['course', 'shaharcha']:
-        app_type = 'course'
+    if request.GET.get('type') == 'shaharcha':
+        from django.http import Http404
+        raise Http404
+    app_type = 'course'
         
     base_qs = CourseApplication.objects.filter(is_shaharcha=(app_type == 'shaharcha'))
     applications = base_qs.select_related('handled_by').all()
@@ -17007,7 +16088,7 @@ def admin_application_status(request, pk):
     if not request.user.is_admin:
         return redirect('home')
     
-    application = get_object_or_404(CourseApplication, pk=pk)
+    application = get_object_or_404(CourseApplication, pk=pk, is_shaharcha=False)
     
     if request.method == 'POST':
         new_status = request.POST.get('status')
@@ -18665,219 +17746,10 @@ def admin_security_block_ip(request):
 #  YORDAMCHI ADMIN — OYLIK TO'LOVLAR
 # ══════════════════════════════════════════════════════════════
 
-@login_required
-def yordamchi_payments(request):
-    """Yordamchi admin uchun alohida oylik to'lovlar sahifasi."""
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
-
-    from datetime import date
-    from django.db.models import Sum
-    today = date.today()
-    selected_month = _to_int(request.GET.get('month'), today.month)
-    selected_year  = _to_int(request.GET.get('year'), today.year)
-    search_query   = request.GET.get('q', '').strip()
-    filter_status  = request.GET.get('status', '')
-
-    qs = (
-        CustomUser.objects.filter(role='student', is_finished=False)
-        .exclude(student_balance__is_contract=True)
-        .select_related('payment_status')
-    )
-
-    # Ensure PaymentStatus exists for every student
-    existing_ids = set(PaymentStatus.objects.filter(
-        user__role='student', user__is_finished=False
-    ).values_list('user_id', flat=True))
-    all_ids = set(qs.values_list('id', flat=True))
-    missing_ps = all_ids - existing_ids
-    if missing_ps:
-        PaymentStatus.objects.bulk_create(
-            [PaymentStatus(user_id=uid) for uid in missing_ps], ignore_conflicts=True
-        )
-        qs = (
-            CustomUser.objects.filter(role='student', is_finished=False)
-            .exclude(student_balance__is_contract=True)
-            .select_related('payment_status')
-        )
-
-    # Ensure PaymentRecord exists for selected month
-    existing_rec_ids = set(PaymentRecord.objects.filter(
-        month=selected_month, year=selected_year
-    ).values_list('user_id', flat=True))
-    missing_rec = all_ids - existing_rec_ids
-    if missing_rec:
-        # 🔁 Carryover: yangi oy summasi OLDINGI oy yozuvidan meros olinadi
-        # (bo'lmasa PaymentStatus.monthly_fee, u ham bo'lmasa 200000).
-        _prev_m, _prev_y = (12, selected_year - 1) if selected_month == 1 else (selected_month - 1, selected_year)
-        prev_fees = dict(
-            PaymentRecord.objects.filter(month=_prev_m, year=_prev_y, user_id__in=missing_rec)
-            .values_list('user_id', 'amount')
-        )
-        ps_fees = {ps.user_id: ps.monthly_fee for ps in PaymentStatus.objects.filter(user_id__in=missing_rec)}
-        PaymentRecord.objects.bulk_create([
-            PaymentRecord(
-                user_id=uid, month=selected_month, year=selected_year,
-                amount=prev_fees.get(uid) or ps_fees.get(uid) or 200000,
-            ) for uid in missing_rec
-        ], ignore_conflicts=True)
-
-    # Search
-    if search_query:
-        qs = qs.filter(
-            Q(first_name__icontains=search_query) |
-            Q(last_name__icontains=search_query)  |
-            Q(username__icontains=search_query)   |
-            Q(phone__icontains=search_query)
-        )
-
-    records     = PaymentRecord.objects.filter(month=selected_month, year=selected_year).select_related('user')
-    records_dict = {r.user_id: r for r in records}
-
-    if filter_status == 'paid':
-        qs = qs.filter(pk__in=[r.user_id for r in records if r.is_paid])
-    elif filter_status == 'unpaid':
-        qs = qs.filter(pk__in=[r.user_id for r in records if not r.is_paid])
-    elif filter_status == 'blocked':
-        qs = qs.filter(is_blocked=True)
-
-    students_list = list(qs.order_by('first_name', 'last_name'))
-    for s in students_list:
-        s.current_record = records_dict.get(s.pk)
-
-    # 🔝 Saralash: to'lovi belgilanmagan (to'lanmagan) va to'lov sanasi
-    # yaqinlashayotgan o'quvchilar avtomatik TEPA qatorlarda turadi;
-    # to'lagani belgilanganlar pastga tushadi.
-    from datetime import date as _date
-    from .models import StudentBalance as _SB
-    _today = _date.today()
-    _bal_dates = dict(
-        _SB.objects.filter(user_id__in=[s.pk for s in students_list])
-        .values_list('user_id', 'next_payment_date')
-    )
-
-    def _pay_sort_key(s):
-        rec = s.current_record
-        unpaid = 0 if not (rec and rec.is_paid) else 1  # to'lanmaganlar (0) tepada
-        npd = _bal_dates.get(s.pk)
-        days_left = (npd - _today).days if npd else 99999  # yaqin sana tepada
-        return (unpaid, days_left, (s.first_name or '').lower(), (s.last_name or '').lower())
-
-    students_list.sort(key=_pay_sort_key)
-
-    paginator = Paginator(students_list, 30)
-    students  = paginator.get_page(request.GET.get('page'))
-
-    active_ids   = list(
-        CustomUser.objects.filter(role='student', is_finished=False)
-        .exclude(student_balance__is_contract=True)
-        .values_list('id', flat=True)
-    )
-    all_records  = PaymentRecord.objects.filter(month=selected_month, year=selected_year, user_id__in=active_ids)
-    total_students   = len(active_ids)
-    total_expected   = all_records.aggregate(t=Sum('amount'))['t'] or 0
-    total_paid_sum   = all_records.filter(is_paid=True).aggregate(t=Sum('paid_amount'))['t'] or 0
-    total_paid_count = all_records.filter(is_paid=True).count()
-    total_unpaid     = all_records.filter(is_paid=False).count()
-    blocked_count    = CustomUser.objects.filter(role='student', is_finished=False, is_blocked=True).count()
-    total_debt       = max(0, total_expected - total_paid_sum)
-
-    MONTH_SHORT = {1:'Yan',2:'Fev',3:'Mar',4:'Apr',5:'May',6:'Iyn',
-                   7:'Iyl',8:'Avg',9:'Sen',10:'Okt',11:'Noy',12:'Dek'}
-    monthly_history = []
-    for i in range(5, -1, -1):
-        m, y = selected_month - i, selected_year
-        while m <= 0:
-            m += 12; y -= 1
-        mr = PaymentRecord.objects.filter(month=m, year=y, user_id__in=active_ids)
-        monthly_history.append({
-            'month': m, 'year': y, 'name': MONTH_SHORT.get(m, ''),
-            'paid':       mr.filter(is_paid=True).aggregate(s=Sum('paid_amount'))['s'] or 0,
-            'expected':   mr.aggregate(s=Sum('amount'))['s'] or 0,
-            'paid_count': mr.filter(is_paid=True).count(),
-            'total_count':mr.count(),
-        })
-
-    months = [(i, PaymentRecord.MONTH_NAMES[i]) for i in range(1, 13)]
-    years  = list(range(2024, today.year + 2))
-
-    return render(request, 'accounts/yordamchi/payments.html', {
-        'students':        students,
-        'total_students':  total_students,
-        'total_expected':  total_expected,
-        'total_paid_sum':  total_paid_sum,
-        'total_paid_count':total_paid_count,
-        'total_unpaid':    total_unpaid,
-        'blocked_count':   blocked_count,
-        'selected_month':  selected_month,
-        'selected_year':   selected_year,
-        'months':          months,
-        'years':           years,
-        'search_query':    search_query,
-        'filter_status':   filter_status,
-        'monthly_history': monthly_history,
-        'total_debt':      total_debt,
-        'today':           today,
-    })
 
 
-@login_required
-def yordamchi_mark_paid(request, pk):
-    """Yordamchi: o'quvchini to'lagan deb belgilash."""
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
-    if request.method != 'POST':
-        return redirect('yordamchi_payments')
-
-    from datetime import date
-    user   = get_object_or_404(CustomUser, pk=pk)
-    ps, _  = PaymentStatus.objects.get_or_create(user=user)
-    month  = _to_int(request.POST.get('month'), date.today().month)
-    year   = _to_int(request.POST.get('year'), date.today().year)
-    paid_amount = request.POST.get('paid_amount', '')
-    notes  = request.POST.get('notes', '')
-
-    record, _ = PaymentRecord.objects.get_or_create(
-        user=user, month=month, year=year,
-        defaults={'amount': ps.monthly_fee}
-    )
-    record.paid_amount   = _to_int(paid_amount, record.amount)
-    record.is_paid       = True
-    record.paid_date     = date.today()
-    record.notes         = notes
-    record.recorded_by   = request.user
-    record.save()
-
-    ps.is_paid           = True
-    ps.last_payment_date = date.today()
-    ps.save()
-
-    messages.success(request, f"{user.get_full_name()} to'lovi qayd etildi.")
-    return redirect(f"{request.POST.get('next', '/yordamchi/tolovlar/')}?month={month}&year={year}")
 
 
-@login_required
-def yordamchi_mark_unpaid(request, pk):
-    """Yordamchi: o'quvchining to'lovini bekor qilish."""
-    if not request.user.is_admin_or_assistant:
-        return redirect('home')
-    if request.method != 'POST':
-        return redirect('yordamchi_payments')
-
-    from datetime import date
-    user   = get_object_or_404(CustomUser, pk=pk)
-    month  = _to_int(request.POST.get('month'), date.today().month)
-    year   = _to_int(request.POST.get('year'), date.today().year)
-
-    PaymentRecord.objects.filter(user=user, month=month, year=year).update(
-        is_paid=False, paid_amount=0, paid_date=None, notes='', recorded_by=None
-    )
-    ps, _ = PaymentStatus.objects.get_or_create(user=user)
-    ps.is_paid = False
-    ps.save()
-
-    messages.warning(request, f"{user.get_full_name()} to'lovi bekor qilindi.")
-    return redirect(f"{request.POST.get('next', '/yordamchi/tolovlar/')}?month={month}&year={year}")
 
 
 # ============================================================

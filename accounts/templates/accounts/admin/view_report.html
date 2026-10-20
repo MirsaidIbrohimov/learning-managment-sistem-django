@@ -276,12 +276,8 @@
         {{ report.title }}
     </h1>
     <div class="vr-header-actions">
-        <a href="{% url 'download_report' report.pk %}" class="btn btn-success">
-            <i class="bi bi-file-pdf"></i>PDF yuklab olish
-        </a>
-        <a href="{% url 'admin_reports' %}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i>Orqaga
-        </a>
+
+
     </div>
 </div>
 
@@ -446,9 +442,7 @@
 
 <!-- Actions Footer -->
 <div class="vr-footer">
-    <a href="{% url 'download_report' report.pk %}" class="btn btn-success btn-lg">
-        <i class="bi bi-file-pdf"></i>PDF Yuklab olish
-    </a>
+
     <form action="{% url 'delete_report' report.pk %}" method="post" style="display:inline;">
         {% csrf_token %}
         <button type="submit" class="btn btn-outline-danger btn-lg"

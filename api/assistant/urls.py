@@ -36,8 +36,6 @@ urlpatterns = [
     path('users/<int:pk>/set-password/', views.user_set_password, name='user_set_password'),
     path('users/<int:pk>/toggle-block/', views.user_toggle_block, name='user_toggle_block'),
     # Parol tiklash
-    path('password-resets/', views.PasswordResetRequestListView.as_view(), name='password_resets'),
-    path('password-resets/<int:pk>/review/', views.password_reset_review, name='password_reset_review'),
     # Ota-onalar
     path('parents/', views.ParentListCreateView.as_view(), name='parents'),
     path('parents/<int:pk>/', views.ParentDetailView.as_view(), name='parent_detail'),

@@ -28,7 +28,6 @@ urlpatterns = [
     path('dashboard/purchases/<int:pk>/cancel/', views.admin_cancel_purchase, name='admin_cancel_purchase'),
     
     # Admin: Activities
-    path('dashboard/activities/', views.admin_activities, name='admin_activities'),
     
     # Admin: Transfers
     path('dashboard/transfers/', views.admin_transfers, name='admin_transfers'),

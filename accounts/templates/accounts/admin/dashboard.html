@@ -1305,18 +1305,12 @@
             <div class="db-quick-icon" style="--qc:#06b6d4;"><i class="bi bi-envelope-fill"></i></div>
             <span class="db-quick-label">Xabarlar</span>
         </a>
-        <a href="{% url 'admin_statistics' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#ec4899;"><i class="bi bi-graph-up-arrow"></i></div>
-            <span class="db-quick-label">Statistika</span>
-        </a>
+
         <a href="{% url 'admin_manage_coins' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#eab308;"><i class="bi bi-coin"></i></div>
             <span class="db-quick-label">Coinlar</span>
         </a>
-        <a href="{% url 'admin_reports' %}" class="db-quick-card">
-            <div class="db-quick-icon" style="--qc:#14b8a6;"><i class="bi bi-file-earmark-bar-graph-fill"></i></div>
-            <span class="db-quick-label">Hisobotlar</span>
-        </a>
+
         <a href="{% url 'admin_books' %}" class="db-quick-card">
             <div class="db-quick-icon" style="--qc:#a855f7;"><i class="bi bi-book-fill"></i></div>
             <span class="db-quick-label">Kitoblar</span>
@@ -1632,70 +1626,6 @@
     </div>
 
     <!-- Oxirgi harakatlar -->
-    <div class="db-section-header">
-        <i class="bi bi-activity"></i>
-        <h2>Oxirgi harakatlar</h2>
-    </div>
-
-    <div class="db-full-card">
-        <div class="db-table-head">
-            <span><i class="bi bi-activity"></i> Faoliyat jurnali</span>
-            <a href="{% url 'coin:admin_activities' %}">Barchasi</a>
-        </div>
-        <div class="db-table-body">
-            {% if recent_activities %}
-            <div class="table-responsive">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Foydalanuvchi</th>
-                            <th>Amal</th>
-                            <th>Tavsif</th>
-                            <th>Vaqt</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for activity in recent_activities %}
-                        <tr>
-                            <td><span class="db-user-name">{{ activity.user.full_name }}</span></td>
-                            <td>
-                                {% if activity.action_type == 'login' %}
-                                <span class="db-act-badge login"><i class="bi bi-box-arrow-in-right"></i> Kirish</span>
-                                {% elif activity.action_type == 'logout' %}
-                                <span class="db-act-badge logout"><i class="bi bi-box-arrow-right"></i> Chiqish</span>
-                                {% elif activity.action_type == 'deploy_create' %}
-                                <span class="db-act-badge deploy"><i class="bi bi-rocket"></i> Deploy</span>
-                                {% elif activity.action_type == 'deploy_edit' %}
-                                <span class="db-act-badge edit"><i class="bi bi-pencil"></i> Tahrirlash</span>
-                                {% elif activity.action_type == 'deploy_delete' %}
-                                <span class="db-act-badge delete"><i class="bi bi-trash"></i> O'chirish</span>
-                                {% elif activity.action_type == 'submit_homework' %}
-                                <span class="db-act-badge homework"><i class="bi bi-file-earmark-check"></i> Vazifa</span>
-                                {% elif activity.action_type == 'submit_test' %}
-                                <span class="db-act-badge test"><i class="bi bi-check2-square"></i> Test</span>
-                                {% elif activity.action_type == 'watch_video' %}
-                                <span class="db-act-badge video"><i class="bi bi-play-circle"></i> Video</span>
-                                {% elif activity.action_type == 'enroll_course' %}
-                                <span class="db-act-badge enroll"><i class="bi bi-person-plus"></i> Yozildi</span>
-                                {% elif activity.action_type == 'earn_coins' %}
-                                <span class="db-act-badge coin"><i class="bi bi-coin"></i> Coin</span>
-                                {% else %}
-                                <span class="db-act-badge other">{{ activity.get_action_type_display }}</span>
-                                {% endif %}
-                            </td>
-                            <td><small class="text-muted">{{ activity.description|truncatewords:10 }}</small></td>
-                            <td><small class="text-muted">{{ activity.created_at|timesince }}</small></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="db-empty">Harakatlar mavjud emas</div>
-            {% endif %}
-        </div>
-    </div>
-
     <!-- Haftalik statistika -->
     <div class="db-section-header">
         <i class="bi bi-graph-up"></i>

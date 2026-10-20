@@ -567,9 +567,7 @@
             <h1><i class="bi bi-file-earmark-bar-graph"></i> Hisobotlar</h1>
             <div class="rp-header-sub">Tizim hisobotlari va statistikalar</div>
         </div>
-        <a href="{% url 'generate_report' %}" class="rp-btn rp-btn-primary">
-            <i class="bi bi-plus-lg"></i> Yangi hisobot
-        </a>
+
     </div>
 
     <!-- Stats -->
@@ -623,9 +621,7 @@
                         <i class="bi bi-filter"></i> Filtrlash
                     </button>
                     {% if request.GET.type %}
-                    <a href="{% url 'admin_reports' %}" class="rp-filter-reset">
-                        <i class="bi bi-x-lg"></i> Tozalash
-                    </a>
+
                     {% endif %}
                 </div>
             </div>
@@ -707,12 +703,8 @@
                             </td>
                             <td>
                                 <div class="rp-actions">
-                                    <a href="{% url 'view_report' report.pk %}" class="rp-act-btn view" title="Ko'rish">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                    <a href="{% url 'download_report' report.pk %}" class="rp-act-btn pdf" title="PDF yuklab olish">
-                                        <i class="bi bi-file-pdf"></i>
-                                    </a>
+
+
                                     <form action="{% url 'delete_report' report.pk %}" method="post" style="display:contents;">
                                         {% csrf_token %}
                                         <button type="submit" class="rp-act-btn delete"
@@ -782,12 +774,8 @@
                         <i class="bi bi-clock"></i> {{ report.created_at|date:"d.m.Y H:i" }}
                     </div>
                     <div class="rp-mc-actions">
-                        <a href="{% url 'view_report' report.pk %}" class="rp-act-btn view" title="Ko'rish">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <a href="{% url 'download_report' report.pk %}" class="rp-act-btn pdf" title="PDF">
-                            <i class="bi bi-file-pdf"></i>
-                        </a>
+
+
                         <form action="{% url 'delete_report' report.pk %}" method="post" style="display:contents;">
                             {% csrf_token %}
                             <button type="submit" class="rp-act-btn delete"
@@ -810,13 +798,9 @@
             <h5>Hisobotlar mavjud emas</h5>
             <p>{% if request.GET.type %}Bu turdagi hisobotlar topilmadi.{% else %}Yangi hisobot yaratish uchun quyidagi tugmani bosing.{% endif %}</p>
             {% if request.GET.type %}
-            <a href="{% url 'admin_reports' %}" class="rp-btn rp-btn-outline">
-                <i class="bi bi-x-lg"></i> Filtrni tozalash
-            </a>
+
             {% else %}
-            <a href="{% url 'generate_report' %}" class="rp-btn rp-btn-primary">
-                <i class="bi bi-plus-lg"></i> Yangi hisobot yaratish
-            </a>
+
             {% endif %}
         </div>
         {% endif %}

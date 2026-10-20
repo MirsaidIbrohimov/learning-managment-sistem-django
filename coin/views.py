@@ -287,42 +287,6 @@ def admin_cancel_purchase(request, pk):
 
 # ============== ADMIN: ACTIVITY LOG ==============
 
-@login_required
-def admin_activities(request):
-    if not request.user.is_admin:
-        return redirect('home')
-    
-    activities = ActivityLog.objects.all().select_related('user')
-    
-    date_from = request.GET.get('date_from')
-    date_to = request.GET.get('date_to')
-    action_type = request.GET.get('action_type')
-    user_id = request.GET.get('user')
-    
-    if date_from:
-        from datetime import datetime
-        date_from = datetime.strptime(date_from, '%Y-%m-%d')
-        activities = activities.filter(created_at__date__gte=date_from)
-    
-    if date_to:
-        from datetime import datetime
-        date_to = datetime.strptime(date_to, '%Y-%m-%d')
-        activities = activities.filter(created_at__date__lte=date_to)
-    
-    if action_type:
-        activities = activities.filter(action_type=action_type)
-    
-    if user_id:
-        activities = activities.filter(user_id=user_id)
-    
-    users = CustomUser.objects.all()
-    action_types = ActivityLog.ACTION_TYPES
-    
-    return render(request, 'coin/admin/activities.html', {
-        'activities': activities[:500],
-        'users': users,
-        'action_types': action_types,
-    })
 
 
 # ============== ADMIN: COIN TRANSFERS ==============

@@ -209,7 +209,6 @@ urlpatterns = [
     path('dashboard/users/<int:pk>/statistics/', views.student_statistics, name='user_statistics'),
     path('dashboard/users/<int:pk>/statistics/pdf/', views.export_student_pdf, name='user_statistics_pdf'),
     path('dashboard/users/<int:pk>/certificate/', views.issue_certificate, name='issue_certificate'),
-    path('dashboard/statistics/', views.admin_statistics, name='admin_statistics'),
     path('dashboard/test-analytics/', views.admin_test_analytics, name='admin_test_analytics'),
     path('dashboard/test-result/<int:pk>/', views.admin_test_result_detail, name='admin_test_result_detail'),
     path('dashboard/export-pdf/', views.export_system_pdf, name='export_system_pdf'),
@@ -275,11 +274,6 @@ urlpatterns = [
     path('dashboard/users/<int:pk>/devices/logout-all/', views.admin_logout_all_user_devices, name='admin_logout_all_user_devices'),
     
     # Admin: Hisobotlar
-    path('dashboard/reports/', views.admin_reports, name='admin_reports'),
-    path('dashboard/reports/generate/', views.generate_report, name='generate_report'),
-    path('dashboard/reports/<int:pk>/', views.view_report, name='view_report'),
-    path('dashboard/reports/<int:pk>/download/', views.download_report, name='download_report'),
-    path('dashboard/reports/<int:pk>/delete/', views.delete_report, name='delete_report'),
     
     # Admin: Kursga yozilish so'rovlari
     path('dashboard/enrollment-requests/', views.admin_enrollment_requests, name='admin_enrollment_requests'),
@@ -296,9 +290,6 @@ urlpatterns = [
     path('password-reset-captcha/', password_recovery.password_recovery_captcha, name='password_reset_captcha'),
     path('password-reset/open/<str:token>/', password_recovery.open_recovery_link, name='open_recovery_link'),
     path('password-reset/set-password/', password_recovery.choose_recovery_password, name='choose_recovery_password'),
-    path('dashboard/password-reset-requests/', views.admin_password_reset_requests, name='admin_password_reset_requests'),
-    path('dashboard/password-reset-requests/<int:pk>/approve/', views.approve_password_reset, name='approve_password_reset'),
-    path('dashboard/password-reset-requests/<int:pk>/reject/', views.reject_password_reset, name='reject_password_reset'),
     
     # Kutubxona / Kitoblar
     path('dashboard/books/', views.admin_books, name='admin_books'),
@@ -340,11 +331,8 @@ urlpatterns = [
     
     # Ariza
     path('ariza/', views.ariza_view, name='ariza'),
-    path('qabul-it-creative/', views.qabul_it_shaharcha_view, name='qabul_it_creative'),
     # Keep the previous URL available for existing links while promoting the new brand URL.
-    path('qabul-it-shaharcha/', views.qabul_it_shaharcha_view, name='qabul_it_shaharcha'),
     path('dashboard/applications/', views.admin_applications, name='admin_applications'),
-    path('dashboard/applications/excel-shaharcha/', views.export_shaharcha_applications_excel, name='export_shaharcha_applications_excel'),
     path('dashboard/applications/<int:pk>/status/', views.admin_application_status, name='admin_application_status'),
     
     # Admin: AI Tekshiruvchi
@@ -391,15 +379,8 @@ urlpatterns = [
     path('yordamchi/balans/', views.yordamchi_balance_management, name='yordamchi_balance_management'),
 
     # Oylik to'lovlar
-    path('dashboard/tolovlar/', views.admin_payments, name='admin_payments'),
     path('dashboard/tezcheck/', tezcheck_views.admin_tezcheck_payments, name='admin_tezcheck_payments'),
     path('dashboard/tezcheck/<int:pk>/sync/', tezcheck_views.admin_sync_tezcheck_payment, name='admin_sync_tezcheck_payment'),
-    path('dashboard/tolovlar/<int:pk>/mark-paid/', views.admin_mark_paid, name='admin_mark_paid'),
-    path('dashboard/tolovlar/<int:pk>/mark-unpaid/', views.admin_mark_unpaid, name='admin_mark_unpaid'),
-    path('dashboard/tolovlar/<int:pk>/history/', views.admin_payment_history, name='admin_payment_history'),
 
     # Yordamchi admin — alohida sahifalar
-    path('yordamchi/tolovlar/', views.yordamchi_payments, name='yordamchi_payments'),
-    path('yordamchi/tolovlar/<int:pk>/mark-paid/', views.yordamchi_mark_paid, name='yordamchi_mark_paid'),
-    path('yordamchi/tolovlar/<int:pk>/mark-unpaid/', views.yordamchi_mark_unpaid, name='yordamchi_mark_unpaid'),
 ]

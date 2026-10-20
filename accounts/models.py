@@ -1647,6 +1647,27 @@ class UserSession(models.Model):
         return timezone.now() > self.expires_at
 
 
+class CoinPricingSettings(models.Model):
+    """The single market coin purchase tariff (row 1)."""
+    som_per_coin = models.PositiveIntegerField(default=1)
+
+    @classmethod
+    def current(cls):
+        return cls.objects.get_or_create(pk=1)[0]
+
+
+class CoinPurchaseDiscount(models.Model):
+    name = models.CharField(max_length=120)
+    discount_type = models.CharField(max_length=10, choices=[('percentage', 'Foiz'), ('fixed', "So'm")])
+    value = models.PositiveIntegerField()
+    min_coins = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at', '-pk']
+
+
 class Discount(models.Model):
     DISCOUNT_TYPES = (
         ('percentage', 'Foiz'),
@@ -2600,6 +2621,8 @@ class TezCheckPaymentOrder(models.Model):
     purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi')])
     coin_transaction = models.OneToOneField('coin.CoinTransaction', null=True, blank=True, on_delete=models.PROTECT, related_name='payment_order')
     coin_payment_key = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    coin_quantity = models.PositiveIntegerField(null=True, blank=True)
+    coin_pricing_snapshot = models.JSONField(default=dict, blank=True)
     exam_test = models.ForeignKey('Test', null=True, blank=True, on_delete=models.PROTECT)
     exam_quiz = models.ForeignKey('quiz.Quiz', null=True, blank=True, on_delete=models.PROTECT)
     final_payment = models.ForeignKey('FinalTestPayment', null=True, blank=True, on_delete=models.SET_NULL)

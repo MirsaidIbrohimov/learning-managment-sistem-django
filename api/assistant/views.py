@@ -160,7 +160,7 @@ def assistant_dashboard(request):
         },
         'support': {
             'help_pending': HelpRequest.objects.filter(status='pending').count(),
-            'applications_new': CourseApplication.objects.filter(status='new').count(),
+            'applications_new': CourseApplication.objects.filter(status='new', is_shaharcha=False).count(),
             'surveys_active': SurveyForm.objects.filter(is_active=True).count(),
         },
         'content': {
@@ -927,7 +927,7 @@ class CourseApplicationListView(generics.ListAPIView):
     permission_classes = _perm('applications.view')
 
     def get_queryset(self):
-        qs = CourseApplication.objects.all()
+        qs = CourseApplication.objects.filter(is_shaharcha=False)
         status_param = self.request.query_params.get('status')
         if status_param:
             qs = qs.filter(status=status_param)
@@ -936,7 +936,7 @@ class CourseApplicationListView(generics.ListAPIView):
 
 class CourseApplicationDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = CourseApplicationSerializer
-    queryset = CourseApplication.objects.all()
+    queryset = CourseApplication.objects.filter(is_shaharcha=False)
 
     def get_permissions(self):
         m = self.request.method

@@ -55,13 +55,6 @@ PERMISSIONS = {
             "users.delete": "O'chirish",
         },
     },
-    "password_resets": {
-        "label": "Parol tiklash so'rovlari",
-        "perms": {
-            "password_resets.view": "Ko'rish",
-            "password_resets.review": "Tasdiqlash / rad etish",
-        },
-    },
     "parents": {
         "label": "Ota-onalar",
         "perms": {
