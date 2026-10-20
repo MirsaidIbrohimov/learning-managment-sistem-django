@@ -86,3 +86,18 @@ test('a price change immediately before checkout updates the total and requires 
   assert.equal(page.state.posts.length,1);
   assert.equal(page.window.redirected,'https://example.test/payment');
 });
+
+test('1000 custom coins submit successfully and fewer than 1000 are blocked', async () => {
+  const page = await market({rate:2,discounts:[]});
+  page.custom('1\u202f000');
+  assert.equal(page.ids['ct-pay'].textContent,'2 000 so‘m');
+  assert.equal(page.ids['ct-submit'].disabled,false);
+  await page.submit();
+  assert.equal(page.state.posts[0].amount,'1000');
+  const invalid = await market({rate:2,discounts:[]});
+  invalid.custom('999');
+  assert.equal(invalid.ids['ct-submit'].disabled,true);
+  assert.match(invalid.ids['ct-error'].textContent,/1 000 tanga/);
+  await invalid.submit();
+  assert.equal(invalid.state.posts.length,0);
+});

@@ -1,8 +1,10 @@
 """Coin checkout using the existing Tezcheck merchant integration."""
 import re
 import uuid
+import json
 
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.db.models import F
@@ -150,14 +152,27 @@ def reconcile_coin_order(order, data):
 @login_required
 @require_POST
 def create_coin_checkout(request):
+    response = _create_coin_checkout(request)
+    # A normal form submission must also work when JavaScript has not loaded.
+    if 'text/html' in request.headers.get('Accept', ''):
+        payload = json.loads(response.content)
+        if response.status_code == 200 and payload.get('payment_url'):
+            return redirect(payload['payment_url'])
+        messages.error(request, payload.get('error', 'To‘lov yaratilmadi. Qayta urinib ko‘ring.'))
+        return redirect(reverse('coin:market_list') + '#coin-topup')
+    return response
+
+
+def _create_coin_checkout(request):
     if not checkout_ready():
         return JsonResponse({'error': 'Tanga to‘lovi sozlanmoqda. Administratorga murojaat qiling.'}, status=503)
-    raw = request.POST.get('amount', '')
+    raw = (request.POST.get('amount') or request.POST.get('package', '')).strip()
+    raw = raw.replace('\u00a0', ' ').replace('\u202f', ' ')
     if len(raw) > 20 or not re.fullmatch(r'[0-9]+(?: [0-9]{3})*', raw):
         return JsonResponse({'error': 'Musbat butun tanga miqdorini kiriting.'}, status=400)
     amount = int(raw.replace(' ', ''))
-    if not 1 <= amount <= 2147483647:
-        return JsonResponse({'error': 'Coin miqdori ruxsat etilgan oraliqda emas.'}, status=400)
+    if not 1000 <= amount <= 2147483647:
+        return JsonResponse({'error': 'Eng kam xarid — 1 000 tanga. Musbat butun miqdor kiriting.'}, status=400)
     try:
         token = str(uuid.UUID(request.POST.get('token', '')))
     except (ValueError, TypeError, AttributeError):

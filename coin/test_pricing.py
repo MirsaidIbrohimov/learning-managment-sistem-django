@@ -1,5 +1,6 @@
 import json
 import uuid
+from html.parser import HTMLParser
 from unittest.mock import patch
 
 from django.contrib.messages.storage.fallback import FallbackStorage
@@ -110,7 +111,8 @@ class CoinPricingTests(TestCase):
 
     def test_provider_limits_apply_to_money_not_coins(self):
         CoinPricingSettings.objects.create(pk=1, som_per_coin=2)
-        self.assertEqual(self.checkout(600).status_code, 200)
+        with override_settings(TEZCHECK_COIN_MIN_SOM='2000'):
+            self.assertEqual(self.checkout(1000).status_code, 200)
         self.assertEqual(self.checkout(60000).status_code, 400)
 
     def test_enable_announces_once_and_disable_stops_discount(self):
@@ -193,3 +195,47 @@ class CoinPricingTests(TestCase):
         self.assertEqual((campaign.theme, campaign.discount_type, campaign.value), ('newyear', 'fixed', 500))
         self.assertFalse(campaign.is_active)
         self.assertEqual(Message.objects.count(), 0)
+
+    def test_native_form_sends_custom_1000_without_javascript(self):
+        CoinPricingSettings.objects.create(pk=1, som_per_coin=2)
+        html = render_to_string('coin/market/_coin_topup.html', market_context(self.user), request=self.request({}))
+        fields = {}
+        class Inputs(HTMLParser):
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag != 'input' or not attrs.get('name'):
+                    return
+                if attrs.get('type') == 'radio' and 'checked' not in attrs:
+                    return
+                fields[attrs['name']] = attrs.get('value', '')
+                if attrs.get('id') == 'ct-custom':
+                    fields[attrs['name']] = '1000'
+        Inputs().feed(html)
+        self.assertEqual(fields['amount'], '1000')
+        request = self.request(fields)
+        request.META['HTTP_ACCEPT'] = 'text/html,application/xhtml+xml'
+        result = dict(bill_id='bill', bill_reference='ref', payment_url='https://tezcheck.uz/pay/test', available_until=None)
+        with patch('coin.payments.create_bill', return_value=result):
+            response = create_coin_checkout(request)
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, result['payment_url'])
+        order = TezCheckPaymentOrder.objects.get()
+        self.assertEqual((order.coin_quantity, order.amount_minor), (1000, 200000))
+
+    def test_custom_1000_accepts_display_spaces_and_enforces_minimum(self):
+        for raw in ('1000', '1 000', '1\u00a0000', '1\u202f000', ' 1000 '):
+            with self.subTest(raw=raw):
+                self.assertEqual(self.checkout(raw).status_code, 200)
+        self.assertEqual(self.checkout('999').status_code, 400)
+        self.assertEqual(TezCheckPaymentOrder.objects.count(), 5)
+
+    def test_native_package_fallback_and_errors_redirect_to_market(self):
+        result = dict(bill_id='bill', bill_reference='ref', payment_url='https://tezcheck.uz/pay/test', available_until=None)
+        request = self.request(dict(amount='', package='1000', token=str(uuid.uuid4())))
+        request.META['HTTP_ACCEPT'] = 'text/html'
+        with patch('coin.payments.create_bill', return_value=result):
+            self.assertEqual(create_coin_checkout(request).url, result['payment_url'])
+        self.assertEqual(TezCheckPaymentOrder.objects.get().coin_quantity, 1000)
+        request = self.request(dict(amount='999', token=str(uuid.uuid4())))
+        request.META['HTTP_ACCEPT'] = 'text/html'
+        self.assertEqual(create_coin_checkout(request).url, '/market/#coin-topup')

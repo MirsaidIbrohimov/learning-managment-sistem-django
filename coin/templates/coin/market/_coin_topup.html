@@ -27,8 +27,8 @@
         </label>{% endfor %}
       </div>
       <label for="ct-custom" class="ct-custom-label">Nechta tanga olmoqchisiz?</label>
-      <input id="ct-custom" class="ct-custom" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Masalan, 15 000" aria-describedby="ct-limits ct-error">
-      <p id="ct-limits" class="ct-hint">{% if coin_limits %}Ruxsat etilgan miqdor: <span data-ct-number="{{ coin_limits.0 }}">{{ coin_limits.0 }}</span> – <span data-ct-number="{{ coin_limits.1 }}">{{ coin_limits.1 }}</span> so‘m.{% else %}To‘lov chegaralari sozlanmoqda.{% endif %}</p>
+      <input id="ct-custom" name="amount" class="ct-custom" type="text" inputmode="numeric" autocomplete="off" maxlength="20" placeholder="Kamida 1 000 tanga" aria-describedby="ct-limits ct-error">
+      <p id="ct-limits" class="ct-hint">Eng kam xarid: <b>1 000 tanga</b>. {% if coin_limits %}To‘lov chegarasi: <span data-ct-number="{{ coin_limits.0 }}">{{ coin_limits.0 }}</span> – <span data-ct-number="{{ coin_limits.1 }}">{{ coin_limits.1 }}</span> so‘m.{% else %}To‘lov chegaralari sozlanmoqda.{% endif %}</p>
     </fieldset>
     <div class="ct-summary" aria-live="polite"><span>Olasiz: <strong id="ct-receive">{{ coin_packages.0.coins }} tanga</strong></span><span>To‘laysiz: <strong id="ct-pay">{{ coin_packages.0.payable }} so‘m</strong></span></div>
     <div class="ct-breakdown"><span>Asl narx <b id="ct-gross">{{ coin_packages.0.gross }} so‘m</b></span><span id="ct-savings-row" hidden>Tejaysiz <b id="ct-savings">—</b></span></div>
@@ -36,7 +36,7 @@
     <p id="ct-error" class="ct-error" role="alert"></p>
     {% if not coin_checkout_ready %}<p class="ct-hint">Tanga to‘lovi hozircha sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
     <button type="submit" id="ct-submit" class="ct-submit" {% if not coin_checkout_ready %}disabled{% endif %}><i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn to‘lash</button>
-    <noscript><p>To‘lov yaratish uchun brauzeringizda JavaScript yoqilgan bo‘lishi kerak.</p></noscript>
+    <noscript><p>Miqdorni kiriting yoki paketni tanlang. Yakuniy summa amaldagi narx va chegirmalar bo‘yicha hisoblanadi.</p></noscript>
   </form>
   <div id="ct-result" role="status" aria-live="polite" {% if coin_return_order %}data-return-status-url="{% url 'coin:coin_payment_status' coin_return_order.pk %}"{% endif %} hidden></div>
   <button id="ct-recheck" type="button" class="ct-recheck" hidden>Holatni qayta tekshirish</button>
@@ -44,4 +44,4 @@
     {% for order in coin_orders %}<div class="ct-history-row"><time datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:'d.m.Y H:i' }}</time><span><strong data-ct-number="{{ order.coin_quantity|default_if_none:order.amount_som }}">{{ order.coin_quantity|default_if_none:order.amount_som }}</strong> tanga</span><span><span data-ct-number="{{ order.amount_som }}">{{ order.amount_som }}</span> so‘m</span><button type="button" class="ct-order-status" data-status-url="{% url 'coin:coin_payment_status' order.pk %}" data-order="{{ order.pk }}">{{ order.get_status_display }}</button></div>{% endfor %}
   </details>{% endif %}
 </section>
-<script src="{% static 'js/coin_topup.js' %}?v=20261020-2" defer></script>
+<script src="{% static 'js/coin_topup.js' %}?v=20261020-3" defer></script>

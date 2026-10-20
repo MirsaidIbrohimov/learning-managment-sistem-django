@@ -24,12 +24,12 @@
   }
   let amount = 10000, busy = false, pollGeneration = 0, currentUrl;
   function update() {
-    const raw = custom.value;
+    const raw = custom.value.replace(/[\u00a0\u202f]/g, ' ').trim();
     const valid = /^[0-9]+(?: [0-9]{3})*$/.test(raw);
     amount = raw ? (valid ? Number(raw.replaceAll(' ', '')) : NaN) : Number(radios.find(r => r.checked)?.value);
     const purchase = quote(amount);
-    const ok = Number.isSafeInteger(amount) && amount > 0 && amount <= 2147483647 && Number.isSafeInteger(purchase.payable) && purchase.payable >= Number(form.dataset.min) && purchase.payable <= Number(form.dataset.max);
-    error.textContent = ok || form.dataset.ready !== 'true' ? '' : 'Tanga miqdorini tekshiring. To‘lov summasi ko‘rsatilgan so‘m chegaralari ichida bo‘lishi kerak.';
+    const ok = Number.isSafeInteger(amount) && amount >= 1000 && amount <= 2147483647 && Number.isSafeInteger(purchase.payable) && purchase.payable >= Number(form.dataset.min) && purchase.payable <= Number(form.dataset.max);
+    error.textContent = ok || form.dataset.ready !== 'true' ? '' : (Number.isSafeInteger(amount) && amount < 1000 ? 'Eng kam xarid — 1 000 tanga.' : 'Tanga miqdorini tekshiring. To‘lov summasi ko‘rsatilgan so‘m chegaralari ichida bo‘lishi kerak.');
     custom.setAttribute('aria-invalid', raw && !ok ? 'true' : 'false');
     const readable = Number.isSafeInteger(amount) && amount > 0;
     document.getElementById('ct-receive').textContent = (readable ? fmt(amount) : '—') + ' tanga';
@@ -107,7 +107,7 @@
       if (changed) { failureMessage = 'Narx yoki chegirma yangilandi. Yangi summani tekshirib, qayta to‘lashni bosing.'; throw new Error('changed'); }
       if (form.dataset.ready !== 'true' || quote(amount).payable < Number(form.dataset.min) || quote(amount).payable > Number(form.dataset.max)) throw new Error('limits');
       data.set('pricing_token', form.querySelector('[name=pricing_token]').value);
-      const response = await fetch(form.action, {method:'POST',body:data,headers:{'X-CSRFToken':csrf},credentials:'same-origin',signal:AbortSignal.timeout(25000)});
+      const response = await fetch(form.action, {method:'POST',body:data,headers:{'X-CSRFToken':csrf,'Accept':'application/json'},credentials:'same-origin',signal:AbortSignal.timeout(25000)});
       const payload = await response.json();
       if (!response.ok || !payload.payment_url) {
         if (payload.error) failureMessage = payload.error;
