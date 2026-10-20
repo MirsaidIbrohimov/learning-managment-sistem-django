@@ -842,3 +842,174 @@ Bu loyiha [MIT](https://opensource.org/licenses/MIT) litsenziyasi ostida tarqati
 </p>
 
 Claude edit test
+
+## Har kuni DB backup: Telegram (Ubuntu staging)
+
+Tekshirilgan joylashuvlar: `manage.py`, `config/settings.py`, `config/urls.py`,
+`requirements.txt`, `passenger_wsgi.py`, `.htaccess`, asosiy `README.md`.
+`config.settings` va Passenger `.env`ni mavjud `python-dotenv` bilan o‘qiydi;
+qo‘shimcha Python dependency kerak emas. Backup uchun HTTP URL/webhook yoki
+Passenger/Nginx sozlamalarini o‘zgartirish kerak emas; cron alohida Python commandni ishlatadi.
+Serverga ulanilmadi, deploy yoki haqiqiy Telegram upload bajarilmadi.
+
+**Faol settings SQLite ishlatadi va backup uni qo‘llaydi.** Bazani almashtirish
+kerak emas. SQLite online backup API orqali vaqtinchalik izchil nusxa olinadi
+(WAL'dagi commit qilingan yozuvlar ham kiradi), undan SQL dump va `.sql.gz`
+yaratiladi. Ishlayotgan `db.sqlite3` fayli oddiy copy qilinmaydi.
+100 MB va undan katta baza ham qo‘llanadi: limit asl DBga emas, yuboriladigan
+siqilgan fayl/qismlarga tegishli. Siqilish nisbati ma’lumotga bog‘liq;
+49 000 000 baytdan katta gzip avtomatik qismlanadi.
+README'dagi DB env misollari o‘z-o‘zidan `DATABASES`ni o‘zgartirmaydi.
+Command PostgreSQL va MySQL/MariaDB backendlarini ham aniqlaydi.
+`ENGINE`, `NAME`, `USER`, `PASSWORD`, `HOST`, `PORT`, qo‘llanadigan `OPTIONS`
+Django sozlamasidan olinadi. Connection string o‘rniga alohida maydonlardan foydalaning.
+PostgreSQL uchun `sslmode`, `sslcert`, `sslkey`, `sslrootcert`, `connect_timeout`
+uzatiladi. MySQL `charset`, `unix_socket`ni uzatadi; `init_command` va
+`isolation_level` Django sessioniga tegishli. Boshqa OPTIONS, MySQL SSL yoki
+PostgreSQL service mapping kerak bo‘lsa command xavfsiz to‘xtaydi: avval mappingni
+stagingda moslashtiring. MySQL dump InnoDB uchun `--single-transaction` ishlatadi;
+MyISAM va parallel DDL paytida izchillik uchun maintenance/DB lock rejasini tuzing.
+DB userga dump qilinadigan barcha obyektlar, routines/events uchun zarur ruxsatlar kerak.
+
+1. Staging Ubuntu'da shu loyiha virtualenv'ini ishlating. SQLite uchun Pythonning
+   standart `sqlite3` moduli yetarli, tashqi dump binary kerak emas.
+   PostgreSQL/MySQL ishlatilsa DBga mos client
+   (`postgresql-client`, yoki `mysql-client`/`mariadb-client`) o‘rnating.
+   `pg_dump` major versiyasi DB serveridan eski bo‘lmasin.
+   MySQL backend uchun serverdagi Django DB driver ham o‘rnatilgan bo‘lishi kerak.
+   Mavjud `.env`ga `.env.example`dagi `BACKUP_*` qiymatlarini administrator kiritsin;
+   token faqat serverdagi himoyalangan `.env`da saqlansin (`chmod 600 .env`).
+   Mavjud `TELEGRAM_BOT_TOKEN` avtomatik ishlatiladi. Uni takrorlash shart emas:
+   `BACKUP_TELEGRAM_BOT_TOKEN`ni bo‘sh qoldiring yoki umuman kiritmang.
+   Alohida backup bot kerak bo‘lsagina shu override qiymatini to‘ldiring.
+   Test uchun alohida staging kanal/token ishlating; production kanal ID namunasi
+   `-1003968166001`, bot admin bo‘lib hujjat va xabar yubora olishi kerak.
+
+2. Backup papkasini web document root, `media` va `static`dan tashqarida,
+   cron ishlaydigan foydalanuvchi nomidan yarating:
+
+   ```bash
+   install -d -m 700 /home/itcreati/private_backups
+   df -h /home/itcreati/private_backups
+   df -i /home/itcreati/private_backups
+   quota -s
+   du -sh /home/itcreati/private_backups
+   ```
+
+   `/`dagi 3.5 TB umumiy va 1.4 TB bo‘sh joy hosting hisobining quota'si emas.
+   Tarifdagi 3 GB chegarani cPanel Disk Usage va hosting administratoridan aynan
+   backup papkasi joylashgan filesystem, user/project quota va inode bo‘yicha
+   tasdiqlang. `quota -s` ishlamasa yoki quota ko‘rinmasa uni cheksiz deb hisoblamang.
+   377 GiB RAM/233 GiB available ham disk quota'sini oshirmaydi.
+   `BACKUP_MAX_DISK_MB=1024` faqat backup katalogi uchun namunaviy limit;
+   hisobning qolgan fayllari, DB va loglarini ham 3 GB ichida hisoblang.
+   `BACKUP_MIN_FREE_MB=100` filesystem bo‘sh joy zaxirasi, user quota zaxirasi emas.
+   Haqiqiy quota buzilsa yozish xatosi commandni to‘xtatadi.
+
+3. Sozlamalar (MB o‘nlik: 1 MB = 1 000 000 bayt):
+
+   | Qiymat | Vazifasi |
+   |---|---|
+   | `BACKUP_DIR` | Mutlaq, symlink bo‘lmagan, `700` huquqli yopiq katalog |
+   | `BACKUP_RETENTION_DAYS` | Saqlash kunlari, musbat son; default 7 |
+   | `BACKUP_MAX_DISK_MB` | Shu papkadagi barcha fayllar hajmi chegarasi; default 1024 |
+   | `BACKUP_MIN_FREE_MB` | Filesystemda bo‘sh qolishi kerak bo‘lgan joy; default 100 |
+   | `BACKUP_DUMP_TIMEOUT` | Dump uchun timeout sekundda; default 1800 |
+   | `BACKUP_HTTP_TIMEOUT` | HTTP socket amallari timeout'i sekundda; default 120 |
+   | `BACKUP_PG_DUMP`, `BACKUP_MYSQLDUMP` | Binary nomi yoki mutlaq yo‘li; argumentlar yozmang |
+
+   SQL avval vaqtinchalik disk fayliga yoziladi, keyin gzip qilinadi. Shu sabab
+   raw SQL + gzip + bitta 49 MB qismga joy hisoblang. SQLite uchun izchil snapshot
+   + raw SQL bir vaqtda ham joy egallaydi; SQL hajmi asl DBdan kattaroq bo‘lishi
+   mumkin (ayniqsa BLOB ma’lumotlarda). Har blok yozilishidan oldin
+   limit tekshiriladi; zaruratda eng eski boshqariladigan backup o‘chiriladi,
+   joy baribir yetmasa command xato bilan to‘xtaydi. Eski backup faqat aniq
+   `backup_YYYY_MM_DD_HH_MM.sql.gz` nomi va command yaratgan `.owned` belgisi
+   mavjud bo‘lsa tozalanadi. Begona fayllar o‘chirilmaydi, lekin limitda hisoblanadi.
+   Katalog faqat bitta ishonchli foydalanuvchiga tegishli bo‘lsin.
+   Eski nusxalar yangi dump muvaffaqiyatsiz bo‘lishidan oldin ham tozalanishi mumkin.
+   Lock faylini o‘chirmang: Linux `flock` jarayon tugaganda avtomatik bo‘shaydi.
+   SIGKILL/quvvat uzilishidan qolgan `.send-backup-*` kataloglarini avtomatik
+   o‘chirmaydi; faol jarayon yo‘qligini tekshirgach administrator tozalaydi.
+
+4. Staging tekshiruvlari (yo‘llarni staging joylashuviga moslang):
+
+   ```bash
+   /path/to/venv/bin/python -m pip install -r requirements.txt
+   /path/to/venv/bin/python -m unittest backup.tests -v
+   /path/to/venv/bin/python manage.py check
+   /path/to/venv/bin/python manage.py send_backup
+   echo $?
+   ```
+
+   Oxirgi buyruq **haqiqiy DB dump va Telegram upload** qiladi. Kanalda barcha
+   qismlar va yakuniy muvaffaqiyat xabari bo‘lishini tekshiring; exit code 0
+   bo‘lishi kerak. Alohida stagingda noto‘g‘ri binary/token, HTTP timeout,
+   kichik disk limiti va parallel ikkita commandni tekshiring (noto‘g‘ri binary
+   testi faqat PostgreSQL/MySQLga tegishli): xato uchun exit 1,
+   qisman dump yuborilmasligi va vaqtinchalik fayllar tozalanishi kerak.
+   HTTP/Telegram xatosida allaqachon yuborilgan qismlar kanalda qolishi mumkin;
+   muvaffaqiyat xabarisiz to‘plamni tayyor backup deb hisoblamang.
+   Unit testlar tarmoqsiz siqish, bo‘lish/birlashtirish, retention, xatolar va
+   Linuxda lockni tekshiradi; real DB/Telegram staging sinovi alohida zarur.
+   Django settings yuklanishidan oldingi xatolarda command hali ishga tushmaydi;
+   cron stderr monitoringini ham saqlang.
+
+5. Cron: Django `TIME_ZONE=Asia/Tashkent`; nomdagi vaqt haqiqiy mahalliy
+   vaqt (`backup_2026_10_20_02_00.sql.gz`), qo‘lda ishga tushganda ham 02:00
+   deb qotirilmagan. Shu daqiqada mavjud backup ustiga yozilmaydi.
+   Ubuntu cron **server timezone** bo‘yicha ishlaydi:
+
+   ```bash
+   timedatectl
+   date
+   crontab -e
+   ```
+
+   Server timezone Asia/Tashkent bo‘lsa, loyiha egasining crontab'iga:
+
+   ```cron
+   0 2 * * * cd /home/itcreati/itc-academy.uz && /home/itcreati/itc-academy.uz/.venv/bin/python manage.py send_backup >> /home/itcreati/backup-cron.log 2>&1
+   ```
+
+   Server UTC bo‘lsa Tashkent 02:00 uchun `0 21 * * *` ishlating (oldingi UTC kun).
+   `TZ` env qiymatini qo‘yish Ubuntu cron jadvalini avtomatik o‘zgartiradi deb
+   hisoblamang. Cron uchun Passenger `.htaccess`dagi interpreter va loyiha yo‘lini
+   tekshiring. Log fayliga `600` huquq va logrotate qo‘ying. Engintron/Nginx va
+   Passenger 6.2.0 ichida scheduler yoki request orqali backup ishga tushirilmaydi.
+
+### Stagingda tiklashni tekshirish
+
+Telegram `sendDocument` rasmiy limit 50 MB:
+https://core.telegram.org/bots/api#senddocument . Command 49 000 000 baytlik
+qismlardan foydalanadi; har qism alohida hujjat va caption'da `qism N/T` bilan
+yuboriladi. RAMga to‘liq arxiv yuklanmaydi. Qismlar mustaqil gzip emas: avval
+nomdagi raqamlar tartibida birlashtiring. Caption'dagi SHA256 to‘liq gzipga tegishli.
+
+```bash
+# Bitta backup to‘plamining barcha qismlarini alohida katalogga yuklab oling.
+cat backup_2026_10_20_02_00.sql.gz.part*-of-* > restored.sql.gz
+sha256sum restored.sql.gz
+gzip -t restored.sql.gz
+gzip -dc restored.sql.gz > restored.sql
+# Bitta hujjat bo‘lsa cat kerak emas: o‘sha .sql.gz uchun sha256sum va gzip -t.
+```
+
+SHA256 caption bilan bir xil va barcha qismlar mavjudligini tekshiring. So‘ng
+faqat izolyatsiyalangan staging DBda, parolni command argumentiga yozmasdan:
+
+```bash
+# SQLite: faqat yangi, alohida staging fayliga tiklang, production db.sqlite3ga emas.
+sqlite3 staging_restore.sqlite3 < restored.sql
+sqlite3 staging_restore.sqlite3 'PRAGMA integrity_check;'
+# PostgreSQL: bo‘sh, alohida staging_restore bazasi oldindan yaratiladi.
+psql -W -h localhost -U staging_user -d staging_restore -v ON_ERROR_STOP=1 -f restored.sql
+# MySQL/MariaDB: dump CREATE DATABASE/USE asl nomni saqlaydi!
+# Shu sabab faqat alohida disposable MySQL instance ichida ishga tushiring.
+mysql -h localhost -u staging_user -p < restored.sql
+```
+
+Tiklangan jadvallar va asosiy yozuvlar sonini tekshiring. Dump fayllarida shaxsiy
+ma’lumotlar bo‘lishi mumkin; kanal va server backup katalogiga kirishni cheklang.
+Token, DB paroli, to‘liq connection string yoki xom HTTP/subprocess xatolari
+command logiga chiqarilmaydi. Haqiqiy `.env` bu o‘zgarishlarda yaratilmaydi.

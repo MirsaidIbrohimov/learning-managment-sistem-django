@@ -138,6 +138,7 @@ INSTALLED_APPS = [
     'teacher',
     'telegram_bot',
     'video_quiz',
+    'backup',
 ]
 
 
