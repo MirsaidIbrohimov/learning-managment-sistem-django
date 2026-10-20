@@ -14,7 +14,7 @@ BASE_DIR = Path(settings.BASE_DIR)
 # shunda itc-academy.uz va itcreative.uz uchun bitta fayl yetadi. `get_host()`
 # ALLOWED_HOSTS ga qarab tekshirilgandan keyin qaytadi, shuning uchun Host
 # sarlavhasi orqali begona domen kiritib bo'lmaydi.
-_DOMAIN_PLACEHOLDER = 'yourdomain.com'
+_DOMAIN_PLACEHOLDER = 'itc-academy.uz'
 
 
 def csrf_failure(request, reason=""):
