@@ -853,7 +853,7 @@ tekshiring. Shaxsiy/CSRF sahifalar umumiy Nginx cache'ga qo‘yilmaydi.
 ```bash
 python -m pip install -r requirements.txt
 python manage.py check --settings=settings.production
-python manage.py test accounts.test_performance config.test_public_cache blog.tests backup.tests
+python manage.py test accounts.test_performance config.test_public_cache blog.tests backup.tests telegram_bot.test_startup
 python scripts/benchmark_http.py https://STAGING_DOMAIN/ --requests 50 --concurrency 5
 ```
 

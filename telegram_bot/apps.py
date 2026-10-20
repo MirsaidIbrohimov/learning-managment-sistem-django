@@ -19,11 +19,15 @@ class TelegramBotConfig(AppConfig):
             return
 
         # migrate, collectstatic kabi buyruqlarda botni ishga tushirmaslik
-        skip_commands = {'migrate', 'collectstatic', 'makemigrations', 'createsuperuser', 'shell', 'dbshell', 'check'}
+        skip_commands = {'migrate', 'collectstatic', 'makemigrations', 'createsuperuser',
+                         'shell', 'dbshell', 'check', 'test', 'send_backup',
+                         'check_performance_cache'}
         if skip_commands.intersection(sys.argv):
             return
 
         from django.conf import settings
+        if getattr(settings, 'RUNNING_TESTS', False):
+            return
         if not getattr(settings, 'TELEGRAM_BOT_TOKEN', None):
             return
 

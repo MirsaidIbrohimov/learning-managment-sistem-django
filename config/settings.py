@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 import os
 import sys
 
-# Test runner ishlayaptimi. Faqat transport bilan bog'liq sozlamalarni
+# Test runner ishlayaptimi. Test cache'i production Redis'dan ajratiladi; transport
 # (SSL redirect) o'chirish uchun kerak — Django test mijozi HTTPS emulyatsiya
 # qilmaydi va har bir so'rov 301 ga aylanib ketadi. Production yo'liga
 # ta'sir qilmaydi: `manage.py test` bo'lmasa qiymat o'zgarmaydi.
@@ -434,7 +434,8 @@ CACHES = {
 }
 
 # Opt in only after Redis is provisioned and checked in staging.
-USE_REDIS_CACHE = _env_bool('USE_REDIS_CACHE', False)
+# Tests must never read/delete production Redis session or rate-limit keys.
+USE_REDIS_CACHE = _env_bool('USE_REDIS_CACHE', False) and not RUNNING_TESTS
 if USE_REDIS_CACHE:
     CACHES = {
         alias: {

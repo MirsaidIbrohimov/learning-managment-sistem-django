@@ -18,8 +18,10 @@ from blog.views import post_detail, post_list
 class PerformanceQueryTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.author = CustomUser.objects.create(username='perf-author', role='teacher')
-        cls.student = CustomUser.objects.create(username='perf-student', role='student')
+        cls.author = CustomUser.objects.create(
+            username='perf-author', role='teacher', phone='+998900001101')
+        cls.student = CustomUser.objects.create(
+            username='perf-student', role='student', phone='+998900001102')
         Profession.objects.create(name='Public course', is_blocked=False)
         for number in range(6):
             post = Post.objects.create(title=f'Post {number}', content='Public', author=cls.author)

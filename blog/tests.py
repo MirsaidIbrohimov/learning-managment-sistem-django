@@ -1,7 +1,7 @@
 from datetime import date, timedelta
 
 from django.core.cache import cache
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -32,6 +32,13 @@ class CommentFormTests(TestCase):
                 self.assertIn('content', form.errors)
 
 
+@override_settings(
+    CACHES={'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'blog-comment-tests',
+    }},
+    SESSION_ENGINE='django.contrib.sessions.backends.db',
+)
 class PostDetailCommentTests(TestCase):
     def setUp(self):
         self.author = CustomUser.objects.create_user(

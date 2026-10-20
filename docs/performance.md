@@ -67,11 +67,16 @@ python -m pip install -r requirements.txt
 python -m pip check
 python manage.py check --settings=settings.production
 python manage.py check --deploy --settings=settings.production
-python manage.py test accounts.test_performance config.test_public_cache blog.tests backup.tests --verbosity 2
+python manage.py test accounts.test_performance config.test_public_cache blog.tests backup.tests telegram_bot.test_startup --verbosity 2
 ```
 
 Test runner alohida test DB yaratishi kerak; staging DB foydalanuvchisi ruxsatlarini
 tekshiring. Unit testlarda cache alohida LocMem, production Redis tozalanmaydi.
+`manage.py test` production `.env`da Redis yoqilgan bo‘lsa ham uni ishlatmaydi;
+haqiqiy Redis integratsiyasini alohida `check_performance_cache` bilan tekshiring.
+Test/backup/cache-diagnostika buyruqlari bot webhook/pollingni boshlamaydi.
+`robots_txt` cache testi xato bersa `config/views.py`ning ham yangi `cache_page`
+dekoratorlari bilan serverga ko‘chganini tekshiring; faqat test faylini ko‘chirish yetmaydi.
 Bu muhitda Python virtualenv yo‘llari buzilganligi sabab testlar bajarilmadi;
 Nginx/Apache binary ham mavjud emas. Yuqoridagi staging tekshiruvlari majburiy.
 
