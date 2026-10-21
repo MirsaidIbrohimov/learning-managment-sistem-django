@@ -21,7 +21,7 @@ class TelegramBotConfig(AppConfig):
         # migrate, collectstatic kabi buyruqlarda botni ishga tushirmaslik
         skip_commands = {'migrate', 'collectstatic', 'makemigrations', 'createsuperuser',
                          'shell', 'dbshell', 'check', 'test', 'send_backup',
-                         'check_performance_cache'}
+                         'check_performance_cache', 'install_backup_cron'}
         if skip_commands.intersection(sys.argv):
             return
 

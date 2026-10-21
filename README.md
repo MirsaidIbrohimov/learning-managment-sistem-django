@@ -862,6 +862,59 @@ kerak. Haqiqiy `.env` o‘zgartirilmagan. Production deploy/yuklama testi bajari
 
 ## Har kuni DB backup: Telegram (Ubuntu staging)
 
+### cPanelda avtomatik yuborishni bir marta yoqish
+
+Fayllarni serverga yuklash cron jadvalini o‘zi o‘rnatmaydi. Quyidagi installer
+serverdagi loyiha egasining crontab'iga alohida boshqariladigan blok qo‘shadi:
+
+```bash
+source /home/itcacade/virtualenv/lmsv1/3.10/bin/activate
+cd /home/itcacade/lmsv1
+python manage.py test backup.test_scheduler --verbosity 2
+python manage.py install_backup_cron --preview
+python manage.py install_backup_cron --backup-dir /home/itcacade/private_backups
+crontab -l
+```
+
+`.env`dagi mavjud `TELEGRAM_BOT_TOKEN` va
+`BACKUP_TELEGRAM_CHAT_ID=-1003968166001` ishlatiladi. Haqiqiy `.env` repositoryda
+yaratilmaydi. Installer server timezone'iga bog‘liq bo‘lmagan `* * * * *` jadval
+qo‘yadi: kichik `backup/scheduler.py` har daqiqada **Django yuklamasdan** vaqtni
+tekshiradi. Faqat `settings.TIME_ZONE` bo‘yicha 02:00 da `send_backup`ni chaqiradi.
+Hozir loyiha timezone'i `Asia/Tashkent`. Server UTC bo‘lsa ham shu vaqtda ishlaydi.
+02:00 dan keyin o‘rnatilsa birinchi avtomatik backup ertasi kuni yuboriladi.
+Cron xizmati ishlashi va hostingda Cron Jobs ruxsati bo‘lishi shart. Server
+02:00 da o‘chiq yoki cron to‘xtagan bo‘lsa o‘tkazib yuborilgan ish avtomatik
+qoplanmaydi. Installer faqat yozilgan jadvalni tekshiradi, cron daemonini yoqmaydi.
+
+Installer boshqa cronlarni saqlaydi, o‘z blokini qayta o‘rnatganda dublikat
+yaratmaydi. Oldingi qo‘lda yozilgan backup cron mavjud bo‘lsa, dublikat
+yaratmasdan to‘xtaydi: `crontab -e`da faqat eski backup qatorini olib tashlab,
+installerni qayta ishlating. Oldingi crontab private nusxasi installer chiqargan
+yo‘lda saqlanadi. Unda boshqa ishlar sirlari bo‘lishi mumkin, nusxani chatga yubormang.
+
+Hozir scheduler orqali haqiqiy backup yuborishni tekshirish:
+
+```bash
+python backup/scheduler.py --backup-dir /home/itcacade/private_backups --timezone Asia/Tashkent --run-now
+echo $?
+```
+
+Installer ko‘rsatgan `schedule.log`dan natijani o‘qing. Log fayli 1 MB x 3 bilan
+cheklangan; muvaffaqiyat yoki exit code yoziladi. Telegramga batafsil xavfsiz
+xabarni mavjud `send_backup` yuboradi. `--run-now` shu kun uchun avtomatik
+muvaffaqiyat belgisini ham qo‘yadi; ertasi kuni yana 02:00 da yuboriladi.
+Oddiy jadval bir kunda bir marta muvaffaqiyat belgisini yozadi, lock ikki
+schedulerning birga ishlashiga yo‘l qo‘ymaydi. Barcha Telegram qismlari va yakuniy
+xabar kelganini tekshiring. Shu daqiqada backup allaqachon mavjud bo‘lsa keyingi
+daqiqada sinang. Xato bilan tugagan scheduled backup o‘sha kuni qayta urinmaydi;
+sababini tuzatib `--run-now` ishlating.
+
+O‘chirish/rollback: `crontab -e`da installerga tegishli `BEGIN LMS BACKUP ...`
+va `END LMS BACKUP ...` orasidagi blokni shu markerlari bilan olib tashlang.
+Butun eski crontabni qayta tiklash boshqa yangi ishlarni yo‘qotishi mumkin;
+boshqa cronlarga tegmang. Ilova/Passenger restart talab qilinmaydi.
+
 Tekshirilgan joylashuvlar: `manage.py`, `config/settings.py`, `config/urls.py`,
 `requirements.txt`, `passenger_wsgi.py`, `.htaccess`, asosiy `README.md`.
 `config.settings` va Passenger `.env`ni mavjud `python-dotenv` bilan o‘qiydi;

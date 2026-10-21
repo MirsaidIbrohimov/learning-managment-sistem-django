@@ -2,6 +2,14 @@
 (function () {
     'use strict';
     let previous = -1;
+    window.videoNeedsNativeControls = function () {
+        return !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+    };
+    window.focusVideoControl = function (element) {
+        if (!element || typeof element.focus !== 'function') return;
+        try { element.focus({preventScroll: true}); }
+        catch (_) { try { element.focus(); } catch (_) {} }
+    };
     window.placeVideoPresence = function (overlay) {
         const modal = overlay.querySelector('.vl-presence-modal');
         const anchors = [[0, 0], [0.5, 0], [1, 0], [0, 0.5], [1, 0.5], [0, 1], [0.5, 1], [1, 1]];
@@ -19,7 +27,7 @@
             const width = Math.max(1, right - left);
             const height = Math.max(1, bottom - top);
             const gap = Math.min(20, width / 20, height / 20);
-            modal.style.width = Math.min(360, width - gap * 2) + 'px';
+            modal.style.width = Math.max(1, Math.min(360, width - gap * 2)) + 'px';
             modal.style.maxHeight = Math.max(1, height - gap * 2) + 'px';
             const x = left + gap + Math.max(0, width - gap * 2 - modal.offsetWidth) * anchor[0];
             const y = top + gap + Math.max(0, height - gap * 2 - modal.offsetHeight) * anchor[1];
@@ -29,7 +37,7 @@
         function trapFocus(event) {
             if (event.key === 'Tab') {
                 event.preventDefault();
-                modal.querySelector('button').focus({preventScroll: true});
+                window.focusVideoControl(modal.querySelector('button'));
             }
         }
         position();

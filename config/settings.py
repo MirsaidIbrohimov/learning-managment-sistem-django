@@ -555,6 +555,11 @@ STORAGES = {
     },
 }
 
+# Serverga yangi JS/CSS yuklanib collectstatic esdan chiqsa, `staticfiles/`dagi
+# eski nusxa (yoki umuman yo'q fayl → 404 text/html) berilardi. Finder'lar
+# `static/` manbasini STATIC_ROOT ustidan qo'yadi: har doim joriy fayl beriladi.
+WHITENOISE_USE_FINDERS = True
+
 # ══════════════════════════════════════════════════════════════════
 # KENG QAMROVLI XAVFSIZLIK SOZLAMALARI
 # ══════════════════════════════════════════════════════════════════
