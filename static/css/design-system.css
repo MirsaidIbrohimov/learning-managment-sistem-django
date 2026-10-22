@@ -1,0 +1,910 @@
+/* ====================================================================
+   IT CREATIVE — DESIGN SYSTEM  ("Clean Academic")
+   --------------------------------------------------------------------
+   Yagona vizual tizim: rang, shrift, oraliq, radius, soya, harakat.
+   Qanday ulanadi: Bootstrap CSS'dan KEYIN, sahifaga xos {% block extra_css %}
+   dan OLDIN. Shunda Bootstrap komponentlari tizimga bo'ysunadi, sahifa
+   uslublari esa kerak bo'lsa ustun turaveradi.
+
+   Tamoyillar:
+   1. Bitta asosiy rang (indigo) — harakat va faol holat uchun.
+   2. Tekis yuzalar, nozik chegara, yengil soya. Glass/gradient — faqat aksent.
+   3. Matn kontrasti WCAG AA (4.5:1) dan past emas — light va dark rejimda.
+   4. Telefonda har bir bosiladigan element kamida 44×44px.
+   5. Klaviatura fokusi doim ko'rinadi; "reduce motion" hurmat qilinadi.
+   ==================================================================== */
+
+/* ------------------------------------------------------------------
+   1. TOKENLAR — rejimdan mustaqil
+   ------------------------------------------------------------------ */
+:root {
+    /* Shrift */
+    --ds-font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --ds-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+
+    /* Tipografik shkala (1.125 — "major second"), rem = 16px */
+    --ds-text-xs: 0.75rem;    /* 12 — yorliq, badge */
+    --ds-text-sm: 0.875rem;   /* 14 — yordamchi matn, jadval */
+    --ds-text-md: 1rem;       /* 16 — asosiy matn */
+    --ds-text-lg: 1.125rem;   /* 18 — lid */
+    --ds-text-xl: 1.25rem;    /* 20 — h5/h4 */
+    --ds-text-2xl: 1.5rem;    /* 24 — h3 */
+    --ds-text-3xl: 1.875rem;  /* 30 — h2 */
+    --ds-text-4xl: 2.25rem;   /* 36 — h1 */
+
+    --ds-leading-tight: 1.25;
+    --ds-leading-snug: 1.4;
+    --ds-leading-normal: 1.6;
+
+    --ds-weight-regular: 400;
+    --ds-weight-medium: 500;
+    --ds-weight-semibold: 600;
+    --ds-weight-bold: 700;
+
+    /* Oraliq shkalasi — 4px asos */
+    --ds-space-1: 0.25rem;  /* 4 */
+    --ds-space-2: 0.5rem;   /* 8 */
+    --ds-space-3: 0.75rem;  /* 12 */
+    --ds-space-4: 1rem;     /* 16 */
+    --ds-space-5: 1.5rem;   /* 24 */
+    --ds-space-6: 2rem;     /* 32 */
+    --ds-space-7: 3rem;     /* 48 */
+    --ds-space-8: 4rem;     /* 64 */
+
+    /* Radius */
+    --ds-radius-sm: 8px;    /* input, tugma, badge */
+    --ds-radius-md: 12px;   /* kartochka ichidagi bloklar, dropdown */
+    --ds-radius-lg: 16px;   /* kartochka, modal */
+    --ds-radius-xl: 24px;   /* hero bloklar */
+    --ds-radius-pill: 999px;
+
+    /* O'lchamlar */
+    --ds-control-sm: 2rem;      /* 32 */
+    --ds-control-md: 2.5rem;    /* 40 */
+    --ds-control-lg: 3rem;      /* 48 */
+    --ds-touch-target: 2.75rem; /* 44 — WCAG 2.5.5 */
+    --ds-container-max: 1200px;
+
+    /* Harakat */
+    --ds-ease: cubic-bezier(.2, 0, 0, 1);
+    --ds-duration-fast: 120ms;
+    --ds-duration: 200ms;
+    --ds-duration-slow: 320ms;
+
+    /* Qatlamlar */
+    --ds-z-dropdown: 1000;
+    --ds-z-sticky: 1020;
+    --ds-z-nav: 1050;
+    --ds-z-modal: 1055;
+    --ds-z-toast: 1090;
+    --ds-z-skip: 100000;
+}
+
+/* ------------------------------------------------------------------
+   2. RANG TOKENLARI — LIGHT (standart)
+   Kontrast (oq fonda): primary 6.3:1, text 15.4:1, muted 4.8:1
+   ------------------------------------------------------------------ */
+:root,
+[data-bs-theme="light"] {
+    color-scheme: light;
+
+    --ds-primary: #4f46e5;          /* indigo-600 */
+    --ds-primary-hover: #4338ca;    /* indigo-700 */
+    --ds-primary-active: #3730a3;   /* indigo-800 */
+    --ds-primary-rgb: 79, 70, 229;
+    --ds-primary-soft: #eef2ff;     /* indigo-50 — fon */
+    --ds-primary-soft-2: #e0e7ff;   /* indigo-100 */
+    --ds-on-primary: #ffffff;
+
+    --ds-bg: #f6f7fb;               /* sahifa foni */
+    --ds-surface: #ffffff;          /* kartochka */
+    --ds-surface-2: #f1f3f9;        /* ichki blok, hover */
+    --ds-surface-3: #e7eaf3;        /* tanlangan, disabled */
+    --ds-border: #e2e6ef;
+    --ds-border-strong: #c9cfdc;
+
+    --ds-text: #111827;             /* gray-900 */
+    --ds-text-2: #374151;           /* gray-700 — ikkilamchi */
+    --ds-text-muted: #5b6474;       /* 4.8:1 oq fonda; 4.5:1 surface-2 da */
+    --ds-text-disabled: #9aa3b2;
+
+    --ds-success: #047857;  --ds-success-rgb: 4, 120, 87;   --ds-success-soft: #ecfdf5;
+    --ds-warning: #b45309;  --ds-warning-rgb: 180, 83, 9;   --ds-warning-soft: #fffbeb;
+    --ds-danger:  #dc2626;  --ds-danger-rgb: 220, 38, 38;   --ds-danger-soft: #fef2f2;
+    --ds-info:    #0369a1;  --ds-info-rgb: 3, 105, 161;     --ds-info-soft: #f0f9ff;
+    --ds-coin:    #d97706;  /* coin/gamifikatsiya aksenti */
+
+    --ds-focus-ring: 0 0 0 3px rgba(79, 70, 229, .45);
+    --ds-shadow-sm: 0 1px 2px rgba(17, 24, 39, .06), 0 1px 3px rgba(17, 24, 39, .04);
+    --ds-shadow-md: 0 4px 12px -2px rgba(17, 24, 39, .08), 0 2px 4px -2px rgba(17, 24, 39, .04);
+    --ds-shadow-lg: 0 16px 40px -12px rgba(17, 24, 39, .18);
+    --ds-overlay: rgba(17, 24, 39, .55);
+}
+
+/* ------------------------------------------------------------------
+   3. RANG TOKENLARI — DARK
+   Kontrast (surface #151b2b ustida): text 14.6:1, muted 6.9:1, primary 5.6:1
+   ------------------------------------------------------------------ */
+[data-bs-theme="dark"] {
+    color-scheme: dark;
+
+    --ds-primary: #818cf8;          /* indigo-400 */
+    --ds-primary-hover: #a5b4fc;
+    --ds-primary-active: #c7d2fe;
+    --ds-primary-rgb: 129, 140, 248;
+    --ds-primary-soft: rgba(129, 140, 248, .14);
+    --ds-primary-soft-2: rgba(129, 140, 248, .22);
+    --ds-on-primary: #0b1020;
+
+    --ds-bg: #0b1020;
+    --ds-surface: #151b2b;
+    --ds-surface-2: #1c2335;
+    --ds-surface-3: #252d42;
+    --ds-border: #273048;
+    --ds-border-strong: #39435e;
+
+    --ds-text: #e8ebf3;
+    --ds-text-2: #c4cad6;
+    --ds-text-muted: #9ba4b5;
+    --ds-text-disabled: #646d80;
+
+    --ds-success: #34d399;  --ds-success-rgb: 52, 211, 153;  --ds-success-soft: rgba(52, 211, 153, .12);
+    --ds-warning: #fbbf24;  --ds-warning-rgb: 251, 191, 36;  --ds-warning-soft: rgba(251, 191, 36, .12);
+    --ds-danger:  #f87171;  --ds-danger-rgb: 248, 113, 113;  --ds-danger-soft: rgba(248, 113, 113, .12);
+    --ds-info:    #38bdf8;  --ds-info-rgb: 56, 189, 248;     --ds-info-soft: rgba(56, 189, 248, .12);
+    --ds-coin:    #fbbf24;
+
+    --ds-focus-ring: 0 0 0 3px rgba(129, 140, 248, .55);
+    --ds-shadow-sm: 0 1px 2px rgba(0, 0, 0, .4);
+    --ds-shadow-md: 0 6px 16px -4px rgba(0, 0, 0, .5);
+    --ds-shadow-lg: 0 20px 48px -12px rgba(0, 0, 0, .65);
+    --ds-overlay: rgba(0, 0, 0, .65);
+}
+
+/* ------------------------------------------------------------------
+   4. BOOTSTRAP O'ZGARUVCHILARINI TIZIMGA BOG'LASH
+   ------------------------------------------------------------------ */
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+    --bs-font-sans-serif: var(--ds-font-sans);
+    --bs-font-monospace: var(--ds-font-mono);
+    --bs-body-font-family: var(--ds-font-sans);
+    --bs-body-font-size: var(--ds-text-md);
+    --bs-body-line-height: var(--ds-leading-normal);
+
+    --bs-primary: var(--ds-primary);
+    --bs-primary-rgb: var(--ds-primary-rgb);
+    --bs-primary-text-emphasis: var(--ds-primary-hover);
+    --bs-primary-bg-subtle: var(--ds-primary-soft);
+    --bs-primary-border-subtle: var(--ds-primary-soft-2);
+
+    --bs-success: var(--ds-success);  --bs-success-rgb: var(--ds-success-rgb);
+    --bs-warning: var(--ds-warning);  --bs-warning-rgb: var(--ds-warning-rgb);
+    --bs-danger: var(--ds-danger);    --bs-danger-rgb: var(--ds-danger-rgb);
+    --bs-info: var(--ds-info);        --bs-info-rgb: var(--ds-info-rgb);
+    --bs-success-bg-subtle: var(--ds-success-soft);
+    --bs-warning-bg-subtle: var(--ds-warning-soft);
+    --bs-danger-bg-subtle: var(--ds-danger-soft);
+    --bs-info-bg-subtle: var(--ds-info-soft);
+    --bs-success-text-emphasis: var(--ds-success);
+    --bs-warning-text-emphasis: var(--ds-warning);
+    --bs-danger-text-emphasis: var(--ds-danger);
+    --bs-info-text-emphasis: var(--ds-info);
+
+    --bs-body-bg: var(--ds-bg);
+    --bs-body-color: var(--ds-text);
+    --bs-emphasis-color: var(--ds-text);
+    --bs-secondary-color: var(--ds-text-muted);
+    --bs-tertiary-color: var(--ds-text-muted);
+    --bs-secondary-bg: var(--ds-surface-2);
+    --bs-tertiary-bg: var(--ds-surface-2);
+    --bs-border-color: var(--ds-border);
+    --bs-border-color-translucent: var(--ds-border);
+    --bs-heading-color: inherit; /* to'q fondagi oq sarlavhalar buzilmasin */
+
+    --bs-link-color: var(--ds-primary);
+    --bs-link-color-rgb: var(--ds-primary-rgb);
+    --bs-link-hover-color: var(--ds-primary-hover);
+    --bs-link-decoration: none;
+
+    --bs-border-radius-sm: var(--ds-radius-sm);
+    --bs-border-radius: var(--ds-radius-sm);
+    --bs-border-radius-lg: var(--ds-radius-md);
+    --bs-border-radius-xl: var(--ds-radius-lg);
+    --bs-border-radius-xxl: var(--ds-radius-xl);
+    --bs-border-radius-pill: var(--ds-radius-pill);
+
+    --bs-box-shadow-sm: var(--ds-shadow-sm);
+    --bs-box-shadow: var(--ds-shadow-md);
+    --bs-box-shadow-lg: var(--ds-shadow-lg);
+
+    --bs-focus-ring-color: rgba(var(--ds-primary-rgb), .45);
+    --bs-focus-ring-width: 3px;
+}
+
+/* ------------------------------------------------------------------
+   5. ESKI O'ZGARUVCHILARNI TIZIMGA YO'NALTIRISH
+   Loyihadagi turli CSS fayllar o'z nomlaridan foydalanadi
+   (--bg, --card, --text-color, --card-bg, --border-color ...).
+   Ularni bitta manbaga bog'lab, yuzlab shablonni qayta yozmasdan
+   bir xil ko'rinishga keltiramiz.
+   ------------------------------------------------------------------ */
+:root,
+[data-bs-theme="light"],
+[data-bs-theme="dark"] {
+    /* base.css / navbar.css */
+    --primary: var(--ds-primary);
+    --primary-dark: var(--ds-primary-hover);
+    --primary-light: var(--ds-primary);
+    --success: var(--ds-success);
+    --warning: var(--ds-warning);
+    --danger: var(--ds-danger);
+    --muted: var(--ds-text-muted);
+    --font-mono: var(--ds-font-mono);
+    --bg: var(--ds-bg);
+    --card: var(--ds-surface);
+    --text: var(--ds-text);
+    --text-muted: var(--ds-text-muted);
+    --border: var(--ds-border);
+    --code-bg: var(--ds-surface-2);
+
+    /* base_admin.css / parent_panel.css / teacher panel */
+    --primary-blue: var(--ds-primary);
+    --dark-blue: var(--ds-primary-hover);
+    --bg-color: var(--ds-bg);
+    --card-bg: var(--ds-surface);
+    --text-color: var(--ds-text);
+    --border-color: var(--ds-border);
+    --hover-bg: var(--ds-primary-soft);
+    --shadow-sm: var(--ds-shadow-sm);
+    --shadow-md: var(--ds-shadow-md);
+    --shadow-lg: var(--ds-shadow-lg);
+    --card-border: var(--ds-border);
+}
+/* Eski CSS'larda --primary ko'pincha qattiq oq fon ustida ishlatiladi —
+   qorong'i rejimda ham avvalgi (#6366f1) qiymat saqlanadi, och tusga o'tmaydi. */
+[data-bs-theme="dark"] {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --primary-blue: #6366f1;
+    --dark-blue: #4f46e5;
+}
+
+/* ------------------------------------------------------------------
+   6. ASOS (reset darajasidagi qoidalar)
+   ------------------------------------------------------------------ */
+html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: 80px; /* sticky navbar ostida yashirinmasin */
+}
+
+body {
+    font-family: var(--ds-font-sans);
+    font-size: var(--ds-text-md);
+    line-height: var(--ds-leading-normal);
+    color: var(--ds-text);
+    background-color: var(--ds-bg);
+    overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+}
+
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6 {
+    font-weight: var(--ds-weight-bold);
+    line-height: var(--ds-leading-tight);
+    letter-spacing: -0.015em;
+}
+h1, .h1 { font-size: clamp(1.75rem, 1.4rem + 1.6vw, var(--ds-text-4xl)); }
+h2, .h2 { font-size: clamp(1.5rem, 1.25rem + 1.1vw, var(--ds-text-3xl)); }
+h3, .h3 { font-size: clamp(1.25rem, 1.12rem + .6vw, var(--ds-text-2xl)); }
+h4, .h4 { font-size: var(--ds-text-xl); }
+h5, .h5 { font-size: var(--ds-text-lg); }
+h6, .h6 { font-size: var(--ds-text-md); }
+
+p { line-height: var(--ds-leading-normal); }
+small, .small { font-size: var(--ds-text-sm); }
+
+code, kbd, pre, samp { font-family: var(--ds-font-mono); }
+
+img, video, iframe { max-width: 100%; }
+
+a { text-underline-offset: .18em; }
+/* Matn ichidagi havolalar rang bilangina ajralmasin (WCAG 1.4.1) */
+p a:not([class]),
+li a:not([class]),
+td a:not([class]) { text-decoration: underline; text-decoration-thickness: 1px; }
+
+::selection { background: rgba(var(--ds-primary-rgb), .22); }
+
+hr { border-color: var(--ds-border); opacity: 1; }
+
+/* ------------------------------------------------------------------
+   7. ACCESSIBILITY — fokus, skip-link, harakat
+   ------------------------------------------------------------------ */
+
+/* Klaviatura fokusi: sichqoncha bosilganda emas, Tab bilan kelganda */
+:focus { outline: none; }
+:focus-visible {
+    outline: 2px solid var(--ds-primary);
+    outline-offset: 2px;
+}
+.btn:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible,
+.form-check-input:focus-visible,
+.page-link:focus-visible,
+.nav-link:focus-visible,
+.dropdown-item:focus-visible,
+.list-group-item-action:focus-visible,
+.btn-close:focus-visible {
+    outline: 2px solid var(--ds-primary);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* Dasturiy fokus nishonlari (skip-link -> main, dialog paneli) ramkasiz */
+[tabindex="-1"]:focus,
+[tabindex="-1"]:focus-visible { outline: none; }
+
+/* "Asosiy tarkibga o'tish" havolasi */
+.ds-skip-link {
+    position: fixed;
+    top: var(--ds-space-2);
+    left: var(--ds-space-2);
+    z-index: var(--ds-z-skip);
+    padding: var(--ds-space-3) var(--ds-space-4);
+    background: var(--ds-primary);
+    color: var(--ds-on-primary) !important;
+    font-weight: var(--ds-weight-semibold);
+    border-radius: var(--ds-radius-sm);
+    box-shadow: var(--ds-shadow-lg);
+    text-decoration: none;
+    transform: translateY(-200%);
+    transition: transform var(--ds-duration) var(--ds-ease);
+}
+.ds-skip-link:focus,
+.ds-skip-link:focus-visible { transform: translateY(0); outline: 3px solid var(--ds-on-primary); outline-offset: -5px; }
+
+/* Ekran o'quvchilar uchun yashirin matn */
+.ds-sr-only {
+    position: absolute !important;
+    width: 1px !important; height: 1px !important;
+    padding: 0 !important; margin: -1px !important;
+    overflow: hidden !important; clip: rect(0, 0, 0, 0) !important;
+    white-space: nowrap !important; border: 0 !important;
+}
+
+/* Harakatni kamaytirish so'ralganda — animatsiyalarni o'chirish */
+@media (prefers-reduced-motion: reduce) {
+    html:focus-within { scroll-behavior: auto; }
+    *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Yuqori kontrast rejimi (Windows) */
+@media (forced-colors: active) {
+    .btn, .form-control, .form-select, .card, .dropdown-menu { border: 1px solid CanvasText; }
+    :focus-visible { outline: 2px solid Highlight; }
+}
+
+/* ------------------------------------------------------------------
+   8. TUGMALAR — bitta shakl, 5 variant, 3 o'lcham
+   ------------------------------------------------------------------ */
+.btn {
+    --bs-btn-padding-x: var(--ds-space-4);
+    --bs-btn-padding-y: var(--ds-space-2);
+    --bs-btn-font-size: var(--ds-text-sm);
+    --bs-btn-font-weight: var(--ds-weight-semibold);
+    --bs-btn-line-height: 1.4;
+    --bs-btn-border-radius: var(--ds-radius-sm);
+    --bs-btn-focus-box-shadow: var(--ds-focus-ring);
+    --bs-btn-disabled-opacity: .5;
+    min-height: var(--ds-control-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-space-2);
+    letter-spacing: .005em;
+    transition: background-color var(--ds-duration-fast) var(--ds-ease),
+                border-color var(--ds-duration-fast) var(--ds-ease),
+                color var(--ds-duration-fast) var(--ds-ease),
+                box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+.btn.d-block, .btn.w-100 { display: flex; }
+.btn-sm {
+    --bs-btn-padding-x: var(--ds-space-3);
+    --bs-btn-padding-y: var(--ds-space-1);
+    --bs-btn-font-size: var(--ds-text-xs);
+    --bs-btn-border-radius: var(--ds-radius-sm);
+    min-height: var(--ds-control-sm);
+}
+.btn-lg {
+    --bs-btn-padding-x: var(--ds-space-5);
+    --bs-btn-padding-y: var(--ds-space-3);
+    --bs-btn-font-size: var(--ds-text-md);
+    --bs-btn-border-radius: var(--ds-radius-md);
+    min-height: var(--ds-control-lg);
+}
+.btn .bi { font-size: 1.05em; line-height: 1; }
+/* Bootstrap ikon oralig'i (me-1/me-2) gap bilan takrorlanmasin */
+.btn > .bi.me-1, .btn > .bi.me-2, .btn > .bi.me-3 { margin-right: 0 !important; }
+.btn > .bi.ms-1, .btn > .bi.ms-2, .btn > .bi.ms-3 { margin-left: 0 !important; }
+
+/* Primary — sahifadagi asosiy harakat (bitta sahifada bittadan) */
+.btn-primary {
+    --bs-btn-color: var(--ds-on-primary);
+    --bs-btn-bg: var(--ds-primary);
+    --bs-btn-border-color: var(--ds-primary);
+    --bs-btn-hover-color: var(--ds-on-primary);
+    --bs-btn-hover-bg: var(--ds-primary-hover);
+    --bs-btn-hover-border-color: var(--ds-primary-hover);
+    --bs-btn-active-color: var(--ds-on-primary);
+    --bs-btn-active-bg: var(--ds-primary-active);
+    --bs-btn-active-border-color: var(--ds-primary-active);
+    --bs-btn-disabled-color: var(--ds-on-primary);
+    --bs-btn-disabled-bg: var(--ds-primary);
+    --bs-btn-disabled-border-color: var(--ds-primary);
+}
+/* Secondary — ikkilamchi harakat */
+.btn-secondary, .btn-light {
+    --bs-btn-color: var(--ds-text);
+    --bs-btn-bg: var(--ds-surface);
+    --bs-btn-border-color: var(--ds-border-strong);
+    --bs-btn-hover-color: var(--ds-text);
+    --bs-btn-hover-bg: var(--ds-surface-2);
+    --bs-btn-hover-border-color: var(--ds-border-strong);
+    --bs-btn-active-color: var(--ds-text);
+    --bs-btn-active-bg: var(--ds-surface-3);
+    --bs-btn-active-border-color: var(--ds-border-strong);
+    --bs-btn-disabled-color: var(--ds-text-disabled);
+    --bs-btn-disabled-bg: var(--ds-surface);
+    --bs-btn-disabled-border-color: var(--ds-border);
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--ds-primary);
+    --bs-btn-border-color: rgba(var(--ds-primary-rgb), .45);
+    --bs-btn-hover-color: var(--ds-primary-hover);
+    --bs-btn-hover-bg: var(--ds-primary-soft);
+    --bs-btn-hover-border-color: var(--ds-primary);
+    --bs-btn-active-color: var(--ds-primary-active);
+    --bs-btn-active-bg: var(--ds-primary-soft-2);
+    --bs-btn-active-border-color: var(--ds-primary);
+    --bs-btn-disabled-color: var(--ds-primary);
+    --bs-btn-disabled-border-color: rgba(var(--ds-primary-rgb), .45);
+}
+.btn-outline-secondary, .btn-outline-dark, .btn-outline-light {
+    --bs-btn-color: var(--ds-text-2);
+    --bs-btn-border-color: var(--ds-border-strong);
+    --bs-btn-hover-color: var(--ds-text);
+    --bs-btn-hover-bg: var(--ds-surface-2);
+    --bs-btn-hover-border-color: var(--ds-border-strong);
+    --bs-btn-active-color: var(--ds-text);
+    --bs-btn-active-bg: var(--ds-surface-3);
+    --bs-btn-active-border-color: var(--ds-border-strong);
+    --bs-btn-disabled-color: var(--ds-text-disabled);
+    --bs-btn-disabled-border-color: var(--ds-border);
+}
+/* Semantik — faqat ma'noga mos joyda (tasdiq, ogohlantirish, o'chirish) */
+.btn-success {
+    --bs-btn-color: #fff; --bs-btn-bg: #047857; --bs-btn-border-color: #047857;
+    --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #065f46; --bs-btn-hover-border-color: #065f46;
+    --bs-btn-active-color: #fff; --bs-btn-active-bg: #064e3b; --bs-btn-active-border-color: #064e3b;
+    --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #047857; --bs-btn-disabled-border-color: #047857;
+}
+.btn-danger {
+    --bs-btn-color: #fff; --bs-btn-bg: #dc2626; --bs-btn-border-color: #dc2626;
+    --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #b91c1c; --bs-btn-hover-border-color: #b91c1c;
+    --bs-btn-active-color: #fff; --bs-btn-active-bg: #991b1b; --bs-btn-active-border-color: #991b1b;
+    --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #dc2626; --bs-btn-disabled-border-color: #dc2626;
+}
+.btn-warning {
+    --bs-btn-color: #1f1300; --bs-btn-bg: #fbbf24; --bs-btn-border-color: #fbbf24;
+    --bs-btn-hover-color: #1f1300; --bs-btn-hover-bg: #f59e0b; --bs-btn-hover-border-color: #f59e0b;
+    --bs-btn-active-color: #1f1300; --bs-btn-active-bg: #d97706; --bs-btn-active-border-color: #d97706;
+    --bs-btn-disabled-color: #1f1300; --bs-btn-disabled-bg: #fbbf24; --bs-btn-disabled-border-color: #fbbf24;
+}
+.btn-info {
+    --bs-btn-color: #fff; --bs-btn-bg: #0369a1; --bs-btn-border-color: #0369a1;
+    --bs-btn-hover-color: #fff; --bs-btn-hover-bg: #075985; --bs-btn-hover-border-color: #075985;
+    --bs-btn-active-color: #fff; --bs-btn-active-bg: #0c4a6e; --bs-btn-active-border-color: #0c4a6e;
+    --bs-btn-disabled-color: #fff; --bs-btn-disabled-bg: #0369a1; --bs-btn-disabled-border-color: #0369a1;
+}
+.btn-outline-success { --bs-btn-color: var(--ds-success); --bs-btn-border-color: rgba(var(--ds-success-rgb), .5); --bs-btn-hover-color: var(--ds-success); --bs-btn-hover-bg: var(--ds-success-soft); --bs-btn-hover-border-color: var(--ds-success); --bs-btn-active-color: var(--ds-success); --bs-btn-active-bg: var(--ds-success-soft); --bs-btn-active-border-color: var(--ds-success); }
+.btn-outline-danger  { --bs-btn-color: var(--ds-danger);  --bs-btn-border-color: rgba(var(--ds-danger-rgb), .5);  --bs-btn-hover-color: var(--ds-danger);  --bs-btn-hover-bg: var(--ds-danger-soft);  --bs-btn-hover-border-color: var(--ds-danger);  --bs-btn-active-color: var(--ds-danger);  --bs-btn-active-bg: var(--ds-danger-soft);  --bs-btn-active-border-color: var(--ds-danger); }
+.btn-outline-warning { --bs-btn-color: var(--ds-warning); --bs-btn-border-color: rgba(var(--ds-warning-rgb), .5); --bs-btn-hover-color: var(--ds-warning); --bs-btn-hover-bg: var(--ds-warning-soft); --bs-btn-hover-border-color: var(--ds-warning); --bs-btn-active-color: var(--ds-warning); --bs-btn-active-bg: var(--ds-warning-soft); --bs-btn-active-border-color: var(--ds-warning); }
+.btn-outline-info    { --bs-btn-color: var(--ds-info);    --bs-btn-border-color: rgba(var(--ds-info-rgb), .5);    --bs-btn-hover-color: var(--ds-info);    --bs-btn-hover-bg: var(--ds-info-soft);    --bs-btn-hover-border-color: var(--ds-info);    --bs-btn-active-color: var(--ds-info);    --bs-btn-active-bg: var(--ds-info-soft);    --bs-btn-active-border-color: var(--ds-info); }
+
+.btn-link {
+    --bs-btn-color: var(--ds-primary);
+    --bs-btn-hover-color: var(--ds-primary-hover);
+    --bs-btn-active-color: var(--ds-primary-active);
+    --bs-btn-disabled-color: var(--ds-text-disabled);
+    text-decoration: none;
+}
+.btn-link:hover { text-decoration: underline; }
+
+.btn-close { --bs-btn-close-focus-shadow: var(--ds-focus-ring); }
+
+/* ------------------------------------------------------------------
+   9. FORMALAR
+   ------------------------------------------------------------------ */
+.form-label {
+    font-size: var(--ds-text-sm);
+    font-weight: var(--ds-weight-semibold);
+    color: var(--ds-text-2);
+    margin-bottom: var(--ds-space-1);
+}
+.form-text { font-size: var(--ds-text-xs); color: var(--ds-text-muted); }
+
+.form-control,
+.form-select {
+    min-height: var(--ds-control-md);
+    padding: var(--ds-space-2) var(--ds-space-3);
+    font-size: var(--ds-text-sm);
+    color: var(--ds-text);
+    background-color: var(--ds-surface);
+    border: 1px solid var(--ds-border-strong);
+    border-radius: var(--ds-radius-sm);
+    transition: border-color var(--ds-duration-fast) var(--ds-ease), box-shadow var(--ds-duration-fast) var(--ds-ease);
+}
+.form-select { padding-right: 2.25rem; }
+textarea.form-control { min-height: 6rem; line-height: var(--ds-leading-normal); }
+.form-control-sm, .form-select-sm { min-height: var(--ds-control-sm); font-size: var(--ds-text-xs); }
+.form-control-lg, .form-select-lg { min-height: var(--ds-control-lg); font-size: var(--ds-text-md); border-radius: var(--ds-radius-md); }
+.form-control::placeholder { color: var(--ds-text-muted); opacity: .85; }
+.form-control:hover:not(:disabled):not(:focus),
+.form-select:hover:not(:disabled):not(:focus) { border-color: var(--ds-text-muted); }
+.form-control:focus,
+.form-select:focus {
+    color: var(--ds-text);
+    background-color: var(--ds-surface);
+    border-color: var(--ds-primary);
+    box-shadow: var(--ds-focus-ring);
+}
+.form-control:disabled, .form-select:disabled,
+.form-control[readonly] { background-color: var(--ds-surface-2); color: var(--ds-text-muted); }
+
+.form-check-input {
+    border-color: var(--ds-border-strong);
+    background-color: var(--ds-surface);
+}
+.form-check-input:checked { background-color: var(--ds-primary); border-color: var(--ds-primary); }
+.form-check-input:focus { border-color: var(--ds-primary); box-shadow: var(--ds-focus-ring); }
+.form-switch .form-check-input:focus { --bs-form-switch-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'%3e%3ccircle r='3' fill='%234f46e5'/%3e%3c/svg%3e"); }
+.form-check-label { cursor: pointer; }
+
+.form-control.is-invalid, .form-select.is-invalid, .was-validated .form-control:invalid { border-color: var(--ds-danger); }
+.form-control.is-valid, .form-select.is-valid, .was-validated .form-control:valid { border-color: var(--ds-success); }
+.invalid-feedback { color: var(--ds-danger); font-size: var(--ds-text-xs); font-weight: var(--ds-weight-medium); }
+.valid-feedback { color: var(--ds-success); font-size: var(--ds-text-xs); }
+/* Django form xatolari */
+.errorlist { list-style: none; padding: 0; margin: var(--ds-space-1) 0 0; color: var(--ds-danger); font-size: var(--ds-text-xs); font-weight: var(--ds-weight-medium); }
+
+.input-group-text {
+    background: var(--ds-surface-2);
+    border-color: var(--ds-border-strong);
+    color: var(--ds-text-muted);
+    font-size: var(--ds-text-sm);
+}
+
+/* ------------------------------------------------------------------
+   10. KARTOCHKA, RO'YXAT, JADVAL
+   ------------------------------------------------------------------ */
+.card {
+    --bs-card-bg: var(--ds-surface);
+    --bs-card-border-color: var(--ds-border);
+    --bs-card-border-radius: var(--ds-radius-lg);
+    --bs-card-inner-border-radius: calc(var(--ds-radius-lg) - 1px);
+    --bs-card-spacer-x: var(--ds-space-5);
+    --bs-card-spacer-y: var(--ds-space-5);
+    --bs-card-cap-padding-x: var(--ds-space-5);
+    --bs-card-cap-padding-y: var(--ds-space-4);
+    --bs-card-cap-bg: transparent;
+    --bs-card-title-color: var(--ds-text);
+    --bs-card-color: var(--ds-text);
+    box-shadow: var(--ds-shadow-sm);
+}
+.card-header, .card-footer { border-color: var(--ds-border); }
+.card-header { font-weight: var(--ds-weight-semibold); }
+.card-title { font-weight: var(--ds-weight-bold); }
+@media (max-width: 575.98px) {
+    .card {
+        --bs-card-spacer-x: var(--ds-space-4);
+        --bs-card-spacer-y: var(--ds-space-4);
+        --bs-card-cap-padding-x: var(--ds-space-4);
+        --bs-card-cap-padding-y: var(--ds-space-3);
+    }
+}
+
+.list-group {
+    --bs-list-group-bg: var(--ds-surface);
+    --bs-list-group-color: var(--ds-text);
+    --bs-list-group-border-color: var(--ds-border);
+    --bs-list-group-border-radius: var(--ds-radius-md);
+    --bs-list-group-action-hover-bg: var(--ds-surface-2);
+    --bs-list-group-action-active-bg: var(--ds-surface-3);
+    --bs-list-group-active-bg: var(--ds-primary);
+    --bs-list-group-active-border-color: var(--ds-primary);
+    --bs-list-group-active-color: var(--ds-on-primary);
+}
+
+.table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--ds-text);
+    --bs-table-border-color: var(--ds-border);
+    --bs-table-striped-bg: var(--ds-surface-2);
+    --bs-table-hover-bg: var(--ds-surface-2);
+    --bs-table-hover-color: var(--ds-text);
+    font-size: var(--ds-text-sm);
+}
+.table > thead th,
+.table > thead td {
+    font-size: var(--ds-text-xs);
+    font-weight: var(--ds-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--ds-text-muted);
+    background: var(--ds-surface-2);
+    border-bottom-width: 1px;
+    white-space: nowrap;
+}
+.table > :not(caption) > * > * { padding: var(--ds-space-3) var(--ds-space-4); }
+.table-sm > :not(caption) > * > * { padding: var(--ds-space-2) var(--ds-space-3); }
+.table-responsive { -webkit-overflow-scrolling: touch; border-radius: var(--ds-radius-md); }
+
+/* ------------------------------------------------------------------
+   11. BADGE, ALERT, PROGRESS
+   ------------------------------------------------------------------ */
+.badge {
+    --bs-badge-padding-x: .55em;
+    --bs-badge-padding-y: .32em;
+    --bs-badge-font-size: var(--ds-text-xs);
+    --bs-badge-font-weight: var(--ds-weight-semibold);
+    --bs-badge-border-radius: var(--ds-radius-pill);
+    letter-spacing: .01em;
+}
+/* AA kontrast: to'q fonli badge'lar oq matn bilan */
+.badge.bg-primary, .badge.text-bg-primary { background-color: #4f46e5 !important; color: #fff !important; }
+.badge.bg-success, .badge.text-bg-success { background-color: #047857 !important; color: #fff !important; }
+.badge.bg-danger,  .badge.text-bg-danger  { background-color: #dc2626 !important; color: #fff !important; }
+.badge.bg-info,    .badge.text-bg-info    { background-color: #0369a1 !important; color: #fff !important; }
+.badge.bg-warning, .badge.text-bg-warning { background-color: #fbbf24 !important; color: #1f1300 !important; }
+.badge.bg-secondary, .badge.text-bg-secondary { background-color: var(--ds-surface-3) !important; color: var(--ds-text-2) !important; }
+
+.alert {
+    --bs-alert-padding-x: var(--ds-space-4);
+    --bs-alert-padding-y: var(--ds-space-3);
+    --bs-alert-border-radius: var(--ds-radius-md);
+    font-size: var(--ds-text-sm);
+    border-width: 1px;
+    border-left-width: 4px;
+}
+.alert-primary, .alert-info { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-info-soft); --bs-alert-border-color: var(--ds-info); --bs-alert-link-color: var(--ds-info); }
+.alert-success { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-success-soft); --bs-alert-border-color: var(--ds-success); --bs-alert-link-color: var(--ds-success); }
+.alert-warning { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-warning-soft); --bs-alert-border-color: var(--ds-warning); --bs-alert-link-color: var(--ds-warning); }
+.alert-danger, .alert-error { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-danger-soft); --bs-alert-border-color: var(--ds-danger); --bs-alert-link-color: var(--ds-danger); }
+.alert-secondary, .alert-light, .alert-dark { --bs-alert-color: var(--ds-text); --bs-alert-bg: var(--ds-surface-2); --bs-alert-border-color: var(--ds-border-strong); }
+/* Bootstrap .alert-* rangli border-left'ni bir tomonga to'playmiz */
+.alert-primary, .alert-info, .alert-success, .alert-warning, .alert-danger, .alert-error,
+.alert-secondary, .alert-light, .alert-dark { border-color: var(--ds-border); border-left-color: var(--bs-alert-border-color); }
+
+.progress {
+    --bs-progress-height: .5rem;
+    --bs-progress-bg: var(--ds-surface-3);
+    --bs-progress-border-radius: var(--ds-radius-pill);
+    --bs-progress-bar-bg: var(--ds-primary);
+}
+
+/* ------------------------------------------------------------------
+   12. NAVIGATSIYA: tabs, pills, pagination, breadcrumb, dropdown
+   ------------------------------------------------------------------ */
+.nav-tabs {
+    --bs-nav-tabs-border-color: var(--ds-border);
+    --bs-nav-tabs-link-hover-border-color: transparent;
+    --bs-nav-tabs-link-active-color: var(--ds-primary);
+    --bs-nav-tabs-link-active-bg: transparent;
+    --bs-nav-tabs-link-active-border-color: transparent transparent var(--ds-primary);
+    --bs-nav-link-color: var(--ds-text-muted);
+    --bs-nav-link-hover-color: var(--ds-text);
+    --bs-nav-link-font-weight: var(--ds-weight-semibold);
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.nav-tabs::-webkit-scrollbar { display: none; }
+.nav-tabs .nav-link { border-width: 0 0 2px; white-space: nowrap; font-size: var(--ds-text-sm); }
+.nav-pills {
+    --bs-nav-pills-border-radius: var(--ds-radius-pill);
+    --bs-nav-pills-link-active-bg: var(--ds-primary);
+    --bs-nav-pills-link-active-color: var(--ds-on-primary);
+    --bs-nav-link-color: var(--ds-text-2);
+    --bs-nav-link-hover-color: var(--ds-primary);
+    --bs-nav-link-font-weight: var(--ds-weight-semibold);
+}
+
+.pagination {
+    --bs-pagination-color: var(--ds-text-2);
+    --bs-pagination-bg: var(--ds-surface);
+    --bs-pagination-border-color: var(--ds-border);
+    --bs-pagination-hover-color: var(--ds-primary);
+    --bs-pagination-hover-bg: var(--ds-primary-soft);
+    --bs-pagination-hover-border-color: var(--ds-border);
+    --bs-pagination-focus-color: var(--ds-primary);
+    --bs-pagination-focus-bg: var(--ds-primary-soft);
+    --bs-pagination-focus-box-shadow: var(--ds-focus-ring);
+    --bs-pagination-active-color: var(--ds-on-primary);
+    --bs-pagination-active-bg: var(--ds-primary);
+    --bs-pagination-active-border-color: var(--ds-primary);
+    --bs-pagination-disabled-color: var(--ds-text-disabled);
+    --bs-pagination-disabled-bg: var(--ds-surface);
+    --bs-pagination-disabled-border-color: var(--ds-border);
+    --bs-pagination-border-radius: var(--ds-radius-sm);
+    flex-wrap: wrap;
+    gap: var(--ds-space-1);
+}
+.pagination .page-link { border-radius: var(--ds-radius-sm) !important; min-width: var(--ds-control-md); text-align: center; font-weight: var(--ds-weight-medium); }
+
+.breadcrumb {
+    --bs-breadcrumb-font-size: var(--ds-text-sm);
+    --bs-breadcrumb-divider-color: var(--ds-text-muted);
+    --bs-breadcrumb-item-active-color: var(--ds-text-muted);
+}
+
+.dropdown-menu {
+    --bs-dropdown-bg: var(--ds-surface);
+    --bs-dropdown-color: var(--ds-text);
+    --bs-dropdown-border-color: var(--ds-border);
+    --bs-dropdown-border-radius: var(--ds-radius-md);
+    --bs-dropdown-inner-border-radius: calc(var(--ds-radius-md) - 1px);
+    --bs-dropdown-box-shadow: var(--ds-shadow-lg);
+    --bs-dropdown-link-color: var(--ds-text);
+    --bs-dropdown-link-hover-color: var(--ds-text);
+    --bs-dropdown-link-hover-bg: var(--ds-surface-2);
+    --bs-dropdown-link-active-color: var(--ds-on-primary);
+    --bs-dropdown-link-active-bg: var(--ds-primary);
+    --bs-dropdown-divider-bg: var(--ds-border);
+    --bs-dropdown-header-color: var(--ds-text-muted);
+    --bs-dropdown-item-padding-x: var(--ds-space-3);
+    --bs-dropdown-item-padding-y: var(--ds-space-2);
+    --bs-dropdown-item-border-radius: var(--ds-radius-sm);
+    --bs-dropdown-padding-x: var(--ds-space-1);
+    --bs-dropdown-padding-y: var(--ds-space-1);
+    --bs-dropdown-font-size: var(--ds-text-sm);
+    box-shadow: var(--bs-dropdown-box-shadow);
+}
+
+/* ------------------------------------------------------------------
+   13. MODAL, OFFCANVAS, TOAST, TOOLTIP
+   ------------------------------------------------------------------ */
+.modal {
+    --bs-modal-bg: var(--ds-surface);
+    --bs-modal-color: var(--ds-text);
+    --bs-modal-border-color: var(--ds-border);
+    --bs-modal-border-radius: var(--ds-radius-lg);
+    --bs-modal-inner-border-radius: calc(var(--ds-radius-lg) - 1px);
+    --bs-modal-box-shadow: var(--ds-shadow-lg);
+    --bs-modal-header-border-color: var(--ds-border);
+    --bs-modal-footer-border-color: var(--ds-border);
+    --bs-modal-padding: var(--ds-space-5);
+    --bs-modal-header-padding: var(--ds-space-4) var(--ds-space-5);
+}
+.modal-title { font-weight: var(--ds-weight-bold); font-size: var(--ds-text-lg); }
+.modal-backdrop { --bs-backdrop-bg: #000; --bs-backdrop-opacity: .55; }
+/* Telefonda modal pastdan chiqadigan varaqqa aylanadi — bosh barmoq bilan oson */
+@media (max-width: 575.98px) {
+    .modal:not(.ds-modal-center) .modal-dialog:not(.modal-dialog-centered):not(.modal-fullscreen) {
+        margin: 0;
+        position: absolute;
+        bottom: 0;
+        left: 0; right: 0;
+        max-width: none;
+    }
+    .modal:not(.ds-modal-center) .modal-dialog:not(.modal-dialog-centered):not(.modal-fullscreen) .modal-content {
+        border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+        border-bottom: 0;
+        max-height: 92vh;
+        overflow-y: auto;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+    .modal.fade:not(.ds-modal-center) .modal-dialog:not(.modal-dialog-centered):not(.modal-fullscreen) { transform: translateY(100%); }
+    .modal.show:not(.ds-modal-center) .modal-dialog:not(.modal-dialog-centered):not(.modal-fullscreen) { transform: none; }
+    .modal { --bs-modal-padding: var(--ds-space-4); --bs-modal-header-padding: var(--ds-space-3) var(--ds-space-4); }
+    .modal-footer { flex-wrap: wrap; }
+    .modal-footer > .btn { flex: 1 1 auto; }
+}
+
+.offcanvas {
+    --bs-offcanvas-bg: var(--ds-surface);
+    --bs-offcanvas-color: var(--ds-text);
+    --bs-offcanvas-border-color: var(--ds-border);
+    --bs-offcanvas-box-shadow: var(--ds-shadow-lg);
+}
+.offcanvas-bottom { border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0; padding-bottom: env(safe-area-inset-bottom); }
+
+.toast {
+    --bs-toast-bg: var(--ds-surface);
+    --bs-toast-color: var(--ds-text);
+    --bs-toast-border-color: var(--ds-border);
+    --bs-toast-border-radius: var(--ds-radius-md);
+    --bs-toast-box-shadow: var(--ds-shadow-lg);
+    --bs-toast-header-bg: var(--ds-surface-2);
+    --bs-toast-header-color: var(--ds-text);
+}
+.tooltip { --bs-tooltip-bg: #111827; --bs-tooltip-color: #fff; --bs-tooltip-border-radius: var(--ds-radius-sm); --bs-tooltip-font-size: var(--ds-text-xs); }
+
+/* ------------------------------------------------------------------
+   14. MATN YORDAMCHILARI (kontrastni to'g'rilash)
+   ------------------------------------------------------------------ */
+.text-muted, .text-secondary { color: var(--ds-text-muted) !important; }
+.text-body-secondary { color: var(--ds-text-muted) !important; }
+.text-primary { color: var(--ds-primary) !important; }
+.text-success { color: var(--ds-success) !important; }
+.text-danger  { color: var(--ds-danger) !important; }
+.text-warning { color: var(--ds-warning) !important; }
+.text-info    { color: var(--ds-info) !important; }
+.border, .border-top, .border-bottom, .border-start, .border-end { border-color: var(--ds-border) !important; }
+.link-primary { color: var(--ds-primary) !important; }
+
+/* ------------------------------------------------------------------
+   15. TIZIM KOMPONENTLARI (yangi sahifalar uchun "ds-" prefiksi)
+   ------------------------------------------------------------------ */
+.ds-container { width: 100%; max-width: var(--ds-container-max); margin-inline: auto; padding-inline: var(--ds-space-4); }
+@media (min-width: 768px) { .ds-container { padding-inline: var(--ds-space-5); } }
+
+.ds-page-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--ds-space-3); margin-bottom: var(--ds-space-5); }
+.ds-page-title { margin: 0; font-size: var(--ds-text-2xl); }
+.ds-page-subtitle { margin: var(--ds-space-1) 0 0; color: var(--ds-text-muted); font-size: var(--ds-text-sm); }
+
+.ds-card { background: var(--ds-surface); border: 1px solid var(--ds-border); border-radius: var(--ds-radius-lg); padding: var(--ds-space-5); box-shadow: var(--ds-shadow-sm); }
+@media (max-width: 575.98px) { .ds-card { padding: var(--ds-space-4); } }
+
+.ds-stack { display: flex; flex-direction: column; gap: var(--ds-space-4); }
+.ds-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ds-space-2); }
+
+.ds-empty { text-align: center; padding: var(--ds-space-7) var(--ds-space-4); color: var(--ds-text-muted); }
+.ds-empty .bi { font-size: 2.5rem; color: var(--ds-text-disabled); display: block; margin-bottom: var(--ds-space-3); }
+
+/* ------------------------------------------------------------------
+   16. TELEFON / SENSORLI EKRANLAR
+   ------------------------------------------------------------------ */
+@media (pointer: coarse) {
+    .btn, .btn-sm,
+    .form-control, .form-select,
+    .page-link,
+    .dropdown-item,
+    .list-group-item-action,
+    .nav-tabs .nav-link, .nav-pills .nav-link {
+        min-height: var(--ds-touch-target);
+    }
+    .btn-sm { --bs-btn-padding-y: var(--ds-space-2); }
+    .page-link { min-width: var(--ds-touch-target); display: inline-flex; align-items: center; justify-content: center; }
+    .dropdown-item { display: flex; align-items: center; }
+    .btn-close { padding: .9rem; }
+    .form-check-input { width: 1.25em; height: 1.25em; }
+    .form-check { min-height: var(--ds-touch-target); display: flex; flex-wrap: wrap; align-items: center; column-gap: var(--ds-space-2); }
+    .form-check .form-check-input { margin-top: 0; }
+    .form-switch { padding-left: 0; }
+    .form-switch .form-check-input { margin-left: 0; width: 2.5em; }
+    .form-check-inline { display: inline-flex; }
+}
+
+@media (max-width: 767.98px) {
+    /* iOS Safari 16px dan kichik inputda sahifani kattalashtiradi */
+    .form-control, .form-select, .form-control-sm, .form-select-sm,
+    input[type="text"], input[type="email"], input[type="password"], input[type="number"],
+    input[type="tel"], input[type="search"], input[type="url"], input[type="date"], textarea, select {
+        font-size: 16px;
+    }
+    .table { font-size: var(--ds-text-xs); }
+    .table > :not(caption) > * > * { padding: var(--ds-space-2) var(--ds-space-3); }
+    .ds-page-title { font-size: var(--ds-text-xl); }
+}

@@ -33,7 +33,8 @@
     
     <!-- Additional SEO -->
     <link rel="canonical" href="{% block canonical %}https://itc-academy.uz{{ request.path }}{% endblock %}">
-    <meta name="theme-color" content="#0d6efd">
+    <meta name="theme-color" content="#4f46e5">
+    <script>try{document.documentElement.setAttribute('data-bs-theme',localStorage.getItem('theme')||'light');}catch(e){}</script>
     <link rel="icon" href="{% static 'img/fav.ico' %}">
 
     {% block extra_head %}{% endblock %}
@@ -44,6 +45,7 @@
     <!-- Bootstrap & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -58,19 +60,20 @@
 </head>
 
 <body>
+<a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
 <!-- 📡 Offline Overlay -->
-<div class="offline-overlay" id="offlineOverlay">
+<div class="offline-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineSubtitle">
     <div class="offline-card">
         <div class="offline-icon-wrap">
             <div class="offline-ring"></div>
             <i class="bi bi-wifi-off offline-icon"></i>
         </div>
-        <h2 class="offline-title">Internet aloqasi yo'q</h2>
-        <p class="offline-subtitle">Tarmoq bilan aloqa uzildi yoki juda past. Iltimos, internetni tekshiring.</p>
-        <div class="offline-status" id="offlineStatus">
+        <h2 class="offline-title" id="offlineTitle">Internet aloqasi yo'q</h2>
+        <p class="offline-subtitle" id="offlineSubtitle">Tarmoq bilan aloqa uzildi yoki juda past. Iltimos, internetni tekshiring.</p>
+        <div class="offline-status" id="offlineStatus" role="status" aria-live="polite">
             <span class="offline-dot"></span> Kutilmoqda...
         </div>
-        <button class="offline-btn" onclick="checkConnection()">
+        <button type="button" class="offline-btn" onclick="checkConnection()">
             <i class="bi bi-arrow-clockwise me-2"></i>Qayta urinish
         </button>
     </div>
@@ -260,7 +263,7 @@
 </script>
 
 <!-- 🎉 Bayram va Eslatma Banner -->
-<div class="announcement-bar" id="announcementBar">
+<div class="announcement-bar" id="announcementBar" role="region" aria-label="E’lonlar">
     <div class="announcement-content">
         <span class="announcement-text" id="announcementText"></span>
         <span class="announcement-text" id="announcementText2"></span>
@@ -510,11 +513,11 @@
     <!-- Theme Toggle — moved to pill nav -->
 
     {% if user.is_authenticated %}
-    <nav class="navbar nb" id="mainNavbar">
+    <nav class="navbar nb" id="mainNavbar" aria-label="Asosiy navigatsiya">
       <div class="nb-inner">
 
         <!-- Brand -->
-        <a class="nb-brand" href="{% url 'home' %}">
+        <a class="nb-brand" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa">
           <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></div>
           <span class="nb-brand-text">IT <span class="nb-sep">|</span> Creative</span>
         </a>
@@ -560,7 +563,7 @@
 
           <!-- Social dropdown (desktop) -->
           <div class="dropdown nb-desktop-only">
-            <button class="nb-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar">
+            <button type="button" class="nb-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar" aria-label="Ijtimoiy tarmoqlar">
               <i class="bi bi-share-fill"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-end nb-dropdown p-2" style="min-width:250px;">
@@ -590,7 +593,7 @@
           </div>
 
           <!-- Coin -->
-          <a href="{% url 'coin:coin_history' %}" class="nb-coin nb-desktop-only" title="Coin tarixi">
+          <a href="{% url 'coin:coin_history' %}" class="nb-coin nb-desktop-only" title="Coin tarixi" aria-label="Coin tarixi: {{ user.coins|default:0 }} coin">
             <i class="bi bi-coin"></i>{{ user.coins|default:0 }}
           </a>
 
@@ -598,16 +601,16 @@
           <div class="nb-divider nb-phone-hide"></div>
 
           <!-- Theme Toggle (top nav — desktop) -->
-          <button class="nb-icon-btn nb-theme-top" id="themeToggleTop" aria-label="Mavzuni almashtirish" style="cursor:pointer;">
-            <i class="bi bi-moon-fill" id="themeIconTop"></i>
+          <button type="button" class="nb-icon-btn nb-theme-top" id="themeToggleTop" aria-label="Qorong‘i rejimni yoqish" aria-pressed="false" style="cursor:pointer;">
+            <i class="bi bi-moon-fill" id="themeIconTop" aria-hidden="true"></i>
           </button>
 
         
 
           <!-- Bildirishnomalar (real-time) -->
           <div class="dropdown">
-            <button class="nb-icon-btn nbell-btn" id="nbBellBtn" data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar">
+            <button type="button" class="nb-icon-btn nbell-btn" id="nbBellBtn" data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar" aria-label="Bildirishnomalar">
               <i class="bi bi-bell"></i>
               <span class="nb-badge" id="nbBellBadge" style="display:none;"></span>
             </button>
@@ -618,11 +621,11 @@
                 <button class="nbell-readall" id="nbBellReadAll" type="button" hidden title="Barchasini o'qilgan deb belgilash">
                   <i class="bi bi-check2-all"></i><span>Barchasini o'qilgan</span>
                 </button>
-                <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz">
+                <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz" aria-label="Bildirishnoma ovozi">
                   <i class="bi bi-volume-up-fill"></i>
                 </button>
               </div>
-              <div class="nbell-list" id="nbBellList">
+              <div class="nbell-list" id="nbBellList" aria-live="polite">
                 <div class="nbell-loading" aria-label="Yuklanmoqda"><i></i><i></i><i></i></div>
               </div>
               <div class="nbell-foot">
@@ -634,7 +637,7 @@
 
           <!-- User dropdown (desktop only) -->
           <div class="dropdown nb-desktop-only">
-            <a class="nb-avatar-btn" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+            <a class="nb-avatar-btn" href="#" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
               {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
               {% else %}<div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
               <span class="nb-online-dot"></span>
@@ -643,7 +646,7 @@
             <ul class="dropdown-menu dropdown-menu-end nb-dropdown nb-user-menu">
               <li class="nb-user-card-li">
                 <div class="nb-user-card">
-                  {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-user-card-avatar">
+                  {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-user-card-avatar" alt="">
                   {% else %}<div class="nb-user-card-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
                   <div>
                     <div class="nb-user-name">{{ user.get_full_name|default:user.username }}</div>
@@ -683,14 +686,14 @@
           </div>
 
           <!-- Mobile: avatar (offcanvas) — desktop bilan bir xil 1200px chegarada -->
-          <a class="nb-avatar-btn nb-mobile-only" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu">
+          <a class="nb-avatar-btn nb-mobile-only" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu" aria-label="Profil menyusi">
             {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
             {% else %}<div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
             <span class="nb-online-dot"></span>
           </a>
 
           <!-- Hamburger -->
-          <button class="nb-hamburger" id="nbHamburger" aria-label="Menyu">
+          <button type="button" class="nb-hamburger" id="nbHamburger" aria-label="Menyuni ochish" aria-expanded="false" aria-controls="nbMobilePanel">
             <span></span><span></span><span></span>
           </button>
         </div>
@@ -698,17 +701,17 @@
     </nav>
 
     <!-- Mobile slide panel (hamburger) -->
-    <div class="nb-mobile-backdrop" id="nbMobileBackdrop"></div>
-    <div class="nb-mobile-panel" id="nbMobilePanel">
+    <div class="nb-mobile-backdrop" id="nbMobileBackdrop" aria-hidden="true"></div>
+    <div class="nb-mobile-panel" id="nbMobilePanel" role="dialog" aria-modal="true" aria-label="Menyu" tabindex="-1">
       <div class="nb-mobile-header">
         <div class="nb-brand" style="pointer-events:none;">
           <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></div>
           <span class="nb-brand-text">IT <span class="nb-sep">|</span> Creative</span>
         </div>
-        <button class="nb-mobile-close" id="nbMobileClose"><i class="bi bi-x-lg"></i></button>
+        <button type="button" class="nb-mobile-close" id="nbMobileClose" aria-label="Menyuni yopish"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
       </div>
       <div class="nb-mobile-user">
-        {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-mobile-user-avatar">
+        {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-mobile-user-avatar" alt="">
         {% else %}<div class="nb-mobile-user-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
         <div>
           <div class="fw-bold" style="font-size:.90rem;">{{ user.get_full_name|default:user.username }}</div>
@@ -717,7 +720,7 @@
           </div>
         </div>
       </div>
-      <div class="nb-mobile-nav">
+      <nav class="nb-mobile-nav" aria-label="Mobil navigatsiya">
         <div class="nb-mobile-section-title">Asosiy</div>
         <a class="nb-mobile-link" href="{% url 'global_search' %}"><i class="bi bi-search"></i>Qidiruv</a>
         <a class="nb-mobile-link {% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}" href="{% url 'chat_inbox' %}">
@@ -744,7 +747,7 @@
         <a class="nb-mobile-link" href="https://t.me/IT_Creative" target="_blank"><i class="bi bi-telegram" style="color:#0088cc;"></i>Telegram</a>
         <a class="nb-mobile-link" href="https://instagram.com/ITC_Zomin" target="_blank"><i class="bi bi-instagram" style="color:#e1306c;"></i>Instagram</a>
         <a class="nb-mobile-link" href="https://youtube.com/@IT_Creative" target="_blank"><i class="bi bi-youtube" style="color:#ff0000;"></i>YouTube</a>
-      </div>
+      </nav>
       <div class="nb-mobile-footer">
         <a class="nb-mobile-logout" href="{% url 'logout' %}">
           <i class="bi bi-box-arrow-right"></i> Chiqish
@@ -796,14 +799,27 @@
             panel.classList.add('show');
             backdrop.classList.add('show');
             ham.classList.add('open');
+            ham.setAttribute('aria-expanded', 'true');
             document.body.style.overflow = 'hidden';
+            if (closeBtn) closeBtn.focus();
         }
         function closeMobile(){
+            if (!panel.classList.contains('show')) return;
             panel.classList.remove('show');
             backdrop.classList.remove('show');
             ham.classList.remove('open');
+            ham.setAttribute('aria-expanded', 'false');
             document.body.style.overflow = '';
+            ham.focus();
         }
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape' && panel && panel.classList.contains('show')) closeMobile();
+        });
+
+        // === Faol sahifani ekran o'quvchilarga bildirish ===
+        document.querySelectorAll('.nb-link.active, .nb-mobile-link.active').forEach(function(a){
+            a.setAttribute('aria-current', 'page');
+        });
         if(ham) ham.addEventListener('click', function(){ panel.classList.contains('show') ? closeMobile() : openMobile(); });
         if(backdrop) backdrop.addEventListener('click', closeMobile);
         if(closeBtn) closeBtn.addEventListener('click', closeMobile);
@@ -1393,7 +1409,7 @@
 
     {% endif %}
 
-    <main class="main-container">
+    <main class="main-container" id="main-content" tabindex="-1">
         {% if student_payment_reminder %}
         <div class="container-xl px-3 pt-3 mb-2" id="studentPayBannerWrap">
             <div class="alert d-flex flex-wrap align-items-center justify-content-between gap-3 p-3 rounded-4 shadow-sm position-relative" id="studentPayBanner" style="background:{% if student_payment_reminder.is_enough %}linear-gradient(135deg, rgba(16,185,129,0.12), rgba(59,130,246,0.12)){% else %}linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.12)){% endif %}; border:1px solid {% if student_payment_reminder.is_enough %}rgba(16,185,129,0.3){% else %}rgba(245,158,11,0.35){% endif %};">
@@ -1432,7 +1448,7 @@
                         <i class="bi bi-credit-card me-1"></i>To'lov qilish
                     </a>
                     {% endif %}
-                    <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('studentPayBannerWrap').style.display='none';"></button>
+                    <button type="button" class="btn-close" aria-label="Eslatmani yopish" onclick="document.getElementById('studentPayBannerWrap').style.display='none';"></button>
                 </div>
             </div>
         </div>
@@ -1455,8 +1471,8 @@
     <style>
     .site-footer{ background:transparent; margin-top:40px; padding:0 14px 22px; }
     .site-footer-inner{
-      max-width:1180px; margin:0 auto; background:#ffffff;
-      border:1px solid rgba(15,23,42,0.06); border-radius:24px;
+      max-width:1180px; margin:0 auto; background:var(--ds-surface);
+      border:1px solid var(--ds-border); border-radius:24px;
       box-shadow:0 12px 34px rgba(15,23,42,0.07); padding:30px 32px 22px;
       transition:background .4s ease,border-color .4s ease;
     }
@@ -1468,48 +1484,48 @@
     .sf-brand-tx{ font-weight:800; font-size:1.05rem; color:var(--text); letter-spacing:-.3px; }
     .sf-desc{ font-size:.85rem; color:var(--text-muted); line-height:1.6; max-width:300px; }
     .sf-social{ display:flex; gap:9px; margin-top:14px; }
-    .sf-social a{ width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.05); color:var(--text); text-decoration:none; transition:all .2s; }
+    .sf-social a{ width:44px; height:44px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.05); color:var(--text); text-decoration:none; transition:all .2s; }
     [data-bs-theme="dark"] .sf-social a{ background:rgba(255,255,255,0.06); }
-    .sf-social a:hover{ background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; transform:translateY(-2px); }
-    .sf-col h4{ font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin:4px 0 14px; }
-    .sf-col a{ display:block; font-size:.88rem; color:var(--text); text-decoration:none; padding:5px 0; opacity:.8; transition:all .18s; }
-    .sf-col a:hover{ opacity:1; color:#8b5cf6; transform:translateX(3px); }
+    .sf-social a:hover{ background:var(--ds-primary); color:var(--ds-on-primary); transform:translateY(-2px); }
+    .sf-col .sf-h{ font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-muted); margin:4px 0 14px; }
+    .sf-col a{ display:block; font-size:.88rem; color:var(--text); text-decoration:none; padding:8px 0; opacity:.85; transition:all .18s; }
+    .sf-col a:hover{ opacity:1; color:var(--ds-primary); transform:translateX(3px); }
     .sf-bottom{ display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-top:26px; padding-top:18px; border-top:1px solid rgba(15,23,42,0.07); font-size:.82rem; color:var(--text-muted); }
     [data-bs-theme="dark"] .sf-bottom{ border-top-color:rgba(255,255,255,0.08); }
     .sf-bottom .made{ display:inline-flex; align-items:center; gap:6px; }
     .sf-bottom .made i{ color:#ef4444; }
     @media (max-width:780px){ .sf-grid{ grid-template-columns:1fr 1fr; gap:20px; } .site-footer-inner{ padding:24px 20px; } }
     </style>
-    <footer class="site-footer">
+    <footer class="site-footer" aria-label="Sayt pastki qismi">
       <div class="site-footer-inner">
         <div class="sf-grid">
           <div>
             <div class="sf-brand">
-              <span class="sf-brand-ic"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></span>
+              <span class="sf-brand-ic"><img src="{% static 'img/logo.png' %}" alt=""></span>
               <span class="sf-brand-tx">IT Creative</span>
             </div>
             <div class="sf-desc">Zamonaviy bilim maskani — kod yoz, o'rgan va kelajagingni qur. Har bir dars seni maqsadingga yaqinlashtiradi.</div>
             <div class="sf-social">
-              <a href="https://t.me/IT_Creative" target="_blank" title="Telegram"><i class="bi bi-telegram"></i></a>
-              <a href="https://instagram.com/ITC_Zomin" target="_blank" title="Instagram"><i class="bi bi-instagram"></i></a>
-              <a href="https://youtube.com/@IT_Creative" target="_blank" title="YouTube"><i class="bi bi-youtube"></i></a>
+              <a href="https://t.me/IT_Creative" target="_blank" rel="noopener" title="Telegram" aria-label="Telegram (yangi oynada)"><i class="bi bi-telegram" aria-hidden="true"></i></a>
+              <a href="https://instagram.com/ITC_Zomin" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram (yangi oynada)"><i class="bi bi-instagram" aria-hidden="true"></i></a>
+              <a href="https://youtube.com/@IT_Creative" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube (yangi oynada)"><i class="bi bi-youtube" aria-hidden="true"></i></a>
             </div>
           </div>
           <div class="sf-col">
-            <h4>Platforma</h4>
+            <h2 class="sf-h">Platforma</h2>
             <a href="{% url 'professions' %}">Kurslar</a>
             <a href="{% url 'leaderboard' %}">Reyting</a>
             <a href="{% url 'coin:market_list' %}">Market</a>
             <a href="{% url 'blog:post_list' %}">Blog</a>
           </div>
           <div class="sf-col">
-            <h4>Imkoniyatlar</h4>
+            <h2 class="sf-h">Imkoniyatlar</h2>
             <a href="{% url 'ai_yordamchi:chat_home' %}">AI Chat</a>
             <a href="{% url 'games:games_list' %}">O'yinlar</a>
             <a href="{% url 'global_search' %}">Qidiruv</a>
           </div>
           <div class="sf-col">
-            <h4>Hisob</h4>
+            <h2 class="sf-h">Hisob</h2>
             <a href="{% url 'profile' %}">Profil</a>
             <a href="{% url 'messages' %}">Xabarlar</a>
             <a href="{% url 'help_page' %}">Yordam</a>
@@ -1540,6 +1556,14 @@
             const iconTop    = document.getElementById('themeIconTop');
             if (iconBottom) iconBottom.className = cls;
             if (iconTop)    iconTop.className    = cls;
+            ['themeToggle', 'themeToggleTop'].forEach(function(id){
+                const b = document.getElementById(id);
+                if (!b) return;
+                b.setAttribute('aria-pressed', theme === 'dark' ? 'true' : 'false');
+                b.setAttribute('aria-label', theme === 'dark' ? 'Yorug‘ rejimni yoqish' : 'Qorong‘i rejimni yoqish');
+            });
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', theme === 'dark' ? '#0b1020' : '#4f46e5');
         }
         syncThemeIcons(savedTheme);
 

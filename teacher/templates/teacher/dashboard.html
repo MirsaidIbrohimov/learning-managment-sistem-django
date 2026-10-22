@@ -127,7 +127,7 @@
         </div>
         <div class="t-stat-value">
             {{ this_week }}
-            <small style="font-size:.72rem;font-weight:700;color:{% if week_change >= 0 %}#10b981{% else %}#ef4444{% endif %};">
+            <small style="font-size:.72rem;font-weight:700;color:{% if week_change >= 0 %}var(--ds-success){% else %}var(--ds-danger){% endif %};">
                 {% if week_change >= 0 %}+{% endif %}{{ week_change }}%
             </small>
         </div>
@@ -226,7 +226,7 @@
     <div class="t-card-header">
         <i class="bi bi-table" style="color:#8b5cf6;"></i> Kurslarim bo'yicha ko'rsatkichlar
     </div>
-    <div class="t-card-body" style="overflow-x:auto;">
+    <div class="t-card-body" style="overflow-x:auto;" tabindex="0" role="region" aria-label="Jadval">
         <table class="table table-sm align-middle" style="min-width:640px;font-size:.85rem;">
             <thead>
                 <tr style="font-size:.75rem;text-transform:uppercase;letter-spacing:.04em;">

@@ -509,3 +509,17 @@
 ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
 html, body { transition: background-color .45s ease, color .45s ease; }
 .navbar.nb, .nb-inner, .db-panel, .md-card { transition: background-color .45s ease, border-color .45s ease, color .45s ease; }
+
+/* ── Accessibility: sensorli ekranlarda 44px bosish maydoni, AA kontrast ── */
+@media (pointer: coarse) {
+  .nb-icon-btn::after,
+  .nb-avatar-btn::after,
+  .nb-hamburger::after {
+    content: ''; position: absolute; inset: -4px;
+  }
+  .nb-hamburger { position: relative; }
+}
+.nb-mobile-close { width: 44px; height: 44px; }
+.nb-mobile-link { min-height: 44px; }
+.nb-mobile-link:hover, .nb-mobile-link.active { color: var(--ds-primary, #4f46e5); }
+.nb-mobile-logout { min-height: 44px; }

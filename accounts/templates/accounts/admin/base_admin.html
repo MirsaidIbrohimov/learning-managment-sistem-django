@@ -6,6 +6,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>try{document.documentElement.setAttribute('data-bs-theme',localStorage.getItem('theme')||'light');}catch(e){}</script>
     <title>{% block title %}Admin Panel - LMS{% endblock %}</title>
     
     <meta name="description" content="IT Creative Zomin - Zomin IT Park. Zomin hududida eng yaxshi dasturlash kurslari.">
@@ -17,6 +18,8 @@
     <link rel="icon" href="{% static 'img/fav.ico' %}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/design-system.css' %}">
 
     <style>
     /* ===== Admin Layout ===== */
@@ -415,13 +418,14 @@
 </head>
 
 <body class="panel-admin">
+<a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
 
     <!-- Sidebar Overlay (mobile) -->
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <div class="sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
     <!-- Sidebar -->
-    <div class="sidebar" id="adminSidebar">
-        <button class="sidebar-close" id="sidebarClose" aria-label="Yopish">
+    <div class="sidebar" id="adminSidebar" role="navigation" aria-label="Panel menyusi">
+        <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Menyuni yopish">
             <i class="bi bi-x-lg"></i>
         </button>
 
@@ -686,19 +690,19 @@
     <!-- Top Bar -->
     <div class="admin-topbar">
         <div class="admin-topbar-left">
-            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menyu">
+            <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Menyuni ochish/yopish" aria-controls="adminSidebar">
                 <i class="bi bi-list" id="sidebarToggleIcon"></i>
             </button>
             <span class="topbar-title d-none d-md-inline">{% block topbar_title %}Admin Panel{% endblock %}</span>
         </div>
 
         <div class="admin-topbar-right">
-            <button class="admin-theme-btn" id="themeToggle" title="Tema">
+            <button type="button" class="admin-theme-btn" id="themeToggle" title="Mavzu" aria-label="Yorug‘/qorong‘i rejimni almashtirish">
                 <i class="bi bi-moon-fill" id="themeIcon"></i>
             </button>
 
             <div class="dropdown">
-                <button class="topbar-profile-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                <button type="button" class="topbar-profile-btn" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Profil menyusi">
                     <div class="topbar-avatar">
                         {{ user.first_name.0 }}{{ user.last_name.0 }}
                     </div>
@@ -734,12 +738,12 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content" id="main-content" role="main" tabindex="-1">
         {% if messages %}
         {% for message in messages %}
         <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
             {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopish"></button>
         </div>
         {% endfor %}
         {% endif %}
