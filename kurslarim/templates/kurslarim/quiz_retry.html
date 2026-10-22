@@ -1,0 +1,20 @@
+{% extends 'kurslarim/base.html' %}
+
+{% block title %}Qayta topshirish{% endblock %}
+
+{% block content %}
+<main class="kp-page">
+    <div class="kp-state-card kp-glass">
+        <div class="kp-state-icon warn"><i class="bi bi-arrow-repeat"></i></div>
+        <span class="kp-eyebrow">Qayta topshirish</span>
+        <h2 class="mt-1">{{ lesson.title }}</h2>
+        <p class="kp-muted mb-0">Bu testni qayta topshirish pullik.
+            {% if payment_blocked %}Hisobingiz blokdan chiqqach, asosiy tizimda to'lov qilib qayta topshirishingiz mumkin.
+            {% else %}To'lovni asosiy tizimdagi test sahifasidan amalga oshiring.{% endif %}</p>
+        <div class="kp-actions">
+            <a href="{% url 'kurslarim:course' profession.pk %}" class="kp-btn"><i class="bi bi-arrow-left"></i>Kursga qaytish</a>
+            {% if payment_blocked %}<a href="{% url 'payment_wall' %}" class="kp-btn kp-btn-warn"><i class="bi bi-credit-card"></i>Hisobni ochish</a>{% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}

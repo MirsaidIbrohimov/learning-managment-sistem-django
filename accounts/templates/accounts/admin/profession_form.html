@@ -61,6 +61,25 @@
                         <small class="text-muted d-block mt-1">O'chirilsa - Bepul kurs (to'g'ridan-to'g'ri yoziladi)</small>
                     </div>
 
+                    <!-- Bir martalik to'lov (kursni alohida sotish) -->
+                    <div class="mb-4 p-3" style="border:1px solid var(--border-color, #e5e7eb); border-radius:12px; background:rgba(99,102,241,.04);">
+                        <div class="form-check form-switch">
+                            {{ form.one_time_payment }}
+                            <label class="form-check-label" for="id_one_time_payment">
+                                <i class="bi bi-credit-card me-2" style="color:#6366f1;"></i>Bir martalik to'lov
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1">Yoqilsa — so'rov kelmaydi: o'quvchi to'lov sahifasiga o'tadi va Tezcheck orqali to'lov tasdiqlangach kursga avtomatik yoziladi.</small>
+                        {% if form.one_time_payment.errors %}<div class="text-danger small mt-1">{{ form.one_time_payment.errors.0 }}</div>{% endif %}
+                        <div class="mt-3" id="oneTimePriceWrap">
+                            <label class="form-label" style="color: var(--text-color); font-weight: 600;">
+                                <i class="bi bi-cash me-2" style="color:#10b981;"></i>Kurs narxi (so'm)
+                            </label>
+                            {{ form.one_time_price }}
+                            {% if form.one_time_price.errors %}<div class="text-danger small mt-1">{{ form.one_time_price.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
                     <div class="mb-4">
                         <div class="form-check form-switch">
                             {{ form.is_mandatory }}
@@ -198,6 +217,18 @@ document.addEventListener('DOMContentLoaded', function() {
             ]
         }
     });
+
+    // Narx maydoni faqat bir martalik to'lov yoqilganda ko'rinadi
+    var oneTime = document.getElementById('id_one_time_payment');
+    var priceWrap = document.getElementById('oneTimePriceWrap');
+    var isPaid = document.getElementById('id_is_paid');
+    function syncOneTime() {
+        priceWrap.style.display = oneTime.checked ? '' : 'none';
+        if (oneTime.checked) isPaid.checked = true;
+    }
+    oneTime.addEventListener('change', syncOneTime);
+    isPaid.addEventListener('change', function() { if (!isPaid.checked) { oneTime.checked = false; syncOneTime(); } });
+    syncOneTime();
 
     // Load existing content
     var existingContent = document.getElementById('id_description').value;

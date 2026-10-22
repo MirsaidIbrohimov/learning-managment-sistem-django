@@ -204,7 +204,7 @@
   display:flex;flex-direction:column;
   text-decoration:none;color:var(--kp-text);
   transition:all .3s cubic-bezier(.4,0,.2,1);
-  opacity:0;animation:kpCardIn .5s ease forwards;
+  animation:kpCardIn .5s ease backwards;
   position:relative;
 }
 @keyframes kpCardIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -244,6 +244,9 @@
 }
 .kp-badge.free    { background:rgba(16,185,129,.8);color:#fff; }
 .kp-badge.paid    { background:rgba(245,158,11,.8);color:#fff; }
+.kp-badge.sale    { background:linear-gradient(135deg,#f59e0b,#ef4444);color:#fff;border-color:rgba(255,255,255,.3);box-shadow:0 6px 16px -6px rgba(239,68,68,.7); }
+.kp-tab.kp-tab-sale:not(.active) { color:#f59e0b;border-color:rgba(245,158,11,.4); }
+.kp-tab.kp-tab-sale:not(.active) i { color:#f59e0b; }
 .kp-badge.active  { background:rgba(16,185,129,.85);color:#fff;animation:kpBadgePulse 2.5s ease infinite; }
 .kp-badge.blocked { background:rgba(239,68,68,.8);color:#fff; }
 @keyframes kpBadgePulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
@@ -569,7 +572,7 @@
           <div class="kp-hs">
             <div class="kp-hs-icon ind"><i class="bi bi-book-fill"></i></div>
             <div>
-              <div class="kp-hs-val">{{ professions.paginator.count }}</div>
+              <div class="kp-hs-val">{{ all_count }}</div>
               <div class="kp-hs-lab">Kurslar</div>
             </div>
           </div>
@@ -603,17 +606,24 @@
   <div class="kp-wrap" style="margin-top:28px">
 
     {% if professions %}
+    {% if sale_courses %}{% include 'accounts/_sale_courses.html' %}{% endif %}
     <!-- TOOLBAR -->
     <div class="kp-toolbar">
       <div class="kp-filters">
         <button class="kp-tab active" data-filter="all">
           <i class="bi bi-grid-3x3-gap"></i> Barchasi
-          <span class="cnt" id="cntAll">{{ professions.paginator.count }}</span>
+          <span class="cnt" id="cntAll">{{ all_count }}</span>
         </button>
         {% if user.is_authenticated and user.is_learner and enrolled_ids %}
         <button class="kp-tab" data-filter="my">
           <i class="bi bi-mortarboard-fill"></i> Mening kurslarim
           <span class="cnt">{{ enrolled_ids|length }}</span>
+        </button>
+        {% endif %}
+        {% if sale_courses %}
+        <button class="kp-tab kp-tab-sale" data-filter="sale">
+          <i class="bi bi-gem"></i> Sotuvda
+          <span class="cnt">{{ sale_courses|length }}</span>
         </button>
         {% endif %}
         <button class="kp-tab" data-filter="free">
@@ -649,7 +659,7 @@
     </div>
 
     <!-- Results -->
-    <div class="kp-results">Natijalar: <strong id="kpCount">{{ professions.paginator.count }}</strong> ta kurs</div>
+    <div class="kp-results">Natijalar: <strong id="kpCount">{{ all_count }}</strong> ta kurs</div>
 
     <!-- GRID -->
     <div class="kp-grid" id="kpGrid">
@@ -658,6 +668,7 @@
          class="kp-card {% if profession.pk in enrolled_ids %}enrolled{% endif %} {% if profession.is_blocked and user.is_student %}pe-none{% endif %}"
          data-type="{% if not profession.is_paid %}free{% else %}paid{% endif %}"
          data-enrolled="{% if profession.pk in enrolled_ids %}true{% else %}false{% endif %}"
+         data-sale="{% if profession.is_sold_once %}true{% else %}false{% endif %}"
          data-name="{{ profession.name }}"
          data-desc="{{ profession.description|striptags|truncatewords:30 }}"
          data-students="{{ profession.student_count }}">
@@ -667,7 +678,9 @@
           <div class="kp-img-overlay"></div>
           <div class="kp-badges">
             <div>
-              {% if not profession.is_paid %}
+              {% if profession.is_sold_once %}
+              <span class="kp-badge sale"><i class="bi bi-gem"></i> {{ profession.one_time_price|floatformat:"0g" }} so'm</span>
+              {% elif not profession.is_paid %}
               <span class="kp-badge free"><i class="bi bi-gift-fill"></i> Bepul</span>
               {% else %}
               <span class="kp-badge paid"><i class="bi bi-cash-stack"></i> Pullik</span>
@@ -736,40 +749,11 @@
       <p>Qidiruv so'zini o'zgartiring yoki boshqa filtr tanlang</p>
     </div>
 
-    <!-- PAGINATION -->
-    {% if professions.has_other_pages %}
-    <nav class="kp-pag-wrap" id="kpPag">
-      <div class="kp-pag">
-        {% if professions.has_previous %}
-        <a href="?page={{ professions.previous_page_number }}" class="pg"><i class="bi bi-chevron-left"></i></a>
-        {% else %}
-        <span class="pg off"><i class="bi bi-chevron-left"></i></span>
-        {% endif %}
-
-        {% for num in professions.paginator.page_range %}
-          {% if professions.number == num %}
-          <span class="pg cur">{{ num }}</span>
-          {% elif num > professions.number|add:'-3' and num < professions.number|add:'3' %}
-          <a href="?page={{ num }}" class="pg">{{ num }}</a>
-          {% elif num == 1 or num == professions.paginator.num_pages %}
-          <a href="?page={{ num }}" class="pg">{{ num }}</a>
-          {% elif num == professions.number|add:'-3' or num == professions.number|add:'3' %}
-          <span class="pg dots">&hellip;</span>
-          {% endif %}
-        {% endfor %}
-
-        {% if professions.has_next %}
-        <a href="?page={{ professions.next_page_number }}" class="pg"><i class="bi bi-chevron-right"></i></a>
-        {% else %}
-        <span class="pg off"><i class="bi bi-chevron-right"></i></span>
-        {% endif %}
-      </div>
-      <div class="kp-pag-info">
-        Sahifa {{ professions.number }} / {{ professions.paginator.num_pages }}
-        &nbsp;·&nbsp; {{ professions.start_index }}–{{ professions.end_index }} / {{ professions.paginator.count }} ta
-      </div>
+    <!-- PAGINATION (brauzerda, filtrlangan natijalar bo'yicha) -->
+    <nav class="kp-pag-wrap" id="kpPag" aria-label="Sahifalar" style="display:none">
+      <div class="kp-pag" id="kpPagList"></div>
+      <div class="kp-pag-info" id="kpPagInfo"></div>
     </nav>
-    {% endif %}
 
     {% else %}
     <div class="kp-panel kp-empty" style="border-radius:var(--kp-r);border:1px solid var(--kp-border)">
@@ -799,6 +783,14 @@ document.addEventListener('DOMContentLoaded', function () {
   var sortLab   = document.getElementById('kpSortLab');
 
   var filter = 'all', search = '', sort = 'default';
+  // O'zbekcha apostrof turlari (' ‘ ’ ʻ ʼ `) va ortiqcha bo'shliqlar qidiruvga xalaqit bermasin.
+  function norm(v) {
+    return (v || '').toLowerCase().replace(/[‘’ʻʼ`´]/g, "'").replace(/\s+/g, ' ').trim();
+  }
+  cards.forEach(function (c) { c._q = norm((c.dataset.name || '') + ' ' + (c.dataset.desc || '')); });
+  var PAGE = 8;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var page = Math.max(1, parseInt(new URLSearchParams(location.search).get('page') || '1', 10) || 1);
   var origOrder = cards.slice();
 
   // Progress bars
@@ -812,16 +804,16 @@ document.addEventListener('DOMContentLoaded', function () {
     searchIn.addEventListener('input', function () {
       clearTimeout(st);
       st = setTimeout(function () {
-        search = searchIn.value.trim().toLowerCase();
+        search = norm(searchIn.value);
         clearBtn.classList.toggle('show', !!search);
-        apply();
+        page = 1; apply();
       }, 200);
     });
   }
   if (clearBtn) {
     clearBtn.addEventListener('click', function () {
       searchIn.value = ''; search = '';
-      clearBtn.classList.remove('show'); apply(); searchIn.focus();
+      clearBtn.classList.remove('show'); page = 1; apply(); searchIn.focus();
     });
   }
 
@@ -829,7 +821,7 @@ document.addEventListener('DOMContentLoaded', function () {
   tabs.forEach(function (t) {
     t.addEventListener('click', function () {
       tabs.forEach(function (x) { x.classList.remove('active'); });
-      this.classList.add('active'); filter = this.dataset.filter; apply();
+      this.classList.add('active'); filter = this.dataset.filter; page = 1; apply();
     });
   });
 
@@ -844,7 +836,7 @@ document.addEventListener('DOMContentLoaded', function () {
         sortItems.forEach(function (x) { x.classList.remove('active'); });
         this.classList.add('active'); sort = this.dataset.sort;
         sortLab.textContent = this.textContent.trim();
-        sortMenu.classList.remove('show'); apply();
+        sortMenu.classList.remove('show'); page = 1; apply();
       });
     });
   }
@@ -863,23 +855,68 @@ document.addEventListener('DOMContentLoaded', function () {
   if (sv && ['grid','list','compact'].indexOf(sv) !== -1) setView(sv);
 
   // Apply
-  function apply() {
+  function apply(animate) {
+    if (animate === undefined) animate = true;
     var sorted = doSort(cards.slice());
-    var shown = 0;
-    sorted.forEach(function (c, i) {
-      var mf = filter === 'all' ? true : filter === 'my' ? c.dataset.enrolled === 'true' : c.dataset.type === filter;
-      var ms = !search || (c.dataset.name||'').toLowerCase().includes(search) || (c.dataset.desc||'').toLowerCase().includes(search);
-      if (mf && ms) {
-        c.classList.remove('hidden');
-        c.style.animation = 'none'; c.offsetHeight;
-        c.style.animation = 'kpCardIn .4s ' + (shown * .05) + 's ease forwards';
-        shown++;
-      } else { c.classList.add('hidden'); }
+    var matched = [];
+    sorted.forEach(function (c) {
+      var mf = filter === 'all' ? true : filter === 'my' ? c.dataset.enrolled === 'true'
+             : filter === 'sale' ? c.dataset.sale === 'true' : c.dataset.type === filter;
+      var ms = !search || c._q.indexOf(search) !== -1;
+      c.classList.add('hidden');
+      if (mf && ms) matched.push(c);
     });
     sorted.forEach(function (c) { grid.appendChild(c); });
-    if (countEl) countEl.textContent = shown;
-    if (noRes) noRes.classList.toggle('show', shown === 0);
-    if (pagWrap) pagWrap.style.display = (filter === 'all' && !search && sort === 'default') ? '' : 'none';
+
+    var pages = Math.max(1, Math.ceil(matched.length / PAGE));
+    if (page > pages) page = pages;
+    matched.slice((page - 1) * PAGE, page * PAGE).forEach(function (c, i) {
+      c.classList.remove('hidden');
+      if (animate && !document.hidden && !reduceMotion) {
+        c.style.animation = 'none'; c.offsetHeight;
+        c.style.animation = 'kpCardIn .4s ' + (i * .05) + 's ease backwards';
+        // Brauzer animatsiyani to'xtatsa ham (fon tab, quvvat tejash) kartochka
+        // yashirin qolib ketmasin — qisqa vaqtdan keyin animatsiya olib tashlanadi.
+        clearTimeout(c._animT);
+        c._animT = setTimeout(function () { c.style.animation = 'none'; }, 1100);
+      } else {
+        c.style.animation = 'none';
+      }
+    });
+    if (countEl) countEl.textContent = matched.length;
+    if (noRes) noRes.classList.toggle('show', matched.length === 0);
+    renderPag(pages, matched.length);
+  }
+
+  function renderPag(pages, total) {
+    if (!pagWrap) return;
+    pagWrap.style.display = pages <= 1 ? 'none' : '';
+    var list = document.getElementById('kpPagList');
+    var info = document.getElementById('kpPagInfo');
+    list.innerHTML = '';
+    function btn(label, target, cls, aria) {
+      var el = document.createElement(target ? 'button' : 'span');
+      el.className = 'pg' + (cls ? ' ' + cls : '');
+      el.innerHTML = label;
+      if (aria) el.setAttribute('aria-label', aria);
+      if (target) {
+        el.type = 'button';
+        el.addEventListener('click', function () {
+          page = target; apply(true);
+          grid.scrollIntoView({behavior: 'smooth', block: 'start'});
+        });
+      }
+      list.appendChild(el);
+    }
+    btn('<i class="bi bi-chevron-left"></i>', page > 1 ? page - 1 : 0, page > 1 ? '' : 'off', 'Oldingi sahifa');
+    for (var n = 1; n <= pages; n++) {
+      if (n === page) btn(String(n), 0, 'cur');
+      else if (n === 1 || n === pages || Math.abs(n - page) <= 2) btn(String(n), n);
+      else if (Math.abs(n - page) === 3) btn('&hellip;', 0, 'dots');
+    }
+    btn('<i class="bi bi-chevron-right"></i>', page < pages ? page + 1 : 0, page < pages ? '' : 'off', 'Keyingi sahifa');
+    var from = total ? (page - 1) * PAGE + 1 : 0;
+    info.innerHTML = 'Sahifa ' + page + ' / ' + pages + ' &nbsp;·&nbsp; ' + from + '–' + Math.min(page * PAGE, total) + ' / ' + total + ' ta';
   }
 
   function doSort(arr) {
@@ -900,6 +937,7 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   apply();
+  setTimeout(function () { cards.forEach(function (c) { if (!c.style.animation) c.style.animation = 'none'; }); }, 1200);
 });
 </script>
 {% endblock %}

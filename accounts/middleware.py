@@ -158,6 +158,12 @@ class BlockedUserMiddleware:
                     user.is_blocked = True
 
             if hasattr(user, 'is_blocked') and user.is_blocked:
+                # To'lov sababli blokda faqat sotib olingan kurslar portali ochiq;
+                # portalning har bir sahifasi kurs xaridini o'zi tekshiradi.
+                if request.path.startswith('/kurslarim/'):
+                    from kurslarim.access import is_payment_blocked
+                    if is_payment_blocked(user):
+                        return self.get_response(request)
                 if request.path.startswith('/api/'):
                     from django.http import JsonResponse
                     return JsonResponse(
@@ -447,14 +453,11 @@ class DeviceLimitMiddleware:
         cache_key = f'active_session_{request.user.id}'
         cached_session_key = cache.get(cache_key)
 
-        if cached_session_key is not None:
-            # Cache da bor — tezkor tekshirish
-            if cached_session_key == session_key:
-                return self.get_response(request)
-            else:
-                from django.contrib.auth import logout as auth_logout
-                auth_logout(request)
-                return _session_expired_response(request)
+        if cached_session_key == session_key:
+            return self.get_response(request)
+
+        # A different worker may still cache the previous login's session key.
+        # Confirm mismatches against the DB before invalidating a valid login.
 
         # Cache da yo'q — DB dan o'qib, cache ga saqlash
         from .models import UserSession
@@ -603,6 +606,8 @@ class ProfileCompletionMiddleware:
     EXEMPT_URLS = [
         'complete_profile', 'logout', 'login', 'register', 'admin', 'open_recovery_link', 'choose_recovery_password',
         'payment_wall', 'tezcheck_create_payment', 'tezcheck_return', 'exam_checkout', 'exam_checkout_status',
+        # Pochtadagi tasdiqlash havolasi profil to'ldirilmagan bo'lsa ham ishlashi kerak.
+        'verify_email',
     ]
 
     def __init__(self, get_response):

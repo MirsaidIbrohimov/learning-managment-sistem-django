@@ -471,7 +471,7 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
         <h3 class="h3">{{ prof.name }}</h3>
         <p>{{ prof.description|truncatewords:18 }}</p>
         <div class="course-meta">
-          {% if not prof.is_paid %}<span class="course-tag free"><i class="bi bi-unlock-fill"></i> Bepul</span>{% else %}<span class="course-tag"><i class="bi bi-lock-fill"></i> Pullik</span>{% endif %}
+          {% if prof.is_sold_once %}<a class="course-tag" href="{{ prof.public_url }}" style="text-decoration:none;color:#f59e0b;font-weight:700"><i class="bi bi-gem"></i> {{ prof.one_time_price|floatformat:"0g" }} so'm · Batafsil</a>{% elif not prof.is_paid %}<span class="course-tag free"><i class="bi bi-unlock-fill"></i> Bepul</span>{% else %}<span class="course-tag"><i class="bi bi-lock-fill"></i> Pullik</span>{% endif %}
           {% if prof.has_certificate %}<span class="course-tag cert"><i class="bi bi-award-fill"></i> Sertifikat</span>{% endif %}
           <span class="course-tag"><i class="bi bi-people-fill"></i> {{ prof.student_count }} o'quvchi</span>
         </div>
@@ -762,7 +762,7 @@ button{font-family:var(--font);cursor:pointer;border:none;outline:none}
         <h4>Yo'nalishlar</h4>
         <ul class="footer-links">
           {% for prof in professions %}
-          <li><a href="#courses">{{ prof.name }}</a></li>
+          <li><a href="{% if prof.is_sold_once %}{{ prof.public_url }}{% else %}#courses{% endif %}">{{ prof.name }}</a></li>
           {% empty %}
           <li><a href="#courses">Frontend Dev</a></li>
           <li><a href="#courses">Backend Dev</a></li>

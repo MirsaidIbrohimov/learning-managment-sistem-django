@@ -1,0 +1,96 @@
+{% extends 'kurslarim/base.html' %}
+
+{% block title %}{{ profession.name }}{% endblock %}
+
+{% block content %}
+<main class="kp-page kp-page-narrow">
+    <a href="{% url 'kurslarim:my_courses' %}" class="kp-back"><i class="bi bi-arrow-left"></i>Kurslarim</a>
+
+    <section class="kp-hero kp-glass">
+        {% if profession.photo %}<div class="kp-hero-cover" style="background-image:url('{{ profession.photo.url }}')" aria-hidden="true"></div>{% endif %}
+        <div>
+            <span class="kp-eyebrow">{{ profession.get_kind_display }}</span>
+            <h1>{{ profession.name }}</h1>
+            <div class="kp-stats">
+                <span class="kp-stat"><i class="bi bi-check2-circle"></i><b>{{ state.done_count }}</b> / {{ state.total_count }} dars</span>
+                <span class="kp-stat"><i class="bi bi-layers-fill"></i><b>{{ state.sections|length }}</b> bo'lim</span>
+                {% if state.limit_on and state.today_access %}
+                <span class="kp-stat"><i class="bi bi-calendar-check-fill"></i>Bugun: <b>{{ state.today_access.section.title }}</b></span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="kp-ring" style="--p:{{ percent }}" role="img" aria-label="Kurs {{ percent }}% bajarilgan">
+            <span>{{ percent }}%<small>BAJARILDI</small></span>
+        </div>
+    </section>
+
+    {% if state.resume %}
+    <a href="{% url 'kurslarim:lesson' state.resume.pk %}" class="kp-resume kp-glass">
+        <span class="kp-play"><i class="bi bi-play-fill"></i></span>
+        <span>
+            <span class="kp-eyebrow d-block">{% if state.done_count %}Davom ettirish{% else %}Birinchi dars{% endif %}</span>
+            <strong>{{ state.resume.title }}</strong>
+        </span>
+        <i class="bi bi-arrow-right-circle-fill kp-go" aria-hidden="true"></i>
+    </a>
+    {% elif state.total_count and state.done_count == state.total_count %}
+    <div class="kp-resume kp-glass" role="status">
+        <span class="kp-play" style="background:var(--dash-success)"><i class="bi bi-trophy-fill"></i></span>
+        <span><span class="kp-eyebrow d-block">Tabriklaymiz!</span><strong>Kursning barcha darslari bajarildi 🎉</strong></span>
+    </div>
+    {% endif %}
+
+    {% if state.limit_on %}
+    <p class="kp-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Bu kursda kuniga bitta yangi bo'lim ochiladi.</p>
+    {% endif %}
+
+    <div class="kp-roadmap">
+        {% for block in state.sections %}
+        <details class="kp-section kp-glass {% if block.completed %}is-done{% elif block.locked %}is-locked{% endif %}"
+                 {% if not block.locked and not block.completed %}open{% endif %}>
+            <summary>
+                <span class="kp-num">{% if block.completed %}<i class="bi bi-check-lg"></i>{% elif block.locked %}<i class="bi bi-lock-fill"></i>{% else %}{{ forloop.counter }}{% endif %}</span>
+                <span class="kp-section-info">
+                    <span class="kp-section-title d-block">{{ block.section.title }}</span>
+                    {% if block.total %}
+                    <span class="kp-bar d-block" aria-hidden="true"><i style="width:{{ block.percent }}%"></i></span>
+                    {% endif %}
+                </span>
+                {% if block.completed %}<span class="kp-badge done">Tugatildi</span>
+                {% elif block.locked == 'daily' %}<span class="kp-badge daily"><i class="bi bi-moon-stars me-1"></i>Ertaga</span>
+                {% elif block.locked %}<span class="kp-badge locked">Qulflangan</span>
+                {% elif block.total %}<span class="kp-badge open">{{ block.done }}/{{ block.total }}</span>{% endif %}
+                <i class="bi bi-chevron-down kp-chev" aria-hidden="true"></i>
+            </summary>
+            <div class="kp-lessons">
+                {% if block.locked == 'sequential' %}
+                <p class="kp-muted small px-2 pt-1 mb-1"><i class="bi bi-lock me-1"></i>Oldingi bo'limdagi barcha darslarni bajaring.</p>
+                {% elif block.locked == 'daily' %}
+                <p class="kp-muted small px-2 pt-1 mb-1"><i class="bi bi-clock me-1"></i>Bugun boshqa bo'lim o'qilmoqda — bu bo'lim ertaga ochiladi.</p>
+                {% endif %}
+                {% for item in block.lessons %}
+                {% include 'kurslarim/_lesson_row.html' %}
+                {% empty %}
+                <p class="kp-muted small px-2 py-2 mb-0">Bu bo'limda hali dars yo'q.</p>
+                {% endfor %}
+            </div>
+        </details>
+        {% endfor %}
+
+        {% if state.loose_lessons %}
+        <details class="kp-section kp-glass" open>
+            <summary>
+                <span class="kp-num"><i class="bi bi-plus-lg"></i></span>
+                <span class="kp-section-info"><span class="kp-section-title d-block">Qo'shimcha darslar</span></span>
+                <i class="bi bi-chevron-down kp-chev" aria-hidden="true"></i>
+            </summary>
+            <div class="kp-lessons">
+                {% for item in state.loose_lessons %}
+                {% include 'kurslarim/_lesson_row.html' %}
+                {% endfor %}
+            </div>
+        </details>
+        {% endif %}
+    </div>
+</main>
+{% endblock %}

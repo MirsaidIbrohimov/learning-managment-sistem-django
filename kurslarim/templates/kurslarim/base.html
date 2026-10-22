@@ -1,0 +1,84 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Kurslarim{% endblock %} — IT Creative</title>
+    <link rel="icon" href="{% static 'img/fav.ico' %}">
+    <script>document.documentElement.setAttribute('data-bs-theme', localStorage.getItem('theme') || 'light');</script>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/notify.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/kurslarim.css' %}?v=1">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="kp-body dash">
+{% block aurora %}{% if not portal %}<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>{% endif %}{% endblock %}
+
+<nav class="kp-nav" aria-label="Kurslarim">
+    <a href="{% url 'kurslarim:my_courses' %}" class="kp-brand">
+        <span class="kp-logo"><i class="bi bi-mortarboard-fill"></i></span>
+        <span>Kurslarim<small>IT Creative</small></span>
+    </a>
+    <div class="kp-nav-right">
+        <span class="kp-user kp-hide-sm" title="{{ request.user.full_name }}">
+            <span class="kp-avatar">{{ request.user.get_initials }}</span>
+            <span>{{ request.user.first_name|default:request.user.username }}</span>
+        </span>
+        <button type="button" class="kp-icon-btn" id="kpTheme" aria-label="Rang mavzusini almashtirish">
+            <i class="bi bi-moon-stars-fill" id="kpThemeIcon" aria-hidden="true"></i>
+        </button>
+        {% if request.user.is_blocked %}
+        <a href="{% url 'payment_wall' %}" class="kp-btn kp-btn-warn"><i class="bi bi-credit-card"></i><span class="kp-hide-sm">To'lov</span></a>
+        {% else %}
+        <a href="{% url 'home' %}" class="kp-btn"><i class="bi bi-house"></i><span class="kp-hide-sm">Asosiy sahifa</span></a>
+        {% endif %}
+        <a href="{% url 'logout' %}" class="kp-icon-btn kp-btn-danger" aria-label="Chiqish" title="Chiqish"><i class="bi bi-box-arrow-right"></i></a>
+    </div>
+</nav>
+
+{% if request.user.is_blocked %}
+<div class="kp-banner" role="status">
+    <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+    <span>Hisobingiz to'lov sababli vaqtincha bloklangan — <b>sotib olgan kurslaringiz ochiq</b>.</span>
+    <a href="{% url 'payment_wall' %}">Hisobni ochish</a>
+</div>
+{% endif %}
+
+{% if messages %}
+<div class="kp-alerts">
+    {% for message in messages %}
+    <div class="kp-alert {{ message.tags|default:'info' }} fade show" role="alert">
+        <i class="bi {% if message.tags == 'success' %}bi-check-circle-fill{% elif message.tags == 'error' %}bi-exclamation-octagon-fill{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill{% else %}bi-info-circle-fill{% endif %}" aria-hidden="true"></i>
+        <span>{{ message }}</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Yopish"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function () {
+    const html = document.documentElement;
+    const icon = document.getElementById('kpThemeIcon');
+    const sync = () => { icon.className = html.getAttribute('data-bs-theme') === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill'; };
+    sync();
+    document.getElementById('kpTheme').addEventListener('click', function () {
+        const next = html.getAttribute('data-bs-theme') === 'light' ? 'dark' : 'light';
+        html.setAttribute('data-bs-theme', next);
+        localStorage.setItem('theme', next);
+        sync();
+    });
+})();
+</script>
+<script src="{% static 'js/notify.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

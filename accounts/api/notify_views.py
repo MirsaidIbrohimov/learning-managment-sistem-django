@@ -127,6 +127,73 @@ def _system_unread_qs(user):
     )
 
 
+RECENT_PER_SECTION = 3
+
+
+def _recent(user, request, professions):
+    """Panel uchun: suhbatlar va xabarlardan oxirgi 3 tadan — faqat o'qilmaganlari."""
+    n = RECENT_PER_SECTION
+    chats = []
+    for m in (DirectMessage.objects
+              .filter(recipient=user, is_deleted=False, is_read=False)
+              .select_related('sender').order_by('-created_at', '-pk')[:n]):
+        chats.append({
+            'uid': f'dm-{m.pk}', 'kind': 'dm',
+            'title': m.sender.full_name or m.sender.username,
+            'body': _preview(m.message, bool(m.file)),
+            'url': _safe_url('direct_chat', m.sender_id),
+            'photo': _photo(m.sender, request),
+            'initials': m.sender.get_initials() or '??',
+            'ts': int(m.created_at.timestamp() * 1000),
+        })
+    if professions:
+        reads = {r.profession_id: r.last_read_at for r in GroupChatRead.objects.filter(user=user)}
+        unread_q = Q()
+        for prof in professions:
+            last_read = reads.get(prof.pk)
+            unread_q |= Q(profession=prof, created_at__gt=last_read) if last_read else Q(profession=prof)
+        for m in (GroupChatMessage.objects
+                  .filter(unread_q, is_deleted=False)
+                  .exclude(sender=user)
+                  .select_related('sender', 'profession').order_by('-created_at', '-pk')[:n]):
+            sender_name = (m.sender.full_name or m.sender.username) if m.sender_id else 'Tizim'
+            chats.append({
+                'uid': f'grp-{m.pk}', 'kind': 'group',
+                'title': m.profession.name,
+                'body': f"{sender_name}: {_preview(m.message, bool(m.file), 70)}",
+                'url': _safe_url('group_chat', m.profession_id),
+                'photo': _photo(m.profession, request),
+                'initials': (m.profession.name or '?')[:2].upper(),
+                'ts': int(m.created_at.timestamp() * 1000),
+            })
+    chats.sort(key=lambda x: (x['ts'], x['uid']), reverse=True)
+
+    system = [{
+        'uid': f'sys-{m.pk}', 'kind': 'system',
+        'title': m.title or 'Bildirishnoma',
+        'body': _preview(m.content, False),
+        'url': _safe_url('message_detail', m.pk),
+        'photo': None, 'initials': '🔔',
+        'ts': int(m.created_at.timestamp() * 1000),
+    } for m in _system_unread_qs(user).order_by('-created_at', '-pk')[:n]]
+    return {'chats': chats[:n], 'messages': system}
+
+
+@login_required
+@require_http_methods(["POST"])
+def notify_mark_all_read(request):
+    """Qo'ng'iroq panelidagi barcha suhbat va xabarlarni o'qilgan deb belgilash."""
+    user = request.user
+    now = timezone.now()
+    DirectMessage.objects.filter(recipient=user, is_read=False).update(is_read=True)
+    for prof in _my_professions(user):
+        GroupChatRead.objects.update_or_create(profession=prof, user=user, defaults={'last_read_at': now})
+    # Xabarlar sahifasidagi "Barchasini o'qilgan" bilan bir xil qoida.
+    _system_unread_qs(user).update(is_read=True)
+    return _ok({'counts': {'dm': 0, 'group': 0, 'system': 0, 'chat': 0, 'total': 0},
+                'recent': {'chats': [], 'messages': []}})
+
+
 @login_required
 @rate_limited('notify_feed')
 @require_http_methods(["GET"])
@@ -158,6 +225,7 @@ def notify_feed(request):
         'counts': counts,
         'items': [],
         'backlog': None,
+        'recent': _recent(user, request, professions),
     }
 
     # ── Backlog rejimi: login qilgandan keyingi birinchi so'rov ───────

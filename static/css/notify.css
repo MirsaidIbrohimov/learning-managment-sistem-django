@@ -263,6 +263,49 @@
 }
 .nbell-foot a:hover { background: rgba(99,102,241,.13); border-color: rgba(99,102,241,.24); color: #6366f1; }
 
+/* ── Bo'limlar: Suhbatlar / Xabarlar (oxirgi 3 tadan) ── */
+.nbell-readall {
+    margin-left: auto; display: inline-flex; align-items: center; gap: 5px;
+    height: 30px; padding: 0 10px; border-radius: 10px; cursor: pointer;
+    font-size: .72rem; font-weight: 700; color: #6366f1;
+    background: rgba(99,102,241,.10); border: 1px solid rgba(99,102,241,.22); transition: all .18s;
+}
+.nbell-readall:hover { background: #6366f1; color: #fff; border-color: #6366f1; }
+.nbell-readall:disabled { opacity: .6; cursor: progress; }
+.nbell-readall[hidden] { display: none; }
+.nbell-readall:not([hidden]) + .nbell-sound { margin-left: 0; }
+.nbell-allread { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 1.8rem 1rem; }
+.nbell-allread-ico { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; margin-bottom: 6px;
+    font-size: 1.5rem; color: #fff; background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 10px 22px -10px rgba(16,185,129,.8); }
+.nbell-allread b { font-size: .9rem; color: var(--text); }
+.nbell-allread span { font-size: .76rem; color: var(--text-muted); }
+.nbell-panel { width: 360px; }
+.nbell-panel .nbell-list { max-height: min(72vh, 540px); }
+.nbell-sec { padding: 4px 2px 6px; }
+.nbell-sec + .nbell-sec { border-top: 1px dashed var(--nbg-line-soft, rgba(15,23,42,.08)); margin-top: 2px; padding-top: 8px; }
+.nbell-sec-head { display: flex; align-items: center; gap: 8px; padding: 4px 8px 6px; }
+.nbell-sec-ico { width: 24px; height: 24px; border-radius: 8px; display: grid; place-items: center; font-size: .72rem; color: #fff; }
+.nbell-sec-chat .nbell-sec-ico { background: linear-gradient(135deg, #3b82f6, #6366f1); }
+.nbell-sec-msg .nbell-sec-ico { background: linear-gradient(135deg, #a855f7, #ec4899); }
+.nbell-sec-title { font-size: .72rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.nbell-sec-new { padding: 2px 7px; border-radius: 99px; font-size: .62rem; font-weight: 800; color: #ef4444; background: rgba(239,68,68,.12); }
+.nbell-sec-all { margin-left: auto; font-size: .72rem; font-weight: 700; color: #6366f1; text-decoration: none; display: inline-flex; align-items: center; gap: 2px; }
+.nbell-sec-all:hover { color: #4f46e5; text-decoration: underline; }
+.nbell-sec-all i { font-size: .6rem; }
+.nbell-sec-empty { display: flex; align-items: center; gap: 8px; margin: 2px 6px; padding: .7rem .8rem; border-radius: 12px;
+    font-size: .76rem; color: var(--text-muted); background: var(--nbg-fill, rgba(15,23,42,.035)); }
+.nbell-sec-empty i { opacity: .45; }
+.nbell-item.unread { background: rgba(99,102,241,.07); }
+.nbell-item.unread .nbell-name { color: var(--text); }
+.nbell-item:not(.unread) .nbell-name { font-weight: 600; }
+.nbell-side { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+.nbell-dot { width: 8px; height: 8px; border-radius: 50%; background: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,.18); }
+.nbell-loading { display: flex; justify-content: center; gap: 6px; padding: 1.6rem; }
+.nbell-loading i { width: 7px; height: 7px; border-radius: 50%; background: #6366f1; opacity: .35; animation: nbellDots 1s ease-in-out infinite; }
+.nbell-loading i:nth-child(2) { animation-delay: .15s; } .nbell-loading i:nth-child(3) { animation-delay: .3s; }
+@keyframes nbellDots { 50% { opacity: 1; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .nbell-loading i { animation: none; } }
+
 /* Yangi xabar bo'lganda qo'ng'iroq chayqaladi */
 .nbell-btn.has-new i { animation: nbellRing 1.1s ease-in-out 2; transform-origin: 50% 10%; }
 @keyframes nbellRing {

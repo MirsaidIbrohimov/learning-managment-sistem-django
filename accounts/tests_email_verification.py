@@ -1,4 +1,5 @@
 import re
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.core import mail
@@ -7,7 +8,9 @@ from django.urls import reverse
 
 from .email_verification import stage_email, send_verification
 from .email_notifications import queue_email
-from .models import CustomUser
+from django.utils import timezone
+
+from .models import CustomUser, UserSession
 
 
 @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend', SITE_URL='https://lms.example.com')
@@ -59,6 +62,9 @@ class EmailVerificationTests(TestCase):
         other.email = ''
         other.save()
         self.client.force_login(other)
+        # Haqiqiy login kabi faol sessiya (aks holda DeviceLimitMiddleware chiqarib yuboradi).
+        UserSession.objects.create(user=other, session_key=self.client.session.session_key,
+                                   expires_at=timezone.now() + timedelta(hours=2))
         self.assertContains(self.client.get(self.link()), 'Email tasdiqlanmadi')
 
     def test_tampered_link_does_not_bind(self):

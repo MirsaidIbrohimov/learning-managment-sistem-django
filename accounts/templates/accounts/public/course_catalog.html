@@ -1,0 +1,70 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Onlayn IT kurslar — bir marta to'lang, umrbod o'rganing | IT Creative Academy{% endblock %}
+{% block meta_description %}IT Creative Academy onlayn kurslari: dasturlash, web, dizayn va boshqa yo'nalishlar. Bir martalik to'lov, umrbod kirish, ustoz nazorati va sertifikat.{% endblock %}
+{% block meta_robots %}index, follow, max-image-preview:large{% endblock %}
+{% block og_title %}Onlayn IT kurslar — IT Creative Academy{% endblock %}
+{% block og_description %}Bir marta to'lang — kurs umrbod sizniki. Dasturlash, web va dizayn bo'yicha amaliy onlayn kurslar.{% endblock %}
+{% block og_url %}{{ seo_origin }}/kurslar/{% endblock %}
+{% block canonical %}{{ seo_origin }}/kurslar/{% endblock %}
+{% block extra_head %}<script type="application/ld+json">{{ ld_json|safe }}</script>{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/kurslarim.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/public_course.css' %}?v=1">
+{% endblock %}
+
+{% block content %}
+<div class="dash pc-page">
+<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<nav class="pc-crumbs" aria-label="Sahifa yo'li">
+    <a href="/">Bosh sahifa</a><i class="bi bi-chevron-right" aria-hidden="true"></i><span aria-current="page">Kurslar</span>
+</nav>
+
+<header class="pc-hero pc-catalog-hero kp-glass">
+    <span class="pc-eyebrow"><i class="bi bi-fire"></i> Maxsus taklif</span>
+    <h1>Onlayn IT kurslar — <span class="pc-grad">bir marta to'lang, umrbod o'rganing</span></h1>
+    <p class="pc-lead">So'rov kutmasdan onlayn to'lang va darhol boshlang. Har bir kursda video darslar, amaliy vazifalar, testlar va ustoz nazorati bor.</p>
+    <ul class="pc-facts">
+        <li><i class="bi bi-infinity"></i>Umrbod kirish</li>
+        <li><i class="bi bi-lightning-charge-fill"></i>Darhol ochiladi</li>
+        <li><i class="bi bi-shield-lock-fill"></i>Xavfsiz onlayn to'lov</li>
+    </ul>
+</header>
+
+{% if courses %}
+<div class="pc-grid">
+    {% for c in courses %}
+    <a href="{{ c.public_url }}" class="pc-card kp-glass">
+        <div class="pc-card-media">
+            {% if c.photo %}<img src="{{ c.photo.url }}" alt="{{ c.name }}" loading="lazy">{% endif %}
+            <span class="pc-ribbon">BIR MARTALIK</span>
+        </div>
+        <div class="pc-card-body">
+            <h2>{{ c.name }}</h2>
+            <p>{{ c.description|striptags|truncatewords:20 }}</p>
+            <div class="pc-card-meta">
+                <span><i class="bi bi-collection-play"></i>{{ c.lesson_total }} dars</span>
+                <span><i class="bi bi-people"></i>{{ c.student_total }} o'quvchi</span>
+                {% if c.has_certificate %}<span><i class="bi bi-patch-check"></i>Sertifikat</span>{% endif %}
+            </div>
+            <div class="pc-card-foot">
+                <div class="pc-price"><b>{{ c.one_time_price|floatformat:"0g" }}</b> <span>so'm</span></div>
+                <span class="kp-btn kp-btn-primary">Batafsil <i class="bi bi-arrow-right"></i></span>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="kp-glass kp-empty">
+    <div class="kp-empty-icon"><i class="bi bi-hourglass-split"></i></div>
+    <h2 class="h5 fw-bold">Tez orada yangi kurslar</h2>
+    <p class="kp-muted mb-0">Sotuvdagi kurslar shu yerda paydo bo'ladi.</p>
+</div>
+{% endif %}
+</div>
+{% endblock %}

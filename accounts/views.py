@@ -505,6 +505,10 @@ def register_view(request):
             else:
                 messages.warning(request, 'Email hali bog‘lanmagan. Tasdiqlash havolasi yuborilmadi; profil orqali qayta yuboring.')
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            # Login'dagi kabi sessiyani ro'yxatdan o'tkazamiz — aks holda
+            # DeviceLimitMiddleware faol UserSession topmay, yangi o'quvchini
+            # profilni to'ldirish sahifasiga yetmasdan tizimdan chiqarib yuboradi.
+            _register_device_and_session(request, user)
             notify_admins(
                 f"👤 <b>Yangi foydalanuvchi ro'yxatdan o'tdi!</b>\n\n"
                 f"📛 {user.first_name} {user.last_name}\n"
@@ -2916,21 +2920,28 @@ def professions_view(request):
                 completed = watched_counts.get(p.pk, 0) + passed_counts.get(p.pk, 0) + done_hw_counts.get(p.pk, 0)
                 p.progress = min(round((completed / total_items) * 100), 100)
 
-    from django.core.paginator import Paginator
-    paginator = Paginator(professions, 8)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    # Qidiruv, filtr va sahifalash brauzerda barcha kurslar bo'yicha ishlaydi:
+    # serverda sahifalash qidiruvni faqat joriy 8 ta kurs bilan cheklab qo'yardi.
+    professions = list(professions)
 
     # O'quvchilar uchun kurs tokenlarini yaratish
     course_token_map = {}
+    purchased_ids = set()
     if request.user.is_authenticated and request.user.is_learner:
-        for p in page_obj:
+        for p in professions:
             ct = StudentCourseToken.get_or_create(request.user, p)
             course_token_map[p.pk] = ct.token
+        from kurslarim.access import purchased_course_ids
+        purchased_ids = purchased_course_ids(request.user)
+
+    # Bir martalik to'lov bilan sotiladigan kurslar — alohida marketing bloki.
+    sale_courses = [p for p in professions if p.is_sold_once and not p.is_blocked and not p.is_mandatory]
 
     return render(request, 'accounts/professions.html', {
-        'professions': page_obj,
-        'all_professions': professions,
+        'professions': professions,
+        'all_count': len(professions),
+        'sale_courses': sale_courses,
+        'purchased_ids': purchased_ids,
         'enrolled_ids': enrolled_ids,
         'course_token_map': course_token_map,
     })
@@ -3744,7 +3755,18 @@ def enroll_course(request, pk):
         )
         messages.success(request, f"'{profession.name}' kursiga muvaffaqiyatli yozildingiz! O'qishni boshlashingiz mumkin.")
         return redirect('profession_detail', pk=pk)
-    
+
+    # Bir martalik to'lov - so'rov o'rniga Tezcheck to'lov sahifasi
+    if profession.is_sold_once:
+        from .course_payments import course_context, enroll_paid_student, has_paid_course
+        if has_paid_course(request.user, profession):
+            enroll_paid_student(request.user, profession)
+            messages.success(request, f"'{profession.name}' kursi sotib olingan — o'qishni davom ettirishingiz mumkin.")
+            return redirect('profession_detail', pk=pk)
+        return render(request, 'accounts/course_checkout.html', {
+            'profession': profession, **course_context(request.user, profession),
+        })
+
     # Pullik kurs - so'rov yuborish
     existing_request = CourseEnrollmentRequest.objects.filter(user=request.user, profession=profession).first()
     
@@ -4194,6 +4216,7 @@ def lesson_view(request, pk):
         # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
         _ensure_gating_duration(video)
         _resolve_required_seconds(progress, video)
+        start_watch_session(progress)
         # AI maqola yaratish (birinchi marta) — faqat threadda, requestni bloklamaymiz
         if not lesson.ai_article:
             import threading
@@ -4239,10 +4262,11 @@ def lesson_view(request, pk):
         quiz = getattr(lesson, 'quiz', None)
         test = getattr(lesson, 'test', None)
         is_staff = request.user.is_admin or request.user.is_assistant_admin or request.user.is_teacher
-        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi)
-        if quiz:
-            if is_staff:
-                return redirect('quizui:quiz_edit', pk=quiz.pk)
+        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi). O'quvchi faqat
+        # e'lon qilingan quizga yuboriladi; qoralama quizda eski test ochiladi.
+        if quiz and is_staff:
+            return redirect('quizui:quiz_edit', pk=quiz.pk)
+        if quiz and quiz.status == Quiz.Status.PUBLISHED:
             return redirect('quizui:quiz_take', pk=quiz.pk)
         # Eski test tizimi
         if test:
@@ -4375,47 +4399,44 @@ def _video_watch_coin_amount(video, user):
     return minutes * (2 if user.is_premium else 1)
 
 
-# ── Server tomonlama ko'rish nazorati ────────────────────────────────────────
-# Mijozdagi timer (video_lesson.html) faqat KO'RSATUV uchun: uni konsoldan
-# o'zgartirib "Ko'rdim" tugmasini yoqib yuborish mumkin edi. Haqiqiy hisob shu
-# yerda — server har heartbeat orasida O'Z SOATI bilan o'tgan vaqtni o'lchaydi
-# va faqat shuncha kredit beradi. Shuning uchun 1 soatlik videoni yopish uchun
-# rostdan ham ~1 soat kerak; so'rovlarni tez-tez yuborish yordam bermaydi.
+# ── Server tomonlama ko'rish nazorati (v2: segment hisoboti) ─────────────────
+# Arxitektura:
+#   • Brauzer pleerni har soniyada o'qib, haqiqatan ijro etilgan oraliqlarni
+#     ([start, end] segmentlar) O'ZI yozadi. Ekrandagi taymer faqat shu lokal
+#     segmentlardan hisoblanadi — tarmoq sekin yoki uzilgan bo'lsa ham to'xtamaydi.
+#   • Har ~10 soniyada (va pauza/yakunda) hali tasdiqlanmagan segmentlar serverga
+#     yuboriladi. Javob yo'qolsa, mijoz ularni qayta yuboradi: segmentlar union
+#     qilinadi, shuning uchun takroriy yuborish ikki marta sanalmaydi.
+#   • Server mijozga ishonmaydi: har sinxronda qo'shiladigan YANGI unique
+#     soniyalar oldingi sinxrondan beri o'tgan REAL vaqt × SYNC_MAX_RATE dan
+#     oshmaydi. Shuning uchun 1 soatlik videoni yopish uchun baribir ~1 soat
+#     kerak; konsoldan soxta segment yuborish yoki so'rov spami yordam bermaydi.
+#   • Nonce zanjiri, pozitsiya sakrashi bo'yicha "jazo" va muddatli tekshiruvlar
+#     yo'q — aynan ular halol o'quvchida taymerni qotirib qo'yardi.
 
 from .video_duration import schedule_verified_duration
 
 WATCH_REQUIRED_RATIO = 0.9   # video davomiyligining shuncha qismi ko'rilishi shart
-# Kredit real vaqtdan tez o'smaydi: 1.15 — faqat tarmoq/timer jitteri uchun zapas.
-# Pleerda tezlik tugmasi o'chirilgan (controls:0, disablekb:1), shuning uchun bu
-# chegara halol o'quvchiga to'sqinlik qilmaydi, lekin skript bilan "2x" qilib
-# 1 soatlik videoni 30 daqiqada bosib o'tishning yo'lini yopadi.
-BEAT_MAX_RATE        = 1.15
-# Beatlar orasidagi maks. tanaffus. Brauzer FON tabdagi setInterval'ni daqiqada
-# bir marotabaga sekinlashtiradi, video esa ijroda qolaveradi — chegara kichik
-# bo'lsa halol o'quvchi "sakrash qildi" deb videosi orqaga tashlanardi. Xavfsizlik
-# bundan zarar ko'rmaydi: har beatdagi kredit baribir o'tgan REAL vaqt bilan
-# cheklangan, ya'ni umumiy kredit sahifa ochiq turgan vaqtdan osha olmaydi.
-BEAT_MAX_GAP         = 150
-BEAT_MIN_GAP         = 1.0   # bundan tez kelgan beat kredit bermaydi (spam himoyasi)
-BEAT_SEEK_TOLERANCE  = 5.0   # max_position'dan shuncha oldinga o'tish kechiriladi
+# Kredit real vaqtdan tez o'smaydi. 1.3 — tarmoq kechikishi va pleer jitteri
+# uchun zaxira. 2x tezlikda ko'rgan o'quvchining ortiqcha segmentlari
+# yo'qolmaydi: mijoz ularni navbatda saqlab, keyingi sinxronlarda yuboradi.
+SYNC_MAX_RATE = 1.3
+# Byudjet shu soniyadan ortiq yig'ilmaydi (masalan, kecha ochilgan sahifa).
+SYNC_MAX_GAP = 300
+SYNC_MAX_SEGMENTS = 300
 
 # ── Tiriklik tekshiruvi (presence check) ──
-# Vaqt o'tishining o'zi yetarli emas edi: konsoldan soxta pozitsiya yuboruvchi
-# skript videoni umuman o'ynatmasdan, tabni fonda qoldirib kredit yig'ib
-# ketardi. Shuning uchun server tasodifiy vaqtda tugma bosishni talab qiladi.
-PRESENCE_FIRST_MIN    = 60    # birinchi tekshiruv: 1-2 daqiqa haqiqiy ko'rishdan keyin
+# Server tasodifiy vaqtda "Shu yerdamisiz?" tasdig'ini so'raydi. Muddat YO'Q:
+# javob kelguncha faqat kredit to'xtaydi, javob esa istalgan paytda qabul
+# qilinadi. Shu sababli kechikib bosilgan tugma taymerni abadiy qotirmaydi.
+PRESENCE_FIRST_MIN    = 60
 PRESENCE_FIRST_MAX    = 120
-PRESENCE_INTERVAL_MIN = 120   # keyingi tekshiruvlar: har 2-3 daqiqada
-PRESENCE_INTERVAL_MAX = 180
-PRESENCE_DEADLINE     = 30    # tasdiqlash uchun qulay muddat (30 soniya, avval 10 soniya edi)
-
-# Shubha bali shu chegaradan oshsa adminga BIR MARTA xabar beriladi.
-# To'rt soniyalik liveness tasdig'i o'tkazib yuborilsa, progress qayta boshlanadi.
-SUSPICION_NOTIFY_AT = 20
+PRESENCE_INTERVAL_MIN = 180
+PRESENCE_INTERVAL_MAX = 300
 
 
 def _new_token():
-    """Bir martalik nonce/presence tokeni."""
+    """Bir martalik presence tokeni."""
     return secrets.token_urlsafe(18)[:24]
 
 
@@ -4428,9 +4449,8 @@ def _schedule_next_presence(progress):
 def mark_presence_satisfied(user_id, video_id):
     """Tiriklik tekshiruvini bajarilgan deb belgilaydi va navbatdagisini suradi.
 
-    Video testiga javob berish — tirikligning eng ishonchli isboti: 35 soniyalik
-    muddat ichida video mazmuni bo'yicha savolga javob berilgan. Shu sababli
-    o'quvchi ikki marta bezovta qilinmaydi.
+    Video testiga javob berish — tirikligning eng ishonchli isboti, shuning
+    uchun o'quvchi ikki marta bezovta qilinmaydi.
     `video_quiz.views.api_player_submit` dan chaqiriladi.
     """
     with transaction.atomic():
@@ -4447,26 +4467,6 @@ def mark_presence_satisfied(user_id, video_id):
         progress.save(update_fields=[
             'presence_token', 'presence_sent_at', 'next_check_seconds',
         ])
-
-
-def _pending_mid_quiz(user_id, video):
-    """Javob berilmagan eng erta faol video-test (yoki None).
-
-    Skript video mazmunini bilmaydi, shuning uchun testga javob berolmaydi —
-    kredit shu nuqtada to'xtaydi. `api_player_quizzes` to'g'ri javobni mijozga
-    yubormaydi, ya'ni javobni oldindan bilib olishning yo'li yo'q.
-    """
-    from video_quiz.models import VideoQuiz, VideoQuizAttempt
-
-    answered = VideoQuizAttempt.objects.filter(
-        student_id=user_id, quiz__video=video
-    ).values_list('quiz_id', flat=True)
-    return (
-        VideoQuiz.objects.filter(video=video, is_active=True)
-        .exclude(pk__in=answered)
-        .order_by('trigger_second')
-        .first()
-    )
 
 
 def _unanswered_mid_quiz_count(user_id, video, required_seconds):
@@ -4487,26 +4487,10 @@ def _unanswered_mid_quiz_count(user_id, video, required_seconds):
     return qs.count()
 
 
-def _notify_admin_watch_suspicion(progress, video):
-    """Chetlab o'tish urinishlari haqida adminlarga xabar (bir marta)."""
-    try:
-        notify_admins(
-            f"🚨 <b>Video timerni chetlab o'tish urinishi</b>\n\n"
-            f"👤 O'quvchi: {progress.user.get_full_name() or progress.user.username}\n"
-            f"📖 Dars: {video.lesson.title}\n"
-            f"⚠️ Shubha bali: {progress.suspicion_score}\n"
-            f"⏭ Sakrash urinishlari: {progress.cheat_attempts}\n"
-            f"🙈 O'tkazib yuborilgan tekshiruvlar: {progress.presence_failures}\n"
-            f"⏱ Tasdiqlangan vaqt: {int(progress.verified_seconds)}/"
-            f"{progress.required_seconds} sek\n\n"
-            f"Dars avtomatik yopilmadi — tekshirib ko'ring."
-        )
-    except Exception as e:
-        print(f"Watch suspicion notify xatolik: {e}")
-
-
 def _clean_seconds(value, limit=86400):
     """Mijozdan kelgan soniya qiymatini xavfsiz float'ga aylantiradi."""
+    if isinstance(value, bool):
+        return None
     try:
         secs = float(value)
     except (TypeError, ValueError):
@@ -4519,11 +4503,7 @@ def _clean_seconds(value, limit=86400):
 
 
 def _merged_watch_segments(segments, new_segment=None, duration=0):
-    """Segmentlarni tozalab birlashtiradi va unique soniyalarni qaytaradi.
-
-    `new_segment` faqat server tekshiruvlaridan o'tgan playback oralig'i bo'ladi;
-    request body'dan kelgan tayyor segmentlar bu funksiyaga uzatilmaydi.
-    """
+    """Segmentlarni tozalab birlashtiradi va unique soniyalarni qaytaradi."""
     cleaned = []
     for segment in list(segments or []) + ([new_segment] if new_segment else []):
         if not isinstance(segment, (list, tuple)) or len(segment) != 2:
@@ -4550,20 +4530,29 @@ def _merged_watch_segments(segments, new_segment=None, duration=0):
     return merged, watched
 
 
-def _ensure_gating_duration(video):
-    """Ishonchli davomiylikni ta'minlaydi; aniqlanmasa adminga xabar beradi.
+def _uncovered_parts(start, end, merged):
+    """[start, end] oralig'ining `merged` segmentlar bilan qoplanmagan qismlari."""
+    parts = []
+    cursor = start
+    for s, e in merged:
+        if e <= cursor:
+            continue
+        if s >= end:
+            break
+        if s > cursor:
+            parts.append([cursor, min(s, end)])
+        cursor = max(cursor, e)
+        if cursor >= end:
+            break
+    if cursor < end:
+        parts.append([cursor, end])
+    return [p for p in parts if p[1] - p[0] > 0.001]
 
-    Tashqi HTTP so'rovi bor — DB tranzaksiyasidan TASHQARIDA chaqirilishi shart.
-    """
-    # Faqat provider'dan server tasdiqlagan qiymatni yakuniy deb bilamiz.
-    # `duration` qo'lda kiritilgan eski qiymat bo'lishi mumkin; u mavjud bo'lsa
-    # ham YouTube/Vimeo'dan haqiqiy davomiylikni aniqlashga urinib ko'ramiz.
+
+def _ensure_gating_duration(video):
+    """Ishonchli davomiylikni ta'minlaydi (tashqi HTTP — fon threadida)."""
     if video.verified_duration_seconds:
         return video.verified_duration_seconds
-
-    # Tashqi YouTube/Vimeo so'rovi heartbeat workerini 6–18 soniya band qilib,
-    # hosting navbatini to'ldirmasligi kerak. DB claim bir video uchun faqat bitta
-    # fon tekshiruvini boshlaydi; hozircha mavjud fallback qiymatini qaytaramiz.
     schedule_verified_duration(video)
     return video.gating_duration_seconds
 
@@ -4571,26 +4560,18 @@ def _ensure_gating_duration(video):
 def _resolve_required_seconds(progress, video):
     """Talab vaqtini server tasdiqlagan joriy davomiylik bilan sinxronlaydi.
 
-    Davomiylik FAQAT ishonchli manbadan olinadi (server YouTube/Vimeo'dan
-    aniqlagan yoki admin kiritgan). Mijoz yuborgan davomiylik bu hisobga
-    kirmaydi — aks holda konsoldan kichik qiymat yuborib talabni bir soniyaga
-    tushirib qo'yish mumkin edi.
+    Davomiylik FAQAT ishonchli manbadan olinadi (YouTube/Vimeo yoki admin).
+    Mijoz yuborgan davomiylik bu hisobga kirmaydi.
     """
     secs = video.gating_duration_seconds
     if not secs:
         return progress.required_seconds
 
-    # Majburiy ko'rish vaqti — davomiyligining ANIQ 90% i (mijozdagi timer
-    # xuddi shu qiymatni ko'rsatadi, shuning uchun chegirma qo'shmaymiz).
     required = max(1, int(secs * WATCH_REQUIRED_RATIO))
     if progress.required_seconds == required:
         return required
 
-    # Provider keyinroq haqiqiy davomiylikni aniqlasa, eski qo'lda kiritilgan
-    # qiymatdan (masalan 61 daqiqa) qulflangan talab ham tuzatilishi kerak.
-    VideoProgress.objects.filter(pk=progress.pk).update(
-        required_seconds=required
-    )
+    VideoProgress.objects.filter(pk=progress.pk).update(required_seconds=required)
     progress.refresh_from_db(fields=['required_seconds'])
     return progress.required_seconds
 
@@ -4598,11 +4579,8 @@ def _resolve_required_seconds(progress, video):
 def _global_credit_cap(progress, now):
     """Barcha videolar bo'yicha umumiy kredit chegarasi (None — chegara yo'q).
 
-    Odam bir vaqtda bitta videoni ko'radi. Bu chegara bo'lmasa, konsoldan 10 ta
-    videoga parallel beat yuborib 1 soatda 10 ta darsni yopish mumkin edi: har
-    bir video alohida "real vaqt" krediti olardi. Chegara oxirgi KREDIT paytidan
-    hisoblanadi (beat paytidan emas), shuning uchun boshqa tabda pauzada turgan
-    video halol o'quvchiga xalaqit bermaydi.
+    Odam bir vaqtda bitta videoni ko'radi: parallel tablarda bir nechta videoga
+    segment yuborib vaqtni ko'paytirib bo'lmaydi.
     """
     last_other = VideoProgress.objects.filter(
         user_id=progress.user_id, last_credit_at__isnull=False
@@ -4614,291 +4592,43 @@ def _global_credit_cap(progress, now):
     )
     if last_any is None:
         return None
-    return max(0.0, (now - last_any).total_seconds()) * BEAT_MAX_RATE
+    return max(0.0, (now - last_any).total_seconds()) * SYNC_MAX_RATE
 
 
-def _process_watch_beat(request, video, progress_pk):
-    """Bitta heartbeat'ni qayd etadi va server tasdiqlagan holatni qaytaradi.
+def start_watch_session(progress):
+    """Dars sahifasi ochilganda kredit byudjeti shu paytdan boshlanadi.
 
-    Kredit berilishi uchun bir necha shart BIR VAQTDA bajarilishi kerak:
-      1) server soati bilan real vaqt o'tgan bo'lsin (beat spam yordam bermaydi),
-      2) mijoz videoning ROSTDAN ijro etilayotganini bildirsin (`playing`,
-         `hidden`) va navbatdagi bir martalik `nonce` ni qaytarsin,
-      3) tasodifiy tiriklik tekshiruvi va video ichidagi testlar javobsiz
-         qolmasin.
-
-    Presence tekshiruvi o'tkazib yuborilsa, mavjud progress ataylab nolga
-    tushiriladi; bu UI timer va serverdagi progressni bir xil holatga keltiradi.
+    Aks holda kecha qolgan `last_beat_at` sabab birinchi sinxronda bir necha
+    daqiqalik soxta segmentni darhol qabul qilib yuborish mumkin bo'lardi.
     """
-    try:
-        payload = json.loads(request.body.decode('utf-8') or '{}')
-    except (ValueError, UnicodeDecodeError):
-        payload = {}
+    if progress.watched:
+        return
+    VideoProgress.objects.filter(pk=progress.pk).update(last_beat_at=timezone.now())
 
-    position       = _clean_seconds(payload.get('position'))
-    reported_duration = _clean_seconds(payload.get('duration'))
-    client_nonce   = str(payload.get('nonce') or '')[:32]
-    presence_reply = str(payload.get('presence_token') or '')[:32]
-    # Eski (brauzer keshida qolgan) mijoz bu maydonlarni yubormaydi. Uni "ijroda"
-    # deb hisoblab bo'lmaydi — aks holda sahifani yangilamaslikning o'zi
-    # tekshiruvni chetlab o'tish yo'liga aylanardi. Kredit to'xtaydi, lekin
-    # yig'ilgani saqlanadi: sahifa yangilanishi bilan hammasi tiklanadi.
-    stale_client = 'playing' not in payload
-    playing      = payload.get('playing') is True
-    hidden       = payload.get('hidden') is True
 
-    # Video ichidagi test modali FAQAT o'quvchida ishlaydi
-    # (`video_quiz/player_widget.html` → `is_student: request.user.is_learner`).
-    # Shuning uchun test gate'i ham faqat o'quvchiga qo'llanadi, aks holda
-    # admin/o'qituvchi ko'rib chiqayotganda modal chiqmay kredit to'xtab qolardi.
-    gate_quizzes = getattr(request.user, 'is_learner', False)
+def _parse_client_segments(raw, duration):
+    """Mijoz segmentlarini tozalaydi; noto'g'ri qiymatlar shunchaki tashlanadi."""
+    if not isinstance(raw, list):
+        return []
+    limit = duration if duration > 0 else 86400
+    result = []
+    for item in raw[:SYNC_MAX_SEGMENTS]:
+        if not isinstance(item, (list, tuple)) or len(item) != 2:
+            continue
+        start = _clean_seconds(item[0])
+        end = _clean_seconds(item[1])
+        if start is None or end is None:
+            continue
+        start, end = min(start, limit), min(end, limit)
+        if end - start > 0.001:
+            result.append([start, end])
+    merged, _ = _merged_watch_segments(result)
+    return merged
 
-    now = timezone.now()
-    _ensure_gating_duration(video)   # tashqi HTTP — tranzaksiyadan TASHQARIDA
 
-    # Video oxiriga yaqin oxirgi beat: pleer ENDED paytida pozitsiyani
-    # davomiylikdan bir-ikki soniya kam qilib qaytaradi. Bunday holatda
-    # pozitsiyani haqiqiy yakunga yaxlitlaymiz — aks holda heartbeat
-    # intervalidan qisqa videoda oxirgi kredit talabga yetmay qolib, dars
-    # hech qachon yopilmaydi. Sakrash tekshiruvi (advance) ham shu
-    # effektiv pozitsiya bilan o'lchanadi, ya'ni cheklov ochilmaydi.
-    duration_sec = float(video.gating_duration_seconds or 0)
-    if position is not None and duration_sec > 0:
-        if position >= duration_sec - BEAT_SEEK_TOLERANCE:
-            position = duration_sec
-
-    notify_admin = False
-
-    # Presence oynasi o'tkazib yuborilganda ko'rilgan segmentlar saqlanadi.
-    # Faqat ijro bazasini oxirgi server tasdiqlagan pozitsiyaga qaytaramiz:
-    # foydalanuvchi video davom ettirishidan oldin o'tkazib yuborilgan qism
-    # baribir sanalmaydi, lekin sahifa yangilanishi/diqqat uzilishi progressni
-    # o'chirib yubormaydi.
-    if payload.get('reset_progress') is True:
-        with transaction.atomic():
-            progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
-            required = _resolve_required_seconds(progress, video)
-            progress.last_position = progress.max_position
-            progress.last_beat_at = now
-            progress.last_credit_at = None
-            progress.presence_token = ''
-            progress.presence_sent_at = None
-            progress.next_check_seconds = 0
-            if progress.beat_nonce:
-                cache.set(f"prev_beat_nonce:{progress.pk}", progress.beat_nonce, 120)
-            progress.beat_nonce = _new_token()
-            progress.save(update_fields=[
-                'last_position', 'last_beat_at', 'last_credit_at',
-                'presence_token', 'presence_sent_at', 'next_check_seconds',
-                'beat_nonce',
-            ])
-        return {
-            'ok': True,
-            'progress_reset': False,
-            'presence_expired': True,
-            'verified_seconds': round(progress.verified_seconds, 1),
-            'required_seconds': required,
-            'remaining': max(0, round(required - progress.verified_seconds, 1)) if required else None,
-            'can_complete': progress.is_requirement_met,
-            'seek_blocked': False,
-            'seek_detected': False,
-            'resume_at': progress.max_position,
-            'nonce': progress.beat_nonce,
-            'credited': 0,
-            'blocked': 'presence_timeout',
-            'watched_segments': progress.watched_segments,
-            'watched_percentage': round(
-                min(100, progress.verified_seconds * 100 / video.gating_duration_seconds), 1
-            ) if video.gating_duration_seconds else 0,
-            'duration': video.gating_duration_seconds,
-        }
-
-    with transaction.atomic():
-        progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
-        required = _resolve_required_seconds(progress, video)
-        # Browser duration'i diagnostika uchun qabul qilinadi, lekin segmentni
-        # kesish yoki 90% talabini belgilashda faqat server duration'i ishlaydi.
-        duration = float(video.gating_duration_seconds or 0)
-        segments, unique_watched = _merged_watch_segments(
-            progress.watched_segments, duration=duration,
-        )
-        # Migratsiyadan oldingi yoki qo'lda yaratilgan progress yo'qolmasin.
-        if not segments and progress.verified_seconds > 0:
-            legacy_end = min(progress.verified_seconds, duration) if duration else progress.verified_seconds
-            segments, unique_watched = _merged_watch_segments(
-                [], [0, legacy_end], duration=duration,
-            )
-        progress.watched_segments = segments
-        progress.verified_seconds = unique_watched
-
-        credited   = 0.0
-        cheated    = False
-        suspicion  = 0
-        blocked_by = None
-
-        # ── 1. Tiriklik tekshiruvi (presence) ──
-        if progress.presence_token:
-            if progress.presence_sent_at is None:
-                blocked_by = 'presence'      # muddat o'tgan va allaqachon sanalgan
-            elif (now - progress.presence_sent_at).total_seconds() >= PRESENCE_DEADLINE:
-                # 10 soniyadan keyingi javob kechikkan hisoblanadi. Progress
-                # alohida timeout reset so'rovida nolga tushiriladi.
-                progress.presence_failures += 1
-                progress.presence_sent_at = None
-                suspicion += 2
-                blocked_by = 'presence'
-            elif presence_reply == progress.presence_token:
-                progress.presence_token = ''
-                progress.presence_sent_at = None
-                _schedule_next_presence(progress)
-
-        # ── 2. Nonce zanjiri ──
-        # Har javobda yangi bir martalik nonce beriladi: eski javobni qayta
-        # ishlatish (replay) yoki ikkinchi tab'dan yozish kredit bermaydi.
-        if progress.beat_nonce and client_nonce != progress.beat_nonce:
-            if client_nonce:
-                suspicion += 3   # bo'sh nonce — sahifa yangilangan, bu halol
-            blocked_by = blocked_by or 'nonce'
-
-        # ── 3. Ijro isboti ──
-        if stale_client:
-            blocked_by = 'stale_client'      # mijoz buni ko'rib o'zini yangilaydi
-        elif not playing:
-            blocked_by = blocked_by or 'paused'
-        elif hidden:
-            blocked_by = blocked_by or 'hidden'
-
-        # ── 4. Javob berilmagan video-test kreditni to'xtatadi ──
-        pending_quiz = _pending_mid_quiz(progress.user_id, video) if gate_quizzes else None
-        if pending_quiz is not None and pending_quiz.trigger_second <= progress.max_position:
-            blocked_by = blocked_by or 'quiz'
-
-        # ── 5. Kredit ──
-        wall = (now - progress.last_beat_at).total_seconds() if progress.last_beat_at else None
-        if position is not None:
-            # Sakrash oxirgi XABAR QILINGAN pozitsiyaga nisbatan o'lchanadi:
-            # `max_position` (kredit chizig'i) kredit to'xtagan paytlarda orqada
-            # qoladi, unga nisbatan o'lchansa halol o'quvchi "sakradi" deb
-            # videosi boshiga tashlanardi.
-            advance = position - progress.last_position
-            allowed_advance = (
-                (wall * BEAT_MAX_RATE + BEAT_SEEK_TOLERANCE)
-                if wall is not None and wall <= BEAT_MAX_GAP
-                else BEAT_SEEK_TOLERANCE
-            )
-
-            if advance > allowed_advance:
-                # Sakrab o'tilgan oraliqqa kredit yo'q. Yangi joyni faqat
-                # playback bazasi qilamiz: undan keyingi ketma-ket ijro server
-                # soati bilan tasdiqlangandagina yangi segment sifatida sanaladi.
-                # max_position esa haqiqiy ko'rilgan hudud bo'lib qoladi.
-                cheated = True
-                progress.cheat_attempts += 1
-                suspicion += 2
-                progress.last_position = position
-            else:
-                segment_start = progress.last_position
-                progress.last_position = position
-                eligible_gap = wall is not None and BEAT_MIN_GAP <= wall <= BEAT_MAX_GAP
-                if eligible_gap and blocked_by is None and advance > 0:
-                    # Kredit — eng KICHIK chegara: pozitsiya o'sishi va server
-                    # soati bilan o'tgan real vaqt. Takror ko'rilgan qism pastda
-                    # segmentlar merge qilinganda ikkinchi marta sanalmaydi.
-                    credited = min(advance, wall * BEAT_MAX_RATE)
-                    cap = _global_credit_cap(progress, now)
-                    if cap is not None:
-                        credited = min(credited, cap)
-                    if pending_quiz is not None:
-                        # Testdan oldinga o'tib bo'lmaydi.
-                        credited = min(credited,
-                                       pending_quiz.trigger_second - segment_start)
-                    credited = max(0.0, credited)
-
-                if credited > 0:
-                    segment_end = segment_start + credited
-                    previous_watched = progress.verified_seconds
-                    progress.watched_segments, progress.verified_seconds = _merged_watch_segments(
-                        progress.watched_segments,
-                        [segment_start, segment_end],
-                        duration=duration,
-                    )
-                    credited = max(0.0, progress.verified_seconds - previous_watched)
-                    progress.max_position = max(progress.max_position, segment_end)
-                    if credited > 0:
-                        progress.last_credit_at = now
-
-        if (
-            duration > 0
-            and progress.max_position >= duration - BEAT_SEEK_TOLERANCE
-            and required
-            and progress.verified_seconds >= (required - 5)
-        ):
-            progress.verified_seconds = max(progress.verified_seconds, float(required))
-
-        # ── 6. Navbatdagi tiriklik tekshiruvini yuborish ──
-        if progress.next_check_seconds <= 0:
-            progress.next_check_seconds = progress.verified_seconds + random.uniform(
-                PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
-            )
-        elif (
-            not progress.presence_token
-            and progress.next_check_seconds - progress.verified_seconds > PRESENCE_INTERVAL_MAX
-        ):
-            # Oldingi 10-15 daqiqalik jadvalni bir marta qisqartiramiz.
-            # Har heartbeat'da muddatni surish tekshiruvni cheksiz kechiktiradi.
-            progress.next_check_seconds = progress.verified_seconds + random.uniform(
-                PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
-            )
-
-        # Dars sahifasi ochilgan vaqt emas, server tasdiqlagan birinchi PLAYING
-        # beat ijro boshlanishi sifatida qayd qilinadi.
-        if (
-            progress.playback_started_at is None
-            and position is not None and playing and not hidden and not stale_client
-            and blocked_by not in ('nonce', 'presence', 'paused', 'hidden', 'stale_client')
-        ):
-            progress.playback_started_at = now
-
-        if (
-            progress.requirement_met_at is None
-            and required and progress.is_requirement_met
-        ):
-            progress.requirement_met_at = now
-
-        presence_challenge = None
-        if progress.presence_token:
-            # Javob kutilmoqda. Tokenni qayta yuboramiz: mijoz javobni tarmoq
-            # uzilishi tufayli olmagan bo'lishi mumkin.
-            presence_challenge = {'token': progress.presence_token, 'deadline': PRESENCE_DEADLINE}
-        elif (
-            playing and not hidden and not stale_client
-            and required and not progress.is_requirement_met
-            and progress.verified_seconds >= progress.next_check_seconds
-        ):
-            progress.presence_token = _new_token()
-            progress.presence_sent_at = now
-            presence_challenge = {'token': progress.presence_token, 'deadline': PRESENCE_DEADLINE}
-
-        # ── 7. Yangi nonce va yakuniy saqlash ──
-        progress.beat_nonce = _new_token()
-        progress.last_beat_at = now
-        if suspicion:
-            progress.suspicion_score += suspicion
-            if progress.suspicion_score >= SUSPICION_NOTIFY_AT and not progress.suspicion_notified:
-                progress.suspicion_notified = True
-                notify_admin = True
-        progress.save(update_fields=[
-            'max_position', 'last_position', 'verified_seconds', 'watched_segments', 'last_beat_at',
-            'last_credit_at', 'cheat_attempts', 'beat_nonce', 'presence_token',
-            'presence_sent_at', 'next_check_seconds', 'presence_failures',
-            'playback_started_at', 'requirement_met_at',
-            'suspicion_score', 'suspicion_notified',
-        ])
-
-    if notify_admin:
-        _notify_admin_watch_suspicion(progress, video)   # tranzaksiyadan tashqarida
-
-    result = {
+def _watch_state_payload(progress, video, required):
+    duration = video.gating_duration_seconds
+    return {
         'ok': True,
         'verified_seconds': round(progress.verified_seconds, 1),
         'required_seconds': required,
@@ -4907,27 +4637,147 @@ def _process_watch_beat(request, video, progress_pk):
             else max(0, round(required - progress.verified_seconds, 1))
         ) if required else None,
         'can_complete': progress.is_requirement_met,
-        'playback_started_at': timezone.localtime(progress.playback_started_at).isoformat() if progress.playback_started_at else None,
-        'requirement_met_at': timezone.localtime(progress.requirement_met_at).isoformat() if progress.requirement_met_at else None,
-        'seek_blocked': cheated,
-        'seek_detected': cheated,
-        'resume_at': None,
-        'nonce': progress.beat_nonce,
-        'credited': round(credited, 1),
-        'blocked': blocked_by,
         'watched_segments': progress.watched_segments,
         'watched_percentage': round(
-            min(100, progress.verified_seconds * 100 / video.gating_duration_seconds), 1
-        ) if video.gating_duration_seconds else 0,
-        'duration': video.gating_duration_seconds,
+            min(100, progress.verified_seconds * 100 / duration), 1
+        ) if duration else 0,
+        'duration': duration,
+        'playback_started_at': timezone.localtime(progress.playback_started_at).isoformat() if progress.playback_started_at else None,
+        'requirement_met_at': timezone.localtime(progress.requirement_met_at).isoformat() if progress.requirement_met_at else None,
     }
-    if presence_challenge:
-        result['presence'] = presence_challenge
-    if blocked_by == 'quiz':
-        result['quiz_required'] = {
-            'id': pending_quiz.pk,
-            'trigger_second': pending_quiz.trigger_second,
-        }
+
+
+def _process_watch_beat(request, video, progress_pk):
+    """Mijoz yuborgan ko'rilgan segmentlarni real vaqt byudjeti bilan qabul qiladi.
+
+    So'rov: {segments: [[s, e], ...], position, presence_token}
+    Javob:  server tasdiqlagan segmentlar, talab, can_complete, kerak bo'lsa
+            presence tokeni va `budget_limited` (qolgan qism keyingi sinxronda).
+    """
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except (ValueError, UnicodeDecodeError):
+        payload = {}
+    if not isinstance(payload, dict):
+        payload = {}
+
+    position = _clean_seconds(payload.get('position'))
+    presence_reply = str(payload.get('presence_token') or '')[:32]
+
+    now = timezone.now()
+    _ensure_gating_duration(video)   # tashqi HTTP — tranzaksiyadan TASHQARIDA
+    duration = float(video.gating_duration_seconds or 0)
+    incoming = _parse_client_segments(payload.get('segments'), duration)
+
+    with transaction.atomic():
+        progress = VideoProgress.objects.select_for_update().get(pk=progress_pk)
+        required = _resolve_required_seconds(progress, video)
+
+        segments, unique_watched = _merged_watch_segments(
+            progress.watched_segments, duration=duration,
+        )
+        # Migratsiyadan oldingi progress yo'qolmasin.
+        if not segments and progress.verified_seconds > 0:
+            legacy_end = min(progress.verified_seconds, duration) if duration else progress.verified_seconds
+            segments, unique_watched = _merged_watch_segments([], [0, legacy_end], duration=duration)
+
+        blocked_by = None
+
+        # ── 1. Tiriklik tekshiruvi: javob istalgan paytda qabul qilinadi ──
+        if progress.presence_token:
+            if presence_reply and presence_reply == progress.presence_token:
+                progress.presence_token = ''
+                progress.presence_sent_at = None
+                _schedule_next_presence(progress)
+            else:
+                blocked_by = 'presence'
+
+        # ── 2. Real vaqt byudjeti ──
+        if progress.last_beat_at:
+            elapsed = (now - progress.last_beat_at).total_seconds()
+            elapsed = max(0.0, min(elapsed, SYNC_MAX_GAP))
+        else:
+            elapsed = 0.0
+        budget = elapsed * SYNC_MAX_RATE
+        cap = _global_credit_cap(progress, now)
+        if cap is not None:
+            budget = min(budget, cap)
+
+        # ── 3. Yangi (hali qoplanmagan) soniyalarni byudjet doirasida qo'shamiz ──
+        credited = 0.0
+        budget_limited = False
+        if incoming and blocked_by is None:
+            new_parts = []
+            for start, end in incoming:
+                new_parts.extend(_uncovered_parts(start, end, segments))
+            remaining_budget = budget
+            accepted = []
+            for start, end in new_parts:
+                if remaining_budget <= 0.001:
+                    budget_limited = True
+                    break
+                length = end - start
+                if length > remaining_budget:
+                    accepted.append([start, start + remaining_budget])
+                    remaining_budget = 0
+                    budget_limited = True
+                    break
+                accepted.append([start, end])
+                remaining_budget -= length
+            if accepted:
+                before = unique_watched
+                segments, unique_watched = _merged_watch_segments(
+                    segments + accepted, duration=duration,
+                )
+                credited = max(0.0, unique_watched - before)
+
+        progress.watched_segments = segments
+        progress.verified_seconds = unique_watched
+        if segments:
+            progress.max_position = max(progress.max_position, segments[-1][1])
+        if position is not None:
+            progress.last_position = min(position, duration) if duration else position
+        if credited > 0:
+            progress.last_credit_at = now
+            if progress.playback_started_at is None:
+                progress.playback_started_at = now
+        progress.last_beat_at = now
+
+        if required and progress.requirement_met_at is None and progress.is_requirement_met:
+            progress.requirement_met_at = now
+
+        # ── 4. Navbatdagi tiriklik tekshiruvi (faqat faol ko'rish paytida) ──
+        if progress.next_check_seconds <= 0:
+            progress.next_check_seconds = progress.verified_seconds + random.uniform(
+                PRESENCE_FIRST_MIN, PRESENCE_FIRST_MAX
+            )
+        if (
+            not progress.presence_token
+            and credited > 0
+            and required and not progress.is_requirement_met
+            and progress.verified_seconds >= progress.next_check_seconds
+        ):
+            progress.presence_token = _new_token()
+            progress.presence_sent_at = now
+
+        progress.save(update_fields=[
+            'max_position', 'last_position', 'verified_seconds', 'watched_segments',
+            'last_beat_at', 'last_credit_at', 'presence_token', 'presence_sent_at',
+            'next_check_seconds', 'playback_started_at', 'requirement_met_at',
+        ])
+
+    result = _watch_state_payload(progress, video, required)
+    result.update({
+        'credited': round(credited, 1),
+        'budget_limited': budget_limited,
+        'blocked': blocked_by,
+    })
+    if progress.presence_token:
+        result['presence'] = {'token': progress.presence_token}
+    if getattr(request.user, 'is_learner', False):
+        result['quiz_pending'] = _unanswered_mid_quiz_count(
+            progress.user_id, video, required,
+        )
     return result
 
 
@@ -6709,6 +6559,7 @@ def student_lesson_view(request, token):
         # required_seconds qayta hisoblanib, ekrandagi countdown sakrab ketadi.
         _ensure_gating_duration(video)
         _resolve_required_seconds(progress, video)
+        start_watch_session(progress)
         if not lesson.ai_article:
             import threading
             _lesson_id = lesson.pk
@@ -6752,8 +6603,9 @@ def student_lesson_view(request, token):
     elif lesson.lesson_type == 'test':
         quiz = getattr(lesson, 'quiz', None)
         test = getattr(lesson, 'test', None)
-        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi)
-        if quiz:
+        # Yangi quiz tizimi (agar mavjud bo'lsa ustun turadi). Qoralama quiz
+        # o'quvchini to'xtatib qo'ymasin — u holda eski test ochiladi.
+        if quiz and quiz.status == Quiz.Status.PUBLISHED:
             return redirect('quizui:quiz_take', pk=quiz.pk)
         # Eski test tizimi
         if test:
@@ -17095,8 +16947,20 @@ def payment_wall(request):
     )
     can_pay = balance_days > 0
     daily_fee = int(round(monthly_fee / 30))
+    from kurslarim.access import purchased_course_ids
+    from kurslarim.progress import course_state
+    purchased_courses = []
+    for course in Profession.objects.filter(pk__in=purchased_course_ids(user), is_blocked=False).order_by('name'):
+        state = course_state(user, course)
+        total = state['total_count']
+        purchased_courses.append({
+            'course': course,
+            'percent': int(100 * state['done_count'] / total) if total else 0,
+            'resume': state['resume'],
+        })
 
     return render(request, 'accounts/payment_wall.html', {
+        'purchased_courses': purchased_courses,
         'balance': balance,
         'ps': ps,
         'monthly_fee': monthly_fee,

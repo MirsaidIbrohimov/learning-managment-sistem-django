@@ -408,12 +408,42 @@ def _extension_chain(filename: str) -> list:
     return [f".{p.lower()}" for p in parts[1:] if p]
 
 
+_CYRILLIC_TO_LATIN = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'j', 'з': 'z',
+    'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r',
+    'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'x', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sh',
+    'ъ': '', 'ы': 'i', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+    'ў': 'o', 'қ': 'q', 'ғ': 'g', 'ҳ': 'h', 'і': 'i', 'ї': 'yi', 'є': 'ye',
+}
+
+
+def ascii_filename(name: str) -> str:
+    """Fayl nomini faqat lotin harflari, raqamlar, `_ . -` ga keltiradi.
+
+    Kirill (rus/o'zbek) harflari lotinchaga o'giriladi: "Снимок_экрана.png" →
+    "Snimok_ekrana.png". Hosting serverlari UTF-8 nomli fayllarni URL bo'yicha
+    topa olmay 404 berishi mumkin edi — ASCII nom har qanday serverda ishlaydi.
+    """
+    out = []
+    for ch in unicodedata.normalize("NFC", name or ""):
+        low = ch.lower()
+        if low in _CYRILLIC_TO_LATIN:
+            latin = _CYRILLIC_TO_LATIN[low]
+            out.append(latin.capitalize() if ch != low and latin else latin)
+        else:
+            out.append(ch)
+    text = unicodedata.normalize("NFKD", "".join(out)).encode("ascii", "ignore").decode("ascii")
+    text = re.sub(r"[^A-Za-z0-9.\-]+", "_", text)
+    return re.sub(r"_{2,}", "_", text).strip("_")
+
+
 def _safe_filename(name: str) -> str:
-    """Path separatorlar va boshqarish belgilarini tozalash."""
+    """Path separatorlar va boshqarish belgilarini tozalash, nomni ASCII ga keltirish."""
     import os
     name = os.path.basename(name or "")
-    name = unicodedata.normalize("NFC", name)
-    name = re.sub(r"[^\w.\-]", "_", name)
+    stem, ext = os.path.splitext(name)
+    # Nom butunlay lotinga o'girilmasa ham (masalan xitoycha) kengaytma saqlansin.
+    name = (ascii_filename(stem) or "file") + ascii_filename(ext)
     # Boshidagi nuqta: `.htaccess` kabi Apache konfiguratsiya fayllari
     # `media/` ga tushib qolmasligi uchun.
     name = name.lstrip(".")

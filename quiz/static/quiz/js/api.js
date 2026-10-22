@@ -8,7 +8,7 @@
     'use strict';
 
     const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
-    const API_ROOT = '/api/v1/quiz/';
+    const API_ROOT = window.QUIZ_API_ROOT || '/api/v1/quiz/';
 
     class ApiError extends Error {
         constructor(message, status, payload) {

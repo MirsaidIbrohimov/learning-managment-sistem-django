@@ -32,6 +32,7 @@
   var lastInteraction = Date.now();
   var seen = Object.create(null);
   var panelItems = [];
+  var recent = null;            // {chats: [...], messages: [...]} — oxirgi 3 tadan
   var inFlight = false;
 
   // ── DOM havolalari ──────────────────────────────────────────────
@@ -42,6 +43,7 @@
   var bellList = document.getElementById('nbBellList');
   var bellCount = document.getElementById('nbBellCount');
   var soundBtn = document.getElementById('nbBellSound');
+  var readAllBtn = document.getElementById('nbBellReadAll');
   var mobileChatCount = document.getElementById('nbMobileChatCount');
 
   function ensureWrap() {
@@ -211,26 +213,59 @@
     return Math.floor(d / 86400) + ' kun';
   }
 
+  function itemHtml(it) {
+    var av = it.photo
+      ? '<img src="' + esc(it.photo) + '" alt="">'
+      : esc(it.initials || '');
+    // Panelda faqat o'qilmaganlar bo'ladi — har biri "yangi" ko'rinishida.
+    return '<a class="nbell-item unread" href="' + esc(it.url || '#') + '">' +
+      '<div class="nbell-ava k-' + esc(it.kind) + '">' + av + '</div>' +
+      '<div class="nbell-txt">' +
+        '<div class="nbell-name">' + esc(it.title) + '</div>' +
+        '<div class="nbell-msg">' + esc(it.body) + '</div>' +
+      '</div>' +
+      '<div class="nbell-side"><div class="nbell-time">' + relTime(it.ts) + '</div>' +
+        '<span class="nbell-dot" aria-label="O\'qilmagan"></span></div>' +
+    '</a>';
+  }
+
+  function sectionHtml(key, icon, title, items, url, emptyText) {
+    var unread = items.length;
+    return '<section class="nbell-sec nbell-sec-' + key + '">' +
+      '<div class="nbell-sec-head">' +
+        '<span class="nbell-sec-ico"><i class="bi ' + icon + '"></i></span>' +
+        '<span class="nbell-sec-title">' + title + '</span>' +
+        (unread ? '<span class="nbell-sec-new">' + unread + ' yangi</span>' : '') +
+        '<a class="nbell-sec-all" href="' + esc(url) + '">Barchasi <i class="bi bi-chevron-right"></i></a>' +
+      '</div>' +
+      (items.length
+        ? items.map(itemHtml).join('')
+        : '<div class="nbell-sec-empty"><i class="bi ' + icon + '"></i>' + emptyText + '</div>') +
+    '</section>';
+  }
+
   function paintPanel() {
     if (!bellList) return;
+    if (recent) {
+      var chats = recent.chats || [], msgs = recent.messages || [];
+      if (readAllBtn) readAllBtn.hidden = !(chats.length || msgs.length);
+      if (!chats.length && !msgs.length) {
+        bellList.innerHTML =
+          '<div class="nbell-allread"><span class="nbell-allread-ico"><i class="bi bi-check2-all"></i></span>' +
+          '<b>Hammasi o\'qilgan</b><span>Yangi suhbat yoki xabar kelsa, shu yerda ko\'rinadi.</span></div>';
+        return;
+      }
+      bellList.innerHTML =
+        sectionHtml('chat', 'bi-chat-dots-fill', 'Suhbatlar', recent.chats || [], cfg.chatsUrl || '#', 'Hozircha suhbat yo\'q') +
+        sectionHtml('msg', 'bi-envelope-fill', 'Xabarlar', recent.messages || [], cfg.messagesUrl || '#', 'Hozircha xabar yo\'q');
+      return;
+    }
     if (!panelItems.length) {
       bellList.innerHTML =
         '<div class="nbell-empty"><i class="bi bi-bell-slash"></i>Yangi bildirishnoma yo\'q</div>';
       return;
     }
-    bellList.innerHTML = panelItems.map(function (it) {
-      var av = it.photo
-        ? '<img src="' + esc(it.photo) + '" alt="">'
-        : esc(it.initials || '');
-      return '<a class="nbell-item" href="' + esc(it.url || '#') + '">' +
-        '<div class="nbell-ava k-' + esc(it.kind) + '">' + av + '</div>' +
-        '<div class="nbell-txt">' +
-          '<div class="nbell-name">' + esc(it.title) + '</div>' +
-          '<div class="nbell-msg">' + esc(it.body) + '</div>' +
-        '</div>' +
-        '<div class="nbell-time">' + relTime(it.ts) + '</div>' +
-      '</a>';
-    }).join('');
+    bellList.innerHTML = panelItems.map(itemHtml).join('');
   }
 
   function pushPanel(items) {
@@ -296,11 +331,12 @@
         since = d.now;
 
         paintCounts(d.counts || {}, fresh.length > 0);
+        if (d.recent) { recent = d.recent; paintPanel(); }
 
         if (first) {
           handleBacklog(d.backlog);
         } else if (fresh.length) {
-          pushPanel(fresh);
+          if (!d.recent) pushPanel(fresh);
           fresh.slice(-3).forEach(function (it, i) {
             setTimeout(function () { toast(it); }, i * 260);
           });
@@ -333,6 +369,25 @@
     soundBtn.addEventListener('click', function (e) {
       e.preventDefault(); e.stopPropagation();
       setMuted(!isMuted());
+    });
+  }
+  if (readAllBtn && cfg.markReadUrl) {
+    readAllBtn.addEventListener('click', function (e) {
+      e.preventDefault(); e.stopPropagation();
+      if (readAllBtn.disabled) return;
+      readAllBtn.disabled = true;
+      fetch(cfg.markReadUrl, {
+        method: 'POST', credentials: 'same-origin',
+        headers: { 'X-CSRFToken': cfg.csrf || '', 'X-Requested-With': 'XMLHttpRequest' }
+      })
+        .then(function (r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+        .then(function (d) {
+          recent = (d && d.recent) || { chats: [], messages: [] };
+          paintCounts((d && d.counts) || { total: 0, chat: 0 }, false);
+          paintPanel();
+        })
+        .catch(function () { toast({ kind: 'system', title: 'Xatolik', body: 'Belgilab bo\'lmadi. Qayta urinib ko\'ring.', initials: '!' }); })
+        .then(function () { readAllBtn.disabled = false; });
     });
   }
   if (bellBtn) {

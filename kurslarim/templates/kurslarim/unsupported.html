@@ -1,0 +1,19 @@
+{% extends 'kurslarim/base.html' %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block aurora %}<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>{% endblock %}
+
+{% block content %}
+<main class="kp-page">
+    <div class="kp-state-card kp-glass">
+        <div class="kp-state-icon info"><i class="bi bi-display"></i></div>
+        <span class="kp-eyebrow">{{ lesson.get_lesson_type_display }}</span>
+        <h2 class="mt-1">{{ lesson.title }}</h2>
+        <p class="kp-muted mb-0">Bu dars turi hozircha faqat asosiy tizimda ochiladi. Keyingi darslarga o'tishingizga to'sqinlik qilmaydi.</p>
+        <div class="kp-actions">
+            <a href="{{ portal.back_url }}" class="kp-btn"><i class="bi bi-arrow-left"></i>Kursga qaytish</a>
+            {% if portal.next_url %}<a href="{{ portal.next_url }}" class="kp-btn kp-btn-primary">Keyingi dars<i class="bi bi-arrow-right"></i></a>{% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}

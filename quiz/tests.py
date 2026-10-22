@@ -1197,13 +1197,15 @@ class LegacyTestCutoverRedirectTests(TestCase):
     # -- lesson_view: PK URL, only ever reached by teacher/admin (students
     # are bounced to the token URL by _redirect_student_to_token) --
 
+    # O'qituvchi/admin dars sahifasidan quizni boshqarish (tahrirlash) sahifasiga
+    # o'tadi — test topshirish sahifasi faqat o'quvchilar uchun.
     def test_lesson_view_redirects_to_new_quiz_for_migrated_non_final_test(self):
         lesson, test, quiz = self._make_migrated_pair('Migrated lesson test')
         teacher = make_user('teacher', 'cutover_teacher')
         self._login(teacher)
         resp = self.client.get(f'/lessons/{lesson.id}/')
         self.assertEqual(resp.status_code, status.HTTP_302_FOUND)
-        self.assertEqual(resp.url, f'/quiz/quizzes/{quiz.id}/take/')
+        self.assertEqual(resp.url, f'/quiz/quizzes/{quiz.id}/edit/')
 
     def test_lesson_view_redirects_to_new_quiz_for_migrated_final_test(self):
         lesson, test, quiz = self._make_migrated_pair('Migrated final test', test_type='final')
@@ -1211,7 +1213,7 @@ class LegacyTestCutoverRedirectTests(TestCase):
         self._login(teacher)
         resp = self.client.get(f'/lessons/{lesson.id}/')
         self.assertEqual(resp.status_code, status.HTTP_302_FOUND)
-        self.assertEqual(resp.url, f'/quiz/quizzes/{quiz.id}/take/')
+        self.assertEqual(resp.url, f'/quiz/quizzes/{quiz.id}/edit/')
 
     def test_lesson_view_falls_back_to_legacy_when_test_not_migrated(self):
         lesson = make_lesson(self.profession, 'Unmigrated lesson test')
@@ -1222,13 +1224,13 @@ class LegacyTestCutoverRedirectTests(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertTemplateUsed(resp, 'accounts/lessons/test_lesson.html')
 
-    def test_lesson_view_falls_back_when_migrated_quiz_not_published(self):
+    def test_lesson_view_sends_staff_to_publish_draft_quiz(self):
         lesson, test, quiz = self._make_migrated_pair('Draft migrated lesson', quiz_status=Quiz.Status.DRAFT)
         teacher = make_user('teacher', 'cutover_teacher_draft')
         self._login(teacher)
         resp = self.client.get(f'/lessons/{lesson.id}/')
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        self.assertTemplateUsed(resp, 'accounts/lessons/test_lesson.html')
+        self.assertEqual(resp.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(resp.url, f'/quiz/quizzes/{quiz.id}/edit/')
 
     # -- student_lesson_view: the real student entry point (token URL) --
 

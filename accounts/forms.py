@@ -10,6 +10,88 @@ from .models import (
 from .security import validate_document_upload, validate_upload
 
 
+# O'zbekiston operator va shahar kodlari (+998 dan keyingi 2 ta raqam).
+UZ_PHONE_CODES = {
+    '20', '33', '50', '55', '61', '62', '65', '66', '67', '69', '70', '71', '72', '73', '74', '75',
+    '76', '77', '78', '79', '87', '88', '90', '91', '93', '94', '95', '97', '98', '99',
+}
+
+
+def normalize_uz_phone(raw, *, required=True):
+    """"(90) 123 45 67", "998901234567", "+998 90 123-45-67" → "+998901234567".
+
+    Faqat O'zbekiston raqami qabul qilinadi: +998, keyin operator kodi va 7 ta raqam.
+    """
+    raw = (raw or '').strip()
+    if not raw:
+        if required:
+            raise forms.ValidationError("Telefon raqamini kiriting.")
+        return ''
+    if any(ch.isalpha() for ch in raw):
+        raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak.")
+    digits = ''.join(ch for ch in raw if ch.isdigit())
+    if raw.lstrip().startswith('+') and not digits.startswith('998'):
+        raise forms.ValidationError("Faqat O'zbekiston raqami qabul qilinadi (+998 bilan boshlanadi).")
+    if digits.startswith('998') and len(digits) == 12:
+        digits = digits[3:]
+    if len(digits) != 9:
+        raise forms.ValidationError("Raqam +998 dan keyin 9 ta raqamdan iborat bo'lishi kerak. Masalan: +998 90 123 45 67")
+    if digits[:2] not in UZ_PHONE_CODES:
+        raise forms.ValidationError(f"«{digits[:2]}» O'zbekiston operator kodi emas. Masalan: 90, 91, 93, 94, 95, 97, 98, 99, 33, 88, 77, 50.")
+    return '+998' + digits
+
+
+def parse_jshshir(value):
+    """JSHSHIR (PINFL) dan jins va tug'ilgan sanani o'qiydi.
+
+    Tuzilishi: 1-raqam — asr va jins (toq = erkak, juft = ayol; 1-2 → 1800-yillar,
+    3-4 → 1900-yillar, 5-6 → 2000-yillar), 2-3 — kun, 4-5 — oy, 6-7 — yilning
+    oxirgi ikki raqami. Masalan 5300105… → erkak, 30.01.2005.
+    Noto'g'ri bo'lsa ValidationError.
+    """
+    import datetime
+
+    value = (value or '').strip()
+    if not value.isdigit() or len(value) != 14:
+        raise forms.ValidationError("JSHSHIR 14 ta raqamdan iborat bo'lishi kerak.")
+    first = int(value[0])
+    if not 1 <= first <= 6:
+        raise forms.ValidationError("JSHSHIR birinchi raqami 1 dan 6 gacha bo'lishi kerak (jins va tug'ilgan asr).")
+    century = {1: 1800, 2: 1800, 3: 1900, 4: 1900, 5: 2000, 6: 2000}[first]
+    day, month, year = int(value[1:3]), int(value[3:5]), century + int(value[5:7])
+    try:
+        birth = datetime.date(year, month, day)
+    except ValueError:
+        raise forms.ValidationError(
+            f"JSHSHIR dagi tug'ilgan sana noto'g'ri: {value[1:3]}.{value[3:5]}.{year}. "
+            "2-3 raqam — kun, 4-5 — oy, 6-7 — yil bo'lishi kerak."
+        ) from None
+    if birth > datetime.date.today():
+        raise forms.ValidationError("JSHSHIR dagi tug'ilgan sana kelajakda bo'lishi mumkin emas.")
+    return {'gender': 'male' if first % 2 else 'female', 'birth_date': birth}
+
+
+def check_jshshir_matches(form, jshshir, birth_date, gender, *, jshshir_field='jshshir'):
+    """JSHSHIR tug'ilgan sana va jins bilan mos kelmasa formaga xato qo'shadi."""
+    if not jshshir:
+        return
+    try:
+        info = parse_jshshir(jshshir)
+    except forms.ValidationError:
+        return  # format xatosi clean_jshshir'da allaqachon chiqarilgan
+    if birth_date and birth_date != info['birth_date']:
+        form.add_error(jshshir_field, (
+            f"JSHSHIR tug'ilgan sanangiz bilan mos emas: JSHSHIR bo'yicha "
+            f"{info['birth_date']:%d.%m.%Y}, siz kiritgan sana {birth_date:%d.%m.%Y}."
+        ))
+    if gender and gender != info['gender']:
+        expected = 'erkak' if info['gender'] == 'male' else 'ayol'
+        form.add_error(jshshir_field, (
+            f"JSHSHIR jinsingiz bilan mos emas: birinchi raqam {jshshir[0]} — {expected} "
+            "(toq raqam — erkak, juft raqam — ayol)."
+        ))
+
+
 def _clean_name_field(name, field_label):
     """Remove emojis, stickers and special characters from name field."""
     # Ko'rinmas va bo'sh belgilarni bloklash (Hangul Filler, braille blank, va h.k.)
@@ -54,7 +136,7 @@ class RegisterForm(UserCreationForm):
     )
     birth_date = forms.DateField(
         required=True,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'})
     )
     role = forms.ChoiceField(
         choices=[('student', 'O\'quvchi')],
@@ -99,20 +181,7 @@ class RegisterForm(UserCreationForm):
         return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
 
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '').strip()
-        # Formatni tozalash - faqat raqamlarni qoldirish
-        digits = ''.join(c for c in phone if c.isdigit())
-        
-        # Agar +998 bilan kiritgan bo'lsa, uni olib tashlash
-        if digits.startswith('998') and len(digits) == 12:
-            digits = digits[3:]
-        
-        # 9 ta raqam bo'lishi kerak
-        if len(digits) != 9:
-            raise forms.ValidationError("Telefon raqami 9 ta raqamdan iborat bo'lishi kerak. Masalan: (97) 521 66 86")
-        
-        # +998 qo'shib saqlash
-        return '+998' + digits
+        return normalize_uz_phone(self.cleaned_data.get('phone'))
 
 
 class LoginForm(forms.Form):
@@ -152,6 +221,18 @@ class ProfessionForm(forms.ModelForm):
         initial=False,
         widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         label="Majburiy kurs (barcha o'quvchilar uchun)"
+    )
+    one_time_payment = forms.BooleanField(
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        label="Bir martalik to'lov (so'rovsiz, Tezcheck orqali sotiladi)"
+    )
+    one_time_price = forms.IntegerField(
+        required=False,
+        min_value=0,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'min': 1000, 'step': 1000, 'placeholder': 'Masalan: 300000'}),
+        label="Kurs narxi (so'm)"
     )
     closed_group_link = forms.URLField(
         required=False,
@@ -223,9 +304,22 @@ class ProfessionForm(forms.ModelForm):
     def clean_price_per_homework(self):
         return self._clean_rate('price_per_homework', 10000)
 
+    def clean(self):
+        cleaned = super().clean()
+        price = cleaned.get('one_time_price') or 0
+        if cleaned.get('one_time_payment'):
+            if price < 1000:
+                self.add_error('one_time_price', "Bir martalik to'lov uchun narx kamida 1 000 so'm bo'lishi kerak.")
+            if cleaned.get('is_mandatory'):
+                self.add_error('one_time_payment', "Majburiy kursni sotib bo'lmaydi.")
+            # Sotiladigan kurs har doim pullik hisoblanadi.
+            cleaned['is_paid'] = True
+        cleaned['one_time_price'] = price
+        return cleaned
+
     class Meta:
         model = Profession
-        fields = ['name', 'photo', 'description', 'kind', 'is_paid', 'is_mandatory',
+        fields = ['name', 'photo', 'description', 'kind', 'is_paid', 'one_time_payment', 'one_time_price', 'is_mandatory',
                   'has_certificate', 'topic_count', 'duration_months', 'closed_group_link',
                   'price_per_video', 'price_per_test', 'price_per_homework']
 
@@ -260,25 +354,7 @@ class UserProfileForm(forms.ModelForm):
         fields = ['first_name', 'last_name', 'email', 'phone', 'address', 'birth_date', 'id_card', 'birth_certificate', 'photo', 'bio', 'obektivka']
 
     def clean_phone(self):
-        phone = self.cleaned_data.get('phone', '').strip()
-        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
-        
-        if not phone.startswith('+998'):
-            if phone.startswith('998'):
-                phone = '+' + phone
-            elif phone.startswith('9'):
-                phone = '+998' + phone
-            else:
-                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
-        
-        digits_after_code = phone[4:]
-        if not digits_after_code.isdigit():
-            raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak")
-        
-        if len(phone) != 13:
-            raise forms.ValidationError("Telefon raqami noto'g'ri formatda. Masalan: +998901234567")
-        
-        return phone
+        return normalize_uz_phone(self.cleaned_data.get('phone'))
 
     def clean_first_name(self):
         return _clean_name_field(self.cleaned_data.get('first_name', ''), 'Ism')
@@ -313,7 +389,7 @@ class AdminUserEditForm(forms.ModelForm):
     )
 
     address = forms.CharField(required=False, widget=forms.TextInput(attrs={'class': 'form-control'}))
-    birth_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    birth_date = forms.DateField(required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}))
     id_card = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
     birth_certificate = forms.FileField(required=False, validators=[validate_document_upload], widget=forms.FileInput(attrs={'class': 'form-control'}))
 
@@ -322,7 +398,7 @@ class AdminUserEditForm(forms.ModelForm):
     passport_series = forms.CharField(required=False, max_length=10, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'AA', 'maxlength': '2'}))
     passport_number = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1234567', 'maxlength': '7'}))
     jshshir = forms.CharField(required=False, max_length=14, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '14 xonali raqam', 'maxlength': '14'}))
-    passport_issued_date = forms.DateField(required=False, widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    passport_issued_date = forms.DateField(required=False, widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}))
     father_name = forms.CharField(required=False, max_length=200, widget=forms.TextInput(attrs={'class': 'form-control'}))
     father_phone = forms.CharField(required=False, max_length=20, widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': '+998...'}))
     father_deceased = forms.BooleanField(required=False, widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
@@ -354,6 +430,17 @@ class AdminUserEditForm(forms.ModelForm):
 
     def clean_last_name(self):
         return _clean_name_field(self.cleaned_data.get('last_name', ''), 'Familiya')
+
+    def clean_jshshir(self):
+        jshshir = ''.join((self.cleaned_data.get('jshshir') or '').split())
+        if jshshir:
+            parse_jshshir(jshshir)
+        return jshshir
+
+    def clean(self):
+        cleaned = super().clean()
+        check_jshshir_matches(self, cleaned.get('jshshir'), cleaned.get('birth_date'), cleaned.get('gender'))
+        return cleaned
 
 
 class ChangePasswordForm(forms.Form):
@@ -606,12 +693,12 @@ class CertificateForm(forms.ModelForm):
         label="Sertifikat fayli (PDF)"
     )
     valid_from = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
         label="Berilgan sana",
         required=False,
     )
     valid_until = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
         label="Amal qilish muddati",
         required=False,
     )
@@ -693,7 +780,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Familiyangiz'})
     )
     birth_date = forms.DateField(
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
         label="Tug'ilgan kuni"
     )
     gender = forms.ChoiceField(
@@ -733,7 +820,7 @@ class StudentProfileCompleteForm(forms.ModelForm):
     )
     passport_issued_date = forms.DateField(
         required=False,
-        widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        widget=forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
         label="Pasport berilgan sana"
     )
 
@@ -828,9 +915,9 @@ class StudentProfileCompleteForm(forms.ModelForm):
 
     def clean_jshshir(self):
         # JSHSHIR faqat kiritilgan bo'lsa tekshiriladi (metrikada JSHSHIR bo'lmaydi).
-        jshshir = (self.cleaned_data.get('jshshir') or '').strip()
-        if jshshir and (not jshshir.isdigit() or len(jshshir) != 14):
-            raise forms.ValidationError("JSHSHIR 14 ta raqamdan iborat bo'lishi kerak!")
+        jshshir = ''.join((self.cleaned_data.get('jshshir') or '').split())
+        if jshshir:
+            parse_jshshir(jshshir)
         return jshshir
 
     def clean(self):
@@ -857,43 +944,15 @@ class StudentProfileCompleteForm(forms.ModelForm):
             if not cleaned.get('metrka_number'):
                 self.add_error('metrka_number', "Metrika raqami majburiy.")
 
+        # JSHSHIR ichidagi jins va tug'ilgan sana kiritilgan ma'lumotlarga mos bo'lishi shart.
+        check_jshshir_matches(self, cleaned.get('jshshir'), cleaned.get('birth_date'), cleaned.get('gender'))
         return cleaned
 
     def clean_parent_phone(self):
-        phone = self.cleaned_data.get('parent_phone', '').strip()
-        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
-        if not phone.startswith('+998'):
-            if phone.startswith('998'):
-                phone = '+' + phone
-            elif phone.startswith('9'):
-                phone = '+998' + phone
-            else:
-                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
-        digits_after_code = phone[4:]
-        if not digits_after_code.isdigit():
-            raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak")
-        if len(phone) != 13:
-            raise forms.ValidationError("Telefon raqami noto'g'ri formatda")
-        return phone
+        return normalize_uz_phone(self.cleaned_data.get('parent_phone'))
 
     def _clean_optional_phone(self, field_name):
-        phone = self.cleaned_data.get(field_name, '').strip()
-        if not phone:
-            return phone
-        phone = phone.replace(' ', '').replace('-', '').replace('(', '').replace(')', '')
-        if not phone.startswith('+998'):
-            if phone.startswith('998'):
-                phone = '+' + phone
-            elif phone.startswith('9'):
-                phone = '+998' + phone
-            else:
-                raise forms.ValidationError("Telefon raqami +998 bilan boshlanishi kerak")
-        digits_after_code = phone[4:]
-        if not digits_after_code.isdigit():
-            raise forms.ValidationError("Telefon raqamida faqat raqamlar bo'lishi kerak")
-        if len(phone) != 13:
-            raise forms.ValidationError("Telefon raqami noto'g'ri formatda")
-        return phone
+        return normalize_uz_phone(self.cleaned_data.get(field_name), required=False)
 
     def clean_father_phone(self):
         return self._clean_optional_phone('father_phone')

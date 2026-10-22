@@ -33,7 +33,8 @@ class LoginNotificationTests(TestCase):
         for value in ('SM-S918B', 'Android 13', 'Chrome 120.0.0.0', '203.0.113.5', ua):
             self.assertIn(value, mail.outbox[0].body)
         self.assertEqual(mail.outbox[0].to, [self.user.email])
-        self.assertEqual(mail.outbox[0].alternatives[0].mimetype, 'text/html')
+        # Django 5.1 da (content, mimetype) tuple, 5.2+ da nomlangan tuple — indeks ikkalasida ishlaydi.
+        self.assertEqual(mail.outbox[0].alternatives[0][1], 'text/html')
 
     def test_missing_email_does_not_queue(self):
         self.user.email = ''

@@ -1,0 +1,40 @@
+{% extends 'kurslarim/base.html' %}
+
+{% block title %}{{ lesson.title }}{% endblock %}
+{% block aurora %}<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>{% endblock %}
+
+{% block content %}
+<main class="kp-page kp-page-narrow">
+    <a href="{{ portal.back_url }}" class="kp-back"><i class="bi bi-arrow-left"></i>{{ profession.name }}</a>
+    <section class="kp-hero kp-glass">
+        <div>
+            <span class="kp-eyebrow">Lug'at</span>
+            <h1>{{ lesson.title }}</h1>
+            <div class="kp-stats"><span class="kp-stat"><i class="bi bi-translate"></i><b>{{ words|length }}</b> ta so'z</span></div>
+        </div>
+        <span class="kp-type dictionary kp-hide-sm" style="width:84px;height:84px;border-radius:24px;font-size:2.2rem;" aria-hidden="true"><i class="bi bi-book-half"></i></span>
+    </section>
+
+    <form method="get" class="kp-search" role="search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input type="search" name="q" value="{{ search }}" placeholder="So'z yoki tarjimani qidiring..." aria-label="So'z qidirish">
+    </form>
+
+    <div class="kp-words">
+        {% for w in words %}
+        <div class="kp-word kp-glass"><b>{{ w.word }}</b><span>{{ w.translation }}</span></div>
+        {% empty %}
+        <div class="kp-glass kp-empty" style="grid-column:1/-1;">
+            <div class="kp-empty-icon"><i class="bi bi-search"></i></div>
+            <p class="kp-muted mb-0">{% if search %}"{{ search }}" bo'yicha so'z topilmadi.{% else %}Lug'atda hali so'z yo'q.{% endif %}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if portal.next_url %}
+    <div class="kp-actions" style="justify-content:flex-end;">
+        <a href="{{ portal.next_url }}" class="kp-btn kp-btn-primary">Keyingi dars<i class="bi bi-arrow-right"></i></a>
+    </div>
+    {% endif %}
+</main>
+{% endblock %}

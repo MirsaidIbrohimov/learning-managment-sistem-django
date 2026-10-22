@@ -197,8 +197,8 @@ Javob bermasdan davom etib bo'lmaydi (ESC/tashqi bosish yopmaydi).
    ================================================================ */
 (function() {
     'use strict';
-    const API_LIST = "{% url 'video_quiz:api_player_quizzes' video.pk %}";
-    const API_SUBMIT = "{% url 'video_quiz:api_player_submit' %}";
+    const API_LIST = "{% if portal %}{{ portal.vq_list_url }}{% else %}{% url 'video_quiz:api_player_quizzes' video.pk %}{% endif %}";
+    const API_SUBMIT = "{% if portal %}{{ portal.vq_submit_url }}{% else %}{% url 'video_quiz:api_player_submit' %}{% endif %}";
     const CSRF = '{{ csrf_token }}';
     // Har savolga javob berish uchun beriladigan vaqt (soniya).
     const ANSWER_LIMIT_SEC = 35;

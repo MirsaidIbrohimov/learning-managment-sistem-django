@@ -1,1087 +1,320 @@
 {% extends 'accounts/base.html' %}
-{% load widget_tweaks %}
+{% load static widget_tweaks %}
 
-{% block title %}Profilni to'ldirish - LMS{% endblock %}
+{% block title %}Profilni tasdiqlash — IT Creative{% endblock %}
 
 {% block extra_css %}
-<style>
-/* ============ ANIMATIONS ============ */
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(30px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-@keyframes scaleIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-}
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-@keyframes progressPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,255,255,0.4); }
-    50% { box-shadow: 0 0 0 8px rgba(255,255,255,0); }
-}
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
-}
-
-.cp-container {
-    max-width: 920px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem 3rem;
-}
-
-/* ============ HERO HEADER ============ */
-.cp-hero {
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #a855f7 100%);
-    border-radius: 24px;
-    padding: 2.5rem 2rem 2rem;
-    color: white;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    margin-bottom: 1.75rem;
-    animation: fadeInUp 0.5s ease both;
-}
-.cp-hero::before {
-    content: '';
-    position: absolute;
-    top: -60%;
-    right: -15%;
-    width: 350px;
-    height: 350px;
-    background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
-    border-radius: 50%;
-}
-.cp-hero::after {
-    content: '';
-    position: absolute;
-    bottom: -40%;
-    left: -10%;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
-    border-radius: 50%;
-}
-
-.cp-progress-ring {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(12px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1rem;
-    font-size: 1.8rem;
-    font-weight: 800;
-    border: 3px solid rgba(255,255,255,0.25);
-    position: relative;
-    z-index: 1;
-    animation: scaleIn 0.5s ease 0.2s both, progressPulse 2.5s ease-in-out infinite;
-}
-
-.cp-hero h2 {
-    font-weight: 800;
-    font-size: 1.5rem;
-    margin-bottom: 0.4rem;
-    position: relative;
-    z-index: 1;
-}
-.cp-hero p {
-    opacity: 0.8;
-    font-size: 0.92rem;
-    margin-bottom: 1.25rem;
-    position: relative;
-    z-index: 1;
-}
-
-.cp-progress-track {
-    height: 8px;
-    background: rgba(255,255,255,0.15);
-    border-radius: 50px;
-    max-width: 380px;
-    margin: 0 auto;
-    overflow: hidden;
-    position: relative;
-    z-index: 1;
-}
-.cp-progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, rgba(255,255,255,0.9), #fff);
-    border-radius: 50px;
-    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-}
-.cp-progress-fill::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-    background-size: 200% 100%;
-    animation: shimmer 2s ease-in-out infinite;
-}
-
-/* ============ STEPS NAVIGATION ============ */
-.cp-steps {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 1.75rem;
-    padding: 0 0.25rem;
-    animation: fadeInUp 0.5s ease 0.15s both;
-}
-.cp-step {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: var(--bs-body-bg);
-    border: 2px solid var(--bs-border-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    color: var(--bs-body-color);
-}
-.cp-step:hover {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.04);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(99,102,241,0.12);
-}
-.cp-step.active {
-    border-color: #6366f1;
-    background: rgba(99,102,241,0.06);
-}
-.cp-step-num {
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 800;
-    font-size: 0.85rem;
-    flex-shrink: 0;
-    transition: all 0.3s;
-}
-.cp-step-text {
-    font-weight: 600;
-    font-size: 0.8rem;
-    line-height: 1.2;
-}
-.cp-step-text small {
-    font-size: 0.68rem;
-    font-weight: 500;
-    color: var(--bs-secondary-color);
-    display: block;
-}
-
-.cp-step:nth-child(1) .cp-step-num { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; }
-.cp-step:nth-child(2) .cp-step-num { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
-.cp-step:nth-child(3) .cp-step-num { background: linear-gradient(135deg, #3b82f6, #6366f1); color: #fff; }
-.cp-step:nth-child(4) .cp-step-num { background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
-
-/* ============ ALERT ============ */
-.cp-alert {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-    padding: 1rem 1.25rem;
-    border-radius: 16px;
-    margin-bottom: 1.5rem;
-    animation: fadeInUp 0.5s ease 0.2s both;
-}
-.cp-alert.info {
-    background: linear-gradient(135deg, rgba(99,102,241,0.06), rgba(139,92,246,0.06));
-    border: 1px solid rgba(99,102,241,0.15);
-}
-.cp-alert i {
-    font-size: 1.4rem;
-    color: #6366f1;
-    margin-top: 1px;
-    flex-shrink: 0;
-}
-.cp-alert .cp-alert-text {
-    font-size: 0.88rem;
-    line-height: 1.5;
-}
-
-/* ============ FORM SECTIONS ============ */
-.cp-section {
-    background: var(--bs-body-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 20px;
-    margin-bottom: 1.5rem;
-    overflow: hidden;
-    transition: all 0.3s ease;
-    animation: fadeInUp 0.5s ease both;
-}
-.cp-section:nth-child(2) { animation-delay: 0.1s; }
-.cp-section:nth-child(3) { animation-delay: 0.2s; }
-.cp-section:nth-child(4) { animation-delay: 0.3s; }
-
-.cp-section:hover {
-    box-shadow: 0 8px 30px rgba(0,0,0,0.07);
-    transform: translateY(-2px);
-}
-
-.cp-section-header {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--bs-border-color);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.cp-section-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.15rem;
-    color: #fff;
-    flex-shrink: 0;
-}
-.cp-section-header h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin: 0;
-}
-.cp-section-header h3 small {
-    display: block;
-    font-size: 0.72rem;
-    font-weight: 500;
-    color: var(--bs-secondary-color);
-    margin-top: 2px;
-}
-
-.cp-section-body {
-    padding: 1.5rem;
-}
-
-/* ============ FORM FIELDS ============ */
-.cp-field {
-    margin-bottom: 1.25rem;
-}
-.cp-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
-    color: var(--bs-body-color);
-}
-.cp-required {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 1px 8px;
-    border-radius: 50px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: #fff;
-}
-.cp-optional {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    padding: 1px 8px;
-    border-radius: 50px;
-    font-size: 0.6rem;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    background: linear-gradient(135deg, #a78bfa, #7c3aed);
-    color: #fff;
-}
-
-.cp-section .form-control,
-.cp-section .form-select {
-    border-radius: 12px;
-    padding: 0.65rem 0.9rem;
-    border: 1.5px solid var(--bs-border-color);
-    font-size: 0.9rem;
-    transition: all 0.25s ease;
-    background: var(--bs-body-bg);
-}
-.cp-section .form-control:focus,
-.cp-section .form-select:focus {
-    border-color: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
-}
-
-.cp-field-hint {
-    font-size: 0.75rem;
-    color: var(--bs-secondary-color);
-    margin-top: 0.3rem;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-/* ============ PASSPORT SECTION ============ */
-.cp-passport-grid {
-    display: grid;
-    grid-template-columns: 120px 1fr 1fr;
-    gap: 1rem;
-    align-items: end;
-}
-.cp-passport-visual {
-    background: linear-gradient(135deg, rgba(34,197,94,0.06), rgba(22,163,74,0.06));
-    border: 1px solid rgba(34,197,94,0.15);
-    border-radius: 14px;
-    padding: 1.25rem;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-.cp-passport-icon-big {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-    color: #fff;
-    flex-shrink: 0;
-    animation: float 3s ease-in-out infinite;
-}
-.cp-passport-desc {
-    font-size: 0.85rem;
-    color: var(--bs-body-color);
-    font-weight: 500;
-    line-height: 1.5;
-}
-.cp-passport-desc strong {
-    color: #16a34a;
-}
-
-/* ============ PARENT CARDS ============ */
-.cp-parent-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
-}
-.cp-parent-card {
-    background: var(--bs-tertiary-bg);
-    border: 1px solid var(--bs-border-color);
-    border-radius: 16px;
-    padding: 1.25rem;
-    transition: all 0.3s;
-    position: relative;
-}
-.cp-parent-card:hover {
-    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-}
-.cp-parent-card.father {
-    border-top: 3px solid #3b82f6;
-}
-.cp-parent-card.mother {
-    border-top: 3px solid #ec4899;
-}
-
-.cp-parent-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 1.25rem;
-}
-.cp-parent-title-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    color: #fff;
-}
-.cp-parent-card.father .cp-parent-title-icon {
-    background: linear-gradient(135deg, #3b82f6, #6366f1);
-}
-.cp-parent-card.mother .cp-parent-title-icon {
-    background: linear-gradient(135deg, #ec4899, #d946ef);
-}
-
-/* Deceased checkbox */
-.cp-deceased {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 12px;
-    border-radius: 10px;
-    background: rgba(220,53,69,0.04);
-    border: 1px solid rgba(220,53,69,0.12);
-    margin-top: 0.75rem;
-    transition: all 0.25s;
-    cursor: pointer;
-}
-.cp-deceased:hover {
-    background: rgba(220,53,69,0.08);
-    border-color: rgba(220,53,69,0.25);
-}
-.cp-deceased .form-check-input {
-    margin: 0;
-    cursor: pointer;
-    width: 18px;
-    height: 18px;
-}
-.cp-deceased label {
-    font-size: 0.82rem;
-    color: #dc3545;
-    font-weight: 600;
-    cursor: pointer;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.cp-disabled-overlay {
-    opacity: 0.35;
-    pointer-events: none;
-    filter: grayscale(0.5);
-    transition: all 0.3s;
-}
-
-/* ============ SCHOOL SECTION ============ */
-.cp-school-visual {
-    background: linear-gradient(135deg, rgba(245,158,11,0.06), rgba(239,68,68,0.04));
-    border: 1px solid rgba(245,158,11,0.15);
-    border-radius: 14px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: var(--bs-secondary-color);
-}
-.cp-school-visual i {
-    font-size: 1.2rem;
-    color: #f59e0b;
-}
-
-/* ============ SUBMIT ============ */
-.cp-submit {
-    text-align: center;
-    padding: 1.5rem 0 0;
-    animation: fadeInUp 0.5s ease 0.4s both;
-}
-.cp-submit-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0.9rem 3rem;
-    font-size: 1.05rem;
-    font-weight: 700;
-    border-radius: 50px;
-    border: none;
-    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-    color: #fff;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    letter-spacing: 0.3px;
-    position: relative;
-    overflow: hidden;
-}
-.cp-submit-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
-    transition: left 0.5s ease;
-}
-.cp-submit-btn:hover::before {
-    left: 100%;
-}
-.cp-submit-btn:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 30px rgba(99,102,241,0.4);
-    color: #fff;
-}
-.cp-submit-btn:active {
-    transform: translateY(-1px);
-}
-.cp-submit-hint {
-    font-size: 0.8rem;
-    color: var(--bs-secondary-color);
-    margin-top: 0.75rem;
-}
-
-/* ============ ERROR ALERT ============ */
-.cp-errors {
-    border-radius: 16px;
-    border: 1px solid rgba(239,68,68,0.2);
-    background: rgba(239,68,68,0.04);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-    animation: scaleIn 0.3s ease both;
-}
-.cp-errors-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    font-size: 0.9rem;
-    color: #ef4444;
-    margin-bottom: 0.5rem;
-}
-.cp-errors ul {
-    margin: 0;
-    padding-left: 1.25rem;
-    font-size: 0.85rem;
-    color: var(--bs-body-color);
-}
-.cp-errors ul li {
-    margin-bottom: 2px;
-}
-
-/* ============ RESPONSIVE ============ */
-@media (max-width: 768px) {
-    .cp-steps { flex-direction: column; gap: 8px; }
-    .cp-passport-grid { grid-template-columns: 1fr 1fr; }
-    .cp-passport-grid .cp-field:first-child { grid-column: 1 / -1; }
-    .cp-parent-grid { grid-template-columns: 1fr; }
-    .cp-hero { padding: 2rem 1.25rem 1.5rem; border-radius: 18px; }
-    .cp-progress-ring { width: 80px; height: 80px; font-size: 1.5rem; }
-}
-@media (max-width: 480px) {
-    .cp-passport-grid { grid-template-columns: 1fr; }
-    .cp-section-body { padding: 1.25rem; }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/complete_profile.css' %}?v=1">
 {% endblock %}
 
 {% block content %}
-<div class="cp-container">
+<div class="dash cv">
+<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 
-    <!-- ======== HERO HEADER ======== -->
-    <div class="cp-hero">
-        <div class="cp-progress-ring">{{ completion_percent }}%</div>
-        <h2><i class="bi bi-person-check-fill me-2"></i>Profilingizni to'ldiring</h2>
-        <p>Tizimdan to'liq foydalanish uchun barcha ma'lumotlarni kiriting</p>
-        <div class="cp-progress-track">
-            <div class="cp-progress-fill" style="width: {{ completion_percent }}%;"></div>
-        </div>
-    </div>
-
-    <!-- ======== STEPS ======== -->
-    <div class="cp-steps">
-        <div class="cp-step" onclick="scrollToSection('section-personal')">
-            <div class="cp-step-num">1</div>
-            <div class="cp-step-text">Shaxsiy<small>Ism, tug'ilgan kun</small></div>
-        </div>
-        <div class="cp-step" onclick="scrollToSection('section-passport')">
-            <div class="cp-step-num">2</div>
-            <div class="cp-step-text">Hujjat<small>Pasport yoki metrika</small></div>
-        </div>
-        <div class="cp-step" onclick="scrollToSection('section-parents')">
-            <div class="cp-step-num">3</div>
-            <div class="cp-step-text">Ota-ona<small>Aloqa ma'lumotlari</small></div>
-        </div>
-        <div class="cp-step" onclick="scrollToSection('section-school')">
-            <div class="cp-step-num">4</div>
-            <div class="cp-step-text">Maktab<small>Ta'lim ma'lumotlari</small></div>
-        </div>
-    </div>
-
-    <!-- ======== ERROR DISPLAY ======== -->
-    {% if form.errors %}
-    <div class="cp-errors">
-        <div class="cp-errors-title">
-            <i class="bi bi-exclamation-triangle-fill"></i> Xatoliklar topildi!
-        </div>
-        <ul>
-        {% for field, errors in form.errors.items %}
-            {% for error in errors %}
-            <li>{{ error }}</li>
-            {% endfor %}
-        {% endfor %}
-        </ul>
-    </div>
-    {% endif %}
-
-    <!-- ======== HINT ======== -->
-    <div class="cp-alert info">
-        <i class="bi bi-info-circle-fill"></i>
-        <div class="cp-alert-text">
-            <strong>Eslatma:</strong> <span class="cp-required">Majburiy</span> belgilangan maydonlarni to'ldiring.
-            Hujjat sifatida <strong>pasport</strong> (seriya, raqam, JSHSHIR) yoki <strong>metrika</strong> (seriya I-GZ, raqam) — bittasini kiriting.
-            Vaqtingiz bo'lmasa, <strong>"Keyinroq to'ldiraman"</strong> tugmasi orqali o'tkazib yuborishingiz mumkin.
-        </div>
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <!-- ======== SECTION 1: SHAXSIY ======== -->
-        <div class="cp-section" id="section-personal">
-            <div class="cp-section-header">
-                <div class="cp-section-icon" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-                <h3>Shaxsiy ma'lumotlar<small>Asosiy shaxsiy ma'lumotlaringiz</small></h3>
+<div class="cv-layout">
+    <!-- ═══ Chap panel: progress + bosqichlar ═══ -->
+    <aside class="cv-side">
+        <div class="cv-card cv-progress">
+            <div class="cv-ring" id="cvRing" style="--p:{{ completion_percent }}" role="img" aria-label="Profil {{ completion_percent }}% to'ldirilgan">
+                <span><b id="cvPercent">{{ completion_percent }}</b>%<small>TO'LDIRILDI</small></span>
             </div>
-            <div class="cp-section-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-person"></i> Ism <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.first_name }}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-person"></i> Familiya <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.last_name }}
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-calendar-event"></i> Tug'ilgan kuni <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.birth_date }}
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-gender-ambiguous"></i> Jinsi <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.gender }}
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-globe2"></i> Millati <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.nationality }}
-                            <div class="cp-field-hint"><i class="bi bi-lightbulb"></i> Masalan: O'zbek, Tojik, Qozoq</div>
-                        </div>
-                    </div>
-                </div>
+            <h1>Akkauntni tasdiqlash</h1>
+            <p>Ma'lumotlaringizni to'ldiring — bu sertifikat, to'lov va ota-onangiz bilan aloqa uchun kerak.</p>
+        </div>
+        <nav class="cv-card cv-steps" aria-label="Bo'limlar">
+            <a href="#sec-personal" class="cv-step" data-step="personal"><span class="cv-step-ico"><i class="bi bi-person-fill"></i></span><span>Shaxsiy ma'lumotlar<small>Ism, tug'ilgan sana, jins</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
+            <a href="#sec-document" class="cv-step" data-step="document"><span class="cv-step-ico"><i class="bi bi-person-vcard-fill"></i></span><span>Hujjat<small>Pasport yoki metrika</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
+            <a href="#sec-parents" class="cv-step" data-step="parents"><span class="cv-step-ico"><i class="bi bi-people-fill"></i></span><span>Ota-ona<small>Ism va telefon</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
+            <a href="#sec-school" class="cv-step" data-step="school"><span class="cv-step-ico"><i class="bi bi-mortarboard-fill"></i></span><span>Maktab va manzil<small>Ta'lim muassasasi</small></span><i class="bi bi-check-circle-fill cv-step-ok"></i></a>
+        </nav>
+        <div class="cv-card cv-secure"><i class="bi bi-shield-lock-fill"></i><span>Ma'lumotlaringiz shifrlangan holda saqlanadi va faqat o'quv markazi xodimlariga ko'rinadi.</span></div>
+    </aside>
+
+    <!-- ═══ O'ng panel: forma ═══ -->
+    <main class="cv-main">
+        {% if form.errors %}
+        <div class="cv-alert" role="alert">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <div><b>Ba'zi maydonlarda xato bor.</b> Qizil bilan belgilangan joylarni tekshiring.
+                {% if form.non_field_errors %}<ul>{% for e in form.non_field_errors %}<li>{{ e }}</li>{% endfor %}</ul>{% endif %}
             </div>
         </div>
+        {% endif %}
 
-        <!-- ======== SECTION 2: HUJJAT (Pasport yoki Metrika) ======== -->
-        <style>
-            .cp-doc-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
-            .cp-doc-opt { cursor: pointer; margin: 0; }
-            .cp-doc-opt input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-            .cp-doc-card { display: flex; flex-direction: column; gap: 4px; padding: 16px 18px;
-                border: 2px solid rgba(148,163,184,.3); border-radius: 16px;
-                background: rgba(148,163,184,.06); transition: all .2s ease; height: 100%; }
-            .cp-doc-card i { font-size: 1.6rem; color: #64748b; }
-            .cp-doc-card b { font-size: .95rem; }
-            .cp-doc-card small { font-size: .72rem; color: var(--bs-secondary-color, #94a3b8); }
-            .cp-doc-opt:hover .cp-doc-card { border-color: rgba(34,197,94,.5); transform: translateY(-2px); }
-            .cp-doc-opt.sel .cp-doc-card { border-color: #22c55e; background: rgba(34,197,94,.1);
-                box-shadow: 0 8px 24px -12px rgba(34,197,94,.6); }
-            .cp-doc-opt.sel .cp-doc-card i { color: #22c55e; }
-            .cp-doc-fields { animation: fadeInUp .35s ease both; }
-            .cp-doc-note { margin-top: 12px; padding: 10px 14px; border-radius: 12px; font-size: .8rem;
-                background: rgba(59,130,246,.08); border: 1px solid rgba(59,130,246,.22); color: #3b82f6; }
-            .cp-doc-empty { padding: 18px; text-align: center; border: 1.5px dashed rgba(148,163,184,.4);
-                border-radius: 14px; color: var(--bs-secondary-color, #94a3b8); font-size: .85rem; }
-            .cp-skip-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px;
-                padding: 12px 22px; border-radius: 14px; font-weight: 700; cursor: pointer;
-                background: transparent; color: var(--bs-secondary-color, #94a3b8);
-                border: 1.5px solid rgba(148,163,184,.35); transition: all .2s ease; }
-            .cp-skip-btn:hover { border-color: rgba(148,163,184,.6); color: #64748b; }
-            @media (max-width: 480px) { .cp-doc-switch { grid-template-columns: 1fr; } }
-        </style>
-        <div class="cp-section" id="section-passport">
-            <div class="cp-section-header">
-                <div class="cp-section-icon" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
-                    <i class="bi bi-patch-check-fill"></i>
+        <form method="post" id="cvForm" novalidate>
+            {% csrf_token %}
+
+            <!-- 1. SHAXSIY -->
+            <section class="cv-card cv-sec" id="sec-personal" data-sec="personal">
+                <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#6366f1;--c2:#8b5cf6"><i class="bi bi-person-fill"></i></span>
+                    <div><h2>Shaxsiy ma'lumotlar</h2><p>Hujjatingizdagi kabi yozing</p></div></header>
+                <div class="cv-grid">
+                    {% include 'accounts/_cv_field.html' with field=form.first_name icon='bi-person' label='Ism' required=True %}
+                    {% include 'accounts/_cv_field.html' with field=form.last_name icon='bi-person' label='Familiya' required=True %}
+                    {% include 'accounts/_cv_field.html' with field=form.birth_date icon='bi-calendar-event' label="Tug'ilgan sana" required=True %}
+                    <div class="cv-field {% if form.gender.errors %}has-error{% endif %}">
+                        <span class="cv-label"><i class="bi bi-gender-ambiguous"></i>Jinsi <em>*</em></span>
+                        <div class="cv-seg" role="radiogroup" aria-label="Jinsi">
+                            {% for value, text in form.fields.gender.choices %}{% if value %}
+                            <label class="cv-seg-opt"><input type="radio" name="{{ form.gender.html_name }}" value="{{ value }}" {% if form.gender.value == value %}checked{% endif %}><span><i class="bi {% if value == 'male' %}bi-gender-male{% else %}bi-gender-female{% endif %}"></i>{{ text }}</span></label>
+                            {% endif %}{% endfor %}
+                        </div>
+                        {% for e in form.gender.errors %}<div class="cv-err">{{ e }}</div>{% endfor %}
+                    </div>
+                    {% include 'accounts/_cv_field.html' with field=form.nationality icon='bi-globe2' label='Millati' required=True hint="Masalan: O'zbek, Tojik, Qozoq" %}
                 </div>
-                <h3>Hujjat ma'lumotlari<small>Pasport yoki metrika — bittasi yetarli</small></h3>
+            </section>
+
+            <!-- 2. HUJJAT -->
+            <section class="cv-card cv-sec" id="sec-document" data-sec="document">
+                <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#10b981;--c2:#059669"><i class="bi bi-person-vcard-fill"></i></span>
+                    <div><h2>Shaxsni tasdiqlovchi hujjat</h2><p>Pasport/ID karta yoki metrika — bittasi yetarli</p></div></header>
+                <div class="cv-doc-switch" role="radiogroup" aria-label="Hujjat turi">
+                    <label class="cv-doc"><input type="radio" name="document_type" value="passport" {% if form.document_type.value == 'passport' %}checked{% endif %}>
+                        <span><i class="bi bi-credit-card-2-front-fill"></i><b>Pasport / ID karta</b><small>16 yoshdan katta — seriya, raqam, JSHSHIR</small></span></label>
+                    <label class="cv-doc"><input type="radio" name="document_type" value="metrka" {% if form.document_type.value == 'metrka' %}checked{% endif %}>
+                        <span><i class="bi bi-file-earmark-person-fill"></i><b>Metrika (guvohnoma)</b><small>16 yoshgacha — seriya va raqam</small></span></label>
+                </div>
+                {% for e in form.document_type.errors %}<div class="cv-err">{{ e }}</div>{% endfor %}
+
+                <div class="cv-doc-fields" id="docPassport" hidden>
+                    <div class="cv-grid cv-grid-3">
+                        {% include 'accounts/_cv_field.html' with field=form.passport_series icon='bi-hash' label='Seriya' required=True hint='Masalan: AA' %}
+                        {% include 'accounts/_cv_field.html' with field=form.passport_number icon='bi-123' label='Raqam' required=True hint='7 xonali raqam' %}
+                        {% include 'accounts/_cv_field.html' with field=form.passport_issued_date icon='bi-calendar-date' label='Berilgan sana' %}
+                    </div>
+                    <div class="cv-field cv-jshshir {% if form.jshshir.errors %}has-error{% endif %}">
+                        <label class="cv-label" for="{{ form.jshshir.id_for_label }}"><i class="bi bi-fingerprint"></i>JSHSHIR (PINFL) <em>*</em></label>
+                        {% render_field form.jshshir class="cv-input cv-mono" inputmode="numeric" autocomplete="off" placeholder="14 ta raqam" %}
+                        <div class="cv-pinfl" id="pinflInfo" aria-live="polite" hidden></div>
+                        <div class="cv-hint"><i class="bi bi-info-circle"></i>1-raqam: toq — erkak, juft — ayol · 2-3: kun · 4-5: oy · 6-7: yil</div>
+                        {% for e in form.jshshir.errors %}<div class="cv-err">{{ e }}</div>{% endfor %}
+                    </div>
+                </div>
+                <div class="cv-doc-fields" id="docMetrka" hidden>
+                    <div class="cv-grid">
+                        {% include 'accounts/_cv_field.html' with field=form.metrka_series icon='bi-hash' label='Seriya' required=True hint='Masalan: I-GZ' %}
+                        {% include 'accounts/_cv_field.html' with field=form.metrka_number icon='bi-123' label='Raqam' required=True hint='Guvohnoma raqami' %}
+                    </div>
+                </div>
+                <div class="cv-doc-empty" id="docEmpty"><i class="bi bi-hand-index-thumb"></i>Yuqoridan hujjat turini tanlang</div>
+            </section>
+
+            <!-- 3. OTA-ONA -->
+            <section class="cv-card cv-sec" id="sec-parents" data-sec="parents">
+                <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#3b82f6;--c2:#6366f1"><i class="bi bi-people-fill"></i></span>
+                    <div><h2>Ota-ona ma'lumotlari</h2><p>Siz bilan bog'lanish va xabar berish uchun</p></div></header>
+                <div class="cv-grid">
+                    <div class="cv-parent" data-parent="father">
+                        <div class="cv-parent-head"><b><i class="bi bi-person-fill"></i> Otasi</b>
+                            <label class="cv-switch"><input type="checkbox" name="{{ form.father_deceased.html_name }}" id="{{ form.father_deceased.id_for_label }}" {% if form.father_deceased.value %}checked{% endif %}><span></span>Vafot etgan</label></div>
+                        <div class="cv-parent-body">
+                            {% include 'accounts/_cv_field.html' with field=form.father_name icon='bi-person' label="To'liq ismi" required=True %}
+                            {% include 'accounts/_cv_field.html' with field=form.father_phone icon='bi-telephone' label='Telefon' phone=True %}
+                        </div>
+                    </div>
+                    <div class="cv-parent" data-parent="mother">
+                        <div class="cv-parent-head"><b><i class="bi bi-person-fill"></i> Onasi</b>
+                            <label class="cv-switch"><input type="checkbox" name="{{ form.mother_deceased.html_name }}" id="{{ form.mother_deceased.id_for_label }}" {% if form.mother_deceased.value %}checked{% endif %}><span></span>Vafot etgan</label></div>
+                        <div class="cv-parent-body">
+                            {% include 'accounts/_cv_field.html' with field=form.mother_name icon='bi-person' label="To'liq ismi" required=True %}
+                            {% include 'accounts/_cv_field.html' with field=form.mother_phone icon='bi-telephone' label='Telefon' phone=True %}
+                        </div>
+                    </div>
+                </div>
+                <div class="cv-grid">
+                    {% include 'accounts/_cv_field.html' with field=form.parent_phone icon='bi-telephone-fill' label='Asosiy aloqa raqami' required=True phone=True hint="Ota yoki onangizdan biri — shu raqamga xabar beramiz" %}
+                </div>
+            </section>
+
+            <!-- 4. MAKTAB -->
+            <section class="cv-card cv-sec" id="sec-school" data-sec="school">
+                <header class="cv-sec-head"><span class="cv-sec-ico" style="--c1:#f59e0b;--c2:#ef4444"><i class="bi bi-mortarboard-fill"></i></span>
+                    <div><h2>Maktab va manzil</h2><p>Hozir o'qiyotgan yoki oxirgi maktabingiz</p></div></header>
+                <div class="cv-grid">
+                    {% include 'accounts/_cv_field.html' with field=form.school_name icon='bi-building' label='Maktab nomi' required=True %}
+                    {% include 'accounts/_cv_field.html' with field=form.school_number icon='bi-123' label='Maktab raqami' required=True hint='Masalan: 15, 32-IDUM' %}
+                </div>
+                {% include 'accounts/_cv_field.html' with field=form.address icon='bi-geo-alt-fill' label='Yashash manzili' required=True hint="Viloyat, tuman, ko'cha va uy raqami" %}
+            </section>
+
+            <div class="cv-actions">
+                <button type="submit" class="cv-btn cv-btn-primary"><i class="bi bi-check2-circle"></i>Saqlash va tasdiqlash</button>
+                <button type="submit" name="action" value="skip" formnovalidate class="cv-btn cv-btn-ghost"><i class="bi bi-clock-history"></i>Keyinroq to'ldiraman</button>
             </div>
-            <div class="cp-section-body">
-                <!-- Hujjat turini tanlash -->
-                <div class="cp-doc-switch">
-                    <label class="cp-doc-opt" data-doc="passport">
-                        <input type="radio" name="document_type" value="passport" {% if form.document_type.value == 'passport' %}checked{% endif %}>
-                        <span class="cp-doc-card">
-                            <i class="bi bi-credit-card-2-front-fill"></i>
-                            <b>Pasport / ID karta</b>
-                            <small>Seriya, raqam va JSHSHIR</small>
-                        </span>
-                    </label>
-                    <label class="cp-doc-opt" data-doc="metrka">
-                        <input type="radio" name="document_type" value="metrka" {% if form.document_type.value == 'metrka' %}checked{% endif %}>
-                        <span class="cp-doc-card">
-                            <i class="bi bi-file-earmark-person-fill"></i>
-                            <b>Metrika (guvohnoma)</b>
-                            <small>Seriya (I-GZ) va raqam</small>
-                        </span>
-                    </label>
-                </div>
-
-                <!-- PASPORT maydonlari -->
-                <div class="cp-doc-fields" id="doc-passport" style="display:none;">
-                    <div class="cp-passport-grid">
-                        <div class="cp-field">
-                            <label class="cp-label"><i class="bi bi-hash"></i> Seriya <span class="cp-required">Majburiy</span></label>
-                            {{ form.passport_series }}
-                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: AA</div>
-                        </div>
-                        <div class="cp-field">
-                            <label class="cp-label"><i class="bi bi-123"></i> Raqam <span class="cp-required">Majburiy</span></label>
-                            {{ form.passport_number }}
-                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 7 xonali raqam</div>
-                        </div>
-                        <div class="cp-field">
-                            <label class="cp-label"><i class="bi bi-fingerprint"></i> JSHSHIR (PINFL) <span class="cp-required">Majburiy</span></label>
-                            {{ form.jshshir }}
-                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> 14 xonali raqam</div>
-                        </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-4">
-                            <div class="cp-field">
-                                <label class="cp-label"><i class="bi bi-calendar-date"></i> Berilgan sana <span class="cp-optional">Ixtiyoriy</span></label>
-                                {{ form.passport_issued_date }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- METRIKA maydonlari (JSHSHIR yo'q) -->
-                <div class="cp-doc-fields" id="doc-metrka" style="display:none;">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="cp-field">
-                                <label class="cp-label"><i class="bi bi-hash"></i> Seriya <span class="cp-required">Majburiy</span></label>
-                                {{ form.metrka_series }}
-                                <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: I-GZ</div>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="cp-field">
-                                <label class="cp-label"><i class="bi bi-123"></i> Raqam <span class="cp-required">Majburiy</span></label>
-                                {{ form.metrka_number }}
-                                <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Guvohnoma raqami</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="cp-doc-note"><i class="bi bi-info-circle-fill"></i> Metrikada JSHSHIR bo'lmaydi — faqat seriya (I-GZ) va raqam kiritiladi.</div>
-                </div>
-
-                <!-- Hech biri tanlanmagan -->
-                <div class="cp-doc-empty" id="doc-empty">
-                    <i class="bi bi-arrow-up-circle"></i> Yuqoridan hujjat turini tanlang — pasport yoki metrika.
-                </div>
-            </div>
-        </div>
-
-        <!-- ======== SECTION 3: OTA-ONA ======== -->
-        <div class="cp-section" id="section-parents">
-            <div class="cp-section-header">
-                <div class="cp-section-icon" style="background: linear-gradient(135deg, #3b82f6, #6366f1);">
-                    <i class="bi bi-people-fill"></i>
-                </div>
-                <h3>Ota-ona ma'lumotlari<small>Ota va ona haqida to'liq ma'lumot</small></h3>
-            </div>
-            <div class="cp-section-body">
-                <div class="cp-parent-grid">
-                    <!-- OTA -->
-                    <div class="cp-parent-card father">
-                        <div class="cp-parent-title">
-                            <div class="cp-parent-title-icon"><i class="bi bi-person-fill"></i></div>
-                            Ota ma'lumotlari
-                        </div>
-                        <div id="father-fields-wrapper">
-                            <div class="cp-field">
-                                <label class="cp-label">
-                                    To'liq ismi <span class="cp-required">Majburiy</span>
-                                </label>
-                                {{ form.father_name }}
-                            </div>
-                            <div class="cp-field mb-0">
-                                <label class="cp-label">
-                                    Telefon raqami <span class="cp-optional">Ixtiyoriy</span>
-                                </label>
-                                {{ form.father_phone }}
-                            </div>
-                        </div>
-                        <div class="cp-deceased" onclick="toggleDeceased(this, 'father')">
-                            {{ form.father_deceased }}
-                            <label for="{{ form.father_deceased.id_for_label }}">
-                                <i class="bi bi-heartbreak-fill"></i> Vafot etgan
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- ONA -->
-                    <div class="cp-parent-card mother">
-                        <div class="cp-parent-title">
-                            <div class="cp-parent-title-icon"><i class="bi bi-person-fill"></i></div>
-                            Ona ma'lumotlari
-                        </div>
-                        <div id="mother-fields-wrapper">
-                            <div class="cp-field">
-                                <label class="cp-label">
-                                    To'liq ismi <span class="cp-required">Majburiy</span>
-                                </label>
-                                {{ form.mother_name }}
-                            </div>
-                            <div class="cp-field mb-0">
-                                <label class="cp-label">
-                                    Telefon raqami <span class="cp-optional">Ixtiyoriy</span>
-                                </label>
-                                {{ form.mother_phone }}
-                            </div>
-                        </div>
-                        <div class="cp-deceased" onclick="toggleDeceased(this, 'mother')">
-                            {{ form.mother_deceased }}
-                            <label for="{{ form.mother_deceased.id_for_label }}">
-                                <i class="bi bi-heartbreak-fill"></i> Vafot etgan
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row mt-3">
-                    <div class="col-md-6">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-telephone-fill"></i> Asosiy ota-ona telefon raqami <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.parent_phone }}
-                            <div class="cp-field-hint"><i class="bi bi-lightbulb"></i> Bog'lanish uchun asosiy raqam (+998...)</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ======== SECTION 4: MAKTAB ======== -->
-        <div class="cp-section" id="section-school">
-            <div class="cp-section-header">
-                <div class="cp-section-icon" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">
-                    <i class="bi bi-building"></i>
-                </div>
-                <h3>Maktab ma'lumotlari<small>Hozirgi ta'lim muassasasi</small></h3>
-            </div>
-            <div class="cp-section-body">
-                <div class="cp-school-visual">
-                    <i class="bi bi-mortarboard-fill"></i>
-                    Hozirda o'qiyotgan yoki oxirgi maktabingiz haqida ma'lumot kiriting
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-building"></i> Maktab nomi <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.school_name }}
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="cp-field">
-                            <label class="cp-label">
-                                <i class="bi bi-123"></i> Maktab raqami <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.school_number }}
-                            <div class="cp-field-hint"><i class="bi bi-info-circle"></i> Masalan: 15, 32-IDUM</div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <div class="cp-field mb-0">
-                            <label class="cp-label">
-                                <i class="bi bi-geo-alt-fill"></i> Yashash manzili <span class="cp-required">Majburiy</span>
-                            </label>
-                            {{ form.address }}
-                            <div class="cp-field-hint"><i class="bi bi-lightbulb"></i> Viloyat, tuman, ko'cha va uy raqami</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ======== SUBMIT ======== -->
-        <div class="cp-submit">
-            <button type="submit" class="cp-submit-btn">
-                <i class="bi bi-check-circle-fill"></i> Profilni saqlash va tasdiqlash
-            </button>
-            <div>
-                <button type="submit" name="action" value="skip" formnovalidate class="cp-skip-btn">
-                    <i class="bi bi-clock-history"></i> Keyinroq to'ldiraman
-                </button>
-            </div>
-            <div class="cp-submit-hint">
-                <i class="bi bi-shield-check"></i> Ma'lumotlaringiz xavfsiz saqlanadi
-            </div>
-        </div>
-    </form>
+        </form>
+    </main>
+</div>
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ===== Hujjat turi (pasport / metrika) toggle =====
-    (function() {
-        const radios = document.querySelectorAll('input[name="document_type"]');
-        const pass = document.getElementById('doc-passport');
-        const metr = document.getElementById('doc-metrka');
-        const empty = document.getElementById('doc-empty');
-        function upd() {
-            const v = document.querySelector('input[name="document_type"]:checked');
-            const val = v ? v.value : '';
-            if (pass) pass.style.display = (val === 'passport') ? '' : 'none';
-            if (metr) metr.style.display = (val === 'metrka') ? '' : 'none';
-            if (empty) empty.style.display = val ? 'none' : '';
-            document.querySelectorAll('.cp-doc-opt').forEach(function(o) { o.classList.remove('sel'); });
-            if (v) v.closest('.cp-doc-opt').classList.add('sel');
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.getElementById('cvForm');
+    var $ = function (id) { return document.getElementById(id); };
+    var birth = $('{{ form.birth_date.id_for_label }}');
+    var genderRadios = form.querySelectorAll('input[name="{{ form.gender.html_name }}"]');
+    var pinfl = $('{{ form.jshshir.id_for_label }}');
+    var info = $('pinflInfo');
+
+    // ── Hujjat turi ──
+    function docUpdate() {
+        var sel = form.querySelector('input[name="document_type"]:checked');
+        var v = sel ? sel.value : '';
+        $('docPassport').hidden = v !== 'passport';
+        $('docMetrka').hidden = v !== 'metrka';
+        $('docEmpty').hidden = !!v;
+        form.querySelectorAll('.cv-doc').forEach(function (d) { d.classList.toggle('sel', d.contains(sel)); });
+        progress();
+    }
+    form.querySelectorAll('input[name="document_type"]').forEach(function (r) { r.addEventListener('change', docUpdate); });
+
+    // ── Vafot etgan ──
+    function parentUpdate(box) {
+        var dead = box.querySelector('.cv-switch input').checked;
+        box.classList.toggle('is-dead', dead);
+        box.querySelectorAll('.cv-parent-body input').forEach(function (i) { i.readOnly = dead; i.tabIndex = dead ? -1 : 0; });
+        progress();
+    }
+    form.querySelectorAll('.cv-parent').forEach(function (box) {
+        box.querySelector('.cv-switch input').addEventListener('change', function () { parentUpdate(box); });
+        parentUpdate(box);
+    });
+
+    // ── Telefon: +998 o'zgarmas, qolgani "90 123 45 67" ──
+    var UZ = ['20','33','50','55','61','62','65','66','67','69','70','71','72','73','74','75','76','77','78','79','87','88','90','91','93','94','95','97','98','99'];
+    function fmtPhone(d) {
+        var p = [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean);
+        return p.join(' ');
+    }
+    form.querySelectorAll('.cv-phone input').forEach(function (inp) {
+        var hint = inp.closest('.cv-field').querySelector('.cv-live');
+        function norm() {
+            var d = inp.value.replace(/\D/g, '');
+            if (d.indexOf('998') === 0 && d.length > 9) d = d.slice(3);
+            d = d.slice(0, 9);
+            inp.value = fmtPhone(d);
+            var bad = '';
+            if (d.length >= 2 && UZ.indexOf(d.slice(0, 2)) === -1) bad = '«' + d.slice(0, 2) + '» — O‘zbekiston operator kodi emas';
+            else if (d.length && d.length < 9) bad = (9 - d.length) + ' ta raqam yetishmayapti';
+            hint.textContent = bad;
+            hint.hidden = !bad;
+            inp.closest('.cv-field').classList.toggle('is-ok', d.length === 9 && !bad);
+            progress();
         }
-        radios.forEach(function(r) { r.addEventListener('change', upd); });
-        // Mustahkamlik: ba'zi brauzerlarda yashirin radio 'change' bermasligi mumkin,
-        // shuning uchun kartaga bosilganda radio'ni majburan tanlab, upd() chaqiramiz.
-        document.querySelectorAll('.cp-doc-opt').forEach(function(lbl) {
-            lbl.addEventListener('click', function() {
-                const r = lbl.querySelector('input[type="radio"]');
-                if (r) { r.checked = true; upd(); }
-            });
-        });
-        upd();
-    })();
+        inp.addEventListener('input', norm);
+        norm();
+    });
 
-    // ===== Deceased toggles =====
-    const fatherDeceased = document.getElementById('{{ form.father_deceased.id_for_label }}');
-    const fatherWrapper = document.getElementById('father-fields-wrapper');
-    const motherDeceased = document.getElementById('{{ form.mother_deceased.id_for_label }}');
-    const motherWrapper = document.getElementById('mother-fields-wrapper');
-
-    function applyDeceased(checkbox, wrapper) {
-        if (!checkbox || !wrapper) return;
-        var inputs = wrapper.querySelectorAll('input, select, textarea');
-        var requiredLabel = wrapper.querySelector('.cp-required, .cp-optional');
-        if (checkbox.checked) {
-            wrapper.classList.add('cp-disabled-overlay');
-            inputs.forEach(function(inp) {
-                inp.removeAttribute('required');
-                inp.disabled = true;
-            });
-            if (requiredLabel) {
-                requiredLabel.textContent = 'Ixtiyoriy';
-                requiredLabel.classList.remove('cp-required');
-                requiredLabel.classList.add('cp-optional');
-            }
+    // ── JSHSHIR: jins va tug'ilgan sanani o'qish ──
+    function parsePinfl(v) {
+        if (!/^\d{14}$/.test(v)) return null;
+        var f = +v[0];
+        if (f < 1 || f > 6) return { error: '1-raqam 1 dan 6 gacha bo‘lishi kerak' };
+        var century = f <= 2 ? 1800 : (f <= 4 ? 1900 : 2000);
+        var day = +v.slice(1, 3), month = +v.slice(3, 5), year = century + +v.slice(5, 7);
+        var dt = new Date(Date.UTC(year, month - 1, day));
+        if (dt.getUTCFullYear() !== year || dt.getUTCMonth() !== month - 1 || dt.getUTCDate() !== day)
+            return { error: 'Tug‘ilgan sana noto‘g‘ri: ' + v.slice(1, 3) + '.' + v.slice(3, 5) + '.' + year };
+        if (dt > new Date()) return { error: 'Tug‘ilgan sana kelajakda bo‘lishi mumkin emas' };
+        var iso = year + '-' + String(month).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+        return { gender: f % 2 ? 'male' : 'female', iso: iso, human: v.slice(1, 3) + '.' + v.slice(3, 5) + '.' + year };
+    }
+    function genderValue() { var g = form.querySelector('input[name="{{ form.gender.html_name }}"]:checked'); return g ? g.value : ''; }
+    function setGender(v) { genderRadios.forEach(function (r) { r.checked = r.value === v; }); }
+    function pinflUpdate() {
+        if (!pinfl) return;
+        pinfl.value = pinfl.value.replace(/\D/g, '').slice(0, 14);
+        var v = pinfl.value, box = pinfl.closest('.cv-field');
+        if (!v) { info.hidden = true; box.classList.remove('is-ok', 'is-bad'); return; }
+        if (v.length < 14) {
+            info.hidden = false; info.className = 'cv-pinfl';
+            info.innerHTML = '<i class="bi bi-hourglass-split"></i>' + (14 - v.length) + ' ta raqam qoldi';
+            box.classList.remove('is-ok', 'is-bad'); return;
+        }
+        var p = parsePinfl(v);
+        info.hidden = false;
+        if (p.error) { info.className = 'cv-pinfl bad'; info.innerHTML = '<i class="bi bi-x-octagon-fill"></i>' + p.error; box.classList.add('is-bad'); box.classList.remove('is-ok'); return; }
+        // Bo'sh bo'lsa — JSHSHIR'dan avtomatik to'ldiramiz.
+        if (birth && !birth.value) birth.value = p.iso;
+        if (!genderValue()) setGender(p.gender);
+        var issues = [];
+        if (birth && birth.value && birth.value !== p.iso) issues.push('tug‘ilgan sana (' + p.human + ')');
+        if (genderValue() && genderValue() !== p.gender) issues.push('jins (' + (p.gender === 'male' ? 'erkak' : 'ayol') + ')');
+        var chips = '<span><i class="bi ' + (p.gender === 'male' ? 'bi-gender-male' : 'bi-gender-female') + '"></i>' + (p.gender === 'male' ? 'Erkak' : 'Ayol') + '</span><span><i class="bi bi-calendar-heart"></i>' + p.human + '</span>';
+        if (issues.length) {
+            info.className = 'cv-pinfl bad';
+            info.innerHTML = chips + '<div class="cv-pinfl-msg"><i class="bi bi-exclamation-triangle-fill"></i>JSHSHIR kiritilgan ' + issues.join(' va ') + ' bilan mos emas. <button type="button" id="pinflFix">JSHSHIR bo‘yicha to‘g‘rilash</button></div>';
+            $('pinflFix').addEventListener('click', function () { birth.value = p.iso; setGender(p.gender); pinflUpdate(); progress(); });
+            box.classList.add('is-bad'); box.classList.remove('is-ok');
         } else {
-            wrapper.classList.remove('cp-disabled-overlay');
-            inputs.forEach(function(inp) {
-                inp.disabled = false;
-            });
-            if (requiredLabel) {
-                requiredLabel.textContent = 'Majburiy';
-                requiredLabel.classList.remove('cp-optional');
-                requiredLabel.classList.add('cp-required');
-            }
+            info.className = 'cv-pinfl ok';
+            info.innerHTML = chips + '<span class="cv-pinfl-ok"><i class="bi bi-check-circle-fill"></i>Haqiqiy JSHSHIR</span>';
+            box.classList.add('is-ok'); box.classList.remove('is-bad');
         }
     }
-
-    if (fatherDeceased) {
-        fatherDeceased.addEventListener('change', function() { applyDeceased(fatherDeceased, fatherWrapper); });
-        applyDeceased(fatherDeceased, fatherWrapper);
-    }
-    if (motherDeceased) {
-        motherDeceased.addEventListener('change', function() { applyDeceased(motherDeceased, motherWrapper); });
-        applyDeceased(motherDeceased, motherWrapper);
+    if (pinfl) {
+        pinfl.addEventListener('input', function () { pinflUpdate(); progress(); });
+        if (birth) birth.addEventListener('change', pinflUpdate);
+        genderRadios.forEach(function (r) { r.addEventListener('change', pinflUpdate); });
     }
 
-    // Re-enable disabled fields before submit so values are sent
-    var form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function() {
-            form.querySelectorAll('input:disabled, select:disabled, textarea:disabled').forEach(function(el) {
-                el.disabled = false;
+    // ── Pasport seriyasi / raqami maskasi ──
+    var ps = $('{{ form.passport_series.id_for_label }}'), pn = $('{{ form.passport_number.id_for_label }}');
+    if (ps) ps.addEventListener('input', function () { ps.value = ps.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2); });
+    if (pn) pn.addEventListener('input', function () { pn.value = pn.value.replace(/\D/g, '').slice(0, 7); });
+
+    // ── Jonli progress va bosqich belgilari ──
+    function filled(el) { return el && el.value && el.value.trim().length > 0; }
+    function sectionDone(sec) {
+        if (sec === 'personal') return ['{{ form.first_name.id_for_label }}', '{{ form.last_name.id_for_label }}', '{{ form.birth_date.id_for_label }}', '{{ form.nationality.id_for_label }}'].every(function (id) { return filled($(id)); }) && !!genderValue();
+        if (sec === 'document') {
+            var d = form.querySelector('input[name="document_type"]:checked');
+            if (!d) return false;
+            if (d.value === 'metrka') return filled($('{{ form.metrka_series.id_for_label }}')) && filled($('{{ form.metrka_number.id_for_label }}'));
+            return filled(ps) && filled(pn) && pinfl && pinfl.closest('.cv-field').classList.contains('is-ok');
+        }
+        if (sec === 'parents') {
+            var ok = true;
+            form.querySelectorAll('.cv-parent').forEach(function (box) {
+                if (!box.classList.contains('is-dead') && !filled(box.querySelector('.cv-parent-body input'))) ok = false;
             });
-        });
+            return ok && $('{{ form.parent_phone.id_for_label }}').closest('.cv-field').classList.contains('is-ok');
+        }
+        return ['{{ form.school_name.id_for_label }}', '{{ form.school_number.id_for_label }}', '{{ form.address.id_for_label }}'].every(function (id) { return filled($(id)); });
     }
-
-    // ===== Steps highlight on scroll =====
-    const sections = document.querySelectorAll('.cp-section');
-    const steps = document.querySelectorAll('.cp-step');
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting) {
-                const idx = Array.from(sections).indexOf(entry.target);
-                steps.forEach(function(s, i) {
-                    s.classList.toggle('active', i === idx);
-                });
-            }
+    function progress() {
+        var secs = ['personal', 'document', 'parents', 'school'], done = 0;
+        secs.forEach(function (s) {
+            var ok = sectionDone(s);
+            done += ok ? 1 : 0;
+            var step = document.querySelector('.cv-step[data-step="' + s + '"]');
+            if (step) step.classList.toggle('done', ok);
         });
-    }, { threshold: 0.3 });
-    sections.forEach(function(s) { observer.observe(s); });
-
-    // ===== Input mask: JSHSHIR =====
-    const jshshirInput = document.getElementById('{{ form.jshshir.id_for_label }}');
-    if (jshshirInput) {
-        jshshirInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 14);
-        });
+        var pct = Math.round(done * 100 / secs.length);
+        $('cvPercent').textContent = pct;
+        $('cvRing').style.setProperty('--p', pct);
     }
+    form.addEventListener('input', progress);
+    form.addEventListener('change', progress);
 
-    // ===== Input mask: passport series =====
-    const passSeriesInput = document.getElementById('{{ form.passport_series.id_for_label }}');
-    if (passSeriesInput) {
-        passSeriesInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 2);
+    // Faol bo'limni yon panelda belgilash
+    var steps = document.querySelectorAll('.cv-step');
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+            if (!e.isIntersecting) return;
+            steps.forEach(function (s) { s.classList.toggle('active', s.dataset.step === e.target.dataset.sec); });
         });
-    }
+    }, { rootMargin: '-40% 0px -55% 0px' });
+    form.querySelectorAll('.cv-sec').forEach(function (s) { io.observe(s); });
 
-    // ===== Input mask: passport number =====
-    const passNumInput = document.getElementById('{{ form.passport_number.id_for_label }}');
-    if (passNumInput) {
-        passNumInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9]/g, '').slice(0, 7);
-        });
-    }
+    // Birinchi xatoli maydonga o'tish
+    var firstErr = form.querySelector('.has-error');
+    if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    docUpdate();
+    pinflUpdate();
+    progress();
 });
-
-function scrollToSection(id) {
-    var el = document.getElementById(id);
-    if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
-function toggleDeceased(container, type) {
-    if (event.target.tagName === 'INPUT') return;
-    var cb = container.querySelector('input[type="checkbox"]');
-    if (cb) {
-        cb.checked = !cb.checked;
-        cb.dispatchEvent(new Event('change'));
-    }
-}
 </script>
 {% endblock %}

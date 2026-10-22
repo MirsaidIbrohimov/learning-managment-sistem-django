@@ -38,7 +38,7 @@ def robots_txt(request):
     return _serve_root_file(request, 'robots.txt', 'text/plain; charset=utf-8')
 
 
-@cache_page(300, key_prefix='public-sitemap-v1')
+@cache_page(300, key_prefix='public-sitemap-v2')
 @cache_control(public=True, max_age=300)
 def sitemap_xml(request):
     """Build a crawlable sitemap for public landing and published blog pages."""
@@ -49,10 +49,22 @@ def sitemap_xml(request):
 
     origin = getattr(settings, 'SEO_CANONICAL_ORIGIN', 'https://itc-academy.uz').rstrip('/') + '/'
     root = ET.Element(f'{{{sitemap_ns}}}urlset')
-    public_paths = ('/', '/ariza/', reverse('qabul_it_creative'), reverse('blog:post_list'))
+    public_paths = ('/', '/ariza/', reverse('public_courses'), reverse('blog:post_list'))
     for path in public_paths:
         url_node = ET.SubElement(root, f'{{{sitemap_ns}}}url')
         ET.SubElement(url_node, f'{{{sitemap_ns}}}loc').text = urljoin(origin, path.lstrip('/'))
+
+    # Sotuvdagi kurslarning ochiq sahifalari — Google to'g'ridan-to'g'ri xaridga olib keladi.
+    from accounts.public_courses import sale_courses
+
+    for course in sale_courses().only('pk', 'name', 'photo', 'created_at').iterator():
+        url_node = ET.SubElement(root, f'{{{sitemap_ns}}}url')
+        ET.SubElement(url_node, f'{{{sitemap_ns}}}loc').text = urljoin(origin, course.public_url.lstrip('/'))
+        ET.SubElement(url_node, f'{{{sitemap_ns}}}lastmod').text = course.created_at.date().isoformat()
+        if course.photo:
+            image_node = ET.SubElement(url_node, f'{{{image_ns}}}image')
+            ET.SubElement(image_node, f'{{{image_ns}}}loc').text = urljoin(origin, course.photo.url.lstrip('/'))
+            ET.SubElement(image_node, f'{{{image_ns}}}title').text = course.name
 
     from blog.models import Post
 
@@ -102,11 +114,41 @@ _INLINE_SAFE_TYPES = (
 )
 
 
+def _serve_media_bytes_path(path):
+    """Kirillcha (UTF-8) nomli mavjud fayllar uchun zaxira.
+
+    Ba'zi hosting serverlarida Python fayl tizimi kodlashi UTF-8 emas — u holda
+    "Снимок_экрана.png" kabi fayl diskda bor bo'lsa ham `serve` uni topa olmay
+    404 beradi. Yo'lni UTF-8 baytlariga o'girib qidirish kodlash sozlamasiga
+    bog'liq emas. Faqat MEDIA_ROOT ichidagi oddiy fayllar beriladi.
+    """
+    import mimetypes
+
+    from django.http import FileResponse
+
+    from accounts.media_names import find_media_file
+
+    target = find_media_file(path)
+    if target is None:
+        return None
+    content_type, encoding = mimetypes.guess_type(path)
+    response = FileResponse(open(target, 'rb'), content_type=content_type or 'application/octet-stream')
+    if encoding:
+        response['Content-Encoding'] = encoding
+    return response
+
+
 def serve_media(request, path):
     """`/media/` fayllarini uzatadi, xavfli turlarni ochilishga qo'ymaydi."""
+    from django.http import Http404
     from django.views.static import serve as static_serve
 
-    response = static_serve(request, path, document_root=settings.MEDIA_ROOT)
+    try:
+        response = static_serve(request, path, document_root=settings.MEDIA_ROOT)
+    except Http404:
+        response = _serve_media_bytes_path(path)
+        if response is None:
+            raise
 
     content_type = (response.get('Content-Type') or '').split(';')[0].strip().lower()
     if content_type not in _INLINE_SAFE_TYPES:

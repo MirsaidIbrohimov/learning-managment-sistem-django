@@ -1,113 +1,64 @@
-
-from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
-from accounts.models import UserDevice, UserSession
+from django.core.cache import cache
+from django.test import Client, TestCase
 from django.utils import timezone
-import time
+
+from accounts.models import UserDevice, UserSession
 
 User = get_user_model()
 
-class DeviceManagementTest(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-            username='testuser', 
-            password='password123',
-            first_name='Test',
-            last_name='User'
-        )
-        self.client = Client()
+UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0 Safari/537.36'
 
-    def test_device_cookie_persistence(self):
-        """Test that device_uuid cookie prevents new device creation on IP change"""
-        
-        # 1. Login first time (IP 1)
-        response = self.client.post('/login/', {'username': 'testuser', 'password': 'password123'}, REMOTE_ADDR='192.168.1.1')
-        self.assertEqual(response.status_code, 302)
-        
-        # Check cookie is set
-        self.assertIn('device_uuid', response.cookies)
-        device_uuid = response.cookies['device_uuid'].value
-        
-        # Check UserDevice created
+
+class DeviceManagementTest(TestCase):
+    """Qurilma User-Agent + IP bo'yicha aniqlanadi; bir vaqtda faqat 1 ta sessiya onlayn."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user(
+            username='testuser', password='password123', first_name='Test', last_name='User',
+            is_profile_completed=True, birth_date=timezone.localdate().replace(year=2005),
+        )
+        self.client = Client(HTTP_USER_AGENT=UA)
+
+    def login(self, client=None, ip='192.168.1.1'):
+        client = client or self.client
+        return client.post('/login/', {'username': 'testuser', 'password': 'password123'}, REMOTE_ADDR=ip)
+
+    def test_same_browser_and_ip_reuses_device(self):
+        self.assertEqual(self.login().status_code, 302)
         self.assertEqual(UserDevice.objects.count(), 1)
-        device1 = UserDevice.objects.first()
-        self.assertEqual(device1.ip_address, '192.168.1.1')
-        
-        # 2. Logout (Simulate logout but KEEP device cookie)
-        # We manually clear session cookie but keep device_uuid
-        self.client.cookies['sessionid'] = ''
-        
-        # 3. Login second time (IP 2) - same client (cookies preserved)
-        response = self.client.post('/login/', {'username': 'testuser', 'password': 'password123'}, REMOTE_ADDR='192.168.1.2')
-        
-        # Check UserDevice count is STILL 1
-        self.assertEqual(UserDevice.objects.count(), 1, "Should not create new device if cookie exists")
-        
-        # Check IP updated
-        device1.refresh_from_db()
-        self.assertEqual(device1.ip_address, '192.168.1.2')
-        
-    def test_new_device_without_cookie(self):
-        """Test that missing cookie creates new device"""
-        
-        # 1. Login first time
-        self.client.post('/login/', {'username': 'testuser', 'password': 'password123'}, REMOTE_ADDR='192.168.1.1')
-        self.assertEqual(UserDevice.objects.count(), 1)
-        
-        # 2. Clear cookies (simulate new browser)
-        self.client.cookies.clear()
-        
-        # 3. Login again
-        self.client.post('/login/', {'username': 'testuser', 'password': 'password123'}, REMOTE_ADDR='192.168.1.1')
-        
-        # Check UserDevice count is 2
-        self.assertEqual(UserDevice.objects.count(), 2, "Should create new device if cookie invalid/missing")
+        device = UserDevice.objects.get()
+        self.assertEqual((device.ip_address, device.browser), ('192.168.1.1', 'Chrome'))
+
+        self.login(Client(HTTP_USER_AGENT=UA))
+        self.assertEqual(UserDevice.objects.count(), 1, "Bir xil brauzer va IP yangi qurilma yaratmaydi")
+
+    def test_other_ip_creates_new_device(self):
+        self.login()
+        self.login(Client(HTTP_USER_AGENT=UA), ip='10.0.0.7')
+        self.assertEqual(UserDevice.objects.count(), 2)
+
+    def test_new_login_closes_previous_sessions(self):
+        self.login()
+        first_key = self.client.session.session_key
+        other = Client(HTTP_USER_AGENT=UA)
+        self.login(other, ip='10.0.0.7')
+        self.assertFalse(UserSession.objects.get(session_key=first_key).is_active)
+        self.assertEqual(UserSession.objects.filter(user=self.user, is_active=True).count(), 1)
+        # Eski qurilmadagi sessiya endi tizimga kira olmaydi.
+        self.assertEqual(self.client.get('/profile/').status_code, 302)
 
     def test_logout_all_devices(self):
-        """Test logging out other devices"""
-        
-        # Create 2 sessions manually because Client handles only one
-        device1 = UserDevice.objects.create(user=self.user, device_id='uuid1', device_name='Device 1')
-        device2 = UserDevice.objects.create(user=self.user, device_id='uuid2', device_name='Device 2')
-        
-        UserSession.objects.create(
-            user=self.user, 
-            device=device1, 
-            session_key='session1', 
-            expires_at=timezone.now() + timezone.timedelta(hours=2),
-            is_active=True
-        )
-        UserSession.objects.create(
-            user=self.user, 
-            device=device2, 
-            session_key='session2', 
-            expires_at=timezone.now() + timezone.timedelta(hours=2),
-            is_active=True
-        )
-        
-        # Login (creates session 3)
-        self.client.login(username='testuser', password='password123')
-        current_session_key = self.client.session.session_key
-        
-        # Create user session for the login (Middleware would do this, but client.login bypasses middleware unless we make a request)
-        # So we make a request to trigger middleware
-        self.client.get('/')
-        
-        # Check total active sessions before logout
-        # We expect: session1, session2, and current_session
-        active_count = UserSession.objects.filter(is_active=True).count()
-        self.assertTrue(active_count >= 3)
-        
-        # Call logout all
+        self.login()
+        current_key = self.client.session.session_key
+        device = UserDevice.objects.get()
+        for key in ('session1', 'session2'):
+            UserSession.objects.create(user=self.user, device=device, session_key=key, is_active=True,
+                                       expires_at=timezone.now() + timezone.timedelta(hours=2))
+
         response = self.client.post('/profile/devices/logout-all/')
-        self.assertEqual(response.status_code, 302)
-        
-        # Check: Current session should be active, others inactive
-        # session1 and session2 should be inactive
+        self.assertRedirects(response, '/profile/devices/', fetch_redirect_response=False)
         self.assertFalse(UserSession.objects.get(session_key='session1').is_active)
         self.assertFalse(UserSession.objects.get(session_key='session2').is_active)
-        
-        # Current one should be active
-        # Note: current_session_key might have changed if session was cycled, but usually stable in test unless secure cookie
-        self.assertTrue(UserSession.objects.filter(session_key=current_session_key, is_active=True).exists())
-
+        self.assertTrue(UserSession.objects.get(session_key=current_key).is_active)

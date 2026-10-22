@@ -20,6 +20,9 @@ class Profession(models.Model):
     blocked_reason = models.CharField(max_length=300, blank=True, null=True, verbose_name="Bloklash sababi")
     closed_group_link = models.URLField(max_length=500, blank=True, null=True, verbose_name="Yopiq guruh havolasi")
     ai_check_enabled = models.BooleanField(default=True, verbose_name="AI tekshiruvchi yoqilgan")
+    # Bir martalik to'lov: so'rov o'rniga Tezcheck orqali sotib olinadi.
+    one_time_payment = models.BooleanField(default=False, verbose_name="Bir martalik to'lov")
+    one_time_price = models.PositiveIntegerField(default=0, verbose_name="Kurs narxi (so'm)")
 
     # ─── Turi / mavzular soni / davomiylik ───
     KIND_CHOICES = (
@@ -58,6 +61,24 @@ class Profession(models.Model):
         """Berilgan dars turi uchun ustoz stavkasi (so'm). Noma'lum tur -> 0."""
         field = self.TEACHER_RATE_FIELDS.get(lesson_type)
         return getattr(self, field) if field else 0
+
+    @property
+    def is_sold_once(self):
+        """Kurs so'rovsiz, bir martalik to'lov bilan ochiladimi?"""
+        return bool(self.is_paid and self.one_time_payment and self.one_time_price > 0)
+
+    @property
+    def seo_slug(self):
+        """Ochiq kurs sahifasi URL'i uchun lotincha slug ("Python asoslari" → "python-asoslari")."""
+        from django.utils.text import slugify
+        from .security import ascii_filename
+        return slugify(ascii_filename(self.name).replace('_', ' ')) or 'kurs'
+
+    @property
+    def public_url(self):
+        """Google indekslaydigan ochiq kurs sahifasi (faqat sotuvdagi kurslar)."""
+        from django.urls import reverse
+        return reverse('public_course', args=[self.pk, self.seo_slug])
 
     @property
     def is_lesson_limit_reached(self):
@@ -2620,7 +2641,8 @@ class TezCheckPaymentOrder(models.Model):
         'CustomUser', on_delete=models.PROTECT,
         related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
     )
-    purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi')])
+    purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi'), ('course', 'Kurs xaridi')])
+    course = models.ForeignKey('Profession', null=True, blank=True, on_delete=models.SET_NULL, related_name='tezcheck_orders')
     coin_transaction = models.OneToOneField('coin.CoinTransaction', null=True, blank=True, on_delete=models.PROTECT, related_name='payment_order')
     coin_payment_key = models.CharField(max_length=100, null=True, blank=True, unique=True)
     coin_quantity = models.PositiveIntegerField(null=True, blank=True)

@@ -1,4 +1,4 @@
-{% load custom_filters %}
+{% load custom_filters static %}
 <!DOCTYPE html>
 <html lang="uz" data-bs-theme="light">
 <head>
@@ -441,37 +441,108 @@ body {
     margin-bottom: 0.55rem;
 }
 .pw-payment-methods-list {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
 }
 .pw-payment-method {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 0.3rem;
-    padding: 0.32rem 0.55rem;
-    border-radius: 7px;
-    background: rgba(255,255,255,0.07);
-    border: 1px solid var(--pw-border);
-    color: var(--pw-text);
-    font-size: 0.72rem;
+    justify-content: center;
+    gap: 0.4rem;
+    height: 44px;
+    padding: 0 0.6rem;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid rgba(15,23,42,0.08);
+    box-shadow: 0 2px 8px -4px rgba(15,23,42,0.25);
+    color: #14142b;
+    font-size: 0.78rem;
     font-weight: 800;
     line-height: 1;
     white-space: nowrap;
+    transition: transform .15s ease, box-shadow .2s ease;
 }
-.pw-method-icon {
-    width: 17px;
-    height: 17px;
-    flex: 0 0 17px;
-    display: block;
+.pw-payment-method:hover { transform: translateY(-1px); box-shadow: 0 6px 16px -8px rgba(15,23,42,0.35); }
+.pw-method-logo { display: block; height: 22px; width: auto; max-width: 100%; object-fit: contain; }
+.pw-method-logo.square { height: 26px; border-radius: 7px; }
+.pw-method-logo.wide { height: 18px; }
+@media (max-width: 380px) { .pw-payment-methods-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* ── Sotib olingan kurslar: bloklangan hisobda ham ochiq ── */
+.pc-wrap { max-width: 1000px; margin: 0 auto 1.25rem; width: 100%; }
+.pc-card {
+    position: relative; overflow: hidden; border-radius: 22px; padding: 1.4rem;
+    background:
+        radial-gradient(120% 140% at 0% 0%, rgba(34,197,94,.16), transparent 55%),
+        radial-gradient(120% 140% at 100% 100%, rgba(99,102,241,.22), transparent 55%),
+        var(--pw-card);
+    box-shadow: 0 20px 50px -24px rgba(99,102,241,.55);
+    animation: pcIn .6s cubic-bezier(.2,.8,.2,1) both;
 }
-.pw-payment-method.click { color: #ff765e; }
-.pw-payment-method.payme { color: #58a6ff; }
-.pw-payment-method.uzum { color: #c4a1ff; }
-.pw-payment-method.paynet { color: #ffb454; }
-.pw-payment-method.humo { color: #61d6c5; }
-.pw-payment-method.uzcard { color: #75a7ff; }
+.pc-card::before {
+    content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.5px; pointer-events: none;
+    background: linear-gradient(120deg, #22c55e, #6366f1, #a855f7, #22c55e);
+    background-size: 300% 300%; animation: pcBorder 6s linear infinite;
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+}
+.pc-head { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.pc-icon {
+    position: relative; width: 56px; height: 56px; border-radius: 17px; flex: none;
+    display: grid; place-items: center; font-size: 1.6rem; color: #fff;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 10px 24px -8px rgba(34,197,94,.7);
+}
+.pc-icon::after {
+    content: ""; position: absolute; inset: -6px; border-radius: 21px; border: 2px solid rgba(34,197,94,.45);
+    animation: pcPulse 2.2s ease-out infinite;
+}
+.pc-text { flex: 1; min-width: 220px; }
+.pc-eyebrow { display: inline-flex; align-items: center; gap: .35rem; font-size: .7rem; font-weight: 800; letter-spacing: .08em;
+              text-transform: uppercase; color: var(--pw-green); }
+.pc-title { margin: .2rem 0 .15rem; font-size: 1.2rem; font-weight: 800; color: var(--pw-text); letter-spacing: -.01em; }
+.pc-sub { margin: 0; font-size: .86rem; color: var(--pw-muted); }
+.pc-cta {
+    position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: .5rem;
+    padding: .8rem 1.3rem; border-radius: 14px; font-weight: 800; font-size: .92rem; text-decoration: none; color: #fff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6); box-shadow: 0 12px 28px -10px rgba(99,102,241,.8);
+    transition: transform .15s ease, box-shadow .2s ease;
+}
+.pc-cta::after {
+    content: ""; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); transform: skewX(-20deg);
+    animation: pcShine 3.2s ease-in-out infinite;
+}
+.pc-cta:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 16px 34px -10px rgba(99,102,241,.9); }
+.pc-cta:focus-visible, .pc-course:focus-visible { outline: 3px solid rgba(99,102,241,.6); outline-offset: 2px; }
+.pc-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .75rem; margin-top: 1.1rem; }
+.pc-course {
+    display: flex; align-items: center; gap: .75rem; padding: .7rem; border-radius: 16px; text-decoration: none;
+    color: var(--pw-text); background: rgba(255,255,255,.04); border: 1px solid var(--pw-border);
+    transition: transform .15s ease, border-color .2s ease, background .2s ease;
+}
+[data-bs-theme="light"] .pc-course { background: rgba(255,255,255,.75); }
+.pc-course:hover { color: var(--pw-text); transform: translateY(-2px); border-color: rgba(99,102,241,.5); background: rgba(99,102,241,.08); }
+.pc-thumb { width: 52px; height: 52px; border-radius: 13px; flex: none; object-fit: cover;
+            background: linear-gradient(135deg, #6366f1, #a855f7); display: grid; place-items: center; color: #fff; font-size: 1.3rem; }
+.pc-info { flex: 1; min-width: 0; display: block; }
+.pc-name { display: block; font-weight: 800; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pc-meta { display: flex; justify-content: space-between; font-size: .72rem; color: var(--pw-muted); margin: .25rem 0 .3rem; }
+.pc-bar { display: block; height: 6px; border-radius: 99px; background: var(--pw-line); overflow: hidden; }
+.pc-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #22c55e, #6366f1); }
+.pc-go { flex: none; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center;
+         color: #fff; background: rgba(99,102,241,.85); font-size: .95rem; }
+@keyframes pcIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes pcBorder { to { background-position: 300% 0; } }
+@keyframes pcPulse { 0% { opacity: .9; transform: scale(.92); } 100% { opacity: 0; transform: scale(1.18); } }
+@keyframes pcShine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
+@media (max-width: 576px) {
+    .pc-card { padding: 1.1rem; }
+    .pc-cta { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pc-card, .pc-card::before, .pc-icon::after, .pc-cta::after { animation: none !important; }
+}
 .pw-payment-methods-note {
     margin-top: 0.55rem;
     color: var(--pw-muted);
@@ -531,6 +602,39 @@ body {
         </div>
         {% endfor %}
     </div>
+    {% endif %}
+
+    {% if purchased_courses %}
+    <!-- Sotib olingan kurslar: hisob bloklangan bo'lsa ham ochiq -->
+    <section class="pc-wrap" aria-labelledby="pcTitle">
+        <div class="pc-card">
+            <div class="pc-head">
+                <div class="pc-icon" aria-hidden="true"><i class="bi bi-unlock-fill"></i></div>
+                <div class="pc-text">
+                    <span class="pc-eyebrow"><i class="bi bi-stars"></i>O'qishni to'xtatmang</span>
+                    <h2 class="pc-title" id="pcTitle">Sotib olingan kurslaringiz ochiq! 🎉</h2>
+                    <p class="pc-sub">Hisob holatidan qat'i nazar, bu kurslarni hozir davom ettirishingiz mumkin.</p>
+                </div>
+                <a href="{% url 'kurslarim:my_courses' %}" class="pc-cta">
+                    <i class="bi bi-play-circle-fill"></i>Kurslarimga o'tish<i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="pc-list">
+                {% for item in purchased_courses %}
+                <a href="{% if item.resume %}{% url 'kurslarim:lesson' item.resume.pk %}{% else %}{% url 'kurslarim:course' item.course.pk %}{% endif %}" class="pc-course">
+                    {% if item.course.photo %}<img class="pc-thumb" src="{{ item.course.photo.url }}" alt="">
+                    {% else %}<span class="pc-thumb"><i class="bi bi-journal-code"></i></span>{% endif %}
+                    <span class="pc-info">
+                        <span class="pc-name">{{ item.course.name }}</span>
+                        <span class="pc-meta"><span>{% if item.percent == 100 %}Tugatilgan 🏆{% elif item.percent %}Davom ettirish{% else %}Boshlash{% endif %}</span><span>{{ item.percent }}%</span></span>
+                        <span class="pc-bar" role="progressbar" aria-label="{{ item.course.name }} progressi" aria-valuenow="{{ item.percent }}" aria-valuemin="0" aria-valuemax="100"><i style="width:{{ item.percent }}%"></i></span>
+                    </span>
+                    <span class="pc-go" aria-hidden="true"><i class="bi bi-chevron-right"></i></span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
     {% endif %}
 
     <!-- Main grid -->
@@ -732,30 +836,12 @@ body {
                         <div class="pw-payment-methods" aria-label="Onlayn to'lov usullari">
                             <div class="pw-payment-methods-title">Qulay usulda onlayn to'lang</div>
                             <div class="pw-payment-methods-list">
-                                <span class="pw-payment-method click">
-                                    <svg class="pw-method-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#ef4538"/><path d="M12.9 6.1a5 5 0 1 0 0 7.8l-1.7-1.7a2.6 2.6 0 1 1 0-4.4z" fill="#fff"/><path d="M13.2 8.1h2.4v3.8h-2.4z" fill="#fff"/></svg>
-                                    click
-                                </span>
-                                <span class="pw-payment-method payme">
-                                    <svg class="pw-method-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="1" y="1" width="18" height="18" rx="5" fill="#33a9e8"/><path d="M6 15V5h4.7a3.1 3.1 0 0 1 0 6.2H8.6V15zm2.6-6.1h2a.9.9 0 1 0 0-1.8h-2z" fill="#fff"/></svg>
-                                    payme
-                                </span>
-                                <span class="pw-payment-method uzum">
-                                    <svg class="pw-method-icon" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.5 18.5 6v8L10 18.5 1.5 14V6z" fill="#7027e8"/><path d="M6 6.2h2.2v4.2a1.8 1.8 0 0 0 3.6 0V6.2H14v4.2a4 4 0 0 1-8 0z" fill="#fff"/></svg>
-                                    Uzum Pay
-                                </span>
-                                <span class="pw-payment-method paynet">
-                                    <svg class="pw-method-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#f7941d"/><path d="M5.5 15V5h5a3 3 0 0 1 0 6H8v4zm2.5-6.2h2.3a.8.8 0 1 0 0-1.6H8z" fill="#fff"/></svg>
-                                    PAYNET
-                                </span>
-                                <span class="pw-payment-method humo">
-                                    <svg class="pw-method-icon" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#17a99a"/><path d="M3.6 11.1 8.5 7l-1 3.1 4.8-2.8-.9 2.4 5-1.4-5.1 5.2.7-2.6-4.5 2.4.8-2.6z" fill="#fff"/></svg>
-                                    HUMO
-                                </span>
-                                <span class="pw-payment-method uzcard">
-                                    <svg class="pw-method-icon" viewBox="0 0 20 20" aria-hidden="true"><rect x="1.5" y="3" width="17" height="14" rx="3" fill="#1c4f9c"/><path d="M2 7.2h16" stroke="#fff" stroke-width="1.3"/><circle cx="7" cy="12.2" r="2.3" fill="#ed1c24"/><circle cx="10" cy="12.2" r="2.3" fill="#f9a51a"/><circle cx="13" cy="12.2" r="2.3" fill="#22a7df"/></svg>
-                                    Uzcard
-                                </span>
+                                <span class="pw-payment-method" title="Click"><img class="pw-method-logo wide" src="{% static 'img/payments/click.svg' %}" alt="Click"></span>
+                                <span class="pw-payment-method" title="Payme"><img class="pw-method-logo square" src="{% static 'img/payments/payme.png' %}" alt="Payme"> Payme</span>
+                                <span class="pw-payment-method" title="Uzum Pay"><img class="pw-method-logo square" src="{% static 'img/payments/uzum.svg' %}" alt=""> Uzum Pay</span>
+                                <span class="pw-payment-method" title="Paynet"><img class="pw-method-logo wide" src="{% static 'img/payments/paynet.svg' %}" alt="Paynet"></span>
+                                <span class="pw-payment-method" title="HUMO"><img class="pw-method-logo" src="{% static 'img/payments/humo.png' %}" alt="HUMO"></span>
+                                <span class="pw-payment-method" title="Uzcard"><img class="pw-method-logo square" src="{% static 'img/payments/uzcard.png' %}" alt=""> Uzcard</span>
                             </div>
                             <div class="pw-payment-methods-note">
                                 To'lovni Click, Payme, Uzum Pay yoki Paynet orqali, shuningdek HUMO va Uzcard kartalari bilan amalga oshiring.

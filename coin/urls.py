@@ -10,6 +10,7 @@ urlpatterns = [
     path('coin-transfer/', views.coin_transfer, name='coin_transfer'),
     path('market/', views.market_list, name='market_list'),
     path('market/coins/checkout/', payments.create_coin_checkout, name='coin_checkout'),
+    path('market/coins/balance/', payments.buy_coins_with_balance, name='coin_balance_buy'),
     path('market/coins/pricing/', payments.coin_pricing, name='coin_pricing'),
     path('market/coins/<int:pk>/return/', payments.coin_payment_return, name='coin_payment_return'),
     path('market/coins/<int:pk>/status/', payments.coin_payment_status, name='coin_payment_status'),

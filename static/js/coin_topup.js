@@ -39,7 +39,49 @@
     document.getElementById('ct-savings').textContent = readable ? fmt(purchase.gross - purchase.payable) + ' so‘m' : '—';
     document.getElementById('ct-discount').textContent = readable && purchase.selected ? purchase.selected.name + ' chegirmasi qo‘llandi.' : '';
     submit.disabled = busy || !ok || form.dataset.ready !== 'true';
+    paintMoney(readable && amount >= 1000 ? purchase.payable : NaN);
   }
+  // ── Pul balansidan (oylik to'lovdan ortgan mablag') tanga sotib olish ──
+  const moneyEl = document.getElementById('ct-money'), balanceBtn = document.getElementById('ct-balance-btn');
+  const moneyHint = document.getElementById('ct-money-hint');
+  let moneyBusy = false;
+  function paintMoney(payable) {
+    if (!balanceBtn) return;
+    const money = Number(moneyEl.dataset.value) || 0;
+    moneyEl.textContent = fmt(money);
+    const can = Number.isSafeInteger(payable) && payable > 0 && payable <= money;
+    balanceBtn.disabled = moneyBusy || !can;
+    moneyHint.textContent = !Number.isSafeInteger(payable) ? 'Kamida 1 000 tanga tanlang.'
+      : can ? 'To‘lovdan keyin balansda ' + fmt(money - payable) + ' so‘m qoladi.'
+      : 'Balans yetmaydi: yana ' + fmt(payable - money) + ' so‘m kerak.';
+  }
+  if (balanceBtn) balanceBtn.addEventListener('click', async () => {
+    update();
+    const payable = quote(amount).payable;
+    if (balanceBtn.disabled || !confirm('Pul balansingizdan ' + fmt(payable) + ' so‘m yechiladi va ' + fmt(amount) + ' tanga qo‘shiladi. Davom etasizmi?')) return;
+    moneyBusy = true; balanceBtn.disabled = true; error.textContent = '';
+    const label = balanceBtn.innerHTML; balanceBtn.textContent = 'Sotib olinmoqda…';
+    try {
+      await refreshPricing();
+      const data = new FormData();
+      data.set('amount', String(amount));
+      data.set('pricing_token', form.querySelector('[name=pricing_token]').value);
+      const response = await fetch(balanceBtn.dataset.url, {method:'POST', body:data, headers:{'X-CSRFToken':csrf,'Accept':'application/json'}, credentials:'same-origin', signal:AbortSignal.timeout(20000)});
+      const payload = await response.json();
+      if (Number.isSafeInteger(payload.money_balance)) moneyEl.dataset.value = payload.money_balance;
+      if (!response.ok || !payload.ok) throw new Error(payload.error || 'Xarid amalga oshmadi.');
+      balance.textContent = fmt(payload.balance);
+      const marketBalance = document.getElementById('mkBalanceValue');
+      if (marketBalance) marketBalance.textContent = fmt(payload.balance);
+      result.hidden = false;
+      result.textContent = 'Balansingizga ' + fmt(payload.coins) + ' tanga qo‘shildi! Pul balansidan ' + fmt(payload.paid) + ' so‘m yechildi.';
+      document.dispatchEvent(new CustomEvent('coin-payment-confirmed'));
+    } catch (e) {
+      error.textContent = e.message && e.message !== 'pricing' ? e.message : 'Xarid amalga oshmadi. Qayta urinib ko‘ring.';
+    } finally {
+      moneyBusy = false; balanceBtn.innerHTML = label; update();
+    }
+  });
   radios.forEach(r => r.addEventListener('change', () => { custom.value = ''; update(); }));
   custom.addEventListener('input', () => { radios.forEach(r => r.checked = false); update(); });
   custom.addEventListener('blur', () => { if (Number.isSafeInteger(amount) && amount > 0) custom.value = fmt(amount); });
@@ -115,7 +157,7 @@
       }
       window.location.assign(payload.payment_url);
     } catch (e) {
-      busy = false; submit.textContent = 'Tezchek orqali to‘lash'; update();
+      busy = false; submit.innerHTML = '<i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn to‘lash'; update();
       error.textContent = failureMessage;
     }
   });

@@ -1,0 +1,142 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Kursni sotib olish - {{ profession.name }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/kurslarim.css' %}?v=1">
+<style>
+.cc-card { overflow: hidden; }
+.cc-media { position: relative; aspect-ratio: 16 / 7; background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-3)); }
+.cc-media img { width: 100%; height: 100%; object-fit: cover; }
+.cc-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(2,6,23,.7)); }
+.cc-media-text { position: absolute; z-index: 1; left: 22px; right: 22px; bottom: 18px; color: #fff; }
+.cc-media-text h1 { font-size: clamp(1.3rem, 3vw, 1.8rem); font-weight: 800; margin: 4px 0 0; letter-spacing: -.02em; }
+.cc-media-text .kp-eyebrow { color: rgba(255,255,255,.85); }
+.cc-body { padding: 24px; }
+.cc-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+.cc-price b { font-size: clamp(2rem, 5vw, 2.6rem); font-weight: 800; letter-spacing: -.03em;
+              background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.cc-price span { color: var(--dash-muted); font-weight: 700; }
+.cc-features { list-style: none; padding: 0; margin: 18px 0 22px; display: grid; gap: 10px; }
+.cc-features li { display: flex; align-items: center; gap: 10px; font-size: .92rem; }
+.cc-features i { width: 28px; height: 28px; border-radius: 9px; flex: none; display: grid; place-items: center;
+                 color: var(--dash-success); background: color-mix(in srgb, var(--dash-success) 14%, transparent); }
+.cc-status { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; font-size: .88rem; margin-bottom: 16px; }
+.cc-status.wait { background: color-mix(in srgb, var(--dash-accent) 10%, transparent); }
+.cc-status.review { background: color-mix(in srgb, var(--dash-warning) 16%, transparent); }
+.cc-status.muted { background: color-mix(in srgb, var(--dash-muted) 12%, transparent); }
+.cc-secure { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; font-size: .8rem; color: var(--dash-muted); }
+.cc-pay { padding: 15px 18px; font-size: 1rem; }
+.cc-balance { padding: 16px; border-radius: 16px; margin-bottom: 4px;
+              background: color-mix(in srgb, var(--dash-success) 9%, transparent);
+              border: 1px solid color-mix(in srgb, var(--dash-success) 28%, transparent); }
+.cc-balance.short { background: color-mix(in srgb, var(--dash-muted) 8%, transparent); border-color: color-mix(in srgb, var(--dash-muted) 22%, transparent); }
+.cc-bal-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.cc-bal-ico { width: 42px; height: 42px; border-radius: 13px; display: grid; place-items: center; font-size: 1.2rem; color: #fff;
+              background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 18px -8px rgba(16,185,129,.8); }
+.cc-balance.short .cc-bal-ico { background: linear-gradient(135deg, #94a3b8, #64748b); box-shadow: none; }
+.cc-bal-head small { display: block; font-size: .72rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--dash-muted); }
+.cc-bal-head b { font-size: 1.15rem; font-weight: 800; }
+.cc-bal-pay { background: linear-gradient(135deg, #10b981, #059669) !important; box-shadow: 0 10px 24px -10px rgba(16,185,129,.8) !important; }
+.cc-bal-note { margin: 10px 0 0; font-size: .8rem; color: var(--dash-muted); text-align: center; }
+.cc-or { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--dash-muted); font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.cc-or::before, .cc-or::after { content: ""; flex: 1; height: 1px; background: color-mix(in srgb, var(--dash-muted) 25%, transparent); }
+.cc-online-secondary { background: var(--dash-glass) !important; color: var(--dash-text) !important; border: 1px solid var(--dash-glass-border) !important; box-shadow: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dash">
+<div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<main class="kp-page" style="max-width:600px;">
+    <a href="{% url 'profession_detail' profession.pk %}" class="kp-back"><i class="bi bi-arrow-left"></i>Kursga qaytish</a>
+
+    <article class="cc-card kp-glass">
+        <div class="cc-media">
+            {% if profession.photo %}<img src="{{ profession.photo.url }}" alt="">{% endif %}
+            <div class="cc-media-text">
+                <span class="kp-eyebrow">{{ profession.get_kind_display }} · bir martalik to'lov</span>
+                <h1>{{ profession.name }}</h1>
+            </div>
+        </div>
+        <div class="cc-body">
+            <div class="cc-price"><b>{{ profession.one_time_price|floatformat:"0g" }}</b><span>so'm</span></div>
+            <p class="kp-muted mb-0">Bir marta to'laysiz — kurs butunlay sizniki bo'ladi.</p>
+
+            <ul class="cc-features">
+                <li><i class="bi bi-infinity"></i>Kursga umrbod kirish</li>
+                <li><i class="bi bi-lightning-charge-fill"></i>To'lovdan so'ng avtomatik yozilish — so'rov kutilmaydi</li>
+                <li><i class="bi bi-shield-check"></i>Hisob holatidan qat'i nazar ochiq qoladi</li>
+                {% if profession.duration_months %}<li><i class="bi bi-calendar-range"></i>{{ profession.duration_months }} oylik dastur</li>{% endif %}
+            </ul>
+
+            {% if course_order.status == 'review' %}
+            <div class="cc-status review" role="status">
+                <i class="bi bi-hourglass-split"></i>
+                <span>To'lov administrator tekshiruvini kutmoqda. {{ course_order.last_error }}</span>
+            </div>
+            {% else %}
+                {% if course_order.status == 'pending' and course_order.payment_url %}
+                <div class="cc-status wait" role="status">
+                    <span class="spinner-border spinner-border-sm text-primary" aria-hidden="true"></span>
+                    <span>To'lov tasdiqlanishi kutilmoqda. To'lov o'tgach, sahifa o'zi yangilanadi.</span>
+                </div>
+                {% endif %}
+                {% if course_order.status == 'refunded' %}
+                <div class="cc-status muted"><i class="bi bi-arrow-counterclockwise"></i><span>Oldingi to'lov qaytarilgan.</span></div>
+                {% endif %}
+                {% if money_balance %}
+                <div class="cc-balance {% if not balance_enough %}short{% endif %}">
+                    <div class="cc-bal-head">
+                        <span class="cc-bal-ico" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
+                        <div><small>Sizning balansingiz</small><b>{{ money_balance|floatformat:"0g" }} so'm</b></div>
+                    </div>
+                    {% if balance_enough %}
+                    <form method="post" action="{% url 'course_balance_pay' profession.pk %}"
+                          onsubmit="return confirm('Balansingizdan {{ profession.one_time_price|floatformat:'0g' }} so'm yechiladi. Davom etasizmi?');">
+                        {% csrf_token %}
+                        <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay cc-bal-pay">
+                            <i class="bi bi-lightning-charge-fill"></i>Balansdan to'lash
+                        </button>
+                    </form>
+                    <p class="cc-bal-note">Kurs darhol ochiladi. Balansingizda <b>{{ balance_after|floatformat:"0g" }} so'm</b> qoladi.</p>
+                    {% else %}
+                    <p class="cc-bal-note mt-0">Balansdan to'lash uchun yana <b>{{ balance_shortage|floatformat:"0g" }} so'm</b> kerak — quyida onlayn to'lashingiz mumkin.</p>
+                    {% endif %}
+                </div>
+                <div class="cc-or">yoki</div>
+                {% endif %}
+                <form method="post" action="{% url 'course_checkout' profession.pk %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="checkout_token" value="{{ course_checkout_token }}">
+                    <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay {% if balance_enough %}cc-online-secondary{% endif %}">
+                        <i class="bi bi-credit-card-2-front-fill"></i>Online to'lash
+                    </button>
+                </form>
+                <p class="kp-muted small text-center mt-3 mb-0">Oldingi to'lov avval tekshiriladi — to'lov o'tgan bo'lsa, qayta to'lash talab qilinmaydi.</p>
+            {% endif %}
+            <div class="cc-secure"><i class="bi bi-lock-fill"></i>Xavfsiz onlayn to'lov</div>
+        </div>
+    </article>
+</main>
+</div>
+{% if course_order.status == 'pending' %}
+<script>
+(function(){
+  let checks = 0;
+  const timer = setInterval(async function(){
+    if (++checks > 120) { clearInterval(timer); return; }
+    if (document.hidden) return;
+    try {
+      const response = await fetch("{% url 'course_checkout_status' course_order.pk %}", {credentials:'same-origin'});
+      if (!response.ok) return;
+      const result = await response.json();
+      if (result.status !== 'pending') { clearInterval(timer); location.reload(); }
+    } catch (_) {}
+  }, 5000);
+})();
+</script>
+{% endif %}
+{% endblock %}

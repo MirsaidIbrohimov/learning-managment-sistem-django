@@ -3,6 +3,8 @@ from . import views
 from . import payment_views
 from . import tezcheck_views
 from . import exam_payments
+from . import course_payments
+from . import public_courses
 from . import password_recovery
 from . import email_verification
 from . import exam_admin
@@ -25,6 +27,10 @@ urlpatterns = [
 
     # Professions & Courses
     path('professions/', views.professions_view, name='professions'),
+    # Ochiq (login'siz) SEO sahifalari — sotuvdagi kurslar.
+    path('kurslar/', public_courses.catalog, name='public_courses'),
+    path('kurslar/<int:pk>/', public_courses.course_short, name='public_course_short'),
+    path('kurslar/<int:pk>-<slug:slug>/', public_courses.course_landing, name='public_course'),
     path('professions/<int:pk>/', views.profession_detail, name='profession_detail'),
     path('professions/<int:pk>/statistics/', views.course_statistics, name='course_statistics'),
     path('professions/<int:pk>/statistics/api/', views.course_statistics_api, name='course_statistics_api'),
@@ -160,6 +166,7 @@ urlpatterns = [
 
     # ── Bildirishnoma feed (barcha sahifalarda real-time toast + ovoz) ──
     path('api/notify/feed/', notify_api.notify_feed, name='api_notify_feed'),
+    path('api/notify/mark-all-read/', notify_api.notify_mark_all_read, name='api_notify_mark_all_read'),
 
     # Messages
     path('messages/', views.messages_view, name='messages'),
@@ -362,6 +369,9 @@ urlpatterns = [
     path('tezcheck/create-payment/', tezcheck_views.tezcheck_create_payment, name='tezcheck_create_payment'),
     path('tezcheck/exam/<str:kind>/<int:pk>/', exam_payments.create_exam_checkout, name='exam_checkout'),
     path('tezcheck/exam-status/<int:pk>/', exam_payments.exam_checkout_status, name='exam_checkout_status'),
+    path('tezcheck/course/<int:pk>/', course_payments.create_course_checkout, name='course_checkout'),
+    path('kurs/<int:pk>/balansdan/', course_payments.pay_course_from_balance, name='course_balance_pay'),
+    path('tezcheck/course-status/<int:pk>/', course_payments.course_checkout_status, name='course_checkout_status'),
     path('tezcheck/return/', tezcheck_views.tezcheck_return, name='tezcheck_return'),
     path('tezcheck/webhook/', tezcheck_views.tezcheck_webhook, name='tezcheck_webhook'),
     path('payme/', payment_views.payme_endpoint, name='payme_endpoint'),

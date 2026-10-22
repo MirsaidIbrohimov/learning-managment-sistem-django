@@ -50,7 +50,7 @@
 
     <!-- Shaffof oyna navbar + bildirishnoma tizimi (Bootstrap'dan keyin — ustun bo'lishi kerak) -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
-    <link rel="stylesheet" href="{% static 'css/notify.css' %}">
+    <link rel="stylesheet" href="{% static 'css/notify.css' %}?v=unread4">
 
 
 
@@ -615,12 +615,15 @@
               <div class="nbell-head">
                 <span class="nbell-title">Bildirishnomalar</span>
                 <span class="nbell-count" id="nbBellCount" style="display:none;">0</span>
+                <button class="nbell-readall" id="nbBellReadAll" type="button" hidden title="Barchasini o'qilgan deb belgilash">
+                  <i class="bi bi-check2-all"></i><span>Barchasini o'qilgan</span>
+                </button>
                 <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz">
                   <i class="bi bi-volume-up-fill"></i>
                 </button>
               </div>
               <div class="nbell-list" id="nbBellList">
-                <div class="nbell-empty"><i class="bi bi-bell-slash"></i>Yangi bildirishnoma yo'q</div>
+                <div class="nbell-loading" aria-label="Yuklanmoqda"><i></i><i></i><i></i></div>
               </div>
               <div class="nbell-foot">
                 <a href="{% url 'chat_inbox' %}"><i class="bi bi-chat-dots me-1"></i>Suhbatlar</a>
@@ -1845,9 +1848,9 @@
 </script>
 {% if user.is_authenticated %}
 <script>
-  window.ITC_NOTIFY = { feedUrl: "{% url 'api_notify_feed' %}" };
+  window.ITC_NOTIFY = { feedUrl: "{% url 'api_notify_feed' %}", chatsUrl: "{% url 'chat_inbox' %}", messagesUrl: "{% url 'messages' %}", markReadUrl: "{% url 'api_notify_mark_all_read' %}", csrf: "{{ csrf_token }}" };
 </script>
-<script src="{% static 'js/notify.js' %}" defer></script>
+<script src="{% static 'js/notify.js' %}?v=unread4" defer></script>
 {% endif %}
 {% block extra_js %}{% endblock %}
 

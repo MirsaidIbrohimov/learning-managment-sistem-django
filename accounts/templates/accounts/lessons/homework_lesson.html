@@ -1,4 +1,4 @@
-{% extends 'accounts/base.html' %}
+{% extends base_template|default:'accounts/base.html' %}
 {% load static %}
 {% block title %}{{ lesson.title }} — Uy vazifasi{% endblock %}
 
@@ -800,7 +800,7 @@
 
   <!-- Top bar -->
   <div class="sp-topbar">
-    <a href="{% url 'profession_detail' profession.pk %}" class="sp-back">
+    <a href="{% if portal %}{{ portal.back_url }}{% else %}{% url 'profession_detail' profession.pk %}{% endif %}" class="sp-back">
       <i class="bi bi-arrow-left"></i><span>{{ profession.name }}</span>
     </a>
     <span style="color:var(--sp-border);font-size:18px">›</span>
@@ -810,7 +810,7 @@
   </div>
 
   {% with prompt="«"|add:lesson.title|add:"» uy vazifasini bajarishda menga yordam bering. Tayyor javobni to'g'ridan-to'g'ri bermang — bosqichma-bosqich yo'naltiring." %}
-  <div style="margin:0 0 14px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt label="AI'dan yordam so'rash" %}</div>
+  {% if not portal %}<div style="margin:0 0 14px">{% include 'ai_yordamchi/_ask_ai_button.html' with prompt=prompt label="AI'dan yordam so'rash" %}</div>{% endif %}
   {% endwith %}
 
   <!-- Status banner (populated by JS) -->
@@ -1073,7 +1073,7 @@
       {% if next_lesson %}
       {% if homework_approved %}
       <div class="sp-next-card">
-        <a href="{% if next_lesson_token %}{% url 'student_lesson_view' next_lesson_token.token %}{% else %}{% url 'lesson_view' next_lesson.pk %}{% endif %}" class="sp-next-inner">
+        <a href="{% if portal %}{{ portal.next_url }}{% elif next_lesson_token %}{% url 'student_lesson_view' next_lesson_token.token %}{% else %}{% url 'lesson_view' next_lesson.pk %}{% endif %}" class="sp-next-inner">
           <div class="sp-next-icon">
             {% if next_lesson.lesson_type == 'video' %}<i class="bi bi-play-circle"></i>
             {% elif next_lesson.lesson_type == 'homework' %}<i class="bi bi-journal-check"></i>
@@ -1120,13 +1120,14 @@ const LESSON_PK  = {{ lesson.pk }};
 const CSRF_TOKEN = '{{ csrf_token }}';
 const MAX_HOMEWORK_FILE_BYTES = 5 * 1024 * 1024;
 
+const HW_API_ROOT = '{% if portal %}{{ portal.hw_api_root }}{% else %}/api/hw/{% endif %}';
 const API = {
-  detail:  `/api/hw/${LESSON_PK}/`,
-  submit:  `/api/hw/${LESSON_PK}/submit/`,
-  edit:    `/api/hw/${LESSON_PK}/edit/`,
-  history: `/api/hw/${LESSON_PK}/history/`,
-  msgs:    `/api/hw/${LESSON_PK}/messages/`,
-  msgSend: `/api/hw/${LESSON_PK}/messages/send/`,
+  detail:  `${HW_API_ROOT}${LESSON_PK}/`,
+  submit:  `${HW_API_ROOT}${LESSON_PK}/submit/`,
+  edit:    `${HW_API_ROOT}${LESSON_PK}/edit/`,
+  history: `${HW_API_ROOT}${LESSON_PK}/history/`,
+  msgs:    `${HW_API_ROOT}${LESSON_PK}/messages/`,
+  msgSend: `${HW_API_ROOT}${LESSON_PK}/messages/send/`,
 };
 
 /* ─────────────────────────────────────────────

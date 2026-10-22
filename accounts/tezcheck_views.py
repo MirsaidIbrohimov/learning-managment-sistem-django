@@ -192,7 +192,7 @@ def tezcheck_return(request):
 
 
 def _apply_successful_payment(order, data):
-    """Apply a verified live payment to its monthly period or exam retry."""
+    """Apply a verified live payment to its monthly period, exam retry or course."""
     if order.purpose == 'coins':
         from coin.payments import apply_coin_payment
         apply_coin_payment(order, data)
@@ -220,6 +220,10 @@ def _apply_successful_payment(order, data):
     if order.purpose == 'exam':
         from .exam_payments import apply_exam_payment
         apply_exam_payment(order, data)
+        return
+    if order.purpose == 'course':
+        from .course_payments import apply_course_payment
+        apply_course_payment(order, data)
         return
 
     paid_on = timezone.localdate()
@@ -357,6 +361,10 @@ def _apply_refund(order, data, *, partial=False):
         from .exam_payments import refund_exam_payment
         refund_exam_payment(order, data, partial=partial)
         return
+    if order.purpose == 'course':
+        from .course_payments import refund_course_payment
+        refund_course_payment(order, data, partial=partial)
+        return
     order.payment_id = str(data.get('payment_id') or order.payment_id)
     order.fee_minor = max(0, int(data.get('fee_minor') or order.fee_minor))
     order.net_minor = max(0, int(data.get('net_minor') or 0))
@@ -404,7 +412,8 @@ def admin_tezcheck_payments(request):
         return redirect('home')
     from django.core.paginator import Paginator
 
-    all_orders = TezCheckPaymentOrder.objects.all()
+    # Balansdan qilingan xaridlar Tezcheck tushumi emas — pul balansga kirganda hisoblangan.
+    all_orders = TezCheckPaymentOrder.objects.exclude(provider_code='balance')
 
     # Hisobot va KPI ko'rsatkichlari
     stats = all_orders.aggregate(
@@ -421,7 +430,7 @@ def admin_tezcheck_payments(request):
     )
     total_paid_som = (stats['paid_sum'] or 0) // 100
 
-    orders = TezCheckPaymentOrder.objects.select_related('student').prefetch_related('webhook_events')
+    orders = all_orders.select_related('student').prefetch_related('webhook_events')
     status_filter = request.GET.get('status', '').strip()
     query = request.GET.get('q', '').strip()
     if status_filter in dict(TezCheckPaymentOrder.STATUS_CHOICES):

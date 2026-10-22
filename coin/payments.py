@@ -40,9 +40,11 @@ def checkout_ready():
 
 
 def market_context(user):
+    from accounts.balance_spend import spendable_balance
     limits = payment_limits()
     pricing = pricing_data()
     return {
+        'money_balance': spendable_balance(user),
         'coin_packages': [quote(amount, pricing) for amount in (10000, 25000, 50000, 100000)],
         'coin_pricing': pricing,
         'coin_pricing_token': pricing_token(pricing),
@@ -147,6 +149,41 @@ def reconcile_coin_order(order, data):
         else:
             return
         locked.save(update_fields=['status', 'last_error', 'updated_at'])
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def buy_coins_with_balance(request):
+    """Oylik to'lovdan ortgan pul balansi bilan tanga sotib olish (darhol)."""
+    from django.core import signing
+    from accounts.balance_spend import BalanceError, spend_balance, spendable_balance
+    if not request.user.is_learner:
+        return JsonResponse({'error': 'Faqat o‘quvchilar balansdan tanga sotib oladi.'}, status=403)
+    raw = (request.POST.get('amount') or '').strip().replace(' ', ' ').replace(' ', ' ')
+    if len(raw) > 20 or not re.fullmatch(r'[0-9]+(?: [0-9]{3})*', raw):
+        return JsonResponse({'error': 'Musbat butun tanga miqdorini kiriting.'}, status=400)
+    amount = int(raw.replace(' ', ''))
+    if not 1000 <= amount <= 2147483647:
+        return JsonResponse({'error': 'Eng kam xarid — 1 000 tanga.'}, status=400)
+    pricing = pricing_data()
+    try:
+        if signing.loads(request.POST.get('pricing_token', ''), salt='coin-pricing') != pricing:
+            raise signing.BadSignature
+    except signing.BadSignature:
+        return JsonResponse({'error': 'Coin narxi yoki chegirma o‘zgardi. Sahifani yangilang.'}, status=409)
+    payable = quote(amount, pricing)['payable']
+    # Bir o'quvchining parallel xaridlarini ketma-ket bajarish.
+    CustomUser.objects.select_for_update().get(pk=request.user.pk)
+    try:
+        left = spend_balance(request.user, payable, f'Tanga xaridi: {amount} tanga')
+    except BalanceError as exc:
+        return JsonResponse({'error': str(exc), 'money_balance': spendable_balance(request.user)}, status=400)
+    CustomUser.objects.filter(pk=request.user.pk).update(coins=F('coins') + amount)
+    CoinTransaction.objects.create(user_id=request.user.pk, amount=amount, action='add',
+                                   reason=f'Balansdan tanga xaridi ({payable} so‘m)')
+    coins = CustomUser.objects.values_list('coins', flat=True).get(pk=request.user.pk)
+    return JsonResponse({'ok': True, 'coins': amount, 'balance': coins, 'money_balance': left, 'paid': payable})
 
 
 @login_required

@@ -826,8 +826,15 @@ class ProductionSettingsTest(TestCase):
         self.assertNotIn('*', settings.ALLOWED_HOSTS)
 
     def test_secret_key_is_not_the_dev_placeholder(self):
-        from django.conf import settings
-        self.assertNotIn('django-insecure', settings.SECRET_KEY)
+        # Lokal .env (DEBUG=True) dan qat'i nazar production holati tekshiriladi:
+        # kalit berilsa u ishlatiladi, berilmasa sayt umuman ishga tushmaydi —
+        # dev placeholder hech qachon production'ga tushmaydi.
+        from django.core.exceptions import ImproperlyConfigured
+
+        prod = self._load_settings_with_argv(['passenger_wsgi.py'])
+        self.assertNotIn('django-insecure', prod.SECRET_KEY)
+        with self.assertRaises(ImproperlyConfigured):
+            self._load_settings_with_argv(['passenger_wsgi.py'], env={'DJANGO_SECRET_KEY': '', 'SECRET_KEY': ''})
 
     def test_session_and_csrf_cookies_are_hardened(self):
         from django.conf import settings
@@ -836,7 +843,15 @@ class ProductionSettingsTest(TestCase):
         self.assertEqual(settings.X_FRAME_OPTIONS, 'DENY')
         self.assertTrue(settings.SECURE_CONTENT_TYPE_NOSNIFF)
 
-    def _load_settings_with_argv(self, argv):
+    # Production'ga o'xshash muhit: lokal .env dagi DEBUG=True kabi qiymatlar
+    # testga ta'sir qilmasin (load_dotenv mavjud o'zgaruvchilarni almashtirmaydi).
+    PROD_ENV = {
+        'DEBUG': 'False',
+        'DJANGO_SECRET_KEY': 'test-production-key-' + 'x' * 40,
+        'SECURE_SSL_REDIRECT': '',
+    }
+
+    def _load_settings_with_argv(self, argv, env=None):
         """
         `config/settings.py` ni ALOHIDA modul sifatida berilgan `sys.argv` bilan
         qayta yuklaydi. Haqiqiy `config.settings` ga tegilmaydi. Fayl faqat
@@ -859,7 +874,9 @@ class ProductionSettingsTest(TestCase):
         module = importlib.util.module_from_spec(spec)
         # 'pytest' sys.modules da bo'lsa RUNNING_TESTS majburan True bo'lib qoladi.
         without_pytest = {k: v for k, v in sys.modules.items() if k != 'pytest'}
+        environ = dict(self.PROD_ENV, **(env or {}))
         with mock.patch.object(sys, 'argv', argv), \
+                mock.patch.dict('os.environ', environ), \
                 mock.patch.dict(sys.modules, without_pytest, clear=True):
             spec.loader.exec_module(module)
         return module
@@ -1648,6 +1665,31 @@ class ApiSessionEnforcementTest(_NoRateLimitMixin, TestCase):
         login_with_session(self.client, self.user)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200, response.content)
+
+    def test_stale_worker_cache_preserves_current_session(self):
+        session_key = login_with_session(self.client, self.user)
+        cache_key = f'active_session_{self.user.pk}'
+        cache.set(cache_key, 'previous-login-on-another-worker', 120)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200, response.content)
+        self.assertEqual(self.client.session.session_key, session_key)
+        self.assertEqual(cache.get(cache_key), session_key)
+
+    def test_cached_mismatch_still_rejects_foreign_session(self):
+        from .models import UserSession
+
+        login_with_session(self.client, self.user)
+        UserSession.objects.filter(user=self.user).update(
+            session_key='another-active-login'
+        )
+        cache.set(f'active_session_{self.user.pk}', 'another-active-login', 120)
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 401, response.content)
+        self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_revoked_session_gets_401_on_api(self):
         from .models import UserSession

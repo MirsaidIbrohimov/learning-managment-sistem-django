@@ -36,6 +36,17 @@
     <p id="ct-error" class="ct-error" role="alert"></p>
     {% if not coin_checkout_ready %}<p class="ct-hint">Tanga to‘lovi hozircha sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
     <button type="submit" id="ct-submit" class="ct-submit" {% if not coin_checkout_ready %}disabled{% endif %}><i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn to‘lash</button>
+    {% if money_balance %}
+    <div class="ct-or">yoki</div>
+    <div class="ct-wallet-pay">
+      <div class="ct-wallet-pay-head"><span class="ct-wallet-pay-ico" aria-hidden="true"><i class="bi bi-wallet2"></i></span>
+        <div><small>Pul balansingiz</small><strong id="ct-money" data-value="{{ money_balance }}">{{ money_balance }}</strong> so‘m</div></div>
+      <button type="button" id="ct-balance-btn" class="ct-submit ct-balance-btn" data-url="{% url 'coin:coin_balance_buy' %}">
+        <i class="bi bi-lightning-charge-fill" aria-hidden="true"></i> Balansdan to‘lash
+      </button>
+      <p id="ct-money-hint" class="ct-hint" aria-live="polite"></p>
+    </div>
+    {% endif %}
     <noscript><p>Miqdorni kiriting yoki paketni tanlang. Yakuniy summa amaldagi narx va chegirmalar bo‘yicha hisoblanadi.</p></noscript>
   </form>
   <div id="ct-result" role="status" aria-live="polite" {% if coin_return_order %}data-return-status-url="{% url 'coin:coin_payment_status' coin_return_order.pk %}"{% endif %} hidden></div>
@@ -44,4 +55,16 @@
     {% for order in coin_orders %}<div class="ct-history-row"><time datetime="{{ order.created_at|date:'c' }}">{{ order.created_at|date:'d.m.Y H:i' }}</time><span><strong data-ct-number="{{ order.coin_quantity|default_if_none:order.amount_som }}">{{ order.coin_quantity|default_if_none:order.amount_som }}</strong> tanga</span><span><span data-ct-number="{{ order.amount_som }}">{{ order.amount_som }}</span> so‘m</span><button type="button" class="ct-order-status" data-status-url="{% url 'coin:coin_payment_status' order.pk %}" data-order="{{ order.pk }}">{{ order.get_status_display }}</button></div>{% endfor %}
   </details>{% endif %}
 </section>
-<script src="{% static 'js/coin_topup.js' %}?v=20261020-3" defer></script>
+<style>
+.ct-or { display:flex; align-items:center; gap:12px; margin:16px 0 12px; font-size:.76rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; opacity:.65; }
+.ct-or::before, .ct-or::after { content:""; flex:1; height:1px; background:currentColor; opacity:.25; }
+.ct-wallet-pay { padding:14px; border-radius:16px; background:rgba(16,185,129,.08); border:1px solid rgba(16,185,129,.28); }
+.ct-wallet-pay-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.ct-wallet-pay-head small { display:block; font-size:.7rem; font-weight:700; letter-spacing:.05em; text-transform:uppercase; opacity:.7; }
+.ct-wallet-pay-head strong { font-size:1.15rem; font-weight:800; }
+.ct-wallet-pay-ico { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; color:#fff; font-size:1.15rem;
+  background:linear-gradient(135deg,#10b981,#059669); box-shadow:0 8px 18px -8px rgba(16,185,129,.8); }
+.ct-balance-btn { width:100%; background:linear-gradient(135deg,#10b981,#059669) !important; }
+.ct-balance-btn:disabled { opacity:.55; cursor:not-allowed; }
+</style>
+<script src="{% static 'js/coin_topup.js' %}?v=20261022-bal" defer></script>

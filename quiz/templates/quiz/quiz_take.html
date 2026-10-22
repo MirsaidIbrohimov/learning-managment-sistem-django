@@ -290,7 +290,8 @@
     <div class="quizui-toast-stack" id="quizToastStack"></div>
 
     {{ bootstrap|json_script:"quiz-bootstrap" }}
-    <script src="{% static 'quiz/js/api.js' %}"></script>
-    <script src="{% static 'quiz/js/quiz_take.js' %}"></script>
+    {% if portal %}<script>window.QUIZ_API_ROOT = '{{ portal.quiz_api_root }}'; window.QUIZ_RETRY_URL = '{{ portal.retry_url }}';</script>{% endif %}
+    <script src="{% static 'quiz/js/api.js' %}?v=portal1"></script>
+    <script src="{% static 'quiz/js/quiz_take.js' %}?v=portal1"></script>
 </body>
 </html>

@@ -1059,7 +1059,9 @@
 
                 {% else %}
                     <a href="{% url 'enroll_course' profession.pk %}" class="cd-btn cd-btn-primary" style="font-size:.95rem;padding:.75rem 1rem;">
-                        {% if profession.is_paid %}
+                        {% if profession.is_sold_once %}
+                        <i class="bi bi-credit-card"></i> Sotib olish — {{ profession.one_time_price|floatformat:"0g" }} so'm
+                        {% elif profession.is_paid %}
                         <i class="bi bi-send"></i> Kursga yozilish so'rov yuborish
                         {% else %}
                         <i class="bi bi-play-circle-fill"></i> O'qishni boshlash
