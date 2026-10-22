@@ -40,6 +40,13 @@ class PublicCoursePagesTests(TestCase):
         self.assertEqual(course_ld['offers']['priceCurrency'], 'UZS')
         self.assertEqual({item['@type'] for item in ld}, {'Course', 'BreadcrumbList', 'FAQPage'})
 
+    def test_home_landing_lists_all_and_paid_courses(self):
+        html = self.client.get(reverse('home')).content.decode()
+        self.assertIn('id="pullik"', html)                       # pullik kurslar bo'limi
+        self.assertIn(self.course.public_url, html)               # sotuvdagi kurs havolasi
+        self.assertIn(self.request_course.name, html)             # barcha yo'nalishlar ro'yxati
+        self.assertIn('name="csrfmiddlewaretoken"', html)         # ariza formasi
+
     def test_wrong_or_missing_slug_redirects_to_canonical(self):
         for url in (reverse('public_course', args=[self.course.pk, 'eski-nom']),
                     reverse('public_course_short', args=[self.course.pk])):

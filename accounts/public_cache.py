@@ -8,19 +8,24 @@ def get_performance_cache():
 
 
 def landing_data():
-    from accounts.models import CustomUser, Profession
+    from accounts.models import Certificate, CustomUser, Profession, VideoLesson
     from blog.models import Post
 
     ttl = settings.LANDING_CACHE_SECONDS
     cache = get_performance_cache()
-    key = 'landing-public-data:v1'
+    key = 'landing-public-data:v2'
     data = cache.get(key) if ttl else None
     if data is None:
+        visible = Profession.objects.filter(is_blocked=False)
         data = {
-            'professions': list(Profession.objects.filter(is_blocked=False)[:6]),
+            'professions': list(visible[:12]),
+            # Bir martalik to'lov bilan sotiladigan kurslar (Profession.is_sold_once bilan bir xil shart)
+            'paid_courses': list(visible.filter(is_paid=True, one_time_payment=True, one_time_price__gt=0)[:3]),
             'posts': list(Post.objects.filter(is_published=True)[:3]),
             'total_students': CustomUser.objects.filter(role='student').count(),
             'total_courses': Profession.objects.count(),
+            'total_videos': VideoLesson.objects.count(),
+            'total_certificates': Certificate.objects.count(),
         }
         if ttl:
             cache.set(key, data, ttl)

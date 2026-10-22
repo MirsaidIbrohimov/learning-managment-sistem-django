@@ -247,7 +247,7 @@ class EmailPasswordRecoveryTests(TestCase):
 
     def test_page_uses_auth_design_and_confirmation_has_no_password(self):
         response = self.client.get(self.url)
-        self.assertContains(response, 'css/auth.css')
+        self.assertContains(response, 'css/auth-motion.css')
         self.assertContains(response, 'name="email"')
         self.assertNotContains(response, 'name="new_password1"')
         self.assertIn('no-store', response.headers['Cache-Control'])

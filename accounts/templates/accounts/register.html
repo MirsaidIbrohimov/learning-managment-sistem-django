@@ -1,6 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="uz">
+<html lang="uz" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,332 +9,192 @@
 <meta name="yandex-verification" content="cd990bcc7a097bea" />
 <link rel="icon" href="{% static 'img/fav.ico' %}">
 <script>
-/* Tema — birinchi chizishdan oldin (FOUC oldini olish).
-   Saytning 'theme' kaliti ustun: bosh sahifadagi tanlov shu yerda ham saqlanadi. */
+/* Tema — birinchi chizishdan oldin (saytning umumiy 'theme' kaliti) */
 (function () {
   var t;
-  try { t = localStorage.getItem('theme') || localStorage.getItem('its-theme'); } catch (e) {}
-  if (t !== 'light' && t !== 'dark') {
-    t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  }
+  try { t = localStorage.getItem('theme') || localStorage.getItem('itc-theme'); } catch (e) {}
+  if (t !== 'light' && t !== 'dark') t = window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', t);
 })();
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/auth.css' %}">
-<script src="{% static 'js/auth-theme.js' %}" defer></script>
-<script src="{% static 'js/auth-page.js' %}" defer></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{% static 'css/auth-motion.css' %}?v=2">
 </head>
-<body class="auth-blue auth-register">
+<body>
+<canvas id="gl" aria-hidden="true"></canvas><div class="glow" aria-hidden="true"></div><div class="noise" aria-hidden="true"></div>
+<div class="cur" aria-hidden="true"></div><div class="cur-r" aria-hidden="true"></div><div id="wipe" aria-hidden="true"></div>
 
-<!-- Fon qatlamlari -->
-<div class="bg-aura" aria-hidden="true">
-  <div class="blob"></div><div class="blob"></div><div class="blob"></div>
-</div>
-<canvas id="bg3d" aria-hidden="true"></canvas>
-<div class="grain" aria-hidden="true"></div>
-
-<div class="toast-box" id="toastBox"></div>
-
-<!-- Yuqori panel -->
-<header class="hud">
-  <a class="hud-brand" href="{% url 'login' %}">
-    <img class="hud-logo-img" src="{% static 'img/logo.png' %}" alt="">
-    <span class="hud-name">IT Creative Academy<span>ZOMIN</span></span>
-  </a>
-  <div class="hud-actions"><nav class="auth-nav" aria-label="Autentifikatsiya"><a href="{% url 'login' %}">Kirish</a><a class="active" href="{% url 'register' %}">Ro'yxatdan o'tish</a></nav><button type="button" class="theme-switch" id="themeToggle" aria-label="Qorong'i rejimga o'tish" aria-pressed="false"><i class="bi bi-moon-stars-fill"></i><span>Dark</span></button></div>
+<header class="top">
+  <div class="box glass"><a class="logo" href="{% url 'home' %}">&lt;<b>it</b>creative /&gt;</a></div>
+  <div class="box glass">
+    <nav class="switch" aria-label="Autentifikatsiya"><span class="pill"></span><a href="{% url 'login' %}" data-wipe>Kirish</a><a class="on" href="{% url 'register' %}" aria-current="page">Ro'yxat<span class="long">dan o'tish</span></a></nav>
+    <button type="button" class="ico" id="themeBtn" data-mag title="Dark / Light" aria-label="Mavzuni almashtirish"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
+  </div>
 </header>
 
-<main class="stage stage--rev">
-
+{% with pw_err=form.password1.errors|default:form.password2.errors %}
+<main class="auth">
   <!-- Chap: ro'yxatdan o'tish kartasi -->
-  <div class="card-shell">
-    <span class="c-orb c-orb-1" aria-hidden="true"></span>
-    <span class="c-orb c-orb-2" aria-hidden="true"></span>
-    <span class="c-orb c-orb-3" aria-hidden="true"></span>
+  <div class="card-wrap">
+    <section class="card glass">
+      <h2 data-in>Hisob yaratish ✨</h2>
+      <p class="sub" data-in>Bilim olish sayohatingizni boshlang.</p>
 
-    <section class="card">
-    <div class="c-head">
-      <span class="c-logo">IT</span>
-      <h2 class="c-title">Yangi hisob yarating</h2>
-      <p class="c-sub">Bilim olish sayohatingizni boshlang.</p>
-    </div>
-
-    <!-- Qadamlar -->
-    <div class="prog">
-      <div class="p-item">
-        <div class="p-dot" id="pDot1">1</div>
-        <div class="p-lab" id="pLab1">Ma'lumotlar</div>
-      </div>
-      <div class="p-line" id="pLine1"></div>
-      <div class="p-item">
-        <div class="p-dot" id="pDot2">2</div>
-        <div class="p-lab" id="pLab2">Parol</div>
-      </div>
-    </div>
-
-    <form method="POST" id="rgForm" novalidate>
-      {% csrf_token %}
-      {{ form.role }}
-
-      <!-- 1-qadam -->
-      <div class="pane" id="rgP1">
-        <div class="pnl-head"><i class="bi bi-person-circle"></i> Shaxsiy ma'lumotlar</div>
-        <div class="grid2">
-          <div class="f">
-            <label class="f-lab" for="{{ form.first_name.id_for_label }}"><i class="bi bi-person"></i> Ism</label>
-            {{ form.first_name }}
-            {% if form.first_name.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
-          </div>
-          <div class="f">
-            <label class="f-lab" for="{{ form.last_name.id_for_label }}"><i class="bi bi-person"></i> Familiya</label>
-            {{ form.last_name }}
-            {% if form.last_name.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
-          </div>
-        </div>
-        <div class="f">
-          <label class="f-lab" for="{{ form.username.id_for_label }}"><i class="bi bi-at"></i> Username</label>
-          {{ form.username }}
-          {% if form.username.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
-        </div>
-        <div class="f">
-          <label class="f-lab" for="{{ form.email.id_for_label }}"><i class="bi bi-envelope"></i> Email</label>
-          {{ form.email }}
-          <div class="f-lab">Emailga tasdiqlash havolasi yuboriladi. Email faqat havolani ochganingizdan keyin hisobga bog‘lanadi.</div>
-          {% if form.email.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
-        </div>
-        <div class="f">
-          <label class="f-lab" for="id_phone"><i class="bi bi-phone"></i> Telefon raqam</label>
-          <div class="ph">
-            <span class="ph-pre">
-              <img src="https://flagcdn.com/w40/uz.png" alt="UZ" width="22" height="14">
-              +998
-            </span>
-            {{ form.phone }}
-          </div>
-          {% if form.phone.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
-        </div>
-        <div class="f">
-          <label class="f-lab" for="{{ form.birth_date.id_for_label }}"><i class="bi bi-calendar-event"></i> Tug'ilgan kun</label>
-          {{ form.birth_date }}
-          {% if form.birth_date.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
-        </div>
-        <button type="button" class="btn btn-main" id="btnNext">Davom etish <i class="bi bi-arrow-right"></i></button>
+      <div class="steps" data-in>
+        <div class="st {% if pw_err %}done{% else %}on{% endif %}" id="s1"><span class="d">{% if pw_err %}<i class="bi bi-check-lg"></i>{% else %}1{% endif %}</span>Ma'lumotlar</div>
+        <div class="ln"><i id="sLine"{% if pw_err %} style="width:100%"{% endif %}></i></div>
+        <div class="st {% if pw_err %}on{% endif %}" id="s2"><span class="d">2</span>Parol</div>
       </div>
 
-      <!-- 2-qadam -->
-      <div class="pane" id="rgP2">
-        <div class="pnl-head"><i class="bi bi-shield-lock"></i> Parol yaratish</div>
-        <div class="f">
-          <label class="f-lab" for="{{ form.password1.id_for_label }}"><i class="bi bi-lock"></i> Parol</label>
-          <div class="iw has-eye">
-            {{ form.password1 }}
-            <button type="button" class="pw-eye" data-pw="{{ form.password1.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
+      <form method="POST" id="rg" novalidate data-loading>
+        {% csrf_token %}
+        {{ form.role }}
+        <div class="panes" id="rgPanes" data-in>
+          <!-- 1-qadam -->
+          <div class="pane {% if not pw_err %}on{% endif %}" id="r1">
+            <div class="grid2">
+              <div>
+                <div class="fx{% if form.first_name.errors %} bad{% endif %}">{{ form.first_name }}<label for="{{ form.first_name.id_for_label }}">Ism</label><i class="bi bi-person"></i></div>
+                {% if form.first_name.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.first_name.errors.0 }}</div>{% endif %}
+              </div>
+              <div>
+                <div class="fx{% if form.last_name.errors %} bad{% endif %}">{{ form.last_name }}<label for="{{ form.last_name.id_for_label }}">Familiya</label><i class="bi bi-person"></i></div>
+                {% if form.last_name.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.last_name.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="fx{% if form.username.errors %} bad{% endif %}">{{ form.username }}<label for="{{ form.username.id_for_label }}">Username</label><i class="bi bi-at"></i></div>
+            {% if form.username.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.username.errors.0 }}</div>{% endif %}
+            <div class="fx{% if form.email.errors %} bad{% endif %}">{{ form.email }}<label for="{{ form.email.id_for_label }}">Email</label><i class="bi bi-envelope"></i></div>
+            {% if form.email.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.email.errors.0 }}</div>{% endif %}
+            <p class="hint">Emailga tasdiqlash havolasi yuboriladi. Email faqat havolani ochganingizdan keyin hisobga bog‘lanadi.</p>
+            <div class="fx pre{% if form.phone.errors %} bad{% endif %}"><span class="pre-tag">+998</span>{{ form.phone }}<label for="id_phone">Telefon raqam</label><i class="bi bi-phone"></i></div>
+            {% if form.phone.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.phone.errors.0 }}</div>{% endif %}
+            <div class="fx{% if form.birth_date.errors %} bad{% endif %}">{{ form.birth_date }}<label for="{{ form.birth_date.id_for_label }}">Tug'ilgan kun</label><i class="bi bi-calendar-event"></i></div>
+            {% if form.birth_date.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.birth_date.errors.0 }}</div>{% endif %}
+            <button type="button" class="btn btn-main" id="next" data-mag>Davom etish <i class="bi bi-arrow-right"></i></button>
           </div>
-          <span class="caps-hint" data-caps-for="{{ form.password1.id_for_label }}"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</span>
-          {% if form.password1.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
-          <div class="str">
-            <div class="str-bar"><div class="str-fill" id="strFill"></div></div>
-            <span class="str-txt" id="strTxt">Parol kuchi: —</span>
-          </div>
-        </div>
-        <div class="f">
-          <label class="f-lab" for="{{ form.password2.id_for_label }}"><i class="bi bi-lock-fill"></i> Parolni tasdiqlang</label>
-          <div class="iw has-eye">
-            {{ form.password2 }}
-            <button type="button" class="pw-eye" data-pw="{{ form.password2.id_for_label }}" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button>
-          </div>
-          {% if form.password2.errors %}<div class="f-err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
-        </div>
-        <div class="btn-row">
-          <button type="button" class="btn btn-ghost" id="btnBack" aria-label="Orqaga"><i class="bi bi-arrow-left"></i></button>
-          <button type="submit" class="btn btn-ok">Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
-        </div>
-      </div>
-    </form>
 
-    <div class="links">
-      <span class="muted">Akkauntingiz bormi?</span>
-      <a href="{% url 'login' %}" class="link" style="font-weight:700">Tizimga kirish <i class="bi bi-arrow-right"></i></a>
-    </div>
+          <!-- 2-qadam -->
+          <div class="pane {% if pw_err %}on{% endif %}" id="r2">
+            <div class="fx{% if form.password1.errors %} bad{% endif %}">{{ form.password1 }}<label for="{{ form.password1.id_for_label }}">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button></div>
+            <div class="caps"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</div>
+            {% if form.password1.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.password1.errors.0 }}</div>{% endif %}
+            <div class="meter" id="meter" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <div class="meter-t"><span>Parol kuchi</span><b id="meterT">—</b></div>
+            <ul class="rules" id="rules">
+              <li data-r="len"><i class="bi bi-circle"></i>Kamida 10 ta belgi</li>
+              <li data-r="up"><i class="bi bi-circle"></i>Katta harf</li>
+              <li data-r="num"><i class="bi bi-circle"></i>Raqam</li>
+              <li data-r="sym"><i class="bi bi-circle"></i>Maxsus belgi</li>
+            </ul>
+            <div class="fx{% if form.password2.errors %} bad{% endif %}">{{ form.password2 }}<label for="{{ form.password2.id_for_label }}">Parolni tasdiqlang</label><i class="bi bi-shield-check"></i><button type="button" class="eye" aria-label="Parolni ko'rsatish"><i class="bi bi-eye"></i></button></div>
+            {% if form.password2.errors %}<div class="err"><i class="bi bi-exclamation-circle"></i> {{ form.password2.errors.0 }}</div>{% endif %}
+            <div class="err" id="matchErr" hidden><i class="bi bi-exclamation-circle"></i> Parollar mos emas</div>
+            <div class="row-btns">
+              <button type="button" class="btn" id="back" data-mag aria-label="Orqaga"><i class="bi bi-arrow-left"></i></button>
+              <button type="submit" class="btn btn-main" data-mag>Ro'yxatdan o'tish <i class="bi bi-check-lg"></i></button>
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="foot" data-in>
+        <span>Akkauntingiz bormi? <a class="link" href="{% url 'login' %}" data-wipe>Tizimga kirish →</a></span>
+      </div>
     </section>
-
-    <div class="safe-note">
-      <i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz shifrlangan holda saqlanadi
-    </div>
+    <div class="safe"><i class="bi bi-shield-lock-fill"></i> Ma'lumotlaringiz shifrlangan holda saqlanadi</div>
   </div>
 
-  <!-- O'ng: fon ustidagi brend matni -->
-  <section class="pane-scene" aria-hidden="true">
-    <div class="study-scene">
-      <img class="portrait-slide is-active" src="{% static 'img/auth-portraits/student-1.webp' %}" alt="Talaba noutbukda ishlamoqda"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-2.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-3.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-4.webp' %}" alt="" aria-hidden="true"><img class="portrait-slide" src="{% static 'img/auth-portraits/student-5.webp' %}" alt="" aria-hidden="true"><div class="scene-glow"></div>
-      <div class="scene-copy"><span class="scene-eyebrow"><span class="dot"></span> IT CREATIVE ACADEMY · ZOMIN</span><h1 class="scene-title">Bilim bilan<br><span class="grad">yuksaling.</span></h1><p class="scene-sub">Har bir yangi dars — katta kelajak sari bir qadam.</p></div>
-      <div class="learning-cards">
-        <div class="learning-card"><i class="bi bi-play-circle-fill"></i><span><b>Darslar</b><small>Video, test va materiallar</small></span></div>
-        <div class="learning-card"><i class="bi bi-graph-up-arrow"></i><span><b>O'zlashtirish</b><small>Natijalarni kuzatish</small></span></div>
-        <div class="learning-card"><i class="bi bi-people-fill"></i><span><b>Jamoa</b><small>Ustozlar va do'stlar</small></span></div>
-      </div>
-      <div class="quote-card"><i class="bi bi-quote"></i>Bilim — kelajakka yetaklaydigan eng kuchli vosita.</div>
-      <div class="scene-spark spark-one"></div><div class="scene-spark spark-two"></div>
+  <!-- O'ng: 3D orb sahnasi -->
+  <section class="stage" data-orb-stage aria-hidden="true">
+    <div class="chip glass c1"><i class="bi bi-mortarboard"></i><span><b>Kasb va kurslar</b><small>IT yo'nalishlari</small></span></div>
+    <div class="chip glass c2"><i class="bi bi-coin"></i><span><b>Coin tizimi</b><small>O'qib sovg'a yuting</small></span></div>
+    <div class="chip glass c3"><i class="bi bi-award"></i><span><b>Sertifikat</b><small>Kurs oxirida</small></span></div>
+    <div class="stage-copy">
+      <div class="eyebrow">Yangi hisob</div>
+      <h1><span class="split">Kelajagingizni</span><br><span class="split grad">bugun boshlang.</span></h1>
+      <p>Video darslar, AI yordamchi va coin tizimi sizni kutmoqda.</p>
     </div>
   </section>
-
 </main>
+{% endwith %}
 
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="{% static 'js/auth-orb.js' %}?v=1"></script>
+<script src="{% static 'js/auth-motion.js' %}?v=2"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var A = window.ITSAuth;
-  if (!A) return;
-
-  /* Kursorga javob beradigan fon + tema.
-     Fon buzilsa ham forma qadamlari ishlashda davom etishi kerak. */
-  try { A.mountScene(document.getElementById('bg3d'), { side: 'left' }); }
-  catch (e) { document.documentElement.classList.add('no3d'); }
-  window.addEventListener('load', function () { window.dispatchEvent(new Event('resize')); });
-
-  /* Server xatosi bo'lsa parol qadamidan boshlaymiz */
-  var INIT = 1;
-  {% if form.password1.errors or form.password2.errors %}INIT = 2;{% endif %}
-
-  /* Server xatolari bor maydonlarni belgilash */
-  document.querySelectorAll('.pane input:not([type="hidden"]), .pane select').forEach(function (el) {
-    var g = el.closest('.f');
-    if (g && g.querySelector('.f-err')) el.classList.add('has-err');
-  });
-
-  /* Autocomplete atributlari */
-  var pw1 = document.getElementById('{{ form.password1.id_for_label }}');
-  var pw2 = document.getElementById('{{ form.password2.id_for_label }}');
-  if (pw1) pw1.setAttribute('autocomplete', 'new-password');
-  if (pw2) pw2.setAttribute('autocomplete', 'new-password');
+(function () {
+  var A = window.ITCAuth, G = window.gsap;
+  var form = document.getElementById('rg'), panes = document.getElementById('rgPanes');
+  var r1 = document.getElementById('r1'), r2 = document.getElementById('r2');
+  var s1 = document.getElementById('s1'), s2 = document.getElementById('s2');
+  var p1 = document.getElementById('{{ form.password1.id_for_label }}'), p2 = document.getElementById('{{ form.password2.id_for_label }}');
+  p1.setAttribute('autocomplete', 'new-password'); p2.setAttribute('autocomplete', 'new-password');
+  A.formatPhone(document.getElementById('id_phone'), 'paren');
 
   /* ── Qadamlar ── */
-  function showStep(n) {
-    document.querySelectorAll('.pane').forEach(function (p) { p.classList.remove('on'); });
-    var d1 = document.getElementById('pDot1'), d2 = document.getElementById('pDot2');
-    var l1 = document.getElementById('pLab1'), l2 = document.getElementById('pLab2');
-    var ln = document.getElementById('pLine1');
-    [d1, d2].forEach(function (d) { d.classList.remove('on', 'done'); });
-    [l1, l2].forEach(function (l) { l.classList.remove('on', 'done'); });
-    ln.classList.remove('done');
-    d1.innerHTML = '1'; d2.innerHTML = '2';
-    if (n === 1) {
-      d1.classList.add('on'); l1.classList.add('on');
-    } else {
-      d1.classList.add('done'); l1.classList.add('done');
-      d1.innerHTML = '<i class="bi bi-check-lg" style="font-size:.8rem"></i>';
-      ln.classList.add('done');
-      d2.classList.add('on'); l2.classList.add('on');
+  function go(from, to, dir) {
+    var swap = function () { from.classList.remove('on'); to.classList.add('on'); };
+    if (G) {
+      var h0 = panes.offsetHeight;
+      G.to(from, { x: -40 * dir, opacity: 0, duration: .25, ease: 'power2.in', onComplete: function () {
+        swap(); G.set(from, { clearProps: 'all' });
+        G.fromTo(panes, { height: h0 }, { height: panes.offsetHeight, duration: .5, ease: 'expo.out', clearProps: 'height' });
+        G.from(to.children, { x: 40 * dir, opacity: 0, duration: .55, stagger: .05, ease: 'expo.out' });
+      } });
+      G.to('#sLine', { width: dir > 0 ? '100%' : '0%', duration: .8, ease: 'expo.inOut' });
+    } else { swap(); document.getElementById('sLine').style.width = dir > 0 ? '100%' : '0%'; }
+    s1.classList.toggle('done', dir > 0); s1.classList.toggle('on', dir < 0); s2.classList.toggle('on', dir > 0);
+    s1.querySelector('.d').innerHTML = dir > 0 ? '<i class="bi bi-check-lg"></i>' : '1';
+    window.AuthOrb && AuthOrb.spin();
+    if (innerWidth < 1020) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  /* 1-qadam: brauzer validatsiyasi (forma novalidate — o'zimiz tekshiramiz) */
+  function validate(pane) {
+    var bad = [].filter.call(pane.querySelectorAll('input[required]'), function (i) { return !i.value.trim() || !i.checkValidity(); });
+    pane.querySelectorAll('.fx').forEach(function (f) { f.classList.remove('bad'); });
+    bad.forEach(function (i) { i.closest('.fx').classList.add('bad'); });
+    if (bad.length) {
+      G && G.fromTo(bad.map(function (i) { return i.closest('.fx'); }), { x: -8 }, { x: 0, duration: .5, ease: 'elastic.out(1,.3)' });
+      bad[0].focus(); A.toast("Iltimos, maydonlarni to'g'ri to'ldiring", 'error');
     }
-    document.getElementById('rgP' + n).classList.add('on');
+    return !bad.length;
   }
+  document.getElementById('next').addEventListener('click', function () { if (validate(r1)) go(r1, r2, 1); });
+  document.getElementById('back').addEventListener('click', function () { go(r2, r1, -1); });
 
-  /* ── Panel validatsiyasi ─────────────────────────
-     Yashirin paneldagi `required` inputga brauzer fokus qila olmaydi
-     ("not focusable" xatosi). Shuning uchun panelni vaqtincha ko'rsatib,
-     o'zimiz tekshiramiz. */
-  function validatePanel(panelId) {
-    var pnl = document.getElementById(panelId);
-    if (!pnl) return true;
-    var wasOn = pnl.classList.contains('on');
-    if (!wasOn) pnl.classList.add('on');
-    var inputs = pnl.querySelectorAll('input:not([type="hidden"]), select, textarea');
-    var firstInvalid = null;
-    inputs.forEach(function (el) {
-      var g = el.closest('.f');
-      var errEl = g ? g.querySelector('.f-err') : null;
-      el.classList.remove('has-err');
-      if (!el.checkValidity()) {
-        if (!firstInvalid) firstInvalid = el;
-        el.classList.add('has-err');
-        if (g && !errEl) {
-          var d = document.createElement('div');
-          d.className = 'f-err f-err-js';
-          d.innerHTML = '<i class="bi bi-exclamation-circle"></i> ';
-          d.appendChild(document.createTextNode(el.validationMessage || "Bu maydonni to'ldiring"));
-          g.appendChild(d);
-        }
-      } else if (g) {
-        g.querySelectorAll('.f-err-js').forEach(function (x) { x.remove(); });
-      }
-    });
-    if (!wasOn && !firstInvalid) pnl.classList.remove('on');
-    if (firstInvalid) {
-      firstInvalid.focus({ preventScroll: false });
-      return false;
-    }
-    return true;
+  /* ── Parol kuchi: chiziqlar, qoidalar va orb rangi ── */
+  var bars = document.querySelectorAll('#meter span'), label = document.getElementById('meterT');
+  var LV = [['—', 'var(--line)', null], ['Zaif', 'var(--red)', 0xfb7185], ["O'rtacha", 'var(--gold)', 0xfbbf24], ['Yaxshi', 'var(--acc)', 0x22d3ee], ['Kuchli', 'var(--lime)', 0xa3e635]];
+  p1.addEventListener('input', function () {
+    var v = p1.value, ok = { len: v.length >= 10, up: /[A-Z]/.test(v), num: /\d/.test(v), sym: /[^A-Za-z0-9]/.test(v) };
+    var score = v ? Math.max(1, Object.keys(ok).filter(function (k) { return ok[k]; }).length) : 0;
+    bars.forEach(function (b, i) { b.style.background = i < score ? LV[score][1] : 'var(--line)'; });
+    label.textContent = LV[score][0]; label.style.color = LV[score][1];
+    document.querySelectorAll('#rules li').forEach(function (li) { var on = ok[li.dataset.r]; li.classList.toggle('ok', on); li.querySelector('i').className = 'bi bi-' + (on ? 'check-circle-fill' : 'circle'); });
+    window.AuthOrb && AuthOrb.setTint(LV[score][2]);
+    checkMatch();
+  });
+  function checkMatch() {
+    var bad = p2.value && p2.value !== p1.value;
+    document.getElementById('matchErr').hidden = !bad; p2.closest('.fx').classList.toggle('bad', !!bad);
+    return !bad;
   }
+  p2.addEventListener('input', checkMatch);
 
-  function go(n) {
-    if (n > 1 && !validatePanel('rgP1')) return;
-    showStep(n);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-  document.getElementById('btnNext').addEventListener('click', function () { go(2); });
-  document.getElementById('btnBack').addEventListener('click', function () { go(1); });
-  showStep(INIT);
-
-  /* Yuborishda ikkala panel tekshiriladi */
-  var rgForm = document.getElementById('rgForm');
-  rgForm.addEventListener('submit', function (e) {
-    if (!validatePanel('rgP1')) { e.preventDefault(); showStep(1); return; }
-    if (!validatePanel('rgP2')) { e.preventDefault(); showStep(2); return; }
-    var btn = rgForm.querySelector('.btn-ok');
-    if (btn) btn.classList.add('loading');
-  });
-
-  /* Parol ko'rsatish */
-  document.querySelectorAll('.pw-eye').forEach(function (btn) {
-    btn.addEventListener('click', function () { A.togglePw(btn.dataset.pw, btn); });
-  });
-
-  /* Telefon formatlash: (90) 123 45 67 */
-  A.formatUzPhone(document.getElementById('id_phone'), 'paren');
-
-  /* Caps Lock ogohlantirishi */
-  document.querySelectorAll('.caps-hint').forEach(function (hint) {
-    A.capsHint(document.getElementById(hint.dataset.capsFor), hint);
-  });
-
-  /* Statistika raqamlari sanaladi */
-  document.querySelectorAll('.st-num').forEach(function (el) {
-    A.countUp(el, parseInt(el.dataset.count, 10) || 0, el.dataset.suffix || '');
-  });
-
-  /* Parol kuchi */
-  if (pw1) {
-    pw1.addEventListener('input', function () {
-      var v = this.value, s = 0;
-      if (v.length >= 8) s++;
-      if (v.length >= 12) s++;
-      if (/[A-Z]/.test(v)) s++;
-      if (/[0-9]/.test(v)) s++;
-      if (/[^A-Za-z0-9]/.test(v)) s++;
-      var lvls = [
-        { t: '—', c: 'rgba(148,163,184,.25)', w: '0%' },
-        { t: 'Juda zaif', c: '#fb7185', w: '20%' },
-        { t: 'Zaif', c: '#fb923c', w: '40%' },
-        { t: "O'rtacha", c: '#facc15', w: '60%' },
-        { t: 'Yaxshi', c: '#4ade80', w: '80%' },
-        { t: "A'lo", c: '#34d399', w: '100%' }
-      ];
-      var l = lvls[Math.min(s, 5)];
-      var fill = document.getElementById('strFill'), txt = document.getElementById('strTxt');
-      fill.style.width = l.w;
-      fill.style.backgroundColor = l.c;
-      txt.textContent = 'Parol kuchi: ' + l.t;
-      txt.style.color = l.c;
-    });
-  }
+  /* Yuborish: ikkala qadam ham tekshiriladi (auth-motion.js'dagi loading'dan oldin ishlaydi) */
+  form.addEventListener('submit', function (e) {
+    if (!validate(r1)) { e.preventDefault(); e.stopImmediatePropagation(); if (r2.classList.contains('on')) go(r2, r1, -1); return; }
+    if (!p1.value || !p2.value || !checkMatch()) { e.preventDefault(); e.stopImmediatePropagation(); (p1.value ? p2 : p1).focus(); A.toast('Parolni tekshiring', 'error'); }
+  }, true);
 
   /* Xabarlar */
   {% if messages %}{% for message in messages %}A.toast("{{ message|escapejs }}", "{{ message.tags }}");{% endfor %}{% endif %}
-});
+})();
 </script>
 </body>
 </html>
-
-
-

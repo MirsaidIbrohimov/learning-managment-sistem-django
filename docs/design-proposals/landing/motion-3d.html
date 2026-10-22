@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>IT Creative — Kelajak kodlanadi (3D Motion prototip)</title>
+<script>
+  (function(){var t=localStorage.getItem('itc-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root,[data-theme=dark]{--bg:#05060a;--panel:rgba(16,19,28,.62);--solid:#10131c;--line:rgba(255,255,255,.09);--ink:#eef1f7;--muted:#8b93a7;--acc:#22d3ee;--acc2:#a78bfa;--lime:#a3e635;--gold:#fbbf24;--pink:#f472b6;--acc-ink:#001018}
+  [data-theme=light]{--bg:#f5f6fb;--panel:rgba(255,255,255,.66);--solid:#ffffff;--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--lime:#4d7c0f;--gold:#b45309;--pink:#db2777;--acc-ink:#fff}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html.lenis,html.lenis body{height:auto}
+  .lenis.lenis-smooth{scroll-behavior:auto!important}
+  body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;transition:background .5s,color .5s}
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 28px}
+  ::selection{background:var(--acc);color:var(--acc-ink)}
+
+  /* 3D canvas va fon */
+  #gl{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+  .noise{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+  main,nav,footer{position:relative;z-index:2}
+
+  /* Preloader */
+  #loader{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center}
+  #loader .in{text-align:center;font-family:'JetBrains Mono',monospace}
+  #loader .num{font-size:72px;font-weight:600;letter-spacing:-.04em}
+  #loader .bar{width:220px;height:2px;background:var(--line);margin-top:14px;overflow:hidden}
+  #loader .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+
+  /* Kursor */
+  .cur,.cur-r{position:fixed;top:0;left:0;z-index:99;pointer-events:none;border-radius:50%;translate:-50% -50%}
+  .cur{width:6px;height:6px;background:var(--acc)}
+  .cur-r{width:38px;height:38px;border:1px solid var(--acc);transition:width .3s,height .3s,background .3s,border-color .3s}
+  .cur-r.big{width:80px;height:80px;background:color-mix(in srgb,var(--acc) 12%,transparent);border-color:transparent}
+  @media (hover:none){.cur,.cur-r{display:none}}
+
+  /* NAV */
+  nav{position:fixed;top:16px;left:0;right:0;z-index:50}
+  nav .wrap{display:flex;justify-content:space-between;align-items:center}
+  .navbox{display:flex;align-items:center;gap:6px;background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);border-radius:999px;padding:6px}
+  .logo{font-family:'JetBrains Mono',monospace;font-weight:600;font-size:17px;padding:10px 18px}
+  .logo b{color:var(--acc)}
+  .links a{font-size:14px;padding:9px 14px;border-radius:999px;color:var(--muted);transition:.25s}
+  .links a:hover,.links a.on{color:var(--ink);background:color-mix(in srgb,var(--ink) 8%,transparent)}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:13px 24px;border-radius:999px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);font-weight:600;cursor:pointer;transition:background .3s,border-color .3s;will-change:transform}
+  .btn:hover{border-color:var(--acc)}
+  .btn-acc{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);box-shadow:0 10px 40px -10px var(--acc)}
+  .btn-sm{padding:10px 18px;font-size:14px}
+  .ico-btn{width:42px;height:42px;padding:0;justify-content:center}
+  [data-theme=dark] .i-sun,[data-theme=light] .i-moon{display:none}
+
+  /* HERO */
+  #hero{min-height:100vh;display:flex;align-items:center;padding-top:90px}
+  #hero>.wrap,#yonalishlar>.wrap{width:100%}
+  .hero-in{max-width:720px}
+  .tag{display:inline-flex;align-items:center;gap:10px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--lime);border:1px solid color-mix(in srgb,var(--lime) 35%,transparent);background:color-mix(in srgb,var(--lime) 8%,transparent);padding:7px 15px;border-radius:999px}
+  .tag .d{width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 12px var(--lime);animation:bl 1.4s infinite}
+  @keyframes bl{50%{opacity:.25}}
+  h1{font-size:clamp(52px,8.6vw,124px);line-height:.92;letter-spacing:-.055em;font-weight:700;margin:28px 0 26px}
+  h1 .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.06em}
+  h1 .ch{display:inline-block;will-change:transform}
+  h1 .grad .ch{background:linear-gradient(100deg,var(--acc),var(--acc2) 60%,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{font-size:20px;color:var(--muted);max-width:560px}
+  .cta{display:flex;gap:14px;margin-top:38px;flex-wrap:wrap}
+  .scroll-hint{position:absolute;bottom:34px;left:50%;translate:-50% 0;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:10px}
+  .scroll-hint i{width:1px;height:46px;background:linear-gradient(var(--acc),transparent);animation:sh 1.8s infinite}
+  @keyframes sh{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+  /* MARQUEE */
+  .marq{padding:26px 0;border-block:1px solid var(--line);overflow:hidden;background:var(--panel);backdrop-filter:blur(10px)}
+  .marq-in{display:flex;width:max-content;animation:mq 34s linear infinite}
+  .marq span{font-size:46px;font-weight:700;letter-spacing:-.03em;padding:0 30px;white-space:nowrap;display:flex;align-items:center;gap:30px}
+  .marq span::after{content:"✦";color:var(--acc);font-size:24px}
+  .marq span:nth-child(even){-webkit-text-stroke:1px var(--ink);color:transparent}
+  @keyframes mq{to{transform:translateX(-50%)}}
+
+  /* Umumiy section */
+  section{padding:150px 0 0;position:relative}
+  .lbl{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc);display:flex;gap:10px;align-items:center}
+  .lbl::before{content:"";width:28px;height:1px;background:var(--acc)}
+  h2{font-size:clamp(38px,5.4vw,72px);line-height:1;letter-spacing:-.045em;margin:16px 0 18px;font-weight:700}
+  h2 em{font-style:normal;color:var(--acc)}
+  .sub{color:var(--muted);font-size:18px;max-width:600px}
+  .glass{background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line)}
+  .rv{will-change:transform,opacity}
+
+  /* STATS */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-radius:24px;overflow:hidden;margin-top:120px}
+  .stats>div{padding:34px 30px;border-right:1px solid var(--line)}
+  .stats>div:last-child{border:0}
+  .stats b{display:block;font-size:54px;letter-spacing:-.04em;font-weight:700;line-height:1}
+  .stats span{color:var(--muted);font-size:14px}
+
+  /* KURSLAR — gorizontal pin */
+  #yonalishlar{padding:110px 0 30px;min-height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+  .yo-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:36px}
+  .chips{display:flex;gap:6px;padding:5px;border-radius:999px}
+  .chips button{background:none;border:0;padding:9px 16px;border-radius:999px;font-size:14px;color:var(--muted);cursor:pointer;transition:.25s}
+  .chips button.on{background:var(--ink);color:var(--bg)}
+  .h-track{display:flex;gap:22px;padding:0 28px 0 max(28px,calc((100vw - 1240px)/2 + 28px));width:max-content;will-change:transform}
+  .ccard{width:370px;height:470px;border-radius:26px;padding:26px;display:flex;flex-direction:column;position:relative;overflow:hidden;transform-style:preserve-3d}
+  .ccard .cov{height:180px;border-radius:18px;display:grid;place-items:center;font-size:64px;color:#fff;position:relative;overflow:hidden;transform:translateZ(30px)}
+  .ccard .cov::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(255,255,255,.35),transparent 55%);opacity:0;transition:opacity .3s}
+  .ccard:hover .cov::after{opacity:1}
+  .ccard .no{position:absolute;top:14px;left:16px;font-family:'JetBrains Mono',monospace;font-size:13px;opacity:.8}
+  .ccard .ty{position:absolute;top:12px;right:12px;display:flex;gap:6px}
+  .pill{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.35);color:#fff;backdrop-filter:blur(6px)}
+  .pill.free{background:var(--lime);color:#0b1200}
+  .ccard h3{font-size:26px;letter-spacing:-.03em;line-height:1.1;margin:22px 0 8px;transform:translateZ(20px)}
+  .ccard p{color:var(--muted);font-size:15px}
+  .ccard .meta{margin-top:auto;display:flex;gap:16px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);padding-top:16px;border-top:1px solid var(--line)}
+  .ccard .meta i{color:var(--acc)}
+  .ccard.end{justify-content:center;align-items:center;text-align:center;gap:16px}
+  .ccard.end .big{width:110px;height:110px;border-radius:50%;border:1px solid var(--acc);display:grid;place-items:center;font-size:36px;color:var(--acc)}
+  .prog{height:2px;background:var(--line);margin-top:40px;position:relative}
+  .prog i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--acc)}
+
+  /* PULLIK KURSLAR */
+  .paid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:56px;perspective:1200px}
+  .pcard{border-radius:28px;padding:30px;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;transform-style:preserve-3d}
+  .pcard .glare{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at var(--gx,50%) var(--gy,0%),color-mix(in srgb,var(--acc) 28%,transparent),transparent 50%);opacity:0;transition:opacity .3s}
+  .pcard:hover .glare{opacity:1}
+  .pcard.hot{border-color:color-mix(in srgb,var(--gold) 60%,transparent)}
+  .pcard .ribbon{position:absolute;top:22px;right:-38px;rotate:45deg;background:var(--gold);color:#1a1100;font-size:11px;font-weight:700;padding:5px 44px}
+  .pcard .ic{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;font-size:26px;color:#fff;transform:translateZ(40px)}
+  .pcard h3{font-size:26px;letter-spacing:-.03em;transform:translateZ(30px)}
+  .pcard .row{display:flex;gap:14px;font-size:13px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+  .price{font-size:44px;font-weight:700;letter-spacing:-.04em;line-height:1;transform:translateZ(36px)}
+  .price small{font-size:16px;color:var(--muted);font-weight:500;letter-spacing:0}
+  .price s{display:block;font-size:15px;color:var(--muted);font-weight:400;letter-spacing:0;margin-bottom:6px}
+  .pcard ul{list-style:none;display:grid;gap:9px;font-size:15px;color:var(--muted)}
+  .pcard li i{color:var(--lime);margin-right:8px}
+  .coinoff{font-size:13px;color:var(--gold);display:flex;gap:8px;align-items:center;padding:10px 12px;border-radius:12px;background:color-mix(in srgb,var(--gold) 10%,transparent)}
+  .pcard .btn{justify-content:center;margin-top:auto}
+  .trust{display:flex;gap:28px;flex-wrap:wrap;margin-top:28px;color:var(--muted);font-size:14px}
+  .trust i{color:var(--acc);margin-right:6px}
+
+  /* COIN */
+  #coin{padding:0}
+  .coin-stage{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:100px 0 40px}
+  .coin-head{text-align:center;margin-bottom:34px}
+  .coin-head .lbl{justify-content:center}
+  .coin-head h2 em{color:var(--gold)}
+  .coin-grid{display:grid;grid-template-columns:1fr 340px 1fr;gap:28px;align-items:center}
+  .ccol h4{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.12em;color:var(--muted);margin-bottom:14px;display:flex;gap:8px;align-items:center}
+  .citem{display:flex;gap:14px;align-items:center;border-radius:16px;padding:13px 16px;margin-bottom:10px}
+  .citem .i{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex-shrink:0}
+  .citem b{display:block;font-size:15px;line-height:1.3}
+  .citem small{color:var(--muted);font-size:13px}
+  .citem .a{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;white-space:nowrap}
+  .earn .i{background:color-mix(in srgb,var(--lime) 14%,transparent);color:var(--lime)} .earn .a{color:var(--lime)}
+  .spend .i{background:color-mix(in srgb,var(--gold) 14%,transparent);color:var(--gold)} .spend .a{color:var(--gold)}
+  .spend .citem{flex-direction:row-reverse;text-align:right} .spend .citem .a{margin-left:0;margin-right:auto}
+  .spend h4{justify-content:flex-end}
+  .balance{text-align:center;align-self:end;padding-bottom:10px}
+  .balance .lb{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+  .balance b{font-size:46px;font-weight:700;letter-spacing:-.04em;color:var(--gold);font-family:'JetBrains Mono',monospace}
+  .balance .tx{font-family:'JetBrains Mono',monospace;font-size:13px;height:20px;color:var(--muted)}
+
+  /* IMKONIYATLAR bento */
+  .bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:200px;gap:18px;margin-top:56px}
+  .bx{border-radius:24px;padding:26px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .bx::before{content:"";position:absolute;inset:0;background:radial-gradient(400px circle at var(--x,-100px) var(--y,-100px),color-mix(in srgb,var(--acc) 16%,transparent),transparent 45%);pointer-events:none}
+  .bx>i{font-size:28px;color:var(--acc)}
+  .bx h4{font-size:20px;letter-spacing:-.02em}
+  .bx p{color:var(--muted);font-size:14px}
+  .bx.w2{grid-column:span 2}.bx.h2{grid-row:span 2}
+  .bx .eq{display:flex;gap:6px;align-items:end;height:80px}
+  .bx .eq span{flex:1;border-radius:6px 6px 0 0;background:linear-gradient(var(--acc),transparent);height:30%}
+
+  /* QADAMLAR */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-top:60px;position:relative}
+  .steps .line{position:absolute;top:27px;left:0;right:0;height:1px;background:var(--line)}
+  .steps .line i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+  .step .n{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-weight:600;position:relative;background:var(--solid);border:1px solid var(--line);transition:.4s}
+  .step.on .n{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);box-shadow:0 0 30px -4px var(--acc)}
+  .step h4{font-size:21px;margin:22px 0 6px;letter-spacing:-.02em}
+  .step p{color:var(--muted);font-size:15px}
+
+  /* YANGILIKLAR */
+  .news-head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:20px}
+  .posts{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:22px;margin-top:50px}
+  .post{border-radius:24px;overflow:hidden;display:flex;flex-direction:column}
+  .post .img{height:240px;overflow:hidden}
+  .post .img div{height:100%;transition:transform .8s cubic-bezier(.2,.8,.2,1);display:grid;place-items:center;font-size:54px;color:rgba(255,255,255,.85)}
+  .post:hover .img div{transform:scale(1.08) rotate(1deg)}
+  .post .bd{padding:22px;display:flex;flex-direction:column;gap:10px;flex:1}
+  .post .t{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)}
+  .post .t b{color:var(--acc);font-weight:600}
+  .post h3{font-size:21px;letter-spacing:-.02em;line-height:1.25}
+  .post .f{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:auto}
+
+  /* FAQ */
+  .faq{display:grid;grid-template-columns:.8fr 1.2fr;gap:60px}
+  .qa{border-bottom:1px solid var(--line)}
+  .qa button{width:100%;text-align:left;background:none;border:0;padding:24px 0;font-size:19px;font-weight:600;display:flex;justify-content:space-between;cursor:pointer}
+  .qa button i{transition:.4s;color:var(--acc)}
+  .qa.open button i{rotate:45deg}
+  .qa .ans{height:0;overflow:hidden;color:var(--muted)}
+  .qa .ans p{padding-bottom:22px}
+
+  /* ARIZA */
+  #ariza{padding-bottom:40px}
+  .apply{border-radius:36px;padding:70px;display:grid;grid-template-columns:1.1fr .9fr;gap:60px;align-items:center;overflow:hidden;position:relative}
+  .apply h2{font-size:clamp(40px,5vw,68px)}
+  .apply form{display:grid;gap:12px}
+  .apply input,.apply select{width:100%;padding:16px 18px;border-radius:14px;border:1px solid var(--line);background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--ink);font:inherit;outline:none;transition:.25s}
+  .apply input:focus,.apply select:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 18%,transparent)}
+  .apply .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .apply .btn{justify-content:center;padding:17px}
+
+  footer{padding:80px 0 40px}
+  .fbig{font-size:clamp(60px,14vw,210px);font-weight:700;letter-spacing:-.06em;line-height:.85;text-align:center;background:linear-gradient(180deg,var(--ink),transparent);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.9}
+  .fgrid{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;margin-top:40px;padding-top:26px;border-top:1px solid var(--line);color:var(--muted);font-size:14px}
+  .fgrid .s{display:flex;gap:18px;font-size:19px}
+  .fgrid a:hover{color:var(--acc)}
+  .shape-pick{position:fixed;bottom:16px;right:16px;z-index:60;display:flex;gap:4px;align-items:center;padding:5px 5px 5px 14px;border-radius:999px;font-size:13px}
+  .shape-pick span{color:var(--muted);font-family:'JetBrains Mono',monospace;font-size:12px;margin-right:4px}
+  .shape-pick button{background:none;border:0;padding:7px 13px;border-radius:999px;cursor:pointer;color:var(--muted);transition:.25s}
+  .shape-pick button.on{background:var(--acc);color:var(--acc-ink)}
+  @media(max-width:700px){.shape-pick span{display:none}.shape-pick button{padding:6px 9px;font-size:12px}}
+  .badge{position:fixed;bottom:16px;left:16px;z-index:60;font-family:'JetBrains Mono',monospace;font-size:12px;padding:7px 12px;border-radius:999px}
+
+  @media(max-width:960px){
+    .links{display:none}
+    .stats{grid-template-columns:1fr 1fr}.stats>div:nth-child(2){border-right:0}
+    .paid,.posts,.faq,.apply,.coin-grid{grid-template-columns:1fr}
+    .spend .citem{flex-direction:row;text-align:left}.spend .citem .a{margin:0 0 0 auto}.spend h4{justify-content:flex-start}
+    .balance{order:-1;min-height:280px;display:flex;flex-direction:column;justify-content:end}
+    .bento{grid-template-columns:1fr 1fr}.bx.w2{grid-column:span 2}
+    .steps{grid-template-columns:1fr 1fr}.steps .line{display:none}
+    #yonalishlar{min-height:auto;padding-top:120px}
+    .h-wrap{overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:10px}
+    .ccard{width:290px;height:430px;scroll-snap-align:center}
+    .apply{padding:30px}
+    .prog{display:none}
+  }
+</style>
+</head>
+<body>
+<div id="loader"><div class="in"><div class="num"><span id="ldn">0</span>%</div><div class="bar"><i id="ldb"></i></div><div style="margin-top:14px;color:var(--muted);font-size:12px">&lt;itcreative /&gt; yuklanmoqda</div></div></div>
+<canvas id="gl"></canvas>
+<div class="noise"></div>
+<div class="cur"></div><div class="cur-r"></div>
+<div class="badge glass">Prototip · 3D Motion</div>
+<div class="shape-pick glass" id="shapes"><span>3D shakl:</span></div>
+
+<nav><div class="wrap">
+  <div class="navbox"><a class="logo" href="#hero">&lt;<b>it</b>creative /&gt;</a></div>
+  <div class="navbox links"><a href="#yonalishlar">Yo'nalishlar</a><a href="#pullik">Pullik kurslar</a><a href="#coin">Coin</a><a href="#imkoniyat">Platforma</a><a href="#yangiliklar">Yangiliklar</a></div>
+  <div class="navbox">
+    <button class="btn ico-btn mag" id="themeBtn" title="Dark / Light"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button>
+    <a class="btn btn-acc btn-sm mag" href="/login/">Kirish <i class="bi bi-arrow-right"></i></a>
+  </div>
+</div></nav>
+
+<main>
+  <!-- ═════════ HERO ═════════ -->
+  <section id="hero"><div class="wrap">
+    <div class="hero-in">
+      <span class="tag hero-fade"><span class="d"></span>Yangi oqimga qabul ochiq</span>
+      <h1 id="title"><span class="split">Kelajak</span><br><span class="split grad">kodlanadi.</span><br><span class="split">Siz ham.</span></h1>
+      <p class="lead hero-fade">Video darslar, testlar, uy vazifalari, AI yordamchi, o'yinlar va coin tizimi — IT kasbini o'rganish uchun hammasi bitta platformada.</p>
+      <div class="cta hero-fade"><a class="btn btn-acc mag" href="#ariza">Bepul ariza <i class="bi bi-arrow-right"></i></a><a class="btn mag" href="#yonalishlar"><i class="bi bi-grid"></i> Kurslarni ko'rish</a></div>
+    </div>
+    <div class="scroll-hint hero-fade">scroll<i></i></div>
+  </div></section>
+
+  <div class="marq" id="marq"><div class="marq-in">
+    <span>Python</span><span>JavaScript</span><span>React</span><span>Django</span><span>Flutter</span><span>Figma</span><span>SQL</span><span>Git</span>
+    <span>Python</span><span>JavaScript</span><span>React</span><span>Django</span><span>Flutter</span><span>Figma</span><span>SQL</span><span>Git</span>
+  </div></div>
+
+  <div class="wrap">
+    <!-- Django: total_students, total_courses -->
+    <div class="stats glass rv">
+      <div><b class="cnt" data-n="1240">0</b><span>Faol o'quvchilar</span></div>
+      <div><b class="cnt" data-n="18">0</b><span>Kurs va kasblar</span></div>
+      <div><b class="cnt" data-n="2600">0</b><span>Video darslar</span></div>
+      <div><b class="cnt" data-n="850">0</b><span>Sertifikatlar</span></div>
+    </div>
+  </div>
+
+  <!-- ═════════ 1. BARCHA YO'NALISHLAR (Profession) ═════════ -->
+  <section id="yonalishlar">
+    <div class="wrap yo-head">
+      <div><div class="lbl">01 — Yo'nalishlar</div><h2>IT sohasining barcha<br><em>yo'nalishlari</em></h2><p class="sub">LMS'dagi barcha kasb va kurslar. Pastga aylantiring — kartochkalar yon tomonga suriladi.</p></div>
+      <div class="chips glass" id="chips"><button class="on" data-f="all">Barchasi</button><button data-f="profession">Kasblar</button><button data-f="course">Kurslar</button><button data-f="free">Bepul</button></div>
+    </div>
+    <div class="h-wrap"><div class="h-track" id="track"></div></div>
+    <div class="wrap"><div class="prog"><i id="hprog"></i></div></div>
+  </section>
+
+  <!-- ═════════ 2. PULLIK KURSLAR (one_time_payment) ═════════ -->
+  <section id="pullik"><div class="wrap">
+    <div class="lbl rv">02 — Pullik kurslar</div>
+    <h2 class="rv">Bir marta to'lang —<br><em>umrbod</em> o'rganing</h2>
+    <p class="sub rv">Oylik to'lov yo'q, so'rov kutish yo'q. Kursni sotib oling — u darhol kabinetingizda ochiladi.</p>
+    <div class="paid">
+      <div class="pcard glass tilt rv"><div class="glare"></div><div class="ic" style="background:linear-gradient(135deg,#2563eb,#22d3ee)"><i class="bi bi-filetype-py"></i></div><h3>Python asoslari</h3><div class="row"><span>3 oy</span><span>48 mavzu</span></div><div class="price">490 000 <small>so'm</small></div><ul><li><i class="bi bi-check2"></i>Video darslar va testlar</li><li><i class="bi bi-check2"></i>AI tekshiruvchi</li><li><i class="bi bi-check2"></i>Sertifikat</li></ul><div class="coinoff"><i class="bi bi-coin"></i> 500+ coin bo'lsa — 10% chegirma</div><a class="btn mag" href="#">Sotib olish</a></div>
+      <div class="pcard glass tilt hot rv"><div class="glare"></div><div class="ribbon">TOP</div><div class="ic" style="background:linear-gradient(135deg,#7c3aed,#f472b6)"><i class="bi bi-window"></i></div><h3>Frontend Developer</h3><div class="row"><span>6 oy</span><span>120 mavzu</span></div><div class="price"><s>1 500 000</s>1 200 000 <small>so'm</small></div><ul><li><i class="bi bi-check2"></i>Real loyihalar, code review</li><li><i class="bi bi-check2"></i>Yopiq Telegram guruh</li><li><i class="bi bi-check2"></i>Sertifikat</li></ul><div class="coinoff"><i class="bi bi-coin"></i> 1000+ coin bo'lsa — 15% chegirma</div><a class="btn btn-acc mag" href="#">Sotib olish</a></div>
+      <div class="pcard glass tilt rv"><div class="glare"></div><div class="ic" style="background:linear-gradient(135deg,#059669,#a3e635)"><i class="bi bi-git"></i></div><h3>Git & GitHub</h3><div class="row"><span>1 oy</span><span>24 mavzu</span></div><div class="price">250 000 <small>so'm</small></div><ul><li><i class="bi bi-check2"></i>Amaliy topshiriqlar</li><li><i class="bi bi-check2"></i>Jamoada ishlash</li><li><i class="bi bi-check2"></i>Sertifikat</li></ul><div class="coinoff"><i class="bi bi-coin"></i> Coin chegirmasi mavjud</div><a class="btn mag" href="#">Sotib olish</a></div>
+    </div>
+    <div class="trust rv"><span><i class="bi bi-lightning-charge"></i>To'lovdan so'ng darhol ochiladi</span><span><i class="bi bi-shield-lock"></i>Tezcheck orqali xavfsiz to'lov</span><span><i class="bi bi-infinity"></i>Bir martalik — oylik to'lov yo'q</span></div>
+  </div></section>
+
+  <!-- ═════════ 3. COIN TIZIMI (pin + 3D tanga) ═════════ -->
+  <section id="coin"><div class="coin-stage wrap">
+    <div class="coin-head"><div class="lbl">03 — Coin tizimi</div><h2>O'qing — <em>coin</em> yig'ing</h2><p class="sub" style="margin:0 auto">Har bir to'g'ri javob, topshirilgan vazifa va g'alaba coin olib keladi. Coin'larni sovg'a va imkoniyatlarga almashtiring.</p></div>
+    <div class="coin-grid">
+      <div class="ccol earn">
+        <h4><i class="bi bi-arrow-down-circle"></i> QANDAY YIG'ILADI</h4>
+        <div class="citem glass" data-v="9"><div class="i"><i class="bi bi-ui-checks"></i></div><div><b>Testlar</b><small>Har bir to'g'ri javob</small></div><span class="a">+1</span></div>
+        <div class="citem glass" data-v="15"><div class="i"><i class="bi bi-journal-code"></i></div><div><b>Uy vazifasi va speaking</b><small>Ustoz baholaganda</small></div><span class="a">+coin</span></div>
+        <div class="citem glass" data-v="10"><div class="i"><i class="bi bi-question-circle"></i></div><div><b>Kun savoli</b><small>Har kuni yangi savol</small></div><span class="a">+coin</span></div>
+        <div class="citem glass" data-v="50"><div class="i"><i class="bi bi-controller"></i></div><div><b>O'yinlar va Jumanji</b><small>Musobaqada g'alaba</small></div><span class="a">+coin</span></div>
+        <div class="citem glass" data-v="3"><div class="i"><i class="bi bi-heart"></i></div><div><b>Blog faolligi</b><small>Like va izohlar</small></div><span class="a">+coin</span></div>
+        <div class="citem glass" data-v="5"><div class="i"><i class="bi bi-gem"></i></div><div><b>Premium bonus</b><small>Har kuni</small></div><span class="a">+5</span></div>
+      </div>
+      <div class="balance"><div class="lb">sizning balansingiz</div><b id="bal">0</b><div class="tx" id="baltx">scroll qiling ↓</div></div>
+      <div class="ccol spend">
+        <h4>NIMAGA SARFLANADI <i class="bi bi-bag-heart"></i></h4>
+        <div class="citem glass" data-v="-800"><div class="i"><i class="bi bi-shop"></i></div><div><b>Coin do'koni</b><small>Futbolka, stiker, sovg'alar</small></div><span class="a">do'kon</span></div>
+        <div class="citem glass" data-v="-300"><div class="i"><i class="bi bi-gem"></i></div><div><b>Premium obuna</b><small>Haftalik, 1 va 2 oylik</small></div><span class="a">premium</span></div>
+        <div class="citem glass" data-v="-10"><div class="i"><i class="bi bi-robot"></i></div><div><b>AI yordamchi</b><small>Saytda va Telegram botda</small></div><span class="a">chat</span></div>
+        <div class="citem glass" data-v="-20"><div class="i"><i class="bi bi-arrow-repeat"></i></div><div><b>Qayta topshirish</b><small>Test va uy vazifasi</small></div><span class="a">retry</span></div>
+        <div class="citem glass" data-v="-30"><div class="i"><i class="bi bi-trophy"></i></div><div><b>O'yinda tikish</b><small>Do'stlar bilan match</small></div><span class="a">match</span></div>
+        <div class="citem glass" data-v="-50"><div class="i"><i class="bi bi-send"></i></div><div><b>Do'stga o'tkazish / chegirma</b><small>Transfer yoki kursga chegirma</small></div><span class="a">−%</span></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ═════════ 4. PLATFORMA ═════════ -->
+  <section id="imkoniyat"><div class="wrap">
+    <div class="lbl rv">04 — Platforma</div>
+    <h2 class="rv">LMS ichida <em>nimalar</em> bor?</h2>
+    <p class="sub rv">O'qishning har bir bosqichi uchun alohida vosita — barchasi bitta kabinetda.</p>
+    <div class="bento">
+      <div class="bx glass w2 h2 rv"><i class="bi bi-play-btn"></i><div><h4 style="font-size:30px">Video darslar va kunlik reja</h4><p>Har kuni bitta bo'lim ochiladi. Video ichida savollar, mavzu oxirida test — tartibli va izchil o'qish.</p></div><div class="eq" id="eq"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+      <div class="bx glass rv"><i class="bi bi-journal-code"></i><div><h4>Uy vazifalari</h4><p>Ustoz bilan chat va AI tekshiruv</p></div></div>
+      <div class="bx glass rv"><i class="bi bi-robot"></i><div><h4>AI yordamchi</h4><p>24/7, Telegram botda ham</p></div></div>
+      <div class="bx glass rv"><i class="bi bi-controller"></i><div><h4>O'yinlar</h4><p>Jumanji jonli musobaqalari</p></div></div>
+      <div class="bx glass rv"><i class="bi bi-award"></i><div><h4>Sertifikat</h4><p>Yakuniy imtihondan so'ng</p></div></div>
+      <div class="bx glass w2 rv"><i class="bi bi-people"></i><div><h4>Ota-ona paneli</h4><p>Davomat, baholar va uy vazifalari — ota-onalar telefonidan real vaqtda kuzatadi.</p></div></div>
+      <div class="bx glass rv"><i class="bi bi-book"></i><div><h4>Kutubxona</h4><p>IT kitoblari</p></div></div>
+      <div class="bx glass rv"><i class="bi bi-rocket-takeoff"></i><div><h4>Startup</h4><p>O'z loyihangizni boshlang</p></div></div>
+    </div>
+  </div></section>
+
+  <!-- ═════════ 5. QADAMLAR ═════════ -->
+  <section id="qadamlar"><div class="wrap">
+    <div class="lbl rv">05 — Boshlash</div>
+    <h2 class="rv">4 qadamda <em>boshlang</em></h2>
+    <div class="steps" id="steps">
+      <div class="line"><i id="sline"></i></div>
+      <div class="step"><div class="n">01</div><h4>Ariza qoldiring</h4><p>Yoki pullik kursni darhol sotib oling.</p></div>
+      <div class="step"><div class="n">02</div><h4>Login oling</h4><p>Menejer shaxsiy kabinetingizni ochadi.</p></div>
+      <div class="step"><div class="n">03</div><h4>O'qing, coin yig'ing</h4><p>Darslar, testlar va vazifalar — har kuni.</p></div>
+      <div class="step"><div class="n">04</div><h4>Sertifikat oling</h4><p>Yakuniy imtihon va portfolio.</p></div>
+    </div>
+  </div></section>
+
+  <!-- ═════════ 6. YANGILIKLAR (blog Post) ═════════ -->
+  <section id="yangiliklar"><div class="wrap">
+    <div class="news-head"><div><div class="lbl rv">06 — Blog</div><h2 class="rv">IT dunyosidan <em>yangiliklar</em></h2></div><a class="btn mag rv" href="#">Barcha postlar <i class="bi bi-arrow-up-right"></i></a></div>
+    <div class="posts">
+      <a class="post glass rv" href="#"><div class="img"><div style="background:linear-gradient(135deg,#0e7490,#7c3aed)"><i class="bi bi-filetype-py"></i></div></div><div class="bd"><div class="t"><b>#yangilik</b><span>20.10.2026</span></div><h3>Python 3.15 chiqdi: dasturchilar uchun eng muhim o'zgarishlar</h3><div class="f"><span><i class="bi bi-heart"></i> 48</span><span><i class="bi bi-chat"></i> 12</span></div></div></a>
+      <a class="post glass rv" href="#"><div class="img"><div style="background:linear-gradient(135deg,#be185d,#f59e0b)"><i class="bi bi-file-earmark-person"></i></div></div><div class="bd"><div class="t"><b>#maqola</b><span>17.10.2026</span></div><h3>Junior dasturchi rezyumesida nima bo'lishi kerak?</h3><div class="f"><span><i class="bi bi-heart"></i> 31</span><span><i class="bi bi-chat"></i> 8</span></div></div></a>
+      <a class="post glass rv" href="#"><div class="img"><div style="background:linear-gradient(135deg,#15803d,#22d3ee)"><i class="bi bi-trophy"></i></div></div><div class="bd"><div class="t"><b>#e'lon</b><span>15.10.2026</span></div><h3>Noyabrda Jumanji musobaqasi — sovrin 1000 coin!</h3><div class="f"><span><i class="bi bi-heart"></i> 76</span><span><i class="bi bi-chat"></i> 24</span></div></div></a>
+    </div>
+  </div></section>
+
+  <!-- ═════════ 7. FAQ ═════════ -->
+  <section id="faq"><div class="wrap faq">
+    <div><div class="lbl rv">07 — Savollar</div><h2 class="rv">Ko'p beriladigan <em>savollar</em></h2></div>
+    <div>
+      <div class="qa rv"><button>Dasturlashni bilmasam ham bo'ladimi? <i class="bi bi-plus-lg"></i></button><div class="ans"><p>Ha. Kurslar noldan boshlanadi, har kuni bitta bo'lim ochiladi va ustoz har bir vazifani tekshiradi.</p></div></div>
+      <div class="qa rv"><button>Pullik va oddiy kurslar farqi nima? <i class="bi bi-plus-lg"></i></button><div class="ans"><p>Pullik kurslar bir martalik to'lov bilan darhol ochiladi. Boshqa kurslarga ariza orqali yozilasiz.</p></div></div>
+      <div class="qa rv"><button>Coin'ni nima qilsa bo'ladi? <i class="bi bi-plus-lg"></i></button><div class="ans"><p>Do'kondan sovg'a olish, premium, AI yordamchi, qayta topshirish, o'yinlar, do'stga o'tkazish va kurslarga chegirma uchun ishlatiladi.</p></div></div>
+      <div class="qa rv"><button>Ota-onam natijalarimni ko'radimi? <i class="bi bi-plus-lg"></i></button><div class="ans"><p>Ha, ota-ona paneli orqali davomat, baholar va uy vazifalari real vaqtda ko'rinadi.</p></div></div>
+    </div>
+  </div></section>
+
+  <!-- ═════════ 8. ARIZA (CourseApplication) ═════════ -->
+  <section id="ariza"><div class="wrap">
+    <div class="apply glass rv">
+      <div><div class="lbl">08 — Ariza</div><h2>Birinchi qadamni <em>hozir</em> qo'ying</h2><p class="sub">Ma'lumot qoldiring — menejerimiz bog'lanadi va mos yo'nalishni tanlashda yordam beradi.</p></div>
+      <form>
+        <div class="two"><input placeholder="Ism"><input placeholder="Familiya"></div>
+        <input placeholder="+998 90 123 45 67">
+        <select><option>Qaysi kurs qiziqtiradi?</option><option>Frontend</option><option>Backend</option><option>Mobile</option><option>UI/UX</option></select>
+        <button class="btn btn-acc mag" type="button">Ariza yuborish <i class="bi bi-send"></i></button>
+      </form>
+    </div>
+  </div></section>
+</main>
+
+<footer><div class="wrap">
+  <div class="fbig">itcreative</div>
+  <div class="fgrid"><span>© 2026 IT Creative — IT kasblarini o'rgatuvchi platforma</span><span><a href="#yonalishlar">Kurslar</a> · <a href="#coin">Coin</a> · <a href="#yangiliklar">Blog</a> · <a href="/login/">Kirish</a></span><div class="s"><a href="#"><i class="bi bi-telegram"></i></a><a href="#"><i class="bi bi-instagram"></i></a><a href="#"><i class="bi bi-youtube"></i></a></div></div>
+</div></footer>
+
+<!-- Agar CDN yuklanmasa ham sahifa ochilsin -->
+<script>setTimeout(function(){var l=document.getElementById('loader');if(l)l.remove()},8000)</script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.1.13/dist/lenis.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+gsap.registerPlugin(ScrollTrigger);
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const isMob = () => innerWidth < 960;
+const root = document.documentElement;
+
+/* ───────────── Smooth scroll ───────────── */
+let lenis = null, velocity = 0;
+if (!reduce) {
+  lenis = new Lenis({ lerp: .09 });
+  lenis.on('scroll', e => { velocity = e.velocity; ScrollTrigger.update(); });
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+}
+document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener('click', e => {
+  const el = document.querySelector(a.getAttribute('href')); if (!el) return;
+  e.preventDefault(); lenis ? lenis.scrollTo(el, { offset: -20 }) : el.scrollIntoView({ behavior: 'smooth' });
+}));
+
+/* ───────────── THREE.js sahna ───────────── */
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, .1, 100);
+camera.position.set(0, 0, 8);
+scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), .04).texture;
+scene.add(new THREE.AmbientLight(0xffffff, .5));
+const l1 = new THREE.PointLight(0x22d3ee, 40, 30); l1.position.set(4, 3, 4); scene.add(l1);
+const l2 = new THREE.PointLight(0xa78bfa, 40, 30); l2.position.set(-4, -2, 3); scene.add(l2);
+
+// 1) "Bilim yadrosi" — kristall + qirralar + halqalar + orbitadagi kublar
+const coreG = new THREE.Group(); scene.add(coreG);
+const coreMat = new THREE.MeshPhysicalMaterial({ color: 0x6d28d9, metalness: .25, roughness: .12, clearcoat: 1, flatShading: true, iridescence: 1, iridescenceIOR: 1.4 });
+const edgeMat = new THREE.LineBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: .55 });
+const glowMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: .6, metalness: .3, roughness: .2 });
+const darkMat = new THREE.MeshPhysicalMaterial({ color: 0x1e1b4b, metalness: .35, roughness: .4, clearcoat: 1, side: THREE.DoubleSide });
+const alu = new THREE.MeshStandardMaterial({ color: 0xb8c0cc, metalness: .9, roughness: .3 });
+const body = new THREE.Group(); coreG.add(body);
+
+// Noutbuk ekranidagi "jonli" kod (pastga aylanib turadi)
+function codeTex() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 1280; const g = c.getContext('2d');
+  g.fillStyle = '#0d1117'; g.fillRect(0, 0, 1024, 1280);
+  const C = { k: '#f472b6', f: '#22d3ee', s: '#a3e635', c: '#6b7280', p: '#e6edf3', n: '#fbbf24' };
+  const L = [
+    [['c', '# itcreative/talaba.py']], [['k', 'from '], ['p', 'lms '], ['k', 'import '], ['p', 'Kurs, Coin']], [],
+    [['k', 'class '], ['f', 'Talaba'], ['p', ':']], [['p', '    '], ['k', 'def '], ['f', '__init__'], ['p', '(self, ism):']],
+    [['p', '        self.ism = ism']], [['p', '        self.coin = '], ['n', '0']], [],
+    [['p', '    '], ['k', 'def '], ['f', 'organ'], ['p', '(self, dars):']], [['p', '        dars.'], ['f', 'korish'], ['p', '()']],
+    [['p', '        self.coin += '], ['n', '10']], [['k', '        return '], ['s', '"Barakalla!"']], [],
+    [['p', 'siz = '], ['f', 'Talaba'], ['p', '('], ['s', '"Siz"'], ['p', ')']],
+    [['p', 'siz.'], ['f', 'organ'], ['p', '(Kurs('], ['s', '"Python"'], ['p', '))']], [['c', '# ✓ +10 coin']],
+  ];
+  g.font = 'bold 30px "JetBrains Mono", monospace'; g.textBaseline = 'top';
+  for (let rep = 0; rep < 2; rep++) L.forEach((line, i) => {
+    const y = rep * 640 + i * 40 + 6; g.fillStyle = '#4b5563'; g.fillText(String(i + 1).padStart(2, ' '), 18, y);
+    let x = 90; for (const [k, txt] of line) { g.fillStyle = C[k]; g.fillText(txt, x, y); x += g.measureText(txt).width; }
+  });
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.wrapT = THREE.RepeatWrapping; t.repeat.y = .5; return t;
+}
+function keysTex() {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 400; const g = c.getContext('2d');
+  g.fillStyle = '#9aa3b0'; g.fillRect(0, 0, 1024, 400); g.fillStyle = '#1f2430';
+  for (let r = 0; r < 5; r++) for (let k = 0; k < 14; k++) { g.beginPath(); g.roundRect(10 + k * 72.5, 10 + r * 78, 62, 66, 8); g.fill(); }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const shp = pts => { const s = new THREE.Shape(); s.moveTo(...pts[0]); pts.slice(1).forEach(p => s.lineTo(...p)); s.closePath(); return s; };
+
+// Har bir shakl: build(guruh) → har kadrda chaqiriladigan anim(dt, t)
+const SHAPES = {
+  orb: { label: 'Orb', rings: false, cubes: false, fit: 1, build(g) {
+    // Ko'plab kichik sharlardan iborat katta shar — kursor yaqinidagilar kattalashib rangi o'zgaradi
+    const N = isMob() ? 500 : 900, R = 1.55, ga = Math.PI * (3 - Math.sqrt(5));
+    const im = new THREE.InstancedMesh(new THREE.SphereGeometry(.075, 16, 12), new THREE.MeshPhysicalMaterial({ metalness: .2, roughness: .25, clearcoat: 1 }), N);
+    const P = [], amt = new Float32Array(N);
+    for (let i = 0; i < N; i++) { const y = 1 - i / (N - 1) * 2, r = Math.sqrt(1 - y * y), th = ga * i; P.push(new THREE.Vector3(Math.cos(th) * r, y, Math.sin(th) * r).multiplyScalar(R)); }
+    const hit = new THREE.Mesh(new THREE.SphereGeometry(R * 1.05, 24, 16), new THREE.MeshBasicMaterial({ visible: false }));
+    g.add(im, hit);
+    const ray = new THREE.Raycaster(), loc = new THREE.Vector3(), d = new THREE.Object3D();
+    const cA = new THREE.Color(), cB = new THREE.Color(), cC = new THREE.Color(0xf472b6), col = new THREE.Color();
+    return (dt, t) => {
+      g.rotation.y += dt * (.15 + spin); g.rotation.x = Math.sin(t * .3) * .15; g.updateMatrixWorld(true);
+      ray.setFromCamera({ x: mouse.x, y: mouse.y }, camera);
+      const h = ray.intersectObject(hit)[0]; if (h) g.worldToLocal(loc.copy(h.point));
+      const light = root.dataset.theme === 'light';
+      cA.set(light ? 0x7c3aed : 0x4c1d95); cB.set(light ? 0x0891b2 : 0x22d3ee);
+      const k = Math.min(1, dt * 6);
+      for (let i = 0; i < N; i++) {
+        const p = P[i], target = h ? Math.max(0, 1 - p.distanceTo(loc) / .9) : 0;
+        amt[i] += (target - amt[i]) * k; const a = amt[i];
+        const wave = Math.sin(t * 1.5 + p.y * 3 + p.x * 2) * .5 + .5;
+        d.position.copy(p).multiplyScalar(1 + a * .18); d.scale.setScalar(.75 + wave * .35 + a * 1.9); d.updateMatrix();
+        im.setMatrixAt(i, d.matrix); im.setColorAt(i, col.copy(cA).lerp(cB, wave * .35).lerp(cC, a));
+      }
+      im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true;
+    };
+  } },
+  code: { label: '&lt;/&gt;', rings: true, fit: .78, build(g) {
+    const ex = { depth: .36, bevelEnabled: true, bevelThickness: .06, bevelSize: .05, bevelSegments: 4 };
+    const chev = new THREE.ExtrudeGeometry(shp([[.45, 1], [-.55, 0], [.45, -1], [.45, -.55], [-.05, 0], [.45, .55]]), ex); chev.center();
+    const sl = new THREE.ExtrudeGeometry(shp([[.2, 1.15], [.55, 1.15], [-.2, -1.15], [-.55, -1.15]]), ex); sl.center();
+    const A = new THREE.Mesh(chev, coreMat), B = new THREE.Mesh(chev, coreMat), S = new THREE.Mesh(sl, glowMat);
+    B.scale.x = -1; g.add(A, S, B);
+    return (dt, t) => {
+      const gap = 1.35 + Math.max(0, Math.sin(t * 1.4)) * .25 + spin * .3;
+      A.position.x = -gap; B.position.x = gap; S.rotation.y += dt * (1.2 + spin * 3);
+      g.rotation.y = Math.sin(t * .7) * .45; g.rotation.x = Math.sin(t * .5) * .12;
+    };
+  } },
+  laptop: { label: 'Noutbuk', rings: false, fit: .95, build(g) {
+    const base = new THREE.Mesh(new THREE.BoxGeometry(2.8, .1, 1.9), alu);
+    const kb = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 1), new THREE.MeshStandardMaterial({ map: keysTex(), metalness: .3, roughness: .6 }));
+    kb.rotation.x = -Math.PI / 2; kb.position.set(0, .051, -.25);
+    const lid = new THREE.Group(); lid.position.set(0, .05, -.95);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(2.8, 1.8, .07), alu); back.position.y = .9;
+    const tex = codeTex();
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 1.62), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false })); scr.position.set(0, .9, .036);
+    lid.add(back, scr); g.add(base, kb, lid);
+    const st = { a: Math.PI / 2 }; gsap.to(st, { a: -.22, duration: 2, delay: .4, ease: 'expo.out' });
+    return (dt, t) => {
+      lid.rotation.x = st.a; tex.offset.y -= dt * (.04 + spin * .1);
+      g.position.y = -.45; g.rotation.y = Math.sin(t * .4) * .5 - .3; g.rotation.x = .35 + Math.sin(t * .6) * .05;
+    };
+  } },
+  blocks: { label: 'Bloklar', rings: true, fit: .8, build(g) {
+    const ms = [], geo = new THREE.BoxGeometry(.55, .55, .55), eg = new THREE.EdgesGeometry(geo);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (let k = -1; k <= 1; k++) {
+      const m = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ color: cubeCols[(i + j + k + 6) % 5], metalness: .3, roughness: .2, clearcoat: 1 }));
+      m.add(new THREE.LineSegments(eg, edgeMat)); m.userData.p = new THREE.Vector3(i, j, k); g.add(m); ms.push(m);
+    }
+    return (dt, t) => {
+      const e = .62 + (Math.sin(t * 1.2) * .5 + .5) * .38 + spin * .5;
+      ms.forEach((m, n) => { m.position.copy(m.userData.p).multiplyScalar(e); m.rotation.y = Math.sin(t + n) * .3; });
+      g.rotation.y += dt * (.4 + spin); g.rotation.x = .5 + Math.sin(t * .5) * .1;
+    };
+  } },
+  cap: { label: 'Bitiruv', rings: false, fit: .78, build(g) {
+    const board = new THREE.Mesh(new THREE.BoxGeometry(2.6, .09, 2.6), darkMat); board.rotation.y = Math.PI / 4; board.position.y = .55;
+    const crown = new THREE.Mesh(new THREE.CylinderGeometry(.95, 1.05, .75, 64, 1, true), darkMat); crown.position.y = .14;
+    const band = new THREE.Mesh(new THREE.TorusGeometry(1.05, .03, 12, 80), glowMat); band.rotation.x = Math.PI / 2; band.position.y = -.23;
+    const btn = new THREE.Mesh(new THREE.SphereGeometry(.1, 24, 16), sMat); btn.position.y = .62;
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(.02, .02, 1.84), sMat); cord.rotation.z = Math.PI / 2; cord.position.set(.92, .63, 0);
+    const hang = new THREE.Group(); hang.position.set(1.84, .62, 0);
+    const str = new THREE.Mesh(new THREE.CylinderGeometry(.025, .025, .6), sMat); str.position.y = -.3;
+    const tas = new THREE.Mesh(new THREE.CylinderGeometry(.03, .14, .45, 24), sMat); tas.position.y = -.8;
+    hang.add(str, tas); g.add(board, crown, band, btn, cord, hang);
+    return (dt, t) => {
+      hang.rotation.z = Math.sin(t * 2) * .2 + spin * .3; hang.rotation.x = Math.cos(t * 1.6) * .2;
+      g.rotation.y += dt * (.45 + spin); g.rotation.x = .35 + Math.sin(t * .8) * .08;
+    };
+  } },
+  crystal: { label: 'Kristall', rings: true, fit: 1, build(g) {
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, 1), coreMat);
+    const shell = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1.75, 1)), edgeMat);
+    g.add(core, shell);
+    return dt => {
+      core.rotation.x += dt * (.25 + spin); core.rotation.y += dt * (.35 + spin);
+      shell.rotation.y -= dt * (.15 + spin * .5); shell.rotation.z += dt * .05;
+    };
+  } },
+};
+let animBody = () => {};
+function setShape(key) {
+  if (!SHAPES[key]) key = 'orb';
+  body.clear(); body.rotation.set(0, 0, 0); body.position.set(0, 0, 0);
+  animBody = SHAPES[key].build(body) || (() => {});
+  ring1.visible = ring2.visible = SHAPES[key].rings;
+  cubes.forEach(c => c.visible = SHAPES[key].cubes !== false);
+  localStorage.setItem('itc-shape-v2', key);
+  document.querySelectorAll('#shapes button').forEach(b => b.classList.toggle('on', b.dataset.s === key));
+  gsap.fromTo(body.scale, { x: .01, y: .01, z: .01 }, { x: SHAPES[key].fit, y: SHAPES[key].fit, z: SHAPES[key].fit, duration: 1.4, ease: 'elastic.out(1,.6)' });
+}
+const ringMat = new THREE.MeshStandardMaterial({ color: 0x22d3ee, emissive: 0x22d3ee, emissiveIntensity: .8, metalness: .5, roughness: .3 });
+const ring1 = new THREE.Mesh(new THREE.TorusGeometry(2.35, .012, 12, 220), ringMat); coreG.add(ring1);
+const ring2 = new THREE.Mesh(new THREE.TorusGeometry(2.7, .008, 12, 220), ringMat); ring2.rotation.x = 1.2; coreG.add(ring2);
+const cubes = [];
+const cubeCols = [0x22d3ee, 0xa78bfa, 0xf472b6, 0xa3e635, 0xfbbf24];
+for (let i = 0; i < 14; i++) {
+  const s = .14 + Math.random() * .2;
+  const m = new THREE.Mesh(new THREE.BoxGeometry(s, s, s), new THREE.MeshStandardMaterial({ color: cubeCols[i % 5], metalness: .6, roughness: .2 }));
+  m.userData = { a: Math.random() * Math.PI * 2, r: 2.4 + Math.random() * 1.2, sp: .15 + Math.random() * .3, y: (Math.random() - .5) * 2 };
+  coreG.add(m); cubes.push(m);
+}
+
+// 2) Zarrachalar maydoni
+const PN = isMob() ? 900 : 2000, pos = new Float32Array(PN * 3);
+for (let i = 0; i < PN; i++) { const r = 6 + Math.random() * 10, t = Math.random() * Math.PI * 2, p = Math.acos(2 * Math.random() - 1);
+  pos.set([r * Math.sin(p) * Math.cos(t), r * Math.sin(p) * Math.sin(t), r * Math.cos(p) - 4], i * 3); }
+const pGeo = new THREE.BufferGeometry(); pGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+const pMat = new THREE.PointsMaterial({ size: .035, color: 0x9ad8ff, transparent: true, opacity: .8, depthWrite: false });
+const stars = new THREE.Points(pGeo, pMat); scene.add(stars);
+
+// 3) 3D Coin — oltin tanga, yuzida "IT"
+function faceTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 512; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(190, 170, 30, 256, 256, 260); gr.addColorStop(0, '#fff4c2'); gr.addColorStop(.45, '#fbbf24'); gr.addColorStop(1, '#a16207');
+  g.fillStyle = gr; g.fillRect(0, 0, 512, 512);
+  g.lineWidth = 16; g.strokeStyle = '#92400e'; g.beginPath(); g.arc(256, 256, 214, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 4; g.setLineDash([6, 10]); g.beginPath(); g.arc(256, 256, 236, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = '#7c2d12'; g.font = 'bold 220px "Space Grotesk", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('IT', 256, 268);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const fMat = new THREE.MeshStandardMaterial({ map: faceTex(), metalness: .85, roughness: .28 });
+const sMat = new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 1, roughness: .22 });
+const coinGeo = new THREE.CylinderGeometry(1, 1, .16, 80);
+const coinG = new THREE.Group(); scene.add(coinG);
+const coin = new THREE.Mesh(coinGeo, [sMat, fMat, fMat]); coin.rotation.x = Math.PI / 2; coinG.add(coin);
+const coinRim = new THREE.Mesh(new THREE.TorusGeometry(1, .045, 16, 100), sMat); coinG.add(coinRim);
+
+// 4) Coin yomg'iri (instanced)
+const RN = isMob() ? 20 : 42;
+const rain = new THREE.InstancedMesh(new THREE.CylinderGeometry(1, 1, .16, 32), [sMat, fMat, fMat], RN);
+const rd = [], dummy = new THREE.Object3D();
+for (let i = 0; i < RN; i++) rd.push({ x: (Math.random() - .5) * 14, y: Math.random() * 12 - 6, z: -1 - Math.random() * 5, v: .6 + Math.random() * 1.2, rx: Math.random() * 6, rs: (Math.random() - .5) * 4 });
+scene.add(rain);
+
+// Bo'limlarga qarab 3D holatlar (keyframe'lar)
+const KEYS = [
+  ['#hero',        { x: 3.4,  y: .1,   s: .95,  o: 1,   c: 0,    cy: 0,   r: 0 }],
+  ['#yonalishlar', { x: 3.6,  y: 1.9,  s: .42,  o: 1.7, c: 0,    cy: 0,   r: 0 }],
+  ['#pullik',      { x: -4.3, y: 1.6,  s: .6,   o: 1.3, c: 0,    cy: 0,   r: 0 }],
+  ['#coin',        { x: 0,    y: 0,    s: 0,    o: .4,  c: 1.15, cy: .45, r: 1 }],
+  ['#imkoniyat',   { x: 3.2,  y: -1.6, s: .55,  o: 1.4, c: 0,    cy: 0,   r: 0 }],
+  ['#qadamlar',    { x: -3.4, y: 1.5,  s: .5,   o: 1.2, c: 0,    cy: 0,   r: 0 }],
+  ['#yangiliklar', { x: 3.5,  y: 1.8,  s: .45,  o: 1.5, c: 0,    cy: 0,   r: 0 }],
+  ['#ariza',       { x: 0,    y: 0,    s: 1.35, o: 2.1, c: 0,    cy: 0,   r: .25 }],
+];
+let anchors = [];
+function measure() {
+  anchors = [];
+  for (const [sel, k] of KEYS) {
+    let el = document.querySelector(sel); if (!el) continue;
+    if (el.parentElement.classList.contains('pin-spacer')) el = el.parentElement;
+    const r = el.getBoundingClientRect(), top = r.top + scrollY;
+    const a = top - innerHeight * .55, b = Math.max(a, top + r.height - innerHeight * .9);
+    anchors.push({ p: a, k }, { p: b, k });
+  }
+}
+const ease = t => t * t * (3 - 2 * t);
+function sample(y) {
+  if (y <= anchors[0].p) return anchors[0].k;
+  for (let i = 0; i < anchors.length - 1; i++) {
+    const A = anchors[i], B = anchors[i + 1];
+    if (y >= A.p && y <= B.p) { const t = B.p === A.p ? 1 : ease((y - A.p) / (B.p - A.p)); const o = {}; for (const k in A.k) o[k] = A.k[k] + (B.k[k] - A.k[k]) * t; return o; }
+  }
+  return anchors[anchors.length - 1].k;
+}
+const cur = { ...KEYS[0][1] };
+const mouse = { x: 0, y: 0, sx: 0, sy: 0 };
+addEventListener('pointermove', e => { mouse.x = e.clientX / innerWidth * 2 - 1; mouse.y = -(e.clientY / innerHeight * 2 - 1); });
+
+const clock = new THREE.Clock(); let spin = 0;
+function tick() {
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  if (anchors.length) {
+    const tg = sample(scrollY), mob = isMob();
+    for (const k in tg) { let v = tg[k]; if (mob && (k === 'x')) v *= .25; if (mob && k === 's') v *= .7; cur[k] += (v - cur[k]) * Math.min(1, dt * 3.2); }
+  }
+  mouse.sx += (mouse.x - mouse.sx) * .05; mouse.sy += (mouse.y - mouse.sy) * .05;
+  spin += (Math.min(Math.abs(velocity), 60) * .02 - spin) * .08;
+
+  coreG.visible = cur.s > .01;
+  coreG.position.set(cur.x, cur.y, 0); coreG.scale.setScalar(Math.max(cur.s, .001));
+  coreG.rotation.y = mouse.sx * .5; coreG.rotation.x = -mouse.sy * .35;
+  animBody(dt, t);
+  ring1.rotation.x = 1.3 + Math.sin(t * .5) * .2; ring1.rotation.y = t * .3;
+  ring2.rotation.y = -t * .22; ring2.rotation.z = t * .1;
+  for (const c of cubes) { const u = c.userData, a = u.a + t * u.sp * (1 + spin * 2), r = u.r * cur.o;
+    c.position.set(Math.cos(a) * r, u.y + Math.sin(t + u.a) * .25, Math.sin(a) * r * .6); c.rotation.x += dt; c.rotation.y += dt * 1.3; }
+
+  coinG.visible = cur.c > .01;
+  coinG.position.set(0, cur.cy, 0); coinG.scale.setScalar(Math.max(cur.c, .001));
+  coinG.rotation.y = t * 1.1 + scrollY * .004 + mouse.sx * .6; coinG.rotation.x = Math.sin(t * .8) * .2 - mouse.sy * .3;
+
+  rain.visible = cur.r > .01;
+  if (rain.visible) for (let i = 0; i < RN; i++) { const d = rd[i]; d.y -= d.v * dt; d.rx += d.rs * dt; if (d.y < -6) d.y = 6;
+    dummy.position.set(d.x, d.y, d.z); dummy.rotation.set(d.rx, d.rx * .7, 0); dummy.scale.setScalar(.2 * cur.r); dummy.updateMatrix(); rain.setMatrixAt(i, dummy.matrix); }
+  rain.instanceMatrix.needsUpdate = true;
+
+  stars.rotation.y = t * .015 + mouse.sx * .05; stars.position.y = (scrollY * .0012) % 6;
+  camera.position.x += (mouse.sx * .35 - camera.position.x) * .05; camera.position.y += (mouse.sy * .25 - camera.position.y) * .05; camera.lookAt(0, 0, 0);
+  renderer.render(scene, camera);
+  requestAnimationFrame(tick);
+}
+
+function theme3D() {
+  const light = root.dataset.theme === 'light';
+  pMat.color.set(light ? 0x6d28d9 : 0x9ad8ff); pMat.opacity = light ? .45 : .8;
+  edgeMat.color.set(light ? 0x7c3aed : 0x22d3ee);
+  ringMat.color.set(light ? 0x0891b2 : 0x22d3ee); ringMat.emissive.set(light ? 0x0891b2 : 0x22d3ee); ringMat.emissiveIntensity = light ? .3 : .8;
+  coreMat.color.set(light ? 0x8b5cf6 : 0x6d28d9);
+  glowMat.emissiveIntensity = light ? .25 : .6;
+}
+theme3D();
+document.getElementById('themeBtn').addEventListener('click', () => {
+  root.dataset.theme = root.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('itc-theme', root.dataset.theme); theme3D();
+});
+addEventListener('resize', () => { renderer.setSize(innerWidth, innerHeight); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); });
+
+/* ───────────── Kurslar (Django: {% for prof in professions %}) ───────────── */
+const COURSES = [
+  { n: 'Frontend Development', d: 'HTML, CSS, JavaScript va React bilan zamonaviy interfeyslar.', k: 'profession', m: 6, t: 120, free: false, c: '#2563eb,#22d3ee', i: 'window' },
+  { n: 'Backend — Python & Django', d: "API, ma'lumotlar bazasi, deploy va real loyihalar.", k: 'profession', m: 7, t: 140, free: false, c: '#047857,#a3e635', i: 'hdd-stack' },
+  { n: 'Mobile — Flutter', d: 'Android va iOS uchun bitta kod bazasidan ilovalar.', k: 'profession', m: 6, t: 110, free: false, c: '#6d28d9,#c084fc', i: 'phone' },
+  { n: 'UI/UX Design', d: 'Figma, dizayn tizimlari va prototiplash.', k: 'profession', m: 4, t: 80, free: false, c: '#be185d,#fb7185', i: 'palette' },
+  { n: 'Kompyuter savodxonligi', d: 'Kompyuter, internet va ofis dasturlari asoslari.', k: 'course', m: 1, t: 20, free: true, c: '#b45309,#fbbf24', i: 'pc-display' },
+  { n: 'Ingliz tili IT uchun', d: "Texnik lug'at, hujjat o'qish va speaking.", k: 'course', m: 3, t: 45, free: true, c: '#0f766e,#2dd4bf', i: 'translate' },
+  { n: 'Data Science', d: 'Python, pandas, vizualizatsiya va ML asoslari.', k: 'profession', m: 8, t: 150, free: false, c: '#1d4ed8,#a78bfa', i: 'graph-up-arrow' },
+];
+const track = document.getElementById('track');
+function renderCourses(f) {
+  const list = COURSES.filter(c => f === 'all' || (f === 'free' ? c.free : c.k === f));
+  track.innerHTML = list.map((c, i) => `
+    <a class="ccard glass tilt" href="#"><div class="cov" style="background:linear-gradient(135deg,${c.c})">
+      <span class="no">${String(i + 1).padStart(2, '0')}</span>
+      <span class="ty"><span class="pill">${c.k === 'profession' ? 'KASB' : 'KURS'}</span>${c.free ? '<span class="pill free">BEPUL</span>' : ''}</span>
+      <i class="bi bi-${c.i}"></i></div>
+      <h3>${c.n}</h3><p>${c.d}</p>
+      <div class="meta"><span><i class="bi bi-clock"></i> ${c.m} oy</span><span><i class="bi bi-collection-play"></i> ${c.t} mavzu</span><span><i class="bi bi-award"></i> sertifikat</span></div></a>`).join('')
+    + `<a class="ccard glass end" href="#"><div class="big"><i class="bi bi-arrow-right"></i></div><h3>Barcha kurslar</h3><p>To'liq katalogni ko'ring</p></a>`;
+  bindTilt(track); bindCursor(track);
+}
+let hTween = null;
+function setupHorizontal() {
+  hTween && hTween.scrollTrigger.kill(); hTween && hTween.kill(); gsap.set(track, { x: 0 });
+  if (isMob() || reduce) return;
+  hTween = gsap.to(track, {
+    x: () => -(track.scrollWidth - innerWidth), ease: 'none',
+    scrollTrigger: { trigger: '#yonalishlar', start: 'top top', end: () => '+=' + (track.scrollWidth - innerWidth), pin: true, scrub: 1, invalidateOnRefresh: true,
+      onUpdate: s => gsap.set('#hprog', { width: s.progress * 100 + '%' }) }
+  });
+}
+document.querySelectorAll('#chips button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('#chips button').forEach(x => x.classList.remove('on')); b.classList.add('on');
+  gsap.to(track, { opacity: 0, y: 20, duration: .25, onComplete: () => { renderCourses(b.dataset.f); setupHorizontal(); ScrollTrigger.refresh(); gsap.to(track, { opacity: 1, y: 0, duration: .4 }); } });
+}));
+
+/* ───────────── Mikro-interaksiyalar ───────────── */
+function bindTilt(scope = document) {
+  if (matchMedia('(hover:none)').matches) return;
+  scope.querySelectorAll('.tilt').forEach(el => {
+    el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+      gsap.to(el, { rotateY: (px - .5) * 14, rotateX: -(py - .5) * 14, transformPerspective: 900, duration: .5, ease: 'power2.out' });
+      el.style.setProperty('--gx', px * 100 + '%'); el.style.setProperty('--gy', py * 100 + '%'); });
+    el.addEventListener('pointerleave', () => gsap.to(el, { rotateX: 0, rotateY: 0, duration: .8, ease: 'elastic.out(1,.5)' }));
+  });
+}
+document.querySelectorAll('.mag').forEach(el => {
+  el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); gsap.to(el, { x: (e.clientX - r.left - r.width / 2) * .3, y: (e.clientY - r.top - r.height / 2) * .4, duration: .4 }); });
+  el.addEventListener('pointerleave', () => gsap.to(el, { x: 0, y: 0, duration: .7, ease: 'elastic.out(1,.4)' }));
+});
+document.querySelectorAll('.bx').forEach(el => el.addEventListener('pointermove', e => { const r = el.getBoundingClientRect(); el.style.setProperty('--x', e.clientX - r.left + 'px'); el.style.setProperty('--y', e.clientY - r.top + 'px'); }));
+
+const dot = document.querySelector('.cur'), ring = document.querySelector('.cur-r');
+const qx = gsap.quickTo(ring, 'x', { duration: .45, ease: 'power3' }), qy = gsap.quickTo(ring, 'y', { duration: .45, ease: 'power3' });
+addEventListener('pointermove', e => { gsap.set(dot, { x: e.clientX, y: e.clientY }); qx(e.clientX); qy(e.clientY); });
+function bindCursor(scope = document) { scope.querySelectorAll('a,button,.tilt').forEach(el => { el.addEventListener('pointerenter', () => ring.classList.add('big')); el.addEventListener('pointerleave', () => ring.classList.remove('big')); }); }
+
+// FAQ akkordeon
+document.querySelectorAll('.qa').forEach(q => q.querySelector('button').addEventListener('click', () => {
+  const open = !q.classList.contains('open'); q.classList.toggle('open', open);
+  gsap.to(q.querySelector('.ans'), { height: open ? 'auto' : 0, duration: .5, ease: 'power3.inOut', onComplete: () => ScrollTrigger.refresh() });
+}));
+
+/* ───────────── Scroll animatsiyalari ───────────── */
+function setupScroll() {
+  // Marquee — scroll tezligiga qarab qiyshayadi
+  const mq = document.querySelector('.marq-in'); let sk = 0;
+  gsap.ticker.add(() => { sk += (gsap.utils.clamp(-14, 14, velocity * .6) - sk) * .1; gsap.set(mq, { skewX: -sk }); });
+
+  gsap.utils.toArray('.rv').forEach(el => gsap.from(el, { y: 70, opacity: 0, rotateX: 8, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: el, start: 'top 88%' } }));
+
+  document.querySelectorAll('.cnt').forEach(el => { const o = { v: 0 };
+    gsap.to(o, { v: +el.dataset.n, duration: 2, ease: 'power2.out', scrollTrigger: { trigger: el, start: 'top 90%' }, onUpdate: () => el.textContent = Math.round(o.v).toLocaleString('ru').replace(/,/g, ' ') + '+' }); });
+
+  // Coin bo'limi — pin, elementlar birin-ketin, balans o'zgaradi
+  const earn = gsap.utils.toArray('.earn .citem'), spend = gsap.utils.toArray('.spend .citem');
+  const bal = document.getElementById('bal'), btx = document.getElementById('baltx');
+  const coinTl = gsap.timeline({ scrollTrigger: isMob() || reduce
+    ? { trigger: '#coin', start: 'top 70%', end: 'bottom 60%', scrub: 1 }
+    : { trigger: '#coin', start: 'top top', end: '+=160%', pin: true, scrub: 1 } });
+  coinTl.from('.coin-head', { y: 40, opacity: 0, duration: .5 });
+  let b = 0; const steps = [];
+  earn.forEach(el => { b += +el.dataset.v * 8; steps.push({ el, b, tx: '+' + (+el.dataset.v * 8) + ' · ' + el.querySelector('b').textContent }); });
+  spend.forEach(el => { b = Math.max(0, b + +el.dataset.v / 2); steps.push({ el, b: Math.round(b), tx: el.dataset.v / 2 + ' · ' + el.querySelector('b').textContent }); });
+  steps.forEach((s, i) => {
+    coinTl.from(s.el, { x: s.el.closest('.earn') ? -80 : 80, opacity: 0, scale: .9, duration: .4, ease: 'back.out(2)',
+      onStart: () => { bal.textContent = '🪙 ' + s.b; btx.textContent = s.tx; },
+      onReverseComplete: () => { const p = steps[i - 1]; bal.textContent = p ? '🪙 ' + p.b : '0'; btx.textContent = p ? p.tx : "scroll qiling ↓"; } }, i < earn.length ? '>-0.1' : '>-0.1');
+  });
+
+  // Bento ichidagi ustunlar
+  gsap.to('#eq span', { height: () => 20 + Math.random() * 80 + '%', duration: .9, ease: 'sine.inOut', stagger: { each: .08, repeat: -1, yoyo: true } });
+
+  // Qadamlar chizig'i
+  const stepEls = gsap.utils.toArray('.step');
+  gsap.to('#sline', { width: '100%', ease: 'none', scrollTrigger: { trigger: '#steps', start: 'top 75%', end: 'top 30%', scrub: 1,
+    onUpdate: s => stepEls.forEach((el, i) => el.classList.toggle('on', s.progress >= i / stepEls.length + .01)) } });
+  gsap.from('.step', { y: 50, opacity: 0, stagger: .15, duration: 1, ease: 'expo.out', scrollTrigger: { trigger: '#steps', start: 'top 85%' } });
+
+  // Footer katta yozuv
+  gsap.from('.fbig', { yPercent: 60, opacity: 0, ease: 'none', scrollTrigger: { trigger: 'footer', start: 'top bottom', end: 'bottom bottom', scrub: 1 } });
+
+  // Nav — faol bo'lim
+  ['yonalishlar', 'pullik', 'coin', 'imkoniyat', 'yangiliklar'].forEach(id => ScrollTrigger.create({ trigger: '#' + id, start: 'top 50%', end: 'bottom 50%',
+    onToggle: s => document.querySelector(`.links a[href="#${id}"]`).classList.toggle('on', s.isActive) }));
+
+  ScrollTrigger.addEventListener('refresh', measure);
+  ScrollTrigger.refresh();
+}
+
+/* ───────────── Hero intro + preloader ───────────── */
+function splitTitle() {
+  document.querySelectorAll('#title .split').forEach(s => {
+    s.innerHTML = s.textContent.split(' ').map(w => `<span class="w">${[...w].map(ch => `<span class="ch">${ch}</span>`).join('')}</span>`).join(' ');
+  });
+}
+function intro() {
+  const tl = gsap.timeline();
+  tl.to('#loader', { yPercent: -100, duration: 1, ease: 'expo.inOut', onComplete: () => document.getElementById('loader')?.remove() })
+    .from('#title .ch', { yPercent: 115, rotateX: -80, opacity: 0, duration: 1.1, ease: 'expo.out', stagger: .025 }, '-=.45')
+    .from('.hero-fade', { y: 30, opacity: 0, duration: .9, ease: 'expo.out', stagger: .1 }, '-=.8')
+    .from(cur, { s: 0, duration: 1.6, ease: 'expo.out' }, '-=1.4');
+}
+function start() {
+  const pick = document.getElementById('shapes');
+  for (const k in SHAPES) { const b = document.createElement('button'); b.dataset.s = k; b.innerHTML = SHAPES[k].label; b.onclick = () => setShape(k); pick.appendChild(b); }
+  setShape(localStorage.getItem('itc-shape-v2') || 'orb');
+  splitTitle(); renderCourses('all'); setupHorizontal(); setupScroll(); bindTilt(); bindCursor(); measure(); tick();
+  const o = { v: 0 };
+  gsap.to(o, { v: 100, duration: 1.2, ease: 'power2.inOut', onUpdate: () => { const n = document.getElementById('ldn'), b = document.getElementById('ldb'); if (n) n.textContent = Math.round(o.v); if (b) b.style.width = o.v + '%'; }, onComplete: intro });
+}
+document.readyState === 'complete' ? start() : addEventListener('load', start);
+</script>
+</body>
+</html>

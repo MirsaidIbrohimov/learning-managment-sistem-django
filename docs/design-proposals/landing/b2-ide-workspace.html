@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="uz" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variant B2 — IDE Workspace (dark/light) · IT Creative</title>
+<script>
+  (function(){var t=localStorage.getItem('itc-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+  :root,[data-theme=dark]{--bg:#0b0d12;--panel:#12151c;--panel2:#181c25;--line:#232838;--ink:#eef1f6;--muted:#8a93a6;--acc:#8b5cf6;--acc-ink:#fff;--acc2:#22d3ee;--ok:#4ade80;--gold:#fbbf24;--pink:#f472b6;--glow:rgba(139,92,246,.35)}
+  [data-theme=light]{--bg:#fbfaff;--panel:#ffffff;--panel2:#f4f2fb;--line:#e6e3f0;--ink:#16132b;--muted:#6b6785;--acc:#7c3aed;--acc-ink:#fff;--acc2:#0891b2;--ok:#16a34a;--gold:#d97706;--pink:#db2777;--glow:rgba(124,58,237,.18)}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{font-family:Inter,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;transition:background .3s,color .3s}
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:'JetBrains Mono',monospace}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  .glow-bg{position:absolute;inset:0 0 auto 0;height:900px;background:radial-gradient(600px 400px at 20% 10%,var(--glow),transparent),radial-gradient(500px 400px at 85% 20%,color-mix(in srgb,var(--acc2) 22%,transparent),transparent);pointer-events:none;z-index:-1}
+
+  nav .wrap{display:flex;justify-content:space-between;align-items:center;height:76px}
+  .logo{display:flex;gap:10px;align-items:center;font-weight:800;font-size:19px}
+  .logo span{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:grid;place-items:center;color:#fff;font-size:16px}
+  .links{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px}
+  .links a{padding:7px 14px;border-radius:999px;font-size:14px;font-weight:500;color:var(--muted)}
+  .links a:hover{color:var(--ink);background:var(--panel2)}
+  .nav-r{display:flex;gap:8px}
+  .btn{display:inline-flex;gap:8px;align-items:center;padding:11px 20px;border-radius:10px;font-weight:600;font-size:15px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;font-family:inherit;transition:.2s}
+  .btn:hover{border-color:var(--acc)}
+  .btn-acc{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);box-shadow:0 10px 30px -10px var(--acc)}
+  .toggle{width:44px;justify-content:center;padding:0}
+  [data-theme=dark] .i-sun,[data-theme=light] .i-moon{display:none}
+
+  /* HERO */
+  .hero{text-align:center;padding:70px 0 0}
+  .pill{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--panel);padding:5px 14px 5px 5px;border-radius:999px;font-size:14px;color:var(--muted)}
+  .pill b{background:var(--acc);color:#fff;padding:2px 10px;border-radius:999px;font-size:12px}
+  h1{font-size:72px;font-weight:800;letter-spacing:-.045em;line-height:1.02;margin:26px auto 20px;max-width:900px}
+  .g{background:linear-gradient(90deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lead{color:var(--muted);font-size:19px;max-width:640px;margin:0 auto}
+  .cta{display:flex;gap:12px;justify-content:center;margin-top:32px}
+
+  /* IDE */
+  .ide{margin:60px auto 0;max-width:1060px;background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;text-align:left;box-shadow:0 50px 120px -50px var(--glow);display:grid;grid-template-columns:230px 1fr;min-height:380px}
+  .ide .tree{background:var(--panel2);border-right:1px solid var(--line);padding:14px 10px;font-family:'JetBrains Mono',monospace;font-size:13px}
+  .tree .dots{display:flex;gap:7px;margin:0 6px 16px}.tree .dots i{width:11px;height:11px;border-radius:50%}
+  .tree .h{color:var(--muted);font-size:11px;letter-spacing:.1em;padding:0 8px 8px}
+  .tree button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;background:none;border:0;color:var(--muted);font:inherit;padding:7px 10px;border-radius:6px;cursor:pointer}
+  .tree button:hover{color:var(--ink)}
+  .tree button.on{background:color-mix(in srgb,var(--acc) 18%,transparent);color:var(--ink)}
+  .ide .main{display:flex;flex-direction:column}
+  .tabs{display:flex;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:13px}
+  .tabs span{padding:11px 18px;border-right:1px solid var(--line);color:var(--ink);border-bottom:2px solid var(--acc)}
+  .pane{padding:26px;flex:1;animation:fade .3s}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}}
+  .pane h3{font-size:22px;margin-bottom:6px}
+  .pane p{color:var(--muted);font-size:15px;margin-bottom:16px}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mini div{border:1px solid var(--line);border-radius:10px;padding:14px;background:var(--panel2);font-size:14px}
+  .mini b{display:block;font-size:22px}
+  .chat{display:grid;gap:10px;max-width:520px}
+  .msg{padding:10px 14px;border-radius:12px;font-size:14px;max-width:85%}
+  .msg.me{background:var(--acc);color:#fff;justify-self:end;border-bottom-right-radius:3px}
+  .msg.ai{background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:3px;font-family:'JetBrains Mono',monospace;font-size:13px}
+
+  /* LOGOS */
+  .tech{display:flex;justify-content:center;flex-wrap:wrap;gap:34px;margin:70px 0 0;color:var(--muted);font-weight:600;font-size:17px}
+  .tech span{display:flex;gap:8px;align-items:center}
+
+  section{padding-top:120px}
+  .lbl{display:inline-flex;gap:8px;align-items:center;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--acc);background:color-mix(in srgb,var(--acc) 12%,transparent);padding:4px 12px;border-radius:999px}
+  h2{font-size:48px;font-weight:800;letter-spacing:-.035em;line-height:1.08;margin:14px 0 12px}
+  .sub{color:var(--muted);font-size:17px;max-width:620px}
+  .head{display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:20px;margin-bottom:34px}
+  .seg{display:flex;gap:4px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px}
+  .seg button{background:none;border:0;padding:8px 16px;border-radius:7px;font:inherit;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer}
+  .seg button.on{background:var(--acc);color:#fff}
+
+  /* COURSE LIST */
+  .clist{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel)}
+  .crow{display:grid;grid-template-columns:72px 1.6fr 1fr 1fr 1fr 40px;gap:20px;align-items:center;padding:16px 22px;border-bottom:1px solid var(--line);transition:.2s}
+  .crow:last-child{border:0}
+  .crow:hover{background:var(--panel2)}
+  .thumb{width:72px;height:54px;border-radius:10px;display:grid;place-items:center;color:#fff;font-size:22px}
+  .crow h3{font-size:17px}
+  .crow small{color:var(--muted);font-size:13px;display:block}
+  .crow .c{font-size:14px;color:var(--muted)} .crow .c i{color:var(--acc);margin-right:4px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--line);width:max-content}
+  .chip.free{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
+  .chip.paid{color:var(--gold);border-color:color-mix(in srgb,var(--gold) 40%,transparent)}
+  .crow .arr{color:var(--muted);font-size:18px}
+
+  /* PAID */
+  .paid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .pc{border:1px solid var(--line);border-radius:20px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+  .pc .top{height:120px;display:flex;align-items:end;padding:18px;color:#fff;font-size:34px}
+  .pc .bd{padding:22px;display:flex;flex-direction:column;gap:12px;flex:1}
+  .pc h3{font-size:21px}
+  .pc .row{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+  .pc .pr{display:flex;align-items:baseline;gap:8px;margin-top:auto;padding-top:14px;border-top:1px dashed var(--line)}
+  .pc .pr b{font-size:28px;font-weight:800;letter-spacing:-.02em}
+  .pc .pr span{color:var(--muted);font-size:14px}
+  .pc .coinoff{font-size:13px;color:var(--gold);display:flex;gap:6px;align-items:center}
+  .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-top:22px}
+  .compare div{background:var(--panel);padding:18px 22px;font-size:14px;display:flex;gap:10px;align-items:center}
+  .compare i{color:var(--ok);font-size:18px}
+
+  /* COIN FLOW */
+  .flow{display:grid;grid-template-columns:1fr 220px 1fr;gap:26px;align-items:center;border:1px solid var(--line);background:var(--panel);border-radius:24px;padding:40px}
+  .col h4{font-size:13px;font-family:'JetBrains Mono',monospace;color:var(--muted);margin-bottom:12px;letter-spacing:.06em}
+  .node{display:flex;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:10px;font-size:14px;transition:.2s}
+  .node:hover{transform:translateX(4px);border-color:var(--acc)}
+  .node i{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex-shrink:0}
+  .node b{display:block;font-size:14px}
+  .node small{color:var(--muted);font-size:12px}
+  .in i{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+  .out i{background:color-mix(in srgb,var(--gold) 15%,transparent);color:var(--gold)}
+  .out .node:hover{transform:translateX(-4px)}
+  .core{text-align:center;position:relative}
+  .coin{width:170px;height:170px;margin:0 auto;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b 55%,#b45309);display:grid;place-items:center;font-size:58px;font-weight:800;color:#78350f;box-shadow:0 0 0 10px color-mix(in srgb,var(--gold) 15%,transparent),0 20px 60px -10px #f59e0b;animation:spin 6s ease-in-out infinite}
+  @keyframes spin{50%{transform:rotateY(180deg)}}
+  .core p{margin-top:18px;font-size:14px;color:var(--muted)}
+  .core .arrows{display:flex;justify-content:space-between;color:var(--muted);font-size:22px;margin-top:8px}
+  .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+  .rules div{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:18px;font-size:14px;color:var(--muted)}
+  .rules b{color:var(--ink);display:block;margin-bottom:4px}
+
+  /* BENTO FEATURES */
+  .bento{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:170px;gap:16px}
+  .b{border:1px solid var(--line);background:var(--panel);border-radius:18px;padding:22px;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden;position:relative}
+  .b i.ic{font-size:24px;color:var(--acc)}
+  .b h4{font-size:18px}
+  .b p{color:var(--muted);font-size:14px}
+  .b.w2{grid-column:span 2}.b.h2{grid-row:span 2}
+  .b.accent{background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc2) 80%,#000));color:#fff;border:0}
+  .b.accent p{color:rgba(255,255,255,.8)} .b.accent i.ic{color:#fff}
+  .bars{display:flex;gap:6px;align-items:end;height:70px}
+  .bars span{flex:1;background:color-mix(in srgb,var(--acc) 55%,transparent);border-radius:4px 4px 0 0}
+
+  /* BLOG */
+  .posts{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .post{border:1px solid var(--line);background:var(--panel);border-radius:18px;overflow:hidden;transition:.25s}
+  .post:hover{transform:translateY(-4px);border-color:var(--acc)}
+  .post .img{height:180px}
+  .post .bd{padding:20px}
+  .post .t{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}
+  .post .t b{color:var(--acc);font-weight:600}
+  .post h3{font-size:18px;margin:8px 0;line-height:1.35}
+  .post .f{display:flex;gap:14px;font-size:13px;color:var(--muted)}
+
+  /* APPLY */
+  .apply{margin-top:120px;border-radius:28px;padding:60px;background:linear-gradient(135deg,var(--acc),color-mix(in srgb,var(--acc2) 70%,#000));color:#fff;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+  .apply h2{color:#fff}
+  .apply form{background:var(--panel);color:var(--ink);border-radius:18px;padding:26px;display:grid;gap:12px}
+  .apply input,.apply select{width:100%;padding:13px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+  .apply .btn{justify-content:center}
+  footer{padding:50px 0;color:var(--muted);font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:20px;border-top:1px solid var(--line);padding-top:30px}
+  footer .s{display:flex;gap:16px;font-size:18px}
+  .badge{position:fixed;bottom:16px;left:16px;background:var(--acc);color:#fff;padding:8px 14px;border-radius:10px;font-family:'JetBrains Mono',monospace;font-size:12px;z-index:99}
+  @media(max-width:960px){.links{display:none}h1{font-size:46px}h2{font-size:34px}.ide{grid-template-columns:1fr}.ide .tree{display:none}.crow{grid-template-columns:56px 1fr 40px}.crow .c,.crow .chip{display:none}.paid,.posts,.rules,.compare{grid-template-columns:1fr}.flow{grid-template-columns:1fr}.bento{grid-template-columns:1fr 1fr}.apply{grid-template-columns:1fr;padding:28px}.mini{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="glow-bg"></div>
+<div class="badge">Variant B2 — IDE Workspace</div>
+
+<nav><div class="wrap">
+  <a class="logo" href="#"><span><i class="bi bi-code-slash"></i></span>IT Creative</a>
+  <div class="links"><a href="#kurslar">Kurslar</a><a href="#pullik">Pullik kurslar</a><a href="#coin">Coin</a><a href="#platforma">Platforma</a><a href="#blog">Yangiliklar</a></div>
+  <div class="nav-r"><button class="btn toggle" id="themeBtn" title="Dark / Light"><i class="bi bi-sun i-sun"></i><i class="bi bi-moon-stars i-moon"></i></button><a class="btn btn-acc" href="#">Kirish <i class="bi bi-arrow-right"></i></a></div>
+</div></nav>
+
+<div class="wrap">
+  <header class="hero">
+    <span class="pill"><b>Yangi</b> Pullik kurslar endi bir martalik to'lov bilan</span>
+    <h1>IT kasbini o'rganing.<br><span class="g">Coin yig'ing. O'sing.</span></h1>
+    <p class="lead">Video darslar, testlar, uy vazifalari, AI yordamchi, o'yinlar va sertifikat — barchasi bitta LMS'da.</p>
+    <div class="cta"><a class="btn btn-acc" href="#ariza">Bepul ariza qoldirish</a><a class="btn" href="#kurslar"><i class="bi bi-grid"></i> Kurslar katalogi</a></div>
+
+    <!-- Interaktiv LMS ko'rinishi -->
+    <div class="ide">
+      <div class="tree">
+        <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+        <div class="h">IT-CREATIVE LMS</div>
+        <button class="on" data-p="0"><i class="bi bi-play-btn"></i> darslar.mp4</button>
+        <button data-p="1"><i class="bi bi-coin"></i> coin.json</button>
+        <button data-p="2"><i class="bi bi-robot"></i> ai_yordamchi.md</button>
+        <button data-p="3"><i class="bi bi-people"></i> ota_ona.panel</button>
+      </div>
+      <div class="main"><div class="tabs"><span id="tab">darslar.mp4</span></div><div class="pane" id="pane"></div></div>
+    </div>
+  </header>
+
+  <div class="tech"><span><i class="bi bi-filetype-py"></i>Python</span><span><i class="bi bi-filetype-js"></i>JavaScript</span><span><i class="bi bi-filetype-html"></i>HTML/CSS</span><span><i class="bi bi-git"></i>Git</span><span><i class="bi bi-phone"></i>Flutter</span><span><i class="bi bi-vector-pen"></i>Figma</span><span><i class="bi bi-database"></i>SQL</span></div>
+
+  <!-- 1. Barcha yo'nalishlar -->
+  <section id="kurslar">
+    <div class="head">
+      <div><span class="lbl"><i class="bi bi-grid"></i> Kurslar katalogi</span><h2>IT sohasining barcha yo'nalishlari</h2><p class="sub">LMS'dagi barcha kasb va kurslar bitta ro'yxatda.</p></div>
+      <div class="seg" id="seg"><button class="on" data-f="all">Barchasi</button><button data-f="profession">Kasblar</button><button data-f="course">Kurslar</button><button data-f="free">Bepul</button></div>
+    </div>
+    <div class="clist" id="clist"></div>
+  </section>
+
+  <!-- 2. Pullik kurslar -->
+  <section id="pullik">
+    <span class="lbl"><i class="bi bi-credit-card"></i> Bir martalik to'lov</span>
+    <h2>Pullik kurslar</h2>
+    <p class="sub" style="margin-bottom:34px">Bir marta to'laysiz — kurs darhol ochiladi. So'rov kutish yo'q, oylik to'lov yo'q.</p>
+    <div class="paid">
+      <div class="pc"><div class="top" style="background:linear-gradient(135deg,#2563eb,#22d3ee)"><i class="bi bi-filetype-py"></i></div><div class="bd"><h3>Python asoslari</h3><div class="row"><span><i class="bi bi-clock"></i> 3 oy</span><span><i class="bi bi-collection-play"></i> 48 mavzu</span><span><i class="bi bi-award"></i> Sertifikat</span></div><div class="coinoff"><i class="bi bi-coin"></i> 500 coin bo'lsa — 10% chegirma</div><div class="pr"><b>490 000</b><span>so'm</span></div><a class="btn btn-acc" href="#" style="justify-content:center">Sotib olish</a></div></div>
+      <div class="pc"><div class="top" style="background:linear-gradient(135deg,#7c3aed,#f472b6)"><i class="bi bi-window"></i></div><div class="bd"><h3>Frontend Developer</h3><div class="row"><span><i class="bi bi-clock"></i> 6 oy</span><span><i class="bi bi-collection-play"></i> 120 mavzu</span><span><i class="bi bi-award"></i> Sertifikat</span></div><div class="coinoff"><i class="bi bi-coin"></i> 1000 coin bo'lsa — 15% chegirma</div><div class="pr"><b>1 200 000</b><span>so'm</span></div><a class="btn btn-acc" href="#" style="justify-content:center">Sotib olish</a></div></div>
+      <div class="pc"><div class="top" style="background:linear-gradient(135deg,#059669,#a3e635)"><i class="bi bi-git"></i></div><div class="bd"><h3>Git & GitHub</h3><div class="row"><span><i class="bi bi-clock"></i> 1 oy</span><span><i class="bi bi-collection-play"></i> 24 mavzu</span><span><i class="bi bi-award"></i> Sertifikat</span></div><div class="coinoff"><i class="bi bi-coin"></i> Coin chegirmasi mavjud</div><div class="pr"><b>250 000</b><span>so'm</span></div><a class="btn btn-acc" href="#" style="justify-content:center">Sotib olish</a></div></div>
+    </div>
+    <div class="compare">
+      <div><i class="bi bi-lightning-charge"></i> To'lovdan keyin darhol ochiladi</div>
+      <div><i class="bi bi-shield-check"></i> Tezcheck orqali xavfsiz to'lov</div>
+      <div><i class="bi bi-infinity"></i> Oylik to'lov yo'q — bir marta</div>
+    </div>
+  </section>
+
+  <!-- 3. Coin tizimi -->
+  <section id="coin">
+    <div style="text-align:center;margin-bottom:36px"><span class="lbl"><i class="bi bi-coin"></i> Coin tizimi</span><h2>O'qish ham foyda keltiradi 🪙</h2><p class="sub" style="margin:0 auto">Chap tomonda — coin qanday yig'iladi, o'ng tomonda — nimalarga sarflanadi.</p></div>
+    <div class="flow">
+      <div class="col in"><h4>▼ YIG'ISH</h4>
+        <div class="node"><i class="bi bi-ui-checks"></i><div><b>Testlar</b><small>Har bir to'g'ri javob = +1 coin</small></div></div>
+        <div class="node"><i class="bi bi-journal-code"></i><div><b>Uy vazifasi va speaking</b><small>Ustoz baholaganda</small></div></div>
+        <div class="node"><i class="bi bi-question-circle"></i><div><b>Kun savoli</b><small>Har kuni yangi savol</small></div></div>
+        <div class="node"><i class="bi bi-controller"></i><div><b>O'yinlar va Jumanji</b><small>Musobaqalarda g'alaba</small></div></div>
+        <div class="node"><i class="bi bi-heart"></i><div><b>Blog'da faollik</b><small>Like va izohlar uchun</small></div></div>
+        <div class="node"><i class="bi bi-gem"></i><div><b>Premium bonus</b><small>Har kuni +5 coin</small></div></div>
+      </div>
+      <div class="core"><div class="coin">₵</div><p>Barcha coin'lar balansingizda va tarix sahifasida ko'rinadi</p><div class="arrows"><i class="bi bi-arrow-left"></i><i class="bi bi-arrow-right"></i></div></div>
+      <div class="col out"><h4>▼ SARFLASH</h4>
+        <div class="node"><i class="bi bi-shop"></i><div><b>Coin do'koni</b><small>Futbolka, stiker, sovg'alar</small></div></div>
+        <div class="node"><i class="bi bi-gem"></i><div><b>Premium</b><small>Haftalik, 1 va 2 oylik</small></div></div>
+        <div class="node"><i class="bi bi-robot"></i><div><b>AI yordamchi</b><small>Sayt va Telegram botda</small></div></div>
+        <div class="node"><i class="bi bi-arrow-repeat"></i><div><b>Qayta topshirish</b><small>Test va uy vazifasi</small></div></div>
+        <div class="node"><i class="bi bi-trophy"></i><div><b>O'yinda tikish</b><small>Do'stlar bilan match</small></div></div>
+        <div class="node"><i class="bi bi-percent"></i><div><b>Kursga chegirma</b><small>Yoki do'stga o'tkazish</small></div></div>
+      </div>
+    </div>
+    <div class="rules">
+      <div><b>🏆 Reyting</b>Ko'p coin yig'ganlar umumiy reytingda yuqoriga chiqadi.</div>
+      <div><b>🎁 Do'kondagi sovg'alar</b>Haqiqiy mahsulotlar — buyurtma bering, olib keting.</div>
+      <div><b>🔒 Halol tizim</b>Har bir coin harakati tarixda saqlanadi.</div>
+    </div>
+  </section>
+
+  <!-- 4. Platforma imkoniyatlari -->
+  <section id="platforma">
+    <span class="lbl"><i class="bi bi-layers"></i> Platforma</span>
+    <h2 style="margin-bottom:34px">LMS haqida hammasi</h2>
+    <div class="bento">
+      <div class="b w2 h2 accent"><i class="bi bi-play-btn ic"></i><div><h4 style="font-size:26px">Video darslar va kunlik reja</h4><p>Har kuni bitta bo'lim ochiladi — tartibli va izchil o'qish. Video ichida savollar, mavzu oxirida test.</p></div><div class="bars"><span style="height:40%"></span><span style="height:65%"></span><span style="height:50%"></span><span style="height:80%"></span><span style="height:70%"></span><span style="height:95%"></span><span style="height:85%"></span></div></div>
+      <div class="b"><i class="bi bi-journal-code ic"></i><div><h4>Uy vazifalari</h4><p>Ustoz bilan chat va AI tekshiruv</p></div></div>
+      <div class="b"><i class="bi bi-robot ic"></i><div><h4>AI yordamchi</h4><p>24/7, Telegram'da ham</p></div></div>
+      <div class="b"><i class="bi bi-controller ic"></i><div><h4>O'yinlar</h4><p>Jumanji jonli musobaqalari</p></div></div>
+      <div class="b"><i class="bi bi-award ic"></i><div><h4>Sertifikat</h4><p>Yakuniy imtihondan so'ng</p></div></div>
+      <div class="b w2"><i class="bi bi-people ic"></i><div><h4>Ota-ona paneli</h4><p>Davomat, baholar va uy vazifalari — ota-onalar telefonidan kuzatadi.</p></div></div>
+      <div class="b"><i class="bi bi-book ic"></i><div><h4>Kutubxona</h4><p>IT kitoblari</p></div></div>
+      <div class="b"><i class="bi bi-rocket-takeoff ic"></i><div><h4>Startup</h4><p>O'z loyihangiz</p></div></div>
+    </div>
+  </section>
+
+  <!-- 5. Yangiliklar -->
+  <section id="blog">
+    <div class="head"><div><span class="lbl"><i class="bi bi-newspaper"></i> Blog</span><h2>IT dunyosidan yangiliklar</h2></div><a class="btn" href="#">Barchasi <i class="bi bi-arrow-right"></i></a></div>
+    <div class="posts">
+      <a class="post" href="#"><div class="img" style="background:linear-gradient(135deg,#2563eb,#22d3ee)"></div><div class="bd"><div class="t"><b>Yangilik</b><span>20 okt 2026</span></div><h3>Python 3.15 chiqdi: eng muhim o'zgarishlar</h3><div class="f"><span><i class="bi bi-heart"></i> 48</span><span><i class="bi bi-chat"></i> 12</span></div></div></a>
+      <a class="post" href="#"><div class="img" style="background:linear-gradient(135deg,#7c3aed,#f472b6)"></div><div class="bd"><div class="t"><b>Maqola</b><span>17 okt 2026</span></div><h3>Junior dasturchi rezyumesida nima bo'lishi kerak?</h3><div class="f"><span><i class="bi bi-heart"></i> 31</span><span><i class="bi bi-chat"></i> 8</span></div></div></a>
+      <a class="post" href="#"><div class="img" style="background:linear-gradient(135deg,#d97706,#ef4444)"></div><div class="bd"><div class="t"><b>E'lon</b><span>15 okt 2026</span></div><h3>Noyabrda Jumanji musobaqasi — sovrin 1000 coin!</h3><div class="f"><span><i class="bi bi-heart"></i> 76</span><span><i class="bi bi-chat"></i> 24</span></div></div></a>
+    </div>
+  </section>
+
+  <!-- 6. Ariza -->
+  <div class="apply" id="ariza">
+    <div><h2>Kelajakni bugun boshlang</h2><p style="opacity:.85;font-size:17px">Ariza qoldiring — menejerimiz bog'lanadi, sizga login beradi va mos kursni tanlashga yordam beradi.</p></div>
+    <form><input placeholder="Ism"><input placeholder="Familiya"><input placeholder="+998 90 123 45 67"><select><option>Qaysi kurs qiziqtiradi?</option><option>Frontend</option><option>Backend</option><option>Mobile</option><option>UI/UX</option></select><button class="btn btn-acc" type="button">Ariza yuborish</button></form>
+  </div>
+</div>
+
+<footer><div class="wrap"><span>© 2026 IT Creative — IT kasblarini o'rgatuvchi platforma</span><div class="s"><a href="#"><i class="bi bi-telegram"></i></a><a href="#"><i class="bi bi-instagram"></i></a><a href="#"><i class="bi bi-youtube"></i></a></div></div></footer>
+
+<script>
+  document.getElementById('themeBtn').onclick=()=>{const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark';localStorage.setItem('itc-theme',r.dataset.theme)};
+
+  // IDE oynasi panellari
+  const panes=[
+    ['darslar.mp4',`<h3>Bugungi dars: Django modellari</h3><p>Bo'lim 4 / 12 · Video ichida 3 ta savol bor</p><div class="mini"><div><b>12/40</b>Video darslar</div><div><b>87%</b>Test natijasi</div><div><b>5 kun</b>Ketma-ket faollik 🔥</div></div>`],
+    ['coin.json',`<h3>🪙 Balans: 1 250 coin</h3><p>Oxirgi harakatlar</p><div class="mini"><div><b style="color:var(--ok)">+9</b>Test: 9 ta to'g'ri</div><div><b style="color:var(--ok)">+50</b>Jumanji g'olibi</div><div><b style="color:var(--gold)">−800</b>Do'kon: futbolka</div></div>`],
+    ['ai_yordamchi.md',`<h3>AI yordamchi</h3><p>Kodingizdagi xatoni tushuntiradi</p><div class="chat"><div class="msg me">Nega "list index out of range" chiqyapti?</div><div class="msg ai">Ro'yxatda 3 ta element bor, siz esa [3] ga murojaat qildingiz. Indeks 0 dan boshlanadi → [2] ishlating ✓</div></div>`],
+    ['ota_ona.panel',`<h3>Ota-ona paneli</h3><p>Farzandingiz natijalari real vaqtda</p><div class="mini"><div><b>96%</b>Davomat</div><div><b>4.7</b>O'rtacha baho</div><div><b>18/20</b>Uy vazifalari</div></div>`],
+  ];
+  const pane=document.getElementById('pane'),tab=document.getElementById('tab'),btns=document.querySelectorAll('.tree button');
+  let cur=0;function show(i){cur=i;btns.forEach((b,j)=>b.classList.toggle('on',j===i));tab.textContent=panes[i][0];pane.innerHTML=panes[i][1];pane.style.animation='none';pane.offsetHeight;pane.style.animation=''}
+  btns.forEach((b,i)=>b.onclick=()=>{show(i);clearInterval(auto)});show(0);
+  const auto=setInterval(()=>show((cur+1)%panes.length),4000);
+
+  // Kurslar ro'yxati (Django: {% for prof in professions %})
+  const courses=[
+    {n:'Frontend Development',d:'HTML, CSS, JS, React',k:'profession',m:6,t:120,p:'paid',c:'#2563eb,#22d3ee',i:'window'},
+    {n:'Backend — Python & Django',d:'API, SQL, deploy',k:'profession',m:7,t:140,p:'paid',c:'#059669,#a3e635',i:'hdd-stack'},
+    {n:'Mobile — Flutter',d:'Android va iOS ilovalar',k:'profession',m:6,t:110,p:'paid',c:'#7c3aed,#c084fc',i:'phone'},
+    {n:'UI/UX Design',d:'Figma, prototiplash',k:'profession',m:4,t:80,p:'paid',c:'#db2777,#f472b6',i:'palette'},
+    {n:'Kompyuter savodxonligi',d:'Ofis dasturlari, internet',k:'course',m:1,t:20,p:'free',c:'#d97706,#fbbf24',i:'pc-display'},
+    {n:'Ingliz tili IT uchun',d:'Texnik lug\'at va speaking',k:'course',m:3,t:45,p:'free',c:'#0f766e,#2dd4bf',i:'translate'},
+  ];
+  const list=document.getElementById('clist');
+  function render(f){list.innerHTML=courses.filter(c=>f==='all'||(f==='free'?c.p==='free':c.k===f)).map(c=>`
+    <a class="crow" href="#"><div class="thumb" style="background:linear-gradient(135deg,${c.c})"><i class="bi bi-${c.i}"></i></div>
+    <div><h3>${c.n}</h3><small>${c.d}</small></div>
+    <span class="chip">${c.k==='profession'?'KASB':'KURS'}</span>
+    <span class="c"><i class="bi bi-clock"></i>${c.m} oy · ${c.t} mavzu</span>
+    <span class="chip ${c.p}">${c.p==='free'?'BEPUL':'ARIZA ORQALI'}</span>
+    <i class="bi bi-arrow-up-right arr"></i></a>`).join('')}
+  render('all');
+  document.querySelectorAll('#seg button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#seg button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(b.dataset.f)});
+</script>
+</body>
+</html>

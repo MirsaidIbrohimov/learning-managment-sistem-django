@@ -38,7 +38,7 @@ class PerformanceQueryTests(TestCase):
         self.request.user = AnonymousUser()
 
     def test_landing_warm_data_has_no_database_queries(self):
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(7):
             first = landing_data()
         with self.assertNumQueries(0):
             second = landing_data()
@@ -58,7 +58,7 @@ class PerformanceQueryTests(TestCase):
                 CACHES={'first': backend, 'second': backend},
                 PERFORMANCE_CACHE_ALIAS='first',
             ):
-                with self.assertNumQueries(4):
+                with self.assertNumQueries(7):
                     first = landing_data()
                 with override_settings(PERFORMANCE_CACHE_ALIAS='second'):
                     with self.assertNumQueries(0):
