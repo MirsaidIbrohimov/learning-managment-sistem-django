@@ -1,0 +1,239 @@
+/* IT Creative — Bosh sahifalar (dashboard). profile.css ustiga qo'shimcha: .pf3 o'zgaruvchilarini ishlatadi. */
+.pf3 .dash{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;margin-top:18px}
+.pf3 .s3{grid-column:span 3}.pf3 .s4{grid-column:span 4}.pf3 .s5{grid-column:span 5}.pf3 .s6{grid-column:span 6}.pf3 .s7{grid-column:span 7}.pf3 .s8{grid-column:span 8}.pf3 .s12{grid-column:span 12}
+.pf3 .hd .more{font-size:13px;font-weight:600;color:var(--acc);white-space:nowrap}
+.pf3 .card3 .sub{margin-bottom:2px}
+
+/* Salomlashuv */
+.pf3 .hello .clock{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);display:flex;gap:10px;align-items:center;margin-bottom:12px}
+.pf3 .hello .clock b{color:var(--acc);font-weight:600}
+.pf3 .hello h1{font-size:clamp(30px,4.2vw,52px)}
+.pf3 .hello .msg{color:var(--muted);font-size:16px;max-width:520px;margin-top:10px}
+.pf3 .search3{position:relative;max-width:520px}
+.pf3 .search3 input{width:100%;height:54px;border-radius:16px;border:1px solid var(--line);background:var(--field);padding:0 110px 0 48px;font:inherit;font-size:15px;color:var(--ink);outline:none;transition:.25s}
+.pf3 .search3 input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 16%,transparent)}
+.pf3 .search3>i{position:absolute;left:17px;top:17px;color:var(--muted);font-size:17px}
+.pf3 .search3 kbd{position:absolute;right:12px;top:14px;font:12px 'JetBrains Mono',monospace;padding:4px 8px;border-radius:8px;border:1px solid var(--line);color:var(--muted);background:var(--solid)}
+
+/* Bugungi qisqa ko'rsatkichlar (hero ostida) */
+.pf3 .todaybar{display:flex;gap:10px;flex-wrap:wrap}
+.pf3 .todaybar>span{display:inline-flex;gap:8px;align-items:center;padding:8px 14px;border-radius:999px;background:var(--field);border:1px solid var(--line);font-size:13px;color:var(--muted)}
+.pf3 .todaybar b{color:var(--ink)}
+.pf3 .todaybar .live{width:8px;height:8px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);animation:blink3 1.4s infinite}
+@keyframes blink3{50%{opacity:.3}}
+
+/* Trend belgisi */
+.pf3 .trend{font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;margin-left:6px}
+.pf3 .trend.up{background:color-mix(in srgb,var(--lime) 15%,transparent);color:var(--lime)}
+.pf3 .trend.down{background:color-mix(in srgb,var(--red) 15%,transparent);color:var(--red)}
+
+/* Haftalik ustunli grafik */
+.pf3 .bars3{display:flex;align-items:flex-end;gap:10px;height:200px;margin-top:14px;padding-top:30px}
+.pf3 .bars3 .b{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end}
+.pf3 .bars3 .col{width:100%;max-width:46px;border-radius:12px 12px 6px 6px;background:linear-gradient(180deg,var(--acc),color-mix(in srgb,var(--acc2) 70%,transparent));position:relative;height:0;min-height:4px}
+.pf3 .bars3 .col.today{background:linear-gradient(180deg,var(--pink),var(--acc2))}
+.pf3 .bars3 .col span{position:absolute;top:-22px;left:50%;translate:-50% 0;font:600 12px 'JetBrains Mono',monospace;color:var(--ink)}
+.pf3 .bars3 small{font-size:12px;color:var(--muted)}
+
+/* Faollik xaritasi */
+.pf3 .heat{display:grid;grid-template-rows:repeat(7,auto);grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px;margin-top:16px}
+.pf3 .heat i{height:18px;border-radius:4px;background:var(--field);border:1px solid var(--line)}
+.pf3 .heat i[data-l="1"]{background:color-mix(in srgb,var(--acc) 25%,transparent)}
+.pf3 .heat i[data-l="2"]{background:color-mix(in srgb,var(--acc) 50%,transparent)}
+.pf3 .heat i[data-l="3"]{background:color-mix(in srgb,var(--acc) 75%,transparent)}
+.pf3 .heat i[data-l="4"]{background:var(--acc);box-shadow:0 0 8px -2px var(--acc)}
+.pf3 .heat-legend{display:flex;gap:4px;align-items:center;justify-content:flex-end;font-size:11px;color:var(--muted);margin-top:8px}
+.pf3 .heat-legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+/* Ro'yxat qatori (arizalar, foydalanuvchilar, vazifalar...) */
+.pf3 .list3{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.pf3 .li{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;transition:background .25s}
+.pf3 .li:hover{background:var(--field)}
+.pf3 .li .av{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;background:linear-gradient(135deg,var(--acc2),var(--acc))}
+.pf3 .li .tx{min-width:0;flex:1}
+.pf3 .li b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf3 .li small{color:var(--muted);font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf3 .li .rt{margin-left:auto;font-size:12px;color:var(--muted);text-align:right;white-space:nowrap}
+.pf3 .chip3{display:inline-block;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;background:var(--field);border:1px solid var(--line);white-space:nowrap}
+.pf3 .chip3.ok{background:color-mix(in srgb,var(--lime) 15%,transparent);color:var(--lime);border-color:transparent}
+.pf3 .chip3.warn{background:color-mix(in srgb,var(--gold) 15%,transparent);color:var(--gold);border-color:transparent}
+.pf3 .chip3.bad{background:color-mix(in srgb,var(--red) 15%,transparent);color:var(--red);border-color:transparent}
+.pf3 .rank{width:26px;font:600 13px 'JetBrains Mono',monospace;color:var(--muted);text-align:center}
+.pf3 .li.me{background:color-mix(in srgb,var(--acc) 10%,transparent);border:1px solid color-mix(in srgb,var(--acc) 30%,transparent)}
+
+/* Kutilayotgan ishlar */
+.pf3 .pend{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:14px}
+.pf3 .pend a{padding:14px;border-radius:16px;background:var(--field);border:1px solid var(--line);display:flex;flex-direction:column;gap:4px;transition:border-color .25s}
+.pf3 .pend a:hover{border-color:var(--acc)}
+.pf3 .pend i{font-size:20px;color:var(--acc)}
+.pf3 .pend strong{font-size:26px;letter-spacing:-.03em}
+.pf3 .pend span{font-size:12px;color:var(--muted)}
+.pf3 .pend a.hot{border-color:color-mix(in srgb,var(--gold) 45%,transparent);background:color-mix(in srgb,var(--gold) 8%,transparent)}
+.pf3 .pend a.hot i{color:var(--gold)}
+
+/* Tizim holati */
+.pf3 .health{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.pf3 .health div{display:flex;align-items:center;gap:10px;font-size:14px;padding:10px 12px;border-radius:12px;background:var(--field)}
+.pf3 .health .dot{width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.pf3 .health .dot.warn{background:var(--gold);box-shadow:0 0 10px var(--gold)}
+.pf3 .health .dot.bad{background:var(--red);box-shadow:0 0 10px var(--red)}
+.pf3 .health b{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);font-weight:500}
+
+/* Tezkor amallar */
+.pf3 .quick{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px}
+.pf3 .quick a{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:16px;background:var(--field);border:1px solid var(--line);font-size:13px;font-weight:600;text-align:center;transition:border-color .25s}
+.pf3 .quick a:hover{border-color:var(--acc)}
+.pf3 .quick i{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+
+/* Kun savoli */
+.pf3 .qod .q{font-size:20px;font-weight:600;letter-spacing:-.01em;margin:12px 0 14px;line-height:1.35}
+.pf3 .qod .q code{font-family:'JetBrains Mono',monospace;font-size:.85em;background:var(--field);border:1px solid var(--line);padding:2px 7px;border-radius:7px}
+.pf3 .qod .opts{display:grid;gap:8px}
+.pf3 .qod button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:var(--field);font-size:14px;transition:.25s}
+.pf3 .qod button:hover{border-color:var(--acc)}
+.pf3 .qod button b{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;background:var(--solid);border:1px solid var(--line)}
+.pf3 .qod button.right{border-color:var(--lime);background:color-mix(in srgb,var(--lime) 12%,transparent)}
+.pf3 .qod button.wrong{border-color:var(--red);background:color-mix(in srgb,var(--red) 10%,transparent)}
+.pf3 .qod .res{margin-top:12px;font-size:14px;font-weight:600;min-height:20px}
+
+/* Keyingi dars — sanagich */
+.pf3 .next{background:linear-gradient(135deg,#1e1b4b,#4c1d95 55%,#0e7490);color:#fff;border:0}
+.pf3 .next .lbl{color:#a5f3fc}.pf3 .next .lbl::before{background:#a5f3fc}
+.pf3 .next h3{font-size:22px;margin:12px 0 4px}
+.pf3 .next p{opacity:.8;font-size:14px}
+.pf3 .cd{display:flex;gap:10px;margin:18px 0}
+.pf3 .cd div{flex:1;text-align:center;padding:12px 4px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15)}
+.pf3 .cd b{display:block;font:600 30px 'JetBrains Mono',monospace;letter-spacing:-.02em}
+.pf3 .cd small{font-size:11px;opacity:.75;text-transform:uppercase;letter-spacing:.08em}
+.pf3 .next .btn3{background:#fff;color:#1e1b4b;border:0}
+
+/* Kunlik vazifalar */
+.pf3 .mis{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pf3 .mi{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:var(--field);border:1px solid var(--line)}
+.pf3 .mi .ck{width:28px;height:28px;border-radius:9px;border:1px solid var(--line);display:grid;place-items:center;flex-shrink:0;color:transparent;background:var(--solid)}
+.pf3 .mi.done .ck{background:var(--lime);border-color:var(--lime);color:#0b1200}
+.pf3 .mi.done b{text-decoration:line-through;opacity:.6}
+.pf3 .mi .tx{flex:1;min-width:0}
+.pf3 .mi b{font-size:14px;display:block}
+.pf3 .mi .pb{height:6px;border-radius:6px;background:var(--line);margin-top:6px;overflow:hidden}
+.pf3 .mi .pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.pf3 .mi .rw{font:600 13px 'JetBrains Mono',monospace;color:var(--gold);white-space:nowrap}
+
+/* Davom ettirish */
+.pf3 .crs .pct{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+/* Tadbirlar (timeline) */
+.pf3 .tl{position:relative;margin-top:16px;padding-left:22px;display:flex;flex-direction:column;gap:14px}
+.pf3 .tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.pf3 .tl div{position:relative}
+.pf3 .tl div::before{content:"";position:absolute;left:-21px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--solid);border:2px solid var(--acc)}
+.pf3 .tl b{font-size:14px;display:block}
+.pf3 .tl small{color:var(--muted);font-size:12px}
+
+/* AI yordamchi */
+.pf3 .ai .bub{padding:10px 14px;border-radius:14px;font-size:14px;max-width:90%;margin-top:10px}
+.pf3 .ai .me{background:var(--acc);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+[data-bs-theme=dark] .pf3 .ai .me{color:#001018}
+.pf3 .ai .bot{background:var(--field);border:1px solid var(--line);border-bottom-left-radius:4px;font-family:'JetBrains Mono',monospace;font-size:13px;min-height:42px}
+.pf3 .ai .caret{display:inline-block;width:7px;height:15px;background:var(--acc);vertical-align:middle;animation:blink3 1s steps(1) infinite}
+
+/* Yutuqlar */
+.pf3 .ach{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:10px;margin-top:14px}
+.pf3 .ach div{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:11px;color:var(--muted)}
+.pf3 .ach i{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;font-size:24px;color:#fff;background:linear-gradient(135deg,#f59e0b,#f472b6);box-shadow:0 10px 24px -10px #f59e0b}
+.pf3 .ach div.lock i{background:var(--field);color:var(--muted);box-shadow:none;border:1px dashed var(--line)}
+
+/* E'lonlar */
+.pf3 .ann{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.pf3 .ann div{padding:14px;border-radius:16px;background:var(--field);border-left:3px solid var(--acc)}
+.pf3 .ann b{font-size:14px;display:block}
+.pf3 .ann small{color:var(--muted);font-size:12px}
+
+/* Kutubxona */
+.pf3 .lib{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.pf3 .lib div{text-align:center;padding:14px 6px;border-radius:16px;background:var(--field);border:1px solid var(--line)}
+.pf3 .lib strong{display:block;font-size:26px;letter-spacing:-.03em}
+.pf3 .lib span{font-size:12px;color:var(--muted)}
+
+/* Kurs kartasi qo'shimchalari (o'qituvchi) */
+.pf3 .crs .stats{display:flex;gap:12px;font-size:12px;color:var(--muted)}
+
+/* Moslashuvchanlik */
+@media(max-width:1100px){.pf3 .s3{grid-column:span 6}.pf3 .s4,.pf3 .s5{grid-column:span 6}.pf3 .s7,.pf3 .s8{grid-column:span 12}}
+@media(max-width:760px){.pf3 .dash{gap:14px}.pf3 .s3,.pf3 .s4,.pf3 .s5,.pf3 .s6{grid-column:span 12}.pf3 .bars3{gap:6px;height:150px}.pf3 .cd b{font-size:24px}.pf3 .search3 kbd{display:none}.pf3 .search3 input{padding-right:16px}}
+
+/* Karta sarlavhasi: nom + o'ngda hisob/havola */
+.pf3 .card3 .hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pf3 .card3 .hd h2{flex:1;min-width:0}
+.pf3 .card3 .hd .cnt{font-family:'JetBrains Mono',monospace;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted)}
+.pf3 .card3 .hd .lbl+.chip3{margin-left:auto}
+/* Telefon/planshet: salomlashuvda orb matn ustida alohida qatorda */
+@media(max-width:900px){.pf3 .hello{display:flex;flex-direction:column}.pf3 .hello .hero3-r{position:relative;inset:auto;order:-1;width:100%;height:170px;opacity:1;margin-bottom:-24px}.pf3 .hello .hero3-l{padding-top:0}}
+
+/* ── Django integratsiyasi ── */
+.pf3 .cd b{font-variant-numeric:tabular-nums}
+.pf3 .next .done{display:flex;align-items:center;gap:8px;margin:18px 0;font-weight:700;color:#a5f3fc}
+.pf3 .next .meta{display:flex;flex-wrap:wrap;gap:6px 14px;opacity:.85;font-size:14px;margin-top:8px}
+.pf3 .qod button:disabled{cursor:default}
+.pf3 .qod button.dim{opacity:.55}
+.pf3 .qod .res{display:none;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:var(--field);border:1px solid var(--line)}
+.pf3 .qod .res.on{display:flex}
+.pf3 .qod .res.ok{border-color:color-mix(in srgb,var(--lime) 45%,transparent)}
+.pf3 .qod .res.ok i{color:var(--lime)}
+.pf3 .qod .res.no{border-color:color-mix(in srgb,var(--red) 45%,transparent)}
+.pf3 .qod .res.no i{color:var(--red)}
+.pf3 .qod .res b{display:block}
+.pf3 .qod .res small{color:var(--muted);font-weight:400}
+.pf3 .qod img{max-width:100%;border-radius:14px;margin-bottom:12px;border:1px solid var(--line)}
+.pf3 .qod .course{font-size:13px;color:var(--muted);margin-top:8px}
+.pf3 .confetti{position:absolute;top:-10px;width:8px;height:14px;border-radius:2px;animation:conf 2s cubic-bezier(.2,.8,.2,1) forwards;pointer-events:none}
+@keyframes conf{to{transform:translateY(420px) rotate(720deg);opacity:0}}
+.pf3 .qod{position:relative;overflow:hidden}
+.pf3 .quote3{display:flex;gap:14px;align-items:flex-start}
+.pf3 .quote3>i{font-size:30px;color:var(--acc2);line-height:1}
+.pf3 .quote3 p{font-size:17px;font-weight:600;line-height:1.45}
+.pf3 .quote3 small{color:var(--muted)}
+.pf3 .mi .tx small{color:var(--muted);font-size:12px}
+.pf3 .stat6{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.pf3 .stat6 div{padding:14px;border-radius:16px;background:var(--field);border:1px solid var(--line);display:flex;flex-direction:column;gap:2px}
+.pf3 .stat6 i{font-size:18px;color:var(--acc)}
+.pf3 .stat6 strong{font-size:22px;letter-spacing:-.02em}
+.pf3 .stat6 span{font-size:12px;color:var(--muted)}
+.pf3 .heat-wrap{overflow-x:auto;scrollbar-width:thin}
+.pf3 .heat.d90{grid-auto-columns:minmax(12px,1fr);min-width:300px}
+.pf3 .ai .reco{display:flex;gap:12px;align-items:flex-start;padding:12px;border-radius:14px;background:var(--field);border:1px solid var(--line);margin-top:10px}
+.pf3 .ai .reco>i{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.pf3 .ai .reco b{display:block;font-size:14px}
+.pf3 .ai .reco small{color:var(--muted);font-size:12px}
+.pf3 .ach div.lock span{opacity:.7}
+.pf3 .ann a{display:block;padding:14px;border-radius:16px;background:var(--field);border-left:3px solid var(--acc)}
+.pf3 .ann a.unread{border-left-color:var(--pink);background:color-mix(in srgb,var(--pink) 6%,var(--field))}
+.pf3 .ann a b{font-size:14px;display:block}
+.pf3 .ann a p{font-size:13px;color:var(--muted);margin:4px 0}
+.pf3 .ann a small{color:var(--muted);font-size:12px}
+.pf3 .crs .cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pf3 .crs .cv .tag{z-index:1}
+.pf3 .crs .cv i{position:relative;z-index:1}
+.pf3 .crs .pb{height:6px;border-radius:6px;background:var(--field);overflow:hidden}
+.pf3 .crs .pb i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.pf3 .ev{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;transition:background .2s}
+.pf3 .ev:hover{background:var(--field)}
+.pf3 .ev .dt{width:50px;flex-shrink:0;text-align:center;padding:6px 0;border-radius:12px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;line-height:1.1}
+.pf3 .ev .dt b{display:block;font-size:20px}
+.pf3 .ev .dt small{font-size:10px;text-transform:uppercase;opacity:.9}
+.pf3 .ev .tx b{font-size:14px;display:block}
+.pf3 .ev .tx small{color:var(--muted);font-size:12px}
+.pf3 .empty3{text-align:center;padding:24px 10px;color:var(--muted);font-size:14px}
+.pf3 .empty3 i{font-size:32px;opacity:.5;display:block;margin-bottom:6px}
+.pf3 .empty3 .btn3{margin-top:12px}
+.pf3 .hello .search3{margin-top:4px}
+.pf3 .search3 button{position:absolute;right:8px;top:8px;height:38px;padding:0 14px;border-radius:11px;border:0;background:linear-gradient(100deg,var(--acc),var(--acc2));color:#fff;font-weight:700;font-size:13px;cursor:pointer}
+[data-bs-theme=dark] .pf3 .search3 button{color:#05060a}
+.pf3 .search3:has(button) input{padding-right:110px}
+.pf3 .search3:has(button) kbd{display:none}
+.pf3 .li .av img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+@media(max-width:760px){.pf3 .stat6{grid-template-columns:1fr 1fr}}
+
+/* Bootstrap'ning .col (flex:1 0 0%) klassi bilan to'qnashmasligi uchun */
+.pf3 .bars3 .col{flex:0 0 auto}
+@media(max-width:600px){.pf3 .hello .hero3-act{flex-direction:column}.pf3 .hello .hero3-act .btn3{width:100%}}

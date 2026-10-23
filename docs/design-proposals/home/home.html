@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bosh sahifa — IT Creative (barcha rollar, prototip)</title>
+<script>try{document.documentElement.setAttribute('data-bs-theme',localStorage.getItem('theme')||'light')}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../profile/profile.css">
+<link rel="stylesheet" href="home.css">
+<style>
+  /* Faqat prototip: LMS navbari nusxasi va rol almashtirgich */
+  body{margin:0;background:#f5f6fb;transition:background .4s}
+  [data-bs-theme=dark] body{background:#05060a}
+  .mock-nav{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:18px;padding:12px 24px;background:rgba(255,255,255,.8);backdrop-filter:blur(14px);border-bottom:1px solid rgba(15,23,42,.08);font-family:'Space Grotesk',sans-serif;font-size:14px;color:#334155}
+  [data-bs-theme=dark] .mock-nav{background:rgba(10,12,18,.8);border-color:rgba(255,255,255,.08);color:#cbd5e1}
+  .mock-nav b{font-size:16px;margin-right:auto}.mock-nav span{opacity:.7}
+  .mock-nav button{border:1px solid currentColor;background:none;color:inherit;border-radius:999px;width:36px;height:36px;cursor:pointer}
+  .roles{position:fixed;left:50%;bottom:16px;translate:-50% 0;z-index:60;display:flex;gap:4px;padding:5px;border-radius:999px;background:#0d1020;box-shadow:0 20px 40px -12px rgba(0,0,0,.5);font-family:'Space Grotesk',sans-serif}
+  .roles span{color:#8b93a7;font:12px 'JetBrains Mono',monospace;padding:0 8px 0 12px;align-self:center}
+  .roles button{border:0;background:none;color:#cbd5e1;padding:9px 16px;border-radius:999px;font:600 13px 'Space Grotesk',sans-serif;cursor:pointer}
+  .roles button.on{background:linear-gradient(100deg,#22d3ee,#a78bfa);color:#05060a}
+  .role{display:none}.role.on{display:block}
+  @media(max-width:700px){.mock-nav span{display:none}.roles span{display:none}.roles button{padding:8px 10px;font-size:12px}}
+</style>
+</head>
+<body>
+<nav class="mock-nav"><b>IT Creative</b><span>Bosh sahifa</span><span>Kurslar</span><span>Coin</span><span>Blog</span><button id="tt" title="Dark / Light"><i class="bi bi-moon-stars"></i></button></nav>
+<div class="roles" role="tablist" aria-label="Rolni tanlash (prototip)"><span>Rol:</span>
+  <button class="on" data-r="student">O‘quvchi</button><button data-r="teacher">O‘qituvchi</button><button data-r="admin">Admin</button><button data-r="assistant">Yordamchi</button>
+</div>
+
+<div class="pf3">
+  <div class="pf3-bg" aria-hidden="true"></div>
+
+  <!-- ═══ SALOMLASHUV (barcha rollar) ═══ -->
+  <section class="hero3 hello glass" aria-label="Salomlashuv">
+    <div class="hero3-l">
+      <div>
+        <div class="clock"><i class="bi bi-calendar3"></i> <span id="date">—</span> · <b id="time">--:--</b></div>
+        <div class="badges" id="heroBadges"></div>
+        <h1 id="heroTitle"><span class="split">Xayrli kun, Ali 👋</span></h1>
+        <p class="msg" id="heroMsg"></p>
+      </div>
+      <div id="heroAct"></div>
+    </div>
+    <div class="hero3-r" data-pf-orb aria-hidden="true">
+      <div class="fchip glass f1"><i class="bi bi-coin" id="c1i"></i><span><b id="c1b"></b><small id="c1s"></small></span></div>
+      <div class="fchip glass f2"><i class="bi bi-fire" id="c2i"></i><span><b id="c2b"></b><small id="c2s"></small></span></div>
+      <div class="fchip glass f3"><i class="bi bi-lightning-charge" id="c3i"></i><span><b id="c3b"></b><small id="c3s"></small></span></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ O'QUVCHI ═══════════ -->
+  <div class="role on" data-role="student">
+    <div class="metrics" style="margin-top:18px" data-stagger>
+      <div class="metric m1 glass"><i class="bi bi-book"></i><strong data-count="3">3</strong><span>Faol kurslar</span></div>
+      <div class="metric m2 glass"><i class="bi bi-coin"></i><strong data-count="1250">1 250</strong><span>Coin balansi</span></div>
+      <div class="metric m3 glass"><i class="bi bi-trophy"></i><strong>#4</strong><span>Reytingdagi o‘rin</span></div>
+      <div class="metric m4 glass"><i class="bi bi-check2-all"></i><strong data-count="86" data-suffix="%">86%</strong><span>O‘rtacha test bali</span></div>
+    </div>
+    <div class="dash">
+      <section class="card3 glass next s5" data-rv>
+        <span class="lbl">KEYINGI DARSINGIZ</span>
+        <h3>Django modellari va ORM</h3>
+        <p><i class="bi bi-person-video3"></i> Ustoz: Jasur Karimov · Backend guruhi</p>
+        <div class="cd" id="countdown"><div><b>00</b><small>soat</small></div><div><b>00</b><small>daqiqa</small></div><div><b>00</b><small>soniya</small></div></div>
+        <a class="btn3" href="#" data-mag><i class="bi bi-calendar-week"></i> Dars jadvali</a>
+      </section>
+      <section class="card3 glass qod s7" data-rv>
+        <div class="hd"><span class="lbl">KUN SAVOLI</span><span class="chip3 warn" style="margin-left:auto">+10 coin</span></div>
+        <p class="q">Python'da <code>len([1, [2, 3], 4])</code> natijasi nechaga teng?</p>
+        <div class="opts" id="qod"><button data-ok="0"><b>A</b>4</button><button data-ok="1"><b>B</b>3</button><button data-ok="0"><b>C</b>2</button></div>
+        <div class="res" id="qodRes"></div>
+      </section>
+
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-check2-circle" style="color:var(--lime)"></i> Kunlik vazifalar</h2><span class="cnt">2 / 4</span></div>
+        <div class="mis" id="missions"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-graph-up-arrow" style="color:var(--acc)"></i> Shu hafta faolligi</h2><span class="trend up">+18%</span></div>
+        <div class="bars3" data-bars="35,60,42,80,55,90,48"></div>
+      </section>
+
+      <section class="card3 glass s12" data-rv>
+        <div class="hd"><h2><i class="bi bi-play-btn" style="color:var(--acc)"></i> O‘qishni davom ettiring</h2><a class="more" href="#">Barcha kurslar →</a></div>
+        <p class="sub">Qoldirgan joyingizdan davom eting.</p>
+        <div class="courses3" id="continue" data-stagger></div>
+      </section>
+
+      <section class="card3 glass s8" data-rv>
+        <div class="hd"><h2><i class="bi bi-calendar3" style="color:var(--acc2)"></i> Faollik izchilligi</h2><span class="cnt">so‘nggi 18 hafta</span></div>
+        <div class="heat" id="heat"></div>
+        <div class="heat-legend">kam <i style="background:var(--field)"></i><i style="background:color-mix(in srgb,var(--acc) 25%,transparent)"></i><i style="background:color-mix(in srgb,var(--acc) 50%,transparent)"></i><i style="background:color-mix(in srgb,var(--acc) 75%,transparent)"></i><i style="background:var(--acc)"></i> ko‘p</div>
+      </section>
+      <section class="card3 glass ai s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-robot" style="color:var(--acc)"></i> AI yordamchi</h2></div>
+        <div class="bub me">Django'da ForeignKey nima?</div>
+        <div class="bub bot" id="aiText" data-type="ForeignKey — bir modelni boshqasiga bog‘laydi. Masalan, har bir Dars bitta Kursga tegishli: kurs = models.ForeignKey(Kurs, on_delete=models.CASCADE)"></div>
+        <a class="btn3" href="#" style="margin-top:14px" data-mag><i class="bi bi-chat-dots"></i> Suhbatni davom ettirish</a>
+      </section>
+
+      <section class="card3 glass s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-trophy" style="color:var(--gold)"></i> Reyting</h2><a class="more" href="#">To‘liq →</a></div>
+        <div class="list3" id="rating"></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-calendar-event" style="color:var(--pink)"></i> Yaqin tadbirlar</h2></div>
+        <div class="tl"><div><b>Jumanji musobaqasi</b><small>Shanba, 15:00 · sovrin 500 coin</small></div><div><b>Yakuniy test: Frontend</b><small>28.10 · 10:00</small></div><div><b>Jonli dars: Git</b><small>30.10 · 18:30</small></div></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-award" style="color:var(--gold)"></i> Yutuqlar</h2><span class="cnt">5 / 8</span></div>
+        <div class="ach" id="ach"></div>
+      </section>
+
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-stars" style="color:var(--acc2)"></i> Siz uchun tavsiyalar</h2><a class="more" href="#">Hammasi →</a></div>
+        <div class="list3"><div class="li"><div class="av" style="background:linear-gradient(135deg,#6d28d9,#c084fc)"><i class="bi bi-phone"></i></div><div class="tx"><b>Mobile — Flutter</b><small>Backend’dan keyin eng ko‘p tanlanadi</small></div><span class="rt chip3">6 oy</span></div><div class="li"><div class="av" style="background:linear-gradient(135deg,#1d4ed8,#a78bfa)"><i class="bi bi-graph-up"></i></div><div class="tx"><b>Data Science</b><small>Python bilimingizga mos</small></div><span class="rt chip3">8 oy</span></div></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-megaphone" style="color:var(--pink)"></i> E’lonlar</h2></div>
+        <div class="ann"><div><b>Noyabr oqimiga qabul boshlandi</b><small>Admin · 2 soat oldin</small></div><div style="border-color:var(--gold)"><b>Dushanba kuni darslar 1 soat kech boshlanadi</b><small>Admin · kecha</small></div></div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ═══════════ O'QITUVCHI ═══════════ -->
+  <div class="role" data-role="teacher">
+    <div class="metrics" style="margin-top:18px" data-stagger>
+      <div class="metric m1 glass"><i class="bi bi-book"></i><strong data-count="4">4</strong><span>Kurslarim</span></div>
+      <div class="metric m3 glass"><i class="bi bi-people"></i><strong data-count="128">128</strong><span>O‘quvchilarim</span></div>
+      <div class="metric m2 glass"><i class="bi bi-clipboard-check"></i><strong data-count="17">17</strong><span>Tekshirish kutilmoqda</span></div>
+      <div class="metric m4 glass"><i class="bi bi-graph-up-arrow"></i><strong data-count="78" data-suffix="%">78%</strong><span>O‘rtacha ball</span></div>
+    </div>
+    <div class="dash">
+      <section class="card3 glass s8" data-rv>
+        <div class="hd"><h2><i class="bi bi-bar-chart" style="color:var(--acc)"></i> Haftalik topshiriqlar</h2><span class="trend up">+12%</span></div>
+        <div class="bars3" data-bars="22,30,18,40,35,52,28"></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <h2><i class="bi bi-bullseye" style="color:var(--lime)"></i> Natijalar</h2>
+        <div class="score"><div class="ring" data-p="72"><b><span data-count="72">72</span><small>%</small></b></div><div><b style="font-size:16px">Testdan o‘tish</b><p class="sub">Oxirgi 30 kun</p></div></div>
+        <div class="score"><div class="ring" data-p="64"><b><span data-count="64">64</span><small>%</small></b></div><div><b style="font-size:16px">Baholangan vazifalar</b><p class="sub">Jami topshirilganlardan</p></div></div>
+      </section>
+      <section class="card3 glass s12" data-rv>
+        <div class="hd"><h2><i class="bi bi-journal-bookmark" style="color:var(--acc)"></i> Kurslarim</h2><a class="more" href="#">Boshqarish →</a></div>
+        <div class="courses3" id="tCourses" data-stagger></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-inbox" style="color:var(--gold)"></i> Tekshirish uchun</h2><span class="chip3 warn">12 vazifa · 5 speaking</span></div>
+        <div class="list3" id="subs"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-exclamation-triangle" style="color:var(--red)"></i> E’tibor talab qiladi</h2><span class="cnt">faolsiz o‘quvchilar</span></div>
+        <div class="list3" id="risk"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-trophy" style="color:var(--gold)"></i> Eng faol o‘quvchilar</h2></div>
+        <div class="list3" id="topSt"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-ui-checks" style="color:var(--acc2)"></i> Oxirgi test natijalari</h2><a class="more" href="#">Hammasi →</a></div>
+        <div class="list3" id="tests"></div>
+      </section>
+      <section class="card3 glass s12" data-rv><h2><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Tezkor amallar</h2><div class="quick" id="tQuick"></div></section>
+    </div>
+  </div>
+
+  <!-- ═══════════ ADMIN ═══════════ -->
+  <div class="role" data-role="admin">
+    <div class="metrics" style="margin-top:18px" data-stagger>
+      <div class="metric m1 glass"><i class="bi bi-people"></i><strong data-count="1240">1 240</strong><span>O‘quvchilar <span class="trend up">+4%</span></span></div>
+      <div class="metric m3 glass"><i class="bi bi-person-video3"></i><strong data-count="18">18</strong><span>O‘qituvchilar</span></div>
+      <div class="metric m4 glass"><i class="bi bi-journal-bookmark"></i><strong data-count="24">24</strong><span>Kurslar</span></div>
+      <div class="metric m2 glass"><i class="bi bi-cash-stack"></i><strong data-count="42" data-suffix=" mln">42 mln</strong><span>Shu oy tushum</span></div>
+    </div>
+    <div class="dash">
+      <section class="card3 glass s8" data-rv>
+        <div class="hd"><h2><i class="bi bi-hourglass-split" style="color:var(--gold)"></i> Kutilayotgan ishlar</h2><span class="chip3 warn">jami 23</span></div>
+        <div class="pend" id="pend"></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <h2><i class="bi bi-heart-pulse" style="color:var(--lime)"></i> Tizim holati</h2>
+        <div class="health"><div><span class="dot"></span>Server<b>99.9%</b></div><div><span class="dot"></span>Ma’lumotlar bazasi<b>12 ms</b></div><div><span class="dot warn"></span>Telegram bot<b>sekin</b></div><div><span class="dot"></span>Zaxira nusxa<b>03:00</b></div></div>
+      </section>
+      <section class="card3 glass s8" data-rv>
+        <div class="hd"><h2><i class="bi bi-person-plus" style="color:var(--acc)"></i> Yangi ro‘yxatdan o‘tishlar</h2><span class="trend up">+9 shu hafta</span></div>
+        <div class="bars3" data-bars="4,7,3,9,6,11,5"></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-inbox" style="color:var(--pink)"></i> Yangi arizalar</h2><a class="more" href="#">Hammasi →</a></div>
+        <div class="list3" id="apps"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-stars" style="color:var(--gold)"></i> Top kurslar</h2></div>
+        <div class="list3" id="topC"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-person-video3" style="color:var(--acc2)"></i> Top o‘qituvchilar</h2></div>
+        <div class="list3" id="topT"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-people" style="color:var(--acc)"></i> Yangi foydalanuvchilar</h2><a class="more" href="#">Hammasi →</a></div>
+        <div class="list3" id="users"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-activity" style="color:var(--lime)"></i> So‘nggi faollik</h2><a class="more" href="#">Xavfsizlik →</a></div>
+        <div class="list3" id="act"></div>
+      </section>
+      <section class="card3 glass s12" data-rv><h2><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Tezkor amallar</h2><div class="quick" id="aQuick"></div></section>
+    </div>
+  </div>
+
+  <!-- ═══════════ YORDAMCHI ═══════════ -->
+  <div class="role" data-role="assistant">
+    <div class="metrics" style="margin-top:18px" data-stagger>
+      <div class="metric m1 glass"><i class="bi bi-people"></i><strong data-count="1240">1 240</strong><span>O‘quvchilar</span></div>
+      <div class="metric m2 glass"><i class="bi bi-inbox"></i><strong data-count="9">9</strong><span>Yangi arizalar</span></div>
+      <div class="metric m3 glass"><i class="bi bi-life-preserver"></i><strong data-count="4">4</strong><span>Yordam so‘rovlari</span></div>
+      <div class="metric m4 glass"><i class="bi bi-check2-square"></i><strong data-count="36">36</strong><span>Shu hafta amallarim</span></div>
+    </div>
+    <div class="dash">
+      <section class="card3 glass s8" data-rv>
+        <div class="hd"><h2><i class="bi bi-hourglass-split" style="color:var(--gold)"></i> Kutilayotgan ishlar</h2><span class="chip3 warn">jami 16</span></div>
+        <div class="pend" id="pend2"></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-book" style="color:var(--acc2)"></i> Kutubxona</h2><a class="more" href="#">Kitoblar →</a></div>
+        <div class="lib"><div><strong data-count="320">320</strong><span>Jami</span></div><div><strong data-count="48">48</strong><span>Ijarada</span></div><div><strong data-count="272">272</strong><span>Mavjud</span></div></div>
+        <a class="li" href="#" style="margin-top:10px;background:color-mix(in srgb,var(--red) 10%,transparent)"><div class="av" style="background:var(--red)"><i class="bi bi-alarm"></i></div><div class="tx"><b>3 ta ijara muddati o‘tgan</b><small>Qaytarishni eslatish kerak</small></div><i class="bi bi-chevron-right rt"></i></a>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-inbox" style="color:var(--pink)"></i> Yangi arizalar</h2><a class="more" href="#">Hammasi →</a></div>
+        <div class="list3" id="apps2"></div>
+      </section>
+      <section class="card3 glass s6" data-rv>
+        <div class="hd"><h2><i class="bi bi-life-preserver" style="color:var(--acc)"></i> Yordam so‘rovlari</h2><a class="more" href="#">Hammasi →</a></div>
+        <div class="list3" id="help"></div>
+      </section>
+      <section class="card3 glass s8" data-rv>
+        <div class="hd"><h2><i class="bi bi-bar-chart" style="color:var(--acc)"></i> Haftalik amallarim</h2><span class="cnt">jami 36</span></div>
+        <div class="bars3" data-bars="5,8,4,7,6,3,3"></div>
+      </section>
+      <section class="card3 glass s4" data-rv>
+        <div class="hd"><h2><i class="bi bi-clock-history" style="color:var(--lime)"></i> Mening amallarim</h2><a class="more" href="#">Jurnal →</a></div>
+        <div class="list3" id="myAct"></div>
+      </section>
+      <section class="card3 glass s12" data-rv><h2><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Tezkor amallar</h2><div class="quick" id="sQuick"></div></section>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="home-demo.js"></script>
+<script src="../profile/profile-orb.js"></script>
+<script src="../profile/profile-motion.js"></script>
+<script src="home-motion.js"></script>
+</body>
+</html>

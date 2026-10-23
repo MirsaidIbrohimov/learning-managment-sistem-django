@@ -53,6 +53,7 @@
     <!-- Shaffof oyna navbar + bildirishnoma tizimi (Bootstrap'dan keyin — ustun bo'lishi kerak) -->
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
     <link rel="stylesheet" href="{% static 'css/notify.css' %}?v=unread4">
+    <link rel="stylesheet" href="{% static 'css/nav-rail.css' %}?v=2">
 
 
 
@@ -513,192 +514,169 @@
     <!-- Theme Toggle — moved to pill nav -->
 
     {% if user.is_authenticated %}
-    <nav class="navbar nb" id="mainNavbar" aria-label="Asosiy navigatsiya">
-      <div class="nb-inner">
+    <!-- ═══ Yon panel (desktop) ═══ -->
+    <aside class="nr-rail nr-glass" id="nrRail" aria-label="Asosiy navigatsiya">
+      <a class="nr-brand" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa"><img src="{% static 'img/logo.png' %}" alt=""><b class="nr-tx">IT <span>Creative</span></b></a>
+      <div class="nr-scroll">
+        <div class="nr-sec">MENYU</div>
+        <nav class="nr-nav" data-cmd-group="SAHIFALAR">
+          <a class="nr-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}" title="Bosh sahifa"><i class="bi bi-house"></i><span class="nr-tx">Bosh sahifa</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}" title="Kurslar"><i class="bi bi-book"></i><span class="nr-tx">Kurslar</span></a>
+          {% if user.role != 'admin' and user.role != 'assistant_admin' %}
+          <a class="nr-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}" title="Dars jadvalim"><i class="bi bi-calendar2-week"></i><span class="nr-tx">Dars jadvalim</span></a>
+          {% endif %}
+          <a class="nr-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}" title="Reyting"><i class="bi bi-trophy"></i><span class="nr-tx">Reyting</span></a>
+          <a class="nr-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}" href="{% url 'blog:post_list' %}" title="Postlar"><i class="bi bi-newspaper"></i><span class="nr-tx">Postlar</span></a>
+          <a class="nr-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}" title="Market"><i class="bi bi-shop"></i><span class="nr-tx">Market</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}" href="{% url 'chat_inbox' %}" title="Suhbatlar"><i class="bi bi-chat-dots"></i><span class="nr-tx">Suhbatlar</span></a>
+          <a class="nr-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}" title="Yordam"><i class="bi bi-question-circle"></i><span class="nr-tx">Yordam</span></a>
+        </nav>
+        {% if user.is_admin or user.is_teacher or user.is_assistant_admin %}
+        <div class="nr-sec">BOSHQARUV</div>
+        <nav class="nr-nav" data-cmd-group="BOSHQARUV">
+          {% if user.is_admin %}
+          <a class="nr-link" href="{% url 'admin_dashboard' %}" title="Panel"><i class="bi bi-speedometer2"></i><span class="nr-tx">Boshqaruv paneli</span></a>
+          {% endif %}
+          {% if user.is_teacher %}
+          <a class="nr-link" href="{% url 'teacher:dashboard' %}" title="O'qituvchi paneli"><i class="bi bi-mortarboard"></i><span class="nr-tx">O'qituvchi paneli</span></a>
+          {% endif %}
+          {% if user.is_assistant_admin %}
+          <a class="nr-link" href="{% url 'yordamchi_dashboard' %}" title="Yordamchi panel"><i class="bi bi-speedometer2"></i><span class="nr-tx">Yordamchi panel</span></a>
+          {% endif %}
+          {% if user.is_teacher or user.is_admin %}
+          <a class="nr-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" href="{% url 'homework_submissions' %}" title="Vazifalar"><i class="bi bi-file-check"></i><span class="nr-tx">Vazifalar</span></a>
+          {% endif %}
+        </nav>
+        {% endif %}
+      </div>
+      <nav class="nr-nav nr-bottom">
+        <a class="nr-link {% if request.resolver_match.url_name == 'site_settings' %}active{% endif %}" href="{% url 'site_settings' %}" title="Sozlamalar"><i class="bi bi-gear"></i><span class="nr-tx">Sozlamalar</span></a>
+        <a class="nr-link danger" href="{% url 'logout' %}" title="Chiqish"><i class="bi bi-box-arrow-right"></i><span class="nr-tx">Chiqish</span></a>
+      </nav>
+    </aside>
+    <script>document.body.classList.add('has-rail');</script>
 
-        <!-- Brand -->
-        <a class="nb-brand" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa">
-          <div class="nb-brand-icon"><img src="{% static 'img/logo.png' %}" alt="IT Creative"></div>
-          <span class="nb-brand-text">IT <span class="nb-sep">|</span> Creative</span>
+    <!-- ═══ Yuqori panel ═══ -->
+    <nav class="nr-top nr-glass" id="mainNavbar" aria-label="Yuqori panel">
+      <a class="nr-mlogo" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa"><img src="{% static 'img/logo.png' %}" alt=""><span>IT Creative</span></a>
+      <div class="nr-crumb"><i class="bi bi-house"></i><span>IT Creative</span><span>/</span><b id="nrCrumb">{% block nav_title %}{% endblock %}</b></div>
+
+      <button type="button" class="nr-search nr-hide-xs" data-nr-cmd title="Qidirish (Ctrl+K)" aria-label="Qidirish"><i class="bi bi-search"></i><span>Sahifa, kurs yoki bo‘lim qidirish...</span><kbd>Ctrl K</kbd></button>
+
+      <div class="nr-acts">
+        <!-- Ijtimoiy tarmoqlar -->
+        <div class="dropdown d-none d-lg-block">
+          <button type="button" class="nr-ib" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar" aria-label="Ijtimoiy tarmoqlar"><i class="bi bi-share"></i></button>
+          <div class="dropdown-menu dropdown-menu-end nr-pop nr-social" data-cmd-group="IJTIMOIY TARMOQLAR">
+            <a href="https://t.me/IT_Creative" target="_blank" rel="noopener" data-cmd-label="Telegram"><i class="bi bi-telegram" style="background:#229ED9"></i><span>Telegram<small>@IT_Creative</small></span></a>
+            <a href="https://instagram.com/ITC_Zomin" target="_blank" rel="noopener" data-cmd-label="Instagram"><i class="bi bi-instagram" style="background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af)"></i><span>Instagram<small>@ITC_Zomin</small></span></a>
+            <a href="https://youtube.com/@IT_Creative" target="_blank" rel="noopener" data-cmd-label="YouTube"><i class="bi bi-youtube" style="background:#ff0000"></i><span>YouTube<small>IT Creative</small></span></a>
+          </div>
+        </div>
+
+        <!-- Coin -->
+        <a href="{% url 'coin:coin_history' %}" class="nr-coin" title="Coin tarixi" aria-label="Coin tarixi: {{ user.coins|default:0 }} coin"><span class="c"><i class="bi bi-coin"></i></span><span class="v">{{ user.coins|default:0 }}</span></a>
+        <span class="nr-sep"></span>
+
+        <!-- Mavzu -->
+        <button type="button" class="nr-ib nb-theme-top" id="themeToggleTop" aria-label="Qorong‘i rejimni yoqish" aria-pressed="false"><i class="bi bi-moon-fill" id="themeIconTop" aria-hidden="true"></i></button>
+
+        <!-- Bildirishnomalar (notify.js shu id'lar bilan ishlaydi) -->
+        <div class="dropdown">
+          <button type="button" class="nr-ib nbell-btn" id="nbBellBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar" aria-label="Bildirishnomalar">
+            <i class="bi bi-bell"></i>
+            <span class="nb-badge" id="nbBellBadge" style="display:none;"></span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end nr-pop nbell-panel">
+            <div class="nbell-head">
+              <span class="nbell-title">Bildirishnomalar</span>
+              <span class="nbell-count" id="nbBellCount" style="display:none;">0</span>
+              <button class="nbell-readall" id="nbBellReadAll" type="button" hidden title="Barchasini o'qilgan deb belgilash"><i class="bi bi-check2-all"></i><span>Barchasini o'qilgan</span></button>
+              <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz" aria-label="Bildirishnoma ovozi"><i class="bi bi-volume-up-fill"></i></button>
+            </div>
+            <div class="nbell-list" id="nbBellList" aria-live="polite"><div class="nbell-loading" aria-label="Yuklanmoqda"><i></i><i></i><i></i></div></div>
+            <div class="nbell-foot">
+              <a href="{% url 'chat_inbox' %}"><i class="bi bi-chat-dots me-1"></i>Suhbatlar</a>
+              <a href="{% url 'messages' %}"><i class="bi bi-envelope me-1"></i>Xabarlar</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profil mega-menyusi (desktop) -->
+        <div class="dropdown d-none d-lg-block">
+          <a class="nr-av" href="#" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
+            {% if user.photo %}<img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end nr-pop nr-mega">
+            <div class="nr-me">
+              <span class="nr-av">{% if user.photo %}<img src="{{ user.photo.url }}" alt="">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span></span>
+              <div><b>{{ user.get_full_name|default:user.username }}</b><small>@{{ user.username }}</small><br>
+                <span class="nr-role">{% if user.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin{% elif user.role == 'teacher' %}<i class="bi bi-mortarboard"></i> Ustoz{% elif user.role == 'assistant_admin' %}<i class="bi bi-person-gear"></i> Yordamchi{% else %}<i class="bi bi-code-slash"></i> O'quvchi{% endif %}{% if user.is_premium %} · <span style="color:var(--nr-gold)">Premium</span>{% endif %}</span></div>
+            </div>
+            <div class="nr-cols">
+              <div data-cmd-group="O‘QISH"><h6>O‘QISH</h6>
+                <a class="nr-mi" href="{% url 'my_homework_list' %}"><i class="bi bi-journal-check"></i>Vazifalarim</a>
+                <a class="nr-mi" href="{% url 'video_quiz:student_history' %}"><i class="bi bi-play-circle"></i>Video test tarixi</a>
+                <a class="nr-mi" href="{% url 'student_library' %}"><i class="bi bi-book-half"></i>Kutubxona</a>
+                <a class="nr-mi" href="{% url 'verify_certificate' %}"><i class="bi bi-patch-check"></i>Sertifikat tekshirish</a>
+                <a class="nr-mi" href="{% url 'ai_yordamchi:chat_home' %}"><i class="bi bi-robot"></i>AI suhbat</a>
+              </div>
+              <div data-cmd-group="COIN VA O‘YIN"><h6>COIN VA O‘YIN</h6>
+                <a class="nr-mi" href="{% url 'coin:coin_history' %}" data-cmd-label="Coin tarixi"><i class="bi bi-clock-history"></i>Coin tarixi<span class="nr-tag">{{ user.coins|default:0 }}</span></a>
+                <a class="nr-mi" href="{% url 'coin:coin_transfer' %}"><i class="bi bi-send"></i>Coin o'tkazma</a>
+                <a class="nr-mi" href="{% url 'coin:my_purchases' %}"><i class="bi bi-bag-check"></i>Mening xaridlarim</a>
+                <a class="nr-mi" href="{% url 'games:games_list' %}"><i class="bi bi-controller"></i>O'yinlar</a>
+                <a class="nr-mi" href="{% url 'games:live_games' %}"><i class="bi bi-broadcast"></i>Jonli o'yinlar</a>
+              </div>
+              <div data-cmd-group="HISOB"><h6>HISOB</h6>
+                <a class="nr-mi" href="{% url 'messages' %}" data-cmd-label="Xabarlar"><i class="bi bi-envelope"></i>Xabarlar{% if unread_messages_count|default:0|add:0 > 0 %}<span class="nr-tag red">{{ unread_messages_count }}</span>{% endif %}</a>
+                <a class="nr-mi" href="{% url 'startup:dashboard' %}" data-cmd-label="MY StartUp"><i class="bi bi-rocket-takeoff"></i>MY StartUp{% if my_startup %}<span class="nr-tag">{{ my_startup.progress }}%</span>{% else %}<span class="nr-tag hot">Yangi</span>{% endif %}</a>
+                {% if startup_mentor_access %}<a class="nr-mi" href="{% url 'startup:mentor' %}"><i class="bi bi-person-badge"></i>Mentor paneli</a>{% endif %}
+                <a class="nr-mi" href="{% url 'my_devices' %}"><i class="bi bi-laptop"></i>Qurilmalar</a>
+              </div>
+            </div>
+            {% if user.is_teacher or user.is_admin or user.is_assistant_admin %}
+            <div class="nr-panels">
+              {% if user.is_teacher %}<a href="{% url 'teacher:dashboard' %}"><i class="bi bi-mortarboard"></i> O'qituvchi paneli</a>{% endif %}
+              {% if user.is_admin %}<a href="{% url 'admin_dashboard' %}"><i class="bi bi-speedometer2"></i> Panel</a>{% endif %}
+              {% if user.is_assistant_admin %}<a href="{% url 'yordamchi_dashboard' %}"><i class="bi bi-speedometer2"></i> Yordamchi panel</a>{% endif %}
+            </div>
+            {% endif %}
+            <div class="nr-foot" data-cmd-group="HISOB">
+              <a href="{% url 'profile' %}" data-cmd-label="Profil"><i class="bi bi-person"></i> Profil</a>
+              <a href="{% url 'site_settings' %}" data-cmd-label="Sozlamalar"><i class="bi bi-gear"></i> Sozlamalar</a>
+              <a href="{% url 'logout' %}" class="out" data-cmd-label="Chiqish"><i class="bi bi-box-arrow-right"></i> Chiqish</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobil: avatar (offcanvas profil menyusi) -->
+        <a class="nr-av d-lg-none" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu" aria-label="Profil menyusi">
+          {% if user.photo %}<img src="{{ user.photo.url }}" alt="{{ user.get_full_name|default:user.username }}">{% else %}<span class="ini">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</span>{% endif %}<span class="on"></span>
         </a>
 
-        <!-- Desktop Links -->
-        <div class="nb-links nb-links-desktop" id="nbLinksDesktop">
-          <a class="nb-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" href="{% url 'home' %}">
-            <i class="bi bi-house-fill"></i><span>Bosh sahifa</span>
-          </a>
-          <a class="nb-link {% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'professions' %}">
-            <i class="bi bi-book-fill"></i><span>Kurslar</span>
-          </a>
-          {% if user.is_authenticated and user.role != 'admin' and user.role != 'assistant_admin' %}
-          <a class="nb-link {% if request.resolver_match.url_name == 'my_study_schedule' %}active{% endif %}" href="{% url 'my_study_schedule' %}">
-            <i class="bi bi-calendar2-week-fill"></i><span>Dars jadvalim</span>
-          </a>
-          {% endif %}
-
-          <a class="nb-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}" href="{% url 'leaderboard' %}">
-            <i class="bi bi-trophy-fill"></i><span>Reyting</span>
-          </a>
-          <a class="nb-link {% if request.resolver_match.app_names and 'blog' in request.resolver_match.app_names %}active{% endif %}" href="{% url 'blog:post_list' %}">
-            <i class="bi bi-newspaper"></i><span>Postlar</span>
-          </a>
-          <a class="nb-link {% if 'market' in request.resolver_match.url_name %}active{% endif %}" href="{% url 'coin:market_list' %}">
-            <i class="bi bi-shop"></i><span>Market</span>
-          </a>
-          <a class="nb-link {% if request.resolver_match.url_name == 'help_page' %}active{% endif %}" href="{% url 'help_page' %}">
-            <i class="bi bi-question-circle"></i><span>Yordam</span>
-          </a>
-          {% if user.is_admin %}
-          <a class="nb-link {% if request.resolver_match.url_name == 'homework_submissions' %}active{% endif %}" href="{% url 'homework_submissions' %}">
-            <i class="bi bi-file-check-fill"></i><span>Vazifalar</span>
-          </a>
-          {% endif %}
-        </div>
-
-        <!-- Right zone -->
-        <div class="nb-right">
-
-          <!-- Search (telefonda yashirin — panel menyusida bor) -->
-          <a href="{% url 'global_search' %}" class="nb-icon-btn nb-phone-hide" title="Qidirish" aria-label="Qidirish"><i class="bi bi-search"></i></a>
-
-          <!-- Social dropdown (desktop) -->
-          <div class="dropdown nb-desktop-only">
-            <button type="button" class="nb-icon-btn" data-bs-toggle="dropdown" aria-expanded="false" title="Ijtimoiy tarmoqlar" aria-label="Ijtimoiy tarmoqlar">
-              <i class="bi bi-share-fill"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end nb-dropdown p-2" style="min-width:250px;">
-              <div class="text-center mb-2 pt-1">
-                <div class="social-header-icon mb-2"><i class="bi bi-globe2"></i></div>
-                <div class="fw-bold" style="font-size:.88rem;color:var(--text);">Bizni kuzating!</div>
-                <div style="font-size:.74rem;color:var(--text-muted);">Ijtimoiy tarmoqlarda biz bilan bo'ling</div>
-              </div>
-              <div class="d-flex flex-column gap-1">
-                <a href="https://t.me/IT_Creative" target="_blank" class="social-link-item telegram-item">
-                  <div class="social-link-icon telegram-bg"><i class="bi bi-telegram"></i></div>
-                  <div><div class="fw-semibold" style="font-size:.85rem;">Telegram</div><small class="text-muted">@IT_Creative</small></div>
-                  <i class="bi bi-arrow-up-right ms-auto" style="font-size:.7rem;opacity:.4;"></i>
-                </a>
-                <a href="https://instagram.com/ITC_Zomin" target="_blank" class="social-link-item instagram-item">
-                  <div class="social-link-icon instagram-bg"><i class="bi bi-instagram"></i></div>
-                  <div><div class="fw-semibold" style="font-size:.85rem;">Instagram</div><small class="text-muted">@ITC_Zomin</small></div>
-                  <i class="bi bi-arrow-up-right ms-auto" style="font-size:.7rem;opacity:.4;"></i>
-                </a>
-                <a href="https://youtube.com/@IT_Creative" target="_blank" class="social-link-item youtube-item">
-                  <div class="social-link-icon youtube-bg"><i class="bi bi-youtube"></i></div>
-                  <div><div class="fw-semibold" style="font-size:.85rem;">YouTube</div><small class="text-muted">IT Creative</small></div>
-                  <i class="bi bi-arrow-up-right ms-auto" style="font-size:.7rem;opacity:.4;"></i>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <!-- Coin -->
-          <a href="{% url 'coin:coin_history' %}" class="nb-coin nb-desktop-only" title="Coin tarixi" aria-label="Coin tarixi: {{ user.coins|default:0 }} coin">
-            <i class="bi bi-coin"></i>{{ user.coins|default:0 }}
-          </a>
-
-          <!-- Divider (telefonda yashirin) -->
-          <div class="nb-divider nb-phone-hide"></div>
-
-          <!-- Theme Toggle (top nav — desktop) -->
-          <button type="button" class="nb-icon-btn nb-theme-top" id="themeToggleTop" aria-label="Qorong‘i rejimni yoqish" aria-pressed="false" style="cursor:pointer;">
-            <i class="bi bi-moon-fill" id="themeIconTop" aria-hidden="true"></i>
-          </button>
-
-        
-
-          <!-- Bildirishnomalar (real-time) -->
-          <div class="dropdown">
-            <button type="button" class="nb-icon-btn nbell-btn" id="nbBellBtn" data-bs-toggle="dropdown"
-                    data-bs-auto-close="outside" aria-expanded="false" title="Bildirishnomalar" aria-label="Bildirishnomalar">
-              <i class="bi bi-bell"></i>
-              <span class="nb-badge" id="nbBellBadge" style="display:none;"></span>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end nb-dropdown nbell-panel">
-              <div class="nbell-head">
-                <span class="nbell-title">Bildirishnomalar</span>
-                <span class="nbell-count" id="nbBellCount" style="display:none;">0</span>
-                <button class="nbell-readall" id="nbBellReadAll" type="button" hidden title="Barchasini o'qilgan deb belgilash">
-                  <i class="bi bi-check2-all"></i><span>Barchasini o'qilgan</span>
-                </button>
-                <button class="nbell-sound" id="nbBellSound" type="button" title="Ovoz" aria-label="Bildirishnoma ovozi">
-                  <i class="bi bi-volume-up-fill"></i>
-                </button>
-              </div>
-              <div class="nbell-list" id="nbBellList" aria-live="polite">
-                <div class="nbell-loading" aria-label="Yuklanmoqda"><i></i><i></i><i></i></div>
-              </div>
-              <div class="nbell-foot">
-                <a href="{% url 'chat_inbox' %}"><i class="bi bi-chat-dots me-1"></i>Suhbatlar</a>
-                <a href="{% url 'messages' %}"><i class="bi bi-envelope me-1"></i>Xabarlar</a>
-              </div>
-            </div>
-          </div>
-
-          <!-- User dropdown (desktop only) -->
-          <div class="dropdown nb-desktop-only">
-            <a class="nb-avatar-btn" href="#" data-bs-toggle="dropdown" aria-expanded="false" role="button" aria-label="Profil menyusi">
-              {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
-              {% else %}<div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
-              <span class="nb-online-dot"></span>
-              <i class="bi bi-chevron-down nb-chevron"></i>
-            </a>
-            <ul class="dropdown-menu dropdown-menu-end nb-dropdown nb-user-menu">
-              <li class="nb-user-card-li">
-                <div class="nb-user-card">
-                  {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-user-card-avatar" alt="">
-                  {% else %}<div class="nb-user-card-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
-                  <div>
-                    <div class="nb-user-name">{{ user.get_full_name|default:user.username }}</div>
-                    <div class="nb-user-role {% if user.role == 'admin' %}admin{% elif user.role == 'teacher' %}teacher{% else %}student{% endif %}">
-                      {% if user.role == 'admin' %}<i class="bi bi-shield-check"></i> Admin
-                      {% elif user.role == 'teacher' %}<i class="bi bi-mortarboard"></i> Ustoz
-                      {% else %}<i class="bi bi-code-slash"></i> O'quvchi{% endif %}
-                    </div>
-                  </div>
-                </div>
-              </li>
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item" href="{% url 'profile' %}"><span class="dd-icon" style="background:rgba(129,140,248,.15);color:#818cf8;"><i class="bi bi-person-fill"></i></span>Profil</a></li>
-              <li><a class="dropdown-item" href="{% url 'startup:dashboard' %}"><span class="dd-icon" style="background:rgba(99,102,241,.15);color:#6366f1;"><i class="bi bi-rocket-takeoff-fill"></i></span>MY StartUp{% if my_startup %}<span class="badge bg-primary ms-auto" style="font-size:.6rem;">{{ my_startup.progress }}%</span>{% else %}<span class="badge bg-success ms-auto" style="font-size:.6rem;">Yangi</span>{% endif %}</a></li>
-              {% if startup_mentor_access %}
-              <li><a class="dropdown-item" href="{% url 'startup:mentor' %}"><span class="dd-icon" style="background:rgba(16,185,129,.15);color:#10b981;"><i class="bi bi-person-badge-fill"></i></span>Mentor paneli</a></li>
-              {% endif %}
-              <li><a class="dropdown-item" href="{% url 'coin:coin_history' %}"><span class="dd-icon" style="background:rgba(245,158,11,.15);color:#f59e0b;"><i class="bi bi-coin"></i></span>Coin tarixi<span class="badge bg-warning text-dark ms-auto" style="font-size:.6rem;">{{ user.coins|default:0 }}</span></a></li>
-              <li><a class="dropdown-item" href="{% url 'coin:coin_transfer' %}"><span class="dd-icon" style="background:rgba(251,191,36,.15);color:#fbbf24;"><i class="bi bi-send-fill"></i></span>Coin o'tkazma</a></li>
-              <li><a class="dropdown-item" href="{% url 'coin:my_purchases' %}"><span class="dd-icon" style="background:rgba(99,102,241,.15);color:#6366f1;"><i class="bi bi-bag-check-fill"></i></span>Mening Xaridlarim</a></li>
-              <li><a class="dropdown-item" href="{% url 'video_quiz:student_history' %}"><span class="dd-icon" style="background:rgba(56,189,248,.15);color:#38bdf8;"><i class="bi bi-play-circle-fill"></i></span>Video test tarixi</a></li>
-              <li><a class="dropdown-item" href="{% url 'verify_certificate' %}"><span class="dd-icon" style="background:rgba(16,185,129,.15);color:#10b981;"><i class="bi bi-patch-check-fill"></i></span>Sertifikat tekshirish</a></li>
-              <li><a class="dropdown-item" href="{% url 'messages' %}"><span class="dd-icon" style="background:rgba(59,130,246,.15);color:#3b82f6;"><i class="bi bi-envelope-fill"></i></span>Xabarlar{% if unread_messages_count|default:0|add:0 > 0 %}<span class="badge bg-danger ms-auto" style="font-size:.6rem;">{{ unread_messages_count }}</span>{% endif %}</a></li>
-              <li><a class="dropdown-item" href="{% url 'ai_yordamchi:chat_home' %}"><span class="dd-icon" style="background:rgba(6,182,212,.15);color:#06b6d4;"><i class="bi bi-robot"></i></span>AI suhbat</a></li>
-              <li><a class="dropdown-item" href="{% url 'games:games_list' %}"><span class="dd-icon" style="background:rgba(139,92,246,.15);color:#8b5cf6;"><i class="bi bi-controller"></i></span>O'yinlar</a></li>
-              <li><a class="dropdown-item" href="{% url 'games:live_games' %}"><span class="dd-icon" style="background:rgba(239,68,68,.15);color:#ef4444;position:relative;"><i class="bi bi-broadcast"></i><span style="position:absolute;top:1px;right:1px;width:5px;height:5px;border-radius:50%;background:#ef4444;animation:nb-live-dot 1.2s ease-in-out infinite;"></span></span>Jonli o'yinlar</a></li>
-              <li><a class="dropdown-item" href="{% url 'my_homework_list' %}"><span class="dd-icon" style="background:rgba(245,158,11,.15);color:#f59e0b;"><i class="bi bi-journal-check"></i></span>Vazifalarim</a></li>
-              <li><a class="dropdown-item" href="{% url 'student_library' %}"><span class="dd-icon" style="background:rgba(20,184,166,.15);color:#14b8a6;"><i class="bi bi-book-fill"></i></span>Kutubxona</a></li>
-              <li><a class="dropdown-item" href="{% url 'my_devices' %}"><span class="dd-icon" style="background:rgba(100,116,139,.15);color:#64748b;"><i class="bi bi-laptop-fill"></i></span>Qurilmalar</a></li>
-              <li><a class="dropdown-item" href="{% url 'site_settings' %}"><span class="dd-icon" style="background:rgba(148,163,184,.12);color:#94a3b8;"><i class="bi bi-gear-fill"></i></span>Sozlamalar</a></li>
-              {% if user.is_teacher %}<li><a class="dropdown-item" href="{% url 'teacher:dashboard' %}"><span class="dd-icon" style="background:rgba(236,72,153,.15);color:#ec4899;"><i class="bi bi-mortarboard-fill"></i></span>O'qituvchi paneli</a></li>{% endif %}
-              {% if user.is_admin %}<li><a class="dropdown-item" href="{% url 'admin_dashboard' %}"><span class="dd-icon" style="background:rgba(244,63,94,.15);color:#f43f5e;"><i class="bi bi-speedometer2"></i></span>Panel</a></li>{% endif %}
-              {% if user.is_assistant_admin %}<li><a class="dropdown-item" href="{% url 'yordamchi_dashboard' %}"><span class="dd-icon" style="background:rgba(244,63,94,.15);color:#f43f5e;"><i class="bi bi-speedometer2"></i></span>Yordamchi panel</a></li>{% endif %}
-              <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="{% url 'logout' %}"><span class="dd-icon" style="background:rgba(239,68,68,.15);color:#ef4444;"><i class="bi bi-box-arrow-right"></i></span>Chiqish</a></li>
-            </ul>
-          </div>
-
-          <!-- Mobile: avatar (offcanvas) — desktop bilan bir xil 1200px chegarada -->
-          <a class="nb-avatar-btn nb-mobile-only" data-bs-toggle="offcanvas" href="#mobileProfileMenu" role="button" aria-controls="mobileProfileMenu" aria-label="Profil menyusi">
-            {% if user.photo %}<img src="{{ user.photo.url }}" class="nb-avatar" alt="{{ user.get_full_name|default:user.username }}">
-            {% else %}<div class="nb-avatar-init">{{ user.get_full_name|default:user.username|slice:":1"|upper }}</div>{% endif %}
-            <span class="nb-online-dot"></span>
-          </a>
-
-          <!-- Hamburger -->
-          <button type="button" class="nb-hamburger" id="nbHamburger" aria-label="Menyuni ochish" aria-expanded="false" aria-controls="nbMobilePanel">
-            <span></span><span></span><span></span>
-          </button>
-        </div>
+        <!-- Mobil panelni ochuvchi (dock'dagi "Menyu" shuni bosadi) -->
+        <button type="button" class="nb-hamburger" id="nbHamburger" aria-label="Menyuni ochish" aria-expanded="false" aria-controls="nbMobilePanel" hidden><span></span><span></span><span></span></button>
       </div>
     </nav>
+
+    <!-- ═══ Mobil pastki dock ═══ -->
+    <nav class="nr-dock nr-glass" aria-label="Mobil navigatsiya">
+      <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}"><i class="bi bi-house{% if request.resolver_match.url_name == 'home' %}-fill{% endif %}"></i>Asosiy</a>
+      <a href="{% url 'professions' %}" class="{% if request.resolver_match.url_name and 'profession' in request.resolver_match.url_name %}active{% endif %}"><i class="bi bi-book"></i>Kurslar</a>
+      <button type="button" class="fab" data-nr-cmd aria-label="Qidirish"><i class="bi bi-search"></i></button>
+      <a href="{% url 'chat_inbox' %}" class="{% if request.resolver_match.url_name == 'chat_inbox' %}active{% endif %}"><i class="bi bi-chat-dots"></i>Suhbat</a>
+      <button type="button" id="nrDockMenu" aria-controls="nbMobilePanel"><i class="bi bi-grid"></i>Menyu</button>
+    </nav>
+
+    <!-- ═══ Ctrl+K qidiruv oynasi ═══ -->
+    <div class="nr-cmd" id="nrCmd" role="dialog" aria-modal="true" aria-label="Tezkor qidiruv" data-search-url="{% url 'global_search' %}">
+      <div class="box">
+        <div class="in"><i class="bi bi-search"></i><input id="nrCmdIn" type="text" placeholder="Sahifa, bo‘lim yoki amalni qidiring..." autocomplete="off" aria-label="Qidiruv"><kbd>Esc</kbd></div>
+        <div class="res" id="nrCmdRes"></div>
+        <div class="foot"><span><kbd>↑</kbd> <kbd>↓</kbd> tanlash</span><span><kbd>Enter</kbd> ochish</span><span><kbd>Esc</kbd> yopish</span></div>
+      </div>
+    </div>
 
     <!-- Mobile slide panel (hamburger) -->
     <div class="nb-mobile-backdrop" id="nbMobileBackdrop" aria-hidden="true"></div>
@@ -817,7 +795,7 @@
         });
 
         // === Faol sahifani ekran o'quvchilarga bildirish ===
-        document.querySelectorAll('.nb-link.active, .nb-mobile-link.active').forEach(function(a){
+        document.querySelectorAll('.nr-link.active, .nr-dock a.active, .nb-mobile-link.active').forEach(function(a){
             a.setAttribute('aria-current', 'page');
         });
         if(ham) ham.addEventListener('click', function(){ panel.classList.contains('show') ? closeMobile() : openMobile(); });
@@ -1876,6 +1854,7 @@
 </script>
 <script src="{% static 'js/notify.js' %}?v=unread4" defer></script>
 {% endif %}
+{% if user.is_authenticated %}<script src="{% static 'js/nav-rail.js' %}?v=1" defer></script>{% endif %}
 {% block extra_js %}{% endblock %}
 
     <!-- Global Toast bildirishnomalar — barcha sahifalarda mavjud.

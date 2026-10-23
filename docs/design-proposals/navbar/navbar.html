@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Navbar — 3 ta variant (prototip) · IT Creative</title>
+<script>try{document.documentElement.setAttribute('data-bs-theme',localStorage.getItem('theme')||'light')}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="../profile/profile.css">
+<link rel="stylesheet" href="../home/home.css">
+<style>
+:root{--bg:#f5f6fb;--panel:rgba(255,255,255,.72);--solid:#fff;--field:rgba(15,23,42,.045);--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--pink:#db2777;--gold:#b45309;--lime:#4d7c0f;--red:#e11d48;--shadow:0 20px 50px -24px rgba(15,23,42,.35)}
+[data-bs-theme=dark]{--bg:#05060a;--panel:rgba(16,19,28,.7);--solid:#10131c;--field:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--ink:#eef1f7;--muted:#8b93a7;--acc:#22d3ee;--acc2:#a78bfa;--pink:#f472b6;--gold:#fbbf24;--lime:#a3e635;--red:#fb7185;--shadow:0 30px 60px -24px rgba(0,0,0,.8)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;transition:background .4s}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.glass{background:var(--panel);backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border:1px solid var(--line);box-shadow:var(--shadow)}
+main{padding-top:96px;transition:padding .4s}
+
+/* ── Umumiy kichik elementlar ── */
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;white-space:nowrap}
+.logo .mk{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;color:#fff;font:700 13px 'JetBrains Mono',monospace;background:linear-gradient(135deg,var(--acc),var(--acc2));box-shadow:0 8px 20px -8px var(--acc2)}
+.logo b{color:var(--acc)}
+.ib{position:relative;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;border:1px solid transparent;background:none;cursor:pointer;font-size:17px;color:var(--ink);transition:background .25s,border-color .25s}
+.ib:hover{background:var(--field);border-color:var(--line)}
+.ib .dot{position:absolute;top:6px;right:6px;min-width:17px;height:17px;padding:0 4px;border-radius:999px;background:var(--red);color:#fff;font:700 10px/17px 'JetBrains Mono',monospace;text-align:center;border:2px solid var(--solid)}
+.ib .dot::after{content:"";position:absolute;inset:-2px;border-radius:inherit;border:2px solid var(--red);animation:ping 1.8s infinite}
+@keyframes ping{to{transform:scale(1.8);opacity:0}}
+.coin{display:inline-flex;align-items:center;gap:7px;height:40px;padding:0 14px 0 6px;border-radius:999px;background:color-mix(in srgb,var(--gold) 12%,transparent);border:1px solid color-mix(in srgb,var(--gold) 30%,transparent);font:600 14px 'JetBrains Mono',monospace;color:var(--gold);position:relative;overflow:hidden;cursor:pointer}
+.coin i{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;font-size:14px;font-style:normal}
+.coin::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%);transform:translateX(-100%);transition:transform .8s}
+.coin:hover::after{transform:translateX(100%)}
+.theme{overflow:hidden}
+.theme i{position:absolute;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .3s}
+[data-bs-theme=light] .theme .moon,[data-bs-theme=dark] .theme .sun{transform:translateY(130%) rotate(90deg);opacity:0}
+.av{position:relative;width:40px;height:40px;border-radius:50%;cursor:pointer;border:0;padding:0;background:none}
+.av::before{content:"";position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(var(--acc) 0 72%,var(--line) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))}
+.av span{position:absolute;inset:2px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;background:linear-gradient(135deg,var(--acc2),var(--acc))}
+.av em{position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:#22c55e;border:2px solid var(--solid)}
+.kbtn{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 8px 0 14px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--muted);font-size:14px;cursor:pointer;min-width:200px;transition:border-color .25s}
+.kbtn:hover{border-color:var(--acc)}
+.kbtn kbd{margin-left:auto;font:11px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:7px;border:1px solid var(--line);background:var(--solid)}
+.acts{display:flex;align-items:center;gap:6px}
+
+/* ═══ A — Suzuvchi shisha kapsula ═══ */
+.navA{position:fixed;top:14px;left:50%;translate:-50% 0;z-index:100;width:min(1220px,calc(100% - 28px));display:flex;align-items:center;gap:14px;padding:8px 8px 8px 14px;border-radius:22px;transition:transform .45s cubic-bezier(.2,.8,.2,1),padding .3s,top .3s}
+.navA.compact{top:8px;padding-top:5px;padding-bottom:5px}
+.navA.hide{transform:translateY(-140%)}
+.navA .links{position:relative;display:flex;gap:2px;margin:0 auto;padding:4px;border-radius:14px}
+.navA .links a{position:relative;z-index:1;display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:11px;font-size:14px;font-weight:500;color:var(--muted);transition:color .25s;white-space:nowrap}
+.navA .links a i{display:none;font-size:17px}
+.navA .links a.on,.navA .links a:hover{color:var(--ink)}
+.navA .links a.on{font-weight:600}
+.navA .ind{position:absolute;left:0;top:4px;bottom:4px;border-radius:11px;background:var(--solid);border:1px solid var(--line);box-shadow:0 6px 16px -8px rgba(0,0,0,.25);transition:transform .45s cubic-bezier(.2,.8,.2,1),width .45s cubic-bezier(.2,.8,.2,1)}
+.navA .links a.on::after{content:"";position:absolute;left:50%;bottom:2px;width:4px;height:4px;border-radius:50%;background:var(--acc);translate:-50% 0}
+.navA .kbtn{min-width:0;width:40px;padding:0;justify-content:center}
+.navA .kbtn span,.navA .kbtn kbd{display:none}
+@media(max-width:1240px){.navA .links a span{display:none}.navA .links a i{display:block}.navA .links a{padding:9px 12px}}
+
+/* ═══ B — Dinamik orol ═══ */
+.navB{position:fixed;top:14px;left:50%;translate:-50% 0;z-index:100;display:flex;flex-direction:column;align-items:stretch;border-radius:26px;background:#0b0d14;color:#eef1f7;box-shadow:0 24px 60px -20px rgba(0,0,0,.6),inset 0 0 0 1px rgba(255,255,255,.08);transition:border-radius .5s cubic-bezier(.2,.8,.2,1);overflow:hidden;--ink:#eef1f7;--muted:#8b93a7;--field:rgba(255,255,255,.07);--line:rgba(255,255,255,.12);--solid:#0b0d14}
+.navB .row{display:flex;align-items:center;gap:10px;padding:7px 7px 7px 10px}
+.navB .logo .mk{width:30px;height:30px;border-radius:9px;font-size:11px}
+.navB .cur{display:flex;align-items:center;gap:8px;padding:0 6px;font-size:14px;font-weight:600;white-space:nowrap}
+.navB .cur .live{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 10px #22c55e}
+.navB .exp{display:grid;grid-template-rows:0fr;transition:grid-template-rows .5s cubic-bezier(.2,.8,.2,1)}
+.navB .exp>div{overflow:hidden}
+.navB.open .exp{grid-template-rows:1fr}
+.navB .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px 10px 12px;width:min(640px,calc(100vw - 28px))}
+.navB .grid a{display:flex;flex-direction:column;gap:6px;padding:12px;border-radius:16px;background:rgba(255,255,255,.05);font-size:13px;font-weight:600;transition:background .25s,transform .25s}
+.navB .grid a:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+.navB .grid a.on{background:linear-gradient(135deg,#22d3ee,#a78bfa);color:#05060a}
+.navB .grid a i{font-size:20px}
+.navB .grid a small{font-weight:400;opacity:.65;font-size:11px}
+.navB .ib{color:#eef1f7}
+.navB .ib .dot{border-color:#0b0d14}
+.navB .coin{height:34px;font-size:13px}.navB .coin i{width:24px;height:24px;font-size:12px}
+.navB .av,.navB .ib{width:36px;height:36px}
+.navB .chev{transition:transform .4s;opacity:.6;font-size:12px}
+.navB.open .chev{transform:rotate(180deg)}
+.navB .kbtn{height:34px;min-width:0;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.1);color:#8b93a7}
+.navB .kbtn kbd{background:transparent;border-color:rgba(255,255,255,.15);color:#8b93a7}
+
+/* ═══ C — Yon panel (rail) ═══ */
+.railC{position:fixed;left:14px;top:14px;bottom:14px;z-index:101;width:72px;border-radius:24px;display:flex;flex-direction:column;align-items:stretch;padding:12px 10px;gap:4px;transition:width .4s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.railC:hover,.railC:focus-within{width:236px}
+.railC .logo{padding:2px 6px 14px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.railC .logo .tx,.railC a span,.railC .sec{opacity:0;transition:opacity .25s;white-space:nowrap}
+.railC:hover .logo .tx,.railC:hover a span,.railC:hover .sec,.railC:focus-within a span{opacity:1;transition-delay:.12s}
+.railC .sec{font:11px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted);padding:10px 14px 4px;height:26px}
+.railC nav{position:relative;display:flex;flex-direction:column;gap:2px}
+.railC nav a{position:relative;z-index:1;display:flex;align-items:center;gap:14px;height:44px;padding:0 14px;border-radius:14px;font-size:14px;font-weight:500;color:var(--muted);transition:color .25s,background .25s}
+.railC nav a i{font-size:18px;flex-shrink:0;width:20px;text-align:center}
+.railC nav a:hover{color:var(--ink);background:var(--field)}
+.railC nav a.on{color:#fff}
+[data-bs-theme=dark] .railC nav a.on{color:#05060a}
+.railC .bar{position:absolute;left:0;right:0;height:44px;border-radius:14px;background:linear-gradient(120deg,var(--acc),var(--acc2));box-shadow:0 10px 24px -10px var(--acc);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.railC .bottom{margin-top:auto}
+.topC{position:fixed;top:14px;left:100px;right:14px;z-index:100;height:60px;border-radius:20px;display:flex;align-items:center;gap:14px;padding:0 10px 0 20px}
+.topC .crumb{font-size:14px;color:var(--muted);display:flex;gap:8px;align-items:center;white-space:nowrap}
+.topC .crumb b{color:var(--ink)}
+.topC .kbtn{margin-left:auto;min-width:280px}
+body[data-v="c"] main{padding-left:86px}
+
+/* Variantlar ko'rinishi */
+.navA,.navB,.railC,.topC{display:none}
+body[data-v="a"] .navA,body[data-v="b"] .navB,body[data-v="c"] .railC,body[data-v="c"] .topC{display:flex}
+
+/* ═══ Pop-up'lar: profil mega-menyusi va bildirishnomalar ═══ */
+.pop{position:fixed;z-index:200;border-radius:22px;padding:14px;display:none;transform-origin:top right}
+.pop.on{display:block}
+.mega{width:min(640px,calc(100vw - 20px))}
+.mega .me{display:flex;align-items:center;gap:14px;padding:6px 6px 14px;border-bottom:1px solid var(--line)}
+.mega .me .av{width:52px;height:52px;cursor:default}
+.mega .me b{font-size:17px;display:block}
+.mega .me small{color:var(--muted);font-size:13px}
+.mega .me .xp{margin-left:auto;text-align:right;font:600 12px 'JetBrains Mono',monospace;color:var(--acc)}
+.mega .me .xp div{width:120px;height:6px;border-radius:6px;background:var(--field);margin-top:6px;overflow:hidden}
+.mega .me .xp div i{display:block;height:100%;width:72%;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+.mega .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:4px 14px;padding:12px 0}
+.mega h6{margin:6px 10px 4px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted)}
+.mi3{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;font-size:14px;transition:background .2s}
+.mi3:hover{background:var(--field)}
+.mi3 i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:15px;background:var(--field);color:var(--acc);flex-shrink:0}
+.mi3 .tag{margin-left:auto;font:600 10px 'JetBrains Mono',monospace;padding:2px 7px;border-radius:999px;background:linear-gradient(100deg,#f59e0b,#f472b6);color:#fff}
+.mi3 .num{margin-left:auto;font:600 11px 'JetBrains Mono',monospace;padding:2px 7px;border-radius:999px;background:var(--red);color:#fff}
+.mega .ft{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.mega .ft a{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:12px;font-size:14px;font-weight:600;background:var(--field)}
+.mega .ft a.out{color:var(--red);background:color-mix(in srgb,var(--red) 10%,transparent)}
+.mega .ft a.panel{background:linear-gradient(100deg,var(--acc),var(--acc2));color:#fff}
+.bell{width:min(380px,calc(100vw - 20px));padding:0;overflow:hidden}
+.bell .h{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.bell .h b{font-size:16px;margin-right:auto}
+.bell .h .cnt{font:600 11px 'JetBrains Mono',monospace;padding:2px 8px;border-radius:999px;background:var(--red);color:#fff}
+.bell .h button{border:0;background:none;color:var(--acc);font-size:12px;font-weight:600;cursor:pointer}
+.bell .list{max-height:340px;overflow:auto;padding:6px}
+.bell .n{display:flex;gap:12px;padding:12px 10px;border-radius:14px;position:relative}
+.bell .n:hover{background:var(--field)}
+.bell .n.new::before{content:"";position:absolute;left:3px;top:50%;width:5px;height:5px;border-radius:50%;background:var(--acc);translate:0 -50%}
+.bell .n i{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex-shrink:0;font-size:16px}
+.bell .n b{font-size:14px;display:block;font-weight:600}
+.bell .n small{color:var(--muted);font-size:12px}
+.bell .ft{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.bell .ft a{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;font-size:13px;font-weight:600}
+.bell .ft a+a{border-left:1px solid var(--line)}
+
+/* ═══ Buyruqlar oynasi (Ctrl+K) ═══ */
+.cmd{position:fixed;inset:0;z-index:300;display:none;align-items:flex-start;justify-content:center;padding:12vh 12px 12px;background:rgba(5,6,10,.45);backdrop-filter:blur(6px)}
+.cmd.on{display:flex}
+.cmd .box{width:min(620px,100%);border-radius:24px;overflow:hidden}
+.cmd .in{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--line)}
+.cmd .in i{font-size:19px;color:var(--acc)}
+.cmd .in input{flex:1;border:0;background:none;outline:none;font:inherit;font-size:17px;color:var(--ink)}
+.cmd .in kbd{font:11px 'JetBrains Mono',monospace;padding:3px 7px;border-radius:7px;border:1px solid var(--line);color:var(--muted)}
+.cmd .res{max-height:min(420px,56vh);overflow:auto;padding:8px}
+.cmd h6{margin:8px 10px 4px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted)}
+.cmd .it{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:12px;font-size:15px;cursor:pointer}
+.cmd .it i{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--field);color:var(--acc)}
+.cmd .it small{margin-left:auto;color:var(--muted);font:12px 'JetBrains Mono',monospace}
+.cmd .it.sel{background:linear-gradient(100deg,color-mix(in srgb,var(--acc) 16%,transparent),color-mix(in srgb,var(--acc2) 12%,transparent))}
+.cmd .it mark{background:none;color:var(--acc);font-weight:700}
+.cmd .empty{padding:30px;text-align:center;color:var(--muted)}
+.cmd .foot{display:flex;gap:16px;padding:10px 18px;border-top:1px solid var(--line);font-size:12px;color:var(--muted)}
+.cmd .foot kbd{font:11px 'JetBrains Mono',monospace;padding:1px 6px;border-radius:6px;border:1px solid var(--line);margin-right:4px}
+
+/* ═══ Mobil: pastki dock + menyu varag'i ═══ */
+.dock{display:none;position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));z-index:150;height:66px;border-radius:24px;align-items:center;justify-content:space-around;padding:0 6px}
+.dock a,.dock button{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10.5px;font-weight:600;color:var(--muted);background:none;border:0;cursor:pointer;padding:6px 0;transition:color .3s}
+.dock a i,.dock button i{font-size:20px;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.dock .on{color:var(--acc)}
+.dock .on i{transform:translateY(-2px)}
+.dock .blob{position:absolute;top:8px;height:50px;border-radius:16px;background:color-mix(in srgb,var(--acc) 12%,transparent);transition:transform .45s cubic-bezier(.2,.8,.2,1),width .45s}
+.dock .fab{flex:0 0 auto;width:56px;height:56px;margin-top:-30px;border-radius:18px;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 14px 30px -10px var(--acc2);justify-content:center;font-size:0}
+.dock .fab i{font-size:22px}
+.sheet{position:fixed;inset:0;z-index:250;display:none}
+.sheet.on{display:block}
+.sheet .bd{position:absolute;inset:0;background:rgba(5,6,10,.45);backdrop-filter:blur(4px)}
+.sheet .pn{position:absolute;left:0;right:0;bottom:0;max-height:86vh;overflow:auto;border-radius:28px 28px 0 0;padding:10px 16px calc(24px + env(safe-area-inset-bottom));background:var(--solid);border-top:1px solid var(--line)}
+.sheet .grab{width:44px;height:5px;border-radius:5px;background:var(--line);margin:4px auto 14px}
+.sheet .me{display:flex;gap:12px;align-items:center;padding:12px;border-radius:18px;background:var(--field);margin-bottom:14px}
+.sheet .me b{display:block}.sheet .me small{color:var(--muted);font-size:12px}
+.sheet .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.sheet .tiles a{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 4px;border-radius:16px;background:var(--field);font-size:11.5px;font-weight:600;text-align:center}
+.sheet .tiles a i{font-size:20px;color:var(--acc)}
+.sheet h6{margin:12px 4px 8px;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted)}
+.sheet .soc{display:flex;gap:8px;margin-top:12px}
+.sheet .soc a{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:11px;border-radius:14px;background:var(--field);font-size:13px;font-weight:600}
+
+@media(max-width:900px){
+  main{padding-top:84px}
+  body[data-v="c"] main{padding-left:0}
+  .dock{display:flex}
+  main{padding-bottom:100px}
+  .navA .links,.navA .kbtn,.navA .theme,.railC{display:none!important}
+  .navA{gap:8px}.navA .acts{margin-left:auto}
+  .navB .kbtn,.navB .cur{display:none}
+  .topC{left:10px;right:10px;top:10px}
+  .topC .crumb{display:none}
+  .topC .kbtn{min-width:0;flex:1;margin-left:0}
+  .topC .kbtn kbd{display:none}
+  .navA .coin span,.topC .coin span{display:none}
+  .navA .coin,.topC .coin{padding:0 6px}
+  .mega .cols{grid-template-columns:1fr 1fr}
+}
+
+/* Prototip boshqaruvi */
+.switch{position:fixed;right:16px;bottom:16px;z-index:400;display:flex;gap:4px;padding:5px;border-radius:999px;background:#0d1020;box-shadow:0 20px 40px -12px rgba(0,0,0,.5)}
+.switch span{color:#8b93a7;font:12px 'JetBrains Mono',monospace;align-self:center;padding:0 8px 0 12px}
+.switch button{white-space:nowrap;border:0;background:none;color:#cbd5e1;padding:9px 14px;border-radius:999px;font:600 13px 'Space Grotesk',sans-serif;cursor:pointer}
+.switch button.on{background:linear-gradient(100deg,#22d3ee,#a78bfa);color:#05060a}
+@media(max-width:900px){.switch{right:auto;left:50%;translate:-50% 0;bottom:auto;top:auto;bottom:calc(88px + env(safe-area-inset-bottom))}.switch span{display:none}.switch button{padding:7px 12px;font-size:12px}}
+.toast{position:fixed;left:50%;top:90px;translate:-50% 0;z-index:500;padding:11px 18px;border-radius:14px;font-size:14px;display:flex;gap:8px;align-items:center}
+.vlabel{font:600 12px 'JetBrains Mono',monospace;color:var(--acc);letter-spacing:.08em}
+</style>
+</head>
+<body data-v="a">
+
+<!-- ═══ A ═══ -->
+<header class="navA glass" id="navA">
+  <a class="logo" href="#"><span class="mk">IT</span><span>IT <b>Creative</b></span></a>
+  <nav class="links" id="aLinks" aria-label="Asosiy navigatsiya"><span class="ind" id="aInd"></span></nav>
+  <div class="acts">
+    <button class="kbtn" data-cmd title="Qidirish (Ctrl+K)"><i class="bi bi-search"></i><span>Qidirish...</span><kbd>Ctrl K</kbd></button>
+    <a class="coin" href="#" data-coin><i>₵</i><span data-coin-n>1 250</span></a>
+    <button class="ib theme" data-theme aria-label="Mavzuni almashtirish"><i class="bi bi-sun sun"></i><i class="bi bi-moon-stars moon"></i></button>
+    <button class="ib" data-bell aria-label="Bildirishnomalar"><i class="bi bi-bell"></i><span class="dot">3</span></button>
+    <button class="av" data-user aria-label="Profil menyusi"><span>A</span><em></em></button>
+  </div>
+</header>
+
+<!-- ═══ B ═══ -->
+<header class="navB" id="navB">
+  <div class="row">
+    <a class="logo" href="#"><span class="mk">IT</span></a>
+    <button class="cur" id="bToggle" style="background:none;border:0;cursor:pointer;color:inherit" aria-expanded="false"><span class="live"></span><span id="bCur">Bosh sahifa</span><i class="bi bi-chevron-down chev"></i></button>
+    <button class="kbtn" data-cmd><i class="bi bi-search"></i><span>Qidirish</span><kbd>Ctrl K</kbd></button>
+    <a class="coin" href="#" data-coin><i>₵</i><span data-coin-n>1 250</span></a>
+    <button class="ib theme" data-theme aria-label="Mavzuni almashtirish"><i class="bi bi-sun sun"></i><i class="bi bi-moon-stars moon"></i></button>
+    <button class="ib" data-bell aria-label="Bildirishnomalar"><i class="bi bi-bell"></i><span class="dot">3</span></button>
+    <button class="av" data-user aria-label="Profil menyusi"><span>A</span><em></em></button>
+  </div>
+  <div class="exp"><div><div class="grid" id="bGrid"></div></div></div>
+</header>
+
+<!-- ═══ C ═══ -->
+<aside class="railC glass" id="railC" aria-label="Asosiy navigatsiya">
+  <a class="logo" href="#"><span class="mk">IT</span><span class="tx">IT <b>Creative</b></span></a>
+  <div class="sec">MENYU</div>
+  <nav id="cNav"><span class="bar" id="cBar"></span></nav>
+  <nav class="bottom"><a href="#" data-user-alt><i class="bi bi-gear"></i><span>Sozlamalar</span></a><a href="#" style="color:var(--red)"><i class="bi bi-box-arrow-right"></i><span>Chiqish</span></a></nav>
+</aside>
+<header class="topC glass">
+  <div class="crumb"><i class="bi bi-house"></i> IT Creative / <b id="cCur">Bosh sahifa</b></div>
+  <button class="kbtn" data-cmd><i class="bi bi-search"></i><span>Kurs, dars yoki sahifa qidirish...</span><kbd>Ctrl K</kbd></button>
+  <div class="acts">
+    <a class="coin" href="#" data-coin><i>₵</i><span data-coin-n>1 250</span></a>
+    <button class="ib theme" data-theme aria-label="Mavzuni almashtirish"><i class="bi bi-sun sun"></i><i class="bi bi-moon-stars moon"></i></button>
+    <button class="ib" data-bell aria-label="Bildirishnomalar"><i class="bi bi-bell"></i><span class="dot">3</span></button>
+    <button class="av" data-user aria-label="Profil menyusi"><span>A</span><em></em></button>
+  </div>
+</header>
+
+<!-- ═══ Profil mega-menyusi ═══ -->
+<div class="pop mega glass" id="mega" role="menu">
+  <div class="me"><div class="av"><span>A</span><em></em></div><div><b>Ali Valiyev</b><small>@ali_valiyev · O‘quvchi · <span style="color:var(--gold)">Premium</span></small></div><div class="xp">LVL 13<div><i></i></div></div></div>
+  <div class="cols" id="megaCols"></div>
+  <div class="ft"><a href="#" class="panel"><i class="bi bi-person"></i> Profilim</a><a href="#"><i class="bi bi-gear"></i> Sozlamalar</a><a href="#" class="out"><i class="bi bi-box-arrow-right"></i> Chiqish</a></div>
+</div>
+
+<!-- ═══ Bildirishnomalar ═══ -->
+<div class="pop bell glass" id="bell" role="dialog" aria-label="Bildirishnomalar">
+  <div class="h"><b>Bildirishnomalar</b><span class="cnt" id="bellCnt">3</span><button id="readAll">Barchasini o‘qilgan</button><button class="ib" id="snd" style="width:32px;height:32px" aria-label="Bildirishnoma ovozi"><i class="bi bi-volume-up"></i></button></div>
+  <div class="list" id="bellList"></div>
+  <div class="ft"><a href="#"><i class="bi bi-chat-dots"></i> Suhbatlar</a><a href="#"><i class="bi bi-envelope"></i> Xabarlar</a></div>
+</div>
+
+<!-- ═══ Buyruqlar oynasi ═══ -->
+<div class="cmd" id="cmd" role="dialog" aria-modal="true" aria-label="Qidiruv">
+  <div class="box glass">
+    <div class="in"><i class="bi bi-search"></i><input id="cmdIn" placeholder="Sahifa, kurs yoki amalni qidiring..." autocomplete="off"><kbd>Esc</kbd></div>
+    <div class="res" id="cmdRes"></div>
+    <div class="foot"><span><kbd>↑</kbd><kbd>↓</kbd>tanlash</span><span><kbd>Enter</kbd>ochish</span><span><kbd>Esc</kbd>yopish</span></div>
+  </div>
+</div>
+
+<!-- ═══ Mobil dock va menyu varag'i ═══ -->
+<nav class="dock glass" id="dock" aria-label="Mobil navigatsiya">
+  <span class="blob" id="dockBlob"></span>
+  <a href="#" class="on" data-i="0"><i class="bi bi-house-fill"></i>Asosiy</a>
+  <a href="#" data-i="1"><i class="bi bi-book"></i>Kurslar</a>
+  <button class="fab" data-cmd aria-label="Qidirish"><i class="bi bi-search"></i></button>
+  <a href="#" data-i="3"><i class="bi bi-chat-dots"></i>Suhbat</a>
+  <button data-sheet data-i="4"><i class="bi bi-grid"></i>Menyu</button>
+</nav>
+<div class="sheet" id="sheet">
+  <div class="bd" data-close></div>
+  <div class="pn" id="sheetPn">
+    <div class="grab"></div>
+    <div class="me"><div class="av" style="cursor:default"><span>A</span><em></em></div><div><b>Ali Valiyev</b><small>LVL 13 · 1 250 coin · Premium</small></div><button class="ib theme" data-theme style="margin-left:auto" aria-label="Mavzuni almashtirish"><i class="bi bi-sun sun"></i><i class="bi bi-moon-stars moon"></i></button></div>
+    <h6>ASOSIY</h6><div class="tiles" id="sheetMain"></div>
+    <div id="sheetGroups"></div>
+    <div class="soc"><a href="#"><i class="bi bi-telegram" style="color:#229ED9"></i> Telegram</a><a href="#"><i class="bi bi-instagram" style="color:#e1306c"></i> Instagram</a><a href="#"><i class="bi bi-youtube" style="color:#ff0000"></i> YouTube</a></div>
+    <a href="#" class="mi3" style="margin-top:12px;color:var(--red);justify-content:center"><i class="bi bi-box-arrow-right" style="color:var(--red)"></i> Chiqish</a>
+  </div>
+</div>
+
+<!-- Prototip: variant tanlash -->
+<div class="switch" id="switch"><span>Navbar:</span><button class="on" data-v="a">A · Kapsula</button><button data-v="b">B · Orol</button><button data-v="c">C · Yon panel</button></div>
+
+<!-- Sahifa kontenti (fon sifatida) -->
+<main>
+  <div class="pf3">
+    <div class="pf3-bg" aria-hidden="true"></div>
+    <section class="card3 glass" style="padding:32px">
+      <div class="vlabel" id="vName">VARIANT A — SUZUVCHI SHISHA KAPSULA</div>
+      <h1 style="font-size:clamp(28px,4vw,46px);letter-spacing:-.04em;margin:12px 0 10px">Xayrli tong, Ali 👋</h1>
+      <p class="sub" id="vDesc" style="font-size:16px;max-width:720px"></p>
+    </section>
+    <div class="metrics" style="margin-top:18px">
+      <div class="metric m1 glass"><i class="bi bi-book"></i><strong>3</strong><span>Faol kurslar</span></div>
+      <div class="metric m2 glass"><i class="bi bi-coin"></i><strong>1 250</strong><span>Coin balansi</span></div>
+      <div class="metric m3 glass"><i class="bi bi-trophy"></i><strong>#4</strong><span>Reyting</span></div>
+      <div class="metric m4 glass"><i class="bi bi-check2-all"></i><strong>86%</strong><span>Test bali</span></div>
+    </div>
+    <div class="dash">
+      <section class="card3 glass s8" style="min-height:300px"><h2>Haftalik faollik</h2><div class="bars3" data-bars="35,60,42,80,55,90,48"></div></section>
+      <section class="card3 glass s4" style="min-height:300px"><h2>Yaqin tadbirlar</h2><div class="tl"><div><b>Jumanji musobaqasi</b><small>Shanba, 15:00</small></div><div><b>Yakuniy test</b><small>28.10 · 10:00</small></div></div></section>
+      <section class="card3 glass s6" style="min-height:360px"><h2>Scroll qilib ko‘ring</h2><p class="sub">A variantida pastga aylantirganda navbar yashirinadi, tepaga aylantirganda qaytib chiqadi.</p></section>
+      <section class="card3 glass s6" style="min-height:360px"><h2>Ctrl + K</h2><p class="sub">Istalgan joyda Ctrl+K yoki “/” bosing — tezkor qidiruv ochiladi.</p></section>
+      <section class="card3 glass s12" style="min-height:500px"><h2>Kontent</h2><p class="sub">Navbar xatti-harakatini ko‘rish uchun bo‘sh joy.</p></section>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+(function () {
+  const G = window.gsap, $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const anim = !!G && !reduce;
+
+  /* ── Ma'lumotlar (LMS'da base.html'dagi {% url %} havolalari bo'ladi) ── */
+  const LINKS = [['Bosh sahifa', 'house', 'Dashboard'], ['Kurslar', 'book', 'Barcha yo‘nalishlar'], ['Dars jadvalim', 'calendar2-week', 'Haftalik reja'], ['Reyting', 'trophy', 'Top o‘quvchilar'], ['Postlar', 'newspaper', 'Blog va yangiliklar'], ['Market', 'shop', 'Coin do‘koni'], ['Yordam', 'question-circle', 'Savol-javob'], ['AI suhbat', 'robot', 'Yordamchi']];
+  const GROUPS = [
+    ['O‘QISH', [['Vazifalarim', 'journal-check'], ['Video test tarixi', 'play-circle'], ['Kutubxona', 'book-half'], ['Sertifikat tekshirish', 'patch-check']]],
+    ['COIN VA O‘YIN', [['Coin tarixi', 'clock-history'], ['Coin o‘tkazma', 'send'], ['Mening xaridlarim', 'bag'], ['O‘yinlar', 'controller'], ['Jonli o‘yinlar', 'broadcast']]],
+    ['HISOB', [['Xabarlar', 'envelope', 'num:2'], ['Suhbatlar', 'chat-dots'], ['Startup', 'rocket-takeoff', 'tag:Yangi'], ['AI suhbat', 'robot'], ['Qurilmalar', 'laptop']]],
+  ];
+  const NOTES = [['bi-check2-circle', 'var(--lime)', 'Vazifangiz baholandi: 9/10', 'Django forms · 5 daq oldin', 1], ['bi-coin', 'var(--gold)', '+15 coin qo‘shildi', 'Uy vazifasi uchun · 5 daq oldin', 1], ['bi-megaphone', 'var(--pink)', 'Noyabr oqimiga qabul boshlandi', 'E’lon · 2 soat oldin', 1], ['bi-calendar-event', 'var(--acc)', 'Ertaga Jumanji musobaqasi', 'Tadbir · kecha', 0]];
+  let active = 0;
+
+  /* ── A: havolalar va indikator ── */
+  const aLinks = $('#aLinks'), aInd = $('#aInd');
+  aLinks.insertAdjacentHTML('beforeend', LINKS.slice(0, 7).map(([t, i], k) => `<a href="#" data-i="${k}" class="${k === active ? 'on' : ''}" title="${t}"><i class="bi bi-${i}"></i><span>${t}</span></a>`).join(''));
+  const moveInd = el => { if (!el) return; aInd.style.width = el.offsetWidth + 'px'; aInd.style.transform = `translateX(${el.offsetLeft}px)`; };
+  aLinks.querySelectorAll('a').forEach(a => a.addEventListener('mouseenter', () => moveInd(a)));
+  aLinks.addEventListener('mouseleave', () => moveInd(aLinks.querySelector('a.on')));
+
+  /* ── B: kengayadigan orol ── */
+  $('#bGrid').innerHTML = LINKS.map(([t, i, s], k) => `<a href="#" data-i="${k}" class="${k === active ? 'on' : ''}"><i class="bi bi-${i}"></i>${t}<small>${s}</small></a>`).join('');
+  const navB = $('#navB'), bT = $('#bToggle');
+  const setB = o => { navB.classList.toggle('open', o); bT.setAttribute('aria-expanded', o); if (o && anim) G.from('#bGrid a', { y: 14, opacity: 0, duration: .45, stagger: .03, ease: 'expo.out', delay: .1 }); };
+  bT.addEventListener('click', () => setB(!navB.classList.contains('open')));
+  if (matchMedia('(hover:hover)').matches) { navB.addEventListener('mouseenter', () => setB(true)); navB.addEventListener('mouseleave', () => setB(false)); }
+
+  /* ── C: yon panel ── */
+  const cNav = $('#cNav'), cBar = $('#cBar');
+  cNav.insertAdjacentHTML('beforeend', LINKS.map(([t, i], k) => `<a href="#" data-i="${k}" class="${k === active ? 'on' : ''}"><i class="bi bi-${i}"></i><span>${t}</span></a>`).join(''));
+  const moveBar = () => { const a = cNav.querySelector('a.on'); if (a) cBar.style.transform = `translateY(${a.offsetTop}px)`; };
+
+  /* Faol sahifani o'zgartirish (uchala variant sinxron) */
+  function setActive(k) {
+    active = k;
+    $$('[data-i]').forEach(a => a.closest('#aLinks,#bGrid,#cNav') && a.classList.toggle('on', +a.dataset.i === k));
+    $('#bCur').textContent = $('#cCur').textContent = LINKS[k][0];
+    moveInd(aLinks.querySelector('a.on')); moveBar();
+  }
+  $$('#aLinks a,#bGrid a,#cNav a').forEach(a => a.addEventListener('click', e => { e.preventDefault(); setActive(+a.dataset.i); setB(false); }));
+
+  /* ── A: scroll'da yashirinish / ixchamlashish ── */
+  let lastY = scrollY;
+  addEventListener('scroll', () => {
+    const y = scrollY, n = $('#navA');
+    n.classList.toggle('compact', y > 20);
+    if (y > lastY + 6 && y > 140) n.classList.add('hide'); else if (y < lastY - 6) n.classList.remove('hide');
+    lastY = y; closePops();
+  }, { passive: true });
+
+  /* ── Mavzu: doira bo'lib yoyiladigan o'tish (View Transitions API) ── */
+  $$('[data-theme]').forEach(b => b.addEventListener('click', e => {
+    const root = document.documentElement, t = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+    const apply = () => { root.setAttribute('data-bs-theme', t); try { localStorage.setItem('theme', t); } catch (_) {} };
+    if (!document.startViewTransition || reduce) return apply();
+    const x = e.clientX, y = e.clientY, r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    document.startViewTransition(apply).ready.then(() => root.animate({ clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${r}px at ${x}px ${y}px)`] }, { duration: 650, easing: 'cubic-bezier(.2,.8,.2,1)', pseudoElement: '::view-transition-new(root)' }));
+  }));
+
+  /* ── Pop-up'lar ── */
+  $('#megaCols').innerHTML = GROUPS.map(([h, items]) => `<div><h6>${h}</h6>${items.map(([t, i, x]) => `<a href="#" class="mi3"><i class="bi bi-${i}"></i>${t}${x ? (x.startsWith('num:') ? `<span class="num">${x.slice(4)}</span>` : `<span class="tag">${x.slice(4)}</span>`) : ''}</a>`).join('')}</div>`).join('');
+  const renderNotes = () => $('#bellList').innerHTML = NOTES.map(([i, c, b, s, n]) => `<a href="#" class="n${n ? ' new' : ''}"><i class="bi ${i}" style="background:color-mix(in srgb,${c} 15%,transparent);color:${c}"></i><div><b>${b}</b><small>${s}</small></div></a>`).join('');
+  renderNotes();
+  $('#readAll').addEventListener('click', () => { NOTES.forEach(n => n[4] = 0); renderNotes(); $$('.ib .dot').forEach(d => anim ? G.to(d, { scale: 0, duration: .3, ease: 'back.in(2)', onComplete: () => d.remove() }) : d.remove()); $('#bellCnt').remove(); });
+  $('#snd').addEventListener('click', e => { const i = e.currentTarget.querySelector('i'); i.className = i.className.includes('mute') ? 'bi bi-volume-up' : 'bi bi-volume-mute'; });
+
+  let openPop = null;
+  function closePops() { if (!openPop) return; const p = openPop; openPop = null; anim ? G.to(p, { opacity: 0, y: -6, scale: .98, duration: .18, onComplete: () => { p.classList.remove('on'); G.set(p, { clearProps: 'all' }); } }) : p.classList.remove('on'); }
+  function toggle(pop, btn) {
+    if (openPop === pop) return closePops();
+    closePops(); openPop = pop;
+    const r = btn.getBoundingClientRect();
+    pop.style.top = r.bottom + 12 + 'px'; pop.style.right = Math.max(10, innerWidth - r.right - 4) + 'px'; pop.style.left = 'auto';
+    pop.classList.add('on');
+    if (anim) { G.fromTo(pop, { opacity: 0, y: -10, scale: .97 }, { opacity: 1, y: 0, scale: 1, duration: .35, ease: 'expo.out' }); G.from(pop.querySelectorAll('.mi3,.n,h6'), { x: -8, opacity: 0, duration: .35, stagger: .015, ease: 'expo.out' }); }
+  }
+  $$('[data-user]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggle($('#mega'), b); }));
+  $$('[data-bell]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggle($('#bell'), b); }));
+  document.addEventListener('click', e => { if (openPop && !openPop.contains(e.target)) closePops(); });
+
+  /* ── Ctrl+K buyruqlar oynasi ── */
+  const ITEMS = [...LINKS.map(([t, i]) => ['SAHIFALAR', t, i, '']), ...GROUPS.flatMap(([h, it]) => it.map(([t, i]) => ['MENING HISOBIM', t, i, ''])),
+    ['KURSLAR', 'Backend — Python & Django', 'hdd-stack', '64%'], ['KURSLAR', 'Frontend Development', 'window', '38%'], ['KURSLAR', 'Ingliz tili IT uchun', 'translate', '81%'],
+    ['AMALLAR', 'Mavzuni almashtirish', 'circle-half', 'theme'], ['AMALLAR', 'Chiqish', 'box-arrow-right', '']];
+  const cmd = $('#cmd'), cin = $('#cmdIn'), cres = $('#cmdRes'); let sel = 0, shown = [];
+  const norm = s => s.toLowerCase().replace(/[‘’ʻ']/g, '');
+  function renderCmd() {
+    const q = norm(cin.value.trim());
+    shown = ITEMS.filter(x => !q || norm(x[1]).includes(q)).slice(0, 14); sel = Math.min(sel, Math.max(0, shown.length - 1));
+    if (!shown.length) { cres.innerHTML = `<div class="empty"><i class="bi bi-emoji-neutral" style="font-size:28px;display:block;margin-bottom:6px"></i>“${cin.value}” bo‘yicha hech narsa topilmadi</div>`; return; }
+    let html = '', grp = '';
+    shown.forEach((x, k) => {
+      if (x[0] !== grp) { grp = x[0]; html += `<h6>${grp}</h6>`; }
+      let label = x[1]; if (q) { const i = norm(label).indexOf(q); if (i >= 0) label = label.slice(0, i) + '<mark>' + label.slice(i, i + q.length) + '</mark>' + label.slice(i + q.length); }
+      html += `<div class="it${k === sel ? ' sel' : ''}" data-k="${k}"><i class="bi bi-${x[2]}"></i><span>${label}</span><small>${x[3] === 'theme' ? '' : x[3]}</small></div>`;
+    });
+    cres.innerHTML = html;
+    cres.querySelectorAll('.it').forEach(el => { el.addEventListener('mousemove', () => { if (sel !== +el.dataset.k) { sel = +el.dataset.k; mark(); } }); el.addEventListener('click', run); });
+  }
+  const mark = () => cres.querySelectorAll('.it').forEach(el => el.classList.toggle('sel', +el.dataset.k === sel));
+  function run() {
+    const x = shown[sel]; if (!x) return; closeCmd();
+    if (x[3] === 'theme') return $('[data-theme]').click();
+    toast(`Prototip: “${x[1]}” sahifasi ochiladi`);
+  }
+  function openCmd() { cmd.classList.add('on'); cin.value = ''; sel = 0; renderCmd(); cin.focus(); anim && G.fromTo('#cmd .box', { y: -20, scale: .96, opacity: 0 }, { y: 0, scale: 1, opacity: 1, duration: .4, ease: 'expo.out' }); }
+  function closeCmd() { cmd.classList.remove('on'); }
+  $$('[data-cmd]').forEach(b => b.addEventListener('click', openCmd));
+  cmd.addEventListener('click', e => { if (e.target === cmd) closeCmd(); });
+  cin.addEventListener('input', () => { sel = 0; renderCmd(); });
+  cin.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); sel = (sel + 1) % shown.length; mark(); cres.querySelector('.sel')?.scrollIntoView({ block: 'nearest' }); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); sel = (sel - 1 + shown.length) % shown.length; mark(); cres.querySelector('.sel')?.scrollIntoView({ block: 'nearest' }); }
+    if (e.key === 'Enter') { e.preventDefault(); run(); }
+  });
+  addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); cmd.classList.contains('on') ? closeCmd() : openCmd(); }
+    else if (e.key === '/' && !/input|textarea/i.test(document.activeElement.tagName)) { e.preventDefault(); openCmd(); }
+    else if (e.key === 'Escape') { closeCmd(); closePops(); closeSheet(); setB(false); }
+  });
+
+  /* ── Mobil dock ── */
+  const dock = $('#dock'), blob = $('#dockBlob');
+  const moveBlob = el => { blob.style.width = el.offsetWidth - 8 + 'px'; blob.style.transform = `translateX(${el.offsetLeft + 4}px)`; };
+  dock.querySelectorAll('a[data-i]').forEach(a => a.addEventListener('click', e => { e.preventDefault(); dock.querySelectorAll('a,button').forEach(x => x.classList.remove('on')); a.classList.add('on'); moveBlob(a); }));
+  const sheet = $('#sheet');
+  $('#sheetMain').innerHTML = LINKS.map(([t, i]) => `<a href="#"><i class="bi bi-${i}"></i>${t}</a>`).join('');
+  const MAIN = LINKS.map(l => l[0]);
+  $('#sheetGroups').innerHTML = GROUPS.map(([h, it]) => `<h6>${h}</h6><div class="tiles">${it.filter(([t]) => !MAIN.includes(t)).map(([t, i]) => `<a href="#"><i class="bi bi-${i}"></i>${t}</a>`).join('')}</div>`).join('');
+  function openSheet() { sheet.classList.add('on'); if (anim) { G.fromTo('#sheetPn', { yPercent: 100 }, { yPercent: 0, duration: .5, ease: 'expo.out' }); G.fromTo('#sheet .bd', { opacity: 0 }, { opacity: 1, duration: .3 }); G.from('#sheetPn .tiles a', { y: 16, opacity: 0, duration: .4, stagger: .012, ease: 'expo.out', delay: .1 }); } }
+  function closeSheet() { if (!sheet.classList.contains('on')) return; anim ? G.to('#sheetPn', { yPercent: 100, duration: .35, ease: 'power3.in', onComplete: () => sheet.classList.remove('on') }) : sheet.classList.remove('on'); }
+  $('[data-sheet]').addEventListener('click', openSheet);
+  sheet.querySelector('[data-close]').addEventListener('click', closeSheet);
+  // Varaqni pastga tortib yopish
+  let sy = null; const pn = $('#sheetPn');
+  pn.addEventListener('touchstart', e => { if (pn.scrollTop <= 0) sy = e.touches[0].clientY; }, { passive: true });
+  pn.addEventListener('touchmove', e => { if (sy == null) return; const d = Math.max(0, e.touches[0].clientY - sy); pn.style.transform = `translateY(${d}px)`; }, { passive: true });
+  pn.addEventListener('touchend', e => { if (sy == null) return; const d = e.changedTouches[0].clientY - sy; sy = null; pn.style.transform = ''; if (d > 90) closeSheet(); });
+
+  /* ── Coin: bosilganda tanga "sakraydi" ── */
+  $$('[data-coin]').forEach(c => c.addEventListener('click', e => { e.preventDefault(); anim && G.fromTo(c.querySelector('i'), { rotateY: 0, y: 0 }, { rotateY: 360, y: -4, duration: .6, ease: 'back.out(2)', yoyo: false }); }));
+
+  function toast(t) { const el = document.createElement('div'); el.className = 'toast glass'; el.innerHTML = `<i class="bi bi-info-circle" style="color:var(--acc)"></i>${t}`; document.body.appendChild(el); anim ? G.timeline().from(el, { y: -20, opacity: 0, duration: .4 }).to(el, { opacity: 0, delay: 2, duration: .3, onComplete: () => el.remove() }) : setTimeout(() => el.remove(), 2500); }
+
+  /* ── Prototip: variant almashtirish ── */
+  const DESC = {
+    a: ['VARIANT A — SUZUVCHI SHISHA KAPSULA', 'Ekran tepasida suzib turuvchi shisha panel. Havolalar orasida sirpanuvchi indikator sichqonchani kuzatadi. Pastga aylantirganda navbar yashirinadi, tepaga aylantirganda qaytadi. Kichikroq ekranda havolalar faqat ikonka bo‘lib qoladi.'],
+    b: ['VARIANT B — DINAMIK OROL', 'iPhone’dagi Dynamic Island kabi kichik qora orol: faqat joriy sahifa, coin, bildirishnoma va avatar ko‘rinadi. Ustiga sichqoncha olib borsangiz (yoki bossangiz) ochilib, barcha bo‘limlar kartochka ko‘rinishida chiqadi.'],
+    c: ['VARIANT C — YON PANEL', 'Chap tomonda ixcham ikonkali panel — ustiga borilganda kengayib nomlar chiqadi, faol bo‘limni gradient chiziq kuzatadi. Tepada “yo‘l” (breadcrumb) va katta qidiruv maydoni. Dashboard sahifalari uchun eng qulay.'],
+  };
+  function setV(v) {
+    document.body.dataset.v = v; $$('#switch button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+    $('#vName').textContent = DESC[v][0]; $('#vDesc').textContent = DESC[v][1] + ' Hammasida: Ctrl+K tezkor qidiruv, profil mega-menyusi, bildirishnomalar, doira bo‘lib yoyiladigan dark/light o‘tishi va telefonda pastki dock.';
+    closePops(); setB(false);
+    requestAnimationFrame(() => { moveInd(aLinks.querySelector('a.on')); moveBar(); });
+    if (anim) G.from({ a: '#navA', b: '#navB', c: '#railC, .topC' }[v], { y: v === 'c' ? 0 : -40, x: v === 'c' ? -30 : 0, opacity: 0, duration: .7, ease: 'expo.out', stagger: .08 });
+  }
+  $$('#switch button').forEach(b => b.addEventListener('click', () => setV(b.dataset.v)));
+  setV('a');
+
+  /* Haftalik ustunlar (fon kontenti uchun) */
+  $$('[data-bars]').forEach(box => { const v = box.dataset.bars.split(',').map(Number), m = Math.max(...v); box.innerHTML = v.map((x, i) => `<div class="b"><div class="col" style="height:${x / m * 100}%"><span>${x}</span></div><small>${['Du', 'Se', 'Ch', 'Pa', 'Ju', 'Sh', 'Ya'][i]}</small></div>`).join(''); });
+
+  const init = () => { moveInd(aLinks.querySelector('a.on')); moveBar(); moveBlob(dock.querySelector('a.on')); };
+  document.fonts ? document.fonts.ready.then(init) : init(); addEventListener('resize', init);
+  if (anim) G.from('.dock', { y: 100, duration: .8, ease: 'expo.out', delay: .3 });
+})();
+</script>
+</body>
+</html>

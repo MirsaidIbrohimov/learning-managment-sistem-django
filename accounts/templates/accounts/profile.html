@@ -1,385 +1,319 @@
 {% extends 'accounts/base.html' %}
-{% load static custom_filters %}
+{% load static custom_filters l10n %}
 {% block title %}Hisobim | IT Creative{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/profile-motion.css' %}?v=2">
+{% endblock %}
 {% block content %}
-<div class="account-page">
-    <header class="account-heading"><div><span class="account-eyebrow">IT CREATIVE / SHAXSIY KABINET</span><h1>Mening profilim<span class="heading-dot">.</span></h1><p>Ma’lumotlaringiz, faoliyatingiz va hisob sozlamalari.</p></div><a class="account-button primary" href="{% url 'profile_edit' %}"><i class="bi bi-pencil-square"></i> Profilni tahrirlash</a></header>
-    {% for message in messages %}<div class="alert alert-{{ message.tags }}" role="status">{{ message }}</div>{% endfor %}
-    <section class="account-identity">
-        <div class="account-avatar">{% if user.photo %}<a href="{{ user.photo.url }}" target="_blank" rel="noopener" aria-label="Profil rasmini ochish"><img src="{{ user.photo.url }}" alt="{{ user.full_name }} profil rasmi"></a>{% else %}{{ user.get_initials }}{% endif %}</div>
-        <div class="account-name"><div class="account-badges"><span class="account-badge">{% if user.is_admin %}Administrator{% elif user.is_teacher %}O‘qituvchi{% else %}{{ user.get_role_display }}{% endif %}</span>{% if user.is_premium %}<span class="account-badge premium"><i class="bi bi-gem"></i> Premium</span>{% endif %}</div><h2>{{ user.full_name|default:user.username }}</h2><p>@{{ user.username }} <span>•</span> {{ user.date_joined|date:"M Y" }} dan beri</p></div>
-        <div class="account-identity-note"><i class="bi bi-shield-check"></i><span>IT Creative Academy<small>{% if user.is_admin %}Boshqaruv kabinetingiz{% elif user.is_teacher %}Ta’lim berish maydoningiz{% else %}Rivojlanish maydoningiz{% endif %}</small></span></div>
-    </section>
-    <section class="dashboard-overview" id="overview" aria-label="Hisob haqida qisqacha">
-        <div><span class="overview-icon"><i class="bi bi-person-check"></i></span><small>Hisob holati</small><strong>{% if user.is_blocked %}Bloklangan{% elif user.is_active %}Faol{% else %}Faol emas{% endif %}</strong><span>{% if user.is_verified %}Shaxs tasdiqlangan{% else %}Shaxs tasdiqlanmagan{% endif %}</span></div>
-        <div><span class="overview-icon"><i class="bi bi-clock-history"></i></span><small>Platformadagi vaqt</small><strong>{{ user.total_online_time|default:0 }} <em>daqiqa</em></strong><span>{{ user.streak_days|default:0 }} kun ketma-ket faollik</span></div>
-        <div><span class="overview-icon"><i class="bi bi-gem"></i></span><small>A’zolik</small><strong>{% if user.is_premium %}Premium{% else %}Standart{% endif %}</strong><span>{% if user.is_premium and user.premium_expires_at %}{{ user.premium_expires_at|date:"d.m.Y" }} gacha{% else %}{{ user.get_role_display }} hisobi{% endif %}</span></div>
-        <div><span class="overview-icon"><i class="bi bi-calendar-check"></i></span><small>Ro‘yxatdan o‘tgan</small><strong>{{ user.date_joined|date:"d.m.Y" }}</strong><span>Oxirgi kirish: {{ user.last_login|date:"d.m.Y H:i"|default:"—" }}</span></div>
-    </section>
-    <div class="account-layout">
-    <aside class="account-sidebar">
-        <nav class="account-panel account-nav" aria-label="Profil bo‘limlari"><span class="account-eyebrow">MENING HISOBIM</span><a href="#overview"><i class="bi bi-grid-1x2"></i> Umumiy ko‘rinish <span>01</span></a><a href="#personal-info"><i class="bi bi-person"></i> Shaxsiy ma’lumotlar <span>02</span></a><a href="#documents-info"><i class="bi bi-folder2"></i> Hujjatlar <span>03</span></a><a href="#activity-info"><i class="bi bi-activity"></i> Faoliyatim <span>04</span></a><a href="{% url 'profile_edit' %}"><i class="bi bi-sliders2"></i> Profilni tahrirlash <i class="bi bi-arrow-up-right"></i></a></nav>
-        <section class="account-panel completion-card"><div class="account-section-heading"><h2>Profil to‘liqligi</h2><strong>{{ profile_summary.completion }}%</strong></div><progress value="{{ profile_summary.completion }}" max="100" aria-label="Profil to‘liqligi"></progress><p>{{ profile_summary.total }} ta asosiy ma’lumotdan {{ profile_summary.filled }} tasi kiritilgan.</p><a href="{% url 'profile_edit' %}">Ma’lumotlarni to‘ldirish →</a></section>
-        <section class="account-panel"><h2>Hisob va xavfsizlik</h2><a class="account-link" href="{% url 'change_password' %}"><i class="bi bi-key"></i><span>Parolni o‘zgartirish<small>Hisobingizni himoya qiling</small></span><i class="bi bi-chevron-right"></i></a><a class="account-link" href="{% url 'my_devices' %}"><i class="bi bi-laptop"></i><span>Qurilmalar<small>Kirish seanslarini boshqaring</small></span><i class="bi bi-chevron-right"></i></a>
-        <div class="account-telegram"><i class="bi bi-telegram"></i><div><strong>Telegram</strong><small>{% if user.telegram_id %}{{ user.telegram_username|default:"Ulangan" }}{% else %}Bildirishnomalarni oling{% endif %}</small></div>{% if user.telegram_id %}<form method="post" action="{% url 'telegram_bot:unlink_telegram' %}" id="tgUnlinkForm">{% csrf_token %}<button type="submit" class="account-button">Uzish</button></form>{% else %}<a class="account-button" href="{% url 'telegram_bot:link_telegram' %}">Ulash</a>{% endif %}</div></section>
-        {% if user.role == 'student' and user.student_id %}<button type="button" class="sid-card" id="sidCard" onclick="copySid()"><span class="sid-label">O‘QUVCHI ID RAQAMI <i class="bi bi-person-badge"></i></span><strong id="sidNumber">{{ user.student_id }}</strong><span class="sid-copy-hint" aria-live="polite"><i class="bi bi-copy"></i> Nusxa olish</span></button>{% endif %}
-    </aside>
-    <div class="account-main">
-{% include 'accounts/_profile_dossier.html' %}
-<section id="activity-info" aria-label="Faoliyatim">
-    {% if user.is_admin %}
-        <section class="account-feature"><span class="account-eyebrow">BOSHQARUV</span><h2>Ta’lim jarayoni nazoratingizda.</h2><p>Foydalanuvchilar, guruhlar va markaz natijalarini bir joydan boshqaring.</p><a class="account-button" href="{% url 'admin_dashboard' %}">Boshqaruv paneli <i class="bi bi-arrow-up-right"></i></a><i class="bi bi-grid-1x2 feature-icon" aria-hidden="true"></i></section>
-        <section class="account-panel"><div class="account-section-heading"><h2>Ish maydoni</h2><span>Administrator</span></div><div class="account-tools">
-            <a href="{% url 'admin_users' %}"><i class="bi bi-people"></i><h3>Foydalanuvchilar</h3><p>O‘quvchilar va jamoa hisoblari</p><span>Ko‘rish →</span></a><a href="{% url 'admin_study_groups' %}"><i class="bi bi-collection"></i><h3>O‘quv guruhlari</h3><p>Guruhlar va dars jarayoni</p><span>Boshqarish →</span></a>
-        </div></section>
-    {% elif user.is_teacher %}
-        <div class="account-metrics">
-            <div><i class="bi bi-book"></i><strong>{{ profile_summary.courses }}</strong><span>Dars beradigan kurslar</span></div>
-            <div><i class="bi bi-people"></i><strong>{{ profile_summary.students }}</strong><span>O‘quvchilarim</span></div>
-            <div><i class="bi bi-clipboard-check"></i><strong>{{ profile_summary.pending }}</strong><span>Tekshirish kutilmoqda</span></div>
-        </div>
-        <section class="account-feature"><span class="account-eyebrow">O‘QITUVCHI KABINETI</span><h2>Bilim ulashing. Natijani kuzating.</h2><p>Kurslaringiz, o‘quvchilaringiz va tekshirish uchun topshirilgan vazifalar.</p><a class="account-button" href="{% url 'teacher:dashboard' %}">O‘qituvchi paneli <i class="bi bi-arrow-up-right"></i></a><i class="bi bi-easel2 feature-icon" aria-hidden="true"></i></section>
-        <section class="account-panel"><div class="account-section-heading"><h2>Ish maydoni</h2><span>O‘qituvchi</span></div><div class="account-tools">
-            <a href="{% url 'teacher:courses' %}"><i class="bi bi-journal-bookmark"></i><h3>Kurslarim</h3><p>Darslar va o‘quv materiallari</p><span>Boshqarish →</span></a><a href="{% url 'teacher:my_students' %}"><i class="bi bi-people"></i><h3>O‘quvchilarim</h3><p>O‘quvchilar bilan ishlash</p><span>Ko‘rish →</span></a><a href="{% url 'teacher:homeworks' %}"><i class="bi bi-clipboard-check"></i><h3>Uyga vazifalar</h3><p>Topshiriqlarni tekshirish va baholash</p><span>Tekshirish →</span></a><a href="{% url 'teacher:statistics' %}"><i class="bi bi-graph-up-arrow"></i><h3>Natijalar</h3><p>O‘quv jarayoni statistikasi</p><span>Ko‘rish →</span></a><a href="{% url 'teacher:certificates' %}"><i class="bi bi-award"></i><h3>Sertifikatlarim</h3><p>Kasbiy yutuqlar va malaka</p><span>Ko‘rish →</span></a><a href="{% url 'teacher:earnings' %}"><i class="bi bi-wallet2"></i><h3>Daromadlarim</h3><p>Darslar bo‘yicha hisob-kitob</p><span>Ko‘rish →</span></a>
-        </div></section>
-    {% elif user.role == 'student' %}
-        <section class="account-feature"><span class="account-eyebrow">O‘QISH JARAYONIM</span><h2>Har bir qadam — yangi imkoniyat.</h2><p>{{ profile_level }}-daraja · Keyingi darajagacha {{ profile_xp_to_next }} XP</p><div class="account-progress"><span>Jami {{ profile_xp }} XP</span><span>{{ profile_xp_pct }} / 100</span><progress value="{{ profile_xp_pct }}" max="100" aria-label="Keyingi darajaga erishish"></progress></div></section>
-        <div class="account-metrics"><div><i class="bi bi-book"></i><strong>{{ active_courses|length }}</strong><span>Faol kurslar</span></div><div><i class="bi bi-coin"></i><strong>{{ user.coins|default:0 }}</strong><span>Coin balansi</span></div><div><i class="bi bi-award"></i><strong>{{ certificates|length }}</strong><span>Sertifikatlar</span></div></div>
-        <div class="account-shortcuts"><a href="{% url 'my_statistics' %}"><i class="bi bi-graph-up"></i> Mening statistikam ↗</a><a href="{% url 'video_quiz:student_history' %}"><i class="bi bi-play-circle"></i> Video test tarixi ↗</a></div>
-<!-- Coin & Ball statistika -->
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="pf-card p-3 a-up d3 {% if user.is_premium %}pm-right{% endif %}">
-            <div class="pf-sec-title mb-2">
-                <i class="bi bi-coin ib" style="background:var(--warn-bg);color:var(--warn);"></i>
-                Coin statistika
-            </div>
-            {% if user.role == 'student' and student_balance %}
-            <div class="pf-row" style="border-radius:12px;background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.05));border:1px solid rgba(99,102,241,.15);margin-bottom:.5rem;padding:.65rem .85rem;">
-                <div class="pf-row-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;"><i class="bi bi-cash-stack"></i></div>
-                <div>
-                    <div class="pf-row-label">Hisob balansi</div>
-                    <div class="pf-row-val" style="font-size:1.05rem;font-weight:800;color:#a5b4fc;">
-                        {{ student_balance.amount|space_num }} so'm
-                    </div>
-                    {% if student_balance.next_payment_date %}
-                    <div style="font-size:.72rem;color:#94a3b8;margin-top:2px;">
-                        <i class="bi bi-calendar3 me-1"></i>Keyingi to'lov: {{ student_balance.next_payment_date|date:"d.m.Y" }}
-                    </div>
-                    {% endif %}
-                    {% if student_balance.is_contract %}
-                    <div style="font-size:.72rem;color:#fbbf24;margin-top:2px;">
-                        <i class="bi bi-file-earmark-check me-1"></i>Shartnoma rejimi
-                    </div>
-                    {% endif %}
-                    {% if user.role == 'student' and not student_balance.is_contract %}
-                    <a href="{% url 'student_payments' %}" class="btn btn-sm btn-outline-primary mt-2">
-                        <i class="bi bi-credit-card me-1"></i>To'lovlarni boshqarish
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--warn-bg);color:var(--warn);"><i class="bi bi-wallet2"></i></div>
-                <div><div class="pf-row-label">Joriy coin</div><div class="pf-row-val">{{ user.coins }} coin</div></div>
-            </div>
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--success-bg);color:var(--success);"><i class="bi bi-plus-circle-fill"></i></div>
-                <div><div class="pf-row-label">Jami yig'ilgan</div><div class="pf-row-val">{{ total_earned_coins }} coin</div></div>
-            </div>
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--red-bg);color:var(--red);"><i class="bi bi-dash-circle-fill"></i></div>
-                <div><div class="pf-row-label">Sarflangan</div><div class="pf-row-val">{{ total_spent_coins }} coin</div></div>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="pf-card p-3 a-up d4 {% if user.is_premium %}pm-right{% endif %}">
-            <div class="pf-sec-title mb-2">
-                <i class="bi bi-mortarboard-fill ib" style="background:var(--accent-bg);color:var(--accent);"></i>
-                Ball statistika
-            </div>
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--accent-bg);color:var(--accent);"><i class="bi bi-clipboard-check-fill"></i></div>
-                <div><div class="pf-row-label">Testlar topshirilgan</div><div class="pf-row-val">{{ total_tests_taken }}</div></div>
-            </div>
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--success-bg);color:var(--success);"><i class="bi bi-graph-up-arrow"></i></div>
-                <div><div class="pf-row-label">O'rtacha ball</div><div class="pf-row-val">{{ avg_test_score }}%</div></div>
-            </div>
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--purple-bg);color:var(--purple);"><i class="bi bi-file-check-fill"></i></div>
-                <div><div class="pf-row-label">Vazifalar topshirilgan</div><div class="pf-row-val">{{ total_homeworks_submitted }}</div></div>
-            </div>
-            <div class="pf-row">
-                <div class="pf-row-icon" style="background:var(--warn-bg);color:var(--warn);"><i class="bi bi-star-fill"></i></div>
-                <div><div class="pf-row-label">O'rtacha baho</div><div class="pf-row-val">{{ avg_homework_grade }}/10</div></div>
-            </div>
-        </div>
-    </div>
-</div>
+<div class="pf3">
+  <div class="pf3-bg" aria-hidden="true"></div>
+  {% for message in messages %}<div class="alert3 {{ message.tags }}" role="status"><i class="bi bi-info-circle"></i> {{ message }}</div>{% endfor %}
 
-{% if not active_courses and not completed_courses %}
-<section class="account-panel account-empty"><i class="bi bi-journal-bookmark"></i><h2>O‘quv yo‘lingiz shu yerdan boshlanadi</h2><p>Kursga qo‘shilganingizdan so‘ng, u shu yerda ko‘rinadi.</p></section>
-{% endif %}
-<!-- Faol kurslar -->
-{% if active_courses %}
-<div class="pf-card pf-sec a-up d4 {% if user.is_premium %}pm-right{% endif %}">
-    <div class="pf-sec-title">
-        <i class="bi bi-book-fill ib" style="background:var(--accent-bg);color:var(--accent);"></i>
-        Faol kurslarim
-    </div>
-    <div class="row g-3">
-    {% for enrollment in active_courses %}
-    <div class="col-md-6">
-        <div class="pf-mini">
-            <a href="{% url 'profession_detail' enrollment.profession.pk %}" class="text-decoration-none text-body">
-                <div class="d-flex align-items-center gap-3 mb-2">
-                    {% if enrollment.profession.photo %}<img alt="" src="{{ enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">{% endif %}
-                    <div>
-                        <b>{{ enrollment.profession.name }}</b><br>
-                        <small style="color:var(--muted)">{{ enrollment.enrolled_at|date:"d.m.Y" }}</small>
-                    </div>
-                </div>
-            </a>
-            {% if request.user.is_premium or request.user.is_admin or request.user.is_teacher %}
-            <a href="{% url 'classmates' enrollment.profession.pk %}" class="btn btn-sm btn-outline-primary rounded-pill w-100">
-                <i class="bi bi-people me-1"></i>Kursdoshlar
-            </a>
-            {% else %}
-            <a href="{% url 'coin:buy_premium' %}" class="btn btn-sm btn-outline-secondary rounded-pill w-100">
-                <i class="bi bi-lock me-1"></i>Kursdoshlar <span class="badge bg-warning text-dark">Premium</span>
-            </a>
-            {% endif %}
+  <!-- ═══ HERO ═══ -->
+  <section class="hero3 glass" id="overview">
+    <div class="hero3-l">
+      <div class="hero3-id">
+        <div class="ava">
+          <div class="in">{% if user.photo %}<a href="{{ user.photo.url }}" target="_blank" rel="noopener" aria-label="Profil rasmini ochish"><img src="{{ user.photo.url }}" alt="{{ user.full_name }} profil rasmi"></a>{% else %}{{ user.get_initials }}{% endif %}</div>
+          {% if user.role == 'student' and not user.is_admin and not user.is_teacher %}<span class="lvl">LVL {{ profile_level }}</span>{% endif %}
         </div>
-    </div>
-    {% endfor %}
-    </div>
-</div>
-{% endif %}
-
-<!-- Tugallangan kurslar -->
-{% if completed_courses %}
-<div class="pf-card pf-sec a-up d5 {% if user.is_premium %}pm-right{% endif %}">
-    <div class="pf-sec-title">
-        <i class="bi bi-check-circle-fill ib" style="background:var(--success-bg);color:var(--success);"></i>
-        Tugallangan kurslarim
-        <span class="badge bg-success ms-auto" style="font-size:.72rem">{{ completed_courses|length }}</span>
-    </div>
-    <div class="row g-3">
-    {% for item in completed_courses %}
-    <div class="col-md-6">
-        <div class="pf-mini" style="border:2px solid rgba(52,199,89,.25)">
-            <div class="d-flex align-items-center gap-3 mb-2">
-                {% if item.enrollment.profession.photo %}<img alt="" src="{{ item.enrollment.profession.photo.url }}" style="width:48px;height:48px;border-radius:12px;object-fit:cover">{% endif %}
-                <div class="flex-grow-1">
-                    <b>{{ item.enrollment.profession.name }}</b>
-                    <span class="badge bg-success ms-1" style="font-size:.65rem">Tugallandi</span><br>
-                    <small style="color:var(--muted)">{{ item.certificate.issued_at|date:"d.m.Y" }}</small>
-                </div>
-            </div>
-            <div class="d-flex gap-2">
-                {% if request.user.is_premium or request.user.is_admin or request.user.is_teacher %}
-                <a href="{% url 'classmates' item.enrollment.profession.pk %}" class="btn btn-sm btn-outline-primary rounded-pill flex-grow-1">
-                    <i class="bi bi-people me-1"></i>Kursdoshlar
-                </a>
-                {% else %}
-                <a href="{% url 'coin:buy_premium' %}" class="btn btn-sm btn-outline-secondary rounded-pill flex-grow-1">
-                    <i class="bi bi-lock me-1"></i>Kursdoshlar <span class="badge bg-warning text-dark">Premium</span>
-                </a>
-                {% endif %}
-                {% if item.certificate.file %}<a href="{{ item.certificate.file.url }}" target="_blank" class="btn btn-sm btn-success rounded-pill">
-                    <i class="bi bi-award me-1"></i>Sertifikat
-                </a>{% endif %}
-            </div>
+        <div>
+          <div class="badges"><span class="bdg">{% if user.is_admin %}Administrator{% elif user.is_teacher %}O‘qituvchi{% else %}{{ user.get_role_display }}{% endif %}</span>{% if user.is_premium %}<span class="bdg prem"><i class="bi bi-gem"></i> Premium</span>{% endif %}</div>
+          <h1><span class="split">{{ user.full_name|default:user.username }}</span></h1>
+          <p class="handle"><b>@{{ user.username }}</b> · {{ user.date_joined|date:"M Y" }} dan beri</p>
         </div>
-    </div>
-    {% endfor %}
-    </div>
-</div>
-{% endif %}
-
-<!-- Sertifikatlar -->
-<div class="pf-card pf-sec a-up d7 {% if user.is_premium %}pm-right{% endif %}">
-    <div class="pf-sec-title">
-        <i class="bi bi-award-fill ib" style="background:var(--warn-bg);color:#ff8c00;"></i>
-        Sertifikatlarim
-        {% if certificates %}
-        <span class="badge bg-warning text-dark ms-auto" style="font-size:.72rem">{{ certificates|length }}</span>
+      </div>
+      <div class="hero3-act">
+        <a class="btn3 acc" href="{% url 'profile_edit' %}" data-mag><i class="bi bi-pencil-square"></i> Profilni tahrirlash</a>
+        {% if user.is_admin %}
+          <a class="btn3" href="{% url 'admin_dashboard' %}" data-mag><i class="bi bi-grid-1x2"></i> Boshqaruv paneli</a>
+        {% elif user.is_teacher %}
+          <a class="btn3" href="{% url 'teacher:dashboard' %}" data-mag><i class="bi bi-easel2"></i> O‘qituvchi paneli</a>
+        {% elif user.role == 'student' %}
+          <a class="btn3" href="{% url 'my_statistics' %}" data-mag><i class="bi bi-graph-up"></i> Mening statistikam</a>
+          <a class="btn3" href="{% url 'video_quiz:student_history' %}" data-mag><i class="bi bi-play-circle"></i> Video test tarixi</a>
         {% endif %}
+      </div>
     </div>
+    <div class="hero3-r" data-pf-orb aria-hidden="true">
+      {% if user.is_teacher and not user.is_admin %}
+        <div class="fchip glass f1"><i class="bi bi-book"></i><span><b>{{ profile_summary.courses }} ta kurs</b><small>Dars beraman</small></span></div>
+        <div class="fchip glass f2"><i class="bi bi-people"></i><span><b>{{ profile_summary.students }}</b><small>O‘quvchilarim</small></span></div>
+        <div class="fchip glass f3"><i class="bi bi-clipboard-check"></i><span><b>{{ profile_summary.pending }}</b><small>Tekshirish kutilmoqda</small></span></div>
+      {% else %}
+        <div class="fchip glass f1"><i class="bi bi-coin"></i><span><b>{{ user.coins|default:0 }} coin</b><small>Balans</small></span></div>
+        <div class="fchip glass f2"><i class="bi bi-fire"></i><span><b>{{ user.streak_days|default:0 }} kun</b><small>Ketma-ket faollik</small></span></div>
+        {% if user.role == 'student' and not user.is_admin %}<div class="fchip glass f3"><i class="bi bi-lightning-charge"></i><span><b>{{ profile_xp }} XP</b><small>Jami tajriba</small></span></div>
+        {% else %}<div class="fchip glass f3"><i class="bi bi-clock-history"></i><span><b>{{ user.total_online_time|default:0 }} daq.</b><small>Platformada</small></span></div>{% endif %}
+      {% endif %}
+    </div>
+  </section>
 
-    {% if certificates %}
-    <div class="row g-3">
-    {% for cert in certificates %}
-    <div class="col-md-6">
-        <div class="pf-mini" style="border:2px solid {{ cert.status_color }}20;transition:all .4s">
-            <div class="d-flex align-items-center gap-3 mb-2">
-                <div class="rounded-3 p-2" style="background:{{ cert.status_color }}15;color:{{ cert.status_color }};">
-                    {% if cert.status == 'active' %}<i class="bi bi-patch-check-fill fs-5"></i>
-                    {% elif cert.status == 'expired' %}<i class="bi bi-clock-history fs-5"></i>
-                    {% elif cert.status == 'frozen' %}<i class="bi bi-snow2 fs-5"></i>
-                    {% else %}<i class="bi bi-x-octagon-fill fs-5"></i>{% endif %}
-                </div>
-                <div class="flex-grow-1">
-                    <b>{{ cert.profession.name }}</b>
-                    <span class="badge rounded-pill ms-1" style="font-size:.6rem;background:{{ cert.status_color }}20;color:{{ cert.status_color }}">{{ cert.get_status_display }}</span>
-                    <br>
-                    <small style="color:var(--muted)">
-                        <i class="bi bi-upc-scan me-1"></i>{{ cert.certificate_id }}
-                    </small>
-                </div>
-            </div>
-            <div style="font-size:.78rem;color:var(--muted);margin-bottom:.5rem">
-                <span><i class="bi bi-calendar-check me-1"></i>{{ cert.valid_from|date:"d.m.Y" }}</span>
-                {% if cert.valid_until %}
-                <span class="ms-2"><i class="bi bi-calendar-x me-1"></i>{{ cert.valid_until|date:"d.m.Y" }}</span>
-                {% endif %}
-            </div>
-            <div class="d-flex gap-2">
-                {% if cert.file %}<a href="{{ cert.file.url }}" target="_blank" download class="btn btn-sm btn-success rounded-pill flex-grow-1">
-                    <i class="bi bi-file-pdf me-1"></i>Yuklab olish
-                </a>
-                {% endif %}<a href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
-                    <i class="bi bi-shield-check"></i><span class="visually-hidden">Sertifikatni tekshirish</span>
-                </a>
-            </div>
+  <!-- ═══ Umumiy ko'rinish ═══ -->
+  <div class="ov" aria-label="Hisob haqida qisqacha">
+    <div class="glass"><i class="bi bi-person-check"></i><small>Hisob holati</small><strong>{% if user.is_blocked %}Bloklangan{% elif user.is_active %}Faol{% else %}Faol emas{% endif %}</strong><span>{% if user.is_verified %}Shaxs tasdiqlangan{% else %}Shaxs tasdiqlanmagan{% endif %}</span></div>
+    <div class="glass"><i class="bi bi-clock-history"></i><small>Platformadagi vaqt</small><strong><b data-count="{{ user.total_online_time|default:0|unlocalize }}">{{ user.total_online_time|default:0 }}</b> <em>daqiqa</em></strong><span>{{ user.streak_days|default:0 }} kun ketma-ket faollik</span></div>
+    <div class="glass"><i class="bi bi-gem"></i><small>A’zolik</small><strong>{% if user.is_premium %}Premium{% else %}Standart{% endif %}</strong><span>{% if user.is_premium and user.premium_expires_at %}{{ user.premium_expires_at|date:"d.m.Y" }} gacha{% else %}{{ user.get_role_display }} hisobi{% endif %}</span></div>
+    <div class="glass"><i class="bi bi-calendar-check"></i><small>Ro‘yxatdan o‘tgan</small><strong>{{ user.date_joined|date:"d.m.Y" }}</strong><span>Oxirgi kirish: {{ user.last_login|date:"d.m.Y H:i"|default:"—" }}</span></div>
+  </div>
+
+  <div class="grid3">
+    <!-- ═══ CHAP USTUN ═══ -->
+    <aside class="side3">
+      <nav class="nav3 card3 glass" aria-label="Profil bo‘limlari">
+        <span class="pill"></span>
+        {% if user.is_admin or user.is_teacher %}
+          <a href="#activity-info"><i class="bi bi-grid-1x2"></i> Ish maydoni <span>01</span></a>
+          <a href="#personal-info"><i class="bi bi-person"></i> Shaxsiy ma’lumotlar <span>02</span></a>
+          <a href="#documents-info"><i class="bi bi-folder2"></i> Hujjatlar <span>03</span></a>
+        {% elif user.role == 'student' %}
+          <a href="#activity-info"><i class="bi bi-lightning-charge"></i> O‘qish jarayonim <span>01</span></a>
+          <a href="#courses"><i class="bi bi-journal-bookmark"></i> Kurslarim <span>02</span></a>
+          <a href="#results"><i class="bi bi-bar-chart"></i> Natijalarim <span>03</span></a>
+          <a href="#certificates"><i class="bi bi-award"></i> Sertifikatlar <span>04</span></a>
+          <a href="#personal-info"><i class="bi bi-person"></i> Shaxsiy ma’lumotlar <span>05</span></a>
+          <a href="#documents-info"><i class="bi bi-folder2"></i> Hujjatlar <span>06</span></a>
+        {% else %}
+          <a href="#personal-info"><i class="bi bi-person"></i> Shaxsiy ma’lumotlar <span>01</span></a>
+          <a href="#documents-info"><i class="bi bi-folder2"></i> Hujjatlar <span>02</span></a>
+        {% endif %}
+      </nav>
+      <section class="card3 glass">
+        <h2>Profil to‘liqligi</h2>
+        <div class="ring" data-p="{{ profile_summary.completion|unlocalize }}" style="--p:{{ profile_summary.completion|unlocalize }}"><b><span data-count="{{ profile_summary.completion|unlocalize }}">{{ profile_summary.completion }}</span><small>%</small></b></div>
+        <p class="sub" style="text-align:center">{{ profile_summary.total }} ta asosiy ma’lumotdan {{ profile_summary.filled }} tasi kiritilgan.</p>
+        <a class="mini-link" href="{% url 'profile_edit' %}">Ma’lumotlarni to‘ldirish →</a>
+      </section>
+      <section class="card3 glass">
+        <h2>Hisob va xavfsizlik</h2>
+        <div style="margin-top:10px">
+          <a class="lnk" href="{% url 'change_password' %}"><i class="bi bi-key"></i><span>Parolni o‘zgartirish<small>Hisobingizni himoya qiling</small></span><i class="bi bi-chevron-right"></i></a>
+          <a class="lnk" href="{% url 'my_devices' %}"><i class="bi bi-laptop"></i><span>Qurilmalar<small>Kirish seanslarini boshqaring</small></span><i class="bi bi-chevron-right"></i></a>
         </div>
+        <div class="tg3"><i class="bi bi-telegram"></i><div>Telegram<small>{% if user.telegram_id %}{{ user.telegram_username|default:"Ulangan" }}{% else %}Bildirishnomalarni oling{% endif %}</small></div>
+          {% if user.telegram_id %}<form method="post" action="{% url 'telegram_bot:unlink_telegram' %}" id="tgUnlinkForm" style="margin-left:auto">{% csrf_token %}<button type="submit" class="btn3">Uzish</button></form>
+          {% else %}<a class="btn3" href="{% url 'telegram_bot:link_telegram' %}">Ulash</a>{% endif %}
+        </div>
+      </section>
+      {% if user.role == 'student' and user.student_id %}
+      <button type="button" class="sid" id="sidCard" data-tilt>
+        <span class="l">O‘QUVCHI ID RAQAMI <i class="bi bi-person-badge"></i></span>
+        <strong id="sidNumber">{{ user.student_id }}</strong>
+        <span class="h" aria-live="polite"><i class="bi bi-copy"></i> Bosing — nusxa olinadi</span>
+      </button>
+      {% endif %}
+    </aside>
+
+    <!-- ═══ O'NG USTUN ═══ -->
+    <div class="main3">
+      {% if user.is_admin %}
+        <section class="feat3 glass" id="activity-info" data-rv>
+          <div><span class="lbl">BOSHQARUV</span><h2>Ta’lim jarayoni nazoratingizda.</h2><p>Foydalanuvchilar, guruhlar va markaz natijalarini bir joydan boshqaring.</p>
+            <a class="btn3 acc" href="{% url 'admin_dashboard' %}" style="margin-top:16px" data-mag>Boshqaruv paneli <i class="bi bi-arrow-up-right"></i></a></div>
+          <div class="lvl-big"><div><small>ADMIN</small><b><i class="bi bi-grid-1x2"></i></b></div></div>
+        </section>
+        <section class="card3 glass" data-rv>
+          <h2><i class="bi bi-tools" style="color:var(--acc)"></i> Ish maydoni <span class="cnt">Administrator</span></h2>
+          <div class="tools3" data-stagger>
+            <a href="{% url 'admin_users' %}"><i class="bi bi-people"></i><h3>Foydalanuvchilar</h3><p>O‘quvchilar va jamoa hisoblari</p><span>Ko‘rish →</span></a>
+            <a href="{% url 'admin_study_groups' %}"><i class="bi bi-collection"></i><h3>O‘quv guruhlari</h3><p>Guruhlar va dars jarayoni</p><span>Boshqarish →</span></a>
+          </div>
+        </section>
+
+      {% elif user.is_teacher %}
+        <div class="metrics m3c" id="activity-info" data-stagger>
+          <div class="metric m1 glass"><i class="bi bi-book"></i><strong data-count="{{ profile_summary.courses|unlocalize }}">{{ profile_summary.courses }}</strong><span>Dars beradigan kurslar</span></div>
+          <div class="metric m3 glass"><i class="bi bi-people"></i><strong data-count="{{ profile_summary.students|unlocalize }}">{{ profile_summary.students }}</strong><span>O‘quvchilarim</span></div>
+          <div class="metric m2 glass"><i class="bi bi-clipboard-check"></i><strong data-count="{{ profile_summary.pending|unlocalize }}">{{ profile_summary.pending }}</strong><span>Tekshirish kutilmoqda</span></div>
+        </div>
+        <section class="feat3 glass" data-rv>
+          <div><span class="lbl">O‘QITUVCHI KABINETI</span><h2>Bilim ulashing. Natijani kuzating.</h2><p>Kurslaringiz, o‘quvchilaringiz va tekshirish uchun topshirilgan vazifalar.</p>
+            <a class="btn3 acc" href="{% url 'teacher:dashboard' %}" style="margin-top:16px" data-mag>O‘qituvchi paneli <i class="bi bi-arrow-up-right"></i></a></div>
+          <div class="lvl-big"><div><small>USTOZ</small><b><i class="bi bi-easel2"></i></b></div></div>
+        </section>
+        <section class="card3 glass" data-rv>
+          <h2><i class="bi bi-tools" style="color:var(--acc)"></i> Ish maydoni <span class="cnt">O‘qituvchi</span></h2>
+          <div class="tools3" data-stagger>
+            <a href="{% url 'teacher:courses' %}"><i class="bi bi-journal-bookmark"></i><h3>Kurslarim</h3><p>Darslar va o‘quv materiallari</p><span>Boshqarish →</span></a>
+            <a href="{% url 'teacher:my_students' %}"><i class="bi bi-people"></i><h3>O‘quvchilarim</h3><p>O‘quvchilar bilan ishlash</p><span>Ko‘rish →</span></a>
+            <a href="{% url 'teacher:homeworks' %}"><i class="bi bi-clipboard-check"></i><h3>Uyga vazifalar</h3><p>Topshiriqlarni tekshirish va baholash</p><span>Tekshirish →</span></a>
+            <a href="{% url 'teacher:statistics' %}"><i class="bi bi-graph-up-arrow"></i><h3>Natijalar</h3><p>O‘quv jarayoni statistikasi</p><span>Ko‘rish →</span></a>
+            <a href="{% url 'teacher:certificates' %}"><i class="bi bi-award"></i><h3>Sertifikatlarim</h3><p>Kasbiy yutuqlar va malaka</p><span>Ko‘rish →</span></a>
+            <a href="{% url 'teacher:earnings' %}"><i class="bi bi-wallet2"></i><h3>Daromadlarim</h3><p>Darslar bo‘yicha hisob-kitob</p><span>Ko‘rish →</span></a>
+          </div>
+        </section>
+
+      {% elif user.role == 'student' %}
+        <!-- O'qish jarayoni -->
+        <section class="feat3 glass" id="activity-info" data-rv>
+          <div>
+            <span class="lbl">O‘QISH JARAYONIM</span>
+            <h2>Har bir qadam — yangi imkoniyat.</h2>
+            <p>{{ profile_level }}-daraja · Keyingi darajagacha <b style="color:var(--ink)">{{ profile_xp_to_next }} XP</b> qoldi</p>
+            <div class="xp"><div class="t"><span>Jami {{ profile_xp }} XP</span><span>{{ profile_xp_pct }} / 100</span></div><div class="bar" role="progressbar" aria-label="Keyingi darajaga erishish" aria-valuenow="{{ profile_xp_pct|unlocalize }}" aria-valuemin="0" aria-valuemax="100"><i data-w="{{ profile_xp_pct|unlocalize }}" style="width:{{ profile_xp_pct|unlocalize }}%"></i></div></div>
+          </div>
+          <div class="lvl-big"><div><small>DARAJA</small><b>{{ profile_level }}</b></div></div>
+        </section>
+
+        <div class="metrics" data-stagger>
+          <div class="metric m1 glass"><i class="bi bi-book"></i><strong data-count="{{ active_courses|length }}">{{ active_courses|length }}</strong><span>Faol kurslar</span></div>
+          <div class="metric m2 glass"><i class="bi bi-coin"></i><strong data-count="{{ user.coins|default:0|unlocalize }}">{{ user.coins|default:0 }}</strong><span>Coin balansi</span></div>
+          <div class="metric m3 glass"><i class="bi bi-award"></i><strong data-count="{{ certificates|length }}">{{ certificates|length }}</strong><span>Sertifikatlar</span></div>
+          <div class="metric m4 glass"><i class="bi bi-check2-all"></i><strong data-count="{{ total_tests_taken|default:0|unlocalize }}">{{ total_tests_taken|default:0 }}</strong><span>Topshirilgan testlar</span></div>
+        </div>
+
+        <!-- Kurslarim -->
+        <section class="card3 glass" id="courses" data-rv>
+          <h2><i class="bi bi-journal-bookmark" style="color:var(--acc)"></i> Kurslarim <span class="cnt">{{ active_courses|length }} faol · {{ completed_courses|length }} tugatilgan</span></h2>
+          {% if not active_courses and not completed_courses %}
+            <div class="empty3"><i class="bi bi-journal-bookmark"></i><h3>O‘quv yo‘lingiz shu yerdan boshlanadi</h3><p>Kursga qo‘shilganingizdan so‘ng, u shu yerda ko‘rinadi.</p></div>
+          {% else %}
+          <p class="sub">Faol kurslaringiz va kursdoshlaringiz.</p>
+          <div class="courses3" data-stagger>
+            {% for enrollment in active_courses %}
+            <div class="crs" data-tilt>
+              <div class="cv" style="background:linear-gradient(135deg,{% cycle '#047857,#a3e635' '#2563eb,#22d3ee' '#6d28d9,#c084fc' '#be185d,#fb7185' '#0f766e,#2dd4bf' %})">{% if enrollment.profession.photo %}<img alt="" src="{{ enrollment.profession.photo.url }}" loading="lazy">{% else %}<i class="bi bi-mortarboard"></i>{% endif %}<span class="tag">FAOL</span></div>
+              <div class="bd"><h3>{{ enrollment.profession.name }}</h3><small>Yozilgan: {{ enrollment.enrolled_at|date:"d.m.Y" }}</small>
+                <div class="ft"><a href="{% url 'profession_detail' enrollment.profession.pk %}">Kursga o‘tish</a>
+                  {% if request.user.is_premium or request.user.is_admin or request.user.is_teacher %}<a href="{% url 'classmates' enrollment.profession.pk %}"><i class="bi bi-people"></i> Kursdoshlar</a>
+                  {% else %}<a class="lock" href="{% url 'coin:buy_premium' %}"><i class="bi bi-lock"></i> Kursdoshlar<b>Premium</b></a>{% endif %}</div>
+              </div>
+            </div>
+            {% endfor %}
+            {% for item in completed_courses %}
+            <div class="crs" data-tilt>
+              <div class="cv" style="background:linear-gradient(135deg,#b45309,#fbbf24)">{% if item.enrollment.profession.photo %}<img alt="" src="{{ item.enrollment.profession.photo.url }}" loading="lazy">{% else %}<i class="bi bi-trophy"></i>{% endif %}<span class="tag">TUGALLANDI</span></div>
+              <div class="bd"><h3>{{ item.enrollment.profession.name }}</h3><small>Sertifikat: {{ item.certificate.issued_at|date:"d.m.Y" }}</small>
+                <div class="ft">
+                  {% if request.user.is_premium or request.user.is_admin or request.user.is_teacher %}<a href="{% url 'classmates' item.enrollment.profession.pk %}"><i class="bi bi-people"></i> Kursdoshlar</a>
+                  {% else %}<a class="lock" href="{% url 'coin:buy_premium' %}"><i class="bi bi-lock"></i> Kursdoshlar<b>Premium</b></a>{% endif %}
+                  {% if item.certificate.file %}<a class="ok" href="{{ item.certificate.file.url }}" target="_blank" rel="noopener"><i class="bi bi-award"></i> Sertifikat</a>{% endif %}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </section>
+
+        <!-- Natijalar -->
+        <div class="split3" id="results">
+          <section class="card3 glass" data-rv>
+            <h2><i class="bi bi-wallet2" style="color:var(--gold)"></i> Coin hamyon</h2>
+            <div class="rows">
+              <div class="row3"><i class="bi bi-coin ic-gold"></i><div><small>Joriy coin</small><b><span data-count="{{ user.coins|default:0|unlocalize }}">{{ user.coins|default:0 }}</span> coin</b></div></div>
+              <div class="row3"><i class="bi bi-arrow-down-circle ic-lime"></i><div><small>Jami yig‘ilgan</small><b><span data-count="{{ total_earned_coins|default:0|unlocalize }}">{{ total_earned_coins|default:0 }}</span> coin</b></div></div>
+              <div class="row3"><i class="bi bi-arrow-up-circle ic-red"></i><div><small>Sarflangan</small><b><span data-count="{{ total_spent_coins|default:0|unlocalize }}">{{ total_spent_coins|default:0 }}</span> coin</b></div></div>
+            </div>
+            {% if student_balance %}
+            <div class="pay3"><i class="bi bi-cash-stack" style="font-size:26px;color:var(--lime)"></i>
+              <div><small>Hisob balansi</small><b>{{ student_balance.amount|space_num }} so‘m</b>
+                {% if student_balance.next_payment_date %}<small><i class="bi bi-calendar3"></i> Keyingi to‘lov: {{ student_balance.next_payment_date|date:"d.m.Y" }}</small>{% endif %}
+                {% if student_balance.is_contract %}<small style="color:var(--gold)"><i class="bi bi-file-earmark-check"></i> Shartnoma rejimi</small>{% endif %}
+              </div>
+              {% if not student_balance.is_contract %}<a class="btn3" href="{% url 'student_payments' %}" style="margin-left:auto;padding:8px 14px;font-size:13px"><i class="bi bi-credit-card"></i> To‘lovlar</a>{% endif %}
+            </div>
+            {% endif %}
+          </section>
+          <section class="card3 glass" data-rv>
+            <h2><i class="bi bi-bar-chart" style="color:var(--acc2)"></i> O‘quv natijalari</h2>
+            <div class="score">
+              <div class="ring" data-p="{{ avg_test_score|floatformat:'0u' }}" style="--p:{{ avg_test_score|floatformat:'0u' }}"><b>{{ avg_test_score }}<small>%</small></b></div>
+              <div><b style="font-size:16px">O‘rtacha test bali</b><p class="sub">{{ total_tests_taken }} ta test topshirilgan</p></div>
+            </div>
+            <div class="rows">
+              <div class="row3"><i class="bi bi-journal-check ic-acc"></i><div><small>Vazifalar topshirilgan</small><b data-count="{{ total_homeworks_submitted|default:0|unlocalize }}">{{ total_homeworks_submitted|default:0 }}</b></div></div>
+              <div class="row3"><i class="bi bi-star ic-vio"></i><div><small>O‘rtacha baho</small><b>{{ avg_homework_grade }}/10</b></div></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Sertifikatlar -->
+        <section class="card3 glass" id="certificates" data-rv>
+          <h2><i class="bi bi-award" style="color:var(--gold)"></i> Sertifikatlarim {% if certificates %}<span class="cnt">{{ certificates|length }}</span>{% endif %}</h2>
+          {% if certificates %}
+          <div class="certs" data-stagger>
+            {% for cert in certificates %}
+            <div class="cert" style="--c:{{ cert.status_color }}">
+              <div class="h">
+                <i class="bi {% if cert.status == 'active' %}bi-patch-check-fill{% elif cert.status == 'expired' %}bi-clock-history{% elif cert.status == 'frozen' %}bi-snow2{% else %}bi-x-octagon-fill{% endif %}"></i>
+                <div><b>{{ cert.profession.name }}</b><span class="st">{{ cert.get_status_display }}</span><div class="id"><i class="bi bi-upc-scan"></i> {{ cert.certificate_id }}</div></div>
+              </div>
+              <div class="dt"><span><i class="bi bi-calendar-check"></i> {{ cert.valid_from|date:"d.m.Y" }}</span>{% if cert.valid_until %}<span><i class="bi bi-calendar-x"></i> {{ cert.valid_until|date:"d.m.Y" }}</span>{% endif %}</div>
+              <div class="ft">
+                {% if cert.file %}<a class="dl" href="{{ cert.file.url }}" target="_blank" rel="noopener" download><i class="bi bi-file-pdf"></i> Yuklab olish</a>{% endif %}
+                <a href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener"><i class="bi bi-shield-check"></i> Tekshirish</a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="empty3"><i class="bi bi-award"></i><p>Hozircha sertifikatlar yo‘q</p></div>
+          {% endif %}
+        </section>
+      {% endif %}
+
+      {% include 'accounts/_profile_dossier.html' %}
     </div>
-    {% endfor %}
+  </div>
+
+  {% if user.telegram_id %}
+  <!-- Telegram uzish tasdiqlash oynasi -->
+  <div class="tg-ov" id="tgUnlinkOverlay" role="dialog" aria-modal="true" aria-labelledby="tgUnlinkTitle">
+    <div class="box glass">
+      <div class="ic"><i class="bi bi-telegram"></i></div>
+      <h3 id="tgUnlinkTitle">Telegramni uzish</h3>
+      <p>Telegramingizga yuborilgan 6 xonali kodni kiriting</p>
+      <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm">
+        {% csrf_token %}
+        <input aria-label="Telegram tasdiqlash kodi" required type="text" name="unlink_code" id="tgUnlinkCodeInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="off">
+        <div class="btns">
+          <button type="submit" class="btn3 danger"><i class="bi bi-check-lg"></i> Tasdiqlash</button>
+          <button type="button" class="btn3" id="tgUnlinkCancel">Bekor qilish</button>
+        </div>
+      </form>
+      <small><i class="bi bi-clock"></i> Kod 5 daqiqa amal qiladi</small>
     </div>
-    {% else %}
-    <div class="text-center py-4" style="color:var(--muted)">
-        <i class="bi bi-award" style="font-size:2.5rem;opacity:.4"></i>
-        <p class="mt-2 mb-0">Hozircha sertifikatlar yo'q</p>
-    </div>
-    {% endif %}
+  </div>
+  {% endif %}
 </div>
-{% endif %}</section></div></div></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script src="{% static 'js/profile-orb.js' %}?v=1"></script>
+<script src="{% static 'js/profile-motion.js' %}?v=3"></script>
 {% if user.telegram_id %}
-<!-- Telegram uzish tasdiqlash modali — custom overlay -->
-<style>
-.tg-unlink-overlay{position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem}
-.tg-unlink-overlay.show{display:flex}
-.tg-unlink-box{background:var(--bs-body-bg,#fff);border-radius:20px;width:100%;max-width:360px;padding:2rem 1.5rem;text-align:center;animation:tgFadeIn .25s ease}
-@keyframes tgFadeIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
-.tg-unlink-box input[type="text"]{width:100%;height:52px;border:2px solid var(--border-color,#dee2e6);border-radius:14px;font-size:1.5rem;font-weight:800;text-align:center;letter-spacing:.4em;background:var(--bs-body-bg,#fff);color:var(--bs-body-color,#333);outline:none;transition:border-color .2s}
-.tg-unlink-box input[type="text"]:focus{border-color:#0088cc;box-shadow:0 0 0 3px rgba(0,136,204,.15)}
-</style>
-<div class="tg-unlink-overlay" id="tgUnlinkOverlay" role="dialog" aria-modal="true" aria-labelledby="tgUnlinkTitle">
-    <div class="tg-unlink-box">
-        <div style="width:64px;height:64px;border-radius:50%;background:rgba(0,136,204,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
-            <i class="bi bi-telegram" style="font-size:1.8rem;color:#0088cc;"></i>
-        </div>
-        <h6 class="fw-bold mb-1" id="tgUnlinkTitle">Telegramni uzish</h6>
-        <p class="text-muted small mb-3">Telegramingizga yuborilgan 6 xonali kodni kiriting</p>
-        <form method="POST" action="{% url 'telegram_bot:confirm_unlink_telegram' %}" id="tgConfirmForm">
-            {% csrf_token %}
-            <input aria-label="Telegram tasdiqlash kodi" required type="text" name="unlink_code" id="tgUnlinkCodeInput" maxlength="6" inputmode="numeric" pattern="[0-9]*" placeholder="000000" autocomplete="off">
-            <div class="d-grid gap-2 mt-3">
-                <button type="submit" class="btn btn-danger rounded-pill fw-bold py-2">
-                    <i class="bi bi-check-lg me-1"></i> Tasdiqlash
-                </button>
-                <button type="button" class="btn btn-light rounded-pill py-2" onclick="document.getElementById('tgUnlinkOverlay').classList.remove('show')">Bekor qilish</button>
-            </div>
-        </form>
-        <div class="text-muted mt-2" style="font-size:.72rem;"><i class="bi bi-clock"></i> Kod 5 daqiqa amal qiladi</div>
-    </div>
-</div>
-{% endif %}
-
 <script>
+(function () {
+  var form = document.getElementById('tgUnlinkForm'), overlay = document.getElementById('tgUnlinkOverlay');
+  var codeInput = document.getElementById('tgUnlinkCodeInput');
+  if (!form || !overlay) return;
+  var close = function () { overlay.classList.remove('show'); };
+  codeInput.addEventListener('input', function () { this.value = this.value.replace(/[^0-9]/g, ''); });
+  overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
+  document.getElementById('tgUnlinkCancel').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && overlay.classList.contains('show')) close(); });
 
-{% if user.telegram_id %}
-(function(){
-    var form = document.getElementById('tgUnlinkForm');
-    if (!form) return;
-    var overlay = document.getElementById('tgUnlinkOverlay');
-    var codeInput = document.getElementById('tgUnlinkCodeInput');
-
-    // Faqat raqam kiritish
-    codeInput.addEventListener('input', function() {
-        this.value = this.value.replace(/[^0-9]/g, '');
-    });
-
-    // Overlay tashqarisini bossak yopilsin
-    overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) overlay.classList.remove('show');
-    });
-
-    // Escape bilan yopish
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && overlay.classList.contains('show')) {
-            overlay.classList.remove('show');
-        }
-    });
-
-    // Uzish tugmasi — kod yuborish va overlay ochish
-    form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        var btn = form.querySelector('button[type="submit"]');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-        fetch(form.action, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            credentials: 'same-origin'
-        }).then(function(r) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-x-lg"></i> Uzish';
-            if (r.ok) {
-                codeInput.value = '';
-                overlay.classList.add('show');
-                setTimeout(function(){ codeInput.focus(); }, 100);
-            } else {
-                alert("Xatolik yuz berdi!");
-            }
-        }).catch(function() {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-x-lg"></i> Uzish';
-            alert("Server bilan aloqa yo'q!");
-        });
-    });
+  // Uzish: kod yuborish va oynani ochish
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = form.querySelector('button[type="submit"]'), html = btn.innerHTML;
+    btn.disabled = true; btn.textContent = '…';
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value, 'X-Requested-With': 'XMLHttpRequest' },
+      credentials: 'same-origin'
+    }).then(function (r) {
+      btn.disabled = false; btn.innerHTML = html;
+      if (r.ok) { codeInput.value = ''; overlay.classList.add('show'); setTimeout(function () { codeInput.focus(); }, 100); }
+      else alert('Xatolik yuz berdi!');
+    }).catch(function () { btn.disabled = false; btn.innerHTML = html; alert("Server bilan aloqa yo'q!"); });
+  });
 })();
-{% endif %}
-
-// ── Student ID copy ──────────────────────────────────────────────
-function copySid(){
-  var card = document.getElementById('sidCard');
-  var sid  = document.getElementById('sidNumber');
-  if (!card || !sid) return;
-  var text = sid.textContent.trim();
-  if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(function(){
-      _sidCopied(card);
-    }).catch(function(){
-      _sidFallback(text, card);
-    });
-  } else {
-    _sidFallback(text, card);
-  }
-}
-function _sidCopied(card){
-  card.classList.add('copied');
-  var hint = card.querySelector('.sid-copy-hint');
-  var orig = hint ? hint.innerHTML : '';
-  if (hint) hint.innerHTML = '<i class="bi bi-check-lg" style="color:#34c759;"></i> Nusxalandi!';
-  setTimeout(function(){
-    card.classList.remove('copied');
-    if (hint) hint.innerHTML = orig;
-  }, 2000);
-}
-function _sidFallback(text, card){
-  var ta = document.createElement('textarea');
-  ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
-  document.body.appendChild(ta); ta.select();
-  try { document.execCommand('copy'); _sidCopied(card); } catch(e){}
-  document.body.removeChild(ta);
-}
 </script>
+{% endif %}
 {% endblock %}

@@ -1,330 +1,109 @@
 {% extends 'accounts/base.html' %}
 {% load static %}
-
-{% block title %}Bosh sahifa — O'qituvchi{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-<link rel="stylesheet" href="{% static 'css/role_home.css' %}">
-{% endblock %}
+{% block title %}Bosh sahifa — O'qituvchi | IT Creative{% endblock %}
+{% block extra_css %}{% include 'accounts/dashboard/_motion_css.html' %}{% endblock %}
 
 {% block content %}
-<div class="dash rhome rhome-teacher">
-  <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="pf3">
+  <div class="pf3-bg" aria-hidden="true"></div>
 
-  <div class="dash-shell">
-
-    <!-- HERO -->
-    <section class="rh-hero" aria-label="Salomlashuv">
-      <div class="rh-hero-main">
-        <span class="rh-eyebrow">
-          <span class="dot" aria-hidden="true"></span>
-          <span id="rhDate"></span>
-          <span class="rh-clock" id="rhClock"></span>
-        </span>
-
-        <h1 class="rh-title">
-          Xush kelibsiz, {{ user.first_name|default:user.username }}
-          <span class="wave" aria-hidden="true">👋</span>
-        </h1>
-
-        <p class="rh-sub">
-          Kurslaringiz va o'quvchilaringiz holati bir qarashda.
-          {% if pending_homeworks %}Sizni <b>{{ pending_homeworks }}</b> ta tekshirilmagan vazifa kutmoqda.{% else %}Barcha vazifalar tekshirilgan — zo'r ish!{% endif %}
-        </p>
-
-        <div class="rh-chips">
-          <span class="rh-fchip {% if pending_homeworks %}is-warn{% else %}is-ok{% endif %}">
-            <i class="bi bi-journal-check" aria-hidden="true"></i>
-            Tekshirilgan: <b>{{ graded_pct }}%</b>
-          </span>
-          <span class="rh-fchip">
-            <i class="bi bi-bullseye" aria-hidden="true"></i>
-            O'rtacha ball: <b>{{ avg_score }}%</b>
-          </span>
-          <span class="rh-fchip is-ok">
-            <i class="bi bi-broadcast" aria-hidden="true"></i>
-            Onlayn: <b>{{ online_now }}</b>
-          </span>
-          {% if week_trend %}
-          <span class="rh-fchip {% if week_trend.dir == 'down' %}is-hot{% else %}is-ok{% endif %}">
-            <i class="bi bi-graph-up-arrow" aria-hidden="true"></i>
-            Haftalik: <b>{% if week_trend.dir == 'down' %}−{% elif week_trend.dir == 'up' %}+{% endif %}{{ week_trend.pct }}%</b>
-          </span>
-          {% endif %}
-        </div>
-
-        <div class="rh-cta">
-          <a href="{% url 'teacher:dashboard' %}" class="rh-btn primary">
-            <i class="bi bi-speedometer2" aria-hidden="true"></i> O'qituvchi paneli
-          </a>
-          <a href="{% url 'teacher:homeworks' %}" class="rh-btn ghost">
-            <i class="bi bi-journal-check" aria-hidden="true"></i> Vazifalarni tekshirish
-            {% if pending_homeworks %}<span class="rh-btn-badge">{{ pending_homeworks }}</span>{% endif %}
-          </a>
-          <a href="{% url 'teacher:speaking_tasks' %}" class="rh-btn ghost">
-            <i class="bi bi-mic" aria-hidden="true"></i> Speaking
-            {% if pending_speaking %}<span class="rh-btn-badge">{{ pending_speaking }}</span>{% endif %}
-          </a>
+  <!-- ═══ SALOMLASHUV ═══ -->
+  <section class="hero3 hello glass" aria-label="Salomlashuv">
+    <div class="hero3-l">
+      <div>
+        <div class="clock"><i class="bi bi-calendar3"></i> <span id="date"></span> · <b id="time">--:--</b></div>
+        <div class="badges"><span class="bdg">O‘qituvchi</span></div>
+        <h1 id="heroTitle"><span class="split"><span data-greet>Xush kelibsiz</span>, {{ user.first_name|default:user.username }} 👋</span></h1>
+        <p class="msg">{% if pending_homeworks or pending_speaking %}<b>{{ pending_homeworks }}</b> ta vazifa{% if pending_speaking %} va <b>{{ pending_speaking }}</b> ta speaking{% endif %} tekshirishingizni kutmoqda.{% else %}Barcha topshiriqlar tekshirilgan — ajoyib ish!{% endif %}</p>
+        <div class="todaybar" style="margin-top:14px">
+          <span><span class="live"></span> Hozir onlayn: <b>{{ online_now }}</b></span>
+          {% for t in today_stats %}<span><i class="bi bi-{{ t.icon }}"></i> {{ t.label }}: <b>{{ t.value }}</b></span>{% endfor %}
         </div>
       </div>
-
-      <div class="rh-hero-side">
-        <div class="rh-sidegrid">
-          <div class="rh-bigstat {% if pending_homeworks %}warn{% else %}ok{% endif %}">
-            <i class="bi bi-journal-x" aria-hidden="true"></i>
-            <b data-countup="{{ pending_homeworks }}">0</b>
-            <span>Tekshirilmagan vazifa</span>
-          </div>
-          <div class="rh-bigstat">
-            <i class="bi bi-inbox" aria-hidden="true"></i>
-            <b data-countup="{{ week_total }}">0</b>
-            <span>Haftalik topshiriq</span>
-          </div>
-          <div class="rh-bigstat {% if pending_speaking %}hot{% endif %}">
-            <i class="bi bi-mic" aria-hidden="true"></i>
-            <b data-countup="{{ pending_speaking }}">0</b>
-            <span>Speaking navbatda</span>
-          </div>
-          <div class="rh-bigstat ok">
-            <i class="bi bi-broadcast" aria-hidden="true"></i>
-            <b data-countup="{{ online_now }}">0</b>
-            <span>Hozir onlayn</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TEZKOR QIDIRUV -->
-    <section class="rh-section reveal" aria-label="O'quvchi qidirish">
-      <form class="rh-searchbar" method="get" action="{% url 'teacher:my_students' %}" role="search">
-        <i class="bi bi-search" aria-hidden="true"></i>
-        <input type="search" name="q" placeholder="O'quvchini ism yoki username bo'yicha qidirish…"
-               aria-label="O'quvchi qidirish">
-        <button type="submit">Qidirish</button>
+      <form class="search3" method="get" action="{% url 'teacher:my_students' %}" role="search">
+        <i class="bi bi-search"></i><input type="search" name="q" placeholder="O‘quvchini ism yoki username bo‘yicha qidirish…" aria-label="O‘quvchi qidirish"><button type="submit">Qidirish</button>
       </form>
-    </section>
-
-    <!-- STATLAR -->
-    <section class="rh-section reveal" aria-label="Umumiy ko'rsatkichlar">
-      <div class="rh-statgrid">
-        {% for c in stat_cards %}
-        <div class="rh-stat {{ c.color }}">
-          <div class="rh-stat-ic"><i class="bi bi-{{ c.icon }}" aria-hidden="true"></i></div>
-          <b data-countup="{{ c.value }}">0</b>
-          <span>{{ c.label }}</span>
-        </div>
-        {% endfor %}
-      </div>
-    </section>
-
-    <!-- SIFAT KO'RSATKICHLARI + BUGUN -->
-    <div class="rh-cols rh-section reveal">
-      <section class="rh-card">
-        <div class="rh-card-head">
-          <h2><i class="bi bi-speedometer" aria-hidden="true"></i> Sifat ko'rsatkichlari</h2>
-          <span class="rh-chip">Oxirgi 30 kun</span>
-        </div>
-        <div class="rh-ringgrid">
-          <div class="rh-ringbox">
-            <div class="rh-ring" data-ring="{{ graded_pct }}"><span data-countup="{{ graded_pct }}" data-suffix="%">0%</span></div>
-            <em>Tekshirilgan vazifalar</em>
-            <small>{{ pending_homeworks }} ta navbatda</small>
-          </div>
-          <div class="rh-ringbox {% if pass_rate >= 70 %}ok{% elif pass_rate < 40 %}warn{% endif %}">
-            <div class="rh-ring" data-ring="{{ pass_rate }}"><span data-countup="{{ pass_rate }}" data-suffix="%">0%</span></div>
-            <em>Testdan o'tish</em>
-            <small>{{ tests_month }} ta natija</small>
-          </div>
-          <div class="rh-ringbox {% if avg_score >= 70 %}ok{% elif avg_score < 40 %}warn{% endif %}">
-            <div class="rh-ring" data-ring="{{ avg_score }}"><span data-countup="{{ avg_score }}" data-suffix="%">0%</span></div>
-            <em>O'rtacha ball</em>
-            <small>barcha kurslar bo'yicha</small>
-          </div>
-        </div>
-      </section>
-
-      <section class="rh-card">
-        <div class="rh-card-head">
-          <h2><i class="bi bi-calendar-day" aria-hidden="true"></i> Bugungi harakat</h2>
-        </div>
-        <div class="rh-tiles">
-          {% for t in today_stats %}
-          <div class="rh-tile">
-            <i class="bi bi-{{ t.icon }}" aria-hidden="true"></i>
-            <div class="rh-tile-txt">
-              <b data-countup="{{ t.value }}">0</b>
-              <span>{{ t.label }}</span>
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-      </section>
     </div>
+    <div class="hero3-r" data-pf-orb aria-hidden="true">
+      <div class="fchip glass f1"><i class="bi bi-clipboard-check"></i><span><b>{{ pending_homeworks }} ta</b><small>Tekshirish kutilmoqda</small></span></div>
+      <div class="fchip glass f2"><i class="bi bi-graph-up-arrow"></i><span><b>{{ avg_score }}%</b><small>O‘rtacha ball (30 kun)</small></span></div>
+      <div class="fchip glass f3"><i class="bi bi-broadcast"></i><span><b>{{ online_now }} onlayn</b><small>Hozir saytda</small></span></div>
+    </div>
+  </section>
 
-    <!-- TEZKOR HARAKATLAR -->
-    <section class="rh-card rh-section reveal">
-      <div class="rh-card-head">
-        <h2><i class="bi bi-lightning-charge" aria-hidden="true"></i> Tezkor harakatlar</h2>
-      </div>
-      <div class="rh-quickgrid">
-        {% for q in quick_actions %}
-        <a href="{{ q.url }}" class="rh-quick"><i class="bi bi-{{ q.icon }}" aria-hidden="true"></i> {{ q.label }}</a>
-        {% endfor %}
-      </div>
+  <div class="metrics" style="margin-top:18px" data-stagger>
+    {% for c in stat_cards %}
+    <div class="metric {% cycle 'm1' 'm3' 'm2' 'm4' %} glass"><i class="bi bi-{{ c.icon }}"></i><strong data-count="{{ c.value }}">{{ c.value }}</strong><span>{{ c.label }}</span></div>
+    {% endfor %}
+  </div>
+
+  <div class="dash">
+    <section class="card3 glass s8" data-rv>
+      <div class="hd"><h2><i class="bi bi-bar-chart" style="color:var(--acc)"></i> Haftalik topshiriqlar</h2>{% if week_trend %}<span class="trend {{ week_trend.dir }}">{% if week_trend.dir == 'up' %}+{% elif week_trend.dir == 'down' %}−{% endif %}{{ week_trend.pct }}%</span>{% endif %}<span class="cnt">jami {{ week_total }}</span></div>
+      {% if week_bars %}<div class="bars3">{% for b in week_bars %}<div class="b"><div class="col{% if forloop.last %} today{% endif %}" data-h="{{ b.pct }}"><span>{{ b.count }}</span></div><small>{{ b.label }}</small></div>{% endfor %}</div>
+      {% else %}<div class="empty3"><i class="bi bi-bar-chart"></i>Ma’lumot yo‘q</div>{% endif %}
+    </section>
+    <section class="card3 glass s4" data-rv>
+      <div class="hd"><h2><i class="bi bi-bullseye" style="color:var(--lime)"></i> Sifat ko‘rsatkichlari</h2><span class="cnt">30 kun</span></div>
+      <div class="score"><div class="ring" data-p="{{ pass_rate }}" style="--p:{{ pass_rate }}"><b>{{ pass_rate }}<small>%</small></b></div><div><b style="font-size:16px">Testdan o‘tish</b><p class="sub">{{ tests_month }} ta test · o‘rtacha {{ avg_score }}%</p></div></div>
+      <div class="score"><div class="ring" data-p="{{ graded_pct }}" style="--p:{{ graded_pct }}"><b>{{ graded_pct }}<small>%</small></b></div><div><b style="font-size:16px">Baholangan vazifalar</b><p class="sub">Jami topshirilganlardan</p></div></div>
     </section>
 
-    <!-- CHART + TOP O'QUVCHILAR -->
-    <div class="rh-cols rh-section reveal">
-      <section class="rh-card">
-        <div class="rh-card-head">
-          <h2><i class="bi bi-bar-chart" aria-hidden="true"></i> Topshirilgan vazifalar (7 kun)</h2>
-          <span class="rh-chip">{{ week_total }} ta</span>
-        </div>
-        {% if week_bars %}
-        <div class="rh-chart">
-          {% for b in week_bars %}
-          <div class="rh-bar {% if forloop.last %}is-today{% endif %}" title="{{ b.count }} ta">
-            <i style="height:{{ b.pct }}%"></i>
-            <em>{{ b.count }}</em>
-            <span>{{ b.label }}</span>
-          </div>
-          {% endfor %}
-        </div>
-        {% else %}
-        <div class="rh-empty">Ma'lumot yig'ilmadi.</div>
-        {% endif %}
-      </section>
-
-      <section class="rh-card">
-        <div class="rh-card-head">
-          <h2><i class="bi bi-trophy" aria-hidden="true"></i> Eng faol o'quvchilar</h2>
-          <a href="{% url 'teacher:my_students' %}" class="rh-more">Barchasi</a>
-        </div>
-        {% if top_students %}
-        <ul class="rh-list">
-          {% for s in top_students %}
-          <li class="rh-list-row static">
-            <span class="rh-rank">{{ forloop.counter }}</span>
-            <span class="rh-list-label">{{ s.get_full_name|default:s.username }}</span>
-            <span class="rh-badge"><i class="bi bi-coin" aria-hidden="true"></i> {{ s.coins }}</span>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <div class="rh-empty">Hozircha o'quvchilar yo'q.</div>
-        {% endif %}
-      </section>
-    </div>
-
-    <!-- KURSLARIM -->
-    <section class="rh-card rh-section reveal">
-      <div class="rh-card-head">
-        <h2><i class="bi bi-collection-play" aria-hidden="true"></i> Kurslarim</h2>
-        <a href="{% url 'teacher:courses' %}" class="rh-more">Barchasi</a>
-      </div>
+    <section class="card3 glass s12" data-rv>
+      <div class="hd"><h2><i class="bi bi-journal-bookmark" style="color:var(--acc)"></i> Kurslarim</h2><a class="more" href="{% url 'teacher:courses' %}">Boshqarish →</a></div>
       {% if my_courses %}
-      <div class="rh-coursegrid">
+      <div class="courses3" data-stagger>
         {% for c in my_courses %}
-        <a href="{% url 'manage_lessons' c.id %}" class="rh-course">
-          <div class="rh-course-photo">
-            {% if c.photo %}<img src="{{ c.photo }}" alt="{{ c.name }}" loading="lazy">
-            {% else %}<i class="bi bi-collection-play" aria-hidden="true"></i>{% endif %}
-          </div>
-          <div class="rh-course-body">
-            <b>{{ c.name }}</b>
-            <span><i class="bi bi-journal-bookmark" aria-hidden="true"></i> {{ c.lesson_total }} dars
-              &nbsp;·&nbsp; <i class="bi bi-people" aria-hidden="true"></i> {{ c.student_total }} o'quvchi</span>
-          </div>
-        </a>
+        <div class="crs" data-tilt>
+          <div class="cv" style="background:linear-gradient(135deg,{% cycle '#047857,#a3e635' '#2563eb,#22d3ee' '#6d28d9,#c084fc' '#be185d,#fb7185' %})">{% if c.photo %}<img src="{{ c.photo }}" alt="" loading="lazy">{% else %}<i class="bi bi-mortarboard"></i>{% endif %}</div>
+          <div class="bd"><h3>{{ c.name }}</h3><div class="stats"><span><i class="bi bi-people"></i> {{ c.student_total }} o‘quvchi</span><span><i class="bi bi-collection-play"></i> {{ c.lesson_total }} dars</span></div>
+            <div class="ft"><a href="{% url 'manage_lessons' c.id %}"><i class="bi bi-collection-play"></i> Darslar</a><a href="{% url 'teacher:test_results' %}"><i class="bi bi-ui-checks"></i> Natijalar</a></div></div>
+        </div>
         {% endfor %}
       </div>
-      {% else %}
-      <div class="rh-empty"><i class="bi bi-info-circle" aria-hidden="true"></i> Sizga hali kurs biriktirilmagan.</div>
-      {% endif %}
+      {% else %}<div class="empty3"><i class="bi bi-journal-bookmark"></i>Sizga hali kurs biriktirilmagan.</div>{% endif %}
     </section>
 
-    <!-- TOPSHIRIQLAR + TEST NATIJALARI -->
-    <div class="rh-cols even rh-section reveal">
-      <section class="rh-card">
-        <div class="rh-card-head">
-          <h2><i class="bi bi-inbox" aria-hidden="true"></i> So'nggi topshiriqlar</h2>
-          <a href="{% url 'teacher:homeworks' %}" class="rh-more">Barchasi</a>
-        </div>
-        {% if recent_submissions %}
-        <ul class="rh-list">
-          {% for s in recent_submissions %}
-          <li>
-            <a href="{% url 'teacher:grade_homework' s.pk %}" class="rh-list-row">
-              <span class="rh-avatar">{{ s.student.first_name|slice:":1"|default:"?" }}</span>
-              <span class="rh-list-label">
-                {{ s.student.get_full_name|default:s.student.username }}
-                <small>{{ s.homework.lesson.title|truncatechars:40 }}</small>
-              </span>
-              <span class="rh-badge {% if s.status == 'pending' %}hot{% endif %}">{{ s.get_status_display }}</span>
-            </a>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <div class="rh-empty"><i class="bi bi-check2-circle" aria-hidden="true"></i> Hozircha topshiriq yo'q.</div>
-        {% endif %}
-      </section>
+    <section class="card3 glass s6" data-rv>
+      <div class="hd"><h2><i class="bi bi-inbox" style="color:var(--gold)"></i> Tekshirish uchun</h2>{% if pending_homeworks or pending_speaking %}<span class="chip3 warn">{{ pending_homeworks }} vazifa{% if pending_speaking %} · {{ pending_speaking }} speaking{% endif %}</span>{% endif %}<a class="more" href="{% url 'teacher:homeworks' %}">Hammasi →</a></div>
+      {% if recent_submissions %}
+      <div class="list3">{% for s in recent_submissions %}<a class="li" href="{% url 'teacher:grade_homework' s.pk %}"><div class="av">{{ s.student.first_name|slice:":1"|default:"?" }}</div><div class="tx"><b>{{ s.student.get_full_name|default:s.student.username }}</b><small>{{ s.homework.lesson.title|truncatechars:40 }}</small></div><div class="rt"><span class="chip3 {% if s.status == 'pending' %}warn{% else %}ok{% endif %}">{{ s.get_status_display }}</span><small>{{ s.submitted_at|timesince }} oldin</small></div></a>{% endfor %}</div>
+      {% else %}<div class="empty3"><i class="bi bi-inbox"></i>Hozircha topshiriqlar yo‘q.</div>{% endif %}
+      {% if pending_speaking %}<a class="li" href="{% url 'teacher:speaking_tasks' %}" style="margin-top:8px;background:color-mix(in srgb,var(--gold) 8%,transparent)"><div class="av" style="background:var(--gold)"><i class="bi bi-mic"></i></div><div class="tx"><b>{{ pending_speaking }} ta speaking topshiriq</b><small>Tekshirishni kutmoqda</small></div><i class="bi bi-chevron-right rt"></i></a>{% endif %}
+    </section>
 
-      <section class="rh-card">
-        <div class="rh-card-head">
-          <h2><i class="bi bi-patch-check" aria-hidden="true"></i> So'nggi test natijalari</h2>
-          <a href="{% url 'teacher:test_results' %}" class="rh-more">Barchasi</a>
-        </div>
-        {% if recent_tests %}
-        <ul class="rh-list">
-          {% for t in recent_tests %}
-          <li class="rh-list-row static">
-            <span class="rh-avatar">{{ t.student.first_name|slice:":1"|default:"?" }}</span>
-            <span class="rh-list-label">
-              {{ t.student.get_full_name|default:t.student.username }}
-              <small>{{ t.test.lesson.title|truncatechars:40 }}</small>
-            </span>
-            <span class="rh-badge {% if t.passed %}ok{% else %}hot{% endif %}">{{ t.score }}%</span>
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <div class="rh-empty">Hozircha test natijasi yo'q.</div>
-        {% endif %}
-      </section>
-    </div>
-
-    <!-- E'TIBOR TALAB QILADIGAN O'QUVCHILAR -->
-    <section class="rh-card rh-section reveal">
-      <div class="rh-card-head">
-        <h2><i class="bi bi-person-exclamation" aria-hidden="true"></i> E'tibor talab qiladigan o'quvchilar</h2>
-        <span class="rh-chip">7+ kun faolsiz</span>
-      </div>
+    <section class="card3 glass s6" data-rv>
+      <div class="hd"><h2><i class="bi bi-exclamation-triangle" style="color:var(--red)"></i> E’tibor talab qiladi</h2><span class="cnt">7+ kun faolsiz</span></div>
       {% if risk_students %}
-      <ul class="rh-list">
-        {% for s in risk_students %}
-        <li>
-          <a href="{% url 'teacher:my_students' %}?q={{ s.name|urlencode }}" class="rh-list-row">
-            <span class="rh-list-ic warn"><i class="bi bi-hourglass-bottom" aria-hidden="true"></i></span>
-            <span class="rh-list-label">
-              {{ s.name }}
-              <small>{% if s.days %}{{ s.days }} kundan beri kirmagan{% else %}hali tizimga kirmagan{% endif %}</small>
-            </span>
-            <span class="rh-badge warn">{% if s.days %}{{ s.days }} kun{% else %}yangi{% endif %}</span>
-          </a>
-        </li>
-        {% endfor %}
-      </ul>
-      {% else %}
-      <div class="rh-empty"><i class="bi bi-emoji-smile" aria-hidden="true"></i> Barcha o'quvchilaringiz faol — ajoyib!</div>
-      {% endif %}
+      <div class="list3">{% for s in risk_students %}<a class="li" href="{% url 'teacher:my_students' %}?q={{ s.name|urlencode }}"><div class="av" style="background:linear-gradient(135deg,#e11d48,#f59e0b)">{{ s.name|first|upper }}</div><div class="tx"><b>{{ s.name }}</b></div><span class="rt chip3 bad">{% if s.days %}{{ s.days }} kun faolsiz{% else %}hali kirmagan{% endif %}</span></a>{% endfor %}</div>
+      {% else %}<div class="empty3"><i class="bi bi-emoji-smile"></i>Barcha o‘quvchilar faol!</div>{% endif %}
     </section>
 
+    <section class="card3 glass s6" data-rv>
+      <div class="hd"><h2><i class="bi bi-trophy" style="color:var(--gold)"></i> Eng faol o‘quvchilar</h2><a class="more" href="{% url 'teacher:my_students' %}">Hammasi →</a></div>
+      {% if top_students %}
+      <div class="list3">{% for s in top_students %}<div class="li"><span class="rank">{% if forloop.counter == 1 %}🥇{% elif forloop.counter == 2 %}🥈{% elif forloop.counter == 3 %}🥉{% else %}{{ forloop.counter }}{% endif %}</span><div class="av">{{ s.first_name|slice:":1"|default:"?" }}</div><div class="tx"><b>{{ s.get_full_name|default:s.username }}</b></div><span class="rt"><b style="color:var(--gold)">{{ s.coins }}</b> coin</span></div>{% endfor %}</div>
+      {% else %}<div class="empty3"><i class="bi bi-people"></i>Hozircha o‘quvchilar yo‘q.</div>{% endif %}
+    </section>
+
+    <section class="card3 glass s6" data-rv>
+      <div class="hd"><h2><i class="bi bi-ui-checks" style="color:var(--acc2)"></i> Oxirgi test natijalari</h2><a class="more" href="{% url 'teacher:test_results' %}">Hammasi →</a></div>
+      {% if recent_tests %}
+      <div class="list3">{% for t in recent_tests %}<div class="li"><div class="av">{{ t.student.first_name|slice:":1"|default:"?" }}</div><div class="tx"><b>{{ t.student.get_full_name|default:t.student.username }}</b><small>{{ t.test.lesson.title|truncatechars:40 }}</small></div><span class="rt chip3 {% if t.passed %}ok{% else %}bad{% endif %}">{{ t.score }}% · {% if t.passed %}o‘tdi{% else %}o‘tmadi{% endif %}</span></div>{% endfor %}</div>
+      {% else %}<div class="empty3"><i class="bi bi-ui-checks"></i>Test natijalari yo‘q.</div>{% endif %}
+    </section>
+
+    {% if quick_actions %}
+    <section class="card3 glass s12" data-rv>
+      <h2><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Tezkor amallar</h2>
+      <div class="quick" data-stagger>{% for q in quick_actions %}<a href="{{ q.url }}"><i class="bi bi-{{ q.icon }}"></i>{{ q.label }}</a>{% endfor %}</div>
+    </section>
+    {% endif %}
   </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/role_home.js' %}" defer></script>
+<script>(function(){var g=document.querySelector('#heroTitle [data-greet]');if(!g)return;var h=new Date().getHours();g.textContent=h<5?'Xayrli tun':h<12?'Xayrli tong':h<18?'Xayrli kun':'Xayrli kech';})();</script>
+{% include 'accounts/dashboard/_motion_js.html' %}
 {% endblock %}
