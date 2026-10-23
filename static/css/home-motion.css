@@ -1,4 +1,9 @@
 /* IT Creative — Bosh sahifalar (dashboard). profile.css ustiga qo'shimcha: .pf3 o'zgaruvchilarini ishlatadi. */
+/* Keep the dashboard on the shared page background, without a clipped glow. */
+.pf3 > .pf3-bg{display:none}
+.pf3 .hello{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+.pf3 .hello .hero3-l,.pf3 .dash>*,.pf3 .metrics>*{min-width:0}
+.pf3 .hello h1{overflow-wrap:anywhere;line-height:1.12}
 .pf3 .dash{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:18px;margin-top:18px}
 .pf3 .s3{grid-column:span 3}.pf3 .s4{grid-column:span 4}.pf3 .s5{grid-column:span 5}.pf3 .s6{grid-column:span 6}.pf3 .s7{grid-column:span 7}.pf3 .s8{grid-column:span 8}.pf3 .s12{grid-column:span 12}
 .pf3 .hd .more{font-size:13px;font-weight:600;color:var(--acc);white-space:nowrap}
@@ -237,3 +242,34 @@
 /* Bootstrap'ning .col (flex:1 0 0%) klassi bilan to'qnashmasligi uchun */
 .pf3 .bars3 .col{flex:0 0 auto}
 @media(max-width:600px){.pf3 .hello .hero3-act{flex-direction:column}.pf3 .hello .hero3-act .btn3{width:100%}}
+
+/* Compact, readable dashboard on tablets and phones. */
+@media(max-width:900px){
+  .pf3 .hello{grid-template-columns:minmax(0,1fr)}
+  .pf3 .hello .hero3-l{width:100%}
+}
+@media(max-width:600px){
+  .pf3{padding:16px 0 calc(28px + env(safe-area-inset-bottom,0px))}
+  .pf3 .hello{border-radius:22px}
+  .pf3 .hello .hero3-l{padding:22px 18px;gap:20px}
+  .pf3 .hello .hero3-r{display:none}
+  .pf3 .hello h1{font-size:clamp(24px,6.5vw,32px);line-height:1.2}
+  .pf3 .hello .msg{font-size:14px;line-height:1.6}
+  .pf3 .hello .clock{font-size:11px;gap:6px;flex-wrap:wrap}
+  .pf3 .todaybar{gap:8px}
+  .pf3 .todaybar>span{padding:7px 10px;font-size:12px;gap:6px;max-width:100%;flex-wrap:wrap}
+  .pf3 .todaybar b{white-space:nowrap}
+  .pf3 .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+  .pf3 .metric{padding:16px 14px}
+  .pf3 .pend{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pf3 .card3{padding:18px 14px}
+  .pf3 .health div{font-size:12px;gap:7px}
+  .pf3 .health .dot,.pf3 .health b{flex-shrink:0}
+  .pf3 .li{padding:10px 0;gap:8px;flex-wrap:wrap}
+  .pf3 .li .rt{white-space:normal;max-width:100%}
+  .pf3 .search3{display:flex;align-items:center;gap:8px;max-width:100%;border:1px solid var(--line);border-radius:14px;background:var(--field);padding:6px 8px}
+  .pf3 .search3>i{position:static;flex-shrink:0;font-size:16px}
+  .pf3 .search3 input,.pf3 .search3:has(button) input{min-width:0;flex:1;width:0;height:40px;padding:0;border:0;border-radius:4px;background:transparent;font-size:16px}
+  .pf3 .search3 button{position:static;flex-shrink:0;height:40px;padding:0 12px}
+  .pf3 .search3:focus-within{outline:2px solid var(--acc);outline-offset:2px}
+}
