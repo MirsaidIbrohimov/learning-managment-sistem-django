@@ -1,0 +1,48 @@
+<script>
+/* Loader uchun "Reactive Orb" — kutubxonasiz 2D canvas (Three.js yuklanishini kutmaydi).
+   Sahifadagi barcha <canvas class="orb-ldr"> larga chiziladi; loader yopilganda to'xtaydi. */
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var VIO = [124, 58, 237], CYA = [34, 211, 238], PNK = [244, 114, 182];
+  function mix(a, b, k) { return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]; }
+
+  function run(c) {
+    var ctx = c.getContext('2d'); if (!ctx) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2), S = c.clientWidth || 180;
+    c.width = c.height = Math.round(S * dpr); ctx.scale(dpr, dpr);
+    var N = S < 140 ? 260 : 420, P = [], ga = Math.PI * (3 - Math.sqrt(5)), R = S * 0.36, k = S / 180;
+    for (var i = 0; i < N; i++) { var y = 1 - i / (N - 1) * 2, r = Math.sqrt(1 - y * y), th = ga * i; P.push([Math.cos(th) * r, y, Math.sin(th) * r]); }
+    var buf = new Array(N), t0 = performance.now(), frames = 0;
+
+    function frame(now) {
+      if (!c.isConnected || (frames > 2 && c.offsetParent === null)) return;   // loader yopildi
+      frames++;
+      var t = reduce ? 1.2 : (now - t0) / 1000;
+      var ay = t * 0.55, ax = Math.sin(t * 0.45) * 0.35, cy = Math.cos(ay), sy = Math.sin(ay), cx = Math.cos(ax), sx = Math.sin(ax);
+      var hx = Math.cos(t * 1.3), hy = Math.sin(t * 0.9) * 0.6, hz = Math.sin(t * 1.3);   // pushti "nur" yo'nalishi
+      var inEase = Math.min(1, t / 0.6), grow = reduce ? 1 : 1 - Math.pow(1 - inEase, 3);
+      for (var i = 0; i < N; i++) {
+        var p = P[i], x = p[0] * cy + p[2] * sy, z = -p[0] * sy + p[2] * cy, y = p[1] * cx - z * sx, zz = p[1] * sx + z * cx;
+        var wave = Math.sin(t * 2.2 + p[1] * 4 + p[0] * 3) * 0.5 + 0.5;
+        var d = p[0] * hx + p[1] * hy + p[2] * hz, a = Math.max(0, (d - 0.72) / 0.28);
+        var sc = (1 + a * 0.16) * grow, depth = (zz + 1) / 2;
+        buf[i] = { x: S / 2 + x * R * sc, y: S / 2 + y * R * sc, z: zz, r: (1.5 + wave * 1.1 + a * 3) * (0.5 + depth * 0.7) * k, c: mix(mix(VIO, CYA, wave * 0.4 + depth * 0.3), PNK, a), al: 0.2 + depth * 0.8, d: depth };
+      }
+      buf.sort(function (m, n) { return m.z - n.z; });
+      ctx.clearRect(0, 0, S, S);
+      for (var j = 0; j < N; j++) {
+        var q = buf[j], col = 'rgba(' + (q.c[0] | 0) + ',' + (q.c[1] | 0) + ',' + (q.c[2] | 0) + ',';
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, 6.2832); ctx.fillStyle = col + q.al + ')'; ctx.fill();
+        if (q.d > 0.55 && q.r > 1.6) {   // sharsimon ko'rinish uchun yaltiroq nuqta
+          ctx.beginPath(); ctx.arc(q.x - q.r * 0.35, q.y - q.r * 0.35, q.r * 0.38, 0, 6.2832);
+          ctx.fillStyle = 'rgba(255,255,255,' + (q.d - 0.5) * 0.9 + ')'; ctx.fill();
+        }
+      }
+      if (!reduce) requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+  var list = document.querySelectorAll('canvas.orb-ldr:not([data-run])');
+  for (var i = 0; i < list.length; i++) { list[i].setAttribute('data-run', '1'); run(list[i]); }
+})();
+</script>

@@ -59,7 +59,10 @@
   /* Preloader */
   #loader{position:fixed;inset:0;z-index:100;background:var(--bg);display:grid;place-items:center}
   #loader .in{text-align:center;font-family:'JetBrains Mono',monospace}
-  #loader .num{font-size:72px;font-weight:600;letter-spacing:-.04em}
+  #loader .orb-wrap{position:relative;width:200px;height:200px;margin:0 auto 6px}
+  #loader .orb-wrap::before{content:"";position:absolute;inset:-14%;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--acc2) 34%,transparent),color-mix(in srgb,var(--acc) 12%,transparent) 45%,transparent 70%);filter:blur(10px)}
+  #loader .orb-ldr{position:relative;width:100%;height:100%;display:block}
+  #loader .num{font-size:44px;font-weight:600;letter-spacing:-.04em}
   #loader .bar{width:220px;height:2px;background:var(--line);margin-top:14px;overflow:hidden}
   #loader .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
 
@@ -305,7 +308,8 @@
 </style>
 </head>
 <body>
-<div id="loader"><div class="in"><div class="num"><span id="ldn">0</span>%</div><div class="bar"><i id="ldb"></i></div><div style="margin-top:14px;color:var(--muted);font-size:12px">&lt;itcreative /&gt; yuklanmoqda</div></div></div>
+<div id="loader"><div class="in"><div class="orb-wrap" aria-hidden="true"><canvas class="orb-ldr"></canvas></div><div class="num"><span id="ldn">0</span>%</div><div class="bar"><i id="ldb"></i></div><div style="margin-top:14px;color:var(--muted);font-size:12px">&lt;itcreative /&gt; yuklanmoqda</div></div></div>
+{% include 'partials/_orb_loader.html' %}
 <canvas id="gl"></canvas>
 <div class="noise"></div>
 <div class="cur"></div><div class="cur-r"></div>

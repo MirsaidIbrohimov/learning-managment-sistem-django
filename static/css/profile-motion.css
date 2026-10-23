@@ -8,7 +8,7 @@
 .pf3 h1,.pf3 h2,.pf3 h3,.pf3 p{margin:0}
 .pf3 .mono{font-family:'JetBrains Mono',monospace}
 .pf3 .glass{background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow)}
-.pf3-bg{position:absolute;inset:-40px 0 auto;height:620px;pointer-events:none;z-index:0;background:radial-gradient(600px 380px at 15% 10%,color-mix(in srgb,var(--acc2) 16%,transparent),transparent 70%),radial-gradient(520px 360px at 90% 25%,color-mix(in srgb,var(--acc) 14%,transparent),transparent 70%)}
+.pf3-bg{display:none}
 .pf3>*:not(.pf3-bg){position:relative;z-index:1}
 
 /* Tugmalar */
@@ -236,3 +236,30 @@
 .tg-ov .btns .btn3{justify-content:center}
 .tg-ov .btns .danger{background:var(--red);color:#fff;border:0}
 .tg-ov small{display:block;color:var(--muted);font-size:12px;margin-top:10px}
+
+/* Profile content must shrink within the shared page shell. */
+.profile-page .hero3{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+.profile-page .grid3{grid-template-columns:290px minmax(0,1fr)}
+.profile-page .hero3-l,.profile-page .hero3-id>div,.profile-page .grid3>*,.profile-page .ov>*{min-width:0}
+.profile-page h1,.profile-page .handle{overflow-wrap:anywhere;line-height:1.2}
+@media(max-width:1100px){
+  .profile-page .grid3{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:900px){
+  .profile-page .hero3{grid-template-columns:minmax(0,1fr)}
+  .profile-page .hero3-r{display:none}
+}
+@media(max-width:600px){
+  .profile-page{padding:16px 0 calc(28px + env(safe-area-inset-bottom,0px))}
+  .profile-page .hero3{border-radius:22px;min-height:0}
+  .profile-page .hero3-l{padding:22px 18px;gap:20px}
+  .profile-page .hero3 h1{font-size:clamp(24px,6.5vw,32px)}
+  .profile-page .hero3-act{flex-direction:column}
+  .profile-page .hero3-act .btn3{width:100%;justify-content:center;white-space:normal;text-align:center}
+  .profile-page .card3{padding:18px 14px}
+  .profile-page .ov{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .profile-page .ov>div{padding:16px 12px;overflow-wrap:anywhere}
+  .profile-page .nav3{max-width:100%;min-width:0}
+  .profile-page .tools3{grid-template-columns:minmax(0,1fr)}
+  .profile-page .sid strong{font-size:clamp(18px,6vw,28px);overflow-wrap:anywhere}
+}
