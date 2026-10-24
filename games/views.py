@@ -90,13 +90,17 @@ def games_list(request):
             comp.can_play = bool(live) and comp.is_user_allowed(request.user)
             comp.leaderboard_url = ''
         else:
-            comp.play_url = reverse('games:game_play_competition', args=[comp.game.slug, comp.pk])
+            # Typing: asosiy tugma — Poyga 2.0, klassik ko'rinish ham qoladi
+            comp.play_url = reverse('games:game_play_v2_competition', args=[comp.game.slug, comp.pk])
+            comp.classic_url = reverse('games:game_play_competition', args=[comp.game.slug, comp.pk])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
         comp.detail_url = reverse('games:game_detail', args=[comp.game.slug])
         active_competitions.append(comp)
 
     return render(request, 'games/student/games_list.html', {
         'games': games,
+        # "Yozish mashqi 2.0" ro'yxatda alohida karta bo'lib chiqadi
+        'typing_games': [g for g in games if g.game_type == 'typing'],
         'active_competitions': active_competitions,
         'active_comp_count': sum(1 for c in active_competitions if c.status == 'active'),
     })

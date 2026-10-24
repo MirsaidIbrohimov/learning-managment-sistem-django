@@ -1,0 +1,30 @@
+{# O'yin turi bo'yicha belgilar. Vars: game, type_label #}
+{% if game.slug == 'shashka' or game.slug == 'shaxmat' or game.slug == 'xo' %}
+    <span class="meta-pill"><i class="bi bi-robot"></i> AI raqib</span>
+    <span class="meta-pill"><i class="bi bi-people"></i> 1v1</span>
+    <span class="meta-pill"><i class="bi bi-coin"></i> Coin</span>
+{% elif game.slug == 'memory-card' %}
+    <span class="meta-pill"><i class="bi bi-lightbulb"></i> Xotira</span>
+    <span class="meta-pill"><i class="bi bi-stopwatch"></i> Vaqtga qarshi</span>
+{% elif game.slug == 'html-builder' %}
+    <span class="meta-pill"><i class="bi bi-hand-index-thumb"></i> Drag &amp; Drop</span>
+    <span class="meta-pill"><i class="bi bi-code-slash"></i> HTML</span>
+{% elif game.slug == 'bilim-arena' %}
+    <span class="meta-pill"><i class="bi bi-mortarboard"></i> Bilim testi</span>
+    <span class="meta-pill"><i class="bi bi-trophy"></i> Reyting</span>
+{% elif game.game_type == 'word_builder' %}
+    <span class="meta-pill"><i class="bi bi-alphabet"></i> So'z yasash</span>
+    <span class="meta-pill"><i class="bi bi-graph-up-arrow"></i> Ball</span>
+{% elif game.game_type == 'typing' %}
+    <span class="meta-pill"><i class="bi bi-speedometer2"></i> WPM</span>
+    <span class="meta-pill"><i class="bi bi-bullseye"></i> Aniqlik</span>
+{% elif game.game_type == 'quiz' %}
+    <span class="meta-pill"><i class="bi bi-patch-question"></i> Savollar</span>
+    <span class="meta-pill"><i class="bi bi-stopwatch"></i> Vaqtli</span>
+{% elif game.game_type == 'jumanji' %}
+    <span class="meta-pill"><i class="bi bi-dice-5"></i> Jonli doska</span>
+    <span class="meta-pill"><i class="bi bi-people"></i> Guruh</span>
+    <span class="meta-pill"><i class="bi bi-coin"></i> Coin</span>
+{% else %}
+    <span class="meta-pill"><i class="bi bi-controller"></i> {{ type_label }}</span>
+{% endif %}
