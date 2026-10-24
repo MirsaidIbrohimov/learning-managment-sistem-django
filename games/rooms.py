@@ -7,10 +7,10 @@ Coin qoidalari (tikish > 0 bo'lsa):
   * qo'shilishda tikish o'yinchi hisobidan bron qilinadi (`try_spend_coins`);
   * lobbidan chiqsa yoki xona bekor bo'lsa — qaytariladi;
   * poyga boshlangach chiqib ketsa — tikish bankda qoladi (forfeit);
-  * g'olib: matnni birinchi tugatgan va aniqligi `MIN_WIN_ACCURACY` dan past
-    bo'lmagan o'yinchi. Unga `bank - xizmat haqi` to'lanadi. Xizmat haqi va
+  * g'olib: matnni birinchi bo'lib to'liq va xatosiz tugatgan o'yinchi
+    (xato so'z progress bermaydi — tuzatilmaguncha mashina joyida turadi). Unga `bank - xizmat haqi` to'lanadi. Xizmat haqi va
     tikish chegaralari boshqa coinli o'yinlardagidek `game.config` dan olinadi;
-  * g'olib bo'lmasa (hech kim shartni bajarmadi) — hamma tikishi qaytariladi.
+  * vaqt tugab hech kim marraga yetmasa — hamma tikishi qaytariladi.
 
 Natijani mijoz emas, server hisoblaydi: vaqt `starts_at` dan o'lchanadi,
 inson uchun imkonsiz tezlikdagi progress qabul qilinmaydi.
@@ -27,7 +27,6 @@ from .models import Game, TypingRoom, TypingRoomPlayer
 
 STAKE_PRESETS = (0, 50, 100, 200, 500)
 MIN_PLAYERS, MAX_PLAYERS = 2, 5
-MIN_WIN_ACCURACY = 60
 COUNTDOWN_SECONDS = 4
 MIN_RACE_SECONDS, SECONDS_PER_WORD_LIMIT = 60, 4
 MAX_HUMAN_WPM = 180
@@ -190,9 +189,29 @@ def start(room, user):
     return room
 
 
+def correct_prefix(typed, target):
+    """Boshidan ketma-ket TO'G'RI yozilgan so'zlar soni.
+
+    Poygada faqat shu hisoblanadi: xato so'z (masalan "O'zbekiston" o'rniga
+    "jhdsbvcj") mashinani oldinga surmaydi va undan keyingi so'zlar ham
+    hisobga olinmaydi — o'yinchi xatoni tuzatmaguncha joyida turadi.
+    """
+    n = 0
+    for a, b in zip(typed, target):
+        if _norm(a) != _norm(b):
+            break
+        n += 1
+    return n
+
+
 @transaction.atomic
-def record_progress(room, user, typed_text):
-    """Mijoz tasdiqlangan so'zlarni yuboradi; server progress va natijani hisoblaydi."""
+def record_progress(room, user, typed_text, accuracy=None):
+    """Mijoz yozgan so'zlarni yuboradi; server progress va natijani o'zi hisoblaydi.
+
+    `accuracy` — mijozdagi tugmalar aniqligi, faqat ko'rsatish uchun saqlanadi
+    (g'olibni aniqlashga ta'sir qilmaydi: g'alaba = matnni birinchi bo'lib
+    xatosiz tugatish, buni server so'zma-so'z tekshiradi).
+    """
     room = _locked(room)
     if room.status != 'running':
         return room
@@ -204,20 +223,24 @@ def record_progress(room, user, typed_text):
         raise RoomError("Start chirog'ini kuting.")
 
     target = room.prompt.text.split()
-    typed = typed_text.split()[:len(target)]
-    if len(typed) < player.words_done:     # progress orqaga ketmaydi
+    done = correct_prefix(typed_text.split(), target)
+    if done < player.words_done:           # progress orqaga ketmaydi
         return room
     elapsed = max((now - room.starts_at).total_seconds(), 0.001)
-    if len(typed) / (elapsed / 60) > MAX_HUMAN_WPM and len(typed) > 2:
+    if done > 2 and done / (elapsed / 60) > MAX_HUMAN_WPM:
         raise RoomError("Juda tez — natija qabul qilinmadi.")
 
-    player.typed_text = ' '.join(typed)
-    player.words_done = len(typed)
-    player.correct_words = sum(1 for a, b in zip(typed, target) if _norm(a) == _norm(b))
-    player.accuracy = round(player.correct_words / len(target) * 100, 1)
-    player.wpm = round(min(MAX_HUMAN_WPM, player.words_done / (elapsed / 60)), 1)
-    if player.words_done == len(target):
-        player.finish_seconds = round(elapsed, 2)
+    player.typed_text = ' '.join(target[:done])
+    player.words_done = player.correct_words = done
+    if accuracy is not None:
+        try:
+            player.accuracy = round(min(100.0, max(0.0, float(accuracy))), 1)
+        except (TypeError, ValueError):
+            pass
+    player.wpm = round(min(MAX_HUMAN_WPM, done / (elapsed / 60)), 1)
+    if done == len(target):
+        # Yaxlitlanmaydi: bir xil yuzdan bir soniyada kelganlarni ham to'g'ri ajratish uchun
+        player.finish_seconds = elapsed
     player.save()
     maybe_finish(room)
     return room
@@ -249,8 +272,9 @@ def _settle(room):
         p.place = place
         p.save(update_fields=['place'])
 
-    winner = next((p for p in ranked if p.finish_seconds is not None and not p.has_left
-                   and p.accuracy >= MIN_WIN_ACCURACY), None)
+    # G'olib — matnni birinchi bo'lib to'liq va xatosiz tugatgan o'yinchi
+    # (qat'iy rejimda marraga faqat to'g'ri so'zlar bilan yetib boriladi).
+    winner = next((p for p in ranked if p.finish_seconds is not None and not p.has_left), None)
     pot = sum(p.stake_paid for p in players)
     fields = ['winner']
     room.winner = winner.user if winner else None
@@ -315,6 +339,5 @@ def state(room, user):
             'winner': (room.winner.full_name or room.winner.username) if room.winner else None,
             'winner_is_me': room.winner_id == user.pk,
             'pot': room.pot, 'fee': room.fee, 'payout': room.payout,
-            'min_accuracy': MIN_WIN_ACCURACY,
         }
     return data

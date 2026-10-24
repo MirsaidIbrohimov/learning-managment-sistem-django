@@ -108,4 +108,5 @@ def _action(fn):
 join = _action(lambda request, room: rooms.join(room, request.user))
 leave = _action(lambda request, room: rooms.leave(room, request.user))
 start = _action(lambda request, room: rooms.start(room, request.user))
-progress = _action(lambda request, room: rooms.record_progress(room, request.user, request.POST.get('typed_text', '')[:5000]))
+progress = _action(lambda request, room: rooms.record_progress(
+    room, request.user, request.POST.get('typed_text', '')[:5000], request.POST.get('accuracy')))

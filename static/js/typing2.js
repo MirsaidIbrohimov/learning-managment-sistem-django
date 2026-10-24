@@ -28,7 +28,7 @@
     }
     load(words) {
       this.words = words; this.i = 0; this.typed = ''; this.marks = []; this.committed = []; this.t0 = 0; this.keys = 0; this.ok = 0; this.trusted = 0;
-      this.combo = 0; this.maxCombo = 0; this.errors = 0; this.done = false; this.inp.value = ''; this.times = [];
+      this.combo = 0; this.maxCombo = 0; this.errors = 0; this.done = false; this.inp.value = ''; this.times = []; this._errWord = -1;
       this.rail.innerHTML = words.map(w => `<span class="w">${esc(w)}</span>`).join('');
       this.root.classList.add('idle'); this.paint(true);
     }
@@ -52,11 +52,26 @@
       if (v.length > this.typed.length && !v.includes(' ')) {
         for (let j = this.typed.length; j < v.length; j++) { this.keys++; if (v[j] === w[j]) this.ok++; else this.flashErr(); }
       }
-      if (v.includes(' ')) { const t = v.split(' ')[0]; this.inp.value = ''; if (t) this.commit(t); else { this.typed = ''; this.paint(); } return; }
+      if (v.includes(' ')) {
+        const t = v.split(' ')[0];
+        // Qat'iy rejim (poyga xonasi): xato so'z tasdiqlanmaydi — tuzatmaguncha keyingisiga o'tilmaydi.
+        if (this.opts.strict && t !== w) { this.inp.value = t; this.typed = t; if (t) this.rejectWord(); this.paint(); return; }
+        this.inp.value = ''; if (t) this.commit(t); else { this.typed = ''; this.paint(); } return;
+      }
       this.typed = v; this.root.classList.remove('idle');
       if (this.i === this.words.length - 1 && v === w) return this.commit(v);
       this.paint();
     }
+    rejectWord() {
+      if (this._errWord !== this.i) { this._errWord = this.i; this.errors++; }   // har so'z uchun bir marta
+      this.combo = 0; this.flashErr();
+      const el = this.rail.children[this.i];
+      G && el && G.fromTo(el, { x: -8 }, { x: 0, duration: .45, ease: 'elastic.out(1,.25)' });
+      this.opts.onReject && this.opts.onReject(this.words[this.i]);
+    }
+    // Faqat to'liq va to'g'ri yozilgan so'zlar bo'yicha progress — server ham aynan shuni hisoblaydi,
+    // shuning uchun barcha kompyuterlarda mashina bir xil joyda turadi.
+    wordProgress() { return this.words.length ? this.marks.filter(m => m === 'done').length / this.words.length : 0; }
     commit(t) {
       const good = t === this.words[this.i], el = this.rail.children[this.i];
       this.marks[this.i] = good ? 'done' : 'bad'; this.committed.push(t); this.times.push(performance.now());

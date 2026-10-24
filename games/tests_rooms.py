@@ -111,21 +111,52 @@ class RoomServiceTests(TestCase):
         self.assertEqual((coins(self.a), coins(self.b)), (1080, 900))
         self.assertEqual(list(room.players.order_by('place').values_list('user__username', flat=True)), ['anvar', 'bobur'])
 
-    def test_inaccurate_finisher_cannot_win(self):
+    def test_wrong_word_gives_no_progress(self):
+        """'O'zbekiston' o'rniga 'jhdsbvcj' yozilsa — mashina joyida turadi."""
+        room = self.running_room(stake=0)
+        rooms.record_progress(room, self.a, 'jhdsbvcjsdhbvsd ikki uch tort besh')
+        player = room.players.get(user=self.a)
+        self.assertEqual(player.words_done, 0)
+        self.assertIsNone(player.finish_seconds)
+        state = rooms.state(room, self.b)
+        self.assertEqual(next(p for p in state['players'] if not p['is_me'])['progress'], 0)
+
+    def test_progress_stops_at_first_wrong_word(self):
+        room = self.running_room(stake=0)
+        rooms.record_progress(room, self.a, 'bir ikki XATO tort besh')
+        player = room.players.get(user=self.a)
+        self.assertEqual(player.words_done, 2)
+        self.assertEqual(player.typed_text, 'bir ikki')     # faqat to'g'ri so'zlar saqlanadi
+        self.assertIsNone(player.finish_seconds)
+
+    def test_garbage_cannot_finish_or_win(self):
         room = self.running_room(stake=100)
-        rooms.record_progress(room, self.a, 'x x x x x')    # birinchi tugatdi, lekin 0% aniqlik
+        rooms.record_progress(room, self.a, 'x x x x x')    # 5 ta so'z, hammasi xato — marra emas
         rooms.record_progress(room, self.b, TEXT)
+        room.refresh_from_db()
+        self.assertEqual(room.status, 'running')            # a hali poygada
+        rooms.record_progress(room, self.a, TEXT)            # xatolarni tuzatib, keyin tugatdi
         room.refresh_from_db()
         self.assertEqual(room.winner, self.b)
 
-    def test_no_qualified_winner_refunds_everyone(self):
+    def test_nobody_finishes_before_deadline_refunds_everyone(self):
         room = self.running_room(stake=100)
         rooms.record_progress(room, self.a, 'x x x x x')
-        rooms.record_progress(room, self.b, 'y y y y y')
+        rooms.record_progress(room, self.b, 'bir ikki y y y')
+        TypingRoom.objects.filter(pk=room.pk).update(deadline=timezone.now() - timedelta(seconds=1))
+        room.refresh_from_db()
+        rooms.maybe_finish(room)
         room.refresh_from_db()
         self.assertEqual(room.status, 'finished')
         self.assertIsNone(room.winner)
         self.assertEqual((coins(self.a), coins(self.b)), (1000, 1000))
+        # b ko'proq to'g'ri so'z yozgan — o'rinlarda oldinda
+        self.assertEqual(room.players.get(user=self.b).place, 1)
+
+    def test_client_accuracy_is_display_only(self):
+        room = self.running_room(stake=0)
+        rooms.record_progress(room, self.a, 'bir', accuracy='250')
+        self.assertEqual(room.players.get(user=self.a).accuracy, 100.0)
 
     def test_deadline_settles_unfinished_race(self):
         room = self.running_room(stake=0)
