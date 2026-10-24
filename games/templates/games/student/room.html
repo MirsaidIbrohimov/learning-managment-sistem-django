@@ -6,7 +6,7 @@
 {% block extra_css %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=4">
 {% endblock %}
 
 {% block content %}
@@ -18,7 +18,36 @@
     <a href="{% url 'games:rooms_lobby' %}" class="tv-btn ghost sm"><i class="bi bi-arrow-left"></i> Lobbi</a>
   </div>
 
-  <section class="race glass" id="raceBox">
+  <!-- ═══ KUTISH ZALI (lobby / bekor) — trek faqat poyga boshlanganda ko'rinadi ═══ -->
+  <section class="rl" id="rLobby">
+    <div class="rl-main">
+      <div class="rl-head">
+        <div>
+          <span class="rl-kicker" id="rlKicker">KUTISH ZALI</span>
+          <h2 id="rlTitle">Sheriklarni kuting…</h2>
+          <p id="rlNote"></p>
+        </div>
+        <button class="rl-code" type="button" id="codeBtn" title="Havolani nusxalash">
+          <small>XONA KODI</small><b>{{ room.code }}</b><span><i class="bi bi-copy"></i> nusxalash</span>
+        </button>
+      </div>
+      <div class="rl-meter"><i id="rlMeter"></i></div>
+      <div class="rl-slots" id="rlSlots"></div>
+    </div>
+    <aside class="rl-side">
+      <div class="rl-stake" id="rlStake"></div>
+      <div class="rl-acts">
+        <button class="tv-btn" type="button" id="joinBtn" hidden><i class="bi bi-box-arrow-in-right"></i> Qo‘shilish</button>
+        <button class="tv-btn" type="button" id="startBtn" hidden><i class="bi bi-flag-fill"></i> Poygani boshlash</button>
+        <p class="rl-hint" id="startHint"></p>
+        <button class="tv-btn ghost" type="button" id="copyBtn2"><i class="bi bi-share"></i> Taklif havolasini nusxalash</button>
+        <button class="tv-btn ghost danger" type="button" id="leaveBtn2" hidden><i class="bi bi-box-arrow-left"></i> Xonadan chiqish</button>
+        <a class="tv-btn ghost" href="{% url 'games:rooms_lobby' %}" id="lobbyLink" hidden><i class="bi bi-grid"></i> Lobbiga qaytish</a>
+      </div>
+    </aside>
+  </section>
+
+  <section class="race glass" id="raceBox" hidden>
     <div class="race-top">
       <h3><i class="bi bi-flag-fill" style="color:var(--pink)"></i> Poyga · XONA <span class="mono">{{ room.code }}</span></h3>
       <span class="pill live" id="statusPill">Kutilmoqda</span>
@@ -39,22 +68,10 @@
       </div>
     </div>
 
-    <!-- Lobbi: sheriklarni kutish -->
-    <div class="wait on" id="wait">
-      <h4 id="waitTitle">Sheriklarni kuting…</h4>
-      <p class="note" id="waitNote"></p>
-      <div class="calc" id="calc" style="min-width:280px;text-align:left"></div>
-      <div class="acts">
-        <button class="tv-btn" type="button" id="joinBtn" hidden><i class="bi bi-box-arrow-in-right"></i> Qo‘shilish</button>
-        <button class="tv-btn" type="button" id="startBtn" hidden><i class="bi bi-flag"></i> Poygani boshlash</button>
-        <button class="tv-btn ghost" type="button" id="copyBtn2"><i class="bi bi-share"></i> Havolani nusxalash</button>
-        <a class="tv-btn ghost" href="{% url 'games:rooms_lobby' %}" id="lobbyLink" hidden><i class="bi bi-grid"></i> Lobbiga</a>
-      </div>
-    </div>
     <div class="lights" id="lights"><div class="box"><i></i><i></i><i></i><i></i><i></i></div><b id="lightsTxt">Tayyorlaning…</b></div>
     <div class="podium" id="podium"></div>
-    <div class="tv-toast" id="toast"></div>
   </section>
+  <div class="tv-toast page" id="toast"></div>
 </div>
 <form id="csrfForm" hidden>{% csrf_token %}</form>
 {{ state|json_script:"room-state" }}
@@ -124,44 +141,67 @@
     if (st.my_coins != null) $('#myCoin').textContent = st.my_coins;
     const n = st.players.length, me = st.players.find(p => p.is_me);
     $('#potPill').textContent = st.stake ? `Tikish ${st.stake} · bank ${st.stake * n}` : 'Shunchaki o‘yin';
-    $('#leaveBtn').hidden = !me || st.status === 'finished' || st.status === 'cancelled' || (me && me.finish_seconds);
+    $('#leaveBtn').hidden = !me || st.status === 'lobby' || st.status === 'finished' || st.status === 'cancelled' || (me && me.finish_seconds);
     const key = st.players.map(p => p.slot + ':' + p.name).join('|');
     if (key !== carKey) { carKey = key; build(st.players); }
     st.players.forEach(p => { const c = cars.find(c => c.slot === p.slot); if (c) Object.assign(c, { p, target: p.is_me && raceInit ? Math.max(tape.progress(), p.progress) : p.progress }); });
 
     const pill = $('#statusPill');
+    const inLobby = st.status === 'lobby' || st.status === 'cancelled';
+    $('#rLobby').hidden = !inLobby; $('#raceBox').hidden = inLobby;
     if (st.status === 'lobby') {
       pill.textContent = `Kutilmoqda · ${n}/${st.max_players}`;
-      $('#wait').classList.add('on');
-      $('#waitTitle').textContent = me ? 'Sheriklarni kuting…' : 'Poygaga qo‘shiling!';
-      $('#waitNote').textContent = `${n}/${st.max_players} o‘yinchi. ` + (st.is_host ? (n < 2 ? 'Boshlash uchun kamida 2 kishi kerak — havolani do‘stlaringizga yuboring.' : 'Hamma tayyor bo‘lsa, poygani boshlang!') : 'Xona egasi poygani boshlaydi.');
+      $('#rlKicker').textContent = `KUTISH ZALI · ${n}/${st.max_players} O‘YINCHI`;
+      $('#rlTitle').textContent = !me ? 'Poygaga qo‘shiling!' : n < 2 ? 'Sheriklarni kuting…' : st.is_host ? 'Hamma tayyor — boshlang!' : 'Xona egasi boshlashini kuting…';
+      $('#rlNote').textContent = st.is_host ? 'Kodni yoki havolani do‘stlaringizga yuboring. Poygani siz boshlaysiz.' : 'Poyga boshlanganda start chiroqlari yonadi — tayyor turing.';
+      $('#rlMeter').style.width = (n / st.max_players * 100) + '%';
+      slots(st);
       $('#joinBtn').hidden = !!me || n >= st.max_players;
       $('#joinBtn').innerHTML = st.stake ? `<i class="bi bi-coin"></i> ${st.stake} coin tikib qo‘shilish` : '<i class="bi bi-box-arrow-in-right"></i> Qo‘shilish';
       $('#startBtn').hidden = !st.is_host; $('#startBtn').disabled = n < 2;
-      $('#lobbyLink').hidden = true;
+      $('#startHint').textContent = st.is_host && n < 2 ? 'Boshlash uchun kamida 2 o‘yinchi kerak' : '';
+      $('#leaveBtn2').hidden = !me; $('#lobbyLink').hidden = true; $('#copyBtn2').hidden = false;
       calc(st);
-    } else if (st.status === 'running') {
-      pill.textContent = 'Poyga';
-      $('#wait').classList.remove('on');
-      if (!raceInit) initRace(st);
     } else if (st.status === 'cancelled') {
       pill.textContent = 'Bekor qilingan';
-      $('#wait').classList.add('on'); $('#waitTitle').textContent = 'Xona bekor qilindi';
-      $('#waitNote').textContent = 'Tikilgan coinlar qaytarildi.'; $('#calc').hidden = true;
-      $('#joinBtn').hidden = $('#startBtn').hidden = true; $('#lobbyLink').hidden = false;
+      $('#rlKicker').textContent = 'XONA YOPILDI';
+      $('#rlTitle').textContent = 'Xona bekor qilindi';
+      $('#rlNote').textContent = 'Tikilgan coinlar hisobingizga qaytarildi.';
+      $('#rlSlots').innerHTML = ''; $('#rlMeter').style.width = '0';
+      ['#joinBtn', '#startBtn', '#leaveBtn2', '#copyBtn2'].forEach(k => $(k).hidden = true);
+      $('#startHint').textContent = ''; $('#lobbyLink').hidden = false; $('#rlStake').innerHTML = '';
+    } else if (st.status === 'running') {
+      pill.textContent = 'Poyga';
+      if (!raceInit) { initRace(st); requestAnimationFrame(place); }
     } else if (st.status === 'finished') {
       pill.textContent = 'Tugadi';
-      $('#wait').classList.remove('on');
       if (!podiumShown) { podiumShown = true; setTimeout(podium, raceInit ? 900 : 0); }
     }
     drawStand();
   }
   function calc(st) {
     const c = st.calc;
-    $('#calc').innerHTML = !st.stake
-      ? '<div class="r"><span>Rejim</span><b>Shunchaki o‘yin</b></div><div class="win"><span>G‘olibga</span><b>🏆 shon-sharaf</b></div>'
-      : `<div class="r"><span>Har bir o‘yinchi</span><b>${st.stake} coin</b></div><div class="r"><span>Bank (${st.players.length} × ${st.stake})</span><b>${c.pot} coin</b></div>
-         <div class="r fee"><span>Xizmat haqi (${c.fee_percent}%)</span><b>−${c.fee} coin</b></div><div class="win"><span>G‘olibga tushadi</span><b>+${c.win}</b></div>`;
+    $('#rlStake').innerHTML = !st.stake
+      ? `<span class="rl-kicker">REJIM</span><div class="rl-big">🏁 Shunchaki o‘yin</div><p>Coin tikilmaydi — g‘olibga shon-sharaf.</p>`
+      : `<span class="rl-kicker">BANK</span><div class="rl-big gold">₵ ${c.pot}</div>
+         <div class="rl-row"><span>Har bir o‘yinchi</span><b>${st.stake} coin</b></div>
+         <div class="rl-row"><span>O‘yinchilar</span><b>${st.players.length} × ${st.stake}</b></div>
+         <div class="rl-row bad"><span>Xizmat haqi (${c.fee_percent}%)</span><b>−${c.fee}</b></div>
+         <div class="rl-row win"><span>G‘olibga tushadi</span><b>+${c.win}</b></div>`;
+  }
+  function slots(st) {
+    const filled = st.players.map(p => `<div class="rl-slot${p.is_me ? ' me' : ''}" style="--c:${ROSTER[p.slot % ROSTER.length].c}">
+        <div class="rl-car">${carSVG(p.slot, p.slot + 7)}</div>
+        <div class="rl-who"><b>${esc(p.name)}${p.is_host ? ' <span title="Xona egasi">👑</span>' : ''}</b><small>${p.is_me ? 'siz' : 'tayyor'} · ${p.slot + 1}-yo‘lak</small></div>
+        <span class="rl-ready"><i class="bi bi-check-lg"></i></span></div>`);
+    const empty = Array.from({ length: Math.max(0, st.max_players - st.players.length) }, () =>
+      `<button type="button" class="rl-slot empty js-invite"><span class="rl-plus"><i class="bi bi-person-plus"></i></span><div class="rl-who"><b>Bo‘sh joy</b><small>do‘stingizni taklif qiling</small></div></button>`);
+    const html = filled.concat(empty).join('');
+    if ($('#rlSlots').dataset.html === html) return;
+    $('#rlSlots').dataset.html = html; $('#rlSlots').innerHTML = html;
+    $$('#rlSlots .js-invite').forEach(b => b.onclick = copy);
+    // Faqat siljish — opacity'ga tegilmaydi: animatsiya to'xtab qolsa ham joy ko'rinib turadi
+    G && G.fromTo('#rlSlots .rl-slot:not(.empty)', { y: 12, scale: .97 }, { y: 0, scale: 1, duration: .45, stagger: .06, ease: 'back.out(1.8)', clearProps: 'transform' });
   }
 
   /* ── Trek ── */
@@ -304,8 +344,9 @@
     if (!confirm(running ? 'Poyga ketmoqda! Chiqsangiz tikishingiz bankda qoladi. Chiqasizmi?' : 'Xonadan chiqasizmi?' + (S.is_host ? ' (Siz egasiz — xona bekor qilinadi)' : ''))) return;
     post(URL.leave).then(() => { if (!running) location.assign(URL.lobby); });
   };
-  const copy = () => { (navigator.clipboard ? navigator.clipboard.writeText(INVITE) : Promise.reject()).then(() => toast('🔗 Havola nusxalandi: ' + S.code), () => prompt('Havolani nusxalang:', INVITE)); };
-  $('#copyBtn').onclick = copy; $('#copyBtn2').onclick = copy;
+  function copy() { (navigator.clipboard ? navigator.clipboard.writeText(INVITE) : Promise.reject()).then(() => toast('🔗 Havola nusxalandi: ' + S.code), () => prompt('Havolani nusxalang:', INVITE)); }
+  $('#copyBtn').onclick = copy; $('#copyBtn2').onclick = copy; $('#codeBtn').onclick = copy;
+  $('#leaveBtn2').onclick = () => $('#leaveBtn').onclick();
   $('#minAcc').textContent = (S.result && S.result.min_accuracy) || 60;
   window.addEventListener('resize', place);
   window.addEventListener('beforeunload', e => { if (S.status === 'running' && raceInit && !tape.done && !tape._locked) { e.preventDefault(); e.returnValue = ''; } });

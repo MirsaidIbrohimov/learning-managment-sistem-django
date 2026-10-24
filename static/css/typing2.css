@@ -251,3 +251,54 @@
   .tv2 .res-ring{width:200px;height:200px}.tv2 .res-wpm b{font-size:58px}
   .tv2 .res-stats{grid-template-columns:repeat(2,1fr);width:100%}
 }
+
+/* ═══ XONA: kutish zali (aniq panel — trek ustidagi shaffof qatlam emas) ═══ */
+.tv2 .tv-toast.page{position:fixed;bottom:28px;z-index:1090}
+.tv2 .rl{display:grid;grid-template-columns:1fr 330px;gap:16px;align-items:start}
+.tv2 .rl[hidden],.tv2 .race[hidden]{display:none}
+.tv2 .rl-main,.tv2 .rl-side{border-radius:28px;padding:24px;background:var(--solid);border:1px solid var(--line);box-shadow:var(--shadow)}
+.tv2 .rl-main{position:relative;overflow:hidden}
+.tv2 .rl-main:before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:repeating-linear-gradient(90deg,#e11d48 0 22px,#f8fafc 22px 44px);animation:tvKerb .9s linear infinite;opacity:.85}
+.tv2 .rl-head{display:flex;gap:18px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
+.tv2 .rl-kicker{font:700 11px 'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--gold)}
+.tv2 .rl-head h2{font-size:30px;font-weight:700;letter-spacing:-.04em;margin:4px 0 4px}
+.tv2 .rl-head p{color:var(--muted);margin:0;max-width:440px;font-size:14.5px}
+.tv2 .rl-code{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 18px;border-radius:20px;border:1.5px dashed color-mix(in srgb,var(--acc) 55%,transparent)!important;background:color-mix(in srgb,var(--acc) 8%,transparent)!important;transition:transform .2s,background .2s}
+.tv2 .rl-code:hover{transform:translateY(-2px);background:color-mix(in srgb,var(--acc) 14%,transparent)!important}
+.tv2 .rl-code small{font:700 10px 'JetBrains Mono',monospace;letter-spacing:.18em;color:var(--muted)}
+.tv2 .rl-code b{font:800 32px 'JetBrains Mono',monospace;letter-spacing:.14em;background:linear-gradient(100deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+.tv2 .rl-code span{font:600 11px 'JetBrains Mono',monospace;color:var(--acc)}
+.tv2 .rl-meter{height:6px;border-radius:6px;background:var(--field);margin:18px 0 16px;overflow:hidden}
+.tv2 .rl-meter i{display:block;height:100%;width:0;border-radius:6px;background:linear-gradient(90deg,var(--lime),var(--acc));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.tv2 .rl-slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.tv2 .rl-slot{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:var(--field);border:1px solid var(--line);min-height:78px;text-align:left;width:100%;overflow:hidden}
+.tv2 .rl-slot:not(.empty){border-left:4px solid var(--c)}
+.tv2 .rl-slot.me{background:color-mix(in srgb,var(--acc) 9%,var(--field));border-color:color-mix(in srgb,var(--acc) 45%,transparent)}
+.tv2 .rl-car{width:96px;flex:none}
+.tv2 .rl-car svg{width:96px;height:34px;display:block;overflow:visible}
+.tv2 .rl-who{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+.tv2 .rl-who b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tv2 .rl-who small{font:500 11.5px 'JetBrains Mono',monospace;color:var(--muted)}
+.tv2 .rl-ready{margin-left:auto;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;flex:none;color:#fff;background:var(--lime);font-size:15px}
+[data-bs-theme=dark] .tv2 .rl-ready{color:#05060a}
+.tv2 .rl-slot.empty{border:1.5px dashed var(--line)!important;background:transparent!important;color:var(--muted);cursor:pointer;transition:border-color .2s,color .2s}
+.tv2 .rl-slot.empty:hover{border-color:var(--acc)!important;color:var(--ink)}
+.tv2 .rl-plus{width:96px;height:42px;flex:none;border-radius:12px;display:grid;place-items:center;font-size:20px;background:var(--field);animation:rlPulse 2s ease-in-out infinite}
+@keyframes rlPulse{50%{opacity:.45}}
+.tv2 .rl-side{display:flex;flex-direction:column;gap:16px;position:sticky;top:90px}
+.tv2 .rl-stake{border-radius:20px;padding:16px;background:var(--field);border:1px solid var(--line)}
+.tv2 .rl-stake p{color:var(--muted);font-size:13.5px;margin:6px 0 0}
+.tv2 .rl-big{font-size:24px;font-weight:700;letter-spacing:-.02em;margin:4px 0 8px}
+.tv2 .rl-big.gold{font:800 32px 'JetBrains Mono',monospace;color:var(--gold)}
+.tv2 .rl-row{display:flex;justify-content:space-between;padding:7px 0;border-top:1px dashed var(--line);font-size:14px;color:var(--muted)}
+.tv2 .rl-row b{color:var(--ink);font-family:'JetBrains Mono',monospace}
+.tv2 .rl-row.bad b{color:var(--red)}
+.tv2 .rl-row.win{font-weight:700;color:var(--ink)}.tv2 .rl-row.win b{color:var(--lime);font-size:18px}
+.tv2 .rl-acts{display:flex;flex-direction:column;gap:8px}
+.tv2 .rl-acts .tv-btn{width:100%}
+.tv2 .rl-acts .tv-btn[hidden]{display:none}
+.tv2 .tv-btn:disabled{opacity:1;cursor:not-allowed;background:var(--field);color:var(--muted);box-shadow:none;border:1px solid var(--line)}
+.tv2 .tv-btn.danger{color:var(--red)}
+.tv2 .rl-hint{margin:-2px 0 2px;text-align:center;font-size:12.5px;color:var(--muted);min-height:0}
+.tv2 .rl-hint:empty{display:none}
+@media(max-width:900px){.tv2 .rl{grid-template-columns:1fr}.tv2 .rl-side{position:static}.tv2 .rl-head h2{font-size:24px}.tv2 .rl-code b{font-size:26px}}
