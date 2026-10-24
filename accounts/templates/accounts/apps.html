@@ -1,0 +1,110 @@
+{% extends 'accounts/base.html' %}
+
+{% block title %}Ilovalar — ITC Academy{% endblock %}
+
+{% block extra_css %}
+<style>
+  .ap-wrap{max-width:980px;margin:0 auto;padding:8px 0 32px}
+  .ap-hero{padding:26px 24px;border-radius:24px;margin-bottom:22px;color:#fff;background:linear-gradient(120deg,#4f46e5,#7c3aed 55%,#db2777)}
+  .ap-hero h1{margin:0 0 6px;font-size:1.6rem;font-weight:800}
+  .ap-hero p{margin:0;opacity:.9}
+  .ap-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+  .ap-card{position:relative;display:flex;flex-direction:column;gap:14px;padding:22px;border-radius:22px;background:var(--bs-body-bg);border:1px solid var(--bs-border-color);box-shadow:0 14px 34px -26px rgba(15,23,42,.45)}
+  .ap-card.rec{outline:2px solid #4f46e5;outline-offset:-2px}
+  .ap-top{display:flex;align-items:center;gap:14px}
+  .ap-ic{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;font-size:1.8rem;color:#fff;flex-shrink:0}
+  .ap-card.soon{background:var(--bs-tertiary-bg);box-shadow:none}
+  .ap-card.soon .ap-ic{opacity:.5;filter:grayscale(.4)}
+  .ap-btn.ap-btn-soon{background:transparent;color:#b45309;border:1.5px dashed rgba(180,83,9,.45);cursor:default}
+  .ap-btn.ap-btn-soon:hover{color:#b45309;filter:none}
+  @media (max-width:575.98px){.ap-hero{padding:20px 18px;border-radius:20px}.ap-hero h1{font-size:1.3rem}.ap-card{padding:18px}}
+  .ap-top h2{margin:0;font-size:1.15rem;font-weight:800}
+  .ap-top small{color:var(--bs-secondary-color)}
+  .ap-rec{align-self:flex-start;margin-bottom:-4px;padding:3px 9px;border-radius:999px;font-size:.72rem;font-weight:700;color:#4f46e5;background:rgba(79,70,229,.12)}
+  .ap-meta{display:flex;flex-wrap:wrap;gap:6px}
+  .ap-meta span{padding:4px 10px;border-radius:999px;font-size:.78rem;background:var(--bs-tertiary-bg)}
+  .ap-notes{font-size:.88rem;color:var(--bs-secondary-color);white-space:pre-line;margin:0}
+  .ap-btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:14px;font-weight:700;text-decoration:none;color:#fff;background:#4f46e5;margin-top:auto}
+  .ap-btn:hover{color:#fff;filter:brightness(1.08)}
+  .ap-steps{margin:0;padding-left:1.1rem;font-size:.85rem;color:var(--bs-secondary-color)}
+  .ap-sha{font:11px/1.4 'JetBrains Mono',monospace;color:var(--bs-secondary-color);word-break:break-all}
+  .ap-empty{text-align:center;padding:48px 16px;border-radius:22px;border:1px dashed var(--bs-border-color);color:var(--bs-secondary-color)}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ap-wrap">
+  <div class="ap-hero">
+    <h1><i class="bi bi-phone me-2"></i>ITC Academy ilovalari</h1>
+    <p>LMS’dan telefon va kompyuterda alohida ilova sifatida foydalaning — tezroq ochiladi, login saqlanadi.</p>
+  </div>
+
+  <div class="ap-grid">
+    {% for e in entries %}{% with rel=e.release plat=e.key %}
+    {% if rel %}
+    <div class="ap-card" data-plat="{{ plat }}">
+      <span class="ap-rec" hidden>Qurilmangiz uchun</span>
+      <div class="ap-top">
+        <span class="ap-ic" style="background:{{ e.color }}"><i class="bi bi-{{ e.icon }}"></i></span>
+        <div><h2>{{ rel.title }} — {{ e.label }}</h2><small>Versiya {{ rel.version }} · {{ rel.created_at|date:"d.m.Y" }}</small></div>
+      </div>
+      <div class="ap-meta">
+        <span><i class="bi bi-hdd me-1"></i>{{ rel.file_size|filesizeformat }}</span>
+        {% if rel.min_os %}<span><i class="bi bi-cpu me-1"></i>{{ rel.min_os }}</span>{% endif %}
+        <span><i class="bi bi-file-earmark me-1"></i>{{ rel.extension|upper|slice:"1:" }}</span>
+      </div>
+      {% if rel.notes %}<p class="ap-notes">{{ rel.notes }}</p>{% endif %}
+      <ol class="ap-steps">
+        {% if plat == 'android' %}
+        <li>Faylni yuklab oling va oching.</li>
+        <li>“Noma’lum manbalardan o‘rnatish”ga shu ilova uchun ruxsat bering.</li>
+        <li><b>O‘rnatish</b> → <b>Ochish</b> — LMS login’i bilan kiring.</li>
+        {% elif plat == 'windows' %}
+        <li>Faylni yuklab oling va ishga tushiring.</li>
+        <li>SmartScreen ogohlantirsa: <b>More info → Run anyway</b>.</li>
+        <li>Start menyudan <b>ITC Academy</b> ni oching.</li>
+        {% elif plat == 'macos' %}
+        <li>Faylni yuklab oling va oching.</li>
+        <li>ITC Academy’ni <b>Applications</b> papkasiga torting.</li>
+        <li>Birinchi ochishda: o‘ng tugma → <b>Open</b>.</li>
+        {% elif plat == 'linux' %}
+        <li>Faylni yuklab oling.</li>
+        <li>AppImage: <code>chmod +x</code> qilib ishga tushiring; .deb/.rpm: paket menejeri bilan o‘rnating.</li>
+        {% else %}
+        <li>Faylni yuklab oling va qurilmangizga mos usulda o‘rnating.</li>
+        {% endif %}
+      </ol>
+      {% if rel.sha256 %}<div class="ap-sha" title="Fayl butunligini tekshirish uchun">SHA-256: {{ rel.sha256 }}</div>{% endif %}
+      <a class="ap-btn" href="{% url 'app_release_download' rel.pk %}" download><i class="bi bi-download"></i>Yuklab olish</a>
+    </div>
+    {% else %}
+    <div class="ap-card soon" data-plat="{{ plat }}">
+      <span class="ap-rec" hidden>Qurilmangiz uchun</span>
+      <div class="ap-top">
+        <span class="ap-ic" style="background:{{ e.color }}"><i class="bi bi-{{ e.icon }}"></i></span>
+        <div><h2>ITC Academy — {{ e.label }}</h2><small>Ilova tayyorlanmoqda</small></div>
+      </div>
+      {% if plat == 'ios' %}
+      <p class="ap-notes">Hozircha iPhone/iPad’da Safari orqali saytni oching → <b>Ulashish</b> → <b>Bosh ekranga qo‘shish</b> — ilova kabi ishlaydi.</p>
+      {% else %}
+      <p class="ap-notes">Hozircha brauzerda <b>itc-academy.uz</b> orqali to‘liq foydalanishingiz mumkin.</p>
+      {% endif %}
+      <span class="ap-btn ap-btn-soon" aria-disabled="true"><i class="bi bi-hourglass-split"></i>Tez kunda</span>
+    </div>
+    {% endif %}
+    {% endwith %}{% endfor %}
+  </div>
+</div>
+<script>
+  (function () {
+    var ua = navigator.userAgent, touchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+    var p = /Android/i.test(ua) ? 'android' : /iPhone|iPad|iPod/.test(ua) || touchMac ? 'ios'
+      : /Windows NT/.test(ua) ? 'windows' : /Macintosh|Mac OS X/.test(ua) ? 'macos' : /Linux|X11/.test(ua) ? 'linux' : '';
+    var card = p && document.querySelector('.ap-card[data-plat="' + p + '"]');
+    if (!card) return;
+    card.classList.add('rec');
+    card.querySelector('.ap-rec').hidden = false;
+    card.parentNode.insertBefore(card, card.parentNode.firstChild);
+  })();
+</script>
+{% endblock %}

@@ -4,6 +4,7 @@ from django.urls import path, include
 from django.conf import settings
 from django.urls import re_path
 
+from . import pwa
 from .views import robots_txt, security_txt, sitemap_xml, serve_media
 
 urlpatterns = [
@@ -13,6 +14,10 @@ urlpatterns = [
     path('sitemap.xml', sitemap_xml, name='sitemap_xml'),
     path('.well-known/security.txt', security_txt, name='security_txt'),
     path('security.txt', security_txt),
+    # PWA + Android TWA (ommaviy, foydalanuvchi ma'lumotisiz)
+    path('manifest.webmanifest', pwa.manifest, name='pwa_manifest'),
+    path('sw.js', pwa.service_worker, name='pwa_service_worker'),
+    path('.well-known/assetlinks.json', pwa.assetlinks, name='assetlinks'),
     path('api/v1/', include('api.urls')),
     path('quiz/', include('quiz.page_urls')),
     path('video-quiz/', include('video_quiz.urls')),

@@ -7306,6 +7306,22 @@ def save_weather_effect(request):
 
 
 @login_required
+@require_POST
+def save_navigation_preferences(request):
+    """Navigatsiya ko'rinishi sozlamalarini akkauntga saqlash (JSON, CSRF bilan)."""
+    from .nav_preferences import clean, save_prefs
+    try:
+        data = json.loads(request.body or b'{}')
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return JsonResponse({'status': 'error', 'error': "Noto'g'ri so'rov"}, status=400)
+    changes = clean(data)
+    if not changes:
+        return JsonResponse({'status': 'error', 'error': "Sozlama topilmadi"}, status=400)
+    prefs = save_prefs(request.user, changes)
+    return JsonResponse({'status': 'ok', 'prefs': prefs})
+
+
+@login_required
 def classmates_view(request, pk):
     """Kursdoshlar ro'yxati"""
     profession = get_object_or_404(Profession, pk=pk)

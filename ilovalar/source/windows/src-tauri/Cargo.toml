@@ -1,0 +1,27 @@
+[package]
+name = "itc-academy"
+version = "1.0.0"
+description = "ITC Academy desktop"
+authors = ["IT Creative Academy"]
+edition = "2021"
+publish = false
+
+[[bin]]
+name = "itc-academy"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "=2.7.1", features = [] }
+
+[dependencies]
+tauri = { version = "=2.12.2", features = [] }
+tauri-plugin-opener = "=2.7.0"
+tauri-plugin-single-instance = "=2.5.2"
+url = "2"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true

@@ -11,13 +11,17 @@ from django.db import models
 from datetime import timedelta
 from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message, StudentBalance
 
+# PWA / Android TWA ommaviy fayllari (config/pwa.py): foydalanuvchi ma'lumotisiz,
+# statik fayl kabi. Yo'naltirilsa (profil, to'lov, texnik xizmat) brauzer manifest
+# va service worker'ni o'qiy olmaydi, Android ilova esa domenni tasdiqlay olmaydi.
+_PWA_PUBLIC_PATHS = ('/manifest.webmanifest', '/sw.js', '/.well-known/assetlinks.json')
 # Static/media so'rovlarini tezkor o'tkazish uchun (BlockedUserMiddleware va boshqalar)
-_SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/')
+_SKIP_PREFIXES = ('/static/', '/media/', '/admin/jsi18n/') + _PWA_PUBLIC_PATHS
 # API ni ham o'tkazib yuboradigan middleware lar uchun.
 # DIQQAT: sessiya nazorati (timeout, qurilma limiti) bu ro'yxatdan
 # FOYDALANMAYDI — aks holda o'g'irlangan yoki bekor qilingan sessiya cookie'si
 # `/api/` orqali cheksiz ishlatilishi mumkin bo'lardi.
-_SKIP_PREFIXES_WITH_API = ('/static/', '/media/', '/api/', '/admin/jsi18n/')
+_SKIP_PREFIXES_WITH_API = ('/static/', '/media/', '/api/', '/admin/jsi18n/') + _PWA_PUBLIC_PATHS
 
 
 def _session_expired_response(request, redirect_to='login'):

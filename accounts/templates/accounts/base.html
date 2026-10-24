@@ -1,5 +1,5 @@
-<!DOCTYPE html>
-<html lang="uz" data-bs-theme="light">
+{% load nav_prefs %}{% get_nav_prefs as nav_prefs %}<!DOCTYPE html>
+<html lang="uz" data-bs-theme="light"{% if user.is_authenticated %} data-layout="{{ nav_prefs.layout }}" data-sb="{{ nav_prefs.sidebar }}" data-motion="{{ nav_prefs.motion|yesno:'on,off' }}"{% endif %}>
 
 <head>
     {% load static %}
@@ -34,7 +34,8 @@
     <!-- Additional SEO -->
     <link rel="canonical" href="{% block canonical %}https://itc-academy.uz{{ request.path }}{% endblock %}">
     <meta name="theme-color" content="#4f46e5">
-    <script>try{document.documentElement.setAttribute('data-bs-theme',localStorage.getItem('theme')||'light');}catch(e){}</script>
+    {% include 'partials/pwa/_head.html' with pwa_no_theme=True %}
+    {% include 'partials/nav/_theme_head.html' %}
     <link rel="icon" href="{% static 'img/fav.ico' %}">
 
     {% block extra_head %}{% endblock %}
@@ -54,6 +55,7 @@
     <link rel="stylesheet" href="{% static 'css/navbar.css' %}">
     <link rel="stylesheet" href="{% static 'css/notify.css' %}?v=unread4">
     <link rel="stylesheet" href="{% static 'css/nav-rail.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/nav-layouts.css' %}?v=2">
 
 
 
@@ -515,8 +517,10 @@
 
     <!-- ═══ Yuqori panel ═══ -->
     <nav class="nr-top nr-glass" id="mainNavbar" aria-label="Yuqori panel">
-      <a class="nr-mlogo" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa"><img src="{% static 'img/logo.png' %}" alt=""><span>IT Creative</span></a>
+      <button type="button" class="nr-ib nr-collapse" id="nrCollapse" aria-controls="nrRail" aria-expanded="{% if nav_prefs.sidebar == 'collapsed' %}false{% else %}true{% endif %}" aria-label="Yon panelni yig‘ish yoki kengaytirish" data-nav-tip="Yon panel (Ctrl+B)"><i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i></button>
+      <a class="nr-mlogo" href="{% url 'home' %}" aria-label="IT Creative — bosh sahifa"><img src="{% static 'img/logo.png' %}" alt=""><span>IT <b>Creative</b></span></a>
       <div class="nr-crumb"><i class="bi bi-house"></i><span>IT Creative</span><span>/</span><b id="nrCrumb">{% block nav_title %}{% endblock %}</b></div>
+      {% include 'partials/nav/_top_links.html' %}
 
       <button type="button" class="nr-search nr-hide-xs" data-nr-cmd title="Qidirish (Ctrl+K)" aria-label="Qidirish"><i class="bi bi-search"></i><span>Sahifa, kurs yoki bo‘lim qidirish...</span><kbd>Ctrl K</kbd></button>
 
@@ -531,9 +535,15 @@
           </div>
         </div>
 
+        <!-- Ilovalar (Android / Windows) — admin panel: Ilovalar boshqaruvi -->
+        {% include 'partials/nav/_apps_menu.html' %}
+
         <!-- Coin -->
         <a href="{% url 'coin:coin_history' %}" class="nr-coin" title="Coin tarixi" aria-label="Coin tarixi: {{ user.coins|default:0 }} coin"><span class="c"><i class="bi bi-coin"></i></span><span class="v">{{ user.coins|default:0 }}</span></a>
         <span class="nr-sep"></span>
+
+        <!-- Navigatsiya sozlamalari (desktop; mobilda profil menyusida) -->
+        <button type="button" class="nr-ib nr-navset d-none d-lg-grid" data-nav-settings data-nav-tip="Navigatsiya sozlamalari" aria-label="Navigatsiya sozlamalari" aria-controls="nsPanel"><i class="bi bi-sliders" aria-hidden="true"></i></button>
 
         <!-- Mavzu -->
         <button type="button" class="nr-ib nb-theme-top" id="themeToggleTop" aria-label="Qorong‘i rejimni yoqish" aria-pressed="false"><i class="bi bi-moon-fill" id="themeIconTop" aria-hidden="true"></i></button>
@@ -634,6 +644,9 @@
         <div class="foot"><span><kbd>↑</kbd> <kbd>↓</kbd> tanlash</span><span><kbd>Enter</kbd> ochish</span><span><kbd>Esc</kbd> yopish</span></div>
       </div>
     </div>
+
+    <!-- ═══ Navigatsiya sozlamalari paneli ═══ -->
+    {% include 'partials/nav/_settings_panel.html' %}
 
     <!-- Mobile slide panel (hamburger) -->
     <div class="nb-mobile-backdrop" id="nbMobileBackdrop" aria-hidden="true"></div>
@@ -1180,6 +1193,14 @@
                     <div class="mob-menu-icon mob-icon-pink"><i class="bi bi-gear-fill"></i></div>
                     <span>Sozlamalar</span>
                 </a>
+                <button type="button" class="mob-menu-item border-0" data-nav-settings data-bs-dismiss="offcanvas" aria-controls="nsPanel">
+                    <div class="mob-menu-icon mob-icon-cyan"><i class="bi bi-sliders"></i></div>
+                    <span>Ko‘rinish</span>
+                </button>
+                <a href="{% url 'apps_page' %}" class="mob-menu-item">
+                    <div class="mob-menu-icon mob-icon-green"><i class="bi bi-phone"></i></div>
+                    <span>Ilovalar</span>
+                </a>
                 {% if user.is_teacher %}
                 <a href="{% url 'teacher:dashboard' %}" class="mob-menu-item">
                     <div class="mob-menu-icon mob-icon-green"><i class="bi bi-mortarboard-fill"></i></div>
@@ -1506,6 +1527,8 @@
             html.setAttribute('data-bs-theme', t);
             localStorage.setItem('theme', t);
             syncThemeIcons(t);
+            // nav-prefs.js tanlovni akkauntga saqlaydi
+            document.dispatchEvent(new CustomEvent('itc:themechange', { detail: t }));
         }
         function toggleTheme(ev){
             const newTheme = html.getAttribute('data-bs-theme') === 'light' ? 'dark' : 'light';
@@ -1812,6 +1835,7 @@
 <script src="{% static 'js/notify.js' %}?v=unread4" defer></script>
 {% endif %}
 {% if user.is_authenticated %}<script src="{% static 'js/nav-rail.js' %}?v=1" defer></script>{% endif %}
+{% include 'partials/nav/_nav_config.html' %}
 {% block extra_js %}{% endblock %}
 
     <!-- Global Toast bildirishnomalar — barcha sahifalarda mavjud.

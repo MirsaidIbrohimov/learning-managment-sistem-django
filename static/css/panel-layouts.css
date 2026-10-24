@@ -1,0 +1,99 @@
+/* O'qituvchi/admin panellari — moslashtiriladigan navigatsiya (4 rejim).
+   panel_nav.css va nav-layouts.css'dan keyin yuklanadi. <body class="pn ..."> + html[data-layout|data-sb|data-motion].
+   Compact = panelning hozirgi ko'rinishi (o'zgarishsiz). Mobil (≤992px): rejimdan qat'i nazar chiquvchi menyu. */
+
+/* Sozlamalar paneli tokenlari — panel rangi (admin: binafsha, o'qituvchi: yashil) */
+body.pn{--nr-solid:var(--pn-side-bg);--nr-field:var(--pn-chip-bg);--nr-line:var(--pn-side-border);--nr-line-2:color-mix(in srgb,var(--pn-text) 16%,transparent);--nr-ink:var(--pn-text);--nr-muted:var(--pn-text-soft);--nr-acc:var(--pn-accent);--nr-acc2:var(--pn-accent-2);--nr-gold:#d97706;--nr-red:#ef4444}
+body.pn .ns-panel{font-family:'Inter',system-ui,sans-serif}
+.ns-panel .nr-ib{display:grid;place-items:center;flex-shrink:0;width:40px;height:40px;border-radius:12px;border:1px solid var(--nr-line);background:var(--nr-field);color:var(--nr-ink);font-size:1rem;cursor:pointer}
+.ns-panel .nr-ib:hover{color:var(--nr-acc);border-color:color-mix(in srgb,var(--nr-acc) 40%,transparent)}
+/* Mini sxema: panelda Compact = to'liq yon panel (ikonka chiplari bilan) */
+.ns-panel[data-ctx=panel] .ns-mini[data-l=compact]{--sbL:0%;--sbT:0%;--sbB:0%;--sbW:24%;--sbR:0px;--hdL:24%;--hdT:0%;--hdR:0%;--hdH:14%;--hdRad:0px;--mL:24%;--mT:14%}
+.ns-panel[data-ctx=panel] .ns-mini[data-l=compact] .m-sb,.ns-panel[data-ctx=panel] .ns-mini[data-l=compact] .m-hd{border-width:0 1px 1px 0}
+.ns-panel[data-ctx=panel] .ns-mini[data-l=compact] .m-sb i{width:70%;height:7px;border-radius:4px}
+.ns-panel[data-ctx=panel] .ns-mini[data-c=collapsed][data-l=compact]{--sbW:10%;--hdL:10%;--mL:10%}
+.ns-panel[data-ctx=panel] .ns-mini[data-c=collapsed][data-l=compact] .m-sb i{width:38%}
+
+/* Header'dagi qo'shimcha elementlar (faqat kerakli rejimda ko'rinadi) */
+.pn-brand,.pn-tn{display:none}
+.pn-navset{flex-shrink:0}
+.pn-brand{align-items:center;gap:10px;flex-shrink:0;text-decoration:none;color:var(--pn-text)}
+.pn-brand img{width:30px;height:30px;border-radius:8px;object-fit:cover;box-shadow:0 0 0 2px color-mix(in srgb,var(--pn-accent) 45%,transparent)}
+.pn-brand span{font-weight:800;font-size:1rem;letter-spacing:-.02em;white-space:nowrap;background:var(--pn-grad);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+
+/* Yuqori menyu (Top Navigation) — panel-nav.js yon panel havolalaridan quradi */
+.pn-tn{align-items:center;gap:2px;flex:1 1 auto;min-width:0;height:100%;margin-left:6px}
+.pn-tn-item{flex-shrink:0}
+.pn-tn-item[hidden]{display:none!important}
+.pn-tn-link{position:relative;display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 11px;border:0;border-radius:11px;background:none;color:var(--pn-text-soft);font-size:.86rem;font-weight:600;white-space:nowrap;text-decoration:none;cursor:pointer;transition:color .2s,background .2s}
+.pn-tn-link:hover,.pn-tn-link[aria-expanded=true]{color:var(--pn-text);background:var(--pn-hover)}
+.pn-tn-link:focus-visible{outline:2px solid var(--pn-accent);outline-offset:2px}
+.pn-tn-link .pn-chev{font-size:.62rem;opacity:.7;transition:transform .25s ease}
+.pn-tn-link[aria-expanded=true] .pn-chev{transform:rotate(180deg)}
+.pn-tn-link .pn-dot{width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--pn-side-bg)}
+.pn-tn-link::after{content:"";position:absolute;left:12px;right:12px;bottom:-12px;height:3px;border-radius:3px 3px 0 0;background:var(--pn-grad);transform:scaleX(0);transition:transform .3s ease}
+.pn-tn-link.active{color:var(--pn-text)}
+.pn-tn-link.active::after{transform:scaleX(1)}
+.pn-tn-menu{min-width:250px;max-height:calc(100vh - 90px);overflow-y:auto;padding:8px;border-radius:14px}
+.pn-tn-menu .dropdown-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;font-size:.88rem;font-weight:500}
+.pn-tn-menu .dropdown-item>i{width:18px;text-align:center;color:var(--pn-accent)}
+.pn-tn-menu .dropdown-item.active,.pn-tn-menu .dropdown-item:active{background:color-mix(in srgb,var(--pn-accent) 13%,transparent);color:var(--pn-accent);font-weight:700}
+.pn-tn-menu .sidebar-badge{margin-left:auto;animation:none}
+.pn-tn-menu .dropdown-header{padding:8px 10px 4px;font-size:.66rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--pn-text-faint)}
+.pn-tn-menu li[hidden]{display:none}
+
+/* Yig'ilgan yon panel: tezkor tooltip (nav-prefs.js) — panel chetida kesilmaydi */
+body.pn.sidebar-collapsed .sidebar .nav-link[data-nav-tip]:hover::after{content:none}
+body.pn .ns-tip{background:var(--pn-grad);color:#fff}
+
+@media (min-width:993px){
+  html[data-motion=on] body.pn .main-content{transition:margin-left .3s cubic-bezier(.4,0,.2,1)}
+
+  /* Classic / Hybrid: kengliklar */
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn{--pn-sb:264px}
+  html[data-layout=hybrid] body.pn{--pn-sb:240px}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn.sidebar-collapsed{--pn-sb:78px}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar{width:var(--pn-sb)}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .main-content{margin-left:var(--pn-sb)}
+
+  /* Tekis ro'yxat uslubi (Classic va Hybrid) */
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar{background:var(--pn-side-bg);box-shadow:none}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .nav-icon-wrap{background:transparent;border-color:transparent}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar-nav .nav-link:hover{transform:none}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar-nav .nav-link.active{background:color-mix(in srgb,var(--pn-accent) 12%,transparent);color:var(--pn-accent);font-weight:700;box-shadow:none}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar-nav .nav-link.active .nav-icon-wrap{background:transparent;border-color:transparent;color:var(--pn-accent)}
+  html:is([data-layout=classic],[data-layout=hybrid]) body.pn .sidebar-nav .nav-link.active::before{left:-10px;top:22%;bottom:22%;background:var(--pn-grad);opacity:1;border-radius:0 3px 3px 0}
+
+  /* --- 1. Classic Sidebar --- */
+  html[data-layout=classic] body.pn .admin-topbar{left:var(--pn-sb)}
+
+  /* --- 2. Compact Sidebar: panelning hozirgi ko'rinishi o'zgarishsiz --- */
+
+  /* --- 3. Top Navigation --- */
+  html[data-layout=top] body.pn .sidebar,
+  html[data-layout=top] body.pn .sidebar-toggle,
+  html[data-layout=top] body.pn .topbar-title{display:none!important}
+  html[data-layout=top] body.pn .admin-topbar{left:0}
+  html[data-layout=top] body.pn .main-content{margin-left:0}
+  html[data-layout=top] body.pn .admin-topbar-left{flex:1 1 auto;min-width:0;height:100%}
+  html[data-layout=top] body.pn .admin-topbar-right{flex-shrink:0;margin-left:12px}
+  html[data-layout=top] body.pn .pn-brand,
+  html[data-layout=top] body.pn .pn-tn{display:flex}
+
+  /* --- 4. Modern Hybrid: to'liq kenglikdagi header + ostida yon panel --- */
+  html[data-layout=hybrid] body.pn .admin-topbar{left:0}
+  html[data-layout=hybrid] body.pn .pn-brand{display:flex}
+  html[data-layout=hybrid] body.pn .topbar-title{padding-left:14px;margin-left:2px;border-left:1px solid var(--pn-side-border)}
+  html[data-layout=hybrid] body.pn .sidebar{top:64px;height:calc(100vh - 64px);border-top:0}
+  html[data-layout=hybrid] body.pn .sidebar-brand,
+  html[data-layout=hybrid] body.pn .sidebar-user-card{display:none}
+  html[data-layout=hybrid] body.pn .sidebar-nav{padding-top:10px}
+}
+@media (min-width:993px) and (max-width:1199.98px){
+  html[data-layout=top] body.pn .pn-brand span{display:none}
+  html[data-layout=top] body.pn .pn-tn-link{padding:0 9px}
+  html[data-layout=top] body.pn .topbar-name{display:none}
+}
+
+/* Animatsiyalar o'chirilgan — faqat panel navigatsiyasi */
+html[data-motion=off] body.pn :is(.sidebar,.sidebar *,.admin-topbar,.admin-topbar *,.main-content,.sidebar-overlay){transition-duration:.001ms!important;transition-delay:0s!important;animation-duration:.001ms!important}

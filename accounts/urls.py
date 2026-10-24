@@ -8,6 +8,7 @@ from . import public_courses
 from . import password_recovery
 from . import email_verification
 from . import exam_admin
+from . import app_releases
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
 from .api import notify_views as notify_api
@@ -101,6 +102,7 @@ urlpatterns = [
     path('profile/statistics/pdf/', views.export_student_pdf, name='my_statistics_pdf'),
     path('settings/', views.site_settings, name='site_settings'),
     path('settings/weather/', views.save_weather_effect, name='save_weather_effect'),
+    path('settings/navigation/', views.save_navigation_preferences, name='save_navigation_preferences'),
     
     # Kursdoshlar va boshqa o'quvchilar profili
     path('professions/<int:pk>/classmates/', views.classmates_view, name='classmates'),
@@ -258,7 +260,15 @@ urlpatterns = [
     path('attendance/group/<int:group_pk>/', views.attendance_mark, name='attendance_mark'),
     path('attendance/group/<int:group_pk>/report/', views.attendance_report, name='attendance_report'),
     path('attendance/group/<int:group_pk>/report/excel/', views.attendance_report_excel, name='attendance_report_excel'),
-    
+
+    # Ilovalar boshqaruvi (Android / Windows o'rnatuvchilari)
+    path('dashboard/apps/', app_releases.admin_app_releases, name='admin_app_releases'),
+    path('dashboard/apps/<int:pk>/edit/', app_releases.admin_app_release_edit, name='admin_app_release_edit'),
+    path('dashboard/apps/<int:pk>/toggle/', app_releases.admin_app_release_toggle, name='admin_app_release_toggle'),
+    path('dashboard/apps/<int:pk>/delete/', app_releases.admin_app_release_delete, name='admin_app_release_delete'),
+    path('ilovalar/', app_releases.apps_page, name='apps_page'),
+    path('ilovalar/<int:pk>/download/', app_releases.app_release_download, name='app_release_download'),
+
     # Discounts / Chegirmalar
     path('dashboard/discounts/', views.admin_discounts, name='admin_discounts'),
     path('dashboard/discounts/add/', views.admin_discount_add, name='admin_discount_add'),

@@ -117,7 +117,7 @@
             // If the API call fails, exit fullscreen so the user isn't stuck.
             exitFullscreenIfActive();
             if (err && err.status === 402 && err.payload && err.payload.code === 'payment_required') {
-                window.location.href = `/quiz/quizzes/${err.payload.quiz_id}/retry-payment/`;
+                window.location.href = window.QUIZ_RETRY_URL || `/quiz/quizzes/${err.payload.quiz_id}/retry-payment/`;
                 return;
             }
             const msg = (err && err.message) || "Testni boshlab bo'lmadi.";

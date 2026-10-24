@@ -1,0 +1,8 @@
+{% load static %}{% comment %}
+  PWA: manifest, ikonkalar, service worker. <head> ichida. theme-color o'z shablonida bo'lsa: with pwa_no_theme=True
+{% endcomment %}<link rel="manifest" href="{% url 'pwa_manifest' %}">
+{% if not pwa_no_theme %}<meta name="theme-color" content="#4f46e5">
+{% endif %}<link rel="apple-touch-icon" href="{% static 'pwa/icons/apple-touch-icon.png' %}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ITC Academy">
+<script src="{% static 'pwa/pwa.js' %}?v=1" data-sw="{% url 'pwa_service_worker' %}" defer></script>

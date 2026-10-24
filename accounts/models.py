@@ -1,6 +1,9 @@
 import unicodedata
 import uuid
 from datetime import timedelta
+from pathlib import Path
+
+from .app_release_storage import app_release_storage, app_release_upload_to
 
 from django.db import models, transaction
 from django.db.models import F, Q
@@ -1640,6 +1643,83 @@ class UserDevice(models.Model):
     
     def __str__(self):
         return f"{self.user.username} - {self.device_name}"
+
+
+class NavigationPreference(models.Model):
+    """Foydalanuvchining navigatsiya ko'rinishi — akkauntga bog'langan, har qurilmada tiklanadi."""
+    LAYOUT_CHOICES = [
+        ('classic', 'Classic Sidebar'),
+        ('compact', 'Compact Sidebar'),
+        ('top', 'Top Navigation'),
+        ('hybrid', 'Modern Hybrid'),
+    ]
+    SIDEBAR_CHOICES = [('expanded', 'Kengaytirilgan'), ('collapsed', "Yig'ilgan")]
+    # '' — foydalanuvchi hali tanlamagan: brauzerdagi (localStorage) mavzu ishlatiladi
+    THEME_CHOICES = [('', 'Tanlanmagan'), ('light', "Yorug'"), ('dark', "Qorong'i"), ('system', 'Tizim')]
+
+    user = models.OneToOneField('CustomUser', on_delete=models.CASCADE, related_name='nav_preference')
+    layout = models.CharField(max_length=10, choices=LAYOUT_CHOICES, default='compact', verbose_name="Navigatsiya ko'rinishi")
+    sidebar = models.CharField(max_length=10, choices=SIDEBAR_CHOICES, default='expanded', verbose_name="Yon panel holati")
+    theme = models.CharField(max_length=10, choices=THEME_CHOICES, default='', blank=True, verbose_name="Mavzu")
+    motion = models.BooleanField(default=True, verbose_name="Animatsiyalar")
+    autosave = models.BooleanField(default=True, verbose_name="Avtomatik saqlash")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    DEFAULTS = {'layout': 'compact', 'sidebar': 'expanded', 'theme': '', 'motion': True, 'autosave': True}
+
+    class Meta:
+        verbose_name = "Navigatsiya sozlamasi"
+        verbose_name_plural = "Navigatsiya sozlamalari"
+
+    def __str__(self):
+        return f"{self.user.username} - {self.layout}"
+
+    def as_dict(self):
+        return {key: getattr(self, key) for key in self.DEFAULTS}
+
+
+class AppRelease(models.Model):
+    """Admin yuklaydigan Android/Windows ilova versiyasi. Navbarda har platformaning eng yangi e'lon qilingani chiqadi."""
+    PLATFORM_CHOICES = [('android', 'Android'), ('windows', 'Windows'), ('ios', 'iOS'), ('macos', 'macOS'), ('linux', 'Linux')]
+
+    platform = models.CharField(max_length=10, choices=PLATFORM_CHOICES, verbose_name="Platforma")
+    title = models.CharField(max_length=120, default='ITC Academy', verbose_name="Nomi")
+    version = models.CharField(max_length=40, verbose_name="Versiya")
+    file = models.FileField(storage=app_release_storage, upload_to=app_release_upload_to, max_length=255, verbose_name="Fayl")
+    original_name = models.CharField(max_length=255, blank=True, verbose_name="Asl fayl nomi")
+    file_size = models.PositiveBigIntegerField(default=0, verbose_name="Hajmi (bayt)")
+    sha256 = models.CharField(max_length=64, blank=True, verbose_name="SHA-256")
+    min_os = models.CharField(max_length=60, blank=True, verbose_name="Talab (OS)")
+    notes = models.TextField(blank=True, verbose_name="Yangiliklar / izoh")
+    is_published = models.BooleanField(default=True, verbose_name="E'lon qilingan")
+    download_count = models.PositiveIntegerField(default=0, verbose_name="Yuklab olishlar")
+    uploaded_by = models.ForeignKey('CustomUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Ilova versiyasi"
+        verbose_name_plural = "Ilova versiyalari"
+        indexes = [models.Index(fields=['platform', 'is_published', '-created_at'])]
+
+    def __str__(self):
+        return f"{self.get_platform_display()} {self.version}"
+
+    @property
+    def extension(self):
+        return Path(self.original_name or self.file.name).suffix.lower()
+
+    @property
+    def download_name(self):
+        return f"ITC-Academy-{self.get_platform_display()}-{self.version}{self.extension}"
+
+    def delete(self, *args, **kwargs):
+        name, storage = self.file.name, self.file.storage
+        result = super().delete(*args, **kwargs)
+        if name:
+            storage.delete(name)  # diskda yetim fayl qolmasin
+        return result
 
 
 class UserSession(models.Model):

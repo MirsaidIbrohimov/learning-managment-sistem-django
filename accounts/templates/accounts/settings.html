@@ -527,6 +527,22 @@
         </div>
     </div>
 
+    <!-- NAVIGATION -->
+    <div class="s-card">
+        <div class="s-card-head">
+            <div class="s-card-icon theme">
+                <i class="bi bi-layout-sidebar-inset"></i>
+            </div>
+            <div class="s-card-info">
+                <h5>Navigatsiya ko'rinishi</h5>
+                <p>Yon panel, yuqori menyu yoki gibrid ko'rinishni tanlang</p>
+            </div>
+        </div>
+        <button type="button" class="settings-back border-0" data-nav-settings aria-controls="nsPanel">
+            <i class="bi bi-sliders"></i> Navigatsiyani sozlash
+        </button>
+    </div>
+
     <!-- LANGUAGE -->
     <div class="s-card">
         <div class="s-card-head">
@@ -617,6 +633,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const theme = this.dataset.theme;
             document.documentElement.setAttribute('data-bs-theme', theme);
             localStorage.setItem('theme', theme);
+            document.dispatchEvent(new CustomEvent('itc:themechange', { detail: theme }));
             showToast(theme === 'dark' ? 'Qorong\'u rejim yoqildi' : 'Yorug\' rejim yoqildi');
         });
     });
