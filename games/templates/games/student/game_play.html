@@ -710,9 +710,11 @@
     // ===== 📵 MUSOBAQADA TELEFON/PLANSHET TAQIQI (mijoz tomoni) =====
     // Server UA orqali bloklaydi. iPad "desktop rejimi" UA'ni yashirgani uchun
     // bu yerda sensor (touch) bo'yicha qo'shimcha aniqlaymiz va serverga signal beramiz.
-    var _isTouchDevice = (navigator.maxTouchPoints || 0) > 0
-        || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
-        || ('ontouchstart' in window);
+    // Sensorli ekranli noutbuklar (maxTouchPoints > 0, lekin sichqoncha/trackpad bor) kompyuter
+    // hisoblanadi. Telefon/planshet: asosiy kiritish barmoq YOKI sensor bor-u, aniq ko'rsatkich yo'q.
+    var _mm = function (q) { return !!(window.matchMedia && window.matchMedia(q).matches); };
+    var _isTouchDevice = _mm('(pointer: coarse)')
+        || (((navigator.maxTouchPoints || 0) > 0 || ('ontouchstart' in window)) && !_mm('(any-pointer: fine)'));
     var _touchField = document.getElementById('hiddenIsTouch');
     if (_touchField) { _touchField.setAttribute('value', _isTouchDevice ? '1' : '0'); }
 

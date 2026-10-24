@@ -537,6 +537,16 @@ def game_submit(request, slug):
 
     accuracy = (correct / total * 100) if total > 0 else 0
 
+    # 2.0 qat'iy rejimda xato so'z o'tkazilmaydi — so'z aniqligi deyarli doim 100%.
+    # Xatolarni tugmalar aniqligi ko'rsatadi; ikkalasidan KICHIGI olinadi, shuning uchun
+    # yuqori raqam yuborish ball bermaydi (so'z aniqligi chegara bo'lib qoladi).
+    if game_session.get('ui') == 'v2':
+        try:
+            key_accuracy = min(100.0, max(0.0, float(request.POST.get('key_accuracy', 100))))
+        except (TypeError, ValueError):
+            key_accuracy = 100.0
+        accuracy = min(accuracy, key_accuracy)
+
     min_realistic_time = total * MIN_SECONDS_PER_WORD
     if time_spent < min_realistic_time:
         time_spent = min_realistic_time

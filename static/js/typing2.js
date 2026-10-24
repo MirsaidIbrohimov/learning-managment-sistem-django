@@ -28,7 +28,7 @@
     }
     load(words) {
       this.words = words; this.i = 0; this.typed = ''; this.marks = []; this.committed = []; this.t0 = 0; this.keys = 0; this.ok = 0; this.trusted = 0;
-      this.combo = 0; this.maxCombo = 0; this.errors = 0; this.done = false; this.inp.value = ''; this.times = []; this._errWord = -1;
+      this.combo = 0; this.maxCombo = 0; this.errors = 0; this.done = false; this.inp.value = ''; this.times = []; this._errWord = -1; this.rejected = new Set();
       this.rail.innerHTML = words.map(w => `<span class="w">${esc(w)}</span>`).join('');
       this.root.classList.add('idle'); this.paint(true);
     }
@@ -64,6 +64,7 @@
     }
     rejectWord() {
       if (this._errWord !== this.i) { this._errWord = this.i; this.errors++; }   // har so'z uchun bir marta
+      this.rejected.add(this.i);   // grafikda bu so'z "xato" (qizil) bo'lib ko'rinadi
       this.combo = 0; this.flashErr();
       const el = this.rail.children[this.i];
       G && el && G.fromTo(el, { x: -8 }, { x: 0, duration: .45, ease: 'elastic.out(1,.25)' });
@@ -95,9 +96,12 @@
       // Kursor joyi: joriy so'zdagi keyingi harf — lenta shu nuqtani markazga suradi
       const cur = this.rail.children[Math.min(this.i, this.words.length - 1)], cs = cur.children;
       let x;
+      // .w — position:relative, ya'ni harflar o'lchovi DOIM so'z boshidan. Avval harf offsetLeft'i
+      // to'g'ridan-to'g'ri olinardi: so'z silkitilganda (GSAP transform) brauzer o'lchov boshini
+      // almashtirib yuborardi va lenta gap boshiga sakrab ketardi.
       if (this.i >= this.words.length) x = cur.offsetLeft + cur.offsetWidth;
-      else if (this.typed.length < cs.length) x = cs[this.typed.length].offsetLeft;
-      else { const l = cs[cs.length - 1]; x = l ? l.offsetLeft + l.offsetWidth : cur.offsetLeft; }
+      else if (this.typed.length < cs.length) x = cur.offsetLeft + cs[this.typed.length].offsetLeft;
+      else { const l = cs[cs.length - 1]; x = cur.offsetLeft + (l ? l.offsetLeft + l.offsetWidth : 0); }
       if (instant) { this.rail.style.transition = 'none'; requestAnimationFrame(() => this.rail.style.transition = ''); }
       this.rail.style.transform = `translateX(${-x}px)`;
     }
@@ -125,7 +129,7 @@
       return this.times.map((t, k) => {
         const dt = Math.max(60, t - prev); prev = t;
         const w = this.words[k] || '';
-        return { word: w, ok: this.committed[k] === w, wpm: Math.round(((w.length + 1) / 5) / (dt / 60000)) };
+        return { word: w, ok: this.committed[k] === w && !this.rejected.has(k), wpm: Math.round(((w.length + 1) / 5) / (dt / 60000)) };
       });
     }
     stats() {

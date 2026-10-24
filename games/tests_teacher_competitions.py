@@ -248,6 +248,7 @@ class TypingV2Tests(TestCase):
         self.assertEqual(resp.json()['accuracy'], 100.0)
         attempt = GameAttempt.objects.get()
         self.assertEqual(attempt.competition, comp)
+        self.assertEqual(attempt.accuracy, 100.0)   # key_accuracy yuborilmasa — so'z aniqligi
         self.assertEqual(attempt.ui_version, 'v2')
         # Natijalarim: 2.0 filtri faqat 2.0 natijalarini ko'rsatadi
         resp = self.client.get(reverse('games:my_results') + '?mode=v2')
@@ -289,3 +290,30 @@ class GamesListTests(TestCase):
         resp = self.client.get(reverse('games:game_play_competition', args=['typing', race.pk]), HTTP_USER_AGENT=DESKTOP_UA)
         self.assertRedirects(resp, reverse('games:game_play_v2_competition', args=['typing', race.pk]),
                              fetch_redirect_response=False)
+
+
+@SKIP_SESSION_MIDDLEWARE
+class TypingV2AccuracyTests(TestCase):
+    """2.0: tugmalar aniqligi ballni faqat pasaytira oladi, oshira olmaydi."""
+    def setUp(self):
+        self.student = make_user('aniq')
+        self.game = Game.objects.create(title='Typing', slug='typing', game_type='typing')
+        self.prompt = Prompt.objects.create(game=self.game, text='bir ikki uch tort', usage='both')
+        self.client.force_login(self.student)
+
+    def submit(self, typed, key_accuracy, ui='v2'):
+        url = reverse('games:game_play_v2' if ui == 'v2' else 'games:game_play', args=['typing'])
+        token = self.client.get(url, HTTP_USER_AGENT=DESKTOP_UA).context['game_token']
+        return self.client.post(reverse('games:game_submit', args=['typing']),
+                                {'prompt_id': self.prompt.pk, 'game_token': token, 'typed_text': typed,
+                                 'key_accuracy': key_accuracy}, HTTP_USER_AGENT=DESKTOP_UA,
+                                HTTP_X_REQUESTED_WITH='XMLHttpRequest').json()
+
+    def test_key_accuracy_lowers_score(self):
+        self.assertEqual(self.submit('bir ikki uch tort', 80)['accuracy'], 80.0)
+
+    def test_fake_high_key_accuracy_does_not_help(self):
+        self.assertEqual(self.submit('bir XATO uch tort', 100)['accuracy'], 75.0)
+
+    def test_classic_ignores_key_accuracy(self):
+        self.assertEqual(self.submit('bir ikki uch tort', 10, ui='classic')['accuracy'], 100.0)

@@ -6,7 +6,7 @@
 {% block extra_css %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=3">
+<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=6">
 {% endblock %}
 
 {% block content %}
@@ -70,7 +70,7 @@
     </div>
     <div class="tape" id="pTape" style="margin-top:10px"></div>
     <div class="tbar" id="pBar"><i></i></div>
-    <div class="prac-f"><i class="bi bi-info-circle"></i> Yozishni boshlang — taymer o‘zi yoqiladi · <kbd>Space</kbd> keyingi so‘z · <kbd>Esc</kbd> yangi matn
+    <div class="prac-f"><i class="bi bi-info-circle"></i> Yozishni boshlang — taymer o‘zi yoqiladi · <kbd>Space</kbd> keyingi so‘z · xato so‘zni tuzatmaguncha o‘tib bo‘lmaydi · <kbd>Esc</kbd> yangi matn
       <span class="sp mono">{% if best_wpm %}Rekord: {{ best_wpm }} WPM · {% endif %}<span id="pCount"></span></span></div>
   </section>
   {% endif %}
@@ -83,6 +83,7 @@
   <input type="hidden" name="game_token" value="{{ game_token }}">
   <input type="hidden" name="typed_text" id="fTyped">
   <input type="hidden" name="keystroke_count" id="fKeys">
+  <input type="hidden" name="key_accuracy" id="fKeyAcc">
   <input type="hidden" name="is_touch" id="fTouch" value="0">
 </form>
 
@@ -91,7 +92,7 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
-<script src="{% static 'js/typing2.js' %}?v=5"></script>
+<script src="{% static 'js/typing2.js' %}?v=7"></script>
 <script>
 (function () {
   'use strict';
@@ -112,7 +113,10 @@
   const COMP_TITLE = {% if competition %}"{{ competition.title|escapejs }}"{% else %}""{% endif %};
   const LB_URL = {% if competition %}"{% url 'games:competition_leaderboard' competition.pk %}"{% else %}""{% endif %};
   const DETAIL_URL = "{% url 'games:game_detail' game.slug %}";
-  const isTouch = (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && matchMedia('(pointer: coarse)').matches);
+  // Sensorli ekranli noutbuk — kompyuter (sichqoncha/trackpad bor). Telefon/planshet: asosiy kiritish barmoq
+  // yoki sensor bor-u aniq ko'rsatkich umuman yo'q (iPad "desktop" rejimi ham shu bilan ushlanadi).
+  const mm = q => !!(window.matchMedia && matchMedia(q).matches);
+  const isTouch = mm('(pointer: coarse)') || (((navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window) && !mm('(any-pointer: fine)'));
   $('#fTouch').value = isTouch ? '1' : '0';
 
   const { Tape } = window.Typing2, Typing2 = window.Typing2;
@@ -125,6 +129,7 @@
     const form = $('#submitForm');
     $('#fTyped').value = tape.committed.join(' ');
     $('#fKeys').value = String(tape.trusted);
+    $('#fKeyAcc').value = String(tape.stats().acc);
     try {
       const r = await fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'XMLHttpRequest' } });
       const data = await r.json();
@@ -143,14 +148,25 @@
   /* ════════ MASHQ ════════ */
   function practice() {
     const pBar = $('#pBar i');
-    const tape = new Tape($('#pTape'), { onEsc: () => location.assign($('#newText').href), onWord: hud, onDone: finish });
+    const tape = new Tape($('#pTape'), {
+      strict: true,   // xato so'z tasdiqlanmaydi — tuzatmaguncha keyingisiga o'tilmaydi
+      onEsc: () => location.assign($('#newText').href), onWord: hud, onDone: finish,
+      onReject: w => hint(`❌ “${w}” — xato. Tuzatib, keyin probel bosing`),
+    });
     tape.load(WORDS);
+    const hintEl = document.createElement('div'); hintEl.className = 'tv-toast'; $('#prac').appendChild(hintEl);
+    function hint(msg) {
+      hintEl.textContent = msg;
+      if (!G) { hintEl.style.opacity = 1; clearTimeout(hint.t); hint.t = setTimeout(() => hintEl.style.opacity = 0, 1800); return; }
+      G.killTweensOf(hintEl);
+      G.timeline().fromTo(hintEl, { y: -10, opacity: 0 }, { y: 0, opacity: 1, duration: .3, ease: 'back.out(2)' }).to(hintEl, { opacity: 0, duration: .3, delay: 1.6 });
+    }
     for (let k = 1; k < WORDS.length; k++) { const u = document.createElement('u'); u.style.left = (k / WORDS.length * 100) + '%'; $('#pBar').appendChild(u); }
     function hud() {
       const s = tape.stats();
       $('#hW').textContent = s.wpm; $('#hA').textContent = s.acc; $('#hT').textContent = s.sec.toFixed(1);
       const c = $('#hC'); if (+c.textContent !== s.combo) { c.textContent = s.combo; if (s.combo > 1 && G) G.fromTo(c, { scale: 1.5 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); }
-      pBar.style.width = tape.progress() * 100 + '%';
+      pBar.style.width = tape.wordProgress() * 100 + '%';
       $('#pCount').textContent = `${Math.min(tape.i, WORDS.length)} / ${WORDS.length} so‘z`;
     }
     tape.inp.addEventListener('input', hud);
@@ -189,7 +205,12 @@
 
     const N = WORDS.length;
     const st = { on: false, t0: 0, lastT: 0, fin: [], lastRank: null, cars: [], timers: [], raf: 0, tabs: 0 };
-    const tape = new Tape($('#rTape'), { onWord: good => { if (st.on && good) nitro(0); }, onDone: () => { /* marraga yetish loop'da aniqlanadi */ } });
+    const tape = new Tape($('#rTape'), {
+      strict: true,
+      onWord: good => { if (st.on && good) nitro(0); },
+      onReject: w => toast(`❌ “${w}” so‘zini to‘g‘ri yozing`),
+      onDone: () => { /* marraga yetish loop'da aniqlanadi */ },
+    });
     tape.load(WORDS); tape.locked = true;
 
     // Raqiblar = reytingdagi eng yaxshi natijalar ("arvohlar"): ularning rasmiy WPM tezligida yuradi.
@@ -248,7 +269,7 @@
       st.raf = requestAnimationFrame(loop);
       const now = performance.now(), dt = Math.min(.05, (now - st.lastT) / 1000); st.lastT = now;
       const { x0, span } = geom();
-      st.cars[0].target = tape.progress();
+      st.cars[0].target = tape.wordProgress();   // faqat to'g'ri so'zlar mashinani yurgizadi
       st.cars.forEach(c => {
         const prev = c.pos;
         c.pos += (c.target - c.pos) * Math.min(1, dt * 5);
@@ -299,7 +320,7 @@
       }
       st.lastRank = myRank;
       const s = tape.stats(); gauge(s.wpm);
-      $('#rI').textContent = `${Math.min(tape.i, N)}/${N}`; $('#rAc').textContent = s.acc + '%'; $('#rCb').textContent = s.combo; $('#rBar').style.width = tape.progress() * 100 + '%';
+      $('#rI').textContent = `${Math.min(tape.i, N)}/${N}`; $('#rAc').textContent = s.acc + '%'; $('#rCb').textContent = s.combo; $('#rBar').style.width = tape.wordProgress() * 100 + '%';
     }
     function gauge(w) { $('#gW').textContent = w; $('#gArc').setAttribute('stroke-dasharray', `${Math.min(100, w / 1.2)} 100`); }
 
@@ -338,7 +359,7 @@
       const ok = res && !res.error;
       const myRank = lb && lb.your_rank;
       const srv = ok ? `<div class="srv"><span class="pill">Ball <b>${esc(res.score)}</b></span><span class="pill">${Math.round(res.wpm)} WPM</span><span class="pill">Aniqlik ${Math.round(res.accuracy)}%</span>${myRank ? `<span class="pill hot">Reytingda: #${myRank} / ${lb.total_participants}</span>` : ''}</div>` : '';
-      const title = reason ? '⛔ ' + reason : (st.cars.length === 1 ? 'Marraga yetdingiz! 🏁' : meWin ? 'Siz yetakchisiz! 🏆' : esc(st.cars[o[0]].name) + ' oldinda!');
+      const title = reason ? '⛔ ' + reason : !ok ? '⚠️ Natija qabul qilinmadi' : (st.cars.length === 1 ? 'Marraga yetdingiz! 🏁' : meWin ? 'Siz yetakchisiz! 🏆' : esc(st.cars[o[0]].name) + ' oldinda!');
       const sub = ok ? 'Natijangiz rasmiy reytingga yozildi. G‘oliblar musobaqa tugagach aniqlanadi.' : esc((res && res.error) || 'Natija yuborilmadi.');
       $('#podium').innerHTML = `<div class="title"><h3>${title}</h3><p>${sub}</p>${srv}</div>
         <div class="again"><a class="tv-btn ghost sm" href="${LB_URL}"><i class="bi bi-bar-chart-fill"></i> Reyting</a>
