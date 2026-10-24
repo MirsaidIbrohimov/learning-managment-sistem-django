@@ -1,0 +1,317 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Poyga · Xona {{ room.code }} | LMS{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+<div class="tv2-bgfx"></div>
+<div class="tv2">
+  <div class="top">
+    <h1><i class="bi bi-car-front-fill" style="background:linear-gradient(135deg,#f59e0b,#b45309)"></i>Sheriklar bilan <small>XONA {{ room.code }}</small></h1>
+    <span class="coin" title="Coin balansingiz"><b>₵</b><span id="myCoin">{{ request.user.coins }}</span></span>
+    <a href="{% url 'games:rooms_lobby' %}" class="tv-btn ghost sm"><i class="bi bi-arrow-left"></i> Lobbi</a>
+  </div>
+
+  <section class="race glass" id="raceBox">
+    <div class="race-top">
+      <h3><i class="bi bi-flag-fill" style="color:var(--pink)"></i> Poyga · XONA <span class="mono">{{ room.code }}</span></h3>
+      <span class="pill live" id="statusPill">Kutilmoqda</span>
+      <div class="gauge"><svg viewBox="0 0 46 30"><defs><linearGradient id="gG"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs><path d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="5" stroke-linecap="round"/><path id="gArc" d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="url(#gG)" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition:stroke-dasharray .3s"/></svg><div><b id="gW">0</b> <small>WPM</small></div></div>
+      <span class="pill hot" id="potPill"></span>
+      <button class="tv-btn ghost sm" type="button" id="copyBtn"><i class="bi bi-share"></i> Taklif havolasi</button>
+      <button class="tv-btn ghost sm" type="button" id="leaveBtn" hidden><i class="bi bi-box-arrow-left"></i> Chiqish</button>
+    </div>
+    <div class="track" id="track"></div>
+    <div class="board">
+      <div class="rtape glass">
+        <div class="rt-h"><span>SO‘Z <b id="rI">0/0</b></span><span>ANIQLIK <b id="rAc">100%</b></span><span class="cb">🔥 <b id="rCb" style="color:inherit">0</b></span><span class="sp">To‘g‘ri so‘z = nitro 🚀</span></div>
+        <div class="tape" id="rTape"></div>
+        <div class="tbar"><i id="rBar"></i></div>
+      </div>
+      <div class="standings glass"><h4>JONLI O‘RINLAR <span id="clock">0.0s</span></h4><div id="stand"></div>
+        <p class="pill mt-2" style="white-space:normal;display:block;line-height:1.5">G‘olib — matnni birinchi tugatgan va aniqligi kamida <b id="minAcc">60</b>% bo‘lgan o‘yinchi.</p>
+      </div>
+    </div>
+
+    <!-- Lobbi: sheriklarni kutish -->
+    <div class="wait on" id="wait">
+      <h4 id="waitTitle">Sheriklarni kuting…</h4>
+      <p class="note" id="waitNote"></p>
+      <div class="calc" id="calc" style="min-width:280px;text-align:left"></div>
+      <div class="acts">
+        <button class="tv-btn" type="button" id="joinBtn" hidden><i class="bi bi-box-arrow-in-right"></i> Qo‘shilish</button>
+        <button class="tv-btn" type="button" id="startBtn" hidden><i class="bi bi-flag"></i> Poygani boshlash</button>
+        <button class="tv-btn ghost" type="button" id="copyBtn2"><i class="bi bi-share"></i> Havolani nusxalash</button>
+        <a class="tv-btn ghost" href="{% url 'games:rooms_lobby' %}" id="lobbyLink" hidden><i class="bi bi-grid"></i> Lobbiga</a>
+      </div>
+    </div>
+    <div class="lights" id="lights"><div class="box"><i></i><i></i><i></i><i></i><i></i></div><b id="lightsTxt">Tayyorlaning…</b></div>
+    <div class="podium" id="podium"></div>
+    <div class="tv-toast" id="toast"></div>
+  </section>
+</div>
+<form id="csrfForm" hidden>{% csrf_token %}</form>
+{{ state|json_script:"room-state" }}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="{% static 'js/typing2.js' %}?v=3"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const G = window.gsap;
+  const { Tape, carSVG, ROSTER, esc, norm, showResult } = window.Typing2;
+  const mobile = () => window.innerWidth <= 900;
+  const URL = {
+    state: "{% url 'games:room_state' room.code %}", join: "{% url 'games:room_join' room.code %}",
+    leave: "{% url 'games:room_leave' room.code %}", start: "{% url 'games:room_start' room.code %}",
+    progress: "{% url 'games:room_progress' room.code %}", lobby: "{% url 'games:rooms_lobby' %}",
+  };
+  const INVITE = "{{ invite_url|escapejs }}";
+  const CSRF = $('#csrfForm input[name=csrfmiddlewaretoken]').value;
+
+  let S = JSON.parse($('#room-state').textContent);
+  let offset = S.server_time - Date.now();
+  const now = () => Date.now() + offset;
+
+  const tape = new Tape($('#rTape'), { onWord: good => { if (good) nitro(mySlot()); sendProgress(); }, onDone: () => sendProgress(true) });
+  tape.load(['…']); tape.locked = true;
+
+  let cars = [], carKey = '', raceInit = false, lightsSet = false, raf = 0, timers = [], podiumShown = false, lastRank = null;
+  const mySlot = () => { const me = S.players.find(p => p.is_me); return me ? me.slot : -1; };
+
+  /* ── Server bilan aloqa ── */
+  async function post(url, data) {
+    const fd = new FormData(); fd.append('csrfmiddlewaretoken', CSRF);
+    Object.entries(data || {}).forEach(([k, v]) => fd.append(k, v));
+    const t0 = Date.now();
+    const r = await fetch(url, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    const j = await r.json();
+    if (j.error) toast('⚠️ ' + j.error);
+    const st = j.state || j;
+    if (st && st.server_time) { offset = st.server_time - (t0 + Date.now()) / 2; apply(st); }
+    return j;
+  }
+  let sending = false, pending = false;
+  async function sendProgress(force) {
+    if (S.status !== 'running') return;
+    if (sending) { pending = true; return; }
+    sending = true;
+    try { await post(URL.progress, { typed_text: tape.committed.join(' ') }); } catch (e) {}
+    sending = false;
+    if (pending || force) { pending = false; if (!force) sendProgress(); }
+  }
+  async function poll() {
+    if (S.status === 'finished' || S.status === 'cancelled') return;
+    try {
+      const t0 = Date.now(), r = await fetch(URL.state, { headers: { 'X-Requested-With': 'XMLHttpRequest' } }), st = await r.json();
+      offset = st.server_time - (t0 + Date.now()) / 2; apply(st);
+    } catch (e) {}
+    setTimeout(poll, S.status === 'running' ? 700 : 1500);
+  }
+
+  /* ── Holatni chizish ── */
+  function apply(st) {
+    S = st;
+    if (st.my_coins != null) $('#myCoin').textContent = st.my_coins;
+    const n = st.players.length, me = st.players.find(p => p.is_me);
+    $('#potPill').textContent = st.stake ? `Tikish ${st.stake} · bank ${st.stake * n}` : 'Shunchaki o‘yin';
+    $('#leaveBtn').hidden = !me || st.status === 'finished' || st.status === 'cancelled' || (me && me.finish_seconds);
+    const key = st.players.map(p => p.slot + ':' + p.name).join('|');
+    if (key !== carKey) { carKey = key; build(st.players); }
+    st.players.forEach(p => { const c = cars.find(c => c.slot === p.slot); if (c) Object.assign(c, { p, target: p.is_me && raceInit ? Math.max(tape.progress(), p.progress) : p.progress }); });
+
+    const pill = $('#statusPill');
+    if (st.status === 'lobby') {
+      pill.textContent = `Kutilmoqda · ${n}/${st.max_players}`;
+      $('#wait').classList.add('on');
+      $('#waitTitle').textContent = me ? 'Sheriklarni kuting…' : 'Poygaga qo‘shiling!';
+      $('#waitNote').textContent = `${n}/${st.max_players} o‘yinchi. ` + (st.is_host ? (n < 2 ? 'Boshlash uchun kamida 2 kishi kerak — havolani do‘stlaringizga yuboring.' : 'Hamma tayyor bo‘lsa, poygani boshlang!') : 'Xona egasi poygani boshlaydi.');
+      $('#joinBtn').hidden = !!me || n >= st.max_players;
+      $('#joinBtn').innerHTML = st.stake ? `<i class="bi bi-coin"></i> ${st.stake} coin tikib qo‘shilish` : '<i class="bi bi-box-arrow-in-right"></i> Qo‘shilish';
+      $('#startBtn').hidden = !st.is_host; $('#startBtn').disabled = n < 2;
+      $('#lobbyLink').hidden = true;
+      calc(st);
+    } else if (st.status === 'running') {
+      pill.textContent = 'Poyga';
+      $('#wait').classList.remove('on');
+      if (!raceInit) initRace(st);
+    } else if (st.status === 'cancelled') {
+      pill.textContent = 'Bekor qilingan';
+      $('#wait').classList.add('on'); $('#waitTitle').textContent = 'Xona bekor qilindi';
+      $('#waitNote').textContent = 'Tikilgan coinlar qaytarildi.'; $('#calc').hidden = true;
+      $('#joinBtn').hidden = $('#startBtn').hidden = true; $('#lobbyLink').hidden = false;
+    } else if (st.status === 'finished') {
+      pill.textContent = 'Tugadi';
+      $('#wait').classList.remove('on');
+      if (!podiumShown) { podiumShown = true; setTimeout(podium, raceInit ? 900 : 0); }
+    }
+    drawStand();
+  }
+  function calc(st) {
+    const c = st.calc;
+    $('#calc').innerHTML = !st.stake
+      ? '<div class="r"><span>Rejim</span><b>Shunchaki o‘yin</b></div><div class="win"><span>G‘olibga</span><b>🏆 shon-sharaf</b></div>'
+      : `<div class="r"><span>Har bir o‘yinchi</span><b>${st.stake} coin</b></div><div class="r"><span>Bank (${st.players.length} × ${st.stake})</span><b>${c.pot} coin</b></div>
+         <div class="r fee"><span>Xizmat haqi (${c.fee_percent}%)</span><b>−${c.fee} coin</b></div><div class="win"><span>G‘olibga tushadi</span><b>+${c.win}</b></div>`;
+  }
+
+  /* ── Trek ── */
+  function build(players) {
+    const old = Object.fromEntries(cars.map(c => [c.slot, c.pos]));
+    $('#track').innerHTML = '<div class="kerb t"></div><div class="kerb b"></div><div class="startln" id="startln"></div><div class="finish"></div><div class="finish-banner">FINISH</div>' +
+      players.map(p => `<div class="ln ${p.is_me ? 'me' : ''}"><span class="av" style="background:${ROSTER[p.slot % ROSTER.length].c}">${p.is_me ? 'SIZ' : esc(p.initials)}</span>
+        <div class="car" id="car${p.slot}"><div class="wind"></div>${carSVG(p.slot, p.slot + 7)}<span class="plate" id="pl${p.slot}"><i>P${p.slot + 1}</i>${esc(p.name)}${p.is_host ? ' 👑' : ''}</span></div></div>`).join('');
+    cars = players.map(p => { const el = $('#car' + p.slot);
+      return { slot: p.slot, p, el, body: $('.body', el), rims: $$('.rim', el), flame: $('.flame', el), wind: $('.wind', el), plate: $('#pl' + p.slot), pos: old[p.slot] || 0, target: p.progress, dist: 0 }; });
+    place();
+  }
+  function geom() {
+    const t = $('#track'), cw = cars.length ? cars[0].el.offsetWidth : 150, x0 = mobile() ? 36 : 54, finR = mobile() ? 30 : 64;
+    return { x0, span: t.clientWidth - finR - cw * 0.97 - x0, cw };
+  }
+  function place() { if (!cars.length) return; const { x0, span, cw } = geom(); $('#startln').style.left = (x0 + cw * 0.97 + 4) + 'px'; cars.forEach(c => c.el.style.transform = `translate3d(${x0 + c.pos * span}px,0,0)`); }
+
+  function initRace(st) {
+    raceInit = true;
+    tape.load(st.words.map(norm));
+    if (st.my_typed && st.my_typed.length) tape.resume(st.my_typed.map(norm));
+    const me = st.players.find(p => p.is_me);
+    if (!me || me.left || me.finish_seconds) { tape.locked = true; } else lights(st.starts_at);
+    $$('#track .kerb').forEach(k => k.classList.add('mv'));
+    let lastT = performance.now();
+    (function loop() {
+      raf = requestAnimationFrame(loop);
+      const t = performance.now(), dt = Math.min(.05, (t - lastT) / 1000); lastT = t;
+      const { x0, span } = geom(), my = cars.find(c => c.p.is_me);
+      if (my && !tape._locked) my.target = Math.max(my.target, tape.progress());
+      cars.forEach(c => {
+        const prev = c.pos; c.pos += (c.target - c.pos) * Math.min(1, dt * 5);
+        if (c.target >= 1 && 1 - c.pos < .002) c.pos = 1;
+        const dx = (c.pos - prev) * span; c.dist += dx;
+        c.el.style.transform = `translate3d(${x0 + c.pos * span}px,0,0)`;
+        const a = (c.dist / 11.5) * 57.3 * (160 / c.el.offsetWidth); c.rims.forEach(r => r.setAttribute('transform', `rotate(${a})`));
+        c.body.setAttribute('transform', dx > .05 ? `translate(0 ${(Math.sin(t / 55 + c.slot) * .6).toFixed(2)})` : '');
+        if (!c.p.is_me && dx * 60 > span * .02 && Math.random() < .02) nitro(c.slot);
+      });
+      if (S.starts_at) $('#clock').textContent = Math.max(0, (now() - S.starts_at) / 1000).toFixed(1) + 's';
+      if (!loop.st || t - loop.st > 250) { loop.st = t; drawStand(); }
+    })();
+  }
+  // Start chiroqlari server vaqtiga bog'langan: GO hammada bir paytda yonadi.
+  function lights(startsAt) {
+    if (lightsSet) return; lightsSet = true;
+    const L = $$('#lights .box i'), txt = $('#lightsTxt'), wait = startsAt - now();
+    if (wait <= 0) { tape.locked = false; return; }
+    $('#lights').classList.add('on'); txt.textContent = 'Tayyorlaning…';
+    L.forEach((l, k) => timers.push(setTimeout(() => { l.className = 'r'; txt.textContent = 5 - k; G && G.fromTo(txt, { scale: 1.4 }, { scale: 1, duration: .3 }); }, Math.max(0, wait - 3000 + k * 600))));
+    timers.push(setTimeout(() => {
+      L.forEach(l => l.className = 'g'); txt.textContent = 'GO!'; G && G.fromTo(txt, { scale: 2 }, { scale: 1, duration: .4, ease: 'back.out(3)' });
+      tape.locked = false;
+      timers.push(setTimeout(() => $('#lights').classList.remove('on'), 450));
+    }, wait));
+  }
+  function nitro(slot) {
+    const c = cars.find(c => c.slot === slot); if (!c || !G) return;
+    G.killTweensOf([c.flame, c.wind]);
+    G.timeline().to(c.flame, { opacity: 1, duration: .08 }).to(c.flame, { opacity: .5, duration: .07, repeat: 5, yoyo: true }).to(c.flame, { opacity: 0, duration: .2 });
+    G.fromTo(c.wind, { opacity: .9, x: 10 }, { opacity: 0, x: -30, duration: .6, ease: 'power2.out' });
+  }
+  function order() {
+    return [...cars].sort((a, b) => {
+      if (a.p.place && b.p.place) return a.p.place - b.p.place;
+      const fa = a.p.finish_seconds, fb = b.p.finish_seconds;
+      if (fa != null || fb != null) return (fa == null ? 1e9 : fa) - (fb == null ? 1e9 : fb);
+      return b.target - a.target;
+    });
+  }
+  function toast(msg) { const t = $('#toast'); if (!t) return; t.textContent = msg; if (!G) return; G.killTweensOf(t); G.timeline().fromTo(t, { y: -16, opacity: 0 }, { y: 0, opacity: 1, duration: .35, ease: 'back.out(2)' }).to(t, { opacity: 0, y: -10, duration: .3, delay: 1.8 }); }
+  function drawStand() {
+    const el = $('#stand'), old = {}, o = order();
+    [...el.children].forEach(c => old[c.dataset.k] = c.getBoundingClientRect().top);
+    el.innerHTML = o.map((c, r) => { const p = c.p, wpm = p.is_me && raceInit && !p.finish_seconds ? tape.stats().wpm : Math.round(p.wpm);
+      return `<div class="st r${r + 1} ${p.is_me ? 'me' : ''}" data-k="${c.slot}"><span class="p">${r + 1}</span><span class="dot" style="background:${ROSTER[c.slot % ROSTER.length].c}"></span><div><b>${esc(p.name)}${p.is_host ? ' 👑' : ''}</b><small>${p.left ? 'chiqib ketdi' : Math.round(c.target * 100) + '% · ' + wpm + ' WPM'}</small></div><span class="wt">${p.finish_seconds ? '🏁 ' + p.finish_seconds.toFixed(1) + 's' : ''}</span></div>`; }).join('');
+    o.forEach((c, r) => { const i = c.plate.firstChild, t = 'P' + (r + 1); if (i.textContent !== t) { i.textContent = t; G && G.fromTo(i, { scale: 1.6 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); } c.plate.className = 'plate' + (r < 3 ? ' p' + (r + 1) : ''); });
+    [...el.children].forEach(c => { const was = old[c.dataset.k]; if (was != null && G) { const d = was - c.getBoundingClientRect().top; if (d) G.fromTo(c, { y: d }, { y: 0, duration: .45, ease: 'power3.out' }); } });
+    const myRank = o.findIndex(c => c.p.is_me) + 1;
+    if (S.status === 'running' && lastRank && myRank && myRank !== lastRank) toast(myRank < lastRank ? `🚀 Siz ${myRank}-o‘ringa chiqdingiz!` : `⚠️ ${o[myRank - 2].p.name} sizni quvib o‘tdi`);
+    lastRank = myRank;
+    if (raceInit) {
+      const s = tape.stats(), N = tape.words.length;
+      $('#gW').textContent = s.wpm; $('#gArc').setAttribute('stroke-dasharray', `${Math.min(100, s.wpm / 1.2)} 100`);
+      $('#rI').textContent = `${Math.min(tape.i, N)}/${N}`; $('#rAc').textContent = s.acc + '%'; $('#rCb').textContent = s.combo; $('#rBar').style.width = tape.progress() * 100 + '%';
+    }
+  }
+  function podium() {
+    cancelAnimationFrame(raf); tape.locked = true; timers.forEach(clearTimeout); $('#lights').classList.remove('on');
+    $$('#track .kerb').forEach(k => k.classList.remove('mv'));
+    const res = S.result || {}, o = order(), H = [140, 180, 110], C = ['#94a3b8', '#f59e0b', '#c2410c'], slots = [1, 0, 2].filter(p => p < o.length);
+    const title = res.winner_is_me ? 'Siz yutdingiz! 🏆' : res.winner ? esc(res.winner) + ' yutdi!' : 'G‘olib aniqlanmadi';
+    const sub = res.pot ? `Bank ${res.pot} coin · ${S.calc.fee_percent}% xizmat haqi (${res.fee}) · g‘olibga ${res.payout} coin`
+      : S.stake && !res.winner ? `Hech kim ${res.min_accuracy}% aniqlik bilan marraga yetmadi — tikishlar qaytarildi.` : 'Shunchaki o‘yin — coin tikilmagan';
+    $('#podium').innerHTML = `<div class="title"><h3>${title}</h3><p>${sub}</p></div>
+      <div class="again"><a class="tv-btn sm" href="${URL.lobby}"><i class="bi bi-arrow-repeat"></i> Revansh xonasi</a></div>` +
+      slots.map(k => { const c = o[k], p = c.p, hi = [1, 0, 2].indexOf(k);
+        return `<div class="col"><div class="pcar">${carSVG(c.slot, c.slot + 7)}</div><div class="who">${esc(p.name)}</div><div class="pay">${p.payout ? '+' + p.payout + ' coin' : p.finish_seconds ? p.finish_seconds.toFixed(1) + 's · ' + Math.round(p.accuracy) + '%' : Math.round(p.progress * 100) + '%'}</div><div class="blk" style="height:${H[hi]}px;background:${C[hi]}">${k + 1}</div></div>`; }).join('');
+    $('#podium').classList.add('on');
+    if (G) {
+      G.from('#podium .blk', { scaleY: 0, transformOrigin: '50% 100%', duration: .7, stagger: .12, ease: 'back.out(1.6)' });
+      G.from('#podium .pcar', { x: -260, opacity: 0, duration: .9, stagger: .12, ease: 'expo.out', delay: .3 });
+      if (res.winner_is_me) confetti();
+      if (res.winner_is_me && res.payout) G.fromTo('.coin', { scale: 1.3 }, { scale: 1, duration: .6, ease: 'back.out(3)' });
+    }
+    const me = S.players.find(p => p.is_me);
+    if (me && raceInit) setTimeout(() => myResult(me, res, sub), 2200);
+  }
+  // Shaxsiy natija — to'liq ekranli motion oyna (raqamlar serverniki)
+  function myResult(me, res, sub) {
+    const s = tape.stats(), d = { wpm: Math.round(me.wpm), acc: Math.round(me.accuracy), score: Math.round(me.wpm * me.accuracy) / 100, sec: me.finish_seconds || 0 };
+    const coin = me.payout ? '+' + me.payout : (S.stake && res.winner && !res.winner_is_me ? '−' + S.stake : '0');
+    const screen = showResult(Object.assign({
+      kicker: 'SHERIKLAR BILAN · XONA ' + S.code,
+      title: res.winner_is_me ? 'Siz yutdingiz! 🏆' : me.place ? `${me.place}-o'rin` : '',
+      subtitle: sub, combo: s.maxCombo, errors: s.errors, wordSpeeds: tape.wordSpeeds(),
+      extra: [{ key: 'place', label: "O'RIN", value: me.place ? `${me.place} / ${S.players.length}` : '—' }, { key: 'coin', label: 'COIN', value: coin }],
+      actions: [
+        { label: 'Revansh xonasi', href: URL.lobby, icon: 'bi-arrow-repeat', primary: true },
+        { label: 'Natijalarim', href: "{% url 'games:my_results' %}?mode=room", icon: 'bi-bar-chart-line' },
+      ],
+    }, d));
+    screen.update(d);
+    if (res.winner_is_me) screen.record(res.payout ? `💰 +${res.payout} coin hisobingizga tushdi!` : '🏆 Shon-sharaf sizniki!', true);
+  }
+  function confetti() {
+    const box = $('#raceBox'), cols = ['#22d3ee', '#a78bfa', '#f472b6', '#fbbf24', '#a3e635'];
+    for (let k = 0; k < 70; k++) {
+      const d = document.createElement('i'); d.className = 'cf'; d.style.left = Math.random() * 100 + '%'; d.style.background = cols[k % 5]; box.appendChild(d);
+      G.to(d, { y: box.clientHeight + 40, x: (Math.random() - .5) * 160, rotation: Math.random() * 720, duration: 1.6 + Math.random() * 1.4, delay: Math.random() * .5, ease: 'power1.in', onComplete: () => d.remove() });
+    }
+  }
+
+  /* ── Tugmalar ── */
+  $('#joinBtn').onclick = () => post(URL.join);
+  $('#startBtn').onclick = () => post(URL.start);
+  $('#leaveBtn').onclick = () => {
+    const running = S.status === 'running';
+    if (!confirm(running ? 'Poyga ketmoqda! Chiqsangiz tikishingiz bankda qoladi. Chiqasizmi?' : 'Xonadan chiqasizmi?' + (S.is_host ? ' (Siz egasiz — xona bekor qilinadi)' : ''))) return;
+    post(URL.leave).then(() => { if (!running) location.assign(URL.lobby); });
+  };
+  const copy = () => { (navigator.clipboard ? navigator.clipboard.writeText(INVITE) : Promise.reject()).then(() => toast('🔗 Havola nusxalandi: ' + S.code), () => prompt('Havolani nusxalang:', INVITE)); };
+  $('#copyBtn').onclick = copy; $('#copyBtn2').onclick = copy;
+  $('#minAcc').textContent = (S.result && S.result.min_accuracy) || 60;
+  window.addEventListener('resize', place);
+  window.addEventListener('beforeunload', e => { if (S.status === 'running' && raceInit && !tape.done && !tape._locked) { e.preventDefault(); e.returnValue = ''; } });
+
+  apply(S);
+  poll();
+})();
+</script>
+{% endblock %}

@@ -94,7 +94,8 @@ def _clean_form(request, user, competition=None):
         'audience_type': post.get('audience_type') if post.get('audience_type') in ('groups', 'students') else 'groups',
     }
 
-    game = _typing_games().filter(pk=_non_negative_int(post.get('game'))).first()
+    from .views import parse_game_choice
+    game, data['play_ui'] = parse_game_choice(post.get('game'), _typing_games())
     if not game:
         errors.append("Yozish o'yinini tanlang.")
     elif not game.competition_prompts().exists():
@@ -139,6 +140,7 @@ def _form_context(user, competition=None, data=None):
             'game': competition.game, 'title': competition.title,
             'start_time': timezone.localtime(competition.start_time),
             'end_time': timezone.localtime(competition.end_time),
+            'play_ui': competition.play_ui,
             'max_attempts': competition.max_attempts, 'allow_retry': competition.allow_retry,
             'is_active': competition.is_active, 'audience_type': competition.audience_type,
             'coin_1st': competition.coin_1st, 'coin_2nd': competition.coin_2nd, 'coin_3rd': competition.coin_3rd,
@@ -148,7 +150,7 @@ def _form_context(user, competition=None, data=None):
     if data is None:
         now = timezone.localtime().replace(second=0, microsecond=0)
         data = {
-            'game': _typing_games().first(), 'title': '', 'start_time': now,
+            'game': _typing_games().first(), 'play_ui': 'v2', 'title': '', 'start_time': now,
             'end_time': now + timezone.timedelta(hours=1), 'max_attempts': 1,
             'allow_retry': False, 'is_active': True, 'audience_type': 'groups',
             'coin_1st': 0, 'coin_2nd': 0, 'coin_3rd': 0, 'group_ids': [], 'student_ids': [],
@@ -171,7 +173,7 @@ def _form_context(user, competition=None, data=None):
 
 
 def _apply(competition, data):
-    for field in ('game', 'title', 'start_time', 'end_time', 'max_attempts', 'allow_retry', 'is_active'):
+    for field in ('game', 'play_ui', 'title', 'start_time', 'end_time', 'max_attempts', 'allow_retry', 'is_active'):
         setattr(competition, field, data[field])
     competition.audience_type = data['audience_type']
 

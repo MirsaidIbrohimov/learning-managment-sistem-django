@@ -132,6 +132,14 @@ class Competition(models.Model):
         verbose_name="Sovrin manbai",
         help_text="'Ustoz hisobidan' — sovrin fondi yaratuvchining coinlaridan bron qilinadi.",
     )
+    PLAY_UI_CHOICES = (
+        ('classic', 'Klassik yozish mashqi'),
+        ('v2', 'Yozish mashqi 2.0 (poyga)'),
+    )
+    play_ui = models.CharField(
+        max_length=10, choices=PLAY_UI_CHOICES, default='classic',
+        verbose_name="Ko'rinish", help_text="Yozish musobaqasi qaysi ko'rinishda o'tadi.",
+    )
     prize_reserved = models.PositiveIntegerField(
         default=0, verbose_name="Bron qilingan sovrin fondi",
         help_text="Ustoz hisobidan yechib, g'oliblar aniqlanguncha ushlab turilgan coinlar.",
@@ -149,6 +157,10 @@ class Competition(models.Model):
     @property
     def prize_total(self):
         return self.coin_1st + self.coin_2nd + self.coin_3rd
+
+    @property
+    def is_v2(self):
+        return self.play_ui == 'v2' and self.game.game_type == 'typing'
 
     @property
     def is_teacher_funded(self):
@@ -333,6 +345,14 @@ class GameAttempt(models.Model):
     wpm = models.FloatField(default=0, verbose_name="WPM")
     accuracy = models.FloatField(default=0, verbose_name="Aniqlik (%)")
     score = models.FloatField(default=0, verbose_name="Ball")
+    UI_CHOICES = (
+        ('classic', 'Klassik'),
+        ('v2', 'Yozish mashqi 2.0'),
+    )
+    ui_version = models.CharField(
+        max_length=10, choices=UI_CHOICES, default='classic', db_index=True,
+        verbose_name="Ko'rinish", help_text="Natija qaysi ko'rinishda (klassik / 2.0) olingan.",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -1013,3 +1033,75 @@ class JumanjiEvent(models.Model):
 
     def __str__(self):
         return f"#{self.seq} {self.kind}"
+
+
+class TypingRoom(models.Model):
+    """"Sheriklar bilan" — do'stlar bilan jonli mashina poygasi (xona).
+
+    Tikish ixtiyoriy: har bir o'yinchi `stake` coin tikadi (qo'shilganda bron
+    qilinadi), g'olib bankdan xizmat haqini (`FEE_PERCENT`) ayirib oladi.
+    Mantiq: games/rooms.py.
+    """
+    STATUS_CHOICES = (
+        ('lobby', 'Kutilmoqda'),
+        ('running', 'Poyga'),
+        ('finished', 'Tugagan'),
+        ('cancelled', 'Bekor qilingan'),
+    )
+
+    code = models.CharField(max_length=8, unique=True, verbose_name="Xona kodi")
+    game = models.ForeignKey(Game, on_delete=models.CASCADE, related_name='typing_rooms', verbose_name="O'yin")
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                             related_name='hosted_typing_rooms', verbose_name="Xona egasi")
+    prompt = models.ForeignKey(Prompt, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='typing_rooms', verbose_name="Matn")
+    stake = models.PositiveIntegerField(default=0, verbose_name="Tikish (coin)", help_text="0 — shunchaki o'yin")
+    max_players = models.PositiveSmallIntegerField(default=4, verbose_name="O'yinchilar soni")
+    is_public = models.BooleanField(default=True, verbose_name="Ochiq xona",
+                                    help_text="Ochiq xonalar lobbida hammaga ko'rinadi.")
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='lobby', db_index=True)
+    starts_at = models.DateTimeField(null=True, blank=True, verbose_name="Start (GO) vaqti")
+    deadline = models.DateTimeField(null=True, blank=True, verbose_name="Poyga tugash chegarasi")
+    finished_at = models.DateTimeField(null=True, blank=True)
+    fee_percent = models.PositiveSmallIntegerField(default=15, verbose_name="Xizmat haqi (%)",
+                                                   help_text="Xona ochilgan paytdagi o'yin sozlamasidan olinadi.")
+    pot = models.PositiveIntegerField(default=0, verbose_name="Bank")
+    fee = models.PositiveIntegerField(default=0, verbose_name="Xizmat haqi")
+    payout = models.PositiveIntegerField(default=0, verbose_name="G'olibga to'langan")
+    winner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+                               related_name='won_typing_rooms', verbose_name="G'olib")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Poyga xonasi"
+        verbose_name_plural = "Poyga xonalari"
+
+    def __str__(self):
+        return f"Xona {self.code} ({self.get_status_display()})"
+
+
+class TypingRoomPlayer(models.Model):
+    room = models.ForeignKey(TypingRoom, on_delete=models.CASCADE, related_name='players')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='typing_room_entries')
+    slot = models.PositiveSmallIntegerField(default=0, verbose_name="Yo'lak")
+    stake_paid = models.PositiveIntegerField(default=0, verbose_name="Bron qilingan tikish")
+    typed_text = models.TextField(blank=True)
+    words_done = models.PositiveSmallIntegerField(default=0)
+    correct_words = models.PositiveSmallIntegerField(default=0)
+    finish_seconds = models.FloatField(null=True, blank=True)
+    wpm = models.FloatField(default=0)
+    accuracy = models.FloatField(default=0)
+    place = models.PositiveSmallIntegerField(null=True, blank=True)
+    payout = models.PositiveIntegerField(default=0)
+    has_left = models.BooleanField(default=False)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['slot', 'joined_at']
+        unique_together = ('room', 'user')
+        verbose_name = "Poyga ishtirokchisi"
+        verbose_name_plural = "Poyga ishtirokchilari"
+
+    def __str__(self):
+        return f"{self.user} @ {self.room.code}"

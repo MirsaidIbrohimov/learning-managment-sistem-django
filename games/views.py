@@ -7,7 +7,7 @@ import hashlib
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.utils import timezone
 from django.conf import settings
 from django.db.models import Avg, Max, Count, Q, Subquery, OuterRef
@@ -90,9 +90,9 @@ def games_list(request):
             comp.can_play = bool(live) and comp.is_user_allowed(request.user)
             comp.leaderboard_url = ''
         else:
-            # Typing: asosiy tugma — Poyga 2.0, klassik ko'rinish ham qoladi
-            comp.play_url = reverse('games:game_play_v2_competition', args=[comp.game.slug, comp.pk])
-            comp.classic_url = reverse('games:game_play_competition', args=[comp.game.slug, comp.pk])
+            # Typing: musobaqa yaratilganda tanlangan ko'rinishda o'tadi (klassik yoki 2.0 poyga)
+            url_name = 'games:game_play_v2_competition' if comp.is_v2 else 'games:game_play_competition'
+            comp.play_url = reverse(url_name, args=[comp.game.slug, comp.pk])
             comp.leaderboard_url = reverse('games:competition_leaderboard', args=[comp.pk])
         comp.detail_url = reverse('games:game_detail', args=[comp.game.slug])
         active_competitions.append(comp)
@@ -356,6 +356,7 @@ def game_play(request, slug, competition_id=None, ui='classic'):
                 wpm=0,
                 accuracy=0,
                 score=0,
+                ui_version=old_session.get('ui', 'classic'),
             )
         except (Prompt.DoesNotExist, Competition.DoesNotExist):
             pass
@@ -366,6 +367,11 @@ def game_play(request, slug, competition_id=None, ui='classic'):
     # KEYIN: tekshirish
     if competition_id:
         competition = get_object_or_404(Competition, pk=competition_id, game=game)
+        # Musobaqa faqat o'zining ko'rinishida o'ynaladi — reyting bir xil sharoitda bo'lsin.
+        expected_ui = 'v2' if competition.is_v2 else 'classic'
+        if ui != expected_ui:
+            url_name = 'games:game_play_v2_competition' if expected_ui == 'v2' else 'games:game_play_competition'
+            return redirect(url_name, slug=slug, competition_id=competition.pk)
         if not competition.can_user_play(request.user):
             if not competition.is_user_allowed(request.user):
                 messages.warning(request, "Bu musobaqa siz uchun mo'ljallanmagan.")
@@ -428,6 +434,7 @@ def game_play(request, slug, competition_id=None, ui='classic'):
             'competition_id': competition.pk if competition else None,
             'started_at': time.time(),
             'used': False,
+            'ui': ui,
         }
 
     context = {
@@ -557,6 +564,7 @@ def game_submit(request, slug):
         wpm=round(wpm, 2),
         accuracy=round(accuracy, 2),
         score=score,
+        ui_version=game_session.get('ui', 'classic'),
     )
 
     # 🔒 Rate limit vaqtini saqlash
@@ -577,23 +585,57 @@ def game_submit(request, slug):
     return redirect('games:game_detail', slug=slug)
 
 
-@login_required
-def my_results(request):
-    game_filter = request.GET.get('game')
-    mode_filter = request.GET.get('mode')
+RESULT_MODES = (
+    ('practice', 'Mashq'),
+    ('competition', 'Musobaqa'),
+    ('v2', 'Yozish mashqi 2.0'),
+    ('room', 'Sheriklar bilan'),
+)
 
-    typing_qs = GameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'prompt')
-    word_qs = WordGameAttempt.objects.filter(user=request.user).select_related('game', 'competition', 'word_round')
+
+class _RoomResult:
+    """Xona poygasi natijasini umumiy natijalar ro'yxatiga moslash."""
+    result_type = 'room'
+    competition = None
+
+    def __init__(self, entry):
+        room = entry.room
+        self.entry, self.room, self.user, self.game = entry, room, entry.user, room.game
+        self.wpm, self.accuracy = entry.wpm, entry.accuracy
+        self.time_spent = entry.finish_seconds or 0
+        self.place, self.payout = entry.place, entry.payout
+        self.score = f"{entry.place}-o'rin" if entry.place else '—'
+        self.created_at = room.finished_at or room.created_at
+        self.mode_label = f"Xona {room.code}"
+
+
+def _collect_my_results(user, game_filter, mode_filter):
+    from .models import TypingRoomPlayer
+
+    typing_qs = GameAttempt.objects.filter(user=user).select_related('user', 'game', 'competition', 'prompt')
+    word_qs = WordGameAttempt.objects.filter(user=user).select_related('user', 'game', 'competition', 'word_round')
+    room_qs = (TypingRoomPlayer.objects.filter(user=user, room__status='finished')
+               .select_related('user', 'room', 'room__game'))
 
     if game_filter:
         typing_qs = typing_qs.filter(game_id=game_filter)
         word_qs = word_qs.filter(game_id=game_filter)
+        room_qs = room_qs.filter(room__game_id=game_filter)
     if mode_filter == 'practice':
         typing_qs = typing_qs.filter(competition__isnull=True)
         word_qs = word_qs.filter(competition__isnull=True)
+        room_qs = room_qs.none()
     elif mode_filter == 'competition':
         typing_qs = typing_qs.filter(competition__isnull=False)
         word_qs = word_qs.filter(competition__isnull=False)
+        room_qs = room_qs.none()
+    elif mode_filter == 'v2':
+        typing_qs = typing_qs.filter(ui_version='v2')
+        word_qs = word_qs.none()
+        room_qs = room_qs.none()
+    elif mode_filter == 'room':
+        typing_qs = typing_qs.none()
+        word_qs = word_qs.none()
 
     all_results = []
     for a in typing_qs:
@@ -602,20 +644,26 @@ def my_results(request):
     for a in word_qs:
         a.result_type = 'word_builder'
         all_results.append(a)
-
+    all_results.extend(_RoomResult(e) for e in room_qs)
     all_results.sort(key=lambda x: x.created_at, reverse=True)
+    return all_results
+
+
+@login_required
+def my_results(request):
+    game_filter = request.GET.get('game')
+    mode_filter = request.GET.get('mode')
+    all_results = _collect_my_results(request.user, game_filter, mode_filter)
 
     paginator = Paginator(all_results, 20)
-    page = request.GET.get('page')
-    attempts_page = paginator.get_page(page)
-
-    games = Game.objects.filter(is_active=True)
+    attempts_page = paginator.get_page(request.GET.get('page'))
 
     return render(request, 'games/student/my_results.html', {
         'attempts': attempts_page,
-        'games': games,
+        'games': Game.objects.filter(is_active=True),
         'game_filter': game_filter,
         'mode_filter': mode_filter,
+        'result_modes': RESULT_MODES,
     })
 
 
@@ -1315,6 +1363,18 @@ def admin_prompt_delete(request, pk):
 
 # ---- Competitions ----
 
+def parse_game_choice(value, games_qs=None):
+    """Formadagi o'yin tanlovi: "<id>" yoki "<id>:v2" (Yozish mashqi 2.0 poygasi).
+
+    Qaytaradi: (game | None, play_ui). 2.0 faqat typing o'yinlari uchun.
+    """
+    raw, _, ui = str(value or '').partition(':')
+    game = (games_qs if games_qs is not None else Game.objects).filter(pk=_int_or(raw, 0)).first()
+    if not game:
+        return None, 'classic'
+    return game, ('v2' if ui == 'v2' and game.game_type == 'typing' else 'classic')
+
+
 def _int_or(value, default=0):
     try:
         return int(value)
@@ -1455,9 +1515,11 @@ def admin_competition_add(request):
         elif audience_error:
             messages.error(request, audience_error)
         else:
-            game = get_object_or_404(Game, pk=game_id)
+            game, play_ui = parse_game_choice(game_id)
+            if not game:
+                raise Http404("O'yin topilmadi")
             comp = Competition.objects.create(
-                game=game, title=title, start_time=start_time,
+                game=game, play_ui=play_ui, title=title, start_time=start_time,
                 end_time=end_time, max_attempts=max(1, max_attempts),
                 allow_retry=allow_retry, is_active=is_active,
                 audience_type=audience_type,
@@ -1502,7 +1564,10 @@ def admin_competition_edit(request, pk):
         if audience_error:
             messages.error(request, audience_error)
         else:
-            competition.game = get_object_or_404(Game, pk=request.POST.get('game'))
+            game, play_ui = parse_game_choice(request.POST.get('game'))
+            if not game:
+                raise Http404("O'yin topilmadi")
+            competition.game, competition.play_ui = game, play_ui
             competition.title = request.POST.get('title', competition.title).strip() or competition.title
             competition.start_time = request.POST.get('start_time')
             competition.end_time = request.POST.get('end_time')
@@ -1649,6 +1714,8 @@ def _build_results_pdf(attempts, title):
             mode = a.competition.title if a.competition else 'Practice'
         except Exception:
             mode = 'Practice'
+        mode = getattr(a, 'mode_label', None) or (
+            f"{mode} (2.0)" if getattr(a, 'ui_version', '') == 'v2' else mode)
         rtype = getattr(a, 'result_type', 'typing')
         if rtype == 'word_builder':
             found = getattr(a, 'found_count', 0) or 0
@@ -1735,32 +1802,7 @@ def admin_results_pdf(request):
 
 @login_required
 def my_results_pdf(request):
-    game_filter = request.GET.get('game')
-    mode_filter = request.GET.get('mode')
-
-    typing_qs = GameAttempt.objects.filter(user=request.user).select_related('user', 'game', 'competition', 'prompt')
-    word_qs = WordGameAttempt.objects.filter(user=request.user).select_related('user', 'game', 'competition', 'word_round')
-
-    if game_filter:
-        typing_qs = typing_qs.filter(game_id=game_filter)
-        word_qs = word_qs.filter(game_id=game_filter)
-    if mode_filter == 'practice':
-        typing_qs = typing_qs.filter(competition__isnull=True)
-        word_qs = word_qs.filter(competition__isnull=True)
-    elif mode_filter == 'competition':
-        typing_qs = typing_qs.filter(competition__isnull=False)
-        word_qs = word_qs.filter(competition__isnull=False)
-
-    all_results = []
-    for a in typing_qs:
-        a.result_type = 'typing'
-        all_results.append(a)
-    for a in word_qs:
-        a.result_type = 'word_builder'
-        all_results.append(a)
-
-    all_results.sort(key=lambda x: x.created_at, reverse=True)
-
+    all_results = _collect_my_results(request.user, request.GET.get('game'), request.GET.get('mode'))
     return _build_results_pdf(all_results[:500], f"Natijalarim - {request.user.full_name}")
 
 

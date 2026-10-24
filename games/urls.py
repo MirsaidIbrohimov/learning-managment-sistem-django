@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 from . import jumanji_views
 from . import teacher_views
+from . import room_views
 
 app_name = 'games'
 
@@ -25,6 +26,17 @@ urlpatterns = [
     path('jumanji/<int:session_id>/leave/', jumanji_views.leave, name='jumanji_leave'),
     path('jumanji/<int:session_id>/roll/', jumanji_views.roll, name='jumanji_roll'),
     path('jumanji/<int:session_id>/control/', jumanji_views.control, name='jumanji_control'),
+
+    # Sheriklar bilan — poyga xonalari (slug dan OLDIN)
+    path('rooms/', room_views.lobby, name='rooms_lobby'),
+    path('rooms/create/', room_views.create, name='room_create'),
+    path('rooms/join/', room_views.join_by_code, name='room_join_by_code'),
+    path('rooms/<str:code>/', room_views.detail, name='room_detail'),
+    path('rooms/<str:code>/state/', room_views.state, name='room_state'),
+    path('rooms/<str:code>/join/', room_views.join, name='room_join'),
+    path('rooms/<str:code>/leave/', room_views.leave, name='room_leave'),
+    path('rooms/<str:code>/start/', room_views.start, name='room_start'),
+    path('rooms/<str:code>/progress/', room_views.progress, name='room_progress'),
 
     # Ustoz musobaqalari (sovrin ustoz hisobidan) — slug dan OLDIN
     path('teacher/competitions/', teacher_views.competitions, name='teacher_competitions'),

@@ -1,168 +1,12 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
 {% block title %}{{ game.title }} 2.0{% if competition %} — {{ competition.title }}{% endif %} | LMS{% endblock %}
 
 {% block extra_css %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-/* Yozish mashqi 2.0 — dizayn manbai: docs/design-proposals/typing/typing.html
-   Hamma narsa .tv2 ichida: Bootstrap va sayt uslublari bilan to'qnashmaydi. */
-.tv2{--bg:#f5f6fb;--panel:rgba(255,255,255,.78);--solid:#fff;--field:rgba(15,23,42,.045);--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--pink:#db2777;--gold:#b45309;--lime:#16a34a;--red:#e11d48;--shadow:0 24px 60px -30px rgba(15,23,42,.45);
-  position:relative;color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;max-width:1180px;margin:0 auto;padding:20px 16px 60px}
-[data-bs-theme=dark] .tv2{--bg:#06070c;--panel:rgba(16,19,28,.74);--solid:#10131c;--field:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--ink:#eef1f7;--muted:#8b93a7;--acc:#22d3ee;--acc2:#a78bfa;--pink:#f472b6;--gold:#fbbf24;--lime:#a3e635;--red:#fb7185;--shadow:0 30px 70px -30px rgba(0,0,0,.85)}
-.tv2 *{box-sizing:border-box}
-.tv2 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
-.tv2 .mono{font-family:'JetBrains Mono',monospace}
-.tv2-bgfx{position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(600px 420px at 12% 8%,color-mix(in srgb,#7c3aed 14%,transparent),transparent 70%),radial-gradient(520px 400px at 92% 90%,color-mix(in srgb,#0891b2 12%,transparent),transparent 70%)}
-.tv2 .glass{background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow)}
-
-.tv2 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
-.tv2 .top h1{font-size:26px;font-weight:700;letter-spacing:-.035em;margin:0 auto 0 0;display:flex;align-items:center;gap:12px}
-.tv2 .top h1 i{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));font-style:normal}
-.tv2 .top h1 small{font:600 11px 'JetBrains Mono',monospace;padding:3px 9px;border-radius:999px;background:linear-gradient(100deg,#f59e0b,#f472b6);color:#fff;letter-spacing:.06em}
-.tv2 .coin{display:inline-flex;align-items:center;gap:8px;padding:7px 14px 7px 6px;border-radius:999px;font:700 15px 'JetBrains Mono',monospace;color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);border:1px solid color-mix(in srgb,var(--gold) 30%,transparent)}
-.tv2 .coin b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;font-size:13px}
-.tv2 .pill{font:600 12px 'JetBrains Mono',monospace;padding:5px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-.tv2 .pill.hot{color:#fff;background:linear-gradient(100deg,#f59e0b,#db2777);border-color:transparent}
-.tv2 .pill.live{color:var(--lime);border-color:color-mix(in srgb,var(--lime) 40%,transparent)}
-.tv2 .pill.live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px;animation:tvBlink 1.2s infinite}
-@keyframes tvBlink{50%{opacity:.25}}
-.tv2 .tv-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:11px 18px;border-radius:14px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(100deg,var(--acc),var(--acc2));box-shadow:0 14px 34px -14px var(--acc2);text-decoration:none}
-.tv2 .tv-btn:hover{color:#fff;filter:brightness(1.06)}
-[data-bs-theme=dark] .tv2 .tv-btn,[data-bs-theme=dark] .tv2 .tv-btn:hover{color:#05060a}
-.tv2 .tv-btn.ghost{background:var(--field);color:var(--ink);border:1px solid var(--line);box-shadow:none}
-.tv2 .tv-btn.sm{padding:7px 12px;font-size:13px;border-radius:11px}
-
-/* ═══ LENTA ═══ */
-.tv2 .tape{position:relative;cursor:text}
-.tv2 .tape .lane{position:relative;height:var(--lh,92px);overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
-.tv2 .tape .rail{position:absolute;left:50%;top:50%;translate:0 -50%;display:flex;gap:.6em;white-space:nowrap;font:600 var(--fs,40px) 'JetBrains Mono',monospace;transition:transform .13s cubic-bezier(.2,.8,.2,1);will-change:transform}
-.tv2 .tape .w{display:inline-block;color:var(--muted);opacity:.5;transition:opacity .25s,color .25s}
-.tv2 .tape .w.cur{opacity:1;color:var(--ink)}
-.tv2 .tape .w.done{color:var(--lime);opacity:.4}
-.tv2 .tape .w.bad{color:var(--red);opacity:.6;text-decoration:underline wavy;text-decoration-thickness:2px;text-underline-offset:8px}
-.tv2 .tape .c.ok{color:var(--lime)}
-.tv2 .tape .c.err{color:var(--red);background:color-mix(in srgb,var(--red) 18%,transparent);border-radius:4px}
-.tv2 .tape .c.x{color:var(--red);opacity:.6}
-.tv2 .tape .caret{position:absolute;left:50%;top:50%;width:3px;height:calc(var(--fs,40px)*1.25);translate:-1px -50%;border-radius:3px;background:linear-gradient(var(--acc),var(--acc2));box-shadow:0 0 16px var(--acc);z-index:2;transition:background .15s}
-.tv2 .tape.idle .caret{animation:tvBlink 1s steps(1) infinite}
-.tv2 .tape .caret.err{background:var(--red);box-shadow:0 0 16px var(--red)}
-.tv2 .tape input{position:absolute;opacity:0;left:0;top:0;width:1px;height:1px;pointer-events:none}
-.tv2 .tape .spark{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:3}
-.tv2 .tape .lock{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:600 14px 'JetBrains Mono',monospace;color:var(--muted);z-index:4}
-.tv2 .tape.locked .lock{display:flex}.tv2 .tape.locked .rail,.tv2 .tape.locked .caret{opacity:.25}
-.tv2 .tape .focus-hint{position:absolute;left:50%;bottom:2px;translate:-50% 0;font:500 12px 'JetBrains Mono',monospace;color:var(--muted);opacity:0;transition:.3s;z-index:4;pointer-events:none}
-.tv2 .tape.blurred:not(.locked) .focus-hint{opacity:1}
-
-/* ═══ MASHQ ═══ */
-.tv2 .prac{border-radius:28px;padding:22px 24px 18px;position:relative;overflow:hidden;max-width:960px;margin:0 auto}
-.tv2 .prac-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-.tv2 .prac-h h3{font-size:18px;font-weight:700;margin:0 auto 0 0;display:flex;align-items:center;gap:8px}
-.tv2 .lvl{display:flex;gap:3px;padding:3px;border-radius:11px;background:var(--field);border:1px solid var(--line)}
-.tv2 .lvl a{padding:5px 11px;border-radius:8px;font:600 12px 'JetBrains Mono',monospace;color:var(--muted);text-decoration:none}
-.tv2 .lvl a.on{background:var(--solid);color:var(--ink);box-shadow:0 4px 12px -8px rgba(0,0,0,.5)}
-.tv2 .hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.tv2 .hud div{border-radius:16px;padding:10px 14px;background:var(--field);border:1px solid var(--line);display:flex;align-items:baseline;gap:8px}
-.tv2 .hud small{font:600 10px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted);margin-right:auto}
-.tv2 .hud b{font:700 26px 'JetBrains Mono',monospace;letter-spacing:-.03em;display:inline-block}
-.tv2 .hud em{font-style:normal;font-size:12px;color:var(--muted)}
-.tv2 .hud .combo b{color:var(--gold)}
-.tv2 .tbar{position:relative;height:6px;border-radius:6px;background:var(--field);overflow:hidden;margin-top:6px}
-.tv2 .tbar i{position:absolute;inset:0 auto 0 0;width:0;border-radius:6px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s cubic-bezier(.2,.8,.2,1)}
-.tv2 .tbar u{position:absolute;top:0;bottom:0;width:2px;background:var(--solid);text-decoration:none}
-.tv2 .prac-f{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
-.tv2 kbd{font:600 11px 'JetBrains Mono',monospace;padding:2px 7px;border-radius:7px;border:1px solid var(--line);background:var(--field);color:var(--ink)}
-.tv2 .prac-f .sp{margin-left:auto}
-.tv2 .result{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:28px;background:color-mix(in srgb,var(--solid) 94%,transparent);z-index:5;padding:20px;flex-wrap:wrap}
-.tv2 .result.on{display:flex}
-.tv2 .result .big{text-align:center}
-.tv2 .result .big b{display:block;font:800 92px 'JetBrains Mono',monospace;letter-spacing:-.05em;line-height:1;background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
-.tv2 .result .big small{font:600 12px 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--muted)}
-.tv2 .result .side{display:flex;flex-direction:column;gap:6px;min-width:230px}
-.tv2 .result .side .r{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);padding:5px 0;border-bottom:1px dashed var(--line)}
-.tv2 .result .side .r b{color:var(--ink);font-family:'JetBrains Mono',monospace}
-.tv2 .result .side .rec{color:var(--gold);font-weight:700;font-size:14px;min-height:20px}
-.tv2 .result .err{color:var(--red);font-size:13px}
-
-/* ═══ POYGA ═══ */
-.tv2 .race{border-radius:28px;padding:18px;position:relative;overflow:hidden}
-.tv2 .race-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
-.tv2 .race-top h3{font-size:19px;font-weight:700;margin:0 auto 0 0;display:flex;align-items:center;gap:8px}
-.tv2 .track{position:relative;border-radius:20px;overflow:hidden;background:radial-gradient(1200px 200px at 50% 0,rgba(255,255,255,.05),transparent),repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 2px,transparent 2px 4px),linear-gradient(180deg,#2a2e37,#22252d);padding:14px 0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 20px 40px -20px rgba(0,0,0,.6)}
-.tv2 .kerb{height:10px;background:repeating-linear-gradient(90deg,#e11d48 0 24px,#f8fafc 24px 48px);opacity:.9}
-.tv2 .kerb.t{position:absolute;top:0;left:0;right:0}.tv2 .kerb.b{position:absolute;bottom:0;left:0;right:0}
-.tv2 .kerb.mv{animation:tvKerb .6s linear infinite}
-@keyframes tvKerb{to{background-position:-48px 0}}
-.tv2 .startln{position:absolute;left:206px;top:10px;bottom:10px;width:6px;background:repeating-linear-gradient(0deg,#fff 0 8px,transparent 8px 16px);opacity:.5}
-.tv2 .finish{position:absolute;right:64px;top:10px;bottom:10px;width:22px;background:conic-gradient(#f8fafc 25%,#111 0 50%,#f8fafc 0 75%,#111 0) 0 0/11px 11px;box-shadow:0 0 24px rgba(255,255,255,.25)}
-.tv2 .finish-banner{position:absolute;right:20px;top:50%;translate:0 -50%;writing-mode:vertical-rl;font:800 12px 'JetBrains Mono',monospace;letter-spacing:.35em;color:#f8fafc;opacity:.55}
-.tv2 .ln{position:relative;height:72px}
-.tv2 .ln+.ln:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.45) 0 28px,transparent 28px 56px)}
-.tv2 .ln .av{position:absolute;left:10px;top:50%;translate:0 -50%;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font:700 12px 'JetBrains Mono',monospace;color:#0d1020;z-index:1}
-.tv2 .ln.me{background:linear-gradient(90deg,rgba(34,211,238,.12),transparent 60%)}
-.tv2 .car{position:absolute;left:0;top:6px;width:150px;height:56px;will-change:transform;z-index:2}
-.tv2 .car svg{width:150px;height:56px;overflow:visible;display:block}
-.tv2 .car.ghost svg{opacity:.78}
-.tv2 .car .plate{position:absolute;left:44px;top:-10px;font:700 11px 'JetBrains Mono',monospace;padding:2px 8px 2px 3px;border-radius:999px;background:rgba(13,16,32,.85);color:#f8fafc;border:1px solid rgba(255,255,255,.15);white-space:nowrap;display:flex;gap:6px;align-items:center}
-.tv2 .car .plate i{font-style:normal;font-weight:800;padding:0 5px;border-radius:999px;background:#f8fafc;color:#0d1020;display:inline-block}
-.tv2 .car .plate.p1 i{background:#fbbf24}.tv2 .car .plate.p2 i{background:#cbd5e1}.tv2 .car .plate.p3 i{background:#fb923c}
-.tv2 .wind{position:absolute;left:-90px;top:14px;width:90px;height:30px;opacity:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55)) 0 4px/70px 2px no-repeat,linear-gradient(90deg,transparent,rgba(255,255,255,.4)) 20px 14px/60px 2px no-repeat,linear-gradient(90deg,transparent,rgba(255,255,255,.5)) 6px 24px/80px 2px no-repeat}
-.tv2 .tv-toast{position:absolute;left:50%;bottom:18px;translate:-50% 0;z-index:5;padding:8px 16px;border-radius:999px;font:700 14px 'Space Grotesk',sans-serif;background:rgba(13,16,32,.92);color:#fff;border:1px solid rgba(255,255,255,.15);box-shadow:0 14px 30px -10px rgba(0,0,0,.6);opacity:0;pointer-events:none;white-space:nowrap}
-.tv2 .gauge{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
-.tv2 .gauge svg{width:46px;height:30px}
-.tv2 .gauge b{font:700 18px 'JetBrains Mono',monospace}.tv2 .gauge small{font:600 10px 'JetBrains Mono',monospace;color:var(--muted)}
-.tv2 .board{display:grid;grid-template-columns:1fr 270px;gap:12px;margin-top:12px;align-items:start}
-.tv2 .rt-h{display:flex;gap:14px;align-items:center;font:600 12px 'JetBrains Mono',monospace;color:var(--muted);flex-wrap:wrap;padding-top:4px}
-.tv2 .rt-h b{color:var(--ink)}.tv2 .rt-h .cb{color:var(--gold)}.tv2 .rt-h .sp{margin-left:auto}
-.tv2 .rtape{border-radius:22px;padding:10px 16px;--fs:30px;--lh:70px;display:flex;flex-direction:column;justify-content:center}
-.tv2 .standings{border-radius:22px;padding:14px}
-.tv2 .standings h4{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
-.tv2 .st{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:13px;margin-bottom:5px;background:var(--field);position:relative}
-.tv2 .st .p{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font:700 14px 'JetBrains Mono',monospace;background:var(--solid);border:1px solid var(--line);flex:none}
-.tv2 .st.r1 .p{background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;border:0}
-.tv2 .st.r2 .p{background:linear-gradient(135deg,#e5e7eb,#9ca3af);color:#1f2937;border:0}
-.tv2 .st.r3 .p{background:linear-gradient(135deg,#fdba74,#c2410c);color:#fff;border:0}
-.tv2 .st .dot{width:10px;height:10px;border-radius:50%;flex:none}
-.tv2 .st b{font-size:14px}
-.tv2 .st small{display:block;color:var(--muted);font:500 11px 'JetBrains Mono',monospace}
-.tv2 .st .wt{margin-left:auto;font:700 12px 'JetBrains Mono',monospace;color:var(--muted);white-space:nowrap}
-.tv2 .st.me{outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent)}
-.tv2 .lights{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:6;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px)}
-.tv2 .lights.on{display:flex}
-.tv2 .lights .box{display:flex;gap:14px;padding:16px 20px;border-radius:22px;background:#0b0d12;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
-.tv2 .lights .box i{width:46px;height:46px;border-radius:50%;background:#1d2029;box-shadow:inset 0 -6px 10px rgba(0,0,0,.5);transition:background .1s,box-shadow .1s}
-.tv2 .lights .box i.r{background:#ef4444;box-shadow:0 0 26px #ef4444,inset 0 -6px 10px rgba(0,0,0,.3)}
-.tv2 .lights .box i.g{background:#22c55e;box-shadow:0 0 26px #22c55e,inset 0 -6px 10px rgba(0,0,0,.3)}
-.tv2 .lights b{font:800 46px 'JetBrains Mono',monospace;letter-spacing:-.03em;color:var(--ink);min-height:56px;display:inline-block}
-.tv2 .lights .tv-btn{font-size:17px;padding:14px 26px}
-.tv2 .podium{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;gap:16px;padding-bottom:30px;z-index:7;background:color-mix(in srgb,var(--solid) 95%,transparent)}
-.tv2 .podium.on{display:flex}
-.tv2 .podium .col{width:190px;text-align:center}
-.tv2 .podium .pcar svg{width:150px;height:56px;overflow:visible}
-.tv2 .podium .blk{border-radius:18px 18px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;font:800 46px 'JetBrains Mono',monospace;color:#fff}
-.tv2 .podium .who{font-weight:700;font-size:16px}
-.tv2 .podium .pay{font:700 15px 'JetBrains Mono',monospace;color:var(--gold);margin:2px 0 6px;min-height:20px}
-.tv2 .podium .title{position:absolute;top:22px;left:0;right:0;text-align:center;padding:0 12px}
-.tv2 .podium .title h3{font-size:34px;font-weight:700;letter-spacing:-.04em;margin:0}
-.tv2 .podium .title p{color:var(--muted);margin:4px 0 0}
-.tv2 .podium .title .srv{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
-.tv2 .podium .again{position:absolute;top:22px;right:20px;display:flex;gap:6px}
-.tv2 .cf{position:absolute;top:-10px;width:8px;height:14px;border-radius:2px;z-index:8;pointer-events:none}
-
-@media(max-width:900px){
-  .tv2 .board{grid-template-columns:1fr}
-  .tv2 .hud{grid-template-columns:repeat(2,1fr)}
-  .tv2 .tape{--fs:28px;--lh:72px}.tv2 .rtape{--fs:24px;--lh:60px}
-  .tv2 .car,.tv2 .car svg{width:104px;height:39px}.tv2 .car .plate{left:18px;top:-13px;font-size:10px}
-  .tv2 .ln{height:58px}.tv2 .finish{right:30px;width:16px;background-size:8px 8px}.tv2 .finish-banner{display:none}
-  .tv2 .ln .av{width:26px;height:26px;font-size:10px;border-radius:9px;left:6px}
-  .tv2 .race{padding:12px}
-  .tv2 .result .big b{font-size:64px}
-  .tv2 .podium .col{width:110px}.tv2 .podium .pcar svg{width:100px;height:38px}.tv2 .podium .title h3{font-size:24px}.tv2 .podium .again{top:auto;bottom:12px;right:12px}
-}
-@media (prefers-reduced-motion:reduce){.tv2 .tape .rail{transition:none}.tv2 .kerb.mv{animation:none}}
-</style>
+<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=3">
 {% endblock %}
 
 {% block content %}
@@ -228,19 +72,6 @@
     <div class="tbar" id="pBar"><i></i></div>
     <div class="prac-f"><i class="bi bi-info-circle"></i> Yozishni boshlang — taymer o‘zi yoqiladi · <kbd>Space</kbd> keyingi so‘z · <kbd>Esc</kbd> yangi matn
       <span class="sp mono">{% if best_wpm %}Rekord: {{ best_wpm }} WPM · {% endif %}<span id="pCount"></span></span></div>
-    <div class="result" id="result">
-      <div class="big"><b id="rW">0</b><small>SO‘Z / DAQIQA</small></div>
-      <div class="side">
-        <div class="r"><span>Ball</span><b id="rS">0</b></div>
-        <div class="r"><span>Aniqlik</span><b id="rA">0%</b></div>
-        <div class="r"><span>Vaqt</span><b id="rT">0s</b></div>
-        <div class="r"><span>Eng uzun kombo</span><b id="rC">0</b></div>
-        <div class="r"><span>Xato so‘zlar</span><b id="rE">0</b></div>
-        <div class="rec" id="rRec"></div>
-        <div class="err" id="rErr"></div>
-        <a class="tv-btn" href="?level={{ level }}" style="margin-top:6px"><i class="bi bi-arrow-repeat"></i> Yana bir bor</a>
-      </div>
-    </div>
   </section>
   {% endif %}
 </div>
@@ -260,6 +91,7 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="{% static 'js/typing2.js' %}?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -274,101 +106,16 @@
   const WORDS = norm(JSON.parse($('#tv2-prompt').textContent)).split(/\s+/).filter(Boolean);
   const IS_COMP = {{ competition|yesno:"true,false" }};
   const BEST_WPM = {{ best_wpm|default:0 }};
+  const LEVEL = "{{ level|default:'medium' }}", LEVEL_NAMES = { easy: 'Oson', medium: "O'rta", hard: 'Qiyin' };
+  const ROOMS_URL = "{% url 'games:rooms_lobby' %}", RESULTS_URL = "{% url 'games:my_results' %}?mode=v2";
   const LB_API = {% if competition %}"{% url 'games:competition_leaderboard_api' competition.pk %}"{% else %}""{% endif %};
+  const COMP_TITLE = {% if competition %}"{{ competition.title|escapejs }}"{% else %}""{% endif %};
   const LB_URL = {% if competition %}"{% url 'games:competition_leaderboard' competition.pk %}"{% else %}""{% endif %};
   const DETAIL_URL = "{% url 'games:game_detail' game.slug %}";
   const isTouch = (navigator.maxTouchPoints || 0) > 0 || (window.matchMedia && matchMedia('(pointer: coarse)').matches);
   $('#fTouch').value = isTouch ? '1' : '0';
 
-  /* ════════ LENTA komponenti: mashq va poygada bir xil ════════ */
-  class Tape {
-    constructor(root, opts = {}) {
-      this.root = root; this.opts = opts;
-      root.innerHTML = '<div class="lane"><div class="caret"></div><div class="rail"></div></div><div class="lock">Start chirog‘ini kuting…</div><div class="focus-hint">Yozish uchun shu yerni bosing</div><input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Yozish maydoni">';
-      this.lane = $('.lane', root); this.rail = $('.rail', root); this.caret = $('.caret', root); this.inp = $('input', root);
-      root.addEventListener('click', () => this.focus());
-      this.inp.addEventListener('focus', () => root.classList.remove('blurred'));
-      this.inp.addEventListener('blur', () => root.classList.add('blurred'));
-      this.inp.addEventListener('keydown', e => {
-        if (e.isTrusted) this.trusted++;
-        if (e.key === 'Escape' && this.opts.onEsc) { e.preventDefault(); this.opts.onEsc(); }
-      });
-      ['paste', 'drop', 'cut'].forEach(ev => this.inp.addEventListener(ev, e => e.preventDefault()));
-      // 'input' hodisasi — telefon klaviaturalarida ham ishonchli ishlaydi
-      this.inp.addEventListener('input', () => this.onInput());
-    }
-    load(words) {
-      this.words = words; this.i = 0; this.typed = ''; this.marks = []; this.committed = []; this.t0 = 0; this.keys = 0; this.ok = 0; this.trusted = 0;
-      this.combo = 0; this.maxCombo = 0; this.errors = 0; this.done = false; this.inp.value = '';
-      this.rail.innerHTML = words.map(w => `<span class="w">${esc(w)}</span>`).join('');
-      this.root.classList.add('idle'); this.paint(true);
-    }
-    set locked(v) { this.root.classList.toggle('locked', v); this._locked = v; if (!v) this.focus(); }
-    focus() { if (!this._locked) this.inp.focus({ preventScroll: true }); }
-    onInput() {
-      if (this.done || this._locked) { this.inp.value = ''; return; }
-      const v = norm(this.inp.value), w = this.words[this.i];
-      if (!this.t0 && v.trim()) { this.t0 = performance.now(); this.opts.onStart && this.opts.onStart(); }
-      if (v.length > this.typed.length && !v.includes(' ')) {
-        for (let j = this.typed.length; j < v.length; j++) { this.keys++; if (v[j] === w[j]) this.ok++; else this.flashErr(); }
-      }
-      if (v.includes(' ')) { const t = v.split(' ')[0]; this.inp.value = ''; if (t) this.commit(t); else { this.typed = ''; this.paint(); } return; }
-      this.typed = v; this.root.classList.remove('idle');
-      if (this.i === this.words.length - 1 && v === w) return this.commit(v);
-      this.paint();
-    }
-    commit(t) {
-      const good = t === this.words[this.i], el = this.rail.children[this.i];
-      this.marks[this.i] = good ? 'done' : 'bad'; this.committed.push(t);
-      this.keys++; if (good) { this.ok++; this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); this.burst(); } else { this.combo = 0; this.errors++; }
-      this.i++; this.typed = ''; this.inp.value = '';
-      if (G && el) G.fromTo(el, { y: good ? -6 : 0, x: good ? 0 : -4 }, { y: 0, x: 0, duration: .35, ease: good ? 'back.out(3)' : 'elastic.out(1,.3)' });
-      this.opts.onWord && this.opts.onWord(good);
-      if (this.i >= this.words.length) { this.done = true; this.paint(); this.opts.onDone && this.opts.onDone(this.stats()); return; }
-      this.paint();
-    }
-    paint(instant) {
-      [...this.rail.children].forEach((el, k) => {
-        const cls = 'w ' + (k === this.i ? 'cur' : this.marks[k] || '');
-        if (el.className !== cls) el.className = cls;
-        if (k === this.i) {
-          const w = this.words[k], t = this.typed;
-          el.innerHTML = [...w].map((c, j) => `<span class="c ${j < t.length ? (t[j] === c ? 'ok' : 'err') : ''}">${esc(c)}</span>`).join('') +
-            [...t.slice(w.length)].map(c => `<span class="c x">${esc(c)}</span>`).join('');
-        } else if (el.children.length) el.textContent = this.words[k];
-      });
-      // Kursor joyi: joriy so'zdagi keyingi harf — lenta shu nuqtani markazga suradi
-      const cur = this.rail.children[Math.min(this.i, this.words.length - 1)], cs = cur.children;
-      let x;
-      if (this.i >= this.words.length) x = cur.offsetLeft + cur.offsetWidth;
-      else if (this.typed.length < cs.length) x = cs[this.typed.length].offsetLeft;
-      else { const l = cs[cs.length - 1]; x = l ? l.offsetLeft + l.offsetWidth : cur.offsetLeft; }
-      if (instant) { this.rail.style.transition = 'none'; requestAnimationFrame(() => this.rail.style.transition = ''); }
-      this.rail.style.transform = `translateX(${-x}px)`;
-    }
-    flashErr() {
-      this.caret.classList.add('err'); clearTimeout(this._e); this._e = setTimeout(() => this.caret.classList.remove('err'), 160);
-      G && G.fromTo(this.lane, { x: -3 }, { x: 0, duration: .25, ease: 'elastic.out(1,.3)' });
-    }
-    burst() {
-      if (!G) return;
-      for (let k = 0; k < 7; k++) {
-        const s = document.createElement('i'); s.className = 'spark';
-        s.style.background = ['#a3e635', '#22d3ee', '#fbbf24'][k % 3]; this.lane.appendChild(s);
-        const a = Math.PI * (0.9 + Math.random() * 1.2), d = 26 + Math.random() * 30;
-        G.fromTo(s, { x: -18, y: 0, scale: 1, opacity: 1 }, { x: -18 + Math.cos(a) * d, y: Math.sin(a) * d, scale: 0, opacity: 0, duration: .55, ease: 'power2.out', onComplete: () => s.remove() });
-      }
-    }
-    progress() {
-      if (this.i >= this.words.length) return 1;
-      const w = this.words[this.i]; let p = 0; while (p < this.typed.length && this.typed[p] === w[p]) p++;
-      return (this.i + p / (w.length + 1)) / this.words.length;
-    }
-    stats() {
-      const sec = this.t0 ? (performance.now() - this.t0) / 1000 : 0;
-      return { sec, wpm: sec > 0.5 ? Math.round(this.ok / 5 / (sec / 60)) : 0, acc: this.keys ? Math.round(this.ok / this.keys * 100) : 100, combo: this.combo, maxCombo: this.maxCombo, errors: this.errors };
-    }
-  }
+  const { Tape } = window.Typing2, Typing2 = window.Typing2;
 
   /* ════════ Serverga yuborish — klassik mashq bilan bir xil kontrakt ════════ */
   let submitted = false;
@@ -412,66 +159,33 @@
 
     async function finish(s) {
       clearInterval(tick); hud();
-      $('#result').classList.add('on');
-      $('#rA').textContent = s.acc + '%'; $('#rT').textContent = s.sec.toFixed(1) + 's'; $('#rC').textContent = s.maxCombo; $('#rE').textContent = s.errors;
-      countUp($('#rW'), s.wpm);
-      G && G.from('#result .big, #result .side > *', { y: 24, opacity: 0, duration: .5, stagger: .05, ease: 'back.out(1.8)' });
+      const lvl = LEVEL_NAMES[LEVEL] || '';
+      const screen = Typing2.showResult({
+        kicker: `MASHQ 2.0 · ${lvl.toUpperCase()}`, subtitle: `${WORDS.length} so'z · ${lvl} daraja`,
+        wpm: s.wpm, acc: s.acc, score: Math.round(s.wpm * s.acc) / 100, sec: s.sec, combo: s.maxCombo, errors: s.errors,
+        wordSpeeds: tape.wordSpeeds(),
+        actions: [
+          { label: 'Yana bir bor', href: '?level=' + LEVEL, icon: 'bi-arrow-repeat', primary: true },
+          { label: 'Qiyinroq', href: '?level=' + (LEVEL === 'easy' ? 'medium' : 'hard'), icon: 'bi-graph-up-arrow' },
+          { label: 'Sheriklar bilan poyga', href: ROOMS_URL, icon: 'bi-car-front-fill' },
+          { label: 'Natijalarim', href: RESULTS_URL, icon: 'bi-bar-chart-line' },
+        ],
+      });
       const res = await submit(tape);
       if (!res) return;
-      if (res.error) { $('#rErr').textContent = res.error; return; }
+      if (res.error) { screen.error(res.error); return; }
       // Rasmiy (server) natija — reyting va rekord shu bo'yicha hisoblanadi
-      $('#rS').textContent = res.score;
-      $('#rA').textContent = Math.round(res.accuracy) + '%';
-      $('#rT').textContent = res.time_spent + 's';
-      countUp($('#rW'), res.wpm);
+      screen.update({ wpm: res.wpm, acc: Math.round(res.accuracy), score: res.score, sec: res.time_spent });
       const w = Math.round(res.wpm);
-      $('#rRec').textContent = !BEST_WPM ? '🎉 Birinchi natijangiz saqlandi!' : w > BEST_WPM ? '🏆 Yangi shaxsiy rekord!' : `Rekordgacha: ${BEST_WPM - w} WPM`;
+      if (!BEST_WPM) screen.record('🎉 Birinchi natijangiz saqlandi!', true);
+      else if (w > BEST_WPM) screen.record(`🏆 Yangi shaxsiy rekord! (+${w - BEST_WPM} WPM)`, true);
+      else screen.record(`Rekordingiz ${BEST_WPM} WPM — yana ${BEST_WPM - w} WPM qoldi`);
     }
   }
 
   /* ════════ MUSOBAQA: arvoh mashinalar bilan poyga ════════ */
   function race() {
-    const ROSTER = [
-      { c: '#06b6d4', d: '#0e7490' }, { c: '#a855f7', d: '#6b21a8' }, { c: '#ef4444', d: '#991b1b' },
-      { c: '#f59e0b', d: '#b45309' }, { c: '#22c55e', d: '#15803d' }
-    ];
-    let uid = 0;
-    // Yon tomondan sport mashina: gradient kuzov, oyna aksi, haydovchi shlemi, faralar, aylanadigan disklar
-    function carSVG(k, num) {
-      const r = ROSTER[k % ROSTER.length], id = 'c' + (uid++);
-      const wheel = cx => `<g transform="translate(${cx} 43)"><circle r="11.5" fill="#0b0c10"/><circle r="10" fill="none" stroke="#1f2229" stroke-width="2"/>
-        <g class="rim"><circle r="7" fill="url(#rm${id})"/>${[0, 72, 144, 216, 288].map(a => `<rect x="-1.1" y="-7" width="2.2" height="6" rx="1" fill="#4b5563" transform="rotate(${a})"/>`).join('')}<circle r="2.2" fill="#111"/></g>
-        <path d="M-9 -4 A10 10 0 0 1 -2 -9.6" stroke="rgba(255,255,255,.25)" stroke-width="1.4" fill="none"/></g>`;
-      return `<svg viewBox="0 0 160 56"><defs>
-        <linearGradient id="b${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${r.c}" stop-opacity=".95"/><stop offset=".45" stop-color="${r.c}"/><stop offset="1" stop-color="${r.d}"/></linearGradient>
-        <linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe9ff"/><stop offset=".5" stop-color="#1e293b"/><stop offset="1" stop-color="#0f172a"/></linearGradient>
-        <radialGradient id="rm${id}"><stop offset="0" stop-color="#f1f5f9"/><stop offset="1" stop-color="#94a3b8"/></radialGradient>
-        <radialGradient id="hl${id}"><stop offset="0" stop-color="#fffbe6" stop-opacity=".9"/><stop offset="1" stop-color="#fffbe6" stop-opacity="0"/></radialGradient>
-        <linearGradient id="fl${id}" x1="1" x2="0"><stop offset="0" stop-color="#fff7ed"/><stop offset=".3" stop-color="#fb923c"/><stop offset=".7" stop-color="#3b82f6"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
-        <ellipse cx="80" cy="53" rx="70" ry="4" fill="rgba(0,0,0,.55)"/>
-        <g class="flame" opacity="0"><path d="M7 35 L-34 37.5 L7 40 Z" fill="url(#fl${id})"/><path d="M7 36.3 L-16 37.5 L7 38.7 Z" fill="#fff"/></g>
-        <ellipse cx="168" cy="33" rx="20" ry="7" fill="url(#hl${id})"/>
-        <g class="body">
-          <path d="M4 22 L16 22 L17 27 L8 27 Z" fill="${r.d}"/><rect x="10" y="26" width="2.5" height="5" fill="#111"/>
-          <path d="M6 38 C5 31 9 28 18 27 L46 24.5 C54 17 66 12.5 81 11.8 C97 11.2 109 13 119 19 L133 25.5 C147 26.5 155 29.5 156 35.5 L156 40 C156 42.2 154.5 43 152.5 43 L9 43 C6.8 43 6 41 6 38 Z" fill="url(#b${id})"/>
-          <path d="M18 27 L46 24.5 C54 17 66 12.5 81 11.8 C97 11.2 109 13 119 19 L133 25.5" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>
-          <path d="M52 25 C59 18.5 68 15 80 14.6 L97 14.6 C105 15 111 18 116.5 24.5 Z" fill="url(#g${id})"/>
-          <path d="M62 24 L74 15.5 L80 15.5 L68 24 Z" fill="rgba(255,255,255,.22)"/>
-          <rect x="84.5" y="14.5" width="3" height="10.5" fill="${r.d}"/>
-          <circle cx="96" cy="20.6" r="4.6" fill="#f8fafc"/><path d="M96 17 A4.6 4.6 0 0 1 100.6 20.6 L96 20.6 Z" fill="#0f172a"/>
-          <path d="M112 22 L117 21 L118 24 L113 24.5 Z" fill="${r.d}"/>
-          <path d="M60 26 L60 40 M100 26 L102 40" stroke="rgba(0,0,0,.28)" stroke-width="1"/>
-          <path d="M22 33 L150 33" stroke="rgba(255,255,255,.75)" stroke-width="2.4"/>
-          <circle cx="76" cy="33" r="6.5" fill="#f8fafc"/><text x="76" y="35.8" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="800" font-size="8" fill="#0f172a">${num}</text>
-          <path d="M146 28.5 L155 31 L154.5 34 L145 32 Z" fill="#fffbe6"/>
-          <rect x="6" y="30" width="4.5" height="6" rx="1.2" fill="#ff2d2d"/>
-          <rect x="24" y="39.5" width="110" height="3.5" rx="1.5" fill="rgba(0,0,0,.35)"/>
-        </g>
-        ${wheel(36)}${wheel(126)}
-        <circle cx="36" cy="43" r="14" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2.5" stroke-dasharray="22 100" transform="rotate(195 36 43)"/>
-        <circle cx="126" cy="43" r="14" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2.5" stroke-dasharray="22 100" transform="rotate(195 126 43)"/>
-      </svg>`;
-    }
+    const { ROSTER, carSVG } = window.Typing2;
 
     const N = WORDS.length;
     const st = { on: false, t0: 0, lastT: 0, fin: [], lastRank: null, cars: [], timers: [], raf: 0, tabs: 0 };
@@ -597,6 +311,25 @@
       const res = await submit(tape);
       const fresh = res && !res.error ? await fetch(LB_API).then(r => r.json()).catch(() => null) : null;
       podium(res, fresh, reason);
+      setTimeout(() => competitionResult(res, fresh, reason), 2200);
+    }
+    function competitionResult(res, lb, reason) {
+      const s = tape.stats(), ok = res && !res.error, rank = lb && lb.your_rank;
+      const screen = Typing2.showResult({
+        kicker: 'MUSOBAQA · ' + COMP_TITLE.toUpperCase(),
+        title: reason ? '⛔ ' + reason : rank === 1 ? 'Siz reyting yetakchisisiz! 🏆' : rank ? `Reytingda ${rank}-o'rin` : '',
+        subtitle: "G'oliblar musobaqa tugagach aniqlanadi va coin avtomatik beriladi.",
+        wpm: ok ? res.wpm : s.wpm, acc: ok ? Math.round(res.accuracy) : s.acc, score: ok ? res.score : 0,
+        sec: ok ? res.time_spent : s.sec, combo: s.maxCombo, errors: s.errors, wordSpeeds: tape.wordSpeeds(),
+        extra: [{ key: 'rank', label: "REYTINGDA", value: rank ? `#${rank} / ${lb.total_participants}` : '—' }],
+        actions: [
+          { label: 'Reyting', href: LB_URL, icon: 'bi-bar-chart-fill', primary: true },
+          { label: "O'yin sahifasi", href: DETAIL_URL, icon: 'bi-list-ul' },
+          { label: 'Sheriklar bilan poyga', href: ROOMS_URL, icon: 'bi-car-front-fill' },
+        ],
+      });
+      if (!ok) screen.error((res && res.error) || 'Natija yuborilmadi.');
+      else { screen.update({ wpm: res.wpm, acc: Math.round(res.accuracy), score: res.score, sec: res.time_spent }); if (rank && rank <= 3) screen.record(`🏅 Hozircha ${rank}-o'rindasiz!`, true); }
     }
     function podium(res, lb, reason) {
       drawStand();

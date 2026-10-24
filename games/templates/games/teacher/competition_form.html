@@ -25,9 +25,9 @@
                 <div class="tc-f"><label for="fTitle">Nomi</label>
                     <input id="fTitle" name="title" value="{{ form.title }}" maxlength="200" required placeholder="Haftalik tezlik chempionati">
                 </div>
-                <div class="tc-f"><label for="fGame">O'yin</label>
+                <div class="tc-f"><label for="fGame">O'yin va ko'rinish</label>
                     <select id="fGame" name="game">
-                        {% for g in games %}<option value="{{ g.pk }}"{% if form.game and form.game.pk == g.pk %} selected{% endif %}>{{ g.title }}</option>{% endfor %}
+                        {% include 'games/_game_choice_options.html' with selected_game_id=form.game.pk selected_ui=form.play_ui %}
                     </select>
                 </div>
                 <div class="row g-2">

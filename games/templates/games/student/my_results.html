@@ -378,8 +378,9 @@
                 <label class="form-label fw-bold small">Rejim</label>
                 <select name="mode" class="form-select form-select-sm">
                     <option value="">Barchasi</option>
-                    <option value="practice" {% if mode_filter == 'practice' %}selected{% endif %}>Practice</option>
-                    <option value="competition" {% if mode_filter == 'competition' %}selected{% endif %}>Competition</option>
+                    {% for value, label in result_modes %}
+                    <option value="{{ value }}" {% if mode_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-4 col-12">
@@ -411,13 +412,7 @@
                     <tr>
                         <td>{{ forloop.counter }}</td>
                         <td><strong>{{ attempt.game.title }}</strong></td>
-                        <td>
-                            {% if attempt.competition %}
-                            <span class="badge bg-warning text-dark" style="border-radius: 8px;">🏆 {{ attempt.competition.title }}</span>
-                            {% else %}
-                            <span class="badge bg-success" style="border-radius: 8px;">Practice</span>
-                            {% endif %}
-                        </td>
+                        <td>{% include 'games/student/_result_mode_badge.html' %}</td>
                         {% if attempt.result_type == 'word_builder' %}
                         <td>{{ attempt.found_count }} so'z</td>
                         <td>—</td>
@@ -425,7 +420,7 @@
                         {% else %}
                         <td>{{ attempt.wpm }} WPM</td>
                         <td>{{ attempt.accuracy }}%</td>
-                        <td class="score-cell">{{ attempt.score }}</td>
+                        <td class="score-cell">{{ attempt.score }}{% if attempt.result_type == 'room' and attempt.payout %} <small style="color:#16a34a">+{{ attempt.payout }}₵</small>{% endif %}</td>
                         {% endif %}
                         <td>{{ attempt.time_spent|floatformat:1 }}s</td>
                         <td>{{ attempt.created_at|date:"d.m.Y H:i" }}</td>
@@ -451,11 +446,7 @@
         <div class="result-card-mobile" style="animation-delay: {{ forloop.counter0 }}50ms;">
             <div class="card-header-row">
                 <span class="game-name">{{ attempt.game.title }}</span>
-                {% if attempt.competition %}
-                <span class="badge bg-warning text-dark" style="border-radius: 8px; font-size: 0.72rem;">🏆 {{ attempt.competition.title }}</span>
-                {% else %}
-                <span class="badge bg-success" style="border-radius: 8px; font-size: 0.72rem;">Practice</span>
-                {% endif %}
+                {% include 'games/student/_result_mode_badge.html' %}
             </div>
             <div class="stats-grid">
                 {% if attempt.result_type == 'word_builder' %}

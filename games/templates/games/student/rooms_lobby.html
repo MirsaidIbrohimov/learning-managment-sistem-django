@@ -1,0 +1,138 @@
+{% extends 'accounts/base.html' %}
+{% load static %}
+
+{% block title %}Sheriklar bilan poyga | LMS{% endblock %}
+
+{% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/typing2.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+<div class="tv2-bgfx"></div>
+<div class="tv2">
+  <div class="top">
+    <h1><i class="bi bi-car-front-fill" style="background:linear-gradient(135deg,#f59e0b,#b45309)"></i>Sheriklar bilan <small>POYGA</small></h1>
+    <span class="coin" title="Coin balansingiz"><b>₵</b><span>{{ request.user.coins }}</span></span>
+    <a href="{% url 'games:games_list' %}" class="tv-btn ghost sm"><i class="bi bi-arrow-left"></i> O'yinlar</a>
+  </div>
+
+  {% if my_active %}
+  <div class="panel glass js-in" style="margin-bottom:16px">
+    <h3><i class="bi bi-broadcast" style="color:var(--lime)"></i> Faol xonalaringiz</h3>
+    <div class="rlist">
+      {% for r in my_active %}
+      <div class="ritem">
+        <span class="code">{{ r.code }}</span>
+        <div class="who"><b>{{ r.game.title }}</b><small>{% if r.status == 'running' %}Poyga ketmoqda{% else %}Kutilmoqda{% endif %} · {% if r.stake %}{{ r.stake }} coin{% else %}shunchaki{% endif %}</small></div>
+        <div class="end"><a href="{% url 'games:room_detail' r.code %}" class="tv-btn sm"><i class="bi bi-box-arrow-in-right"></i> Qaytish</a></div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="lobby">
+    <!-- Xona ochish -->
+    <form class="panel glass js-in" method="post" action="{% url 'games:room_create' %}" id="createForm">
+      {% csrf_token %}
+      <h3><i class="bi bi-people"></i> Xona ochish</h3>
+      <p class="note">Har bir o'yinchi bir xil miqdorda tikadi. “Shunchaki” — coinsiz o'yin. G'olib bankni oladi — boshqa coinli o'yinlardagidek {{ fee_percent }}% xizmat haqi ayriladi.</p>
+      {% if games|length > 1 %}
+      <div class="f"><label for="fGame">O'yin</label>
+        <select id="fGame" name="game" class="form-select">{% for g in games %}<option value="{{ g.pk }}">{{ g.title }}</option>{% endfor %}</select>
+      </div>
+      {% elif games %}<input type="hidden" name="game" value="{{ games.0.pk }}">{% endif %}
+      <div class="f"><span class="lbl">Tikish</span>
+        <div class="stakes">
+          {% for s in stakes %}
+          <label><input type="radio" name="stake" value="{{ s }}"{% if s == 100 %} checked{% endif %}><span>{% if s %}{{ s }}{% else %}Shunchaki{% endif %}</span></label>
+          {% endfor %}
+        </div>
+        <div class="codebox" style="margin-top:8px">
+          <input type="number" name="custom_stake" id="customStake" min="{{ rules.min }}" max="{{ rules.max }}" placeholder="Boshqa miqdor: {{ rules.min }}–{{ rules.max }}" style="letter-spacing:0;text-transform:none">
+        </div>
+      </div>
+      <div class="f"><span class="lbl">O'yinchilar soni</span>
+        <div class="stakes">
+          {% for n in player_counts %}
+          <label><input type="radio" name="max_players" value="{{ n }}"{% if n == 4 %} checked{% endif %}><span>{{ n }}</span></label>
+          {% endfor %}
+        </div>
+      </div>
+      <label class="switchrow"><input type="checkbox" name="is_public" checked><span class="sw"></span> Ochiq xona — lobbida hamma ko'radi</label>
+      <div class="calc" id="calc"></div>
+      <button class="tv-btn" type="submit" style="width:100%;margin-top:16px"{% if not games %} disabled{% endif %}><i class="bi bi-flag"></i> Xona ochish</button>
+    </form>
+
+    <div style="display:grid;gap:16px">
+      <!-- Kod bilan kirish -->
+      <form class="panel glass js-in" method="get" action="{% url 'games:room_join_by_code' %}">
+        <h3><i class="bi bi-key"></i> Kod bilan kirish</h3>
+        <p class="note">Do'stingiz yuborgan xona kodini kiriting.</p>
+        <div class="codebox f"><input name="code" maxlength="12" placeholder="K7Q2X" required autocomplete="off"><button class="tv-btn" type="submit"><i class="bi bi-box-arrow-in-right"></i> Kirish</button></div>
+      </form>
+
+      <!-- Ochiq xonalar -->
+      <div class="panel glass js-in">
+        <h3><i class="bi bi-door-open"></i> Ochiq xonalar <span class="pill live" style="margin-left:auto">{{ open_rooms|length }}</span></h3>
+        <div class="rlist">
+          {% for r in open_rooms %}
+          <div class="ritem">
+            <span class="code">{{ r.code }}</span>
+            <div class="who"><b>{{ r.host.full_name|default:r.host.username }}</b><small>{{ r.players.all|length }}/{{ r.max_players }} o'yinchi · {% if r.stake %}{{ r.stake }} coin{% else %}shunchaki{% endif %}</small></div>
+            <div class="end">{% if r.stake %}<span class="pill hot">₵ {{ r.stake }}</span>{% endif %}<a href="{% url 'games:room_detail' r.code %}" class="tv-btn sm">Kirish</a></div>
+          </div>
+          {% empty %}
+          <div class="empty">Hozircha ochiq xona yo'q — birinchi bo'lib oching! 🏁</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tarix -->
+  <div class="panel glass js-in" style="margin-top:16px">
+    <h3><i class="bi bi-clock-history"></i> Mening poygalarim</h3>
+    <div class="rlist">
+      {% for p in history %}
+      <div class="ritem">
+        <span class="place-badge {% if p.place and p.place <= 3 %}p{{ p.place }}{% endif %}">{{ p.place|default:'–' }}</span>
+        <div class="who"><b>Xona {{ p.room.code }} · {{ p.room.game.title }}</b><small>{{ p.wpm|floatformat:0 }} WPM · {{ p.accuracy|floatformat:0 }}% · {% if p.finish_seconds %}{{ p.finish_seconds|floatformat:1 }}s{% else %}tugatmadi{% endif %} · {{ p.room.finished_at|date:"d.m H:i" }}</small></div>
+        <div class="end">
+          {% if p.payout %}<span class="pill" style="color:var(--lime)">+{{ p.payout }} coin</span>
+          {% elif p.room.stake and p.room.winner_id and p.room.winner_id != p.user_id %}<span class="pill" style="color:var(--red)">−{{ p.room.stake }}</span>
+          {% elif not p.room.stake %}<span class="pill">shunchaki</span>{% endif %}
+        </div>
+      </div>
+      {% empty %}
+      <div class="empty">Hali poygalar yo'q.</div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+(function () {
+  var form = document.getElementById('createForm'), calc = document.getElementById('calc'), FEE = {{ fee_percent }};
+  function render() {
+    var custom = parseInt(document.getElementById('customStake').value, 10);
+    var stake = custom > 0 ? custom : +form.querySelector('input[name=stake]:checked').value, n = +form.querySelector('input[name=max_players]:checked').value;
+    var pot = stake * n, fee = Math.floor(pot * FEE / 100), win = pot - fee;
+    calc.innerHTML = stake === 0
+      ? '<div class="r"><span>Rejim</span><b>Shunchaki o‘yin</b></div><div class="r"><span>Coin</span><b>tikilmaydi</b></div><div class="win"><span>G‘olibga</span><b>🏆 shon-sharaf</b></div>'
+      : '<div class="r"><span>Har bir o‘yinchi</span><b>' + stake + ' coin</b></div><div class="r"><span>Bank (to‘liq xona: ' + n + ' × ' + stake + ')</span><b>' + pot + ' coin</b></div>' +
+        '<div class="r fee"><span>Xizmat haqi (' + FEE + '%)</span><b>−' + fee + ' coin</b></div><div class="win"><span>G‘olibga tushadi</span><b>+' + win + '</b></div>' +
+        '<p class="note">Masalan, 2 kishi × 100 → bank 200 → g‘olibga ' + (200 - Math.floor(200 * FEE / 100)) + '. G‘olib aniqlanmasa yoki xona bekor bo‘lsa — coin qaytariladi.</p>';
+  }
+  form.addEventListener('change', render); form.addEventListener('input', render); render();
+  form.querySelectorAll('input[name=stake]').forEach(function (r) { r.addEventListener('change', function () { document.getElementById('customStake').value = ''; render(); }); });
+  if (window.gsap && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+    gsap.from('.js-in', { y: 26, opacity: 0, duration: .6, stagger: .06, ease: 'expo.out', clearProps: 'all' });
+})();
+</script>
+{% endblock %}

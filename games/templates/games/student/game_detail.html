@@ -329,6 +329,9 @@
                         <a href="{% url 'games:game_play' game.slug %}" class="tgd-btn ghost">
                             <i class="bi bi-play-fill"></i> Klassik mashq
                         </a>
+                        <a href="{% url 'games:rooms_lobby' %}" class="tgd-btn ghost">
+                            <i class="bi bi-car-front-fill"></i> Sheriklar bilan poyga
+                        </a>
                     </div>
                 </div>
 
@@ -340,7 +343,7 @@
                     <div class="tgd-comp">
                         <div class="row-top">
                             <div>
-                                <h6>{{ comp.title }}</h6>
+                                <h6>{{ comp.title }}{% if comp.is_v2 %} <span class="tgd-coin" style="background:linear-gradient(100deg,#0891b2,#7c3aed);color:#fff">2.0 poyga</span>{% endif %}</h6>
                                 <div class="meta">
                                     <i class="bi bi-calendar3"></i>
                                     {{ comp.start_time|date:"d.m.Y H:i" }} — {{ comp.end_time|date:"d.m.Y H:i" }}
@@ -381,12 +384,15 @@
                                         <i class="bi bi-laptop"></i> Faqat kompyuterda
                                     </span>
                                     {% else %}
+                                    {% if comp.is_v2 %}
                                     <a href="{% url 'games:game_play_v2_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
-                                        <i class="bi bi-flag-fill"></i> Poyga 2.0
+                                        <i class="bi bi-flag-fill"></i> Poygada qatnashish (2.0)
                                     </a>
-                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn ghost js-competition-start">
-                                        <i class="bi bi-play-fill"></i> Klassik
+                                    {% else %}
+                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
+                                        <i class="bi bi-play-fill"></i> Qatnashish
                                     </a>
+                                    {% endif %}
                                     {% endif %}
                                 {% else %}
                                 <span class="tgd-status ended">Urinishlar tugadi</span>

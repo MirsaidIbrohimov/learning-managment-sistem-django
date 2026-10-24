@@ -255,9 +255,7 @@
                         <label class="form-label fw-bold">O'yin *</label>
                         <select name="game" id="gameSelect" class="form-select" required>
                             <option value="">-- Tanlang --</option>
-                            {% for g in games %}
-                            <option value="{{ g.pk }}" {% if competition.game_id == g.pk %}selected{% endif %}>{{ g.title }}</option>
-                            {% endfor %}
+                            {% include 'games/_game_choice_options.html' with selected_game_id=competition.game_id selected_ui=competition.play_ui %}
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -470,7 +468,7 @@
     }
 
     function renderList() {
-        var gameId = gameSelect.value;
+        var gameId = gameSelect.value.split(':')[0];
         var q = (searchEl.value || '').toLowerCase().trim();
         listEl.innerHTML = '';
 
@@ -525,7 +523,7 @@
     searchEl.addEventListener('input', renderList);
 
     document.getElementById('selectAllBtn').addEventListener('click', function() {
-        var gameId = gameSelect.value;
+        var gameId = gameSelect.value.split(':')[0];
         if (!gameId || !promptsData[gameId]) return;
         var q = (searchEl.value || '').toLowerCase().trim();
         promptsData[gameId].forEach(function(p) {

@@ -213,6 +213,7 @@
             </div>
             <div class="gz-hero-actions">
                 <a href="{% url 'games:live_games' %}" class="gz-btn hotb" data-magnetic><span class="gz-dot"></span> Jonli o'yinlar</a>
+                <a href="{% url 'games:rooms_lobby' %}" class="gz-btn" data-magnetic><i class="bi bi-car-front-fill"></i> Sheriklar bilan</a>
                 <a href="{% url 'games:my_results' %}" class="gz-btn ghost" data-magnetic><i class="bi bi-clock-history"></i> Natijalarim</a>
             </div>
         </div>
@@ -240,6 +241,7 @@
             </div>
             <div class="acts">
                 <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-btn" data-magnetic><i class="bi bi-lightning-charge-fill"></i> Mashq 2.0</a>
+                <a href="{% url 'games:rooms_lobby' %}" class="gz-btn hotb" data-magnetic><i class="bi bi-car-front-fill"></i> Sheriklar bilan</a>
                 <a href="{% url 'games:game_play' tg.slug %}" class="gz-btn ghost" data-magnetic><i class="bi bi-window"></i> Klassik</a>
                 <a href="{% url 'games:game_detail' tg.slug %}" class="gz-btn ghost sm" style="height:46px"><i class="bi bi-info-lg"></i></a>
             </div>
@@ -264,6 +266,7 @@
         <article class="gz-comp glass {{ comp.status }} js-reveal">
             <div class="top">
                 {% if comp.status == 'active' %}<span class="gz-pill live">FAOL</span>{% else %}<span class="gz-pill"><i class="bi bi-clock"></i> TEZ ORADA</span>{% endif %}
+                {% if comp.is_v2 %}<span class="gz-pill new">2.0 POYGA</span>{% endif %}
                 {% if comp.is_teacher_funded %}<span class="gz-pill"><i class="bi bi-person-video3"></i> Ustoz</span>{% endif %}
                 <span class="game"><i class="bi bi-controller"></i> {{ comp.game.title }}</span>
             </div>
@@ -286,8 +289,7 @@
                     {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-hourglass-split"></i> Lobby yopiq</span>{% endif %}
                 {% elif comp.status == 'active' %}
                     {% if comp.can_play %}
-                    <a href="{{ comp.play_url }}" class="gz-btn js-competition-start" data-magnetic><i class="bi bi-flag-fill"></i> {% if comp.classic_url %}Poyga 2.0{% else %}Qatnashish{% endif %}</a>
-                    {% if comp.classic_url %}<a href="{{ comp.classic_url }}" class="gz-btn ghost js-competition-start">Klassik</a>{% endif %}
+                    <a href="{{ comp.play_url }}" class="gz-btn js-competition-start" data-magnetic><i class="bi bi-flag-fill"></i> {% if comp.is_v2 %}Poygada qatnashish{% else %}Qatnashish{% endif %}</a>
                     {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-check2-circle"></i> Urinishlar tugadi</span>{% endif %}
                 {% else %}
                     <a href="{{ comp.detail_url }}" class="gz-btn ghost"><i class="bi bi-info-circle"></i> Batafsil</a>
@@ -342,6 +344,27 @@
             </article>
         </div>
         {% endfor %}
+
+        {% if typing_games %}
+        <div class="gz-cell" data-name="sheriklar bilan poyga xona do'stlar coin" data-category="Tezlik">
+            <article class="gz-card" data-tilt>
+                <div class="gz-cover" style="background:linear-gradient(140deg,#451a03,#b45309 50%,#db2777)">
+                    <span class="gz-dots"></span><span class="gz-orb"></span>
+                    <span class="gz-badge"><i class="bi bi-people-fill"></i> Multiplayer</span>
+                    <span class="gz-new">COIN TIKISH</span>
+                    <div class="gz-art" style="width:150px">{% include 'games/student/_mini_car.html' with c="#f59e0b" d="#b45309" n="1" %}</div>
+                </div>
+                <div class="gz-body">
+                    <h3>Sheriklar bilan poyga</h3>
+                    <div class="gz-pills"><span class="meta-pill"><i class="bi bi-people"></i> 2–5 o'yinchi</span><span class="meta-pill"><i class="bi bi-coin"></i> Coin</span><span class="meta-pill"><i class="bi bi-door-open"></i> Xona</span></div>
+                    <p>Do'stlaringiz bilan xona oching, coin tiking — eng tez yozgan bankni oladi.</p>
+                    <div class="gz-actions">
+                        <a href="{% url 'games:rooms_lobby' %}" class="gz-play" data-magnetic><i class="bi bi-flag-fill"></i> Xonalar</a>
+                    </div>
+                </div>
+            </article>
+        </div>
+        {% endif %}
 
         {% for game in games %}
         {% if game.slug == 'shashka' %}

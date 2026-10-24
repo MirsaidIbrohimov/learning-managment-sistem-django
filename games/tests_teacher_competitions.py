@@ -78,6 +78,10 @@ class TeacherCompetitionTests(TestCase):
         self.assertEqual(coins(self.teacher), 50)
         self.assertEqual(list(comp.groups.all()), [self.group])
 
+    def test_teacher_can_choose_v2_race(self, *_):
+        self.post_form(game=f'{self.game.pk}:v2')
+        self.assertEqual(Competition.objects.get().play_ui, 'v2')
+
     def test_insufficient_balance_creates_nothing(self, *_):
         self.post_form(coin_1st=900, coin_2nd=200, coin_3rd=0)
         self.assertFalse(Competition.objects.exists())
@@ -226,7 +230,7 @@ class TypingV2Tests(TestCase):
 
     def test_competition_race_page_and_submit(self):
         comp = Competition.objects.create(
-            game=self.game, title='Poyga', start_time=timezone.now() - timedelta(minutes=5),
+            game=self.game, title='Poyga', play_ui='v2', start_time=timezone.now() - timedelta(minutes=5),
             end_time=timezone.now() + timedelta(hours=1),
         )
         url = reverse('games:game_play_v2_competition', args=['typing', comp.pk])
@@ -242,7 +246,12 @@ class TypingV2Tests(TestCase):
         )
         self.assertEqual(resp.status_code, 200, resp.content)
         self.assertEqual(resp.json()['accuracy'], 100.0)
-        self.assertEqual(GameAttempt.objects.get().competition, comp)
+        attempt = GameAttempt.objects.get()
+        self.assertEqual(attempt.competition, comp)
+        self.assertEqual(attempt.ui_version, 'v2')
+        # Natijalarim: 2.0 filtri faqat 2.0 natijalarini ko'rsatadi
+        resp = self.client.get(reverse('games:my_results') + '?mode=v2')
+        self.assertEqual(len(resp.context['attempts']), 1)
 
 
 @SKIP_SESSION_MIDDLEWARE
@@ -262,11 +271,21 @@ class GamesListTests(TestCase):
         self.assertContains(resp, 'Yozish mashqi 2.0')
         self.assertContains(resp, 'Shashka')
 
-    def test_typing_competition_links_to_race_v2_and_classic(self):
-        comp = Competition.objects.create(
-            game=self.typing, title='Poyga', start_time=timezone.now() - timedelta(minutes=5),
-            end_time=timezone.now() + timedelta(hours=1),
-        )
+    def test_competition_links_follow_play_ui(self):
+        window = dict(start_time=timezone.now() - timedelta(minutes=5), end_time=timezone.now() + timedelta(hours=1))
+        classic = Competition.objects.create(game=self.typing, title='Klassik', **window)
+        race = Competition.objects.create(game=self.typing, title='Poyga', play_ui='v2', **window)
         resp = self.client.get(reverse('games:games_list'))
-        self.assertContains(resp, reverse('games:game_play_v2_competition', args=['typing', comp.pk]))
-        self.assertContains(resp, reverse('games:game_play_competition', args=['typing', comp.pk]))
+        self.assertContains(resp, reverse('games:game_play_competition', args=['typing', classic.pk]))
+        self.assertNotContains(resp, reverse('games:game_play_v2_competition', args=['typing', classic.pk]))
+        self.assertContains(resp, reverse('games:game_play_v2_competition', args=['typing', race.pk]))
+        self.assertNotContains(resp, reverse('games:game_play_competition', args=['typing', race.pk]))
+        self.assertContains(resp, reverse('games:rooms_lobby'))
+
+    def test_v2_competition_cannot_be_played_in_classic_ui(self):
+        race = Competition.objects.create(game=self.typing, title='Poyga', play_ui='v2',
+                                          start_time=timezone.now() - timedelta(minutes=5),
+                                          end_time=timezone.now() + timedelta(hours=1))
+        resp = self.client.get(reverse('games:game_play_competition', args=['typing', race.pk]), HTTP_USER_AGENT=DESKTOP_UA)
+        self.assertRedirects(resp, reverse('games:game_play_v2_competition', args=['typing', race.pk]),
+                             fetch_redirect_response=False)

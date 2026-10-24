@@ -184,7 +184,7 @@
                     <tbody>
                         {% for comp in competitions %}
                         <tr>
-                            <td>{{ comp.game.title }}</td>
+                            <td>{{ comp.game.title }}{% if comp.is_v2 %} <span class="badge" style="background:linear-gradient(100deg,#0891b2,#7c3aed)">2.0 poyga</span>{% endif %}</td>
                             <td><strong>{{ comp.title }}</strong>{% if comp.is_teacher_funded %}<br><small class="text-warning"><i class="bi bi-person-video3"></i> Ustoz: {{ comp.created_by.full_name|default:comp.created_by.username }} · fond {{ comp.prize_reserved }}</small>{% endif %}</td>
                             <td>
                                 {% if comp.audience_type == 'groups' %}

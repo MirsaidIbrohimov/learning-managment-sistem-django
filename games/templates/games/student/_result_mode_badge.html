@@ -1,0 +1,9 @@
+{# Natija rejimi belgisi. Vars: attempt #}
+{% if attempt.result_type == 'room' %}
+<a href="{% url 'games:room_detail' attempt.room.code %}" class="badge text-decoration-none" style="border-radius:8px;background:linear-gradient(100deg,#f59e0b,#b45309);color:#fff;">🚗 {{ attempt.mode_label }}</a>
+{% elif attempt.competition %}
+<span class="badge bg-warning text-dark" style="border-radius: 8px;">🏆 {{ attempt.competition.title }}</span>
+{% else %}
+<span class="badge bg-success" style="border-radius: 8px;">Practice</span>
+{% endif %}
+{% if attempt.ui_version == 'v2' %}<span class="badge" style="border-radius:8px;background:linear-gradient(100deg,#0891b2,#7c3aed);color:#fff;">2.0</span>{% endif %}

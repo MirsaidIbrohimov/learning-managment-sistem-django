@@ -1,0 +1,11 @@
+{# Musobaqa formasidagi o'yin variantlari. Yozish o'yini ikki alohida variant bo'lib chiqadi:
+   klassik ("<id>") va Yozish mashqi 2.0 poygasi ("<id>:v2").
+   Vars: games, selected_game_id, selected_ui #}
+{% for g in games %}
+{% if g.game_type == 'typing' %}
+<option value="{{ g.pk }}"{% if selected_game_id == g.pk and selected_ui != 'v2' %} selected{% endif %}>⌨️ {{ g.title }} — klassik</option>
+<option value="{{ g.pk }}:v2"{% if selected_game_id == g.pk and selected_ui == 'v2' %} selected{% endif %}>🏁 {{ g.title }} — Yozish mashqi 2.0 (poyga)</option>
+{% else %}
+<option value="{{ g.pk }}"{% if selected_game_id == g.pk %} selected{% endif %}>{{ g.title }}</option>
+{% endif %}
+{% endfor %}
