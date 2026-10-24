@@ -322,9 +322,14 @@
                     <div class="icon"><i class="bi bi-joystick"></i></div>
                     <h4>Mashq rejimi</h4>
                     <p>Cheksiz mashq qiling — natijalaringiz faqat sizga ko'rinadi va reytingga ta'sir qilmaydi.</p>
-                    <a href="{% url 'games:game_play' game.slug %}" class="tgd-btn start">
-                        <i class="bi bi-play-fill"></i> Mashqni boshlash
-                    </a>
+                    <div class="d-flex flex-wrap gap-2">
+                        <a href="{% url 'games:game_play_v2' game.slug %}" class="tgd-btn start">
+                            <i class="bi bi-lightning-charge-fill"></i> Yozish mashqi 2.0
+                        </a>
+                        <a href="{% url 'games:game_play' game.slug %}" class="tgd-btn ghost">
+                            <i class="bi bi-play-fill"></i> Klassik mashq
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Musobaqalar -->
@@ -376,8 +381,11 @@
                                         <i class="bi bi-laptop"></i> Faqat kompyuterda
                                     </span>
                                     {% else %}
-                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
-                                        <i class="bi bi-play-fill"></i> Qatnashish
+                                    <a href="{% url 'games:game_play_v2_competition' game.slug comp.pk %}" class="tgd-btn comp js-competition-start">
+                                        <i class="bi bi-flag-fill"></i> Poyga 2.0
+                                    </a>
+                                    <a href="{% url 'games:game_play_competition' game.slug comp.pk %}" class="tgd-btn ghost js-competition-start">
+                                        <i class="bi bi-play-fill"></i> Klassik
                                     </a>
                                     {% endif %}
                                 {% else %}

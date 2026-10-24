@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 from . import jumanji_views
+from . import teacher_views
 
 app_name = 'games'
 
@@ -25,11 +26,22 @@ urlpatterns = [
     path('jumanji/<int:session_id>/roll/', jumanji_views.roll, name='jumanji_roll'),
     path('jumanji/<int:session_id>/control/', jumanji_views.control, name='jumanji_control'),
 
+    # Ustoz musobaqalari (sovrin ustoz hisobidan) — slug dan OLDIN
+    path('teacher/competitions/', teacher_views.competitions, name='teacher_competitions'),
+    path('teacher/competitions/add/', teacher_views.competition_add, name='teacher_competition_add'),
+    path('teacher/competitions/<int:pk>/edit/', teacher_views.competition_edit, name='teacher_competition_edit'),
+    path('teacher/competitions/<int:pk>/toggle/', teacher_views.competition_toggle, name='teacher_competition_toggle'),
+    path('teacher/competitions/<int:pk>/end/', teacher_views.competition_end, name='teacher_competition_end'),
+    path('teacher/competitions/<int:pk>/delete/', teacher_views.competition_delete, name='teacher_competition_delete'),
+
     # Game detail & launch — slug catchall (oxirda)
     path('<slug:slug>/', views.game_detail, name='game_detail'),
     path('<slug:slug>/launch/', views.game_launch, name='game_launch'),
     path('<slug:slug>/play/', views.game_play, name='game_play'),
     path('<slug:slug>/play/<int:competition_id>/', views.game_play, name='game_play_competition'),
+    # Yozish mashqi 2.0 — o'sha sessiya/submit, yangi ko'rinish
+    path('<slug:slug>/v2/', views.game_play, {'ui': 'v2'}, name='game_play_v2'),
+    path('<slug:slug>/v2/<int:competition_id>/', views.game_play, {'ui': 'v2'}, name='game_play_v2_competition'),
     path('<slug:slug>/submit/', views.game_submit, name='game_submit'),
     path('<slug:slug>/word-play/', views.word_game_play, name='word_game_play'),
     path('<slug:slug>/word-play/<int:competition_id>/', views.word_game_play, name='word_game_play_competition'),

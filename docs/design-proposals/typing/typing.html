@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="uz" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Yozish mashqi 2.0 — Lenta + Poyga (prototip v2)</title>
+<script>try{document.documentElement.setAttribute('data-bs-theme',localStorage.getItem('theme')||'dark')}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<style>
+:root{--bg:#f5f6fb;--panel:rgba(255,255,255,.78);--solid:#fff;--field:rgba(15,23,42,.045);--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--pink:#db2777;--gold:#b45309;--lime:#16a34a;--red:#e11d48;--shadow:0 24px 60px -30px rgba(15,23,42,.45)}
+[data-bs-theme=dark]{--bg:#06070c;--panel:rgba(16,19,28,.74);--solid:#10131c;--field:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--ink:#eef1f7;--muted:#8b93a7;--acc:#22d3ee;--acc2:#a78bfa;--pink:#f472b6;--gold:#fbbf24;--lime:#a3e635;--red:#fb7185;--shadow:0 30px 70px -30px rgba(0,0,0,.85)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;min-height:100vh;transition:background .4s;overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.mono{font-family:'JetBrains Mono',monospace}
+.bgfx{position:fixed;inset:0;pointer-events:none;background:radial-gradient(600px 420px at 12% 8%,color-mix(in srgb,var(--acc2) 18%,transparent),transparent 70%),radial-gradient(520px 400px at 92% 90%,color-mix(in srgb,var(--acc) 15%,transparent),transparent 70%)}
+.glass{background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow)}
+.wrap{position:relative;max-width:1180px;margin:0 auto;padding:24px 20px 110px}
+
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.top h1{font-size:28px;letter-spacing:-.035em;margin-right:auto;display:flex;align-items:center;gap:12px}
+.top h1 i{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:20px;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));font-style:normal}
+.top h1 small{font:600 11px 'JetBrains Mono',monospace;padding:3px 9px;border-radius:999px;background:linear-gradient(100deg,#f59e0b,#f472b6);color:#fff;letter-spacing:.06em}
+.coin{display:inline-flex;align-items:center;gap:8px;padding:8px 15px 8px 7px;border-radius:999px;font:700 15px 'JetBrains Mono',monospace;color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent);border:1px solid color-mix(in srgb,var(--gold) 30%,transparent)}
+.coin b{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;font-size:13px}
+.ib{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);font-size:16px}
+.screen{display:none}.screen.on{display:block}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tabs button{padding:9px 16px;border-radius:999px;font-weight:600;font-size:14px;color:var(--muted);border:1px solid var(--line);background:var(--field)}
+.tabs button.on{color:#fff;border-color:transparent;background:linear-gradient(100deg,var(--acc),var(--acc2))}
+[data-bs-theme=dark] .tabs button.on{color:#05060a}
+.pill{font:600 12px 'JetBrains Mono',monospace;padding:5px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.hot{color:#fff;background:linear-gradient(100deg,#f59e0b,#db2777);border-color:transparent}
+.pill.live{color:var(--lime);border-color:color-mix(in srgb,var(--lime) 40%,transparent)}
+.pill.live:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:currentColor;margin-right:6px;animation:blink 1.2s infinite}
+@keyframes blink{50%{opacity:.25}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 20px;border-radius:14px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(100deg,var(--acc),var(--acc2));box-shadow:0 14px 34px -14px var(--acc2)}
+[data-bs-theme=dark] .btn{color:#05060a}
+.btn.ghost{background:var(--field);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.sm{padding:8px 13px;font-size:13px;border-radius:11px}
+.note{font-size:13px;color:var(--muted);margin-top:10px}
+
+/* ═══ LOBBY ═══ */
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.mode{border-radius:26px;padding:24px;position:relative;overflow:hidden;cursor:pointer;transition:transform .3s,border-color .3s;min-height:290px;display:flex;flex-direction:column}
+.mode:hover{transform:translateY(-6px);border-color:var(--acc)}
+.mode .ic{width:58px;height:58px;border-radius:18px;display:grid;place-items:center;font-size:27px;color:#fff;margin-bottom:16px}
+.mode h2{font-size:26px;letter-spacing:-.03em}
+.mode p{color:var(--muted);margin:8px 0 14px;font-size:15px;line-height:1.5}
+.mode .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:8px}
+.mode .bgic{position:absolute;right:-20px;bottom:-30px;font-size:170px;opacity:.06;pointer-events:none}
+.wager{margin-top:16px;border-radius:26px;padding:24px;display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}
+.wager h3{font-size:22px;letter-spacing:-.02em}
+.stakes{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.stakes button{padding:11px 17px;border-radius:13px;font:700 15px 'JetBrains Mono',monospace;border:1px solid var(--line);background:var(--field);transition:.2s}
+.stakes button.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.calc{border-radius:20px;padding:20px;background:var(--field);border:1px dashed var(--line);font-size:15px}
+.calc .r{display:flex;justify-content:space-between;padding:7px 0;color:var(--muted)}
+.calc .r b{color:var(--ink);font-family:'JetBrains Mono',monospace}
+.calc .r.fee b{color:var(--red)}
+.calc .win{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding-top:12px;border-top:1px solid var(--line);font-size:17px;font-weight:700}
+.calc .win b{font:700 28px 'JetBrains Mono',monospace;color:var(--lime)}
+.room{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.room input{flex:1;min-width:150px;height:46px;border-radius:13px;border:1px solid var(--line);background:var(--field);padding:0 14px;font:600 15px 'JetBrains Mono',monospace;color:var(--ink);outline:none}
+.f{margin-bottom:12px}
+.f label{display:block;font:600 11px 'JetBrains Mono',monospace;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+
+/* ═══ LENTA (tape) — mashq va poyga uchun umumiy komponent ═══ */
+.tape{position:relative;cursor:text}
+.tape .lane{position:relative;height:var(--lh,92px);overflow:hidden;-webkit-mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent);mask:linear-gradient(90deg,transparent,#000 18%,#000 82%,transparent)}
+.tape .rail{position:absolute;left:50%;top:50%;translate:0 -50%;display:flex;gap:.6em;white-space:nowrap;font:600 var(--fs,40px) 'JetBrains Mono',monospace;transition:transform .13s cubic-bezier(.2,.8,.2,1);will-change:transform}
+.tape .w{display:inline-block;color:var(--muted);opacity:.5;transition:opacity .25s,color .25s}
+.tape .w.cur{opacity:1;color:var(--ink)}
+.tape .w.done{color:var(--lime);opacity:.4}
+.tape .w.bad{color:var(--red);opacity:.6;text-decoration:underline wavy;text-decoration-thickness:2px;text-underline-offset:8px}
+.tape .c.ok{color:var(--lime)}
+.tape .c.err{color:var(--red);background:color-mix(in srgb,var(--red) 18%,transparent);border-radius:4px}
+.tape .c.x{color:var(--red);opacity:.6}
+.tape .caret{position:absolute;left:50%;top:50%;width:3px;height:calc(var(--fs,40px)*1.25);translate:-1px -50%;border-radius:3px;background:linear-gradient(var(--acc),var(--acc2));box-shadow:0 0 16px var(--acc);z-index:2;transition:background .15s}
+.tape.idle .caret{animation:blink 1s steps(1) infinite}
+.tape .caret.err{background:var(--red);box-shadow:0 0 16px var(--red)}
+.tape input{position:absolute;opacity:0;left:0;top:0;width:1px;height:1px;pointer-events:none}
+.tape .spark{position:absolute;left:50%;top:50%;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:3}
+.tape .lock{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font:600 14px 'JetBrains Mono',monospace;color:var(--muted);z-index:4}
+.tape.locked .lock{display:flex}.tape.locked .rail,.tape.locked .caret{opacity:.25}
+.tape .focus-hint{position:absolute;left:50%;bottom:2px;translate:-50% 0;font:500 12px 'JetBrains Mono',monospace;color:var(--muted);opacity:0;transition:.3s;z-index:4;pointer-events:none}
+.tape.blurred:not(.locked) .focus-hint{opacity:1}
+
+/* ═══ MASHQ ═══ */
+.prac{border-radius:28px;padding:22px 24px 18px;position:relative;overflow:hidden;max-width:960px;margin:0 auto}
+.prac-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.prac-h h3{font-size:18px;margin-right:auto;display:flex;align-items:center;gap:8px}
+.lvl{display:flex;gap:3px;padding:3px;border-radius:11px;background:var(--field);border:1px solid var(--line)}
+.lvl button{padding:5px 11px;border-radius:8px;font:600 12px 'JetBrains Mono',monospace;color:var(--muted)}
+.lvl button.on{background:var(--solid);color:var(--ink);box-shadow:0 4px 12px -8px rgba(0,0,0,.5)}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.hud div{border-radius:16px;padding:10px 14px;background:var(--field);border:1px solid var(--line);display:flex;align-items:baseline;gap:8px}
+.hud small{font:600 10px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted);margin-right:auto}
+.hud b{font:700 26px 'JetBrains Mono',monospace;letter-spacing:-.03em;display:inline-block}
+.hud em{font-style:normal;font-size:12px;color:var(--muted)}
+.hud .combo b{color:var(--gold)}
+.tbar{position:relative;height:6px;border-radius:6px;background:var(--field);overflow:hidden;margin-top:6px}
+.tbar i{position:absolute;inset:0 auto 0 0;width:0;border-radius:6px;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .3s cubic-bezier(.2,.8,.2,1)}
+.tbar u{position:absolute;top:0;bottom:0;width:2px;background:var(--bg);text-decoration:none}
+.prac-f{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.prac-f kbd{font:600 11px 'JetBrains Mono',monospace;padding:2px 7px;border-radius:7px;border:1px solid var(--line);background:var(--field)}
+.prac-f .sp{margin-left:auto}
+.result{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:28px;background:color-mix(in srgb,var(--solid) 94%,transparent);z-index:5;padding:20px;flex-wrap:wrap}
+.result.on{display:flex}
+.result .big{text-align:center}
+.result .big b{display:block;font:800 92px 'JetBrains Mono',monospace;letter-spacing:-.05em;line-height:1;background:linear-gradient(135deg,var(--acc),var(--acc2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.result .big small{font:600 12px 'JetBrains Mono',monospace;letter-spacing:.2em;color:var(--muted)}
+.result .side{display:flex;flex-direction:column;gap:6px;min-width:220px}
+.result .side .r{display:flex;justify-content:space-between;font-size:14px;color:var(--muted);padding:5px 0;border-bottom:1px dashed var(--line)}
+.result .side .r b{color:var(--ink);font-family:'JetBrains Mono',monospace}
+.result .side .rec{color:var(--gold);font-weight:700;font-size:14px}
+
+/* ═══ POYGA ═══ */
+.race{border-radius:28px;padding:18px;position:relative;overflow:hidden}
+.race-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.race-top h3{font-size:19px;margin-right:auto;display:flex;align-items:center;gap:8px}
+.track{position:relative;border-radius:20px;overflow:hidden;background:
+  radial-gradient(1200px 200px at 50% 0,rgba(255,255,255,.05),transparent),
+  repeating-linear-gradient(0deg,rgba(255,255,255,.012) 0 2px,transparent 2px 4px),
+  linear-gradient(180deg,#2a2e37,#22252d);padding:14px 0;box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),inset 0 20px 40px -20px rgba(0,0,0,.6)}
+.kerb{height:10px;background:repeating-linear-gradient(90deg,#e11d48 0 24px,#f8fafc 24px 48px);opacity:.9}
+.kerb.t{position:absolute;top:0;left:0;right:0}.kerb.b{position:absolute;bottom:0;left:0;right:0}
+.kerb.mv{animation:kerb .6s linear infinite}
+@keyframes kerb{to{background-position:-48px 0}}
+.startln{position:absolute;left:206px;top:10px;bottom:10px;width:6px;background:repeating-linear-gradient(0deg,#fff 0 8px,transparent 8px 16px);opacity:.5}
+.finish{position:absolute;right:64px;top:10px;bottom:10px;width:22px;background:conic-gradient(#f8fafc 25%,#111 0 50%,#f8fafc 0 75%,#111 0) 0 0/11px 11px;box-shadow:0 0 24px rgba(255,255,255,.25)}
+.finish-banner{position:absolute;right:20px;top:50%;translate:0 -50%;writing-mode:vertical-rl;font:800 12px 'JetBrains Mono',monospace;letter-spacing:.35em;color:#f8fafc;opacity:.55}
+.ln{position:relative;height:72px}
+.ln+.ln:before{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.45) 0 28px,transparent 28px 56px)}
+.ln .av{position:absolute;left:10px;top:50%;translate:0 -50%;width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font:700 12px 'JetBrains Mono',monospace;color:#0d1020;z-index:1}
+.ln.me{background:linear-gradient(90deg,rgba(34,211,238,.12),transparent 60%)}
+.car{position:absolute;left:0;top:6px;width:150px;height:56px;will-change:transform;z-index:2}
+.car svg{width:150px;height:56px;overflow:visible;display:block}
+.car .plate{position:absolute;left:44px;top:-10px;font:700 11px 'JetBrains Mono',monospace;padding:2px 8px 2px 3px;border-radius:999px;background:rgba(13,16,32,.85);color:#f8fafc;border:1px solid rgba(255,255,255,.15);white-space:nowrap;display:flex;gap:6px;align-items:center}
+.car .plate i{font-style:normal;font-weight:800;padding:0 5px;border-radius:999px;background:#f8fafc;color:#0d1020;display:inline-block}
+.car .plate.p1 i{background:#fbbf24}.car .plate.p2 i{background:#cbd5e1}.car .plate.p3 i{background:#fb923c}
+.wind{position:absolute;left:-90px;top:14px;width:90px;height:30px;opacity:0;pointer-events:none;background:
+  linear-gradient(90deg,transparent,rgba(255,255,255,.55)) 0 4px/70px 2px no-repeat,
+  linear-gradient(90deg,transparent,rgba(255,255,255,.4)) 20px 14px/60px 2px no-repeat,
+  linear-gradient(90deg,transparent,rgba(255,255,255,.5)) 6px 24px/80px 2px no-repeat}
+.toast{position:absolute;left:50%;bottom:18px;translate:-50% 0;z-index:5;padding:8px 16px;border-radius:999px;font:700 14px 'Space Grotesk',sans-serif;background:rgba(13,16,32,.92);color:#fff;border:1px solid rgba(255,255,255,.15);box-shadow:0 14px 30px -10px rgba(0,0,0,.6);opacity:0;pointer-events:none;white-space:nowrap}
+.gauge{display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:999px;background:var(--field);border:1px solid var(--line)}
+.gauge svg{width:46px;height:30px}
+.gauge b{font:700 18px 'JetBrains Mono',monospace}.gauge small{font:600 10px 'JetBrains Mono',monospace;color:var(--muted)}
+.board{display:grid;grid-template-columns:1fr 270px;gap:12px;margin-top:12px;align-items:start}
+.rt-h{display:flex;gap:14px;align-items:center;font:600 12px 'JetBrains Mono',monospace;color:var(--muted);flex-wrap:wrap;padding-top:4px}
+.rt-h b{color:var(--ink)}.rt-h .cb{color:var(--gold)}.rt-h .sp{margin-left:auto}
+.rtape{border-radius:22px;padding:10px 16px;--fs:30px;--lh:70px;display:flex;flex-direction:column;justify-content:center}
+.standings{border-radius:22px;padding:14px}
+.standings h4{font:600 11px 'JetBrains Mono',monospace;letter-spacing:.1em;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.st{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:13px;margin-bottom:5px;background:var(--field);position:relative}
+.st .p{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font:700 14px 'JetBrains Mono',monospace;background:var(--solid);border:1px solid var(--line)}
+.st.r1 .p{background:linear-gradient(135deg,#fde68a,#f59e0b);color:#78350f;border:0}
+.st.r2 .p{background:linear-gradient(135deg,#e5e7eb,#9ca3af);color:#1f2937;border:0}
+.st.r3 .p{background:linear-gradient(135deg,#fdba74,#c2410c);color:#fff;border:0}
+.st .dot{width:10px;height:10px;border-radius:50%;flex:none}
+.st b{font-size:14px}
+.st small{display:block;color:var(--muted);font:500 11px 'JetBrains Mono',monospace}
+.st .w{margin-left:auto;font:700 12px 'JetBrains Mono',monospace;color:var(--muted);white-space:nowrap}
+.st.me{outline:2px solid color-mix(in srgb,var(--acc) 55%,transparent)}
+.lights{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:6;background:color-mix(in srgb,var(--bg) 55%,transparent);backdrop-filter:blur(3px)}
+.lights.on{display:flex}
+.lights .box{display:flex;gap:14px;padding:16px 20px;border-radius:22px;background:#0b0d12;border:1px solid rgba(255,255,255,.1);box-shadow:0 30px 60px -20px rgba(0,0,0,.8)}
+.lights .box i{width:46px;height:46px;border-radius:50%;background:#1d2029;box-shadow:inset 0 -6px 10px rgba(0,0,0,.5);transition:background .1s,box-shadow .1s}
+.lights .box i.r{background:#ef4444;box-shadow:0 0 26px #ef4444,inset 0 -6px 10px rgba(0,0,0,.3)}
+.lights .box i.g{background:#22c55e;box-shadow:0 0 26px #22c55e,inset 0 -6px 10px rgba(0,0,0,.3)}
+.lights b{font:800 46px 'JetBrains Mono',monospace;letter-spacing:-.03em;color:var(--ink);min-height:56px;display:inline-block}
+.podium{position:absolute;inset:0;display:none;align-items:flex-end;justify-content:center;gap:16px;padding-bottom:30px;z-index:7;background:color-mix(in srgb,var(--solid) 94%,transparent)}
+.podium.on{display:flex}
+.podium .col{width:190px;text-align:center}
+.podium .pcar svg{width:150px;height:56px;overflow:visible}
+.podium .blk{border-radius:18px 18px 0 0;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;font:800 46px 'JetBrains Mono',monospace;color:#fff}
+.podium .who{font-weight:700;font-size:16px}
+.podium .pay{font:700 15px 'JetBrains Mono',monospace;color:var(--gold);margin:2px 0 6px;min-height:20px}
+.podium .title{position:absolute;top:28px;left:0;right:0;text-align:center}
+.podium .title h3{font-size:36px;letter-spacing:-.04em}
+.podium .title p{color:var(--muted)}
+.podium .again{position:absolute;top:28px;right:24px}
+.cf{position:absolute;top:-10px;width:8px;height:14px;border-radius:2px;z-index:8;pointer-events:none}
+
+/* ═══ USTOZ ═══ */
+.teach{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}
+.card{border-radius:26px;padding:24px}
+.card h3{font-size:20px;letter-spacing:-.02em;margin-bottom:12px}
+.f input,.f select{width:100%;height:46px;border-radius:13px;border:1px solid var(--line);background:var(--field);padding:0 14px;color:var(--ink);font:500 15px 'Space Grotesk',sans-serif;outline:none}
+.prize{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prize div{border-radius:16px;padding:12px;background:var(--field);border:1px solid var(--line);text-align:center}
+.prize div i{font-size:20px;font-style:normal}
+.prize input{height:42px;text-align:center;font:700 17px 'JetBrains Mono',monospace;margin-top:6px}
+.ledger .r{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line);font-size:15px;color:var(--muted)}
+.ledger .r b{color:var(--ink);font-family:'JetBrains Mono',monospace}
+.ledger .r.minus b{color:var(--red)}
+.ledger .after{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-weight:700}
+.ledger .after b{font:700 26px 'JetBrains Mono',monospace;color:var(--gold)}
+.warn{margin-top:14px;padding:12px 14px;border-radius:14px;font-size:14px;background:color-mix(in srgb,var(--gold) 12%,transparent);border:1px solid color-mix(in srgb,var(--gold) 30%,transparent)}
+.toggle{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--field);border:1px solid var(--line);margin-bottom:12px;cursor:pointer}
+.toggle .sw{margin-left:auto;width:50px;height:28px;border-radius:28px;background:var(--line);position:relative;transition:.25s;flex:none}
+.toggle .sw:after{content:"";position:absolute;left:4px;top:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.25s}
+.toggle.on .sw{background:var(--lime)}.toggle.on .sw:after{left:26px}
+
+.switch{position:fixed;left:50%;bottom:14px;translate:-50% 0;z-index:50;display:flex;gap:4px;padding:5px;border-radius:999px;background:#0d1020;box-shadow:0 20px 40px -12px rgba(0,0,0,.6)}
+.switch span{color:#8b93a7;font:12px 'JetBrains Mono',monospace;align-self:center;padding:0 8px 0 12px}
+.switch button{padding:8px 15px;border-radius:999px;font:600 13px 'Space Grotesk',sans-serif;color:#cbd5e1}
+.switch button.on{background:linear-gradient(100deg,#22d3ee,#a78bfa);color:#05060a}
+
+@media(max-width:900px){
+  .modes,.wager,.board,.teach{grid-template-columns:1fr}
+  .hud{grid-template-columns:repeat(2,1fr)}
+  .tape{--fs:28px;--lh:72px}.rtape{--fs:24px;--lh:60px}
+  .car,.car svg{width:104px;height:39px}.car .plate{left:18px;top:-13px;font-size:10px}
+  .ln{height:58px}.finish{right:30px;width:16px;background-size:8px 8px}.finish-banner{display:none}
+  .ln .av{width:26px;height:26px;font-size:10px;border-radius:9px;left:6px}
+  .race{padding:12px}
+  .result .big b{font-size:64px}
+  .podium .col{width:110px}.podium .pcar svg{width:100px;height:38px}.podium .title h3{font-size:26px}.podium .again{top:auto;bottom:12px;right:12px}
+  .switch span{display:none}
+}
+@media (prefers-reduced-motion:reduce){.tape .rail{transition:none}.kerb.mv{animation:none}}
+</style>
+</head>
+<body>
+<div class="bgfx"></div>
+<div class="wrap">
+  <div class="top">
+    <h1><i class="bi bi-keyboard"></i>Yozish mashqi <small>2.0</small></h1>
+    <span class="coin"><b>₵</b><span id="myCoin">12 419</span></span>
+    <button class="ib" id="theme" title="Dark / Light"><i class="bi bi-circle-half"></i></button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="on" data-s="lobby"><i class="bi bi-grid"></i> Rejim tanlash</button>
+    <button data-s="practice"><i class="bi bi-lightning"></i> Mashq</button>
+    <button data-s="race"><i class="bi bi-flag"></i> Sheriklar bilan poyga</button>
+    <button data-s="teacher"><i class="bi bi-person-video3"></i> Ustoz: musobaqa</button>
+  </div>
+
+  <!-- ═══════════ LOBBY ═══════════ -->
+  <section class="screen on" id="s-lobby">
+    <div class="modes">
+      <div class="mode glass" data-go="practice">
+        <div class="ic" style="background:linear-gradient(135deg,#0891b2,#22d3ee)"><i class="bi bi-lightning-charge"></i></div>
+        <h2>Mashq</h2><p>O‘zingiz uchun: tezlik va aniqlikni oshiring. Natija shaxsiy rekord sifatida saqlanadi.</p>
+        <div class="meta"><span class="pill">15 ta matn</span><span class="pill">Rekord: 42 WPM</span></div><i class="bi bi-lightning bgic"></i>
+      </div>
+      <div class="mode glass" data-go="race">
+        <div class="ic" style="background:linear-gradient(135deg,#7c3aed,#db2777)"><i class="bi bi-trophy"></i></div>
+        <h2>Musobaqa</h2><p>Ustoz yoki admin yoqqan musobaqa. Faqat yoqilgan vaqtda ishlaydi, sovrin — 1, 2, 3-o‘rinlarga.</p>
+        <div class="meta"><span class="pill live">Jonli · 12 ishtirokchi</span><span class="pill hot">🏆 500 / 300 / 150</span><span class="pill">ustoz: Jasur K.</span></div><i class="bi bi-trophy bgic"></i>
+      </div>
+      <div class="mode glass" data-go="wager">
+        <div class="ic" style="background:linear-gradient(135deg,#f59e0b,#b45309)"><i class="bi bi-car-front-fill"></i></div>
+        <h2>Sheriklar bilan</h2><p>Do‘stlaringiz bilan mashina poygasi. Shunchaki o‘ynang yoki coin tiking — g‘olib bankni oladi.</p>
+        <div class="meta"><span class="pill">2–5 o‘yinchi</span><span class="pill">Coin: ixtiyoriy</span><span class="pill">xizmat haqi 10%</span></div><i class="bi bi-car-front bgic"></i>
+      </div>
+    </div>
+    <div class="wager glass" id="wagerPanel">
+      <div>
+        <h3><i class="bi bi-people"></i> Sheriklar bilan xona ochish</h3>
+        <p class="note">Har bir o‘yinchi bir xil miqdorda tikadi. “Shunchaki” — coinsiz o‘yin.</p>
+        <div class="stakes" id="stakes"><button data-s="0">Shunchaki</button><button data-s="50">50</button><button class="on" data-s="100">100</button><button data-s="200">200</button><button data-s="500">500</button></div>
+        <div class="f"><label>O‘YINCHILAR SONI</label><div class="stakes" id="players" style="margin:0"><button data-p="2">2</button><button data-p="3">3</button><button class="on" data-p="4">4</button><button data-p="5">5</button></div></div>
+        <div class="room"><input value="XONA · K7Q2" readonly><button class="btn ghost"><i class="bi bi-share"></i> Taklif havolasi</button><button class="btn" data-go="race"><i class="bi bi-flag"></i> Poygani boshlash</button></div>
+      </div>
+      <div class="calc" id="calc"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ MASHQ (Lenta) ═══════════ -->
+  <section class="screen" id="s-practice">
+    <div class="prac glass" id="prac">
+      <div class="prac-h">
+        <h3><i class="bi bi-lightning-charge" style="color:var(--acc)"></i> Mashq</h3>
+        <div class="lvl" id="lvl"><button data-l="easy">Oson</button><button class="on" data-l="medium">O‘rta</button><button data-l="hard">Qiyin</button></div>
+        <button class="btn ghost sm" id="newText"><i class="bi bi-shuffle"></i> Boshqa matn</button>
+      </div>
+      <div class="hud">
+        <div><small>TEZLIK</small><b id="hW">0</b><em>WPM</em></div>
+        <div><small>ANIQLIK</small><b id="hA">100</b><em>%</em></div>
+        <div><small>VAQT</small><b id="hT">0.0</b><em>s</em></div>
+        <div class="combo"><small>KOMBO</small><b id="hC">0</b><em>🔥</em></div>
+      </div>
+      <div class="tape" id="pTape" style="margin-top:10px"></div>
+      <div class="tbar" id="pBar"><i></i></div>
+      <div class="prac-f"><i class="bi bi-info-circle"></i> Yozishni boshlang — taymer o‘zi yoqiladi · <kbd>Space</kbd> keyingi so‘z · <kbd>Esc</kbd> qaytadan <span class="sp mono" id="pCount"></span></div>
+      <div class="result" id="result">
+        <div class="big"><b id="rW">0</b><small>SO‘Z / DAQIQA</small></div>
+        <div class="side">
+          <div class="r"><span>Aniqlik</span><b id="rA">0%</b></div>
+          <div class="r"><span>Vaqt</span><b id="rT">0s</b></div>
+          <div class="r"><span>Eng uzun kombo</span><b id="rC">0</b></div>
+          <div class="r"><span>Xato so‘zlar</span><b id="rE">0</b></div>
+          <div class="rec" id="rRec"></div>
+          <button class="btn" id="again" style="margin-top:6px"><i class="bi bi-arrow-repeat"></i> Yana bir bor</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ POYGA ═══════════ -->
+  <section class="screen" id="s-race">
+    <div class="race glass" id="raceBox">
+      <div class="race-top">
+        <h3><i class="bi bi-flag-fill" style="color:var(--pink)"></i> Poyga · XONA K7Q2</h3>
+        <span class="pill live">Real vaqt</span>
+        <div class="gauge"><svg viewBox="0 0 46 30"><defs><linearGradient id="gG"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs><path d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="currentColor" stroke-opacity=".15" stroke-width="5" stroke-linecap="round"/><path id="gArc" d="M5 26 A18 18 0 0 1 41 26" fill="none" stroke="url(#gG)" stroke-width="5" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="transition:stroke-dasharray .3s"/></svg><div><b id="gW">0</b> <small>WPM</small></div></div>
+        <span class="pill hot" id="potPill"></span>
+        <button class="btn ghost sm" id="restart"><i class="bi bi-arrow-repeat"></i> Qayta</button>
+      </div>
+      <div class="track" id="track"></div>
+      <div class="board">
+        <div class="rtape glass"><div class="rt-h"><span>SO‘Z <b id="rI">0/0</b></span><span>ANIQLIK <b id="rAc">100%</b></span><span class="cb">🔥 <b id="rCb" style="color:inherit">0</b></span><span class="sp">To‘g‘ri so‘z = nitro 🚀</span></div><div class="tape" id="rTape"></div><div class="tbar"><i id="rBar"></i></div></div>
+        <div class="standings glass"><h4>JONLI O‘RINLAR <span id="clock">0.0s</span></h4><div id="stand"></div></div>
+      </div>
+      <div class="lights" id="lights"><div class="box"><i></i><i></i><i></i><i></i><i></i></div><b id="lightsTxt">Tayyorlaning…</b></div>
+      <div class="podium" id="podium"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ USTOZ ═══════════ -->
+  <section class="screen" id="s-teacher">
+    <div class="teach">
+      <div class="card glass">
+        <h3><i class="bi bi-trophy"></i> Yangi musobaqa</h3>
+        <div class="f"><label>NOMI</label><input value="Haftalik tezlik chempionati"></div>
+        <div class="f"><label>KIMLAR UCHUN</label><select><option>Mening guruhlarim: Backend-12, Frontend-7</option><option>Tanlangan o‘quvchilar</option></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><div class="f"><label>BOSHLANISH</label><input value="Bugun · 18:00"></div><div class="f"><label>TUGASH</label><input value="Bugun · 19:00"></div></div>
+        <div class="toggle on" id="tgl"><i class="bi bi-broadcast" style="font-size:22px;color:var(--lime)"></i><div><b>Musobaqa yoqilgan</b><div class="note" style="margin:0">O‘chirsangiz — o‘quvchilar kira olmaydi</div></div><div class="sw"></div></div>
+        <div class="f"><label>SOVRINLAR (COIN)</label>
+          <div class="prize"><div><i>🥇</i><input id="p1" value="500"></div><div><i>🥈</i><input id="p2" value="300"></div><div><i>🥉</i><input id="p3" value="150"></div></div></div>
+        <button class="btn" style="width:100%"><i class="bi bi-rocket-takeoff"></i> Musobaqani yoqish</button>
+      </div>
+      <div class="card glass ledger">
+        <h3><i class="bi bi-wallet2"></i> Sovrin kimdan?</h3>
+        <p class="note" style="margin-bottom:10px">Ustoz yoqqan musobaqada sovrin <b style="color:var(--ink)">ustozning o‘z coin hisobidan</b> yechiladi. Admin musobaqasida — tizim hisobidan.</p>
+        <div class="r"><span>Hozirgi balansingiz</span><b>12 419</b></div>
+        <div class="r minus"><span>Sovrin fondi (bron qilinadi)</span><b id="tFund">−950</b></div>
+        <div class="after"><span>Musobaqadan keyin</span><b id="tAfter">11 469</b></div>
+        <div class="warn"><i class="bi bi-info-circle"></i> Coin musobaqa yoqilganda <b>bron</b> qilinadi va g‘oliblarga o‘tkaziladi. Ishtirokchi yetmasa — qolgani ustozga qaytadi.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="switch"><span>Prototip:</span><button class="on" data-s="lobby">Lobby</button><button data-s="practice">Mashq</button><button data-s="race">Poyga</button><button data-s="teacher">Ustoz</button></div>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+(function () {
+  const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const G = window.gsap;
+  const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const mobile = () => window.innerWidth <= 900;
+  // Eski mashqdagi matnlar (Prompt modeli) — so'zlar o'zgarmaydi. Apostroflar eskisidagidek ` ga keltiriladi.
+  const norm = s => s.replace(/[’‘'ʻʼ]/g, '`');
+  const TEXTS = {
+    easy: ['Kitob o`qish inson ongini boyitadi va yangi g`oyalar beradi', 'Har kuni ozgina mashq qilsangiz natija albatta keladi'],
+    medium: ['Python dasturlash tili bugun dunyoda eng mashhur tillardan biri hisoblanadi', 'Veb sahifa HTML CSS va JavaScript yordamida yaratiladi'],
+    hard: ['Algoritmning murakkabligi kirish ma`lumotlari hajmiga bog`liq ravishda baholanadi', 'Ma`lumotlar bazasi indekslari so`rovlarni sezilarli darajada tezlashtiradi']
+  };
+  let level = 'medium', textIdx = 0;
+  const words = () => norm(TEXTS[level][textIdx]).split(/\s+/);
+
+  /* ════════ LENTA komponenti: mashq va poygada bir xil ════════ */
+  class Tape {
+    constructor(root, opts = {}) {
+      this.root = root; this.opts = opts;
+      root.innerHTML = '<div class="lane"><div class="caret"></div><div class="rail"></div></div><div class="lock">Start chirog‘ini kuting…</div><div class="focus-hint">Yozish uchun shu yerni bosing</div><input autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">';
+      this.lane = $('.lane', root); this.rail = $('.rail', root); this.caret = $('.caret', root); this.inp = $('input', root);
+      root.addEventListener('click', () => this.focus());
+      this.inp.addEventListener('focus', () => root.classList.remove('blurred'));
+      this.inp.addEventListener('blur', () => root.classList.add('blurred'));
+      this.inp.addEventListener('keydown', e => { if (e.key === 'Escape' && this.opts.onEsc) { e.preventDefault(); this.opts.onEsc(); } });
+      // 'input' hodisasi — telefon klaviaturalarida ham ishonchli ishlaydi
+      this.inp.addEventListener('input', () => this.onInput());
+    }
+    load(words) {
+      this.words = words; this.i = 0; this.typed = ''; this.marks = []; this.t0 = 0; this.keys = 0; this.ok = 0;
+      this.combo = 0; this.maxCombo = 0; this.errors = 0; this.done = false; this.inp.value = '';
+      this.rail.innerHTML = words.map(w => `<span class="w">${w}</span>`).join('');
+      this.root.classList.add('idle'); this.paint(true);
+    }
+    set locked(v) { this.root.classList.toggle('locked', v); this._locked = v; if (!v) this.focus(); }
+    focus() { if (!this._locked) this.inp.focus({ preventScroll: true }); }
+    onInput() {
+      if (this.done || this._locked) { this.inp.value = ''; return; }
+      const v = norm(this.inp.value), w = this.words[this.i];
+      if (!this.t0 && v.trim()) { this.t0 = performance.now(); this.opts.onStart && this.opts.onStart(); }
+      if (v.length > this.typed.length && !v.includes(' ')) {
+        for (let j = this.typed.length; j < v.length; j++) { this.keys++; if (v[j] === w[j]) this.ok++; else this.flashErr(); }
+      }
+      if (v.includes(' ')) { const t = v.split(' ')[0]; this.inp.value = ''; if (t) this.commit(t); else { this.typed = ''; this.paint(); } return; }
+      this.typed = v; this.root.classList.remove('idle');
+      if (this.i === this.words.length - 1 && v === w) return this.commit(v);
+      this.paint();
+    }
+    commit(t) {
+      const good = t === this.words[this.i], el = this.rail.children[this.i];
+      this.marks[this.i] = good ? 'done' : 'bad';
+      this.keys++; if (good) { this.ok++; this.combo++; this.maxCombo = Math.max(this.maxCombo, this.combo); this.burst(); } else { this.combo = 0; this.errors++; }
+      this.i++; this.typed = ''; this.inp.value = '';
+      if (G && el) G.fromTo(el, { y: good ? -6 : 0, x: good ? 0 : -4 }, { y: 0, x: 0, duration: .35, ease: good ? 'back.out(3)' : 'elastic.out(1,.3)' });
+      this.opts.onWord && this.opts.onWord(good);
+      if (this.i >= this.words.length) { this.done = true; this.paint(); this.opts.onDone && this.opts.onDone(this.stats()); return; }
+      this.paint();
+    }
+    paint(instant) {
+      [...this.rail.children].forEach((el, k) => {
+        const cls = 'w ' + (k === this.i ? 'cur' : this.marks[k] || '');
+        if (el.className !== cls) el.className = cls;
+        if (k === this.i) {
+          const w = this.words[k], t = this.typed;
+          el.innerHTML = [...w].map((c, j) => `<span class="c ${j < t.length ? (t[j] === c ? 'ok' : 'err') : ''}">${c}</span>`).join('') +
+            [...t.slice(w.length)].map(c => `<span class="c x">${c}</span>`).join('');
+        } else if (el.children.length) el.textContent = this.words[k];
+      });
+      // Kursor joyi: joriy so'zdagi keyingi harf — lenta shu nuqtani markazga suradi
+      const cur = this.rail.children[Math.min(this.i, this.words.length - 1)], cs = cur.children;
+      let x;
+      if (this.i >= this.words.length) x = cur.offsetLeft + cur.offsetWidth;
+      else if (this.typed.length < cs.length) x = cs[this.typed.length].offsetLeft;
+      else { const l = cs[cs.length - 1]; x = l ? l.offsetLeft + l.offsetWidth : cur.offsetLeft; }
+      if (instant) { this.rail.style.transition = 'none'; requestAnimationFrame(() => this.rail.style.transition = ''); }
+      this.rail.style.transform = `translateX(${-x}px)`;
+    }
+    flashErr() {
+      this.caret.classList.add('err'); clearTimeout(this._e); this._e = setTimeout(() => this.caret.classList.remove('err'), 160);
+      G && G.fromTo(this.lane, { x: -3 }, { x: 0, duration: .25, ease: 'elastic.out(1,.3)' });
+    }
+    burst() {
+      if (!G) return;
+      for (let k = 0; k < 7; k++) {
+        const s = document.createElement('i'); s.className = 'spark';
+        s.style.background = ['#a3e635', '#22d3ee', '#fbbf24'][k % 3]; this.lane.appendChild(s);
+        const a = Math.PI * (0.9 + Math.random() * 1.2), d = 26 + Math.random() * 30;
+        G.fromTo(s, { x: -18, y: 0, scale: 1, opacity: 1 }, { x: -18 + Math.cos(a) * d, y: Math.sin(a) * d, scale: 0, opacity: 0, duration: .55, ease: 'power2.out', onComplete: () => s.remove() });
+      }
+    }
+    progress() {
+      if (this.i >= this.words.length) return 1;
+      const w = this.words[this.i]; let p = 0; while (p < this.typed.length && this.typed[p] === w[p]) p++;
+      return (this.i + p / (w.length + 1)) / this.words.length;
+    }
+    stats() {
+      const sec = this.t0 ? (performance.now() - this.t0) / 1000 : 0;
+      return { sec, wpm: sec > 0.5 ? Math.round(this.ok / 5 / (sec / 60)) : 0, acc: this.keys ? Math.round(this.ok / this.keys * 100) : 100, combo: this.combo, maxCombo: this.maxCombo, errors: this.errors };
+    }
+  }
+
+  /* ════════ Ekranlar ════════ */
+  let current = 'lobby';
+  function go(s) {
+    if (s === 'wager') { s = 'lobby'; setTimeout(() => $('#wagerPanel').scrollIntoView({ behavior: 'smooth', block: 'center' }), 60); }
+    current = s;
+    $$('.screen').forEach(x => x.classList.toggle('on', x.id === 's-' + s));
+    $$('#tabs button, .switch button').forEach(b => b.classList.toggle('on', b.dataset.s === s));
+    G && G.fromTo($$('#s-' + s + ' .glass'), { y: 26, opacity: 0 }, { y: 0, opacity: 1, duration: .55, stagger: .05, ease: 'expo.out', clearProps: 'transform,opacity' });
+    stopRace();
+    if (s === 'practice') startPractice();
+    if (s === 'race') startRace();
+  }
+  $$('#tabs button, .switch button').forEach(b => b.addEventListener('click', () => go(b.dataset.s)));
+  $$('[data-go]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); go(b.dataset.go); }));
+  $('#theme').onclick = () => { const h = document.documentElement, t = h.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark'; h.setAttribute('data-bs-theme', t); try { localStorage.setItem('theme', t); } catch (e) {} };
+
+  /* ════════ Tikish: 100 + 100 = 200, 10% xizmat → g'olibga 180 ════════ */
+  let stake = 100, players = 4;
+  const settle = n => { const pot = stake * n, fee = Math.floor(pot * 10 / 100); return { pot, fee, win: pot - fee }; };
+  function calc() {
+    const { pot, fee, win } = settle(players);
+    $('#calc').innerHTML = stake === 0
+      ? `<div class="r"><span>Rejim</span><b>Shunchaki o‘yin</b></div><div class="r"><span>Coin</span><b>tikilmaydi</b></div><div class="win"><span>G‘olibga</span><b>🏆 shon-sharaf</b></div>`
+      : `<div class="r"><span>Har bir o‘yinchi</span><b>${stake} coin</b></div><div class="r"><span>Bank (${players} × ${stake})</span><b>${pot} coin</b></div>
+         <div class="r fee"><span>Xizmat haqi (10%)</span><b>−${fee} coin</b></div><div class="win"><span>G‘olibga tushadi</span><b>+${win}</b></div>
+         <p class="note">Masalan, 2 kishi × 100 → bank 200 → g‘olibga 180. Durang yoki bekor bo‘lsa — coin qaytariladi.</p>`;
+    $('#potPill').textContent = stake ? `Bank ${pot} · g‘olibga ${win}` : 'Shunchaki o‘yin';
+  }
+  $$('#stakes button').forEach(b => b.addEventListener('click', () => { $$('#stakes button').forEach(x => x.classList.toggle('on', x === b)); stake = +b.dataset.s; calc(); }));
+  $$('#players button').forEach(b => b.addEventListener('click', () => { $$('#players button').forEach(x => x.classList.toggle('on', x === b)); players = +b.dataset.p; calc(); }));
+  calc();
+
+  /* ════════ Ustoz: sovrin o'z hisobidan ════════ */
+  function tcalc() { const f = ['#p1', '#p2', '#p3'].reduce((s, i) => s + (+$(i).value || 0), 0); $('#tFund').textContent = '−' + fmt(f); $('#tAfter').textContent = fmt(12419 - f); }
+  ['#p1', '#p2', '#p3'].forEach(i => $(i).addEventListener('input', tcalc)); tcalc();
+  $('#tgl').onclick = () => $('#tgl').classList.toggle('on');
+
+  /* ════════ MASHQ ════════ */
+  const pBar = $('#pBar i');
+  const pTape = new Tape($('#pTape'), { onEsc: () => startPractice(), onWord: () => hud(), onDone: s => finishPractice(s) });
+  function ticks() { $$('#pBar u').forEach(u => u.remove()); const n = pTape.words.length; for (let k = 1; k < n; k++) { const u = document.createElement('u'); u.style.left = (k / n * 100) + '%'; $('#pBar').appendChild(u); } }
+  function startPractice() { $('#result').classList.remove('on'); pTape.load(words()); ticks(); hud(); setTimeout(() => pTape.focus(), 60); }
+  function hud() {
+    const s = pTape.stats();
+    $('#hW').textContent = s.wpm; $('#hA').textContent = s.acc; $('#hT').textContent = s.sec.toFixed(1);
+    const c = $('#hC'); if (+c.textContent !== s.combo) { c.textContent = s.combo; if (s.combo > 1 && G) G.fromTo(c, { scale: 1.5 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); }
+    pBar.style.width = pTape.progress() * 100 + '%';
+    $('#pCount').textContent = `${Math.min(pTape.i, pTape.words.length)} / ${pTape.words.length} so‘z`;
+  }
+  pTape.inp.addEventListener('input', hud);
+  setInterval(() => { if (current === 'practice' && pTape.t0 && !pTape.done) hud(); }, 100);
+  function finishPractice(s) {
+    hud(); $('#result').classList.add('on');
+    $('#rA').textContent = s.acc + '%'; $('#rT').textContent = s.sec.toFixed(1) + 's'; $('#rC').textContent = s.maxCombo; $('#rE').textContent = s.errors;
+    $('#rRec').textContent = s.wpm > 42 ? '🏆 Yangi shaxsiy rekord!' : `Rekordgacha: ${42 - s.wpm} WPM`;
+    const o = { v: 0 }; G ? G.to(o, { v: s.wpm, duration: 1, ease: 'power3.out', onUpdate: () => $('#rW').textContent = Math.round(o.v) }) : ($('#rW').textContent = s.wpm);
+    G && G.from('#result .big, #result .side > *', { y: 24, opacity: 0, duration: .5, stagger: .05, ease: 'back.out(1.8)' });
+  }
+  $('#again').onclick = startPractice;
+  $('#newText').onclick = () => { textIdx = (textIdx + 1) % TEXTS[level].length; startPractice(); };
+  $$('#lvl button').forEach(b => b.addEventListener('click', () => { $$('#lvl button').forEach(x => x.classList.toggle('on', x === b)); level = b.dataset.l; textIdx = 0; startPractice(); }));
+
+  /* ════════ POYGA ════════ */
+  const ROSTER = [
+    { name: 'Siz', c: '#06b6d4', d: '#0e7490' }, { name: 'Madina S.', c: '#a855f7', d: '#6b21a8' },
+    { name: 'Jasur T.', c: '#ef4444', d: '#991b1b' }, { name: 'Dilnoza R.', c: '#f59e0b', d: '#b45309' }, { name: 'Bekzod A.', c: '#22c55e', d: '#15803d' }
+  ];
+  let uid = 0;
+  // Real ko'rinishdagi sport mashina (yon tomondan): gradient kuzov, oyna aksi, haydovchi shlemi, faralar, aylanadigan disklar
+  function carSVG(k, num) {
+    const r = ROSTER[k], id = 'c' + (uid++);
+    const wheel = cx => `<g transform="translate(${cx} 43)"><circle r="11.5" fill="#0b0c10"/><circle r="10" fill="none" stroke="#1f2229" stroke-width="2"/>
+      <g class="rim"><circle r="7" fill="url(#rm${id})"/>${[0, 72, 144, 216, 288].map(a => `<rect x="-1.1" y="-7" width="2.2" height="6" rx="1" fill="#4b5563" transform="rotate(${a})"/>`).join('')}<circle r="2.2" fill="#111"/></g>
+      <path d="M-9 -4 A10 10 0 0 1 -2 -9.6" stroke="rgba(255,255,255,.25)" stroke-width="1.4" fill="none"/></g>`;
+    return `<svg viewBox="0 0 160 56"><defs>
+      <linearGradient id="b${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${r.c}" stop-opacity=".95"/><stop offset=".45" stop-color="${r.c}"/><stop offset="1" stop-color="${r.d}"/></linearGradient>
+      <linearGradient id="g${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe9ff"/><stop offset=".5" stop-color="#1e293b"/><stop offset="1" stop-color="#0f172a"/></linearGradient>
+      <radialGradient id="rm${id}"><stop offset="0" stop-color="#f1f5f9"/><stop offset="1" stop-color="#94a3b8"/></radialGradient>
+      <radialGradient id="hl${id}"><stop offset="0" stop-color="#fffbe6" stop-opacity=".9"/><stop offset="1" stop-color="#fffbe6" stop-opacity="0"/></radialGradient>
+      <linearGradient id="fl${id}" x1="1" x2="0"><stop offset="0" stop-color="#fff7ed"/><stop offset=".3" stop-color="#fb923c"/><stop offset=".7" stop-color="#3b82f6"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></linearGradient></defs>
+      <ellipse cx="80" cy="53" rx="70" ry="4" fill="rgba(0,0,0,.55)"/>
+      <g class="flame" opacity="0"><path d="M7 35 L-34 37.5 L7 40 Z" fill="url(#fl${id})"/><path d="M7 36.3 L-16 37.5 L7 38.7 Z" fill="#fff"/></g>
+      <ellipse cx="168" cy="33" rx="20" ry="7" fill="url(#hl${id})"/>
+      <g class="body">
+        <path d="M4 22 L16 22 L17 27 L8 27 Z" fill="${r.d}"/><rect x="10" y="26" width="2.5" height="5" fill="#111"/>
+        <path d="M6 38 C5 31 9 28 18 27 L46 24.5 C54 17 66 12.5 81 11.8 C97 11.2 109 13 119 19 L133 25.5 C147 26.5 155 29.5 156 35.5 L156 40 C156 42.2 154.5 43 152.5 43 L9 43 C6.8 43 6 41 6 38 Z" fill="url(#b${id})"/>
+        <path d="M18 27 L46 24.5 C54 17 66 12.5 81 11.8 C97 11.2 109 13 119 19 L133 25.5" fill="none" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/>
+        <path d="M52 25 C59 18.5 68 15 80 14.6 L97 14.6 C105 15 111 18 116.5 24.5 Z" fill="url(#g${id})"/>
+        <path d="M62 24 L74 15.5 L80 15.5 L68 24 Z" fill="rgba(255,255,255,.22)"/>
+        <rect x="84.5" y="14.5" width="3" height="10.5" fill="${r.d}"/>
+        <circle cx="96" cy="20.6" r="4.6" fill="#f8fafc"/><path d="M96 17 A4.6 4.6 0 0 1 100.6 20.6 L96 20.6 Z" fill="#0f172a"/>
+        <path d="M112 22 L117 21 L118 24 L113 24.5 Z" fill="${r.d}"/>
+        <path d="M60 26 L60 40 M100 26 L102 40" stroke="rgba(0,0,0,.28)" stroke-width="1"/>
+        <path d="M22 33 L150 33" stroke="rgba(255,255,255,.75)" stroke-width="2.4"/>
+        <circle cx="76" cy="33" r="6.5" fill="#f8fafc"/><text x="76" y="35.8" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="800" font-size="8" fill="#0f172a">${num}</text>
+        <path d="M146 28.5 L155 31 L154.5 34 L145 32 Z" fill="#fffbe6"/>
+        <rect x="6" y="30" width="4.5" height="6" rx="1.2" fill="#ff2d2d"/>
+        <rect x="24" y="39.5" width="110" height="3.5" rx="1.5" fill="rgba(0,0,0,.35)"/>
+      </g>
+      ${wheel(36)}${wheel(126)}
+      <circle cx="36" cy="43" r="14" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2.5" stroke-dasharray="22 100" transform="rotate(195 36 43)"/>
+      <circle cx="126" cy="43" r="14" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2.5" stroke-dasharray="22 100" transform="rotate(195 126 43)"/>
+    </svg>`;
+  }
+
+  let race = null, raf = 0, timers = [];
+  const rTape = new Tape($('#rTape'), { onWord: good => { if (race && good) nitro(0); } });
+
+  function stopRace() { timers.forEach(t => { clearTimeout(t); clearInterval(t); }); timers = []; cancelAnimationFrame(raf); if (race) race.on = false; $$('.kerb').forEach(k => k.classList.remove('mv')); }
+
+  function geom() {
+    const t = $('#track'), cw = race.cars[0].el.offsetWidth, x0 = mobile() ? 36 : 54;
+    const finR = mobile() ? 30 : 64, x1 = t.clientWidth - finR - cw * 0.97;      // old g'ildirak chiziqdan o'tadi
+    return { x0, span: x1 - x0, cw };
+  }
+  function startRace() {
+    stopRace();
+    const n = players, W = words();
+    race = {
+      W, n, on: false, t0: 0, fin: [], lastRank: null, lastT: 0,
+      cars: ROSTER.slice(0, n).map((r, k) => ({ ...r, k, target: 0, pos: 0, dist: 0, skill: k ? 0.55 + ((k * 37) % 10) / 22 : 0, wpm: 0, finT: 0 }))
+    };
+    $('#track').innerHTML = '<div class="kerb t"></div><div class="kerb b"></div><div class="startln" id="startln"></div><div class="finish"></div><div class="finish-banner">FINISH</div><div class="toast" id="toast"></div>' +
+      race.cars.map((c, k) => `<div class="ln ${k ? '' : 'me'}"><span class="av" style="background:${c.c}">${k ? c.name.slice(0, 2).toUpperCase() : 'SIZ'}</span>
+        <div class="car" id="car${k}"><div class="wind"></div>${carSVG(k, k + 7)}<span class="plate" id="pl${k}"><i>P${k + 1}</i>${c.name}</span></div></div>`).join('');
+    race.cars.forEach((c, k) => { const el = $('#car' + k); c.el = el; c.body = $('.body', el); c.rims = $$('.rim', el); c.flame = $('.flame', el); c.wind = $('.wind', el); c.plate = $('#pl' + k); });
+    rTape.load(W); rTape.locked = true;
+    $('#podium').classList.remove('on'); $('#clock').textContent = '0.0s'; gauge(0);
+    place(); drawStand(true);
+    // Start chiroqlari: 5 ta qizil yonadi → hammasi yashil = GO
+    const L = $$('#lights .box i'), txt = $('#lightsTxt');
+    L.forEach(i => i.className = ''); txt.textContent = 'Tayyorlaning…'; $('#lights').classList.add('on');
+    G && G.fromTo('#lights .box', { scale: .7, opacity: 0 }, { scale: 1, opacity: 1, duration: .5, ease: 'back.out(2)' });
+    L.forEach((l, k) => timers.push(setTimeout(() => { l.className = 'r'; txt.textContent = 5 - k; G && G.fromTo(txt, { scale: 1.4 }, { scale: 1, duration: .3 }); }, 500 + k * 450)));
+    timers.push(setTimeout(() => {
+      L.forEach(l => l.className = 'g'); txt.textContent = 'GO!'; G && G.fromTo(txt, { scale: 2 }, { scale: 1, duration: .4, ease: 'back.out(3)' });
+      timers.push(setTimeout(() => { $('#lights').classList.remove('on'); begin(); }, 450));
+    }, 500 + 5 * 450 + 250));
+  }
+  function begin() {
+    race.on = true; race.t0 = race.lastT = performance.now(); rTape.locked = false;
+    $$('.kerb').forEach(k => k.classList.add('mv'));
+    // "Server" so'rovi taqlidi: raqiblar holati har 500 ms keladi — mashinalar oradagi vaqtni silliq to'ldiradi
+    timers.push(setInterval(() => {
+      if (!race.on) return;
+      race.cars.forEach(c => {
+        if (!c.k || c.target >= 1) return;
+        const base = c.skill * 0.5 / race.W.length, jump = base * (0.5 + Math.random());
+        c.target = Math.min(1, c.target + jump);
+        if (jump > base * 1.3) nitro(c.k);
+      });
+    }, 500));
+    loop();
+  }
+  function place() { const { x0, span, cw } = geom(); $('#startln').style.left = (x0 + cw * 0.97 + 4) + 'px'; race.cars.forEach(c => c.el.style.transform = `translate3d(${x0 + c.pos * span}px,0,0)`); }
+  function loop() {
+    raf = requestAnimationFrame(loop);
+    const now = performance.now(), dt = Math.min(.05, (now - race.lastT) / 1000); race.lastT = now;
+    const { x0, span } = geom();
+    race.cars[0].target = rTape.progress();
+    race.cars.forEach(c => {
+      const prev = c.pos;
+      c.pos += (c.target - c.pos) * Math.min(1, dt * 5);            // silliq yetib olish (lerp) — tarmoq kechiksa ham qotmaydi
+      if (c.target >= 1 && 1 - c.pos < .002) c.pos = 1;
+      const dx = (c.pos - prev) * span; c.dist += dx;
+      c.el.style.transform = `translate3d(${x0 + c.pos * span}px,0,0)`;
+      const a = (c.dist / 11.5) * 57.3 * (160 / c.el.offsetWidth); c.rims.forEach(r => r.setAttribute('transform', `rotate(${a})`));
+      c.body.setAttribute('transform', dx > .05 ? `translate(0 ${(Math.sin(now / 55 + c.k) * .6).toFixed(2)})` : '');
+      if (c.pos >= 1 && !race.fin.includes(c.k)) { race.fin.push(c.k); c.finT = (now - race.t0) / 1000; finishFx(c); }
+    });
+    if (race.t0) $('#clock').textContent = ((now - race.t0) / 1000).toFixed(1) + 's';
+    if (!loop.st || now - loop.st > 250) { loop.st = now; drawStand(); }
+    // Hamma marraga yetsa — yoki siz yetib, top-3 aniq bo'lsa — poyga tugaydi
+    if (race.on && (race.fin.length >= race.n || (race.fin.includes(0) && race.fin.length >= Math.min(3, race.n)))) { race.on = false; timers.push(setTimeout(done, 900)); }
+  }
+  function nitro(k) {
+    const c = race && race.cars[k]; if (!c || !G) return;
+    G.killTweensOf([c.flame, c.wind]);
+    G.timeline().to(c.flame, { opacity: 1, duration: .08 }).to(c.flame, { opacity: .5, duration: .07, repeat: 5, yoyo: true }).to(c.flame, { opacity: 0, duration: .2 });
+    G.fromTo(c.wind, { opacity: .9, x: 10 }, { opacity: 0, x: -30, duration: .6, ease: 'power2.out' });
+  }
+  function finishFx(c) {
+    G && G.fromTo(c.plate, { scale: 1.4 }, { scale: 1, duration: .5, ease: 'back.out(3)' });
+    if (c.k === 0 && race.fin.length === 1) toast('🏁 Birinchi bo‘lib marraga yetdingiz!');
+  }
+  function order() {
+    return race.cars.map(c => c.k).sort((a, b) => {
+      const fa = race.fin.indexOf(a), fb = race.fin.indexOf(b);
+      if (fa > -1 || fb > -1) return (fa < 0 ? 99 : fa) - (fb < 0 ? 99 : fb);
+      return race.cars[b].target - race.cars[a].target;
+    });
+  }
+  function toast(msg) { const t = $('#toast'); if (!t || !G) return; t.textContent = msg; G.killTweensOf(t); G.timeline().fromTo(t, { y: -16, opacity: 0 }, { y: 0, opacity: 1, duration: .35, ease: 'back.out(2)' }).to(t, { opacity: 0, y: -10, duration: .3, delay: 1.4 }); }
+  function drawStand(first) {
+    const o = order(), el = $('#stand'), old = {}, min = race.t0 ? (performance.now() - race.t0) / 60000 : 0;
+    [...el.children].forEach(c => old[c.dataset.k] = c.getBoundingClientRect().top);
+    race.cars.forEach(c => { c.wpm = c.finT ? Math.round(race.W.length / (c.finT / 60)) : (min > .005 ? Math.round(c.target * race.W.length / min) : 0); });
+    el.innerHTML = o.map((k, r) => { const c = race.cars[k];
+      return `<div class="st r${r + 1} ${k ? '' : 'me'}" data-k="${k}"><span class="p">${r + 1}</span><span class="dot" style="background:${c.c}"></span><div><b>${c.name}</b><small>${Math.round(c.target * 100)}% · ${c.wpm} WPM</small></div><span class="w">${c.finT ? '🏁 ' + c.finT.toFixed(1) + 's' : ''}</span></div>`; }).join('');
+    o.forEach((k, r) => { const p = race.cars[k].plate, i = p.firstChild, t = 'P' + (r + 1);
+      if (i.textContent !== t) { i.textContent = t; G && !first && G.fromTo(i, { scale: 1.6 }, { scale: 1, duration: .4, ease: 'back.out(3)' }); }
+      p.className = 'plate' + (r < 3 ? ' p' + (r + 1) : ''); });
+    // FLIP: o'rin almashganda qatorlar sirpanadi
+    [...el.children].forEach(c => { const was = old[c.dataset.k]; if (was != null && G) { const d = was - c.getBoundingClientRect().top; if (d) G.fromTo(c, { y: d }, { y: 0, duration: .45, ease: 'power3.out' }); } });
+    const myRank = o.indexOf(0) + 1;
+    if (race.on && race.lastRank && myRank !== race.lastRank && !race.fin.includes(0)) {
+      if (myRank < race.lastRank) toast(`🚀 Siz ${myRank}-o‘ringa chiqdingiz!`);
+      else toast(`⚠️ ${race.cars[o[myRank - 2]].name} sizni quvib o‘tdi`);
+    }
+    race.lastRank = myRank;
+    const s = rTape.stats(); gauge(s.wpm);
+    $('#rI').textContent = `${Math.min(rTape.i, rTape.words.length)}/${rTape.words.length}`; $('#rAc').textContent = s.acc + '%'; $('#rCb').textContent = s.combo; $('#rBar').style.width = rTape.progress() * 100 + '%';
+  }
+  function gauge(w) { $('#gW').textContent = w; $('#gArc').setAttribute('stroke-dasharray', `${Math.min(100, w / 1.2)} 100`); }
+  function done() {
+    cancelAnimationFrame(raf); rTape.locked = true; $$('.kerb').forEach(k => k.classList.remove('mv')); drawStand();
+    const o = order(), { pot, win } = settle(race.n), meWin = o[0] === 0;
+    const H = [140, 180, 110], C = ['#94a3b8', '#f59e0b', '#c2410c'], slots = [1, 0, 2].filter(p => p < race.n);
+    $('#podium').innerHTML = `<div class="title"><h3>${meWin ? 'Siz yutdingiz! 🏆' : race.cars[o[0]].name + ' yutdi!'}</h3><p>${stake ? `Bank ${pot} coin · 10% xizmat haqi · g‘olibga ${win} coin` : 'Shunchaki o‘yin — coin tikilmagan'}</p></div>
+      <button class="btn ghost sm again" id="again2"><i class="bi bi-arrow-repeat"></i> Revansh</button>` +
+      slots.map(p => { const c = race.cars[o[p]], hi = [1, 0, 2].indexOf(p);
+        return `<div class="col"><div class="pcar">${carSVG(c.k, c.k + 7)}</div><div class="who">${c.name}</div><div class="pay">${p === 0 && stake ? '+' + win + ' coin' : c.finT ? c.finT.toFixed(1) + 's' : Math.round(c.target * 100) + '%'}</div><div class="blk" style="height:${H[hi]}px;background:${C[hi]}">${p + 1}</div></div>`; }).join('');
+    $('#podium').classList.add('on'); $('#again2').onclick = startRace;
+    if (G) {
+      G.from('#podium .blk', { scaleY: 0, transformOrigin: '50% 100%', duration: .7, stagger: .12, ease: 'back.out(1.6)' });
+      G.from('#podium .pcar', { x: -260, opacity: 0, duration: .9, stagger: .12, ease: 'expo.out', delay: .3 });
+      confetti();
+    }
+    if (meWin && stake) { $('#myCoin').textContent = fmt(12419 - stake + win); G && G.fromTo('.coin', { scale: 1.25 }, { scale: 1, duration: .6, ease: 'back.out(3)' }); }
+  }
+  function confetti() {
+    const box = $('#raceBox'), cols = ['#22d3ee', '#a78bfa', '#f472b6', '#fbbf24', '#a3e635'];
+    for (let k = 0; k < 70; k++) {
+      const d = document.createElement('i'); d.className = 'cf'; d.style.left = Math.random() * 100 + '%'; d.style.background = cols[k % 5]; box.appendChild(d);
+      G.to(d, { y: box.clientHeight + 40, x: (Math.random() - .5) * 160, rotation: Math.random() * 720, duration: 1.6 + Math.random() * 1.4, delay: Math.random() * .5, ease: 'power1.in', onComplete: () => d.remove() });
+    }
+  }
+  $('#restart').onclick = startRace;
+  window.addEventListener('resize', () => race && current === 'race' && place());
+
+  G && G.from('.mode, #wagerPanel', { y: 36, opacity: 0, duration: .8, stagger: .08, ease: 'expo.out', clearProps: 'all' });
+})();
+</script>
+</body>
+</html>

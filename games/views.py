@@ -55,8 +55,11 @@ def games_list(request):
     now = timezone.now()
 
     # Tugagan, ammo coin berilmagan musobaqalarga coin berish
-    for comp in Competition.objects.filter(is_active=True, coins_awarded=False,
-                                           end_time__lt=now, game__is_active=True):
+    # (o'chirib qo'yilgan ustoz musobaqasida ham bron turgan bo'lsa — hisob-kitob qilinadi)
+    for comp in (Competition.objects
+                 .filter(coins_awarded=False, end_time__lt=now, game__is_active=True)
+                 .filter(Q(is_active=True) | Q(prize_reserved__gt=0))
+                 .select_related('game')):
         comp.award_competition_coins()
 
     # Faol yoki tez orada boshlanadigan musobaqalar â€” sahifaning tepasida chiqadi
@@ -305,9 +308,20 @@ def game_launch(request, slug):
     })
 
 
+TYPING_UI_TEMPLATES = {
+    'classic': 'games/student/game_play.html',
+    'v2': 'games/student/game_play_v2.html',
+}
+TYPING_LEVELS = ('easy', 'medium', 'hard')
+
+
 @login_required
-def game_play(request, slug, competition_id=None):
+def game_play(request, slug, competition_id=None, ui='classic'):
+    """Typing o'yini. Ikki ko'rinish bir xil sessiya/token/submit kontraktiga ega:
+    'classic' — eski mashq, 'v2' — "Yozish mashqi 2.0" (lenta + poyga)."""
     game = get_object_or_404(Game, slug=slug, is_active=True)
+    if ui not in TYPING_UI_TEMPLATES:
+        ui = 'classic'
 
     if game.game_type == 'word_builder':
         if competition_id:
@@ -380,10 +394,14 @@ def game_play(request, slug, competition_id=None):
     else:
         # Matn pooli: musobaqa — maxsus tanlangan yoki "Musobaqa" rejimidagi matnlar;
         # mashq — faqat "Mashq" yoki "Ikkalasi" rejimidagi matnlar.
+        level = request.GET.get('level', '')
         if competition:
             prompts = list(competition.get_prompt_pool())
         else:
             prompts = list(game.practice_prompts())
+            # Daraja tanlansa — shu darajadagi matnlar; bo'lmasa butun pool.
+            if level in TYPING_LEVELS:
+                prompts = [p for p in prompts if p.difficulty == level] or prompts
 
         if not prompts:
             if competition:
@@ -408,14 +426,24 @@ def game_play(request, slug, competition_id=None):
             'used': False,
         }
 
-    return render(request, 'games/student/game_play.html', {
+    context = {
         'game': game,
         'prompt': prompt,
         'competition': competition,
         'config': json.dumps(config),
         'game_token': game_token,
         'hmac_key': hmac_key,
-    })
+    }
+    if ui == 'v2':
+        best = (GameAttempt.objects
+                .filter(user=request.user, game=game, competition__isnull=True)
+                .aggregate(wpm=Max('wpm'))['wpm'])
+        context.update({
+            'best_wpm': round(best or 0),
+            'practice_prompt_count': game.practice_prompts().count(),
+            'level': prompt.difficulty,
+        })
+    return render(request, TYPING_UI_TEMPLATES[ui], context)
 
 
 MAX_HUMAN_WPM = 180
@@ -1384,7 +1412,7 @@ def admin_competitions(request):
     if not request.user.is_admin:
         return redirect('home')
 
-    competitions = Competition.objects.all().select_related('game').prefetch_related('groups').annotate(
+    competitions = Competition.objects.all().select_related('game', 'created_by').prefetch_related('groups').annotate(
         selected_prompts_count=Count('prompts', distinct=True),
         typing_participants=Count('attempts__user', distinct=True),
         word_participants=Count('word_attempts__user', distinct=True),
@@ -1477,9 +1505,13 @@ def admin_competition_edit(request, pk):
             competition.max_attempts = max(1, _int_or(request.POST.get('max_attempts'), 1))
             competition.allow_retry = 'allow_retry' in request.POST
             competition.is_active = 'is_active' in request.POST
-            competition.coin_1st = _int_or(request.POST.get('coin_1st'))
-            competition.coin_2nd = _int_or(request.POST.get('coin_2nd'))
-            competition.coin_3rd = _int_or(request.POST.get('coin_3rd'))
+            # Ustoz hisobidan sovrinli musobaqada fond ustoz coinlari bilan
+            # ta'minlangan — admin formasidan o'zgartirilsa bron bilan mos
+            # kelmay qoladi, shuning uchun bu yerda tegilmaydi.
+            if not competition.is_teacher_funded:
+                competition.coin_1st = _int_or(request.POST.get('coin_1st'))
+                competition.coin_2nd = _int_or(request.POST.get('coin_2nd'))
+                competition.coin_3rd = _int_or(request.POST.get('coin_3rd'))
             competition.save()
             _save_competition_prompts(competition, request)
             _save_competition_audience(competition, audience_type, group_ids, student_ids)
@@ -1524,7 +1556,9 @@ def admin_competition_end(request, pk):
         messages.info(request, "Bu musobaqa allaqachon tugagan!")
         return redirect('games:admin_competitions')
 
-    competition.end_time = timezone.now()
+    # 1 soniya oldin: soat aniqligi past tizimlarda `status` darhol 'ended' bo'lishi uchun
+    # (aks holda end_time == now bo'lib, coinlar berilmay qolardi).
+    competition.end_time = timezone.now() - timezone.timedelta(seconds=1)
     competition.save(update_fields=['end_time'])
 
     competition.award_competition_coins()

@@ -403,17 +403,26 @@
                         <div class="coin-section">
                             <h5 class="fw-bold mb-3"><i class="bi bi-coin text-warning"></i> Mukofot coinlari</h5>
                             <div class="row g-3">
+                                {% if competition.is_teacher_funded %}
+                                <div class="col-12">
+                                    <div class="alert alert-warning py-2 mb-0">
+                                        <i class="bi bi-wallet2"></i> Sovrin fondi ustoz
+                                        <b>{{ competition.created_by.full_name|default:competition.created_by.username }}</b>
+                                        hisobidan bron qilingan ({{ competition.prize_reserved }} coin) — sovrinlarni faqat ustoz o'zgartira oladi.
+                                    </div>
+                                </div>
+                                {% endif %}
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">🥇 1-o'rin (coin)</label>
-                                    <input type="number" name="coin_1st" class="form-control" value="{{ competition.coin_1st|default:0 }}" min="0">
+                                    <input type="number" name="coin_1st" class="form-control" value="{{ competition.coin_1st|default:0 }}" min="0"{% if competition.is_teacher_funded %} disabled{% endif %}>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">🥈 2-o'rin (coin)</label>
-                                    <input type="number" name="coin_2nd" class="form-control" value="{{ competition.coin_2nd|default:0 }}" min="0">
+                                    <input type="number" name="coin_2nd" class="form-control" value="{{ competition.coin_2nd|default:0 }}" min="0"{% if competition.is_teacher_funded %} disabled{% endif %}>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label fw-bold">🥉 3-o'rin (coin)</label>
-                                    <input type="number" name="coin_3rd" class="form-control" value="{{ competition.coin_3rd|default:0 }}" min="0">
+                                    <input type="number" name="coin_3rd" class="form-control" value="{{ competition.coin_3rd|default:0 }}" min="0"{% if competition.is_teacher_funded %} disabled{% endif %}>
                                 </div>
                             </div>
                         </div>
