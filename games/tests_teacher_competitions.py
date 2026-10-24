@@ -243,3 +243,30 @@ class TypingV2Tests(TestCase):
         self.assertEqual(resp.status_code, 200, resp.content)
         self.assertEqual(resp.json()['accuracy'], 100.0)
         self.assertEqual(GameAttempt.objects.get().competition, comp)
+
+
+@SKIP_SESSION_MIDDLEWARE
+class GamesListTests(TestCase):
+    def setUp(self):
+        self.student = make_user('oyinchi')
+        self.typing = Game.objects.create(title='Tez yozish', slug='typing', game_type='typing')
+        Game.objects.get_or_create(slug='shashka', defaults={'title': 'Shashka', 'game_type': 'external'})
+        Prompt.objects.create(game=self.typing, text='salom dunyo', usage='both')
+        self.client.force_login(self.student)
+
+    def test_list_shows_typing_v2_card_and_spotlight(self):
+        resp = self.client.get(reverse('games:games_list'))
+        self.assertEqual(resp.status_code, 200)
+        v2 = reverse('games:game_play_v2', args=['typing'])
+        self.assertContains(resp, f'href="{v2}"', count=2)  # spotlight + grid kartasi
+        self.assertContains(resp, 'Yozish mashqi 2.0')
+        self.assertContains(resp, 'Shashka')
+
+    def test_typing_competition_links_to_race_v2_and_classic(self):
+        comp = Competition.objects.create(
+            game=self.typing, title='Poyga', start_time=timezone.now() - timedelta(minutes=5),
+            end_time=timezone.now() + timedelta(hours=1),
+        )
+        resp = self.client.get(reverse('games:games_list'))
+        self.assertContains(resp, reverse('games:game_play_v2_competition', args=['typing', comp.pk]))
+        self.assertContains(resp, reverse('games:game_play_competition', args=['typing', comp.pk]))

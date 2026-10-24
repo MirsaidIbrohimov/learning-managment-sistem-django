@@ -3,891 +3,514 @@
 {% block title %}O'yinlar | LMS{% endblock %}
 
 {% block extra_css %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ════════════════════════════════════════════════════════════════
-   ARCADE ZONE — retro o'yin-zali "kabinett" ko'rinishi
-   Palitra: chuqur navy + amber + teal + pushti neon.
-   Har bir o'yin = yonayotgan marquee'li arkada kabinetti.
+   O'YIN ZALI — motion uslub (Yozish mashqi 2.0 dizayn tizimi bilan bir xil)
+   Glass panellar · aurora fon · sintveyv pol · 3D tilt · magnit tugmalar.
+   Animatsiyalar GSAP bilan; prefers-reduced-motion'da o'chadi.
    ════════════════════════════════════════════════════════════════ */
-.games-page {
-    --ac-bg: #f5efe4;
-    --ac-card: #fffaf0;
-    --ac-card2: #fffdf8;
-    --ac-border: rgba(120, 90, 40, .16);
-    --ac-text: #221a12;
-    --ac-muted: #7a6a55;
-    --ac-amber: #f59e0b;
-    --ac-amber2: #d97706;
-    --ac-teal: #0ea5a4;
-    --ac-pink: #ec4899;
-    --ac-soft: #f3e7cf;
-    --ac-shadow: 0 6px 18px rgba(120, 80, 10, .12);
-    --ac-shadow-hover: 0 26px 54px rgba(120, 80, 10, .24);
-}
-[data-bs-theme="dark"] .games-page {
-    --ac-bg: #070a15;
-    --ac-card: #0e1527;
-    --ac-card2: #131b31;
-    --ac-border: rgba(148, 163, 184, .16);
-    --ac-text: #eaf0fb;
-    --ac-muted: #93a0bd;
-    --ac-amber: #fbbf24;
-    --ac-amber2: #f59e0b;
-    --ac-teal: #2dd4bf;
-    --ac-pink: #f472b6;
-    --ac-soft: #161d36;
-    --ac-shadow: 0 6px 18px rgba(0, 0, 0, .4);
-    --ac-shadow-hover: 0 26px 54px rgba(0, 0, 0, .6);
-}
+.gz{--bg:#f5f6fb;--panel:rgba(255,255,255,.72);--solid:#fff;--field:rgba(15,23,42,.045);--line:rgba(15,23,42,.1);--ink:#0d1020;--muted:#5b6478;--acc:#0891b2;--acc2:#7c3aed;--pink:#db2777;--gold:#b45309;--lime:#16a34a;--red:#e11d48;--shadow:0 24px 60px -30px rgba(15,23,42,.45);
+  position:relative;color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;max-width:1240px;margin:0 auto;padding:22px 16px 70px}
+[data-bs-theme=dark] .gz{--bg:#06070c;--panel:rgba(16,19,28,.7);--solid:#10131c;--field:rgba(255,255,255,.05);--line:rgba(255,255,255,.1);--ink:#eef1f7;--muted:#8b93a7;--acc:#22d3ee;--acc2:#a78bfa;--pink:#f472b6;--gold:#fbbf24;--lime:#a3e635;--red:#fb7185;--shadow:0 30px 70px -30px rgba(0,0,0,.85)}
+.gz *{box-sizing:border-box}
+.gz .mono{font-family:'JetBrains Mono',monospace}
+.gz .glass{background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow)}
+.gz a{text-decoration:none}
 
-@keyframes fadeUp { from { opacity: 0; transform: translateY(26px); } to { opacity: 1; transform: none; } }
-@keyframes ledBlink { 0%, 100% { opacity: 1; filter: brightness(1.1); } 50% { opacity: .4; filter: brightness(.8); } }
-@keyframes marqueeGlow { 0%, 100% { box-shadow: 0 0 14px rgba(251,191,36,.5), inset 0 0 18px rgba(255,255,255,.12); } 50% { box-shadow: 0 0 30px rgba(236,72,153,.65), inset 0 0 24px rgba(255,255,255,.2); } }
-@keyframes tubeFlicker { 0%, 100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: .55; } 95% { opacity: 1; } 96% { opacity: .7; } 97% { opacity: 1; } }
-@keyframes scan { to { transform: translateY(150px); } }
-@keyframes shine { 0% { transform: translateX(-130%) skewX(-22deg); } 100% { transform: translateX(280%) skewX(-22deg); } }
-@keyframes floatY { 0%, 100% { transform: translateY(0) scale(1.04); } 50% { transform: translateY(-9px) scale(1.04); } }
-@keyframes coinSpin { to { transform: rotateY(360deg); } }
-@keyframes trophyBob { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+/* ── Fon: aurora + sintveyv pol ── */
+.gz-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.gz-bg i{position:absolute;border-radius:50%;filter:blur(70px);opacity:.28;animation:gzDrift 18s ease-in-out infinite alternate}
+.gz-bg i:nth-child(1){width:520px;height:520px;left:-120px;top:-120px;background:#7c3aed}
+.gz-bg i:nth-child(2){width:460px;height:460px;right:-120px;top:20%;background:#06b6d4;animation-duration:22s;animation-delay:-6s}
+.gz-bg i:nth-child(3){width:420px;height:420px;left:30%;bottom:-200px;background:#db2777;animation-duration:26s;animation-delay:-12s}
+[data-bs-theme=light] .gz-bg i{opacity:.14}
+@keyframes gzDrift{to{transform:translate(80px,60px) scale(1.15)}}
+.gz-floor{position:absolute;left:-50%;right:-50%;bottom:-10%;height:46%;transform:perspective(420px) rotateX(62deg);transform-origin:50% 100%;
+  background-image:linear-gradient(color-mix(in srgb,var(--acc2) 30%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--acc2) 30%,transparent) 1px,transparent 1px);
+  background-size:60px 60px;animation:gzFloor 3s linear infinite;-webkit-mask:linear-gradient(transparent,#000 60%);mask:linear-gradient(transparent,#000 60%);opacity:.35}
+@keyframes gzFloor{to{background-position:0 60px}}
 
-.games-page {
-    position: relative;
-}
-/* mayin "zaminga" tushuvchi kross-nur fon */
-.games-page::before {
-    content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
-    background:
-        radial-gradient(120% 90% at 50% -10%, rgba(120, 113, 108, .10), transparent 60%),
-        radial-gradient(60% 50% at 100% 100%, rgba(14, 165, 164, .08), transparent 60%);
-}
-[data-bs-theme="dark"] .games-page::before {
-    background:
-        radial-gradient(120% 90% at 50% -10%, rgba(99, 102, 241, .16), transparent 60%),
-        radial-gradient(60% 50% at 100% 100%, rgba(45, 212, 191, .12), transparent 60%);
-}
+/* ── Umumiy ── */
+.gz-pill{font:600 11.5px 'JetBrains Mono',monospace;padding:5px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted);white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.gz-pill.live{color:var(--lime);border-color:color-mix(in srgb,var(--lime) 40%,transparent)}
+.gz-pill.live:before,.gz-dot{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;animation:gzBlink 1.2s infinite;display:inline-block}
+.gz-pill.hot{color:#fff;background:linear-gradient(100deg,#f59e0b,#db2777);border-color:transparent}
+.gz-pill.new{color:#fff;background:linear-gradient(100deg,var(--acc),var(--acc2));border-color:transparent}
+@keyframes gzBlink{50%{opacity:.25}}
+.gz-btn{position:relative;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:9px;padding:12px 20px;border-radius:14px;font-weight:700;font-size:15px;color:#fff;background:linear-gradient(100deg,var(--acc),var(--acc2));box-shadow:0 14px 34px -14px var(--acc2);border:0;transition:filter .2s}
+.gz-btn:hover{color:#fff;filter:brightness(1.08)}
+[data-bs-theme=dark] .gz-btn,[data-bs-theme=dark] .gz-btn:hover{color:#05060a}
+.gz-btn.ghost{background:var(--field);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.gz-btn.hotb{background:linear-gradient(100deg,#f59e0b,#db2777);color:#fff;box-shadow:0 14px 34px -14px #db2777}
+.gz-btn.sm{padding:8px 13px;font-size:13px;border-radius:11px}
+.gz-btn:after,.gz-play:after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:skewX(-20deg);transition:left .6s}
+.gz-btn:hover:after,.gz-play:hover:after{left:130%}
+.gz-sec{display:flex;align-items:center;gap:12px;margin:34px 0 14px}
+.gz-sec h2{font-size:22px;font-weight:700;letter-spacing:-.03em;margin:0;display:flex;align-items:center;gap:10px}
+.gz-sec h2 i{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:16px;color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc2));font-style:normal}
+.gz-sec .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
 
-/* ═══════════ HERO — o'yin-zali kirish "marquee"si ═══════════ */
-.games-hero {
-    position: relative; overflow: hidden;
-    border-radius: 24px;
-    padding: 2.7rem 2.2rem 2.3rem;
-    margin-bottom: 2.2rem;
-    color: #fff;
-    background:
-        radial-gradient(130% 150% at 8% 0%, #7c2d12 0%, #3f2a12 40%, #0d0a14 100%);
-    border: 1px solid rgba(251, 191, 36, .22);
-    box-shadow: 0 0 0 4px rgba(251, 191, 36, .06), 0 22px 60px rgba(0, 0, 0, .45);
-    animation: fadeUp .6s ease-out both;
-}
-.games-hero::after {
-    content: ''; position: absolute; inset: 0; pointer-events: none;
-    background: repeating-linear-gradient(to bottom, rgba(0,0,0,.12) 0 1px, transparent 1px 3px);
-    opacity: .3;
-}
-.games-hero .hero-starfield {
-    position: absolute; inset: 0; pointer-events: none;
-    background-image:
-        radial-gradient(2px 2px at 12% 18%, rgba(255,255,255,.8), transparent),
-        radial-gradient(2px 2px at 24% 64%, rgba(255,255,255,.5), transparent),
-        radial-gradient(2px 2px at 40% 26%, rgba(255,255,255,.7), transparent),
-        radial-gradient(2px 2px at 60% 74%, rgba(255,255,255,.5), transparent),
-        radial-gradient(2px 2px at 76% 34%, rgba(255,255,255,.7), transparent),
-        radial-gradient(2px 2px at 88% 12%, rgba(255,255,255,.6), transparent),
-        radial-gradient(2px 2px at 94% 58%, rgba(255,255,255,.5), transparent);
-}
-.games-hero .hero-tube {
-    position: absolute; right: 34px; top: 50%; transform: translateY(-50%);
-    pointer-events: none; opacity: .5;
-    animation: tubeFlicker 4s infinite;
-}
-.games-hero .hero-tube::before, .games-hero .hero-tube::after {
-    content: 'PLAY ZONE';
-    position: absolute; right: 0;
-    font-family: 'JetBrains Mono', monospace; font-weight: 800;
-    letter-spacing: .32em; font-size: 7rem; color: #f472b6;
-    text-shadow: 0 0 22px #ec4899, 0 0 55px #ec4899, 0 0 90px rgba(236,72,153,.6);
-    white-space: nowrap;
-}
-.games-hero .hero-tube::after { transform: translate(3px, 3px); color: transparent; }
-.games-hero .hero-inner { position: relative; z-index: 2; }
+/* ── HERO ── */
+.gz-hero{position:relative;border-radius:30px;padding:38px 36px;overflow:hidden;display:grid;grid-template-columns:1.25fr .75fr;gap:20px;align-items:center;min-height:330px}
+.gz-hero:before{content:"";position:absolute;inset:0;background:radial-gradient(600px 300px at 0% 0%,color-mix(in srgb,var(--acc2) 22%,transparent),transparent 70%),radial-gradient(500px 300px at 100% 100%,color-mix(in srgb,var(--acc) 18%,transparent),transparent 70%);pointer-events:none}
+.gz-eyebrow{font:700 12px 'JetBrains Mono',monospace;letter-spacing:.22em;color:var(--gold);display:inline-flex;align-items:center;gap:8px}
+.gz-eyebrow .gz-dot{color:var(--gold)}
+.gz-title{font-size:clamp(40px,6vw,74px);font-weight:700;letter-spacing:-.05em;line-height:.95;margin:12px 0 10px}
+.gz-title .ch{display:inline-block;will-change:transform}
+.gz-title .grad{background:linear-gradient(100deg,var(--acc),var(--acc2) 50%,var(--pink));-webkit-background-clip:text;background-clip:text;color:transparent;background-size:200% 100%;animation:gzShift 6s ease-in-out infinite alternate}
+@keyframes gzShift{to{background-position:100% 0}}
+.gz-sub{color:var(--muted);font-size:16px;max-width:520px;margin:0 0 20px}
+.gz-stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+.gz-stat{border-radius:16px;padding:10px 16px;background:var(--field);border:1px solid var(--line);min-width:110px}
+.gz-stat b{display:block;font:800 28px 'JetBrains Mono',monospace;letter-spacing:-.04em;line-height:1.05}
+.gz-stat small{font:600 10px 'JetBrains Mono',monospace;letter-spacing:.12em;color:var(--muted)}
+.gz-hero-actions{display:flex;gap:10px;flex-wrap:wrap}
+.gz-cluster{position:relative;height:280px}
+.gz-float{position:absolute;width:74px;height:74px;border-radius:22px;display:grid;place-items:center;font-size:32px;color:#fff;box-shadow:0 20px 40px -18px rgba(0,0,0,.6);will-change:transform;animation:gzBob 5s ease-in-out infinite}
+.gz-float:nth-child(1){left:8%;top:10%;background:linear-gradient(135deg,#0891b2,#22d3ee)}
+.gz-float:nth-child(2){left:52%;top:0;background:linear-gradient(135deg,#7c3aed,#db2777);width:92px;height:92px;font-size:40px;animation-delay:-1s}
+.gz-float:nth-child(3){left:70%;top:46%;background:linear-gradient(135deg,#f59e0b,#b45309);animation-delay:-2s}
+.gz-float:nth-child(4){left:26%;top:56%;background:linear-gradient(135deg,#16a34a,#a3e635);width:84px;height:84px;animation-delay:-3s}
+.gz-float:nth-child(5){left:2%;top:72%;background:linear-gradient(135deg,#e11d48,#fb7185);width:58px;height:58px;font-size:24px;animation-delay:-4s}
+.gz-float.coin{border-radius:50%;background:linear-gradient(135deg,#fde68a,#f59e0b)!important;color:#78350f;font:800 30px 'JetBrains Mono',monospace}
+@keyframes gzBob{50%{translate:0 -12px}}
 
-.hero-eyebrow {
-    display: inline-flex; align-items: center; gap: .5rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .72rem; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
-    padding: .35rem .9rem; border-radius: 999px;
-    background: rgba(0, 0, 0, .35); border: 1px solid rgba(251, 191, 36, .45);
-    color: #fcd34d;
-}
-.hero-eyebrow .led {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #fbbf24; color: #fbbf24;
-    animation: ledBlink 1.1s ease infinite;
-}
-.hero-title {
-    font-weight: 900; font-size: clamp(2rem, 5vw, 3.4rem);
-    letter-spacing: .04em; line-height: 1.02; text-transform: uppercase;
-    margin: 1rem 0 .6rem;
-    text-shadow: 0 2px 0 #000, 0 0 26px rgba(251, 191, 36, .55);
-}
-.hero-title .accent {
-    background: linear-gradient(95deg, #fbbf24, #f472b6 55%, #2dd4bf);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-}
-.games-hero .hero-sub { opacity: .82; font-size: 1rem; max-width: 540px; margin: 0; line-height: 1.6; }
+/* ── SPOTLIGHT: Yozish mashqi 2.0 ── */
+.gz-spot{position:relative;margin-top:16px;border-radius:28px;padding:24px;display:grid;grid-template-columns:.95fr 1.05fr;gap:22px;align-items:center;overflow:hidden}
+.gz-spot:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang,0deg),var(--acc),var(--acc2),var(--pink),#f59e0b,var(--acc));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:gzSpin 6s linear infinite;pointer-events:none}
+@property --ang{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes gzSpin{to{--ang:360deg}}
+.gz-spot h3{font-size:30px;font-weight:700;letter-spacing:-.04em;margin:10px 0 6px}
+.gz-spot h3 small{font:700 12px 'JetBrains Mono',monospace;padding:3px 9px;border-radius:999px;background:linear-gradient(100deg,#f59e0b,#f472b6);color:#fff;vertical-align:middle;margin-left:6px}
+.gz-spot p{color:var(--muted);margin:0 0 14px}
+.gz-spot .chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.gz-spot .acts{display:flex;flex-wrap:wrap;gap:8px}
+.gz-mini{border-radius:20px;overflow:hidden;background:linear-gradient(180deg,#2a2e37,#22252d);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);position:relative}
+.gz-mini .kerb{height:8px;background:repeating-linear-gradient(90deg,#e11d48 0 20px,#f8fafc 20px 40px);animation:gzKerb .5s linear infinite}
+@keyframes gzKerb{to{background-position:-40px 0}}
+.gz-mini .lane{position:relative;height:58px}
+.gz-mini .lane+.lane{border-top:2px dashed rgba(255,255,255,.3)}
+.gz-mini .fin{position:absolute;right:26px;top:8px;bottom:8px;width:14px;background:conic-gradient(#f8fafc 25%,#111 0 50%,#f8fafc 0 75%,#111 0) 0 0/7px 7px;z-index:1}
+.gz-mini .car{position:absolute;top:8px;left:0;width:110px;animation:gzRace 5.5s cubic-bezier(.5,.1,.3,1) infinite}
+.gz-mini .lane:nth-child(3) .car{animation-duration:5.5s;animation-name:gzRace2}
+.gz-mini .lane:nth-child(4) .car{animation-name:gzRace3}
+@keyframes gzRace{0%{transform:translateX(-120px)}70%,100%{transform:translateX(calc(var(--w,520px) - 150px))}}
+@keyframes gzRace2{0%{transform:translateX(-120px)}80%,100%{transform:translateX(calc(var(--w,520px) - 150px))}}
+@keyframes gzRace3{0%{transform:translateX(-120px)}90%,100%{transform:translateX(calc(var(--w,520px) - 150px))}}
+.gz-mini .car svg{width:110px;height:40px;display:block}
+.gz-mini .car .rim{transform-origin:center;transform-box:fill-box;animation:gzRim .35s linear infinite}
+@keyframes gzRim{to{transform:rotate(360deg)}}
+.gz-tape{position:relative;height:60px;overflow:hidden;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.25);-webkit-mask:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent);mask:linear-gradient(90deg,transparent,#000 15%,#000 85%,transparent)}
+.gz-tape .rail{position:absolute;top:50%;left:0;translate:0 -50%;display:flex;gap:.6em;white-space:nowrap;font:600 24px 'JetBrains Mono',monospace;animation:gzTape 14s linear infinite;color:#8b93a7}
+.gz-tape .rail .ok{color:#a3e635}
+.gz-tape .rail .cur{color:#eef1f7}
+@keyframes gzTape{to{transform:translateX(-50%)}}
+.gz-tape .caret{position:absolute;left:50%;top:50%;width:3px;height:32px;translate:-1px -50%;border-radius:3px;background:linear-gradient(#22d3ee,#a78bfa);box-shadow:0 0 14px #22d3ee;animation:gzBlink 1s steps(1) infinite;z-index:2}
 
-.hero-bottom {
-    display: flex; align-items: flex-end; justify-content: space-between;
-    flex-wrap: wrap; gap: 1.2rem; margin-top: 2rem;
-}
-.hero-stats { display: flex; gap: .7rem; flex-wrap: wrap; }
-.hero-stat {
-    position: relative; min-width: 104px; padding: .7rem 1rem .6rem;
-    border-radius: 14px;
-    background: linear-gradient(165deg, rgba(255,255,255,.13), rgba(0,0,0,.18));
-    border: 1px solid rgba(255, 255, 255, .14);
-    backdrop-filter: blur(10px);
-}
-.hero-stat .coin {
-    position: absolute; top: -11px; right: 10px;
-    width: 24px; height: 24px; border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #fff7cc, #fbbf24 55%, #b45309);
-    border: 2px solid #92400e;
-    box-shadow: 0 3px 6px rgba(0,0,0,.4);
-    display: grid; place-items: center;
-    font-size: .55rem; color: #92400e; font-weight: 900;
-}
-.hero-stat .num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.65rem; font-weight: 700; line-height: 1;
-    text-shadow: 0 0 16px rgba(251, 191, 36, .5);
-}
-.hero-stat .lbl {
-    font-size: .66rem; letter-spacing: .12em; text-transform: uppercase;
-    opacity: .68; margin-top: .35rem;
-}
-.hero-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
-.hero-btn {
-    display: inline-flex; align-items: center; gap: .55rem;
-    padding: .68rem 1.25rem; border-radius: 999px;
-    font-size: .86rem; font-weight: 800; text-decoration: none; letter-spacing: .02em;
-    color: #fff; background: rgba(255, 255, 255, .1);
-    border: 2px solid rgba(255, 255, 255, .22);
-    box-shadow: inset 0 0 0 0 rgba(255,255,255,.15), 0 3px 0 rgba(0,0,0,.4);
-    transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
-}
-.hero-btn:hover { color: #fff; transform: translateY(-3px); background: rgba(255, 255, 255, .22); box-shadow: 0 6px 0 rgba(0,0,0,.4), 0 14px 30px rgba(0,0,0,.35); }
-.hero-btn.live {
-    background: linear-gradient(135deg, #f59e0b, #ec4899);
-    border-color: #fbbf24;
-    box-shadow: inset 0 0 0 0 rgba(255,255,255,.2), 0 3px 0 #7c2d12, 0 0 24px rgba(236,72,153,.4);
-}
-.hero-btn.live:hover { background: linear-gradient(135deg, #fbbf24, #f472b6); box-shadow: 0 6px 0 #7c2d12, 0 14px 34px rgba(236,72,153,.5); }
-.hero-btn .dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #fb7185; color: #fb7185;
-    animation: ledBlink 1.2s ease infinite;
-}
+/* ── MUSOBAQALAR ── */
+.gz-comps{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.gz-comp{position:relative;border-radius:22px;padding:18px;overflow:hidden;display:flex;flex-direction:column;gap:10px}
+.gz-comp.active:before{content:"";position:absolute;inset:-1px;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang,0deg),transparent 0 60%,var(--lime),var(--acc),transparent 90%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:gzSpin 3.5s linear infinite;pointer-events:none}
+.gz-comp .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gz-comp .game{font:600 12px 'JetBrains Mono',monospace;color:var(--muted);margin-left:auto}
+.gz-comp h3{font-size:19px;font-weight:700;letter-spacing:-.02em;margin:0}
+.gz-comp .meta{display:flex;flex-wrap:wrap;gap:6px}
+.gz-count{font:700 15px 'JetBrains Mono',monospace;color:var(--ink);padding:9px 12px;border-radius:13px;background:var(--field);border:1px dashed var(--line)}
+.gz-comp .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.gz-comp .acts .gz-btn{flex:1}
+.gz-comp .acts .gz-btn.icon{flex:none}
+.gz-btn.disabled{opacity:.55;pointer-events:none}
 
-/* ═══════════ Bo'lim sarlavhasi ═══════════ */
-.sec-head { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.15rem; }
-.sec-head h2 {
-    display: inline-flex; align-items: center; gap: .6rem;
-    margin: 0; font-weight: 800; font-size: 1.3rem; color: var(--ac-text);
-    letter-spacing: -.01em;
-}
-.sec-head h2 .ico {
-    width: 34px; height: 34px; border-radius: 11px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 1rem; color: #fff;
-    background: linear-gradient(135deg, var(--ac-amber), var(--ac-amber2));
-    box-shadow: 0 6px 16px rgba(217, 119, 6, .4);
-}
-.sec-head h2 .ico i { animation: trophyBob 2.6s ease-in-out infinite; }
-.sec-head .rule { flex: 1; height: 1px; background: linear-gradient(90deg, var(--ac-border), transparent); min-width: 20px; }
-.count-badge {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .74rem; font-weight: 700; letter-spacing: .04em;
-    padding: .32rem .8rem; border-radius: 999px;
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(245, 158, 11, .16); color: var(--ac-amber2);
-    border: 1px solid rgba(245, 158, 11, .4);
-}
+/* ── TOOLBAR ── */
+.gz-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.gz-search{position:relative;flex:1;min-width:220px;max-width:380px}
+.gz-search i{position:absolute;left:14px;top:50%;translate:0 -50%;color:var(--muted)}
+.gz-search input{width:100%;height:46px;border-radius:14px;border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(12px);padding:0 14px 0 40px;color:var(--ink);font:500 15px 'Space Grotesk',sans-serif;outline:none;transition:border-color .2s,box-shadow .2s}
+.gz-search input:focus{border-color:var(--acc);box-shadow:0 0 0 4px color-mix(in srgb,var(--acc) 18%,transparent)}
+.gz-cats{position:relative;display:flex;gap:4px;padding:4px;border-radius:14px;background:var(--field);border:1px solid var(--line);flex-wrap:wrap}
+.gz-cats .ind{position:absolute;top:4px;left:4px;height:calc(100% - 8px);border-radius:10px;background:linear-gradient(100deg,var(--acc),var(--acc2));transition:transform .35s cubic-bezier(.2,.8,.2,1),width .35s cubic-bezier(.2,.8,.2,1);z-index:0}
+.gz-cats button{position:relative;z-index:1;border:0;background:none;padding:7px 13px;border-radius:10px;font:600 13px 'Space Grotesk',sans-serif;color:var(--muted);cursor:pointer;transition:color .25s}
+.gz-cats button.active{color:#fff}
+[data-bs-theme=dark] .gz-cats button.active{color:#05060a}
 
-/* ═══════════ Musobaqa kartalari — turnir taxtasi ═══════════ */
-.comp-zone { margin-bottom: 2.4rem; animation: fadeUp .6s ease-out both; }
-.comp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 1.1rem; }
+/* ── O'YIN KARTALARI ── */
+.gz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;perspective:1200px}
+.gz-cell.is-hidden{display:none}
+.gz-card{--rx:0deg;--ry:0deg;--mx:50%;--my:50%;position:relative;height:100%;border-radius:24px;overflow:hidden;background:var(--panel);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--line);box-shadow:var(--shadow);display:flex;flex-direction:column;transform:rotateX(var(--rx)) rotateY(var(--ry));transform-style:preserve-3d;transition:transform .25s ease,box-shadow .3s,border-color .3s}
+.gz-card:hover{border-color:color-mix(in srgb,var(--acc) 55%,transparent);box-shadow:0 34px 60px -28px color-mix(in srgb,var(--acc2) 60%,transparent)}
+.gz-card:after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:radial-gradient(260px circle at var(--mx) var(--my),rgba(255,255,255,.18),transparent 45%);opacity:0;transition:opacity .3s}
+.gz-card:hover:after{opacity:1}
+.gz-cover{position:relative;height:168px;display:grid;place-items:center;overflow:hidden}
+.gz-cover .gz-dots{position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.25) 1.2px,transparent 1.2px);background-size:16px 16px;opacity:.45;animation:gzDots 12s linear infinite}
+@keyframes gzDots{to{background-position:160px 80px}}
+.gz-cover .gz-orb{position:absolute;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.35),transparent 65%);transition:transform .5s}
+.gz-card:hover .gz-orb{transform:scale(1.35)}
+.gz-art{position:relative;z-index:1;transform:translateZ(40px);transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.gz-art .cover-art{width:104px;height:104px;filter:drop-shadow(0 14px 18px rgba(0,0,0,.35))}
+.gz-art .bi-art{font-size:72px;color:#fff;width:auto;height:auto}
+.gz-card:hover .gz-art{transform:translateZ(60px) scale(1.1) rotate(-3deg)}
+.gz-badge{position:absolute;left:12px;top:12px;z-index:2;font:700 11px 'JetBrains Mono',monospace;color:#fff;padding:4px 10px;border-radius:999px;background:rgba(0,0,0,.28);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);display:inline-flex;gap:6px;align-items:center}
+.gz-new{position:absolute;right:12px;top:12px;z-index:2;font:800 11px 'JetBrains Mono',monospace;letter-spacing:.08em;color:#fff;padding:4px 10px;border-radius:999px;background:linear-gradient(100deg,#f59e0b,#db2777);box-shadow:0 0 18px rgba(219,39,119,.6);animation:gzPulse 1.6s ease-in-out infinite}
+@keyframes gzPulse{50%{transform:scale(1.08)}}
+.gz-body{padding:16px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1;transform:translateZ(20px)}
+.gz-body h3{font-size:18px;font-weight:700;letter-spacing:-.02em;margin:0}
+.gz-body p{color:var(--muted);font-size:13.5px;margin:0;flex:1}
+.gz-pills{display:flex;flex-wrap:wrap;gap:5px}
+.gz-pills .meta-pill{font:600 11px 'JetBrains Mono',monospace;padding:3px 8px;border-radius:999px;background:var(--field);border:1px solid var(--line);color:var(--muted);display:inline-flex;gap:5px;align-items:center}
+.gz-actions{display:flex;gap:6px;margin-top:4px}
+.gz-play{position:relative;overflow:hidden;flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:44px;border-radius:13px;font-weight:700;color:#fff;background:linear-gradient(100deg,var(--acc),var(--acc2));box-shadow:0 12px 26px -14px var(--acc2)}
+.gz-play:hover{color:#fff}
+[data-bs-theme=dark] .gz-play,[data-bs-theme=dark] .gz-play:hover{color:#05060a}
+.gz-icon{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--field);border:1px solid var(--line);color:var(--ink);transition:background .2s}
+.gz-icon:hover{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--ink)}
 
-.comp-card {
-    position: relative; isolation: isolate;
-    display: flex; flex-direction: column;
-    padding: 1.5rem; border-radius: 20px;
-    color: #fff; overflow: hidden;
-    background: linear-gradient(155deg, #1a110a 0%, #2a1a0c 100%);
-    border: 1px solid rgba(251, 191, 36, .22);
-    box-shadow: inset 0 0 40px rgba(0,0,0,.5);
-}
-.comp-card::before {
-    content: ''; position: absolute; inset: 0; z-index: -2;
-    background-image: radial-gradient(rgba(251, 191, 36, .14) 1px, transparent 1px);
-    background-size: 18px 18px; opacity: .5;
-}
-.comp-card::after {
-    content: ''; position: absolute; z-index: -1;
-    width: 210px; height: 210px; top: -100px; right: -70px; border-radius: 50%;
-    filter: blur(42px);
-}
-.comp-card.active::after { background: rgba(245, 158, 11, .5); }
-.comp-card.upcoming::after { background: rgba(45, 212, 191, .42); }
-.comp-card.active { border-color: rgba(251, 191, 36, .55); box-shadow: inset 0 0 40px rgba(0,0,0,.5), 0 14px 40px rgba(217, 119, 6, .28); }
-.comp-card.upcoming { border-color: rgba(45, 212, 191, .4); box-shadow: inset 0 0 40px rgba(0,0,0,.5), 0 14px 40px rgba(13, 148, 136, .25); }
+/* muqova ranglari */
+.cover-shashka{background:linear-gradient(140deg,#78350f,#b45309 55%,#f59e0b)}
+.cover-shaxmat{background:linear-gradient(140deg,#111827,#374151 55%,#6b7280)}
+.cover-xo{background:linear-gradient(140deg,#831843,#be185d 55%,#fb7185)}
+.cover-memory{background:linear-gradient(140deg,#172554,#1d4ed8 55%,#60a5fa)}
+.cover-html-builder{background:linear-gradient(140deg,#064e3b,#059669 55%,#34d399)}
+.cover-bilim-arena{background:linear-gradient(140deg,#1e1b4b,#4338ca 55%,#818cf8)}
+.cover-word_builder{background:linear-gradient(140deg,#164e63,#0891b2 55%,#22d3ee)}
+.cover-typing{background:linear-gradient(140deg,#14532d,#16a34a 55%,#4ade80)}
+.cover-typing2{background:linear-gradient(140deg,#0b1020,#4c1d95 45%,#0891b2)}
+.cover-quiz{background:linear-gradient(140deg,#7f1d1d,#dc2626 55%,#f87171)}
+.cover-jumanji{background:linear-gradient(140deg,#052e16,#15803d 52%,#84cc16)}
+.cover-default{background:linear-gradient(140deg,#3b0764,#7c3aed 55%,#a855f7)}
 
-.comp-status-tag {
-    position: absolute; top: 1.15rem; right: 1.15rem;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .66rem; font-weight: 700; letter-spacing: .12em;
-    padding: .3rem .7rem; border-radius: 999px;
-    display: inline-flex; align-items: center; gap: 6px;
-    background: rgba(0, 0, 0, .4); backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, .16);
-}
-.comp-status-tag .dot { width: 6px; height: 6px; border-radius: 50%; background: #34d399; color: #34d399; animation: ledBlink 1.3s ease infinite; }
-.comp-status-tag.up .dot { background: #fcd34d; color: #fcd34d; }
+.gz-empty{text-align:center;padding:56px 20px;border-radius:24px;border:1px dashed var(--line);color:var(--muted);grid-column:1/-1}
+.gz-empty i{font-size:2.6rem;display:block;margin-bottom:8px}
 
-.comp-game-name {
-    font-size: .74rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    opacity: .7; display: inline-flex; align-items: center; gap: 6px; margin-bottom: .4rem;
+@media(max-width:900px){
+  .gz-hero{grid-template-columns:1fr;padding:28px 22px}
+  .gz-cluster{display:none}
+  .gz-spot{grid-template-columns:1fr}
 }
-.comp-card h3 { font-weight: 800; font-size: 1.2rem; line-height: 1.3; margin: 0 0 .95rem; padding-right: 5rem; }
-
-.comp-prizes { display: flex; gap: .45rem; flex-wrap: wrap; margin-bottom: .9rem; }
-.comp-prize {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .78rem; font-weight: 700;
-    padding: .3rem .65rem; border-radius: 10px;
-    display: inline-flex; align-items: center; gap: 5px;
-    background: rgba(251, 191, 36, .12); border: 1px solid rgba(251, 191, 36, .28);
-    color: #fcd34d;
-}
-.comp-meta { display: flex; flex-wrap: wrap; gap: .35rem 1rem; font-size: .8rem; opacity: .82; margin-bottom: .55rem; }
-.comp-meta span { display: inline-flex; align-items: center; gap: 5px; }
-
-.comp-countdown {
-    font-family: 'JetBrains Mono', monospace;
-    font-variant-numeric: tabular-nums;
-    font-weight: 700; font-size: .88rem;
-    padding: .55rem .85rem; border-radius: 12px; margin-bottom: 1.1rem;
-    display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
-    background: rgba(0, 0, 0, .4); border: 1px solid rgba(251, 191, 36, .28); color: #fcd34d;
-}
-
-.comp-actions { display: flex; gap: .55rem; margin-top: auto; flex-wrap: wrap; }
-.comp-btn {
-    flex: 1; min-width: 128px;
-    display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-    padding: .7rem 1rem; border-radius: 999px; border: none; cursor: pointer;
-    font-weight: 800; font-size: .89rem; text-decoration: none;
-    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
-}
-.comp-btn.join { background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #451a03; box-shadow: 0 3px 0 #7c2d12; }
-.comp-card.upcoming .comp-btn.join { background: linear-gradient(135deg, #2dd4bf, #14b8a6); color: #042f2e; box-shadow: 0 3px 0 #0f766e; }
-.comp-btn.join:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #7c2d12, 0 12px 26px rgba(0,0,0,.4); }
-.comp-btn.ghost {
-    flex: 0 0 auto; min-width: auto;
-    background: rgba(255, 255, 255, .1); color: #fff;
-    border: 1px solid rgba(255, 255, 255, .2);
-}
-.comp-btn.ghost:hover { background: rgba(255, 255, 255, .24); color: #fff; }
-.comp-btn.disabled { background: rgba(255, 255, 255, .1); color: rgba(255, 255, 255, .6); pointer-events: none; }
-
-/* ═══════════ Panel: qidiruv + kategoriya ═══════════ */
-.games-toolbar {
-    display: flex; align-items: center; gap: .8rem; flex-wrap: wrap;
-    margin-bottom: 1.4rem; padding: .9rem 1rem;
-    background: var(--ac-card); border: 1px solid var(--ac-border);
-    border-radius: 18px; box-shadow: var(--ac-shadow);
-}
-.gt-search { position: relative; flex: 1 1 220px; max-width: 340px; }
-.gt-search i {
-    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-    color: var(--ac-muted); font-size: .95rem; pointer-events: none;
-}
-.gt-search input {
-    width: 100%; padding: .7rem 1rem .7rem 2.6rem;
-    border: 1px solid var(--ac-border); border-radius: 12px;
-    background: var(--ac-bg); color: var(--ac-text);
-    font-size: .92rem; outline: none;
-    transition: border-color .18s ease, box-shadow .18s ease;
-}
-.gt-search input:focus { border-color: var(--ac-amber); box-shadow: 0 0 0 4px rgba(245, 158, 11, .16); }
-.gt-cats { display: flex; gap: .45rem; flex-wrap: wrap; }
-.gt-cat {
-    padding: .52rem 1rem; border-radius: 999px;
-    border: 1px solid var(--ac-border); background: var(--ac-bg);
-    color: var(--ac-muted); font-size: .83rem; font-weight: 700;
-    cursor: pointer; white-space: nowrap;
-    transition: all .18s ease;
-}
-.gt-cat:hover { color: var(--ac-text); border-color: var(--ac-amber); transform: translateY(-1px); }
-.gt-cat.active {
-    color: #fff; border-color: transparent;
-    background: linear-gradient(135deg, var(--ac-amber), var(--ac-amber2));
-    box-shadow: 0 8px 18px rgba(217, 119, 6, .35);
-}
-
-/* ═══════════ O'yin kartalari — arkada kabinetlari ═══════════ */
-.game-card-wrapper { animation: fadeUp .55s ease-out both; }
-.game-card-wrapper.hidden { display: none !important; }
-
-.game-card {
-    --neon: #f59e0b;
-    position: relative; height: 100%;
-    display: flex; flex-direction: column; overflow: hidden;
-    background: var(--ac-card);
-    border: 1px solid var(--ac-border);
-    border-radius: 18px;
-    box-shadow: var(--ac-shadow);
-    transition: transform .32s cubic-bezier(.22, 1, .36, 1), box-shadow .32s ease, border-color .32s ease;
-}
-.game-card:hover {
-    transform: translateY(-10px);
-    border-color: color-mix(in srgb, var(--neon) 50%, transparent);
-    box-shadow: var(--ac-shadow-hover), 0 0 0 1px color-mix(in srgb, var(--neon) 25%, transparent),
-                0 20px 50px color-mix(in srgb, var(--neon) 30%, transparent);
-}
-
-/* ── Marquee (kabinetning yonayotgan tepasi) ── */
-.game-marquee {
-    position: relative; z-index: 4;
-    display: flex; align-items: center; justify-content: center; gap: .7rem;
-    padding: .55rem .9rem;
-    background: linear-gradient(135deg, var(--neon), color-mix(in srgb, var(--neon) 45%, #000));
-    border-radius: 12px 12px 0 0;
-    animation: marqueeGlow 4.5s ease-in-out infinite;
-}
-.game-marquee::after {
-    content: ''; position: absolute; inset: 2px 2px 0 2px; border-radius: 10px 10px 0 0;
-    background: repeating-linear-gradient(to bottom, rgba(255,255,255,.18) 0 1px, transparent 1px 4px);
-    pointer-events: none; opacity: .35;
-}
-.game-marquee .mq-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800; font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
-    color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.5), 0 0 12px rgba(255,255,255,.6);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
-}
-.game-marquee .mq-dot {
-    flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%;
-    background: #fff; opacity: .9;
-    animation: ledBlink 1s ease infinite;
-}
-
-/* ── Ekran (cover) ── */
-.game-cover {
-    position: relative; height: 172px; overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    background: #000;
-    box-shadow: inset 0 0 0 3px rgba(0,0,0,.6), inset 0 0 60px rgba(0,0,0,.45);
-}
-.game-cover::after {
-    content: ''; position: absolute; top: 0; left: 0; width: 55%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent);
-    transform: translateX(-130%) skewX(-22deg);
-}
-.game-card:hover .game-cover::after { animation: shine 1s ease-in-out; }
-.game-cover .scanlines {
-    position: absolute; inset: 0; z-index: 2; pointer-events: none;
-    background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px);
-    opacity: .4;
-}
-.game-cover .beam {
-    position: absolute; z-index: 3; left: 0; right: 0; top: -60px; height: 60px;
-    background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, .18));
-    pointer-events: none; opacity: 0;
-}
-.game-card:hover .beam { opacity: 1; animation: scan 1.5s linear infinite; }
-
-.game-cover .cover-art {
-    position: relative; z-index: 1;
-    width: 104px; height: 104px;
-    color: rgba(255, 255, 255, .97);
-    filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .5));
-    transition: transform .4s cubic-bezier(.22, 1, .36, 1);
-}
-.game-card:hover .cover-art { animation: floatY 2.6s ease-in-out infinite; }
-
-.game-cover .corner-badge {
-    position: absolute; top: 12px; left: 12px; z-index: 4;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .65rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
-    color: #fff; padding: .3rem .65rem; border-radius: 8px;
-    background: rgba(0, 0, 0, .5); backdrop-filter: blur(6px);
-    border: 1px solid rgba(255, 255, 255, .3);
-    display: inline-flex; align-items: center; gap: 5px;
-}
-
-/* ── Tanlov paneli (body) ── */
-.game-body {
-    display: flex; flex-direction: column; flex: 1;
-    padding: 1.25rem 1.3rem 1.35rem;
-    background: linear-gradient(180deg, var(--ac-card2), var(--ac-card));
-}
-.game-body h3 { font-weight: 800; font-size: 1.15rem; color: var(--ac-text); margin: 0 0 .55rem; letter-spacing: -.01em; }
-.game-meta-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: .8rem; }
-.game-meta-row .meta-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: .72rem; font-weight: 700;
-    padding: .26rem .65rem; border-radius: 8px;
-    background: var(--ac-soft); color: var(--ac-muted);
-    border: 1px solid var(--ac-border);
-}
-.game-meta-row .meta-pill i { font-size: .8rem; color: var(--neon); }
-.game-body p {
-    color: var(--ac-muted); font-size: .89rem; line-height: 1.6;
-    margin: 0 0 1.15rem; min-height: 2.8em;
-}
-
-.game-actions { display: flex; gap: 8px; margin-top: auto; }
-.btn-play, .btn-details {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    padding: .68rem 1.1rem; border-radius: 999px; border: none;
-    font-weight: 800; font-size: .9rem; text-decoration: none;
-    transition: transform .16s ease, box-shadow .16s ease, background .16s ease;
-}
-.btn-play {
-    flex: 1; color: #fff;
-    background: linear-gradient(135deg, var(--neon), color-mix(in srgb, var(--neon) 55%, #000));
-    box-shadow: 0 3px 0 color-mix(in srgb, var(--neon) 50%, #000), 0 8px 20px color-mix(in srgb, var(--neon) 35%, transparent);
-}
-.btn-play:hover { color: #fff; transform: translateY(-2px); box-shadow: 0 5px 0 color-mix(in srgb, var(--neon) 50%, #000), 0 12px 26px color-mix(in srgb, var(--neon) 45%, transparent); }
-.btn-play:active { transform: translateY(3px); box-shadow: 0 0 0 color-mix(in srgb, var(--neon) 50%, #000); }
-.btn-details {
-    flex: 0 0 auto;
-    background: var(--ac-soft); color: var(--ac-text);
-    border: 1px solid var(--ac-border);
-}
-.btn-details:hover { color: var(--ac-text); border-color: var(--neon); transform: translateY(-2px); }
-
-.game-card .comp-ribbon {
-    position: absolute; top: 13px; right: 13px; z-index: 5;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .66rem; font-weight: 800; letter-spacing: .08em;
-    color: #fff; padding: .3rem .65rem; border-radius: 8px;
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    display: inline-flex; align-items: center; gap: 5px;
-    box-shadow: 0 6px 16px rgba(217, 119, 6, .5);
-}
-.game-card .comp-ribbon i { animation: ledBlink 1.4s ease infinite; }
-
-/* ═══════════ Har bir o'yin neoni ═══════════ */
-[data-theme="cover-shashka"]      { --neon: #f59e0b; }
-[data-theme="cover-shaxmat"]      { --neon: #94a3b8; }
-[data-theme="cover-xo"]           { --neon: #fb7185; }
-[data-theme="cover-memory"]       { --neon: #60a5fa; }
-[data-theme="cover-html-builder"] { --neon: #34d399; }
-[data-theme="cover-bilim-arena"]  { --neon: #818cf8; }
-[data-theme="cover-word_builder"] { --neon: #22d3ee; }
-[data-theme="cover-typing"]       { --neon: #4ade80; }
-[data-theme="cover-quiz"]         { --neon: #f87171; }
-[data-theme="cover-jumanji"]      { --neon: #bef264; }
-[data-theme="cover-default"]      { --neon: #c084fc; }
-
-.cover-shashka      { background: linear-gradient(140deg, #78350f 0%, #b45309 55%, #f59e0b 100%); }
-.cover-shaxmat      { background: linear-gradient(140deg, #111827 0%, #374151 55%, #6b7280 100%); }
-.cover-xo           { background: linear-gradient(140deg, #831843 0%, #be185d 55%, #fb7185 100%); }
-.cover-memory       { background: linear-gradient(140deg, #172554 0%, #1d4ed8 55%, #60a5fa 100%); }
-.cover-html-builder { background: linear-gradient(140deg, #064e3b 0%, #059669 55%, #34d399 100%); }
-.cover-bilim-arena  { background: linear-gradient(140deg, #1e1b4b 0%, #4338ca 55%, #818cf8 100%); }
-.cover-word_builder { background: linear-gradient(140deg, #164e63 0%, #0891b2 55%, #22d3ee 100%); }
-.cover-typing       { background: linear-gradient(140deg, #14532d 0%, #16a34a 55%, #4ade80 100%); }
-.cover-quiz         { background: linear-gradient(140deg, #7f1d1d 0%, #dc2626 55%, #f87171 100%); }
-.cover-jumanji      { background: linear-gradient(140deg, #052e16 0%, #15803d 52%, #84cc16 100%); }
-.cover-default      { background: linear-gradient(140deg, #3b0764 0%, #7c3aed 55%, #a855f7 100%); }
-
-.game-cover .bi-art { font-size: 4.2rem; width: auto; height: auto; line-height: 1; }
-
-.game-cover::before { content: ''; position: absolute; inset: 0; pointer-events: none; }
-
-/* Shashka / shaxmat — taxta kataklari */
-.game-cover.pattern-checker::before {
-    background-image:
-        linear-gradient(45deg, rgba(0, 0, 0, .18) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .18) 75%),
-        linear-gradient(45deg, rgba(0, 0, 0, .18) 25%, transparent 25%, transparent 75%, rgba(0, 0, 0, .18) 75%);
-    background-size: 34px 34px;
-    background-position: 0 0, 17px 17px;
-    opacity: .55;
-}
-/* X va O — chiziqli to'r */
-.game-cover.pattern-grid::before {
-    background-image:
-        linear-gradient(rgba(255, 255, 255, .13) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, .13) 1px, transparent 1px);
-    background-size: 30px 30px;
-}
-/* Xotira / so'z / test — nuqtalar */
-.game-cover.pattern-dots::before {
-    background-image: radial-gradient(rgba(255, 255, 255, .18) 1.5px, transparent 1.5px);
-    background-size: 18px 18px;
-}
-/* HTML Builder — kod chiziqlari */
-.game-cover.pattern-code::before {
-    background-image: repeating-linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, .1) 0 2px,
-        transparent 2px 14px
-    );
-    -webkit-mask-image: linear-gradient(105deg, #000 20%, transparent 75%);
-    mask-image: linear-gradient(105deg, #000 20%, transparent 75%);
-}
-/* Bilim Arena — konsentrik halqalar */
-.game-cover.pattern-rings::before {
-    background-image: repeating-radial-gradient(
-        circle at 50% 50%,
-        rgba(255, 255, 255, .14) 0 1px,
-        transparent 1px 22px
-    );
-}
-
-/* ═══════════ Bo'sh holatlar ═══════════ */
-.empty-state, .no-match {
-    grid-column: 1 / -1; width: 100%;
-    text-align: center; padding: 3.5rem 2rem;
-    color: var(--ac-muted);
-    border: 1.5px dashed var(--ac-border);
-    border-radius: 18px;
-    background: var(--ac-card);
-    animation: fadeUp .5s ease-out both;
-}
-.empty-state .ico, .no-match .ico {
-    width: 68px; height: 68px; margin: 0 auto 1rem;
-    border-radius: 18px; display: flex; align-items: center; justify-content: center;
-    font-size: 2rem; color: #fff;
-    background: linear-gradient(135deg, #f59e0b, #ec4899);
-    box-shadow: 0 12px 28px rgba(217, 119, 6, .35);
-}
-.empty-state h5, .no-match h5 { font-weight: 800; color: var(--ac-text); margin-bottom: .4rem; }
-.empty-state p, .no-match p { margin: 0; font-size: .92rem; }
-
-/* ═══════════ Responsive ═══════════ */
-@media (max-width: 991.98px) {
-    .game-cover { height: 150px; }
-    .game-cover .cover-art { width: 90px; height: 90px; }
-}
-@media (max-width: 767.98px) {
-    .games-hero { padding: 1.9rem 1.25rem 1.7rem; border-radius: 18px; margin-bottom: 1.5rem; }
-    .games-hero .hero-sub { font-size: .9rem; }
-    .games-hero .hero-tube { display: none; }
-    .hero-bottom { margin-top: 1.4rem; }
-    .hero-stat { min-width: 86px; padding: .6rem .85rem; }
-    .hero-stat .num { font-size: 1.3rem; }
-    .hero-actions { width: 100%; }
-    .hero-btn { flex: 1; justify-content: center; }
-    .comp-grid { grid-template-columns: 1fr; }
-    .comp-card h3 { font-size: 1.1rem; }
-    .game-card { border-radius: 14px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .games-page *, .games-page *::before, .games-page *::after {
-        animation: none !important;
-        transition-duration: .01ms !important;
-    }
+@media (prefers-reduced-motion:reduce){
+  .gz *,.gz-bg *{animation:none!important;transition:none!important}
+  .gz-card{transform:none!important}
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container py-4 games-page">
+<div class="gz-bg" aria-hidden="true"><i></i><i></i><i></i><div class="gz-floor"></div></div>
+<div class="gz" id="gz">
 
-    <!-- ===== HERO ===== -->
-    <header class="games-hero">
-        <span class="hero-starfield"></span>
-        <span class="hero-tube"></span>
-        <div class="hero-inner">
-            <span class="hero-eyebrow"><span class="led"></span> Insert coin — o'ynashga tayyormisiz?</span>
-            <h1 class="hero-title">O'yin <span class="accent">zali</span></h1>
-            <p class="hero-sub">Bilimlaringizni qiziqarli o'yinlar orqali sinang, musobaqalarda qatnashing va coin yutib oling!</p>
-
-            <div class="hero-bottom">
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <span class="coin">₿</span>
-                        <div class="num">{{ games|length }}</div>
-                        <div class="lbl">O'yinlar</div>
-                    </div>
-                    <div class="hero-stat">
-                        <span class="coin">₿</span>
-                        <div class="num">{{ active_comp_count }}</div>
-                        <div class="lbl">Faol</div>
-                    </div>
-                    <div class="hero-stat">
-                        <span class="coin">₿</span>
-                        <div class="num">{{ active_competitions|length }}</div>
-                        <div class="lbl">Musobaqa</div>
-                    </div>
-                </div>
-                <div class="hero-actions">
-                    <a href="{% url 'games:live_games' %}" class="hero-btn live">
-                        <span class="dot"></span> Jonli o'yinlar
-                    </a>
-                    <a href="{% url 'games:my_results' %}" class="hero-btn">
-                        <i class="bi bi-clock-history"></i> Natijalarim
-                    </a>
-                </div>
+    <!-- ═══════ HERO ═══════ -->
+    <header class="gz-hero glass">
+        <div style="position:relative">
+            <span class="gz-eyebrow"><span class="gz-dot"></span> PRESS START · O'YINGA TAYYORMISIZ?</span>
+            <h1 class="gz-title" id="gzTitle"><span class="js-split">O'yin</span> <span class="grad js-split">zali</span></h1>
+            <p class="gz-sub">Bilimlaringizni o'yinlarda sinang, musobaqalarda qatnashing va coin yutib oling!</p>
+            <div class="gz-stats">
+                <div class="gz-stat"><b data-count="{{ games|length }}">{{ games|length }}</b><small>O'YINLAR</small></div>
+                <div class="gz-stat"><b data-count="{{ active_comp_count }}">{{ active_comp_count }}</b><small>JONLI</small></div>
+                <div class="gz-stat"><b data-count="{{ active_competitions|length }}">{{ active_competitions|length }}</b><small>MUSOBAQA</small></div>
+                <div class="gz-stat"><b data-count="{{ request.user.coins }}" style="color:var(--gold)">{{ request.user.coins }}</b><small>COINLARINGIZ</small></div>
             </div>
+            <div class="gz-hero-actions">
+                <a href="{% url 'games:live_games' %}" class="gz-btn hotb" data-magnetic><span class="gz-dot"></span> Jonli o'yinlar</a>
+                <a href="{% url 'games:my_results' %}" class="gz-btn ghost" data-magnetic><i class="bi bi-clock-history"></i> Natijalarim</a>
+            </div>
+        </div>
+        <div class="gz-cluster" id="gzCluster" aria-hidden="true">
+            <span class="gz-float" data-depth="18"><i class="bi bi-keyboard"></i></span>
+            <span class="gz-float" data-depth="30"><i class="bi bi-controller"></i></span>
+            <span class="gz-float" data-depth="12"><i class="bi bi-trophy-fill"></i></span>
+            <span class="gz-float coin" data-depth="24">₵</span>
+            <span class="gz-float" data-depth="16"><i class="bi bi-dice-5-fill"></i></span>
         </div>
     </header>
 
-    <!-- ===== FAOL MUSOBAQALAR ===== -->
-    {% if active_competitions %}
-    <section class="comp-zone">
-        <div class="sec-head">
-            <h2><span class="ico"><i class="bi bi-trophy-fill"></i></span> Musobaqalar</h2>
-            <span class="count-badge"><i class="bi bi-lightning-charge-fill"></i> {{ active_comp_count }} ta faol</span>
-            <span class="rule"></span>
+    <!-- ═══════ SPOTLIGHT: Yozish mashqi 2.0 ═══════ -->
+    {% for tg in typing_games %}
+    <section class="gz-spot glass js-reveal">
+        <div>
+            <span class="gz-pill new"><i class="bi bi-stars"></i> YANGI</span>
+            <h3>Yozish mashqi <small>2.0</small></h3>
+            <p>Lenta ko'rinishidagi mashq va mashina poygasi: har bir to'g'ri so'z — nitro 🚀. Musobaqada reytingdagi eng kuchlilar bilan poygaga chiqasiz.</p>
+            <div class="chips">
+                <span class="gz-pill"><i class="bi bi-speedometer2"></i> WPM</span>
+                <span class="gz-pill"><i class="bi bi-fire"></i> Kombo</span>
+                <span class="gz-pill"><i class="bi bi-flag"></i> Poyga</span>
+                <span class="gz-pill"><i class="bi bi-bar-chart-steps"></i> 3 daraja</span>
+            </div>
+            <div class="acts">
+                <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-btn" data-magnetic><i class="bi bi-lightning-charge-fill"></i> Mashq 2.0</a>
+                <a href="{% url 'games:game_play' tg.slug %}" class="gz-btn ghost" data-magnetic><i class="bi bi-window"></i> Klassik</a>
+                <a href="{% url 'games:game_detail' tg.slug %}" class="gz-btn ghost sm" style="height:46px"><i class="bi bi-info-lg"></i></a>
+            </div>
         </div>
-        <div class="comp-grid">
-            {% for comp in active_competitions %}
-            <article class="comp-card {{ comp.status }}">
-                {% if comp.status == 'active' %}
-                <span class="comp-status-tag"><span class="dot"></span> FAOL</span>
-                {% else %}
-                <span class="comp-status-tag up"><span class="dot"></span> TEZ ORADA</span>
-                {% endif %}
-
-                <div class="comp-game-name"><i class="bi bi-controller"></i> {{ comp.game.title }}</div>
-                <h3>{{ comp.title }}</h3>
-
-                {% if comp.audience_type == 'groups' %}
-                <div class="comp-meta" title="{{ comp.audience_display }}">
-                    <span><i class="bi bi-diagram-3"></i> Guruh: {{ comp.audience_display|truncatechars:40 }}</span>
-                </div>
-                {% elif comp.audience_type == 'students' %}
-                <div class="comp-meta">
-                    <span><i class="bi bi-person-check"></i> Maxsus taklif — siz ishtirokchisiz</span>
-                </div>
-                {% endif %}
-
-                {% if comp.coin_1st or comp.coin_2nd or comp.coin_3rd %}
-                <div class="comp-prizes">
-                    {% if comp.coin_1st %}<span class="comp-prize">&#129351; {{ comp.coin_1st }}</span>{% endif %}
-                    {% if comp.coin_2nd %}<span class="comp-prize">&#129352; {{ comp.coin_2nd }}</span>{% endif %}
-                    {% if comp.coin_3rd %}<span class="comp-prize">&#129353; {{ comp.coin_3rd }}</span>{% endif %}
-                    <span class="comp-prize"><i class="bi bi-coin"></i> coin</span>
-                </div>
-                {% endif %}
-
-                <div class="comp-meta">
-                    <span><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m H:i" }} &ndash; {{ comp.end_time|date:"d.m H:i" }}</span>
-                    <span><i class="bi bi-arrow-repeat"></i> Urinish: {{ comp.used_attempts }}/{{ comp.max_attempts }}</span>
-                </div>
-
-                {% if comp.status == 'active' %}
-                <div class="comp-countdown" data-target="{{ comp.end_time|date:'U' }}" data-prefix="&#9203; Tugashiga:">
-                    <i class="bi bi-hourglass-split"></i> hisoblanmoqda...
-                </div>
-                {% else %}
-                <div class="comp-countdown" data-target="{{ comp.start_time|date:'U' }}" data-prefix="&#128337; Boshlanishiga:">
-                    <i class="bi bi-hourglass-top"></i> hisoblanmoqda...
-                </div>
-                {% endif %}
-
-                <div class="comp-actions">
-                    {% if comp.game.game_type == 'jumanji' %}
-                        {% if comp.can_play %}
-                        <a href="{{ comp.play_url }}" class="comp-btn join">
-                            🎲 Jumanji xonasiga kirish
-                        </a>
-                        {% else %}
-                        <span class="comp-btn disabled"><i class="bi bi-hourglass-split"></i> Lobby hali ochilmagan</span>
-                        {% endif %}
-                    {% elif comp.status == 'active' %}
-                        {% if comp.can_play %}
-                        <a href="{{ comp.play_url }}" class="comp-btn join js-competition-start">
-                            <i class="bi bi-flag-fill"></i> Musobaqada qatnashish
-                        </a>
-                        {% else %}
-                        <span class="comp-btn disabled"><i class="bi bi-check2-circle"></i> Urinishlar tugadi</span>
-                        {% endif %}
-                    {% else %}
-                        <a href="{{ comp.detail_url }}" class="comp-btn join">
-                            <i class="bi bi-info-circle-fill"></i> Batafsil
-                        </a>
-                    {% endif %}
-                    {% if comp.leaderboard_url %}
-                    <a href="{{ comp.leaderboard_url }}" class="comp-btn ghost" title="Reyting">
-                        <i class="bi bi-bar-chart-fill"></i>
-                    </a>
-                    {% endif %}
-                </div>
-            </article>
-            {% endfor %}
+        <div class="gz-mini js-mini" aria-hidden="true">
+            <div class="kerb"></div>
+            <div class="lane"><div class="fin"></div><div class="car">{% include 'games/student/_mini_car.html' with c="#06b6d4" d="#0e7490" n="7" %}</div></div>
+            <div class="lane"><div class="car">{% include 'games/student/_mini_car.html' with c="#a855f7" d="#6b21a8" n="8" %}</div></div>
+            <div class="lane"><div class="car">{% include 'games/student/_mini_car.html' with c="#f59e0b" d="#b45309" n="9" %}</div></div>
+            <div class="gz-tape"><span class="caret"></span>
+                <div class="rail"><span class="ok">kitob</span><span class="ok">o`qish</span><span class="cur">inson</span><span>ongini</span><span>boyitadi</span><span>va</span><span>yangi</span><span>g`oyalar</span><span>beradi</span><span class="ok">kitob</span><span class="ok">o`qish</span><span class="cur">inson</span><span>ongini</span><span>boyitadi</span><span>va</span><span>yangi</span><span>g`oyalar</span><span>beradi</span></div>
+            </div>
         </div>
     </section>
+    {% endfor %}
+
+    <!-- ═══════ MUSOBAQALAR ═══════ -->
+    {% if active_competitions %}
+    <div class="gz-sec"><h2><i class="bi bi-trophy-fill"></i> Musobaqalar</h2><span class="gz-pill live">{{ active_comp_count }} ta faol</span><span class="rule"></span></div>
+    <div class="gz-comps">
+        {% for comp in active_competitions %}
+        <article class="gz-comp glass {{ comp.status }} js-reveal">
+            <div class="top">
+                {% if comp.status == 'active' %}<span class="gz-pill live">FAOL</span>{% else %}<span class="gz-pill"><i class="bi bi-clock"></i> TEZ ORADA</span>{% endif %}
+                {% if comp.is_teacher_funded %}<span class="gz-pill"><i class="bi bi-person-video3"></i> Ustoz</span>{% endif %}
+                <span class="game"><i class="bi bi-controller"></i> {{ comp.game.title }}</span>
+            </div>
+            <h3>{{ comp.title }}</h3>
+            <div class="meta">
+                {% if comp.coin_1st or comp.coin_2nd or comp.coin_3rd %}<span class="gz-pill hot">🏆 {{ comp.coin_1st }} / {{ comp.coin_2nd }} / {{ comp.coin_3rd }}</span>{% endif %}
+                <span class="gz-pill"><i class="bi bi-calendar3"></i> {{ comp.start_time|date:"d.m H:i" }} – {{ comp.end_time|date:"d.m H:i" }}</span>
+                <span class="gz-pill"><i class="bi bi-arrow-repeat"></i> {{ comp.used_attempts }}/{{ comp.max_attempts }}</span>
+                {% if comp.audience_type == 'groups' %}<span class="gz-pill" title="{{ comp.audience_display }}"><i class="bi bi-diagram-3"></i> {{ comp.audience_display|truncatechars:28 }}</span>
+                {% elif comp.audience_type == 'students' %}<span class="gz-pill"><i class="bi bi-person-check"></i> Maxsus taklif</span>{% endif %}
+            </div>
+            {% if comp.status == 'active' %}
+            <div class="gz-count comp-countdown" data-target="{{ comp.end_time|date:'U' }}" data-prefix="⏳ Tugashiga:">⏳ hisoblanmoqda…</div>
+            {% else %}
+            <div class="gz-count comp-countdown" data-target="{{ comp.start_time|date:'U' }}" data-prefix="🕒 Boshlanishiga:">🕒 hisoblanmoqda…</div>
+            {% endif %}
+            <div class="acts">
+                {% if comp.game.game_type == 'jumanji' %}
+                    {% if comp.can_play %}<a href="{{ comp.play_url }}" class="gz-btn">🎲 Jumanji xonasi</a>
+                    {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-hourglass-split"></i> Lobby yopiq</span>{% endif %}
+                {% elif comp.status == 'active' %}
+                    {% if comp.can_play %}
+                    <a href="{{ comp.play_url }}" class="gz-btn js-competition-start" data-magnetic><i class="bi bi-flag-fill"></i> {% if comp.classic_url %}Poyga 2.0{% else %}Qatnashish{% endif %}</a>
+                    {% if comp.classic_url %}<a href="{{ comp.classic_url }}" class="gz-btn ghost js-competition-start">Klassik</a>{% endif %}
+                    {% else %}<span class="gz-btn ghost disabled"><i class="bi bi-check2-circle"></i> Urinishlar tugadi</span>{% endif %}
+                {% else %}
+                    <a href="{{ comp.detail_url }}" class="gz-btn ghost"><i class="bi bi-info-circle"></i> Batafsil</a>
+                {% endif %}
+                {% if comp.leaderboard_url %}<a href="{{ comp.leaderboard_url }}" class="gz-btn ghost icon" title="Reyting"><i class="bi bi-bar-chart-fill"></i></a>{% endif %}
+            </div>
+        </article>
+        {% endfor %}
+    </div>
     {% endif %}
 
-    <!-- ===== TOOLBAR: qidiruv + kategoriya ===== -->
+    <!-- ═══════ BARCHA O'YINLAR ═══════ -->
+    <div class="gz-sec"><h2><i class="bi bi-joystick" style="background:linear-gradient(135deg,#f59e0b,#db2777)"></i> Barcha o'yinlar</h2><span class="rule"></span></div>
     {% if games %}
-    <div class="sec-head">
-        <h2><span class="ico" style="background:linear-gradient(135deg,#f59e0b,#ec4899);box-shadow:0 6px 16px rgba(217,119,6,.35);"><i class="bi bi-joystick"></i></span> Barcha o'yinlar</h2>
-        <span class="rule"></span>
+    <div class="gz-tools">
+        <label class="gz-search"><i class="bi bi-search"></i><input type="search" id="gameSearch" placeholder="O'yin qidirish…" autocomplete="off"></label>
+        <div class="gz-cats" id="catFilters"><span class="ind"></span><button class="active" data-cat="all" type="button">Barchasi</button></div>
     </div>
 
-    <div class="games-toolbar">
-        <div class="gt-search">
-            <i class="bi bi-search"></i>
-            <input type="text" id="gameSearch" placeholder="O'yin qidirish..." autocomplete="off">
+    <div class="gz-grid" id="gamesGrid">
+        {% for tg in typing_games %}
+        <div class="gz-cell" data-name="{{ tg.title|lower }} yozish mashqi 2.0 poyga" data-category="Tezlik">
+            <article class="gz-card" data-tilt>
+                <div class="gz-cover cover-typing2">
+                    <span class="gz-dots"></span><span class="gz-orb"></span>
+                    <span class="gz-badge"><i class="bi bi-keyboard"></i> Tezlik</span>
+                    <span class="gz-new">2.0 · YANGI</span>
+                    <div class="gz-art">
+                        <svg class="cover-art" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="6" y="58" width="88" height="22" rx="6" fill="#fff" opacity=".12"/>
+                            <path d="M12 69H88" stroke="#fff" stroke-width="2" stroke-dasharray="6 6" opacity=".6"/>
+                            <g transform="translate(14 30)">
+                                <path d="M2 24 C2 19 5 17 11 16.5 L28 15 C33 10 41 7.5 50 7 C60 6.7 67 8 73 12 L81 16 C69 16.4 72 18 72 22 L72 25 C72 26.5 71 27 70 27 L5 27 C3 27 2 26 2 24Z" fill="#22d3ee"/>
+                                <path d="M31 15.5 C35 11 41 9 48 8.8 L58 8.8 C63 9 66 11 69 15Z" fill="#0f172a"/>
+                                <circle cx="20" cy="27" r="6.5" fill="#0b0c10"/><circle cx="20" cy="27" r="3.4" fill="#cbd5e1"/>
+                                <circle cx="60" cy="27" r="6.5" fill="#0b0c10"/><circle cx="60" cy="27" r="3.4" fill="#cbd5e1"/>
+                                <path d="M2 20 L-20 21.5 L2 23Z" fill="#fb923c"/>
+                            </g>
+                            <text x="50" y="26" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="800" font-size="20" fill="#fff">2.0</text>
+                        </svg>
+                    </div>
+                </div>
+                <div class="gz-body">
+                    <h3>Yozish mashqi 2.0</h3>
+                    <div class="gz-pills"><span class="meta-pill"><i class="bi bi-flag"></i> Poyga</span><span class="meta-pill"><i class="bi bi-fire"></i> Kombo</span><span class="meta-pill"><i class="bi bi-speedometer2"></i> WPM</span></div>
+                    <p>Lenta + mashina poygasi. {{ tg.title }} o'yinining yangi ko'rinishi.</p>
+                    <div class="gz-actions">
+                        <a href="{% url 'games:game_play_v2' tg.slug %}" class="gz-play" data-magnetic><i class="bi bi-lightning-charge-fill"></i> O'ynash</a>
+                        <a href="{% url 'games:game_detail' tg.slug %}" class="gz-icon" aria-label="Batafsil"><i class="bi bi-info-lg"></i></a>
+                    </div>
+                </div>
+            </article>
         </div>
-        <div class="gt-cats" id="catFilters">
-            <button class="gt-cat active" data-cat="all">Barchasi</button>
-        </div>
-    </div>
+        {% endfor %}
 
-    <!-- ===== O'YINLAR ===== -->
-    <div class="row g-4" id="gamesGrid">
         {% for game in games %}
         {% if game.slug == 'shashka' %}
-            {% with theme="cover-shashka" pattern="pattern-checker" type_label="Taxta o'yini" type_icon="bi-circle-half" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-shashka" type_label="Taxta o'yini" type_icon="bi-circle-half" %}
         {% elif game.slug == 'shaxmat' %}
-            {% with theme="cover-shaxmat" pattern="pattern-checker" type_label="Strategiya" type_icon="bi-trophy" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-shaxmat" type_label="Strategiya" type_icon="bi-trophy" %}
         {% elif game.slug == 'xo' %}
-            {% with theme="cover-xo" pattern="pattern-grid" type_label="X va O" type_icon="bi-grid-3x3" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-xo" type_label="X va O" type_icon="bi-grid-3x3" %}
         {% elif game.slug == 'memory-card' %}
-            {% with theme="cover-memory" pattern="pattern-dots" type_label="Xotira" type_icon="bi-grid-1x2-fill" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-memory" type_label="Xotira" type_icon="bi-grid-1x2-fill" %}
         {% elif game.slug == 'html-builder' %}
-            {% with theme="cover-html-builder" pattern="pattern-code" type_label="Dasturlash" type_icon="bi-code-slash" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-html-builder" type_label="Dasturlash" type_icon="bi-code-slash" %}
         {% elif game.slug == 'bilim-arena' %}
-            {% with theme="cover-bilim-arena" pattern="pattern-rings" type_label="Bilim arena" type_icon="bi-globe-americas" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-bilim-arena" type_label="Bilim arena" type_icon="bi-globe-americas" %}
         {% elif game.game_type == 'word_builder' %}
-            {% with theme="cover-word_builder" pattern="pattern-dots" type_label="So'z o'yini" type_icon="bi-alphabet" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-word_builder" type_label="So'z o'yini" type_icon="bi-alphabet" %}
         {% elif game.game_type == 'typing' %}
-            {% with theme="cover-typing" pattern="pattern-dots" type_label="Tezlik" type_icon="bi-keyboard" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-typing" type_label="Tezlik" type_icon="bi-keyboard" %}
         {% elif game.game_type == 'quiz' %}
-            {% with theme="cover-quiz" pattern="pattern-dots" type_label="Test" type_icon="bi-patch-question" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-quiz" type_label="Test" type_icon="bi-patch-question" %}
         {% elif game.game_type == 'jumanji' %}
-            {% with theme="cover-jumanji" pattern="pattern-rings" type_label="Jumanji" type_icon="bi-dice-5" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-jumanji" type_label="Jumanji" type_icon="bi-dice-5" %}
         {% else %}
-            {% with theme="cover-default" pattern="pattern-dots" type_label=game.get_game_type_display type_icon="bi-controller" %}{% include 'games/student/_game_card_inner.html' %}{% endwith %}
+            {% include 'games/student/_game_card_inner.html' with theme="cover-default" type_label=game.get_game_type_display type_icon="bi-controller" %}
         {% endif %}
         {% endfor %}
 
-        <div class="no-match" id="noMatch" style="display:none;">
-            <div class="ico"><i class="bi bi-search"></i></div>
-            <h5>Hech narsa topilmadi</h5>
-            <p>Qidiruv yoki kategoriyani o'zgartirib ko'ring.</p>
-        </div>
+        <div class="gz-empty" id="noMatch" hidden><i class="bi bi-search"></i>Hech narsa topilmadi — qidiruv yoki kategoriyani o'zgartiring.</div>
     </div>
     {% else %}
-    <div class="empty-state">
-        <div class="ico"><i class="bi bi-controller"></i></div>
-        <h5>Hozircha o'yinlar mavjud emas</h5>
-        <p>Tez orada yangi o'yinlar qo'shiladi!</p>
-    </div>
+    <div class="gz-empty"><i class="bi bi-controller"></i>Hozircha o'yinlar mavjud emas. Tez orada yangi o'yinlar qo'shiladi!</div>
     {% endif %}
 </div>
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script>
 (function () {
-    // ===== Jonli countdown taymerlar (musobaqalar) =====
-    var timers = document.querySelectorAll('.comp-countdown[data-target]');
+    'use strict';
+    var G = window.gsap;
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var fine = window.matchMedia && matchMedia('(pointer: fine)').matches;
+    var motion = G && !reduce;
+    var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
+    /* ── Musobaqa taymerlari ── */
+    var timers = $$('.comp-countdown[data-target]');
     function fmt(sec) {
         if (sec <= 0) return null;
-        var d = Math.floor(sec / 86400);
-        var h = Math.floor((sec % 86400) / 3600);
-        var m = Math.floor((sec % 3600) / 60);
-        var s = sec % 60;
+        var d = Math.floor(sec / 86400), h = Math.floor((sec % 86400) / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
         if (d > 0) return d + ' kun ' + h + ' soat';
         if (h > 0) return h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
         return m + ':' + String(s).padStart(2, '0');
     }
-
     function tick() {
-        var now = Math.floor(Date.now() / 1000);
-        var needReload = false;
+        var now = Math.floor(Date.now() / 1000), reload = false;
         timers.forEach(function (el) {
-            var target = parseInt(el.dataset.target, 10);
-            var text = fmt(target - now);
-            if (text === null) {
-                if (!el.dataset.done) { el.dataset.done = '1'; needReload = true; }
-            } else {
-                el.innerHTML = el.dataset.prefix + ' ' + text;
-            }
+            var text = fmt(parseInt(el.dataset.target, 10) - now);
+            if (text === null) { if (!el.dataset.done) { el.dataset.done = '1'; reload = true; } }
+            else el.textContent = el.dataset.prefix + ' ' + text;
         });
-        if (needReload) { setTimeout(function () { location.reload(); }, 1500); }
+        if (reload) setTimeout(function () { location.reload(); }, 1500);
     }
     if (timers.length) { tick(); setInterval(tick, 1000); }
 
-    document.querySelectorAll('.js-competition-start').forEach(function (link) {
-        link.addEventListener('click', function (event) {
-            if (this.dataset.starting) {
-                event.preventDefault();
-                return;
-            }
+    $$('.js-competition-start').forEach(function (link) {
+        link.addEventListener('click', function (e) {
+            if (this.dataset.starting) { e.preventDefault(); return; }
             this.dataset.starting = '1';
             this.style.pointerEvents = 'none';
             this.setAttribute('aria-disabled', 'true');
-            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Ochilmoqda...';
+            this.innerHTML = '<i class="bi bi-hourglass-split"></i> Ochilmoqda…';
         });
     });
 
-    // ===== Qidiruv + kategoriya filtri =====
+    /* ── Mini poyga: trek kengligi CSS o'zgaruvchisiga ── */
+    function sizeMini() { $$('.js-mini').forEach(function (m) { m.style.setProperty('--w', m.clientWidth + 'px'); }); }
+    sizeMini(); window.addEventListener('resize', sizeMini);
+
+    /* ── Qidiruv + kategoriya (sirpanuvchi indikator) ── */
     var grid = document.getElementById('gamesGrid');
-    if (!grid) return;
-
-    var cards = Array.prototype.slice.call(grid.querySelectorAll('.game-card-wrapper'));
-    var searchInput = document.getElementById('gameSearch');
-    var catBox = document.getElementById('catFilters');
-    var noMatch = document.getElementById('noMatch');
-
-    // Kategoriyalarni avtomatik yig'ish
-    var cats = [];
-    cards.forEach(function (c) {
-        var cat = (c.dataset.category || '').trim();
-        if (cat && cats.indexOf(cat) === -1) cats.push(cat);
-    });
-    cats.sort();
-    cats.forEach(function (cat) {
-        var btn = document.createElement('button');
-        btn.className = 'gt-cat';
-        btn.dataset.cat = cat;
-        btn.textContent = cat;
-        catBox.appendChild(btn);
-    });
-
-    var activeCat = 'all';
-    var query = '';
-
-    function applyFilter() {
-        var visible = 0;
-        cards.forEach(function (c) {
-            var name = c.dataset.name || '';
-            var cat = c.dataset.category || '';
-            var okCat = (activeCat === 'all') || (cat === activeCat);
-            var okQuery = !query || name.indexOf(query) !== -1;
-            if (okCat && okQuery) { c.classList.remove('hidden'); visible++; }
-            else { c.classList.add('hidden'); }
+    if (grid) {
+        var cells = $$('.gz-cell', grid), input = document.getElementById('gameSearch');
+        var box = document.getElementById('catFilters'), ind = box.querySelector('.ind'), noMatch = document.getElementById('noMatch');
+        var cats = [];
+        cells.forEach(function (c) { var k = (c.dataset.category || '').trim(); if (k && cats.indexOf(k) < 0) cats.push(k); });
+        cats.sort().forEach(function (k) { var b = document.createElement('button'); b.type = 'button'; b.dataset.cat = k; b.textContent = k; box.appendChild(b); });
+        var active = 'all', query = '';
+        function moveInd() {
+            var b = box.querySelector('button.active'); if (!b) return;
+            ind.style.width = b.offsetWidth + 'px';
+            ind.style.transform = 'translate(' + (b.offsetLeft - 4) + 'px,' + (b.offsetTop - 4) + 'px)';
+            ind.style.height = b.offsetHeight + 'px';
+        }
+        function apply() {
+            var shown = [];
+            cells.forEach(function (c) {
+                var ok = (active === 'all' || c.dataset.category === active) && (!query || (c.dataset.name || '').indexOf(query) > -1);
+                c.classList.toggle('is-hidden', !ok);
+                if (ok) shown.push(c);
+            });
+            noMatch.hidden = shown.length > 0;
+            if (motion && shown.length) G.fromTo(shown, { y: 18, opacity: 0, scale: .96 }, { y: 0, opacity: 1, scale: 1, duration: .45, stagger: .04, ease: 'back.out(1.6)', clearProps: 'transform,opacity' });
+        }
+        box.addEventListener('click', function (e) {
+            var b = e.target.closest('button'); if (!b) return;
+            $$('button', box).forEach(function (x) { x.classList.toggle('active', x === b); });
+            active = b.dataset.cat; moveInd(); apply();
         });
-        if (noMatch) noMatch.style.display = visible === 0 ? '' : 'none';
+        input.addEventListener('input', function () { query = this.value.trim().toLowerCase(); apply(); });
+        moveInd(); window.addEventListener('resize', moveInd);
     }
 
-    catBox.addEventListener('click', function (e) {
-        var btn = e.target.closest('.gt-cat');
-        if (!btn) return;
-        catBox.querySelectorAll('.gt-cat').forEach(function (b) { b.classList.remove('active'); });
-        btn.classList.add('active');
-        activeCat = btn.dataset.cat;
-        applyFilter();
+    if (!motion) return;
+
+    /* ── Kirish animatsiyasi: sarlavha harflab, hisoblagichlar ── */
+    $$('.js-split').forEach(function (el) {
+        el.innerHTML = el.textContent.split('').map(function (c) { return '<span class="ch">' + (c === ' ' ? '&nbsp;' : c) + '</span>'; }).join('');
+    });
+    var tl = G.timeline({ defaults: { ease: 'expo.out' } });
+    tl.from('.gz-hero', { y: 30, opacity: 0, duration: .8 })
+      .from('#gzTitle .ch', { yPercent: 120, rotate: 12, opacity: 0, duration: .9, stagger: .04 }, '-=.5')
+      .from('.gz-eyebrow, .gz-sub, .gz-stat, .gz-hero-actions > *', { y: 18, opacity: 0, duration: .6, stagger: .05 }, '-=.7')
+      .from('.gz-float', { scale: 0, rotate: -30, opacity: 0, duration: .9, stagger: .08, ease: 'back.out(2)' }, '-=.8');
+    $$('.gz-stat b[data-count]').forEach(function (b) {
+        var to = parseInt(b.dataset.count, 10) || 0, o = { v: 0 };
+        G.to(o, { v: to, duration: 1.4, delay: .4, ease: 'power3.out', onUpdate: function () { b.textContent = Math.round(o.v); } });
     });
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function () {
-            query = this.value.trim().toLowerCase();
-            applyFilter();
+    /* ── Scroll-reveal: kartalar ketma-ket "uchib" kiradi ── */
+    var reveal = $$('.js-reveal, .gz-cell');
+    G.set(reveal, { y: 40, opacity: 0 });
+    var io = new IntersectionObserver(function (entries) {
+        var batch = entries.filter(function (e) { return e.isIntersecting; }).map(function (e) { io.unobserve(e.target); return e.target; });
+        if (batch.length) G.to(batch, { y: 0, opacity: 1, duration: .7, stagger: .07, ease: 'expo.out', clearProps: 'transform,opacity' });
+    }, { rootMargin: '0px 0px -8% 0px' });
+    reveal.forEach(function (el) { io.observe(el); });
+
+    if (!fine) return;
+
+    /* ── Hero parallax: sichqonchaga qarab ikonalar suzadi ── */
+    var hero = document.querySelector('.gz-hero');
+    hero.addEventListener('pointermove', function (e) {
+        var r = hero.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+        $$('.gz-float').forEach(function (f) { var d = +f.dataset.depth || 15; G.to(f, { x: -x * d * 2, y: -y * d * 2, duration: .8, ease: 'power3.out' }); });
+    });
+    hero.addEventListener('pointerleave', function () { G.to('.gz-float', { x: 0, y: 0, duration: 1, ease: 'elastic.out(1,.4)' }); });
+
+    /* ── 3D tilt + nur aksi ── */
+    $$('[data-tilt]').forEach(function (card) {
+        card.addEventListener('pointermove', function (e) {
+            var r = card.getBoundingClientRect(), px = (e.clientX - r.left) / r.width, py = (e.clientY - r.top) / r.height;
+            card.style.setProperty('--ry', ((px - .5) * 14).toFixed(2) + 'deg');
+            card.style.setProperty('--rx', ((.5 - py) * 12).toFixed(2) + 'deg');
+            card.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+            card.style.setProperty('--my', (py * 100).toFixed(1) + '%');
         });
-    }
+        card.addEventListener('pointerleave', function () { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+    });
+
+    /* ── Magnit tugmalar ── */
+    $$('[data-magnetic]').forEach(function (b) {
+        b.addEventListener('pointermove', function (e) {
+            var r = b.getBoundingClientRect();
+            G.to(b, { x: (e.clientX - r.left - r.width / 2) * .18, y: (e.clientY - r.top - r.height / 2) * .25, duration: .3, ease: 'power3.out' });
+        });
+        b.addEventListener('pointerleave', function () { G.to(b, { x: 0, y: 0, duration: .6, ease: 'elastic.out(1,.35)' }); });
+    });
 })();
 </script>
 {% endblock %}
