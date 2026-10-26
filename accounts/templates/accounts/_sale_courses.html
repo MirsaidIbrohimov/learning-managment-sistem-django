@@ -1,4 +1,6 @@
 {# Kasblar & Kurslar sahifasi: bir martalik to'lov bilan sotiladigan kurslar (marketing bloki) #}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
 <style>
 .ks { position: relative; margin: 0 0 30px; padding: clamp(18px, 3vw, 28px); border-radius: 26px; overflow: hidden;
       background:
@@ -97,11 +99,11 @@
         {% if c.pk in purchased_ids %}
         <a href="{% url 'kurslarim:course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — sizniki, davom ettirish">
         {% else %}
-        <a href="{% url 'enroll_course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — {{ c.one_time_price|floatformat:'0g' }} so'mga sotib olish">
+        <a href="{% url 'enroll_course' c.pk %}" class="ks-card" aria-label="{{ c.name }} — {{ c.sale.price|floatformat:'0g' }} so'mga sotib olish">
         {% endif %}
             <div class="ks-media">
                 {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy">{% endif %}
-                <span class="ks-ribbon">BIR MARTALIK</span>
+                <span class="ks-ribbon">{% if c.sale.has_discount %}CHEGIRMA −{{ c.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
                 {% if c.pk in purchased_ids %}<span class="ks-tag owned"><i class="bi bi-check2-circle me-1"></i>Sizniki</span>
                 {% elif c.student_count >= 10 %}<span class="ks-tag"><i class="bi bi-fire me-1"></i>Ommabop</span>{% endif %}
                 <div class="ks-media-meta">
@@ -118,7 +120,7 @@
                     <li><i class="bi bi-check-circle-fill"></i>Hisob holatidan qat'i nazar ochiq</li>
                 </ul>
                 <div class="ks-foot">
-                    <div class="ks-price"><b>{{ c.one_time_price|floatformat:"0g" }}</b><small>so'm · bir martalik</small></div>
+                    <div class="ks-price">{% if c.sale.has_discount %}<del class="sale-old">{{ c.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ c.sale.price|floatformat:"0g" }}</b><small>so'm · bir martalik</small>{% if c.sale.ends_at %}<span class="sale-timer d-flex" data-sale-ends="{{ c.sale.ends_at|date:'c' }}">{{ c.sale.ends_at|timeuntil }} qoldi</span>{% endif %}</div>
                     {% if c.pk in purchased_ids %}
                     <span class="ks-cta owned"><i class="bi bi-play-fill"></i>Davom ettirish</span>
                     {% else %}

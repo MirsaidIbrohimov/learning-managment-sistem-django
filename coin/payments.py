@@ -19,7 +19,7 @@ from accounts.models import CustomUser, TezCheckPaymentOrder as Order
 from accounts.tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
 from accounts.checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 from .models import CoinTransaction
-from .topup_pricing import pricing_data, pricing_token, quote
+from .topup_pricing import package_amounts, pricing_data, pricing_token, quote
 
 
 def payment_limits():
@@ -45,7 +45,7 @@ def market_context(user):
     pricing = pricing_data()
     return {
         'money_balance': spendable_balance(user),
-        'coin_packages': [quote(amount, pricing) for amount in (10000, 25000, 50000, 100000)],
+        'coin_packages': [quote(amount, pricing) for amount in package_amounts(pricing)],
         'coin_pricing': pricing,
         'coin_pricing_token': pricing_token(pricing),
         'coin_limits': limits,
@@ -63,7 +63,7 @@ def coin_pricing(request):
     data = pricing_data()
     return JsonResponse({
         'pricing': data, 'pricing_token': pricing_token(data),
-        'packages': [quote(coins, data) for coins in (10000, 25000, 50000, 100000)],
+        'packages': [quote(coins, data) for coins in package_amounts(data)],
         'limits': payment_limits(), 'ready': checkout_ready(),
     })
 

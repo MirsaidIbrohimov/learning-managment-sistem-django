@@ -6,6 +6,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
 {% endblock %}
 
 {% block content %}
@@ -679,7 +680,8 @@
           <div class="kp-badges">
             <div>
               {% if profession.is_sold_once %}
-              <span class="kp-badge sale"><i class="bi bi-gem"></i> {{ profession.one_time_price|floatformat:"0g" }} so'm</span>
+              <span class="kp-badge sale"><i class="bi bi-gem"></i> {% if profession.sale.has_discount %}<del style="opacity:.65">{{ profession.sale.original|floatformat:"0g" }}</del> {% endif %}{{ profession.sale.price|floatformat:"0g" }} so'm</span>
+              {% if profession.sale.has_discount %}<span class="sale-tag">−{{ profession.sale.percent }}%</span>{% endif %}
               {% elif not profession.is_paid %}
               <span class="kp-badge free"><i class="bi bi-gift-fill"></i> Bepul</span>
               {% else %}
@@ -940,4 +942,5 @@ document.addEventListener('DOMContentLoaded', function () {
   setTimeout(function () { cards.forEach(function (c) { if (!c.style.animation) c.style.animation = 'none'; }); }, 1200);
 });
 </script>
+<script src="{% static 'js/sale-countdown.js' %}?v=20261025" defer></script>
 {% endblock %}

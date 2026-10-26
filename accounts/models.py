@@ -71,6 +71,14 @@ class Profession(models.Model):
         return bool(self.is_paid and self.one_time_payment and self.one_time_price > 0)
 
     @property
+    def sale(self):
+        """Amaldagi narx (chegirma bilan) — ko'rsatish va to'lov uchun bir xil."""
+        if '_sale' not in self.__dict__:
+            from .course_pricing import course_price
+            self._sale = course_price(self)
+        return self._sale
+
+    @property
     def seo_slug(self):
         """Ochiq kurs sahifasi URL'i uchun lotincha slug ("Python asoslari" → "python-asoslari")."""
         from django.utils.text import slugify
@@ -1761,18 +1769,25 @@ class CoinPurchaseDiscount(models.Model):
     THEME_CHOICES = [('celebration', 'Bayramona'), ('navruz', 'Navro‘z'), ('newyear', 'Yangi yil'), ('eid', 'Hayit'), ('simple', 'Oddiy aksiya')]
     name = models.CharField(max_length=120)
     theme = models.CharField(max_length=16, choices=THEME_CHOICES, default='celebration')
-    discount_type = models.CharField(max_length=10, choices=[('percentage', 'Foiz'), ('fixed', "So'm")])
+    # package: min_coins tanga = value so'm (ko'proq olinsa shu narx nisbatida).
+    discount_type = models.CharField(max_length=10, choices=[('percentage', 'Foiz'), ('fixed', "So'm"), ('package', 'Maxsus narx')])
     value = models.PositiveIntegerField()
     min_coins = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(default=False)
+    valid_until = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at', '-pk']
 
+    @property
+    def is_expired(self):
+        return bool(self.valid_until and self.valid_until <= timezone.now())
+
 
 class Discount(models.Model):
     DISCOUNT_TYPES = (
+        ('price', 'Yangi narx'),
         ('percentage', 'Foiz'),
         ('fixed', 'Qat\'iy summa'),
     )

@@ -14,6 +14,7 @@
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/kurslarim.css' %}?v=1">
 <link rel="stylesheet" href="{% static 'css/public_course.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
 {% endblock %}
 
 {% block content %}
@@ -52,7 +53,7 @@
                 {% if c.has_certificate %}<span><i class="bi bi-patch-check"></i>Sertifikat</span>{% endif %}
             </div>
             <div class="pc-card-foot">
-                <div class="pc-price"><b>{{ c.one_time_price|floatformat:"0g" }}</b> <span>so'm</span></div>
+                <div class="pc-price">{% if c.sale.has_discount %}<del class="sale-old">{{ c.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ c.sale.price|floatformat:"0g" }}</b> <span>so'm</span>{% if c.sale.has_discount %} <span class="sale-tag">−{{ c.sale.percent }}%</span>{% endif %}{% if c.sale.ends_at %}<div><span class="sale-timer" data-sale-ends="{{ c.sale.ends_at|date:'c' }}">{{ c.sale.ends_at|timeuntil }} qoldi</span></div>{% endif %}</div>
                 <span class="kp-btn kp-btn-primary">Batafsil <i class="bi bi-arrow-right"></i></span>
             </div>
         </div>
@@ -67,4 +68,5 @@
 </div>
 {% endif %}
 </div>
+<script src="{% static 'js/sale-countdown.js' %}?v=20261025" defer></script>
 {% endblock %}

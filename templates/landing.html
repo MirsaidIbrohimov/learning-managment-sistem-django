@@ -305,6 +305,13 @@
     .apply .two{grid-template-columns:1fr}
     footer{padding:60px 0 30px}
   }
+/* Kurs chegirmasi */
+.pill.sale{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff;border-color:transparent}
+.pcard .sale-line{display:flex;align-items:center;gap:8px;margin-top:6px;opacity:.85}
+.pcard .sale-line del{font-weight:600;opacity:.7}
+.pcard .sale-left{color:#f87171;font-size:.82rem;font-weight:700;font-variant-numeric:tabular-nums;margin-top:4px}
+.coin-promo{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:18px auto 0}
+.coin-promo span{padding:8px 14px;border-radius:999px;font-weight:700;font-size:.9rem;background:linear-gradient(135deg,rgba(239,68,68,.18),rgba(249,115,22,.18));border:1px solid rgba(249,115,22,.45)}
 </style>
 {% include 'partials/pwa/_head.html' %}
 </head>
@@ -362,7 +369,7 @@
       <a class="ccard glass tilt" href="{% if prof.is_sold_once %}{{ prof.public_url }}{% else %}#ariza{% endif %}" data-kind="{{ prof.kind }}" data-free="{% if prof.is_paid %}0{% else %}1{% endif %}">
         <div class="cov{% if prof.photo %} photo{% endif %}" style="{% if prof.photo %}background:url('{{ prof.photo.url }}'){% else %}background:linear-gradient(135deg,{% cycle '#2563eb,#22d3ee' '#047857,#a3e635' '#6d28d9,#c084fc' '#be185d,#fb7185' '#b45309,#fbbf24' '#0f766e,#2dd4bf' %}){% endif %}">
           <span class="no">{{ forloop.counter|stringformat:"02d" }}</span>
-          <span class="ty"><span class="pill">{% if prof.kind == 'profession' %}KASB{% else %}KURS{% endif %}</span>{% if not prof.is_paid %}<span class="pill free">BEPUL</span>{% elif prof.is_sold_once %}<span class="pill">{{ prof.one_time_price|floatformat:"0g" }} so'm</span>{% endif %}</span>
+          <span class="ty"><span class="pill">{% if prof.kind == 'profession' %}KASB{% else %}KURS{% endif %}</span>{% if not prof.is_paid %}<span class="pill free">BEPUL</span>{% elif prof.is_sold_once %}<span class="pill">{% if prof.sale.has_discount %}<del style="opacity:.6">{{ prof.sale.original|floatformat:"0g" }}</del> {% endif %}{{ prof.sale.price|floatformat:"0g" }} so'm</span>{% if prof.sale.has_discount %}<span class="pill sale">−{{ prof.sale.percent }}%</span>{% endif %}{% endif %}</span>
           {% if not prof.photo %}<i class="bi bi-mortarboard"></i>{% endif %}
         </div>
         <h3>{{ prof.name }}</h3><p>{{ prof.description|striptags|truncatewords:14 }}</p>
@@ -388,7 +395,9 @@
         <div class="ic" style="{% if prof.photo %}background:url('{{ prof.photo.url }}') center/cover{% else %}background:linear-gradient(135deg,{% cycle '#2563eb,#22d3ee' '#7c3aed,#f472b6' '#059669,#a3e635' %}){% endif %}">{% if not prof.photo %}<i class="bi bi-gem"></i>{% endif %}</div>
         <h3>{{ prof.name }}</h3>
         <div class="row">{% if prof.duration_months %}<span>{{ prof.duration_months }} oy</span>{% endif %}{% if prof.topic_count %}<span>{{ prof.topic_count }} mavzu</span>{% endif %}</div>
-        <div class="price">{{ prof.one_time_price|floatformat:"0g" }} <small>so'm</small></div>
+        {% if prof.sale.has_discount %}<div class="sale-line"><del>{{ prof.sale.original|floatformat:"0g" }} so'm</del><span class="pill sale">−{{ prof.sale.percent }}%</span></div>{% endif %}
+        <div class="price">{{ prof.sale.price|floatformat:"0g" }} <small>so'm</small></div>
+        {% if prof.sale.ends_at %}<div class="sale-left"><i class="bi bi-hourglass-split"></i> <span data-sale-ends="{{ prof.sale.ends_at|date:'c' }}">{{ prof.sale.ends_at|timeuntil }} qoldi</span></div>{% endif %}
         <ul><li><i class="bi bi-check2"></i>Video darslar, testlar va vazifalar</li>{% if prof.ai_check_enabled %}<li><i class="bi bi-check2"></i>AI tekshiruvchi</li>{% endif %}{% if prof.has_certificate %}<li><i class="bi bi-check2"></i>Sertifikat</li>{% endif %}{% if prof.closed_group_link %}<li><i class="bi bi-check2"></i>Yopiq Telegram guruh</li>{% endif %}</ul>
         <a class="btn btn-acc mag" href="{{ prof.public_url }}">Batafsil va sotib olish</a>
       </div>
@@ -400,7 +409,7 @@
 
   <!-- ═════════ 3. COIN TIZIMI (pin + 3D tanga) ═════════ -->
   <section id="coin"><div class="coin-stage wrap">
-    <div class="coin-head"><div class="lbl">03 — Coin tizimi</div><h2>O'qing — <em>coin</em> yig'ing</h2><p class="sub" style="margin:0 auto">Har bir to'g'ri javob, topshirilgan vazifa va g'alaba coin olib keladi. Coin'larni sovg'a va imkoniyatlarga almashtiring.</p></div>
+    <div class="coin-head"><div class="lbl">03 — Coin tizimi</div><h2>O'qing — <em>coin</em> yig'ing</h2><p class="sub" style="margin:0 auto">Har bir to'g'ri javob, topshirilgan vazifa va g'alaba coin olib keladi. Coin'larni sovg'a va imkoniyatlarga almashtiring.</p>{% if coin_promos %}<div class="coin-promo">{% for d in coin_promos %}<span>🎁 {{ d.name }}: {{ d.label }}{% if d.ends_at %} · <b data-sale-ends="{{ d.ends_at }}">muddatli</b>{% endif %}</span>{% endfor %}</div>{% endif %}</div>
     <div class="coin-grid">
       <div class="ccol earn">
         <h4><i class="bi bi-arrow-down-circle"></i> QANDAY YIG'ILADI</h4>
@@ -854,6 +863,7 @@ setShape('orb');
 }
 document.readyState === 'complete' ? start() : addEventListener('load', start);
 </script>
+<script src="{% static 'js/sale-countdown.js' %}?v=20261025" defer></script>
 {% if success %}<script>addEventListener('load', () => setTimeout(() => document.getElementById('ariza').scrollIntoView(), 1800))</script>{% endif %}
 </body>
 </html>

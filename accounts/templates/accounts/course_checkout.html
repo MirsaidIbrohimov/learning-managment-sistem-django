@@ -4,6 +4,7 @@
 {% block title %}Kursni sotib olish - {{ profession.name }}{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/kurslarim.css' %}?v=1">
 <style>
@@ -62,7 +63,13 @@
             </div>
         </div>
         <div class="cc-body">
-            <div class="cc-price"><b>{{ profession.one_time_price|floatformat:"0g" }}</b><span>so'm</span></div>
+            <div class="cc-price"><b>{{ sale.price|floatformat:"0g" }}</b><span>so'm</span>{% if sale.has_discount %} <del class="sale-old">{{ sale.original|floatformat:"0g" }}</del> <span class="sale-tag">−{{ sale.percent }}%</span>{% endif %}</div>
+            {% if sale.has_discount %}
+            <div class="sale-banner" role="note">
+                <span><i class="bi bi-gift-fill"></i> <b>{{ sale.discount.name }}</b> — {{ sale.saving|floatformat:"0g" }} so'm tejaysiz</span>
+                {% if sale.ends_at %}<span class="sale-timer" data-sale-ends="{{ sale.ends_at|date:'c' }}" data-sale-reload>{{ sale.ends_at|timeuntil }} qoldi</span>{% endif %}
+            </div>
+            {% endif %}
             <p class="kp-muted mb-0">Bir marta to'laysiz — kurs butunlay sizniki bo'ladi.</p>
 
             <ul class="cc-features">
@@ -95,8 +102,9 @@
                     </div>
                     {% if balance_enough %}
                     <form method="post" action="{% url 'course_balance_pay' profession.pk %}"
-                          onsubmit="return confirm('Balansingizdan {{ profession.one_time_price|floatformat:'0g' }} so'm yechiladi. Davom etasizmi?');">
+                          onsubmit="return confirm('Balansingizdan {{ sale.price|floatformat:'0g' }} so'm yechiladi. Davom etasizmi?');">
                         {% csrf_token %}
+                        <input type="hidden" name="expected_price" value="{{ sale.price }}">
                         <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay cc-bal-pay">
                             <i class="bi bi-lightning-charge-fill"></i>Balansdan to'lash
                         </button>
@@ -111,6 +119,7 @@
                 <form method="post" action="{% url 'course_checkout' profession.pk %}">
                     {% csrf_token %}
                     <input type="hidden" name="checkout_token" value="{{ course_checkout_token }}">
+                    <input type="hidden" name="expected_price" value="{{ sale.price }}">
                     <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay {% if balance_enough %}cc-online-secondary{% endif %}">
                         <i class="bi bi-credit-card-2-front-fill"></i>Online to'lash
                     </button>
@@ -139,4 +148,5 @@
 })();
 </script>
 {% endif %}
+{% if sale.ends_at %}<script src="{% static 'js/sale-countdown.js' %}?v=20261025" defer></script>{% endif %}
 {% endblock %}

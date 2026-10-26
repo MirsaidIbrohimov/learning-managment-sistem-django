@@ -2,11 +2,28 @@
 
 {% block title %}{% if discount %}Chegirmani tahrirlash{% else %}Chegirma qo'shish{% endif %} - Admin{% endblock %}
 
+{% block extra_css %}
+<style>
+.dc-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.dc-chips label { position: relative; }
+.dc-chips input { position: absolute; opacity: 0; pointer-events: none; }
+.dc-chips span { display: inline-block; padding: 8px 14px; border-radius: 999px; cursor: pointer; font-weight: 600;
+  border: 1px solid var(--bs-border-color); transition: .15s; }
+.dc-chips input:checked + span { background: var(--bs-primary); border-color: var(--bs-primary); color: #fff; }
+.dc-chips input:focus-visible + span { outline: 2px solid var(--bs-primary); outline-offset: 2px; }
+.dc-preview { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; padding: 14px 16px; border-radius: 14px;
+  border: 1px dashed rgba(239, 68, 68, .55); background: rgba(239, 68, 68, .07); }
+.dc-preview del { opacity: .6; font-weight: 600; }
+.dc-preview strong { font-size: 1.5rem; font-weight: 800; }
+.dc-preview .dc-tag { padding: 2px 10px; border-radius: 999px; background: linear-gradient(135deg, #ef4444, #f97316); color: #fff; font-weight: 800; font-size: .8rem; }
+</style>
+{% endblock %}
+
 {% block admin_content %}
 <div class="top-bar">
     <h1 class="page-title">
         <i class="bi bi-percent me-2"></i>
-        {% if discount %}Chegirmani tahrirlash{% else %}Yangi chegirma qo'shish{% endif %}
+        {% if discount %}Chegirmani tahrirlash{% else %}Yangi kurs chegirmasi{% endif %}
     </h1>
 </div>
 
@@ -14,79 +31,81 @@
     <div class="col-lg-8">
         <div class="card">
             <div class="card-body p-4">
-                <form method="POST">
+                <form method="POST" id="dc-form" novalidate>
                     {% csrf_token %}
-                    
+                    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+
                     <div class="mb-4">
-                        <label class="form-label" style="color: var(--text-color);">Chegirma nomi *</label>
-                        <input type="text" name="name" class="form-control form-control-lg" 
-                               value="{{ discount.name|default:'' }}" 
-                               placeholder="Masalan: Yangi yil chegirmasi" required>
+                        <label class="form-label" for="{{ form.name.id_for_label }}">Chegirma nomi *</label>
+                        {{ form.name }}
+                        {% if form.name.errors %}<div class="text-danger small mt-1">{{ form.name.errors.0 }}</div>{% endif %}
                     </div>
-                    
+
+                    <div class="row mb-4 g-3">
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.profession.id_for_label }}">Kurs</label>
+                            {{ form.profession }}
+                            {% if form.profession.errors %}<div class="text-danger small mt-1">{{ form.profession.errors.0 }}</div>{% endif %}
+                            <small class="text-muted">Faqat bir martalik to'lov bilan sotiladigan kurslar.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.discount_type.id_for_label }}">Chegirma turi *</label>
+                            {{ form.discount_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.discount_value.id_for_label }}" id="dc-value-label">Yangi narx (so'm) *</label>
+                            {{ form.discount_value }}
+                            {% if form.discount_value.errors %}<div class="text-danger small mt-1">{{ form.discount_value.errors.0 }}</div>{% endif %}
+                            <small class="text-muted" id="dc-value-help">Masalan: 90 000 so'mlik kurs uchun 50 000.</small>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <div class="dc-preview w-100" id="dc-preview" aria-live="polite">
+                                <span class="text-muted small w-100">O'quvchi to'laydigan narx</span>
+                                <del id="dc-old">—</del><strong id="dc-new">—</strong><span class="dc-tag" id="dc-percent" hidden></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="form-label d-block">Muddat *</span>
+                        <div class="dc-chips" role="radiogroup" aria-label="Muddat">
+                            {% for value, label in form.duration.field.choices %}
+                            <label><input type="radio" name="duration" value="{{ value }}" {% if form.duration.value|stringformat:"s" == value %}checked{% endif %}><span>{{ label }}</span></label>
+                            {% endfor %}
+                        </div>
+                        {% if form.duration.errors %}<div class="text-danger small mt-1">{{ form.duration.errors.0 }}</div>{% endif %}
+                        <small class="text-muted d-block mt-2" id="dc-duration-help">Chegirma saqlangan paytdan boshlanadi va muddat tugashi bilan narx o'zi asl holiga qaytadi.</small>
+                    </div>
+
+                    <div class="row mb-4 g-3" id="dc-dates">
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.valid_from.id_for_label }}">Boshlanish (bo'sh — hozirdan)</label>
+                            {{ form.valid_from }}
+                            {% if form.valid_from.errors %}<div class="text-danger small mt-1">{{ form.valid_from.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" for="{{ form.valid_until.id_for_label }}">Tugash *</label>
+                            {{ form.valid_until }}
+                            {% if form.valid_until.errors %}<div class="text-danger small mt-1">{{ form.valid_until.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+
                     <div class="mb-4">
-                        <label class="form-label" style="color: var(--text-color);">Tavsif (ixtiyoriy)</label>
-                        <textarea name="description" class="form-control" rows="3" 
-                                  placeholder="Chegirma haqida qisqacha ma'lumot...">{{ discount.description|default:'' }}</textarea>
+                        <label class="form-label" for="{{ form.description.id_for_label }}">Tavsif (ixtiyoriy)</label>
+                        {{ form.description }}
                     </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Chegirma turi *</label>
-                            <select name="discount_type" class="form-select" required>
-                                <option value="percentage" {% if discount.discount_type == 'percentage' %}selected{% endif %}>Foiz (%)</option>
-                                <option value="fixed" {% if discount.discount_type == 'fixed' %}selected{% endif %}>Qat'iy summa (coin)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Chegirma qiymati *</label>
-                            <input type="number" name="discount_value" class="form-control" 
-                                   value="{{ discount.discount_value|default:0 }}" min="1" required>
-                            <small class="text-muted">Foiz tanlansa % sifatida, aks holda coin sifatida</small>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Minimal coin talab</label>
-                            <input type="number" name="min_coins_required" class="form-control" 
-                                   value="{{ discount.min_coins_required|default:0 }}" min="0">
-                            <small class="text-muted">Foydalanuvchi ushbu miqdordan ko'p coinga ega bo'lishi kerak</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Kurs (ixtiyoriy)</label>
-                            <select name="profession" class="form-select">
-                                <option value="">Barcha kurslarga</option>
-                                {% for p in professions %}
-                                <option value="{{ p.pk }}" {% if discount.profession_id == p.pk %}selected{% endif %}>{{ p.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Boshlanish sanasi</label>
-                            <input type="datetime-local" name="valid_from" class="form-control" 
-                                   value="{% if discount.valid_from %}{{ discount.valid_from|date:'Y-m-d\TH:i' }}{% endif %}">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" style="color: var(--text-color);">Tugash sanasi</label>
-                            <input type="datetime-local" name="valid_until" class="form-control" 
-                                   value="{% if discount.valid_until %}{{ discount.valid_until|date:'Y-m-d\TH:i' }}{% endif %}">
-                        </div>
-                    </div>
-                    
+
                     <div class="mb-4">
-                        <div class="form-check">
-                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" 
-                                   {% if discount.is_active or not discount %}checked{% endif %}>
-                            <label class="form-check-label" for="isActive" style="color: var(--text-color);">
-                                Faol holatda
-                            </label>
+                        <div class="form-check form-switch">
+                            <input type="checkbox" name="is_active" class="form-check-input" id="isActive" {% if form.is_active.value %}checked{% endif %}>
+                            <label class="form-check-label" for="isActive">Faol (narx darhol o'zgaradi)</label>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input type="checkbox" name="announce" class="form-check-input" id="announce" {% if form.announce.value %}checked{% endif %}>
+                            <label class="form-check-label" for="announce">O'quvchilarga saytda va Telegram guruhida e'lon qilish</label>
                         </div>
                     </div>
-                    
+
                     <div class="d-flex gap-3">
                         <button type="submit" class="btn btn-primary px-4">
                             <i class="bi bi-check-lg me-2"></i>Saqlash
@@ -105,4 +124,39 @@
         </div>
     </div>
 </div>
+{{ course_prices|json_script:'dc-prices' }}
+<script>
+(() => {
+  const form = document.getElementById('dc-form');
+  const prices = JSON.parse(document.getElementById('dc-prices').textContent);
+  const fmt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const MIN = 1000;
+  const help = {
+    price: ["Yangi narx (so'm) *", "Masalan: 90 000 so'mlik kurs uchun 50 000."],
+    percentage: ["Chegirma (%) *", "1 dan 99 gacha."],
+    fixed: ["Ayiriladigan summa (so'm) *", "Masalan: 40 000 — narxdan shuncha kamayadi."],
+  };
+  function render() {
+    const type = form.elements.discount_type.value, value = Number(form.elements.discount_value.value) || 0;
+    const original = prices[form.elements.profession.value];
+    const [label, hint] = help[type] || help.price;
+    document.getElementById('dc-value-label').textContent = label;
+    document.getElementById('dc-value-help').textContent = hint;
+    const dur = form.querySelector('[name=duration]:checked')?.value;
+    document.getElementById('dc-dates').hidden = dur !== 'custom';
+    const old = document.getElementById('dc-old'), now = document.getElementById('dc-new'), pct = document.getElementById('dc-percent');
+    if (!original) { old.textContent = ''; now.textContent = type === 'price' ? 'Kursni tanlang' : 'Barcha kurslarga'; pct.hidden = true; return; }
+    // Server bilan bir xil: accounts/course_pricing.py discounted_price
+    let price = type === 'price' ? value : type === 'percentage' ? original - Math.floor(original * Math.min(value, 99) / 100) : original - value;
+    old.textContent = fmt(original) + " so'm";
+    if (!value || price >= original) { now.textContent = 'Chegirma yo‘q'; pct.hidden = true; return; }
+    if (price < MIN) { now.textContent = 'Kamida ' + fmt(MIN) + " so'm"; pct.hidden = true; return; }
+    now.textContent = fmt(price) + " so'm";
+    pct.hidden = false; pct.textContent = '−' + Math.round((original - price) * 100 / original) + '%';
+  }
+  form.addEventListener('input', render);
+  form.addEventListener('change', render);
+  render();
+})();
+</script>
 {% endblock %}

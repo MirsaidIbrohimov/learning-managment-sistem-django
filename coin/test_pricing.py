@@ -242,3 +242,41 @@ class CoinPricingTests(TestCase):
         request = self.request(dict(amount='999', token=str(uuid.uuid4())))
         request.META['HTTP_ACCEPT'] = 'text/html'
         self.assertEqual(create_coin_checkout(request).url, '/market/#coin-topup')
+
+    def test_package_price_10000_coins_for_5000_som(self):
+        self.campaign(name='Paket', discount_type='package', value=5000, min_coins=10000)
+        data = pricing_data()
+        self.assertEqual(quote(10000, data)['payable'], 5000)
+        self.assertEqual(quote(20000, data)['payable'], 10000)
+        self.assertEqual(quote(9999, data)['payable'], 9999)
+        self.assertEqual(self.checkout(10000, pricing_token=pricing_token(data)).status_code, 200)
+        order = TezCheckPaymentOrder.objects.get()
+        self.assertEqual((order.coin_quantity, order.amount_minor), (10000, 500000))
+        html = render_to_string('coin/market/_coin_topup.html', market_context(self.user), request=self.request({}))
+        self.assertIn('tanga atigi', html)
+
+    def test_expired_campaign_stops_and_old_token_is_rejected(self):
+        from datetime import timedelta
+        from django.utils import timezone
+        campaign = self.campaign(discount_type='package', value=5000, min_coins=10000,
+                                 valid_until=timezone.now() + timedelta(days=3))
+        token = pricing_token(pricing_data())
+        CoinPurchaseDiscount.objects.filter(pk=campaign.pk).update(valid_until=timezone.now() - timedelta(seconds=1))
+        self.assertEqual(quote(10000, pricing_data())['payable'], 10000)
+        self.assertEqual(self.checkout(10000, pricing_token=token).status_code, 409)
+        self.assertFalse(TezCheckPaymentOrder.objects.exists())
+        manage(self.request(dict(coin_action='disable', discount_id=campaign.pk), admin=True))
+        manage(self.request(dict(coin_action='enable', discount_id=campaign.pk), admin=True))
+        campaign.refresh_from_db()
+        self.assertFalse(campaign.is_active)
+
+    def test_admin_duration_and_package_validation(self):
+        from django.utils import timezone
+        before = timezone.now()
+        manage(self.request(dict(coin_action='add', name='5 kun', discount_type='package', value=5000,
+                                 min_coins=10000, duration='5', is_active='on'), admin=True))
+        campaign = CoinPurchaseDiscount.objects.get()
+        self.assertAlmostEqual((campaign.valid_until - before).total_seconds(), 5 * 86400, delta=60)
+        self.assertIn('gacha', Message.objects.get().content)
+        for bad in (dict(value=10000, min_coins=10000), dict(value=100, min_coins=500)):
+            self.assertFalse(CoinDiscountForm(dict(name='Bad', discount_type='package', **bad)).is_valid())

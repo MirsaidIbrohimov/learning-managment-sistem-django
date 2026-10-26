@@ -1,0 +1,44 @@
+{% load static %}
+{# Bosh sahifa: muddatli kurs chegirmalari va coin aksiyalari (views: sale_promos, coin_promos) #}
+<link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
+<style>
+.hp { margin-top: 18px; padding: 18px; border-radius: 22px; border: 1px solid rgba(249,115,22,.35);
+  background: radial-gradient(120% 140% at 0% 0%, rgba(239,68,68,.14), transparent 60%), radial-gradient(120% 140% at 100% 100%, rgba(249,115,22,.12), transparent 60%); }
+.hp-hd { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.hp-hd h2 { margin: 0; font-size: 1.1rem; font-weight: 800; }
+.hp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
+.hp-card { display: flex; gap: 12px; align-items: center; padding: 12px; border-radius: 16px; text-decoration: none; color: inherit;
+  background: rgba(127,127,127,.08); border: 1px solid rgba(127,127,127,.18); transition: transform .15s; min-width: 0; }
+.hp-card:hover { transform: translateY(-2px); color: inherit; }
+.hp-card img, .hp-ico { width: 54px; height: 54px; border-radius: 12px; object-fit: cover; flex-shrink: 0; }
+.hp-ico { display: grid; place-items: center; font-size: 1.5rem; background: linear-gradient(135deg, #f59e0b, #ef4444); color: #fff; }
+.hp-card b { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hp-price { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px; font-size: .9rem; }
+.hp-price strong { font-size: 1.05rem; font-weight: 800; }
+</style>
+<section class="hp" aria-label="Chegirmalar">
+  <div class="hp-hd"><h2><i class="bi bi-fire" style="color:#ef4444"></i> Muddatli chegirmalar</h2>{% if sale_promos %}<a class="more" href="{% url 'professions' %}">Barcha kurslar →</a>{% endif %}</div>
+  <div class="hp-grid">
+    {% for c in sale_promos %}
+    <a class="hp-card" href="{% url 'enroll_course' c.pk %}">
+      {% if c.photo %}<img src="{{ c.photo.url }}" alt="" loading="lazy">{% else %}<span class="hp-ico"><i class="bi bi-mortarboard"></i></span>{% endif %}
+      <span style="min-width:0">
+        <b>{{ c.name }}</b>
+        <span class="hp-price"><del class="sale-old">{{ c.sale.original|floatformat:"0g" }}</del><strong>{{ c.sale.price|floatformat:"0g" }} so'm</strong><span class="sale-tag">−{{ c.sale.percent }}%</span></span>
+        {% if c.sale.ends_at %}<span class="sale-timer" data-sale-ends="{{ c.sale.ends_at|date:'c' }}">{{ c.sale.ends_at|timeuntil }} qoldi</span>{% endif %}
+      </span>
+    </a>
+    {% endfor %}
+    {% for d in coin_promos %}
+    <a class="hp-card" href="{% url 'coin:market_list' %}#coin-topup">
+      <span class="hp-ico"><i class="bi bi-coin"></i></span>
+      <span style="min-width:0">
+        <b>{{ d.name }}</b>
+        <span class="hp-price"><strong>{{ d.label }}</strong></span>
+        {% if d.ends_at %}<span class="sale-timer" data-sale-ends="{{ d.ends_at }}">muddatli</span>{% endif %}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+<script src="{% static 'js/sale-countdown.js' %}?v=20261025" defer></script>

@@ -175,7 +175,6 @@
                         <th>Nomi</th>
                         <th>Turi</th>
                         <th class="text-center">Qiymat</th>
-                        <th class="text-center">Min. coin</th>
                         <th>Kurs</th>
                         <th class="text-center">Holat</th>
                         <th>Muddat</th>
@@ -192,21 +191,25 @@
                             {% endif %}
                         </td>
                         <td data-label="Turi">
-                            {% if discount.discount_type == 'percentage' %}
+                            {% if discount.discount_type == 'price' %}
+                            <span class="badge bg-danger">Yangi narx</span>
+                            {% elif discount.discount_type == 'percentage' %}
                             <span class="badge bg-info">Foiz</span>
                             {% else %}
-                            <span class="badge bg-warning text-dark">Qat'iy</span>
+                            <span class="badge bg-warning text-dark">Summa</span>
                             {% endif %}
                         </td>
                         <td data-label="Qiymat" class="text-center">
-                            {% if discount.discount_type == 'percentage' %}
-                            <strong>{{ discount.discount_value }}%</strong>
+                            {% if discount.price_preview %}
+                            <del class="text-muted">{{ discount.price_preview.0|floatformat:"0g" }}</del>
+                            → <strong>{{ discount.price_preview.1|floatformat:"0g" }} so'm</strong>
+                            {% elif discount.discount_type == 'percentage' %}
+                            <strong>−{{ discount.discount_value }}%</strong>
+                            {% elif discount.discount_type == 'price' %}
+                            <strong>{{ discount.discount_value|floatformat:"0g" }} so'm</strong>
                             {% else %}
-                            <strong>{{ discount.discount_value }} coin</strong>
+                            <strong>−{{ discount.discount_value|floatformat:"0g" }} so'm</strong>
                             {% endif %}
-                        </td>
-                        <td data-label="Min. coin" class="text-center">
-                            {{ discount.min_coins_required }}
                         </td>
                         <td data-label="Kurs">
                             {% if discount.profession %}
@@ -227,9 +230,10 @@
                         <td data-label="Muddat">
                             {% if discount.valid_from or discount.valid_until %}
                             <small>
-                                {% if discount.valid_from %}{{ discount.valid_from|date:"d.m.Y" }}{% endif %}
-                                -
-                                {% if discount.valid_until %}{{ discount.valid_until|date:"d.m.Y" }}{% endif %}
+                                {% if discount.valid_from %}{{ discount.valid_from|date:"d.m.Y H:i" }}{% endif %}
+                                –
+                                {% if discount.valid_until %}{{ discount.valid_until|date:"d.m.Y H:i" }}{% endif %}
+                                {% if discount.is_valid and discount.valid_until %}<br><span class="text-danger">⏳ {{ discount.valid_until|timeuntil }} qoldi</span>{% endif %}
                             </small>
                             {% else %}
                             <span class="text-muted">—</span>

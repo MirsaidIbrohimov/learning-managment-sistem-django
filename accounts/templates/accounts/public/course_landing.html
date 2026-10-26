@@ -1,7 +1,7 @@
 {% extends 'accounts/base.html' %}
 {% load static custom_filters %}
 
-{% block title %}{{ course.name }} — onlayn kurs, {{ course.one_time_price|floatformat:"0g" }} so'm | IT Creative Academy{% endblock %}
+{% block title %}{{ course.name }} — onlayn kurs, {{ course.sale.price|floatformat:"0g" }} so'm | IT Creative Academy{% endblock %}
 {% block meta_description %}{{ summary }}{% endblock %}
 {% block meta_robots %}index, follow, max-image-preview:large{% endblock %}
 {% block og_type %}product{% endblock %}
@@ -15,7 +15,7 @@
 {% block canonical %}{{ seo_origin }}{{ course.public_url }}{% endblock %}
 
 {% block extra_head %}
-<meta property="product:price:amount" content="{{ course.one_time_price }}">
+<meta property="product:price:amount" content="{{ course.sale.price }}">
 <meta property="product:price:currency" content="UZS">
 <script type="application/ld+json">{{ ld_json|safe }}</script>
 {% endblock %}
@@ -23,6 +23,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
 <link rel="stylesheet" href="{% static 'css/kurslarim.css' %}?v=1">
+<link rel="stylesheet" href="{% static 'css/course-sale.css' %}?v=20261025">
 <link rel="stylesheet" href="{% static 'css/public_course.css' %}?v=1">
 {% endblock %}
 
@@ -118,10 +119,13 @@
         <div class="pc-buy kp-glass">
             <div class="pc-buy-media">
                 {% if course.photo %}<img src="{{ course.photo.url }}" alt="{{ course.name }}">{% endif %}
-                <span class="pc-ribbon">BIR MARTALIK</span>
+                <span class="pc-ribbon">{% if course.sale.has_discount %}CHEGIRMA −{{ course.sale.percent }}%{% else %}BIR MARTALIK{% endif %}</span>
             </div>
             <div class="pc-buy-body">
-                <div class="pc-price"><b>{{ course.one_time_price|floatformat:"0g" }}</b> <span>so'm</span></div>
+                <div class="pc-price">{% if course.sale.has_discount %}<del class="sale-old">{{ course.sale.original|floatformat:"0g" }}</del> {% endif %}<b>{{ course.sale.price|floatformat:"0g" }}</b> <span>so'm</span></div>
+                {% if course.sale.has_discount %}
+                <div class="sale-banner"><span><i class="bi bi-gift-fill"></i> <b>{{ course.sale.discount.name }}</b> — {{ course.sale.saving|floatformat:"0g" }} so'm tejaysiz</span>{% if course.sale.ends_at %}<span class="sale-timer" data-sale-ends="{{ course.sale.ends_at|date:'c' }}">{{ course.sale.ends_at|timeuntil }} qoldi</span>{% endif %}</div>
+                {% endif %}
                 <p class="kp-muted small mb-3">Bir martalik to'lov · umrbod kirish</p>
                 {% if purchased %}
                 <a href="{% url 'kurslarim:course' course.pk %}" class="kp-btn kp-btn-primary kp-btn-block pc-cta pc-cta-owned"><i class="bi bi-play-fill"></i>Kursni davom ettirish</a>
@@ -151,9 +155,10 @@
 
 {% if not purchased %}
 <div class="pc-mobile-bar">
-    <div><b>{{ course.one_time_price|floatformat:"0g" }} so'm</b><small>bir martalik</small></div>
+    <div><b>{{ course.sale.price|floatformat:"0g" }} so'm</b><small>{% if course.sale.has_discount %}<del>{{ course.sale.original|floatformat:"0g" }}</del> · chegirma{% else %}bir martalik{% endif %}</small></div>
     <a href="{% url 'enroll_course' course.pk %}" class="kp-btn kp-btn-primary" rel="nofollow">Sotib olish</a>
 </div>
 {% endif %}
 </div>
+<script src="{% static 'js/sale-countdown.js' %}?v=20261025" defer></script>
 {% endblock %}

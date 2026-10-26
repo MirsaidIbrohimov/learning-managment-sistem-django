@@ -1996,6 +1996,8 @@ def home_view(request):
     # Landing sahifa — login qilmagan foydalanuvchilar uchun
     if not request.user.is_authenticated:
         public_data = landing_data()
+        from .course_pricing import attach_prices
+        attach_prices(public_data['professions'] + public_data['paid_courses'])
         success = False
 
         if request.method == 'POST':
@@ -2024,8 +2026,10 @@ def home_view(request):
                 )
                 success = True
 
+        from coin.topup_pricing import promos
         return render(request, 'landing.html', {
             **public_data,
+            'coin_promos': promos(),
             'success': success,
         })
 
@@ -2730,6 +2734,11 @@ def home_view(request):
         'daily_question': daily_question,
         'daily_question_state': daily_question_state,
     }
+    from .course_pricing import discounted_courses
+    from coin.topup_pricing import promos
+    from kurslarim.access import purchased_course_ids
+    context['sale_promos'] = discounted_courses(exclude_ids=purchased_course_ids(user))
+    context['coin_promos'] = promos()
 
     return render(request, 'accounts/home.html', context)
 
@@ -2922,7 +2931,8 @@ def professions_view(request):
 
     # Qidiruv, filtr va sahifalash brauzerda barcha kurslar bo'yicha ishlaydi:
     # serverda sahifalash qidiruvni faqat joriy 8 ta kurs bilan cheklab qo'yardi.
-    professions = list(professions)
+    from .course_pricing import attach_prices
+    professions = attach_prices(professions)
 
     # O'quvchilar uchun kurs tokenlarini yaratish
     course_token_map = {}
@@ -12720,6 +12730,13 @@ def admin_discounts(request):
     q = request.GET.get('q')
     if q:
         discounts = discounts.filter(name__icontains=q)
+
+    from .course_pricing import discounted_price
+    discounts = list(discounts)
+    for d in discounts:
+        # Ro'yxatda "90 000 → 50 000" ko'rinishi uchun.
+        if d.profession and d.profession.is_sold_once:
+            d.price_preview = (d.profession.one_time_price, discounted_price(int(d.profession.one_time_price), d))
     
     professions = Profession.objects.all()
     
@@ -12734,42 +12751,32 @@ def admin_discounts(request):
     return render(request, 'accounts/admin/discounts.html', context)
 
 
+def _course_discount_form(request, discount=None):
+    from .course_discounts import CourseDiscountForm, announce
+    if request.method == 'POST':
+        form = CourseDiscountForm(request.POST, instance=discount)
+        if form.is_valid():
+            with transaction.atomic():
+                saved = form.save()
+                if form.cleaned_data.get('announce') and saved.is_valid:
+                    announce(saved, request.user)
+            messages.success(request, "Chegirma saqlandi!" if discount else "Chegirma muvaffaqiyatli qo'shildi!")
+            return redirect('admin_discounts')
+    else:
+        form = CourseDiscountForm(instance=discount, initial=None if discount else {
+            'profession': request.GET.get('profession') or None, 'is_active': True})
+    prices = {p.pk: int(p.one_time_price) for p in form.fields['profession'].queryset}
+    return render(request, 'accounts/admin/discount_form.html', {
+        'discount': discount, 'form': form, 'course_prices': prices,
+    })
+
+
 @login_required
 def admin_discount_add(request):
     if not request.user.is_admin:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
-    
-    if request.method == 'POST':
-        name = request.POST.get('name', '').strip()
-        description = request.POST.get('description', '').strip()
-        discount_type = request.POST.get('discount_type', 'percentage')
-        discount_value = request.POST.get('discount_value', 0)
-        min_coins_required = request.POST.get('min_coins_required', 0)
-        profession_id = request.POST.get('profession')
-        is_active = 'is_active' in request.POST
-        valid_from = request.POST.get('valid_from') or None
-        valid_until = request.POST.get('valid_until') or None
-        
-        if name and discount_value:
-            Discount.objects.create(
-                name=name,
-                description=description,
-                discount_type=discount_type,
-                discount_value=int(discount_value),
-                min_coins_required=int(min_coins_required) if min_coins_required else 0,
-                profession_id=profession_id if profession_id else None,
-                is_active=is_active,
-                valid_from=valid_from,
-                valid_until=valid_until
-            )
-            messages.success(request, "Chegirma muvaffaqiyatli qo'shildi!")
-            return redirect('admin_discounts')
-        else:
-            messages.error(request, "Chegirma nomi va qiymati kiritilishi shart!")
-    
-    professions = Profession.objects.all()
-    return render(request, 'accounts/admin/discount_form.html', {'professions': professions})
+    return _course_discount_form(request)
 
 
 @login_required
@@ -12777,32 +12784,7 @@ def admin_discount_edit(request, pk):
     if not request.user.is_admin:
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q!")
         return redirect('home')
-    
-    discount = get_object_or_404(Discount, pk=pk)
-    
-    if request.method == 'POST':
-        discount.name = request.POST.get('name', '').strip()
-        discount.description = request.POST.get('description', '').strip()
-        discount.discount_type = request.POST.get('discount_type', 'percentage')
-        discount.discount_value = int(request.POST.get('discount_value', 0))
-        discount.min_coins_required = int(request.POST.get('min_coins_required', 0) or 0)
-        profession_id = request.POST.get('profession')
-        discount.profession_id = profession_id if profession_id else None
-        discount.is_active = 'is_active' in request.POST
-        valid_from = request.POST.get('valid_from')
-        valid_until = request.POST.get('valid_until')
-        discount.valid_from = valid_from if valid_from else None
-        discount.valid_until = valid_until if valid_until else None
-        discount.save()
-        
-        messages.success(request, "Chegirma muvaffaqiyatli yangilandi!")
-        return redirect('admin_discounts')
-    
-    professions = Profession.objects.all()
-    return render(request, 'accounts/admin/discount_form.html', {
-        'discount': discount,
-        'professions': professions,
-    })
+    return _course_discount_form(request, get_object_or_404(Discount, pk=pk))
 
 
 @login_required

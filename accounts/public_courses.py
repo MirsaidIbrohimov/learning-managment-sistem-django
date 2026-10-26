@@ -14,6 +14,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.html import strip_tags
 from django.utils.text import Truncator
 
+from .course_pricing import attach_prices
 from .models import Lesson, Profession
 
 FAQ = (
@@ -61,6 +62,7 @@ def catalog(request):
         lesson_total=Count('lessons', distinct=True),
         student_total=Count('enrollments', filter=Q(enrollments__user__role='student'), distinct=True),
     ).order_by('-created_at'))
+    attach_prices(courses)
     ld = {
         '@context': 'https://schema.org', '@type': 'ItemList', 'name': 'IT Creative Academy onlayn kurslari',
         'itemListElement': [
@@ -101,8 +103,9 @@ def course_landing(request, pk, slug=None):
             'name': course.name, 'description': _summary(course, 500), 'url': url, 'image': image,
             'inLanguage': 'uz', 'provider': _organization(origin),
             'offers': {
-                '@type': 'Offer', 'category': 'Paid', 'price': str(course.one_time_price),
+                '@type': 'Offer', 'category': 'Paid', 'price': str(course.sale.price),
                 'priceCurrency': 'UZS', 'availability': 'https://schema.org/InStock', 'url': url,
+                **({'priceValidUntil': course.sale.ends_at.date().isoformat()} if course.sale.ends_at else {}),
             },
             'hasCourseInstance': {
                 '@type': 'CourseInstance', 'courseMode': 'Online',

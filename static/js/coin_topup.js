@@ -16,8 +16,11 @@
     let payable = gross, selected = null;
     for (const discount of pricing.discounts) {
       if (coins < discount.min_coins) continue;
+      // Server bilan bir xil butun sonli hisob (coin/topup_pricing.py: quote).
       const price = Math.max(1, discount.discount_type === 'percentage'
-        ? Math.ceil(gross * (100 - discount.value) / 100) : gross - discount.value);
+        ? Math.ceil(gross * (100 - discount.value) / 100)
+        : discount.discount_type === 'package'
+          ? Math.ceil(coins * discount.value / discount.min_coins) : gross - discount.value);
       if (price < payable) { payable = price; selected = discount; }
     }
     return {gross, payable, selected};
@@ -86,6 +89,20 @@
   custom.addEventListener('input', () => { radios.forEach(r => r.checked = false); update(); });
   custom.addEventListener('blur', () => { if (Number.isSafeInteger(amount) && amount > 0) custom.value = fmt(amount); });
   const icons = {celebration:'🎁', navruz:'🌷', newyear:'🎄', eid:'☪', simple:'✦'};
+  // Muddatli aksiya: qolgan vaqt; tugaganda narx serverdan qayta olinadi.
+  const pad = n => String(n).padStart(2, '0');
+  let expiredRefresh = false;
+  function paintEnds() {
+    let expired = false;
+    document.querySelectorAll('.cp-ends[data-ends-at]').forEach(el => {
+      const left = Math.max(0, Math.floor((Date.parse(el.dataset.endsAt) - Date.now()) / 1000));
+      if (!left) { el.textContent = 'Aksiya tugadi'; expired = true; return; }
+      const days = Math.floor(left / 86400), rest = left % 86400;
+      el.textContent = '⏳ ' + (days ? days + ' kun ' : '') + pad(Math.floor(rest / 3600)) + ':' + pad(Math.floor(rest % 3600 / 60)) + ':' + pad(rest % 60) + ' qoldi';
+    });
+    if (expired && !expiredRefresh) { expiredRefresh = true; refreshPricing().catch(() => {}).finally(() => { expiredRefresh = false; }); }
+  }
+  setInterval(paintEnds, 1000);
   function paintPricing() {
     document.getElementById('ct-rate-label').textContent = '1 tanga = ' + fmt(pricing.rate) + ' so‘m';
     const offers = document.getElementById('ct-offers');
@@ -97,13 +114,15 @@
       const copy = document.createElement('div'); copy.className = 'cp-copy';
       const label = document.createElement('span'); label.className = 'cp-label'; label.textContent = discount.theme === 'simple' ? 'MAXSUS TAKLIF' : 'BAYRAM TAKLIFI';
       const name = document.createElement('h3'); name.textContent = discount.name;
-      const threshold = document.createElement('p'); threshold.textContent = 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
+      const threshold = document.createElement('p'); threshold.textContent = discount.discount_type === 'package' ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' so‘m' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
       copy.append(label, name, threshold);
+      if (discount.ends_at) { const left = document.createElement('small'); left.className = 'cp-ends'; left.dataset.endsAt = discount.ends_at; copy.append(left); }
       const value = document.createElement('div'); value.className = 'cp-value';
-      const badge = document.createElement('strong'); badge.textContent = '−' + fmt(discount.value) + (discount.discount_type === 'percentage' ? '%' : ' so‘m'); value.append(badge);
+      const badge = document.createElement('strong'); badge.textContent = discount.discount_type === 'package' ? fmt(discount.value) + ' so‘m' : '−' + fmt(discount.value) + (discount.discount_type === 'percentage' ? '%' : ' so‘m'); value.append(badge);
       card.append(art, copy, value); offers.append(card);
     }
     document.getElementById('ct-offers-section').hidden = !pricing.discounts.length;
+    paintEnds();
     document.querySelectorAll('.ct-package-cost').forEach(el => {
       const purchase = quote(Number(el.dataset.coins)); el.replaceChildren();
       if (purchase.selected) { const old = document.createElement('del'); old.textContent = fmt(purchase.gross); el.append(old, ' → '); }

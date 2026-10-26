@@ -17,6 +17,7 @@ from .models import (
 )
 from .tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
 from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
+from .course_pricing import course_price
 
 
 def course_page(pk):
@@ -30,14 +31,26 @@ def has_paid_course(user, profession):
     ).exists()
 
 
+def price_changed(request, sale):
+    """Sahifada ko'rsatilgan narx bilan joriy narx farq qilsa, to'lovni boshlamaymiz."""
+    shown = request.POST.get('expected_price')
+    if shown is None or shown == str(sale.price):
+        return False
+    messages.warning(request, (f"Kurs narxi o‘zgardi (chegirma muddati tugagan bo‘lishi mumkin). "
+                               f"Joriy narx: {sale.price:,} so‘m. Tekshirib, qayta to‘lang.").replace(',', ' '))
+    return True
+
+
 def course_context(user, profession):
     from .balance_spend import spendable_balance
     money = spendable_balance(user)
+    price = profession.sale.price
     return {
+        'sale': profession.sale,
         'money_balance': money,
-        'balance_enough': money >= profession.one_time_price > 0,
-        'balance_shortage': max(0, profession.one_time_price - money),
-        'balance_after': max(0, money - profession.one_time_price),
+        'balance_enough': money >= price > 0,
+        'balance_shortage': max(0, price - money),
+        'balance_after': max(0, money - price),
         'course_checkout_token': str(uuid.uuid4()),
         'course_order': TezCheckPaymentOrder.objects.filter(
             student=user, purpose='course', course=profession,
@@ -74,7 +87,10 @@ def create_course_checkout(request, pk):
         return redirect(page)
     if has_paid_course(request.user, profession):
         return redirect(page)
-    amount_minor = int(profession.one_time_price) * 100
+    sale = course_price(profession)
+    if price_changed(request, sale):
+        return redirect(page)
+    amount_minor = sale.price * 100
     orders = TezCheckPaymentOrder.objects.filter(student=request.user, purpose='course', course=profession)
     if orders.filter(status='review').exists():
         messages.error(request, 'Oldingi to‘lov administrator tekshiruvini talab qiladi.')
@@ -157,7 +173,10 @@ def pay_course_from_balance(request, pk):
             student=request.user, purpose='course', course=profession, status='review').exists():
         messages.error(request, 'Oldingi to‘lov administrator tekshiruvini talab qiladi.')
         return redirect(page)
-    price = int(profession.one_time_price)
+    sale = course_price(profession)
+    if price_changed(request, sale):
+        return redirect(page)
+    price = sale.price
     reference = f'LMS-COURSE-BAL-{request.user.pk}-{pk}-{uuid.uuid4().hex}'
     try:
         left = spend_balance(request.user, price, f"Kurs xaridi: {profession.name} ({reference})")
