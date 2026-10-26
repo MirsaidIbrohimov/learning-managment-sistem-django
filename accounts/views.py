@@ -5483,7 +5483,7 @@ def _check_ai_generated(homework_description, student_answer, student=None, curr
                         "🔍 AI deb belgilash uchun quyidagi belgilardan KAMIDA 4 TASI bir vaqtda bo'lishi kerak:\n"
                         "1. AI IBORALARI: 'Here is', 'Let me', 'certainly', 'I'd be happy to', "
                         "'Let's break this down', 'Note that', 'Feel free', 'In this solution' iboralari\n"
-                        "2. CHATGPT FORMATI: Markdown (###, **bold**), qadam-baqadam raqamlangan tushuntirish, "
+                        "2. CHATGPT FORMATI: Markdown (###, **bold**), qadam-va qadam raqamlangan tushuntirish, "
                         "kod bloki tashqarisidagi mukammal tuzilgan xatboshi\n"
                         "3. PROFESSIONAL INGLIZCHA IZOHLAR: Deyarli HAR QATORGA mukammal grammatik "
                         "inglizcha comment yozilgan (kichik xatosiz)\n"
