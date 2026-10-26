@@ -774,6 +774,41 @@ class QuizViewSet(viewsets.ModelViewSet):
             db_models.Q(created_by=user) | db_models.Q(lesson__profession__in=taught)
         ).distinct().order_by('-created_at')
 
+    def filter_queryset(self, queryset):
+        """List-page filters (?search=, ?status=, ?profession_id=). Applied
+        only to `list` so `stats` keeps counting the user's whole scope and
+        detail actions aren't affected by stray query params."""
+        queryset = super().filter_queryset(queryset)
+        if self.action != 'list':
+            return queryset
+        params = self.request.query_params
+        status_ = params.get('status')
+        if status_ in Quiz.Status.values:
+            queryset = queryset.filter(status=status_)
+        profession_id = params.get('profession_id')
+        if profession_id and profession_id.isdigit():
+            queryset = queryset.filter(lesson__profession_id=profession_id)
+        search = params.get('search', '').strip()
+        if search:
+            queryset = queryset.filter(
+                db_models.Q(title__icontains=search)
+                | db_models.Q(lesson__title__icontains=search)
+                | db_models.Q(lesson__profession__name__icontains=search)
+            )
+        return queryset.annotate(
+            question_count_annotated=db_models.Count('quiz_questions', distinct=True),
+            attempt_count=db_models.Count('attempts', distinct=True),
+        )
+
+    def perform_destroy(self, instance):
+        # Attempt.quiz is CASCADE -- deleting a quiz students already took
+        # would silently wipe their results. Archive is the safe path there.
+        if instance.attempts.exists():
+            raise ValidationError(
+                "Bu testni talabalar topshirgan — o'chirib bo'lmaydi. Uning o'rniga arxivlang."
+            )
+        instance.delete()
+
     def get_object(self):
         obj = super().get_object()
         user = self.request.user

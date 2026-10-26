@@ -176,6 +176,7 @@ class QuizQuestionSerializer(serializers.ModelSerializer):
 class QuizSerializer(serializers.ModelSerializer):
     settings = QuizSettingsSerializer()
     question_count_actual = serializers.SerializerMethodField()
+    attempt_count = serializers.SerializerMethodField()
     created_by = serializers.PrimaryKeyRelatedField(read_only=True)
     lesson_label = serializers.SerializerMethodField()
 
@@ -183,12 +184,18 @@ class QuizSerializer(serializers.ModelSerializer):
         model = Quiz
         fields = [
             'id', 'lesson', 'lesson_label', 'title', 'description', 'status', 'created_by',
-            'created_at', 'updated_at', 'settings', 'question_count_actual',
+            'created_at', 'updated_at', 'settings', 'question_count_actual', 'attempt_count',
         ]
         read_only_fields = ['id', 'created_by', 'created_at', 'updated_at', 'lesson_label']
 
     def get_question_count_actual(self, obj):
-        return obj.quiz_questions.count()
+        # The list endpoint annotates this to avoid one COUNT query per row.
+        annotated = getattr(obj, 'question_count_annotated', None)
+        return annotated if annotated is not None else obj.quiz_questions.count()
+
+    def get_attempt_count(self, obj):
+        annotated = getattr(obj, 'attempt_count', None)
+        return annotated if annotated is not None else obj.attempts.count()
 
     def get_lesson_label(self, obj):
         """Human-readable "Profession — Lesson title" for the builder's
