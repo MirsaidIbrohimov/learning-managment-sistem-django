@@ -1,0 +1,14 @@
+{% csrf_token %}
+<div class="f-row">
+  <label class="f-field"><span>Ismingiz</span><input type="text" name="first_name" placeholder="Ism" autocomplete="given-name" maxlength="100" required></label>
+  <label class="f-field"><span>Familiyangiz</span><input type="text" name="last_name" placeholder="Familiya" autocomplete="family-name" maxlength="100" required></label>
+</div>
+<label class="f-field"><span>Telefon raqamingiz</span>
+  <div class="f-phone"><b>+998</b><input type="tel" name="phone" data-phone placeholder="(90) 123 45 67" maxlength="19" autocomplete="tel-national" required></div>
+</label>
+<label class="f-field"><span>Qaysi yo'nalish? <small>(ixtiyoriy)</small></span>
+  <select name="course_interest" data-course>
+    <option value="">— Konsultatsiyada tanlayman —</option>
+    {% for p in professions %}<option value="{{ p.name }}">{{ p.name }}</option>{% endfor %}
+  </select>
+</label>

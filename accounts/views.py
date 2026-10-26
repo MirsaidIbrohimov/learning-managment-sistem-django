@@ -15857,7 +15857,7 @@ def ariza_view(request):
                 f"📞 Tez orada bog'laning!"
             )
             success = True
-    
+
     return render(request, 'accounts/ariza.html', {
         'professions': professions,
         'success': success,

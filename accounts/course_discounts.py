@@ -105,4 +105,35 @@ def announce(discount, sender):
     content = f'{discount.name}: {offer}{until} «Kurslar» bo‘limida sotib oling.'
     Message.objects.create(title='Kursga chegirma!', content=content, message_type='all', sender=sender)
     from telegram_bot.utils import notify_group
-    transaction.on_commit(lambda: notify_group(escape(content)))
+    text, keyboard = _telegram_post(discount)
+    transaction.on_commit(lambda: notify_group(text, inline_keyboard=keyboard))
+
+
+def _telegram_post(discount):
+    """Telegram guruhi uchun marketing uslubidagi HTML xabar va «Sotib olish» tugmasi."""
+    course = discount.profession
+    title = f'🎓 <b>«{escape(course.name)}»</b> kursi' if course else '🎓 <b>Barcha kurslarimizga</b>'
+    lines = ['🔥🔥 <b>KATTA CHEGIRMA!</b> 🔥🔥', f'🏷 <i>{escape(discount.name)}</i>', '━━━━━━━━━━━━━━━', '', title, '']
+    if discount.discount_type == 'price' and course:
+        old, new = course.one_time_price, discount.discount_value
+        lines += [f'❌ Oddiy narx: <s>{_money(old)} so‘m</s>',
+                  f'✅ Hozir atigi: <b>{_money(new)} so‘m</b>']
+        if old > new:
+            lines.append(f'💰 Tejaysiz: <b>{_money(old - new)} so‘m (−{round((old - new) * 100 / old)}%)</b>')
+    elif discount.discount_type == 'percentage':
+        lines.append(f'💥 <b>−{discount.discount_value}% chegirma!</b>')
+    else:
+        lines.append(f'💥 <b>{_money(discount.discount_value)} so‘m chegirma!</b>')
+    lines.append('')
+    if discount.valid_until:
+        lines.append(f'⏳ Taklif faqat <b>{timezone.localtime(discount.valid_until):%d.%m.%Y %H:%M}</b> gacha!')
+    lines += ['🚀 Imkoniyatni qo‘ldan boy bermang — bilimingizga bugun sarmoya kiriting!', '',
+              '👉 <b>«Kurslar»</b> bo‘limida hoziroq sotib oling!']
+
+    from django.conf import settings
+    from django.urls import reverse
+    site = getattr(settings, 'SITE_URL', '')
+    if not site.startswith('https://'):
+        return '\n'.join(lines), None
+    path = reverse('public_course_short', args=[course.pk]) if course else reverse('public_courses')
+    return '\n'.join(lines), [[{'text': '🛒 Hoziroq sotib olish', 'url': site + path}]]
