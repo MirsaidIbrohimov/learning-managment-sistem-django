@@ -506,7 +506,7 @@ def _generate_image_bytes(prompt):
     from openai import OpenAI
     import urllib.request
 
-    model = getattr(settings, 'AI_IMAGE_MODEL', '') or 'gpt-image-1'
+    model = getattr(settings, 'AI_IMAGE_MODEL', '') or 'gpt-image-2'
     client = OpenAI(api_key=settings.OPENAI_API_KEY.strip(), timeout=180)
     params = {'model': model, 'prompt': prompt, 'size': '1024x1024', 'n': 1}
     if model.startswith('dall-e'):
