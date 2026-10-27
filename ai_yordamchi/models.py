@@ -15,7 +15,7 @@ class ChatFolder(models.Model):
         verbose_name_plural = "Papkalar"
 
     def __str__(self):
-        return f"{self.user_id} · {self.name}"
+        return f"{self.user_id} - {self.name}"
 
 
 class ChatSession(models.Model):
@@ -109,7 +109,7 @@ class AIDailyUsage(models.Model):
         verbose_name_plural = 'AI kunlik limitlar'
 
     def __str__(self):
-        return f"{self.user} — {self.date}: {self.messages} xabar, {self.images} rasm"
+        return f"{self.user} - {self.date}: {self.messages} xabar, {self.images} rasm"
 
 
 class KnowledgeChunk(models.Model):
@@ -131,4 +131,4 @@ class KnowledgeChunk(models.Model):
         verbose_name_plural = "Bilim bazasi"
 
     def __str__(self):
-        return f"{self.source_type}#{self.source_id} · {self.title[:40]}"
+        return f"{self.source_type}#{self.source_id} - {self.title[:40]}"
