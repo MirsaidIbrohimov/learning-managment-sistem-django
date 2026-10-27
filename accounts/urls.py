@@ -9,6 +9,7 @@ from . import password_recovery
 from . import email_verification
 from . import exam_admin
 from . import app_releases
+from . import certificate_designs
 from .api import homework_views as hw_api
 from .api import chat_views as chat_api
 from .api import notify_views as notify_api
@@ -337,6 +338,10 @@ urlpatterns = [
     path('dashboard/certificates/issue/', views.admin_certificate_issue, name='admin_certificate_issue'),
     path('dashboard/certificates/settings/', views.admin_certificate_settings, name='admin_certificate_settings'),
     path('dashboard/certificates/manual/', views.admin_certificate_manual, name='admin_certificate_manual'),
+    path('dashboard/certificates/designs/', certificate_designs.admin_certificate_designs, name='admin_certificate_designs'),
+    path('dashboard/certificates/designs/<int:pk>/', certificate_designs.admin_certificate_design_edit, name='admin_certificate_design_edit'),
+    path('dashboard/certificates/designs/<int:pk>/preview/', certificate_designs.admin_certificate_design_preview, name='admin_certificate_design_preview'),
+    path('dashboard/certificates/designs/<int:pk>/delete/', certificate_designs.admin_certificate_design_delete, name='admin_certificate_design_delete'),
     path('dashboard/certificates/<int:pk>/status/', views.admin_certificate_status, name='admin_certificate_status'),
     path('dashboard/certificates/<int:pk>/edit/', views.admin_certificate_edit, name='admin_certificate_edit'),
     path('dashboard/certificates/<int:pk>/regenerate/', views.admin_certificate_regenerate, name='admin_certificate_regenerate'),

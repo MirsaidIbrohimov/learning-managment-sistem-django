@@ -13,6 +13,15 @@
 html, body { overflow: hidden !important; }
 body { padding: 0 !important; }
 /* Keep fixed chat positioning relative to the viewport, including Premium. */
+.cw-draw-locked { position: relative; text-decoration: none; opacity: .7; }
+.cw-draw-locked .cw-lock { position: absolute; right: 2px; bottom: 2px; font-size: 9px; }
+#drawBtn.on { background: var(--a-soft); color: var(--a); }
+.cw-box.draw .cw-box-in { box-shadow: 0 0 0 2px var(--a, #8b5cf6); }
+.cw-draw-hint { display: none; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 8px; padding: 6px 10px; border-radius: 10px; background: var(--a-soft, rgba(139,92,246,.12)); color: var(--a, #8b5cf6); }
+.cw-draw-hint.active { display: flex; }
+.cw-draw-hint button { margin-left: auto; border: 0; background: none; color: inherit; cursor: pointer; }
+.cw-gen-img { max-width: min(420px, 100%); max-height: none; }
+.cw-gen-dl { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; text-decoration: none; }
 #main-content.main-container {
     width: 100%;
     max-width: none;
@@ -54,6 +63,7 @@ body { padding: 0 !important; }
         {% if limits.is_premium %}<span class="prem"><i class="bi bi-gem"></i> PREMIUM</span>{% endif %}
         <span class="{% if limits.msg_left <= 5 %}danger{% elif limits.msg_left <= 15 %}warn{% endif %}"><b id="msgLeft">{{ limits.msg_left }}</b>/{{ limits.msg_limit }} xabar</span>
         <span class="{% if limits.img_left <= 1 %}danger{% endif %}"><b>{{ limits.img_left }}</b>/{{ limits.img_limit }} rasm</span>
+        {% if limits.can_generate %}<span class="{% if limits.gen_left <= 0 %}danger{% endif %}"><i class="bi bi-palette"></i> <b id="genLeft">{{ limits.gen_left }}</b>/{{ limits.gen_limit }} chizish</span>{% endif %}
     </div>
 
     {# ===== MESSAGES ===== #}
@@ -70,6 +80,8 @@ body { padding: 0 !important; }
                         <div class="cw-assistant-text"><div class="markdown-body" id="md-{{ mid }}"></div></div>
                         {{ msg.content|json_script:src_id }}
                         {% endwith %}{% endwith %}
+                        {% if msg.image %}<a href="{{ msg.image.url }}" target="_blank" rel="noopener"><img src="{{ msg.image.url }}" alt="AI chizgan rasm" class="cw-img cw-gen-img"></a>
+                        <a href="{{ msg.image.url }}" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab olish</a>{% endif %}
                         <div class="cw-msg-tools" data-mid="{{ msg.pk }}">
                             <button type="button" class="cw-tool copy" title="Nusxa olish" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>
                             <button type="button" class="cw-tool tts" title="Ovozda o'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>
@@ -120,6 +132,7 @@ body { padding: 0 !important; }
             <span onclick="cwSet('Bu rasmni batafsil tushuntiring')"><i class="bi bi-chat-text"></i> Tushuntiring</span>
             <span onclick="cwSet('Rasmdagi kodni yozib bering va xatolarini tuzating')"><i class="bi bi-code-slash"></i> Kod</span>
         </div>
+        <div class="cw-draw-hint" id="drawHint"><i class="bi bi-palette"></i> Rasm chizish rejimi — chizmoqchi bo'lgan rasmingizni tasvirlab yozing <button type="button" onclick="cwToggleDraw(false)"><i class="bi bi-x"></i></button></div>
         <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="cw-box" id="chatForm"{% if autosend and prefill %} data-autosend="1"{% endif %}>
             {% csrf_token %}
             <div class="cw-box-in">
@@ -133,6 +146,11 @@ body { padding: 0 !important; }
                         <i class="bi bi-paperclip"></i>
                         <input type="file" name="file" id="fileInput" onchange="cwPreviewFile(this)">
                     </label>
+                    {% if limits.can_generate %}
+                    <button type="button" class="am-icon" id="drawBtn" title="Rasm chizish (Premium · kuniga {{ limits.gen_limit }} ta)"><i class="bi bi-palette"></i></button>
+                    {% else %}
+                    <a href="{% url 'coin:buy_premium' %}" class="am-icon cw-draw-locked" title="Rasm chizish — faqat Premium uchun"><i class="bi bi-palette"></i><i class="bi bi-lock-fill cw-lock"></i></a>
+                    {% endif %}
                     <button type="button" class="am-icon" id="micBtn" title="Ovozli kiritish"><i class="bi bi-mic"></i></button>
                     <span class="hint">Enter — yuborish · Shift+Enter — yangi qator</span>
                     <button type="submit" class="cw-send" id="sendBtn" title="Yuborish"><i class="bi bi-arrow-up"></i></button>
@@ -476,9 +494,67 @@ async function cwStream(mdEl) {
     }
 }
 
+/* ============================================================
+   Rasm chizish (faqat Premium)
+   ============================================================ */
+var drawMode = false;
+var drawBtn = document.getElementById('drawBtn');
+
+function cwToggleDraw(on) {
+    if (!drawBtn) return;
+    drawMode = (on === undefined) ? !drawMode : on;
+    drawBtn.classList.toggle('on', drawMode);
+    if (form) form.classList.toggle('draw', drawMode);
+    var hint = document.getElementById('drawHint');
+    if (hint) hint.classList.toggle('active', drawMode);
+    if (textarea) {
+        textarea.placeholder = drawMode ? 'Masalan: kosmosda gitara chalayotgan mushuk, multfilm uslubida…' : 'Xabar yozing…';
+        textarea.focus();
+    }
+}
+if (drawBtn) drawBtn.addEventListener('click', function () { cwToggleDraw(); });
+
+async function cwDraw(prompt) {
+    stickBottom = true;
+    cwSetBusy(true);
+    cwAddUserRow('🎨 ' + prompt, '', '');
+    if (textarea) { textarea.value = ''; textarea.style.height = 'auto'; }
+    var mdEl = cwAddAssistantRow();
+    var shim = mdEl.querySelector('.shim');
+    if (shim) shim.textContent = 'Rasm chizyapman';
+    try {
+        var body = new URLSearchParams({ prompt: prompt, csrfmiddlewaretoken: cwCsrf() });
+        var resp = await fetch("{% url 'ai_yordamchi:generate_image' pk=session.pk %}", {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        });
+        var data = await resp.json();
+        cwStopThinking(mdEl);
+        if (data.error) {
+            mdEl.innerHTML = '<p>⚠️ ' + cwEscape(data.error) + '</p>';
+            return;
+        }
+        cwFinalize(mdEl, data.content, data.message_id);
+        var url = cwEscape(data.image_url);
+        mdEl.closest('.cw-assistant-text').insertAdjacentHTML('afterend',
+            '<a href="' + url + '" target="_blank" rel="noopener"><img src="' + url + '" alt="AI chizgan rasm" class="cw-img cw-gen-img"></a>'
+            + '<a href="' + url + '" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab olish</a>');
+        var left = document.getElementById('genLeft');
+        if (left && data.gen_left != null) left.textContent = data.gen_left;
+        if (data.gen_left === 0) cwToggleDraw(false);
+    } catch (e) {
+        cwStopThinking(mdEl);
+        mdEl.innerHTML = '<p>⚠️ Rasm chizishda xatolik yuz berdi. Qayta urinib ko‘ring.</p>';
+    } finally {
+        cwSetBusy(false);
+    }
+}
+
 async function cwSend() {
     if (isBusy || !textarea) return;
     var text = textarea.value.trim();
+    if (drawMode) { if (text) cwDraw(text); return; }
     var imageInput = document.getElementById('imageInput');
     var fileInput = document.getElementById('fileInput');
     var hasImage = imageInput && imageInput.files.length;

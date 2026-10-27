@@ -101,6 +101,7 @@ class AIDailyUsage(models.Model):
     date = models.DateField()
     messages = models.PositiveIntegerField(default=0)
     images = models.PositiveIntegerField(default=0)
+    generated_images = models.PositiveIntegerField(default=0, verbose_name="Chizilgan rasmlar")
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

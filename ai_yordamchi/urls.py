@@ -8,6 +8,7 @@ urlpatterns = [
     path('new/', views.new_session, name='new_session'),
     path('session/<int:pk>/', views.chat_session, name='chat_session'),
     path('session/<int:pk>/send/', views.send_message, name='send_message'),
+    path('session/<int:pk>/generate-image/', views.generate_image, name='generate_image'),
     path('session/<int:pk>/stream/', views.stream_response, name='stream_response'),
     path('session/<int:pk>/clear/', views.clear_history, name='clear_history'),
     path('session/<int:pk>/delete/', views.delete_session, name='delete_session'),

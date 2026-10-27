@@ -153,3 +153,81 @@ class AiDailyLimitTests(TestCase):
         tomorrow = timezone.make_aware(datetime.combine(timezone.localdate() + timedelta(days=1), datetime.min.time()))
         with self.patch('django.utils.timezone.now', return_value=tomorrow + timedelta(minutes=1)):
             self.assertEqual(get_usage(self.user), (0, 0))
+
+
+class AiImageGenerationTests(TestCase):
+    """Rasm chizish: faqat Premium, kuniga 3 ta, xatoda limit qaytariladi."""
+
+    PNG = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00'
+           b'\x1f\x15\xc4\x89\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00'
+           b'\x00\x00IEND\xaeB`\x82')
+
+    def setUp(self):
+        import shutil
+        import tempfile
+        from django.test import override_settings
+        media = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, media, ignore_errors=True)
+        overrides = override_settings(MEDIA_ROOT=media, OPENAI_API_KEY='sk-test')
+        overrides.enable()
+        self.addCleanup(overrides.disable)
+        self.user = CustomUser.objects.create_user(
+            username='ai-draw-user', password='test-password', phone='+998900000203', role='admin',
+            is_premium=True, premium_expires_at=timezone.now() + timedelta(days=10))
+        self.session = ChatSession.objects.create(user=self.user)
+        self.client.force_login(self.user)
+        UserSession.objects.create(user=self.user, session_key=self.client.session.session_key,
+                                   expires_at=timezone.now() + timedelta(hours=1))
+
+    def draw(self, prompt='Kosmosdagi mushuk'):
+        return self.client.post(reverse('ai_yordamchi:generate_image', args=[self.session.pk]),
+                                {'prompt': prompt}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+    def fake(self, **kwargs):
+        from unittest.mock import patch
+        return patch('ai_yordamchi.views._generate_image_bytes', **kwargs)
+
+    def test_regular_user_cannot_draw(self):
+        self.user.is_premium = False
+        self.user.save(update_fields=['is_premium'])
+        with self.fake(return_value=self.PNG) as gen:
+            response = self.draw()
+        self.assertEqual(response.status_code, 403)
+        gen.assert_not_called()
+
+    def test_expired_premium_cannot_draw(self):
+        self.user.premium_expires_at = timezone.now() - timedelta(minutes=1)
+        self.user.save(update_fields=['premium_expires_at'])
+        with self.fake(return_value=self.PNG):
+            self.assertEqual(self.draw().status_code, 403)
+
+    def test_premium_limit_is_three_per_day(self):
+        with self.fake(return_value=self.PNG):
+            codes = [self.draw().status_code for _ in range(4)]
+        self.assertEqual(codes, [200, 200, 200, 429])
+        reply = ChatMessage.objects.filter(session=self.session, role='assistant').first()
+        self.assertTrue(reply.image)
+        from .views import get_user_limits
+        limits = get_user_limits(self.user)
+        self.assertEqual((limits['gen_left'], limits['msg_used']), (0, 0))  # xabar limitiga ta'sir qilmaydi
+
+    def test_failed_generation_releases_slot(self):
+        with self.fake(side_effect=RuntimeError('boom')):
+            self.assertEqual(self.draw().status_code, 502)
+        from .views import get_user_limits
+        self.assertEqual(get_user_limits(self.user)['gen_left'], 3)
+        self.assertFalse(ChatMessage.objects.filter(session=self.session).exists())
+
+    def test_empty_prompt_rejected(self):
+        with self.fake(return_value=self.PNG):
+            self.assertEqual(self.draw('  ').status_code, 400)
+
+    def test_chat_page_shows_draw_button_only_for_premium(self):
+        url = reverse('ai_yordamchi:chat_session', args=[self.session.pk])
+        self.assertContains(self.client.get(url), 'id="drawBtn"')
+        self.user.is_premium = False
+        self.user.coins = 5  # coin bo'lmasa kiritish maydoni umuman chiqmaydi
+        self.user.save(update_fields=['is_premium', 'coins'])
+        page = self.client.get(url)
+        self.assertNotContains(page, 'id="drawBtn"')
+        self.assertContains(page, f'href="{reverse("coin:buy_premium")}" class="am-icon cw-draw-locked"')

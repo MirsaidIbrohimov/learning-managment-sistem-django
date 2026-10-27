@@ -4011,15 +4011,29 @@ def admin_certificate_settings(request):
             messages.error(request, f"\"{series_code}\" seriyasi boshqa kursda ishlatilgan!")
             return redirect('admin_certificates')
 
+        from .models import CertificateDesign
+        design_id = request.POST.get('design_id', '').strip()
+        design = CertificateDesign.objects.filter(pk=design_id).first() if design_id.isdigit() else None
+
         cfg, _ = CertificateSettings.objects.get_or_create(profession=profession)
+        design_changed = cfg.design_id != (design.pk if design else None)
         cfg.series_code = series_code
         cfg.validity_years = validity_years
+        cfg.design = design
         cfg.save()
         messages.success(
             request,
             f"\"{profession.name}\" kursi sertifikat sozlamalari saqlandi "
-            f"({series_code or 'seriyasiz'}, {validity_years} yil)."
+            f"({series_code or 'seriyasiz'}, {validity_years} yil, "
+            f"dizayn: {design.name if design else 'standart'})."
         )
+        # Dizayn almashgan bo'lsa — mavjud sertifikatlar PDF'i ham yangilanadi
+        if design_changed and request.POST.get('regenerate') == '1':
+            from .certificate_designs import regenerate_certificates
+            ok, fail = regenerate_certificates(profession.certificates.all())
+            if ok or fail:
+                messages.info(request, f"{ok} ta sertifikat yangi dizaynda qayta yaratildi"
+                                       + (f", {fail} tasida xatolik." if fail else "."))
     return redirect('admin_certificates')
 
 
@@ -16006,7 +16020,7 @@ def admin_certificates(request):
     students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')
 
     # Kurslar bo'yicha seriya/muddat sozlamalari (avtomatik berish uchun)
-    from .models import CertificateSettings
+    from .models import CertificateSettings, CertificateDesign
     _settings_map = {
         s.profession_id: s for s in CertificateSettings.objects.all()
     }
@@ -16017,6 +16031,7 @@ def admin_certificates(request):
             'profession': p,
             'series_code': s.series_code if s else '',
             'validity_years': s.validity_years if s else 2,
+            'design_id': s.design_id if s else None,
             'issued_count': p.certificates.count(),
         })
 
@@ -16038,6 +16053,7 @@ def admin_certificates(request):
         'professions': professions,
         'students': students,
         'course_settings': course_settings,
+        'certificate_designs': CertificateDesign.objects.only('id', 'name'),
     }
     return render(request, 'accounts/admin/certificates.html', context)
 

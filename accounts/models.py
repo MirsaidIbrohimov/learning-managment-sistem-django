@@ -3455,6 +3455,88 @@ class HomeworkReminder(models.Model):
         return f"Reminder #{self.submission_id} (level {self.teacher_level})"
 
 
+class CertificateDesign(models.Model):
+    """Admin yuklagan sertifikat dizayni (fon rasmi + matn joylashuvi).
+
+    Kursga `CertificateSettings.design` orqali biriktiriladi. Biriktirilmagan
+    kurs standart dizayndan (static/certificates/cert_template.png) foydalanadi.
+
+    Koordinatalar — rasm o'lchamiga nisbatan FOIZDA (0–100), matn markazi
+    va tayanch chizig'i shu nuqtaga tushadi. Shrift o'lchami — A4 albom
+    kengligidagi sahifa uchun punktda (standart dizayn bilan bir xil birlik).
+    """
+    FONT_CHOICES = (
+        ('script', "Yozma (CertScript)"),
+        ('bold', "Qalin (CertBold)"),
+    )
+    # Matn maydonlari: kalit -> (nom, standart x%, y%, o'lcham, shrift)
+    FIELDS = (
+        ('name',   "O'quvchi ismi", 49.6, 49.8, 44, 'script'),
+        ('course', "Kurs nomi",     50.0, 62.6, 17, 'bold'),
+        ('series', "Seriya raqami", 86.7, 80.0, 13, 'bold'),
+        ('date',   "Berilgan sana", 86.7, 86.5, 13, 'bold'),
+    )
+
+    name = models.CharField(max_length=120, verbose_name="Dizayn nomi")
+    background = models.ImageField(
+        upload_to='certificate_designs/', verbose_name="Fon rasmi",
+        help_text="PNG/JPG, albom (gorizontal) format. Tavsiya: 2400×1697 px.",
+    )
+    text_color = models.CharField(max_length=7, default='#141720', verbose_name="Matn rangi")
+    course_format = models.CharField(
+        max_length=120, default='<< {course} >> COURSE', verbose_name="Kurs qatori formati",
+        help_text="{course} — kurs nomi (katta harflarda) bilan almashtiriladi.",
+    )
+
+    name_x = models.FloatField(default=49.6)
+    name_y = models.FloatField(default=49.8)
+    name_size = models.PositiveSmallIntegerField(default=44)
+    name_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='script')
+
+    course_x = models.FloatField(default=50.0)
+    course_y = models.FloatField(default=62.6)
+    course_size = models.PositiveSmallIntegerField(default=17)
+    course_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='bold')
+    show_course = models.BooleanField(default=True)
+
+    series_x = models.FloatField(default=86.7)
+    series_y = models.FloatField(default=80.0)
+    series_size = models.PositiveSmallIntegerField(default=13)
+    series_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='bold')
+    show_series = models.BooleanField(default=True)
+
+    date_x = models.FloatField(default=86.7)
+    date_y = models.FloatField(default=86.5)
+    date_size = models.PositiveSmallIntegerField(default=13)
+    date_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='bold')
+    show_date = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Sertifikat dizayni"
+        verbose_name_plural = "Sertifikat dizaynlari"
+
+    def __str__(self):
+        return self.name
+
+    def field_layout(self):
+        """PDF chizish uchun: [{key, x, y, size, font, visible}, ...]"""
+        out = []
+        for key, *_ in self.FIELDS:
+            out.append({
+                'key': key,
+                'x': getattr(self, f'{key}_x'),
+                'y': getattr(self, f'{key}_y'),
+                'size': getattr(self, f'{key}_size'),
+                'font': getattr(self, f'{key}_font'),
+                'visible': getattr(self, f'show_{key}', True),
+            })
+        return out
+
+
 class CertificateSettings(models.Model):
     """Har bir kurs uchun sertifikat seriyasi va amal qilish muddati sozlamalari.
 
@@ -3480,6 +3562,11 @@ class CertificateSettings(models.Model):
     )
     next_number = models.PositiveIntegerField(
         default=1, verbose_name="Keyingi tartib raqami"
+    )
+    design = models.ForeignKey(
+        CertificateDesign, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='course_settings', verbose_name="Sertifikat dizayni",
+        help_text="Bo'sh bo'lsa standart dizayn ishlatiladi.",
     )
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -36,6 +36,10 @@ def get_usage(user):
     return row.messages, row.images
 
 
+def get_generated_count(user):
+    return _usage_row(user.pk).generated_images
+
+
 def reserve(user, msg_limit, img_limit, with_image=False):
     """Limit qolgan bo'lsa bitta xabarni (va rasmni) band qiladi; aks holda False.
 
@@ -58,3 +62,16 @@ def record(user_id, with_image=False):
     if with_image:
         changes['images'] = F('images') + 1
     AIDailyUsage.objects.filter(pk=row.pk).update(**changes)
+
+
+def reserve_generation(user, limit):
+    """Rasm chizish uchun bitta o'rinni atomar band qiladi; limit tugagan bo'lsa False."""
+    row = _usage_row(user.pk)
+    return AIDailyUsage.objects.filter(pk=row.pk, generated_images__lt=limit).update(
+        generated_images=F('generated_images') + 1, updated_at=timezone.now()) == 1
+
+
+def release_generation(user):
+    """Rasm chizilmay qolganda band qilingan o'rinni qaytaradi."""
+    AIDailyUsage.objects.filter(user_id=user.pk, date=timezone.localdate(), generated_images__gt=0).update(
+        generated_images=F('generated_images') - 1, updated_at=timezone.now())
