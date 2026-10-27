@@ -183,9 +183,21 @@ def attendance_summary(child, days=30):
         'sick': counts.get('sick', 0),
         'excused': counts.get('excused', 0),
         'rate': rate,
-        'recent': list(StudentAttendance.objects.filter(student=child)
-                       .select_related('group').order_by('-date')[:12]),
+        'recent': _with_visit_times(child, StudentAttendance.objects.filter(student=child)
+                                    .select_related('group').order_by('-date')[:12]),
     }
+
+
+def _with_visit_times(child, records):
+    """Davomat yozuvlariga o'sha kuni saytga kirgan vaqtni qo'shadi (a.visited_at)."""
+    from accounts.models import StudentDailyVisit
+    records = list(records)
+    visits = dict(StudentDailyVisit.objects.filter(
+        user=child, date__in=[r.date for r in records]).values_list('date', 'first_seen'))
+    for r in records:
+        seen = visits.get(r.date)
+        r.visited_at = timezone.localtime(seen) if seen else None
+    return records
 
 
 def attendance_calendar(child, weeks=6):
@@ -193,8 +205,9 @@ def attendance_calendar(child, weeks=6):
     today = timezone.localdate()
     start = today - timedelta(days=today.weekday() + 7 * (weeks - 1))
     from accounts.models import StudentDailyVisit
-    marks = {d: 'visited' for d in StudentDailyVisit.objects.filter(
-        user=child, date__gte=start, date__lte=today).values_list('date', flat=True)}
+    visits = dict(StudentDailyVisit.objects.filter(
+        user=child, date__gte=start, date__lte=today).values_list('date', 'first_seen'))
+    marks = {d: 'visited' for d in visits}
     rank = {'absent': 4, 'late': 3, 'sick': 2, 'excused': 1, 'present': 0, 'visited': -1}
     for a in StudentAttendance.objects.filter(student=child, date__gte=start, date__lte=today):
         # Guruh belgisi "saytga kirdi"dan ustun; bir kunda bir nechta guruh bo'lsa — eng yomoni
@@ -207,8 +220,11 @@ def attendance_calendar(child, weeks=6):
         cells = []
         for w in range(weeks):
             day = start + timedelta(days=w * 7 + d)
+            seen = visits.get(day)
             cells.append({'date': day, 'status': marks.get(day), 'future': day > today,
-                          'today': day == today, 'i': w * 7 + d})
+                          'today': day == today, 'i': w * 7 + d,
+                          # Guruh belgisi ustida ham "saytga kirgan" ko'rinsin
+                          'visited_at': timezone.localtime(seen) if seen else None})
         rows.append({'label': WEEKDAYS_SHORT[d], 'cells': cells})
     return {'weeks': weeks, 'rows': rows, 'start': start, 'end': today}
 

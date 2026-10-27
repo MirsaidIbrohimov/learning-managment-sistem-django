@@ -405,6 +405,24 @@ class AutoAttendanceTests(BaseCase):
         self.assertEqual(cells[today], 'late')
         self.assertEqual(insights.attendance_summary(self.kid)['display_label'], 'Davomat')
 
+    def test_teacher_mark_and_login_both_visible(self):
+        """O'qituvchi 'kelmadi' qo'ygan kuni o'quvchi saytga kirsa — ikkalasi ham ko'rinadi."""
+        from accounts.attendance_auto import record_visit
+        today = timezone.localdate()
+        StudentAttendance.objects.create(group=self.group, student=self.kid, date=today, status='absent')
+        record_visit(self.kid)
+        # Ota-ona sahifasi: jadvalda kirish vaqti, kalendarda "v" (hoshiya) belgisi
+        parent = make_parent(children=[self.kid])
+        c = self.login_parent(parent, Client())
+        r = c.get(reverse('parent_attendance'))
+        self.assertContains(r, 'Kelmagan')
+        self.assertContains(r, 'bi-box-arrow-in-right"></i>' + timezone.localtime().strftime('%H:'))
+        self.assertContains(r, ' v"')
+        # O'qituvchi/admin davomat sahifasi: "Saytga kirdi"
+        admin, _ = self.admin_client()
+        r = admin.get(reverse('attendance_mark', args=[self.group.pk]) + f'?date={today:%Y-%m-%d}')
+        self.assertContains(r, 'Saytga kirdi')
+
     def test_login_records_visit(self):
         from accounts.models import StudentDailyVisit
         self.kid.set_password('Parol-12345'); self.kid.save()

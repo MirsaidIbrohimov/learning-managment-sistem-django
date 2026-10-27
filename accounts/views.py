@@ -18583,12 +18583,20 @@ def attendance_mark(request, group_pk):
         })
     recent_days.reverse()
 
+    # Shu kuni saytga kirganlar (o'qituvchi belgisi bilan birga ko'rinsin)
+    from .models import StudentDailyVisit
+    from .attendance_auto import AUTO_NOTE
+    visits = dict(StudentDailyVisit.objects.filter(
+        user__in=students, date=selected_date).values_list('user_id', 'first_seen'))
+
     students_with_status = []
     for s in students:
         att = existing.get(s.pk)
         m = student_month_stats.get(s.pk, {'present': 0, 'absent': 0, 'late': 0, 'sick': 0, 'excused': 0, 'total': 0})
         students_with_status.append({
             'student': s,
+            'visited_at': visits.get(s.pk),
+            'auto_marked': bool(att and att.note == AUTO_NOTE),
             'current_status': att.status if att else '',
             'current_note': att.note if att else '',
             'month_stats': m,

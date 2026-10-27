@@ -310,6 +310,10 @@ body.pp-body { margin: 0; font-family: var(--pp-font); background: var(--pp-bg);
 .in .pp-cal .cell, .pp-cal.in .cell { transform: none; opacity: 1; }
 .pp-cal .cell.future { background: transparent; border: 1px dashed var(--pp-line); }
 .pp-cal .cell.visited { background: var(--pp-cy); }
+/* O'qituvchi belgisi + o'sha kuni saytga kirgan: havorang hoshiya va nuqta */
+.pp-cal .cell.v { box-shadow: inset 0 0 0 2px var(--pp-cy); }
+.pp-cal .cell.v::after { content: ''; position: absolute; right: 3px; top: 3px; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--pp-cy); box-shadow: 0 0 0 2px var(--pp-surface); }
 .pp-cal .cell.present { background: var(--pp-ok); } .pp-cal .cell.late { background: var(--pp-warn); }
 .pp-cal .cell.absent { background: var(--pp-bad); } .pp-cal .cell.sick { background: var(--pp-vio); } .pp-cal .cell.excused { background: var(--pp-info); }
 .pp-cal .cell.today { outline: 2px solid var(--pp-pri); outline-offset: 2px; }
