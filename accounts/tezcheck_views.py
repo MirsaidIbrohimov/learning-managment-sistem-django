@@ -20,7 +20,8 @@ from .models import (
     AssistantActionLog, CustomUser, Message, PaymentRecord, PaymentStatus, StudentBalance,
     TezCheckPaymentOrder, TezCheckWebhookEvent,
 )
-from .tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill, verify_webhook_signature
+from .tezcheck import TezCheckError, TezCheckBillUnavailable, verify_webhook_signature
+from .payment_gateways import create_bill, fetch_bill, gateway_ready, selected_method
 from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 
 logger = logging.getLogger(__name__)
@@ -72,6 +73,11 @@ def tezcheck_create_payment(request):
         messages.info(request, "Joriy oy to'lovi allaqachon qabul qilingan.")
         return redirect('student_payments')
     month, year, amount = period
+    try:
+        method, gateway = selected_method(request)
+    except TezCheckError as exc:
+        messages.error(request, str(exc))
+        return redirect('payment_wall')
     custom_amount_raw = request.POST.get('amount', '').replace(' ', '').replace(',', '')
     if custom_amount_raw.isdigit() and int(custom_amount_raw) >= 1000:
         amount = int(custom_amount_raw)
@@ -98,7 +104,7 @@ def tezcheck_create_payment(request):
         try:
             if order.bill_id:
                 try:
-                    state_data = fetch_bill(order.bill_id)
+                    state_data = fetch_bill(order.bill_id, gateway=order.gateway)
                     bill, payment = validate_bill(order, state_data)
                 except TezCheckBillUnavailable:
                     bill, payment = {'state': 'expired'}, {}
@@ -116,12 +122,16 @@ def tezcheck_create_payment(request):
                     raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
             else:
                 bill = {}
-            if order.amount_minor != amount_minor or checkout_expired(order, bill):
+            if (order.amount_minor != amount_minor or order.gateway != gateway
+                    or checkout_expired(order, bill)):
                 if not retire_checkout(order):
                     messages.info(request, 'Oldingi to‘lov holati yangilandi. Qayta to‘lov talab qilinmaydi.')
                     return redirect('student_payments')
                 order = None
             elif order.payment_url and order.bill_id:
+                if method and order.payment_method != method:
+                    order.payment_method = method
+                    order.save(update_fields=['payment_method', 'updated_at'])
                 return redirect(order.payment_url)
         except TezCheckError as exc:
             # A timeout is not proof of non-payment. Never charge again blindly.
@@ -138,6 +148,7 @@ def tezcheck_create_payment(request):
                 billing_year=year,
                 external_reference=external_ref,
                 amount_minor=amount_minor,
+                gateway=gateway, payment_method=method,
             )
         except IntegrityError:
             order = get_object_or_404(TezCheckPaymentOrder, external_reference=external_ref, student=user)
@@ -154,6 +165,7 @@ def tezcheck_create_payment(request):
                 raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
             order = TezCheckPaymentOrder.objects.create(
                 student=user, billing_month=month, billing_year=year, amount_minor=amount_minor,
+                gateway=gateway, payment_method=method,
                 external_reference=f'LMS-{user.pk}-{year}{month:02d}-{uuid.uuid4().hex}',
             )
     except TezCheckError as exc:
@@ -243,7 +255,7 @@ def _apply_successful_payment(order, data):
     record.is_paid = True
     record.paid_amount = Decimal(order.amount_minor) / 100
     record.paid_date = paid_on
-    record.notes = f'Tezcheck orqali onlayn to‘lov ({order.external_reference})'
+    record.notes = f'{order.get_gateway_display()} orqali onlayn to‘lov ({order.external_reference})'
     record.recorded_by = None
     record.save()
 
@@ -283,7 +295,7 @@ def _apply_successful_payment(order, data):
             status.auto_blocked = False
             Message.objects.create(
                 title='✅ Hisobingiz ochildi',
-                content=f"To'lov Tezcheck orqali qabul qilindi ({desc}). Hisobingiz faollashtirildi.",
+                content=f"To'lov {order.get_gateway_display()} orqali qabul qilindi ({desc}). Hisobingiz faollashtirildi.",
                 message_type='system', recipient=order.student,
             )
     status.save()
@@ -306,6 +318,10 @@ def _apply_successful_payment(order, data):
         'status', 'payment_id', 'fee_minor', 'net_minor', 'provider_code',
         'environment', 'paid_at', 'last_error', 'updated_at',
     ])
+    # Premium o'quvchiga onlayn to'langan summaning 15% i bonus tanga.
+    from .premium_bonus import award_topup_bonus
+    award_topup_bonus(order.student, order.amount_som, source=order.get_gateway_display(),
+                      reference=order.external_reference)
     Message.objects.create(
         title="✅ Oylik to'lov qabul qilindi",
         content=(
@@ -323,14 +339,15 @@ def _apply_successful_payment(order, data):
         s_name = getattr(student, 'full_name', '') or student.username
         amt_fmt = f"{order.amount_som:,}".replace(",", " ")
         paid_dt_str = timezone.localtime(order.paid_at).strftime('%d.%m.%Y %H:%M') if order.paid_at else ''
-        prov_label = order.provider_code or 'TezCheck'
+        prov_label = order.payment_method or order.provider_code or order.gateway
+        gateway_label = order.get_gateway_display()
 
         admin_txt = (
             "💳 <b>Yangi onlayn to'lov qabul qilindi!</b>\n\n"
             f"👤 O'quvchi: <b>{s_name}</b> (ID: #{sid})\n"
             f"💰 Summa: <b>{amt_fmt} so'm</b>\n"
             f"📅 To'lov oyi: <b>{order.billing_month:02d}/{order.billing_year}</b>\n"
-            f"🌐 Tizim: <b>TezCheck ({prov_label})</b>\n"
+            f"🌐 Tizim: <b>{gateway_label} ({prov_label})</b>\n"
             f"🆔 Buyurtma: <code>{order.external_reference}</code>\n"
             f"⏰ Vaqt: <b>{paid_dt_str}</b>"
         )
@@ -342,7 +359,7 @@ def _apply_successful_payment(order, data):
                 f"👤 O'quvchi: <b>{s_name}</b>\n"
                 f"💰 Summa: <b>{amt_fmt} so'm</b>\n"
                 f"📅 To'lov oyi: <b>{order.billing_month:02d}/{order.billing_year}</b>\n"
-                f"🌐 Tizim: <b>TezCheck ({prov_label})</b>\n"
+                f"🌐 Tizim: <b>{gateway_label} ({prov_label})</b>\n"
                 f"🆔 Buyurtma: <code>{order.external_reference}</code>\n\n"
                 "Rahmat, o'qishlaringizda omad tilaymiz!"
             )
@@ -387,7 +404,7 @@ def _apply_refund(order, data, *, partial=False):
     if record:
         record.is_paid = False
         record.paid_amount = Decimal('0')
-        record.notes = f'Tezcheck qaytargan to‘lov ({order.external_reference})'
+        record.notes = f'{order.get_gateway_display()} qaytargan to‘lov ({order.external_reference})'
         record.save(update_fields=['is_paid', 'paid_amount', 'notes', 'updated_at'])
     status, _ = PaymentStatus.objects.get_or_create(user=order.student)
     status.is_paid = False
@@ -435,6 +452,11 @@ def admin_tezcheck_payments(request):
     query = request.GET.get('q', '').strip()
     if status_filter in dict(TezCheckPaymentOrder.STATUS_CHOICES):
         orders = orders.filter(status=status_filter)
+    gateway_filter = request.GET.get('gateway', '').strip()
+    if gateway_filter in dict(TezCheckPaymentOrder.GATEWAY_CHOICES):
+        orders = orders.filter(gateway=gateway_filter)
+    else:
+        gateway_filter = ''
     if query:
         orders = orders.filter(
             Q(student__username__icontains=query)
@@ -459,6 +481,10 @@ def admin_tezcheck_payments(request):
         'status_filter': status_filter,
         'query': query,
         'status_choices': TezCheckPaymentOrder.STATUS_CHOICES,
+        'gateway_filter': gateway_filter,
+        'gateway_choices': TezCheckPaymentOrder.GATEWAY_CHOICES,
+        'gateway_status': [('Tezcheck (Click, Payme)', gateway_ready('tezcheck')),
+                           ('inPAY (Karta, Paynet, Alif, AnorBank, Visa/MC, Plum)', gateway_ready('inpay'))],
         'recent_events': recent_events,
         'stats': {
             'total_count': stats['total_count'] or 0,
@@ -470,10 +496,7 @@ def admin_tezcheck_payments(request):
             'total_webhooks': total_webhooks,
             'failed_webhooks': failed_webhooks,
         },
-        'integration_configured': bool(
-            settings.TEZCHECK_API_TOKEN and settings.TEZCHECK_CASH_DESK_CODE
-            and settings.TEZCHECK_WEBHOOK_SECRET
-        ),
+        'integration_configured': gateway_ready('tezcheck') and gateway_ready('inpay'),
     })
 
 
@@ -490,14 +513,14 @@ def admin_sync_tezcheck_payment(request, pk):
         action_code='tezcheck.sync',
         target_type='TezCheckPaymentOrder',
         target_id=str(order.pk),
-        description='Admin Tezcheck to‘lov holatini qayta tekshirdi.',
-        extra={'external_reference': order.external_reference},
+        description=f'Admin {order.get_gateway_display()} to‘lov holatini qayta tekshirdi.',
+        extra={'external_reference': order.external_reference, 'gateway': order.gateway},
     )
     if not order.bill_id:
-        messages.error(request, 'Tezcheck hisob IDsi hali yaratilmagan.')
+        messages.error(request, 'To‘lov tizimidagi hisob IDsi hali yaratilmagan.')
         return redirect('admin_tezcheck_payments')
     try:
-        response_data = fetch_bill(order.bill_id)
+        response_data = fetch_bill(order.bill_id, gateway=order.gateway)
     except TezCheckError as exc:
         order.last_error = str(exc)[:500]
         order.save(update_fields=['last_error', 'updated_at'])
@@ -513,7 +536,7 @@ def admin_sync_tezcheck_payment(request, pk):
         return redirect('admin_tezcheck_payments')
     if bill.get('external_reference') != order.external_reference:
         order.status = TezCheckPaymentOrder.STATUS_REVIEW
-        order.last_error = 'Tezcheck bill tashqi raqami LMS buyurtmasiga mos emas.'
+        order.last_error = 'To‘lov tizimidagi tashqi raqam LMS buyurtmasiga mos emas.'
         order.save(update_fields=['status', 'last_error', 'updated_at'])
         messages.error(request, order.last_error)
     elif bill.get('paid') is True and payment.get('state') == 'succeeded':
@@ -530,18 +553,19 @@ def admin_sync_tezcheck_payment(request, pk):
             })
         order.refresh_from_db()
         if order.status == TezCheckPaymentOrder.STATUS_PAID:
-            messages.success(request, "To'lov Tezcheck'dan tasdiqlandi va LMS bilan solishtirildi.")
+            messages.success(request, f"To'lov {order.get_gateway_display()}'dan tasdiqlandi va LMS bilan solishtirildi.")
         else:
             messages.error(request, order.last_error or 'To‘lov avtomatik tasdiqlanmadi; tekshiruv kerak.')
-    elif bill.get('state') in ('expired', 'revoked'):
-        order.status = TezCheckPaymentOrder.STATUS_EXPIRED
-        order.last_error = f"TezCheck bill holati: {bill.get('state')}"
+    elif bill.get('state') in ('expired', 'revoked', 'canceled'):
+        order.status = (TezCheckPaymentOrder.STATUS_CANCELLED if bill.get('state') == 'canceled'
+                        else TezCheckPaymentOrder.STATUS_EXPIRED)
+        order.last_error = f"{order.get_gateway_display()} holati: {bill.get('state')}"
         order.save(update_fields=['status', 'last_error', 'updated_at'])
         messages.warning(request, 'To‘lov havolasi eskirgan yoki bekor qilingan.')
     else:
         order.last_error = ''
         order.save(update_fields=['last_error', 'updated_at'])
-        messages.info(request, 'Tezcheck bo‘yicha to‘lov hali yakunlanmagan.')
+        messages.info(request, f'{order.get_gateway_display()} bo‘yicha to‘lov hali yakunlanmagan.')
     return redirect('admin_tezcheck_payments')
 
 
@@ -590,7 +614,7 @@ def tezcheck_webhook(request):
         if not isinstance(external_reference, str):
             external_reference = ''
         order = TezCheckPaymentOrder.objects.select_for_update().filter(
-            external_reference=external_reference,
+            external_reference=external_reference, gateway=TezCheckPaymentOrder.GATEWAY_TEZCHECK,
         ).first()
         event.order = order
         if order is None:
@@ -651,3 +675,103 @@ def tezcheck_webhook(request):
             'order', 'processed', 'processed_at', 'processing_error',
         ])
     return HttpResponse(status=503 if retry_later else 200)
+
+
+INPAY_PAYMENT_EVENTS = ('payment.created', 'payment.succeeded', 'payment.failed', 'payment.canceled')
+
+
+@csrf_exempt
+@require_POST
+def inpay_webhook(request):
+    """Verify a signed inPAY event, deduplicate on its id, then apply it once."""
+    from .inpay import normalize_payment, verify_webhook_signature as verify_inpay_signature
+    raw_body = request.body
+    if not verify_inpay_signature(raw_body=raw_body,
+                                  signature_header=request.headers.get('X-Inpay-Signature', '')):
+        logger.warning('inPAY webhook imzosi noto‘g‘ri yoki muddati o‘tgan.')
+        return HttpResponse(status=401)
+    try:
+        payload = json.loads(raw_body)
+    except (UnicodeDecodeError, json.JSONDecodeError):
+        return HttpResponseBadRequest()
+    if not isinstance(payload, dict):
+        return HttpResponseBadRequest()
+    event_id = payload.get('id')
+    if not isinstance(event_id, str) or not event_id or len(event_id) > 90:
+        return HttpResponseBadRequest()
+
+    def finish(event, error=''):
+        event.processing_error = error[:500]
+        event.processed = True
+        event.processed_at = timezone.now()
+        event.save(update_fields=['order', 'processed', 'processed_at', 'processing_error'])
+        return HttpResponse(status=200)
+
+    with transaction.atomic():
+        # Prefix keeps inPAY ids apart from Tezcheck ids in the shared audit table.
+        event, created = TezCheckWebhookEvent.objects.get_or_create(
+            event_id=f'inpay:{event_id}',
+            defaults={
+                'event_type': str(payload.get('type') or '')[:80],
+                'delivery_id': str(request.headers.get('X-Inpay-Timestamp', ''))[:100],
+                'payload': payload,
+                'signature_valid': True,
+            },
+        )
+        if not created and event.processed:
+            return HttpResponse(status=200)
+        if not created:
+            payload = event.payload
+        event_type = payload.get('type')
+        if event_type not in INPAY_PAYMENT_EVENTS:
+            return finish(event)  # subscription.* / service.* are not used by the LMS
+        data = payload.get('data') if isinstance(payload.get('data'), dict) else {}
+        obj = data.get('object') if isinstance(data.get('object'), dict) else {}
+        metadata = obj.get('metadata') if isinstance(obj.get('metadata'), dict) else {}
+        external_reference = metadata.get('external_reference')
+        order = None
+        if isinstance(external_reference, str) and external_reference:
+            order = TezCheckPaymentOrder.objects.select_for_update().filter(
+                external_reference=external_reference, gateway=TezCheckPaymentOrder.GATEWAY_INPAY,
+            ).first()
+        event.order = order
+        if order is None or not order.bill_id:
+            if event_type == 'payment.created':
+                return finish(event, 'LMS buyurtmasi topilmadi.')
+            # The checkout transaction may not be committed yet; inPAY retries.
+            event.processing_error = 'LMS buyurtmasi topilmadi yoki to‘lov ID hali saqlanmagan.'
+            event.save(update_fields=['order', 'processing_error'])
+            return HttpResponse(status=503)
+        if str(obj.get('id') or '') != order.bill_id:
+            if order.status != TezCheckPaymentOrder.STATUS_PAID:
+                order.status = TezCheckPaymentOrder.STATUS_REVIEW
+                order.last_error = 'Webhookdagi inPAY to‘lov ID LMS buyurtmasiga mos emas.'
+                order.save(update_fields=['status', 'last_error', 'updated_at'])
+            return finish(event, 'Webhookdagi inPAY to‘lov ID LMS buyurtmasiga mos emas.')
+
+        state = normalize_payment(obj, livemode=payload.get('livemode'))
+        payment = state['payment']
+        savepoint = transaction.savepoint()
+        try:
+            if event_type == 'payment.succeeded' and payment['state'] == 'succeeded':
+                _apply_successful_payment(order, {
+                    'amount_minor': payment['amount_minor'], 'currency': payment['currency'],
+                    'environment': payment['environment'], 'payment_id': payment['id'],
+                    'fee_minor': 0, 'net_minor': 0, 'provider_code': 'inpay',
+                })
+            elif event_type in ('payment.failed', 'payment.canceled') and order.status == TezCheckPaymentOrder.STATUS_PENDING:
+                order.last_error = event_type
+                fields = ['last_error', 'updated_at']
+                if event_type == 'payment.canceled':
+                    # A cancelled inPAY payment can never be paid; the next click opens a new one.
+                    order.status = TezCheckPaymentOrder.STATUS_CANCELLED
+                    fields.append('status')
+                order.save(update_fields=fields)
+            transaction.savepoint_commit(savepoint)
+        except Exception as exc:
+            transaction.savepoint_rollback(savepoint)
+            logger.exception('inPAY webhook hodisasini qayta ishlashda xato.')
+            event.processing_error = str(exc)[:500]
+            event.save(update_fields=['order', 'processing_error'])
+            return HttpResponse(status=503)
+        return finish(event)

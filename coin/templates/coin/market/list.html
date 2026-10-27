@@ -1,355 +1,148 @@
 {% extends 'accounts/base.html' %}
+{% load static %}
 
 {% block title %}Coin Market | LMS{% endblock %}
 
 {% block extra_css %}
 {% include 'coin/market/_market_ui.html' %}
-<style>
-/* ============ MARKET LIST — sahifaga xos stillar ============ */
-
-/* Hero ichki joylashuv */
-.mk-hero-inner { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: center; justify-content: space-between; position: relative; z-index: 1; }
-.mk-hero-left { flex: 1; min-width: 240px; }
-
-/* Balans halqasi (fokus uslubda) */
-.mk-balance-ring-wrap { position: relative; width: 116px; height: 116px; flex-shrink: 0; }
-.mk-balance-ring { transform: rotate(-90deg); }
-.mk-balance-ring circle { fill: none; stroke-width: 8; }
-.mk-balance-ring .track { stroke: var(--mkt-border); }
-.mk-balance-ring .fill { stroke: var(--mkt-accent); stroke-linecap: round; transition: stroke-dasharray 1s cubic-bezier(0.4, 0, 0.2, 1); }
-.mk-balance-inner { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.mk-balance-inner .mk-coin-icon { font-size: 1rem; color: var(--mkt-gold); }
-.mk-balance-inner .mk-coin-value { font-family: var(--mkt-mono); font-size: 1.3rem; font-weight: 800; line-height: 1.1; color: var(--mkt-text); }
-.mk-balance-inner .mk-coin-label { font-size: 0.62rem; font-weight: 700; color: var(--mkt-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-
-/* Statistika chiplari */
-.mk-stats-strip { display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.1rem; animation: mktFadeUp 0.5s ease 0.05s both; }
-.mk-stat-chip {
-    display: inline-flex; align-items: center; gap: 0.5rem;
-    padding: 0.5rem 0.95rem; border-radius: 13px;
-    background: var(--mkt-card); border: 1px solid var(--mkt-border);
-    font-size: 0.84rem; font-weight: 600; color: var(--mkt-dim);
-}
-.mk-stat-chip strong { font-family: var(--mkt-mono); color: var(--mkt-text); font-weight: 800; }
-.mk-stat-chip small { color: var(--mkt-dim); font-weight: 600; }
-.mk-stat-chip .mk-stat-icon { display: inline-flex; width: 26px; height: 26px; border-radius: 8px; align-items: center; justify-content: center; font-size: 0.85rem; }
-.mk-stat-chip.premium .mk-stat-icon { background: var(--mkt-gold-soft); }
-.mk-stat-chip.today .mk-stat-icon { background: var(--mkt-ok-soft); }
-.mk-stat-chip.total .mk-stat-icon { background: var(--mkt-info-soft); }
-.mk-stat-chip.timer .mk-stat-icon { background: var(--mkt-bad-soft); }
-
-/* Tez havolalar */
-.mk-quicknav { display: flex; gap: 0.5rem; margin-bottom: 1.1rem; flex-wrap: wrap; animation: mktFadeUp 0.5s ease 0.1s both; }
-
-/* Premium banner — toza gold panel */
-.mk-premium-banner {
-    display: block; text-decoration: none;
-    background: var(--mkt-card);
-    border: 1px solid rgba(245, 158, 11, 0.35);
-    border-radius: var(--mkt-radius);
-    padding: 1.25rem 1.5rem; margin-bottom: 1.25rem;
-    position: relative; overflow: hidden;
-    animation: mktFadeUp 0.5s ease 0.15s both;
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-.mk-premium-banner::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
-    background: linear-gradient(90deg, var(--mkt-gold), #fbbf24);
-}
-.mk-premium-banner:hover { transform: translateY(-3px); box-shadow: 0 14px 34px rgba(245, 158, 11, 0.18); }
-.mk-premium-inner { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.mk-premium-icon {
-    width: 52px; height: 52px; flex-shrink: 0;
-    border-radius: 14px; background: var(--mkt-gold-soft);
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 1.6rem;
-}
-.mk-premium-content { flex: 1; min-width: 200px; }
-.mk-premium-title { font-weight: 800; font-size: 1.05rem; color: var(--mkt-text); margin: 0 0 0.15rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-.mk-premium-badge {
-    display: inline-block; background: var(--mkt-gold-soft); color: var(--mkt-gold-dark);
-    padding: 0.15rem 0.55rem; border-radius: 8px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.4px;
-}
-.mk-premium-desc { font-size: 0.86rem; color: var(--mkt-dim); margin: 0; }
-.mk-premium-price-row { display: flex; align-items: baseline; gap: 0.5rem; margin-top: 0.4rem; }
-.mk-premium-old { text-decoration: line-through; color: var(--mkt-dim); opacity: 0.7; font-size: 0.85rem; font-family: var(--mkt-mono); }
-.mk-premium-new { font-family: var(--mkt-mono); font-size: 1.15rem; font-weight: 800; color: var(--mkt-gold-dark); }
-.mk-premium-cta {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    padding: 0.55rem 1.2rem;
-    background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
-    border-radius: 12px; font-weight: 800; font-size: 0.88rem;
-}
-
-/* Qidiruv paneli */
-.mk-search-holder { margin-bottom: 1.25rem; animation: mktFadeUp 0.5s ease 0.2s both; }
-
-/* Mahsulotlar grid */
-.mk-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.15rem; margin-bottom: 1rem; }
-
-.mk-card {
-    background: var(--mkt-card);
-    border: 1px solid var(--mkt-border);
-    border-radius: var(--mkt-radius);
-    overflow: hidden;
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s, border-color 0.3s;
-    animation: mktFadeUp 0.5s ease both;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-.mk-card:hover { transform: translateY(-6px); box-shadow: var(--mkt-shadow); border-color: var(--mkt-accent); }
-
-.mk-trending-ribbon {
-    position: absolute; top: 12px; left: 12px; z-index: 3;
-    background: var(--mkt-gold-soft); color: var(--mkt-gold-dark);
-    backdrop-filter: blur(6px);
-    font-weight: 800; font-size: 0.7rem;
-    padding: 0.32rem 0.7rem; border-radius: 9px;
-    display: flex; align-items: center; gap: 0.3rem;
-    border: 1px solid rgba(245, 158, 11, 0.35);
-}
-.mk-fire { display: inline-block; }
-
-.mk-card-img-wrap { position: relative; overflow: hidden; }
-.mk-card-img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; transition: transform 0.5s ease; }
-.mk-card:hover .mk-card-img { transform: scale(1.05); }
-
-.mk-stock-badge {
-    position: absolute; top: 12px; right: 12px;
-    background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(8px);
-    color: #fff; font-size: 0.72rem; font-weight: 700;
-    padding: 0.32rem 0.7rem; border-radius: 9px;
-    display: inline-flex; align-items: center; gap: 0.25rem;
-}
-.mk-stock-badge.low { background: rgba(239, 68, 68, 0.9); }
-.mk-stock-badge.out { background: rgba(239, 68, 68, 0.9); }
-.mk-out-overlay { position: absolute; inset: 0; background: rgba(10, 12, 22, 0.55); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
-.mk-out-text { background: var(--mkt-bad); color: #fff; font-weight: 800; font-size: 1rem; padding: 0.5rem 1.4rem; border-radius: 12px; }
-
-.mk-card-body { padding: 1rem 1.1rem 1.1rem; display: flex; flex-direction: column; flex: 1; }
-.mk-card-title { font-size: 1rem; font-weight: 750; margin: 0 0 0.35rem; color: var(--mkt-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mk-card-desc { font-size: 0.82rem; color: var(--mkt-dim); margin: 0 0 0.7rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.45; min-height: 2.4em; }
-
-.mk-social-proof {
-    display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
-    font-size: 0.74rem; color: var(--mkt-dim);
-    padding: 0.5rem 0; margin-bottom: 0.5rem;
-    border-top: 1px dashed var(--mkt-border);
-    border-bottom: 1px dashed var(--mkt-border);
-}
-.mk-social-proof span { display: inline-flex; align-items: center; gap: 0.25rem; font-weight: 600; }
-.mk-sp-hot { color: var(--mkt-gold-dark); font-weight: 800; }
-
-.mk-card-footer { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-.mk-price {
-    display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem 0.35rem;
-    font-family: var(--mkt-mono);
-    font-size: 1.05rem; font-weight: 800; color: var(--mkt-gold-dark);
-    background: var(--mkt-gold-soft);
-    padding: 0.32rem 0.7rem; border-radius: 11px;
-}
-.mk-price i { font-size: 0.95rem; }
-.mk-price del { color: var(--mkt-dim); font-size: .76rem; font-weight: 600; }
-.mk-price .mk-price-current { color: #059669; }
-.mk-price .mk-price-discount { font-family: inherit; font-size: .62rem; font-weight: 800; color: #047857; }
-.mk-card-stats { display: flex; gap: 0.7rem; font-size: 0.8rem; color: var(--mkt-dim); }
-.mk-card-stats span { display: flex; align-items: center; gap: 0.25rem; font-weight: 600; }
-
-.mk-card-actions { display: flex; gap: 0.5rem; margin-top: auto; }
-.mk-like-btn {
-    width: 42px; height: 42px;
-    border: 1px solid var(--mkt-border); border-radius: 12px; background: transparent;
-    display: flex; align-items: center; justify-content: center; font-size: 1.1rem; color: var(--mkt-dim);
-    cursor: pointer; transition: all 0.2s;
-}
-.mk-like-btn.liked { color: var(--mkt-bad); border-color: rgba(239, 68, 68, 0.35); background: var(--mkt-bad-soft); }
-.mk-like-btn:hover { transform: scale(1.06); border-color: var(--mkt-bad); color: var(--mkt-bad); }
-.mk-buy-btn {
-    flex: 1; height: 42px; border: none; border-radius: 12px; font-weight: 700; font-size: 0.86rem;
-    background: var(--mkt-accent); color: #fff; text-decoration: none;
-    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
-    transition: all 0.25s;
-}
-.mk-buy-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); color: #fff; }
-
-/* Eski nomlar bilan moslik (JS ishlatadi) */
-.mk-empty { text-align: center; padding: 3rem; background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: var(--mkt-radius); grid-column: 1/-1; }
-.mk-empty i { font-size: 2.6rem; color: var(--mkt-dim); opacity: 0.4; }
-.mk-empty h4 { font-weight: 700; margin: 0.8rem 0 0.4rem; color: var(--mkt-text); }
-.mk-empty p { color: var(--mkt-dim); margin: 0; }
-.mk-skeleton { background: linear-gradient(90deg, var(--mkt-border) 25%, var(--mkt-card) 50%, var(--mkt-border) 75%); background-size: 200% 100%; animation: mktShimmer 1.5s infinite; border-radius: var(--mkt-radius); }
-
-.mk-pagination { display: flex; justify-content: center; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
-.mk-pagination a, .mk-pagination span { width: 38px; height: 38px; display: inline-flex; align-items: center; justify-content: center; border-radius: 11px; font-family: var(--mkt-mono); font-size: 0.85rem; font-weight: 700; text-decoration: none; transition: all 0.2s; cursor: pointer; }
-.mk-pagination a { background: var(--mkt-card); border: 1px solid var(--mkt-border); color: var(--mkt-text); }
-.mk-pagination a:hover { border-color: var(--mkt-accent); color: var(--mkt-accent); transform: translateY(-2px); }
-.mk-pg-active { background: var(--mkt-accent) !important; color: #fff !important; border: none !important; }
-.mk-pg-disabled { color: var(--mkt-dim); opacity: 0.4; cursor: default !important; }
-
-/* Ishonch paneli */
-.mk-trust-bar {
-    background: var(--mkt-card); border: 1px solid var(--mkt-border); border-radius: var(--mkt-radius);
-    padding: 1.25rem 1.5rem; margin-top: 1.25rem;
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;
-    animation: mktFadeUp 0.5s ease 0.3s both;
-}
-.mk-trust-item { display: flex; align-items: center; gap: 0.75rem; }
-.mk-trust-icon {
-    width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center; font-size: 1.25rem;
-}
-.mk-trust-item:nth-child(1) .mk-trust-icon { background: var(--mkt-ok-soft); color: var(--mkt-ok); }
-.mk-trust-item:nth-child(2) .mk-trust-icon { background: var(--mkt-accent-soft); color: var(--mkt-accent); }
-.mk-trust-item:nth-child(3) .mk-trust-icon { background: var(--mkt-gold-soft); color: var(--mkt-gold); }
-.mk-trust-title { font-weight: 700; font-size: 0.9rem; margin: 0; color: var(--mkt-text); }
-.mk-trust-desc { font-size: 0.78rem; color: var(--mkt-dim); margin: 0; line-height: 1.4; }
-
-@media (max-width: 992px) {
-    .mk-grid { grid-template-columns: repeat(2, 1fr); }
-    .mk-trust-bar { grid-template-columns: 1fr; }
-}
-@media (max-width: 576px) {
-    .mk-grid { grid-template-columns: 1fr; }
-    .mk-hero-inner { gap: 1rem; }
-    .mk-balance-ring-wrap { width: 100px; height: 100px; }
-    .mk-stat-chip { font-size: 0.78rem; padding: 0.42rem 0.75rem; }
-}
-</style>
+<link rel="stylesheet" href="{% static 'css/market_list.css' %}?v=20261027">
+{% if request.user.is_premium %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/market_premium_list.css' %}?v=20261027">
+{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="mkt-wrap dash learning-glass market-glass">
+{% with prem=request.user.is_premium %}
+<div class="mkt-wrap dash learning-glass market-glass mkx{% if prem %} mkx-prem{% endif %}" id="mkx">
+    {% if prem %}<div class="mkx-aura" aria-hidden="true"><i></i><i></i><i></i></div>{% endif %}
+
     {% include 'coin/market/_coin_topup.html' %}
-    <div class="dash-aurora" aria-hidden="true"><i></i><i></i><i></i></div>
-    <!-- HERO -->
-    <div class="mkt-hero">
-        <div class="mk-hero-inner">
-            <div class="mk-hero-left">
-                <h1><i class="bi bi-shop"></i> Coin Market</h1>
-                <p class="sub">Coinlaringiz bilan tanlangan mahsulotlarni sotib oling</p>
-            </div>
-            <div class="mk-balance-ring-wrap" id="mkBalanceRing">
-                <svg class="mk-balance-ring" width="116" height="116" viewBox="0 0 120 120">
-                    <circle class="track" cx="60" cy="60" r="52"></circle>
-                    <circle class="fill" cx="60" cy="60" r="52" stroke-dasharray="0 327" id="mkRingFill"></circle>
-                </svg>
-                <div class="mk-balance-inner">
-                    <div class="mk-coin-icon"><i class="bi bi-coin"></i></div>
-                    <div class="mk-coin-value" id="mkBalanceValue">...</div>
-                    <div class="mk-coin-label" id="mkRingLabel">Balans</div>
+
+    {% if prem %}
+    <!-- A'ZOLIK -->
+    <section class="mkx-member">
+        <div class="mkx-stage rv">
+            <div class="mkx-mcard" id="mkMemberCard">
+                <div class="mkx-mtop"><div class="mkx-mbrand">ITC Academy<small>PREMIUM MEMBER</small></div><span class="mkx-chip" aria-hidden="true"></span></div>
+                <div class="mkx-mcoins"><small>Coin balansi</small><b id="mkBalanceValue">{{ request.user.coins }}</b></div>
+                <div class="mkx-mbot">
+                    <div>A’zo<b>{{ request.user.get_full_name|default:request.user.username }}</b></div>
+                    <div style="text-align:right">Amal qiladi<b>{% if request.user.premium_expires_at %}{{ request.user.premium_expires_at|date:'d / m / Y' }}{% else %}Muddatsiz{% endif %}</b></div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- LIVE STATS STRIP -->
-    <div class="mk-stats-strip" id="mkStatsStrip" style="display:none">
-        <div class="mk-stat-chip premium">
-            <span class="mk-stat-icon">⭐</span>
-            <span><strong id="mkStatPremium">0</strong> <small>Premium</small></span>
-        </div>
-        <div class="mk-stat-chip today">
-            <span class="mk-stat-icon">🔥</span>
-            <span><strong id="mkStatToday">0</strong> <small>bugungi xarid</small></span>
-        </div>
-        <div class="mk-stat-chip total">
-            <span class="mk-stat-icon">🛒</span>
-            <span><strong id="mkStatTotal">0</strong> <small>jami xarid</small></span>
-        </div>
-        <div class="mk-stat-chip timer">
-            <span class="mk-stat-icon">⏳</span>
-            <span>Haftalik chegirmagacha: <strong id="mkStatTimer">...</strong></span>
-        </div>
-    </div>
-
-    <!-- QUICK NAV -->
-    <div class="mk-quicknav">
-        <a href="{% url 'coin:my_purchases' %}" class="mkt-btn ghost">
-            <i class="bi bi-bag-check"></i> Mening xaridlarim
-        </a>
-        <a href="{% url 'coin:coin_history' %}" class="mkt-btn ghost">
-            <i class="bi bi-clock-history"></i> Coin tarixi
-        </a>
-    </div>
-
-    <!-- PREMIUM BANNER -->
-    <a id="mkPremiumBanner" href="/market/premium/" class="mk-premium-banner" style="display:none">
-        <div class="mk-premium-inner">
-            <div class="mk-premium-icon">⭐</div>
-            <div class="mk-premium-content">
-                <div class="mk-premium-title" id="mkPremiumTitle">Premium olish</div>
-                <div class="mk-premium-desc" id="mkPremiumDesc">5% chegirma • 2x coin • maxsus badge</div>
-                <div class="mk-premium-price-row" id="mkPremiumPriceRow" style="display:none">
-                    <span class="mk-premium-old" id="mkPremiumOldPrice"></span>
-                    <span class="mk-premium-new" id="mkPremiumNewPrice"></span>
-                    <span class="mk-premium-badge" id="mkPremiumDiscount"></span>
-                </div>
+        <div class="mkx-mside">
+            <span class="mkx-eyebrow rv"><span class="dot"></span> Premium Market</span>
+            <h2 class="mkx-serif rv" style="--d:.06s">Imtiyozlaringiz <span class="mkx-gold">har bir xaridda</span> ishlaydi.</h2>
+            <p class="rv" style="--d:.12s">Mahsulotlarga 5% Premium chegirma va tanga uchun yarim narx avtomatik qo‘llanadi.</p>
+            {% if request.user.premium_expires_at %}
+            <div class="mkx-expiry rv" style="--d:.18s" id="mkExpiry" data-expires="{{ request.user.premium_expires_at|date:'c' }}">
+                <svg width="42" height="42" viewBox="0 0 42 42" aria-hidden="true"><circle class="tr" cx="21" cy="21" r="18"/><circle class="fl" id="mkExpRing" cx="21" cy="21" r="18"/></svg>
+                <div><b id="mkExpTitle">Premium faol</b><span>Hozir uzaytirsangiz imtiyozlar uzilmaydi</span></div>
+                <a class="mkx-btn gold sm" href="{% url 'coin:extend_premium_page' %}">Uzaytirish</a>
             </div>
-            <span class="mk-premium-cta">Batafsil <i class="bi bi-arrow-right"></i></span>
+            {% endif %}
+            <div class="mkx-links rv" style="--d:.24s">
+                <a href="{% url 'coin:my_purchases' %}" class="mkx-btn"><i class="bi bi-bag-check"></i> Xaridlarim</a>
+                <a href="{% url 'coin:coin_history' %}" class="mkx-btn"><i class="bi bi-clock-history"></i> Coin tarixi</a>
+                <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> O‘tkazma</a>
+            </div>
         </div>
+    </section>
+
+    <div class="mkx-marquee" aria-hidden="true"><div class="mkx-track" id="mkMarquee"></div></div>
+    {% else %}
+    <!-- SARLAVHA -->
+    <header class="mkx-head mkx-fade">
+        <div>
+            <span class="mkx-kicker">ITC Academy · Coin Market</span>
+            <h1>Market</h1>
+            <p>O‘qishda yig‘gan coinlaringizni foydali mahsulotlarga almashtiring.</p>
+            <div class="mkx-links">
+                <a href="{% url 'coin:my_purchases' %}" class="mkx-btn"><i class="bi bi-bag-check"></i> Mening xaridlarim</a>
+                <a href="{% url 'coin:coin_history' %}" class="mkx-btn"><i class="bi bi-clock-history"></i> Coin tarixi</a>
+                <a href="{% url 'coin:coin_transfer' %}" class="mkx-btn"><i class="bi bi-arrow-left-right"></i> O‘tkazma</a>
+            </div>
+        </div>
+        <aside class="mkx-wallet">
+            <div class="mkx-wallet-lbl">Coin balansi</div>
+            <div class="mkx-wallet-amt"><i class="bi bi-coin"></i> <span id="mkBalanceValue">{{ request.user.coins }}</span></div>
+            <div class="mkx-goal" id="mkGoal" hidden>
+                <div class="mkx-goal-row"><span>Haftalik Premium uchun</span><span id="mkRingLabel"></span></div>
+                <div class="mkx-bar"><i id="mkGoalBar"></i></div>
+            </div>
+        </aside>
+    </header>
+    {% endif %}
+
+    <!-- STATISTIKA -->
+    <section class="mkx-stats{% if prem %} rv{% else %} mkx-fade{% endif %}" id="mkStatsStrip" hidden>
+        <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-gem"></i></span><div><b id="mkStatPremium">0</b><small>Faol Premium a’zolar</small></div></div>
+        <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-bag"></i></span><div><b id="mkStatToday">0</b><small>Bugungi xaridlar</small></div></div>
+        <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-graph-up"></i></span><div><b id="mkStatTotal">0</b><small>Jami xaridlar</small></div></div>
+        <div class="mkx-stat"><span class="mkx-stat-ic"><i class="bi bi-hourglass-split"></i></span><div><b id="mkStatTimer">—</b><small>Hafta yakunigacha</small></div></div>
+    </section>
+
+    {% if prem %}
+    <!-- HAFTANING TANLOVI -->
+    <section id="mkFeatureWrap" hidden>
+        <div class="mkx-sec rv"><div><span class="mkx-eyebrow">Haftaning tanlovi</span><h2>Eng ko‘p sotilayotgan</h2></div></div>
+        <article class="mkx-feature rv" id="mkFeature"></article>
+    </section>
+    {% else %}
+    <!-- PREMIUM TAKLIFI -->
+    <a id="mkPremiumBanner" href="{% url 'coin:buy_premium' %}" class="mkx-upsell mkx-fade" hidden>
+        <span class="mkx-upsell-ic"><i class="bi bi-gem"></i></span>
+        <div class="mkx-upsell-copy">
+            <h3 id="mkPremiumTitle">Premium bilan har xaridda tejang</h3>
+            <p id="mkPremiumDesc">Tanga 50% arzon • hisob to‘ldirishga +15% bonus tanga • marketda 5% chegirma • 2x coin</p>
+        </div>
+        <div class="mkx-upsell-price" id="mkPremiumPriceRow" hidden>
+            <del id="mkPremiumOldPrice"></del><span id="mkPremiumDiscount"></span>
+            <b id="mkPremiumNewPrice"></b>
+        </div>
+        <span class="mkx-upsell-cta">Batafsil <i class="bi bi-arrow-right"></i></span>
     </a>
+    {% endif %}
 
-    <!-- SEARCH -->
-    <div class="mk-search-holder">
-        <div class="mkt-search">
-            <i class="bi bi-search"></i>
-            <input type="text" id="mkSearch" placeholder="Mahsulot qidirish...">
+    <!-- KATALOG -->
+    <div class="mkx-sec{% if prem %} rv{% endif %}">
+        <div>
+            {% if prem %}<span class="mkx-eyebrow">Katalog</span><h2>Siz uchun Premium narxlar</h2><p>Chegirma mavjud mahsulotlarda Premium narx ko‘rsatilgan.</p>
+            {% else %}<h2>Mahsulotlar</h2>{% endif %}
         </div>
+        <label class="mkx-search"><i class="bi bi-search"></i><input type="text" id="mkSearch" placeholder="Mahsulot qidirish..." aria-label="Mahsulot qidirish"></label>
     </div>
-
-    <!-- GRID -->
-    <div class="mk-grid" id="mkGrid">
-        <div class="mk-skeleton" style="height:360px"></div>
-        <div class="mk-skeleton" style="height:360px"></div>
-        <div class="mk-skeleton" style="height:360px"></div>
+    <div class="mkx-grid mk-grid" id="mkGrid">
+        <div class="mk-skeleton"></div><div class="mk-skeleton"></div><div class="mk-skeleton"></div>
     </div>
-
     <div id="mkPagination"></div>
 
-    <!-- TRUST BAR -->
-    <div class="mk-trust-bar">
-        <div class="mk-trust-item">
-            <div class="mk-trust-icon"><i class="bi bi-shield-check"></i></div>
-            <div>
-                <p class="mk-trust-title">Xavfsiz xarid</p>
-                <p class="mk-trust-desc">Barcha operatsiyalar coin balansi orqali himoyalangan</p>
-            </div>
-        </div>
-        <div class="mk-trust-item">
-            <div class="mk-trust-icon"><i class="bi bi-arrow-repeat"></i></div>
-            <div>
-                <p class="mk-trust-title">Bekor qilish imkoni</p>
-                <p class="mk-trust-desc">Yetkazilmagan buyurtmani bekor qiling, coinlar qaytadi</p>
-            </div>
-        </div>
-        <div class="mk-trust-item">
-            <div class="mk-trust-icon"><i class="bi bi-lightning-charge"></i></div>
-            <div>
-                <p class="mk-trust-title">Tez yetkazish</p>
-                <p class="mk-trust-desc">Admin tomonidan tez xronologik tartibda yetkaziladi</p>
-            </div>
-        </div>
-    </div>
+    <!-- ISHONCH -->
+    <section class="mkx-trust{% if prem %} rv{% endif %}">
+        <div><i class="bi bi-shield-check"></i><span><b>Xavfsiz xarid</b>Barcha operatsiyalar coin balansi orqali himoyalangan</span></div>
+        <div><i class="bi bi-arrow-counterclockwise"></i><span><b>Bekor qilish imkoni</b>Yetkazilmagan buyurtmani bekor qilsangiz coin qaytadi</span></div>
+        <div><i class="bi bi-lightning-charge"></i><span><b>Tez yetkazish</b>Admin buyurtmalarni navbat bo‘yicha yetkazadi</span></div>
+    </section>
 </div>
+{% endwith %}
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (function(){
     const API = '/api/v1/coin';
-    let page = 1, searchTimer = null;
-    let statsData = null;
-    let userCoins = 0;
-    let cheapestPlanPrice = null;
-    let weekEndsAt = null;
-    let timerInterval = null;
+    const root = document.getElementById('mkx');
+    const PREMIUM = root.classList.contains('mkx-prem');
+    const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let page = 1, searchTimer = null, statsData = null, weekEndsAt = null, timerInterval = null;
 
     function getCsrf() {
         let v='; '+document.cookie, p=v.split('; csrftoken=');
         if(p.length===2) return p.pop().split(';').shift();
     }
-
     async function get(url) {
         const r = await fetch(url,{credentials:'same-origin'});
         if(!r.ok) throw new Error(r.statusText);
@@ -359,232 +152,241 @@
         const r = await fetch(url,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','X-CSRFToken':getCsrf()},body:JSON.stringify(body||{})});
         return r.json();
     }
-
-    function formatNum(n){ return (n||0).toLocaleString('en-US').replace(/,/g,' '); }
+    function formatNum(n){ return Math.round(n||0).toLocaleString('en-US').replace(/,/g,' '); }
     // Server ma'lumoti `innerHTML` ga qo'yiladi — HTML metabelgilarini escape qilamiz.
     function esc(s) {
         return (s == null ? '' : String(s)).replace(/[&<>"']/g, function(c) {
             return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
         });
     }
+    const pad = n => String(n).padStart(2,'0');
 
-    function updateBalanceRing(coins, targetPrice){
-        userCoins = coins;
-        document.getElementById('mkBalanceValue').textContent = formatNum(coins);
-        const ring = document.getElementById('mkRingFill');
-        const label = document.getElementById('mkRingLabel');
-        const circumference = 2 * Math.PI * 52;
-        if (targetPrice && targetPrice > 0){
-            const pct = Math.min(1, coins / targetPrice);
-            const dash = pct * circumference;
-            ring.setAttribute('stroke-dasharray', dash + ' ' + circumference);
-            if (pct >= 1) {
-                label.textContent = '✓ Premium';
-            } else {
-                label.textContent = Math.round(pct * 100) + '% Premium';
-            }
-        } else {
-            ring.setAttribute('stroke-dasharray', circumference + ' ' + circumference);
-            label.textContent = 'Balans';
+    // Raqamni 0 dan sanab chiqarish (premium); oddiy rejimda darhol.
+    function countTo(el, to) {
+        if (!el) return;
+        if (!PREMIUM || REDUCED) { el.textContent = formatNum(to); return; }
+        const t0 = performance.now(), ms = 1400;
+        (function f(t){ const k = Math.min(1,(t-t0)/ms), e = 1-Math.pow(1-k,4); el.textContent = formatNum(to*e); if (k<1) requestAnimationFrame(f); })(t0);
+    }
+
+    // ── Premium: scroll bilan ochilish ──
+    const io = (PREMIUM && 'IntersectionObserver' in window && !REDUCED)
+        ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), {threshold:.12})
+        : null;
+    function reveal(nodes) { nodes.forEach(n => io ? io.observe(n) : n.classList.add('in')); }
+    if (PREMIUM) reveal(root.querySelectorAll('.rv'));
+
+    // ── Balans ──
+    const balanceEl = document.getElementById('mkBalanceValue');
+    countTo(balanceEl, Number(balanceEl.textContent) || 0);
+    function setBalance(coins) { balanceEl.textContent = formatNum(coins); }
+
+    if (PREMIUM) {
+        // Imtiyozlar oqimi (ikki marta — uzluksiz aylanish uchun)
+        const perks = ['Tanga 50% arzon','Hisob to‘ldirishga +15% bonus tanga','Marketda 5% chegirma','2x coin','Maxsus aksiyalar'];
+        document.getElementById('mkMarquee').innerHTML = perks.concat(perks).map(t => '<span><i class="bi bi-diamond-fill"></i>'+t+'</span>').join('');
+
+        // A'zolik kartasi: 3D egilish
+        const card = document.getElementById('mkMemberCard');
+        if (!REDUCED && window.matchMedia('(hover: hover)').matches) {
+            card.addEventListener('pointermove', e => {
+                const r = card.getBoundingClientRect(), x = (e.clientX-r.left)/r.width, y = (e.clientY-r.top)/r.height;
+                card.style.animation = 'none';
+                card.style.transform = 'rotateY('+((x-.5)*16)+'deg) rotateX('+((.5-y)*12)+'deg)';
+                card.style.setProperty('--mx', x*100+'%'); card.style.setProperty('--my', y*100+'%');
+            });
+            card.addEventListener('pointerleave', () => { card.style.transform = ''; setTimeout(() => card.style.animation = '', 500); });
+        }
+
+        // Premium muddati
+        const exp = document.getElementById('mkExpiry');
+        if (exp) {
+            const days = Math.max(0, Math.ceil((Date.parse(exp.dataset.expires) - Date.now()) / 86400000));
+            document.getElementById('mkExpTitle').textContent = days > 0 ? 'Premium tugashiga ' + days + ' kun qoldi' : 'Premium muddati tugadi';
+            setTimeout(() => { document.getElementById('mkExpRing').style.strokeDasharray = (Math.min(1, days/30)*113) + ' 113'; }, 500);
         }
     }
 
+    // ── Oddiy: haftalik Premiumgacha progress va Premium taklifi ──
+    async function loadSummaryAndPlans() {
+        try {
+            const [summary, plans] = await Promise.all([get(API+'/summary/'), get(API+'/premium/plans/').catch(()=>null)]);
+            setBalance(summary.total_coins);
+            if (PREMIUM) return;
+            const weekly = plans && plans.plans && plans.plans.weekly ? plans.plans.weekly.price : null;
+            if (weekly && !(plans && plans.is_premium)) {
+                const pct = Math.min(1, summary.total_coins / weekly);
+                document.getElementById('mkGoal').hidden = false;
+                document.getElementById('mkRingLabel').textContent = pct >= 1 ? '✓ Yetarli' : Math.round(pct*100) + '%';
+                requestAnimationFrame(() => document.getElementById('mkGoalBar').style.width = (pct*100) + '%');
+            }
+            const banner = document.getElementById('mkPremiumBanner');
+            const title = document.getElementById('mkPremiumTitle'), desc = document.getElementById('mkPremiumDesc');
+            if (!plans) {
+                banner.hidden = false;
+            } else if (plans.has_pending_request) {
+                title.innerHTML = 'Premium so‘rov kutilmoqda <span class="mk-premium-badge">⏳</span>';
+                desc.textContent = 'Admin tasdiqlashini kuting';
+                banner.hidden = false;
+            } else if (!plans.eligible) {
+                title.innerHTML = '<i class="bi bi-lock"></i> Premium hali qulf ostida';
+                desc.textContent = 'Yana ' + plans.days_until_eligible + ' kunda ochiladi';
+                banner.hidden = false;
+            } else if (!plans.is_premium) {
+                const mp = plans.plans.monthly;
+                title.innerHTML = 'Premium bilan har xaridda tejang <span class="mk-premium-badge">CHEGIRMA</span>';
+                document.getElementById('mkPremiumOldPrice').textContent = formatNum(mp.price*2) + ' coin';
+                document.getElementById('mkPremiumNewPrice').textContent = formatNum(mp.price) + ' coin / oy';
+                document.getElementById('mkPremiumDiscount').textContent = '−50%';
+                document.getElementById('mkPremiumPriceRow').hidden = false;
+                banner.hidden = false;
+            }
+        } catch(e) { console.warn('summary/plans error', e); }
+    }
+
+    // ── Statistika va hafta taymeri ──
+    function remaining() { return weekEndsAt ? Math.max(0, Math.floor((weekEndsAt - Date.now())/1000)) : 0; }
     function startCountdown(){
-        if (!weekEndsAt) return;
         const el = document.getElementById('mkStatTimer');
         function tick(){
-            const now = new Date();
-            const diff = weekEndsAt - now;
-            if (diff <= 0){ el.textContent = 'Yangilanmoqda...'; return; }
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const s = Math.floor((diff % 60000) / 1000);
-            let text = '';
-            if (d > 0) text = d + 'k ' + h + 's';
-            else if (h > 0) text = h.toString().padStart(2,'0') + ':' + m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
-            else text = m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
-            el.textContent = text;
+            const s = remaining();
+            if (!s) { el.textContent = 'Yangilanmoqda...'; return; }
+            const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60);
+            el.textContent = d > 0 ? d + 'k ' + h + 's' : pad(h) + ':' + pad(m) + ':' + pad(s%60);
+            paintFeatureTimer(s);
         }
         tick();
         if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(tick, 1000);
     }
-
-    async function loadSummaryAndPlans() {
-        try {
-            const [summary, plans] = await Promise.all([
-                get(API+'/summary/'),
-                get(API+'/premium/plans/').catch(()=>null)
-            ]);
-
-            // Find cheapest affordable plan for progress ring target
-            if (plans && plans.plans){
-                cheapestPlanPrice = plans.plans.weekly ? plans.plans.weekly.price : null;
-            }
-            updateBalanceRing(summary.total_coins, cheapestPlanPrice);
-
-            // Premium banner
-            const banner = document.getElementById('mkPremiumBanner');
-            const title = document.getElementById('mkPremiumTitle');
-            const desc = document.getElementById('mkPremiumDesc');
-            const priceRow = document.getElementById('mkPremiumPriceRow');
-            const oldEl = document.getElementById('mkPremiumOldPrice');
-            const newEl = document.getElementById('mkPremiumNewPrice');
-            const discountEl = document.getElementById('mkPremiumDiscount');
-
-            if (!plans) {
-                banner.style.display='block';
-            } else if (plans.has_pending_request) {
-                title.innerHTML = 'Premium so\'rov kutilmoqda <span class="mk-premium-badge">⏳</span>';
-                desc.textContent = 'Admin tasdiqlashini kuting';
-                banner.style.display='block';
-            } else if (plans.is_premium) {
-                title.innerHTML = 'Siz Premium foydalanuvchisiz <span class="mk-premium-badge">⭐ VIP</span>';
-                desc.textContent = 'Muddatni uzaytiring va imtiyozlardan foydalaning';
-                banner.style.display='block';
-            } else if (!plans.eligible) {
-                title.innerHTML = '🔒 Premium hali qulf ostida';
-                desc.textContent = 'Yana ' + plans.days_until_eligible + ' kunda ochiladi';
-                banner.style.display='block';
-            } else {
-                const mp = plans.plans.monthly;
-                const anchor = mp.price * 2;
-                title.innerHTML = 'Premium olish <span class="mk-premium-badge">🔥 CHEGIRMA</span>';
-                desc.textContent = '5% market chegirma • 2x coin • Reyting va AI imtiyozlari';
-                oldEl.textContent = formatNum(anchor) + ' coin';
-                newEl.textContent = formatNum(mp.price) + ' coin';
-                discountEl.textContent = '−50%';
-                priceRow.style.display = 'flex';
-                banner.style.display='block';
-            }
-        } catch(e){
-            console.warn('summary/plans error', e);
-        }
-    }
-
     async function loadStats() {
         try {
             const s = await get(API+'/market/stats/');
             statsData = s;
-            document.getElementById('mkStatPremium').textContent = formatNum(s.active_premium_users);
-            document.getElementById('mkStatToday').textContent = formatNum(s.purchases_today);
-            document.getElementById('mkStatTotal').textContent = formatNum(s.total_purchases);
-            document.getElementById('mkStatsStrip').style.display = 'flex';
+            document.getElementById('mkStatsStrip').hidden = false;
+            countTo(document.getElementById('mkStatPremium'), s.active_premium_users);
+            countTo(document.getElementById('mkStatToday'), s.purchases_today);
+            countTo(document.getElementById('mkStatTotal'), s.total_purchases);
             weekEndsAt = new Date(s.week_ends_at);
             startCountdown();
-        } catch(e){
-            console.warn('stats error', e);
-        }
+        } catch(e) { console.warn('stats error', e); }
+    }
+
+    // ── Haftaning tanlovi (premium) ──
+    function paintFeatureTimer(s) {
+        const t = document.getElementById('mkFeatureTimer');
+        if (!t) return;
+        t.innerHTML = [[Math.floor(s/86400),'kun'],[Math.floor(s%86400/3600),'soat'],[Math.floor(s%3600/60),'daq'],[s%60,'son']]
+            .map(([v,l]) => '<div><b>'+pad(v)+'</b><small>'+l+'</small></div>').join('');
+    }
+    function renderFeature(results) {
+        if (!PREMIUM || page !== 1 || document.getElementById('mkSearch').value.trim()) return;
+        const topIds = (statsData && statsData.top_product_ids) || [];
+        const p = topIds.map(id => results.find(r => r.id === id)).find(r => r && r.stock > 0);
+        const wrap = document.getElementById('mkFeatureWrap');
+        if (!p) { wrap.hidden = true; return; }
+        const price = p.has_discount ? p.discounted_price : p.coin_price;
+        document.getElementById('mkFeature').innerHTML =
+            '<div class="mkx-fimg">' + (p.image ? '<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'">' : '') + '</div>'
+          + '<div class="mkx-ftxt">'
+          + (p.stock <= 3 ? '<span class="mkx-live">Faqat '+p.stock+' ta qoldi</span>' : '<span class="mkx-live">Bu hafta eng ko‘p olingan</span>')
+          + '<h3 class="mkx-serif">'+esc(p.name)+'</h3><p>'+esc((p.description||'').substring(0,140))+'</p>'
+          + '<div class="mkx-fprice"><b class="mkx-gold">'+formatNum(price)+' coin</b>'
+          + (p.has_discount ? '<del>'+formatNum(p.coin_price)+'</del><span class="mkx-save">−'+p.discount_percent+'% Premium</span>' : '') + '</div>'
+          + '<div class="mkx-timer" id="mkFeatureTimer"></div>'
+          + '<div class="mkx-links"><a class="mkx-btn gold" href="/market/'+p.id+'/">Batafsil ko‘rish <i class="bi bi-arrow-right"></i></a>'
+          + '<span class="mkx-btn"><i class="bi bi-heart-fill" style="color:var(--mkt-bad)"></i> '+p.likes_count+'</span></div></div>';
+        paintFeatureTimer(remaining());
+        wrap.hidden = false;
+        reveal(wrap.querySelectorAll('.rv:not(.in)'));
+    }
+
+    // ── Mahsulotlar ──
+    function cardHtml(p, i) {
+        const stock = p.stock <= 0 ? '<div class="mkx-sold">TUGAGAN</div>'
+            : p.stock <= 3 ? '<span class="mkx-tag low">Faqat '+p.stock+' ta qoldi</span>'
+            : '<span class="mkx-tag">'+p.stock+' ta mavjud</span>';
+        const trend = ((statsData && statsData.top_product_ids) || []).includes(p.id) ? '<span class="mkx-tag trend"><i class="bi bi-fire"></i> Trend</span>' : '';
+        const price = p.has_discount
+            ? '<del>'+formatNum(p.coin_price)+'</del><b><i class="bi bi-coin"></i> '+formatNum(p.discounted_price)+'</b><small>'+formatNum(p.coin_price - p.discounted_price)+' coin tejaysiz</small>'
+            : '<b><i class="bi bi-coin"></i> '+formatNum(p.coin_price)+'</b>';
+        return '<article class="mkx-card'+(PREMIUM?' rv':'')+'" style="'+(PREMIUM ? '--d:'+((i%4)*.08)+'s' : 'animation-delay:'+(i*45)+'ms')+'">'
+            + '<div class="mkx-media">' + (p.image ? '<img src="'+esc(p.image)+'" alt="'+esc(p.name)+'" loading="lazy">' : '') + stock + trend
+            + (p.has_discount ? '<span class="mkx-perk"><i class="bi bi-gem"></i> Premium narx</span>' : '') + '</div>'
+            + '<div class="mkx-body"><h3>'+esc(p.name)+'</h3><p>'+esc((p.description||'').substring(0,100))+(p.description && p.description.length>100?'...':'')+'</p>'
+            + '<div class="mkx-meta"><span class="mkx-likes'+(p.is_liked?' on':'')+'"><i class="bi bi-heart-fill"></i> '+p.likes_count+'</span><span><i class="bi bi-chat"></i> '+p.comments_count+' izoh</span></div>'
+            + '<div class="mkx-foot"><div class="mkx-price">'+price+'</div>'
+            + '<div class="mkx-acts"><button type="button" class="mkx-like'+(p.is_liked?' liked':'')+'" data-id="'+p.id+'" aria-label="Yoqtirish" aria-pressed="'+(p.is_liked?'true':'false')+'"><i class="bi '+(p.is_liked?'bi-heart-fill':'bi-heart')+'"></i></button>'
+            + '<a href="/market/'+p.id+'/" class="mkx-btn mkx-more">Batafsil</a></div></div></div></article>';
     }
 
     async function loadProducts(pg) {
-        page = pg||1;
-        const grid = document.getElementById('mkGrid');
-        const pag = document.getElementById('mkPagination');
-        grid.innerHTML = '<div class="mk-skeleton" style="height:360px"></div>'.repeat(3);
-        pag.innerHTML='';
-
+        page = pg || 1;
+        const grid = document.getElementById('mkGrid'), pag = document.getElementById('mkPagination');
+        grid.innerHTML = '<div class="mk-skeleton"></div>'.repeat(3);
+        pag.innerHTML = '';
         try {
             const search = document.getElementById('mkSearch').value.trim();
-            let params = ['page='+page];
-            if(search) params.push('search='+encodeURIComponent(search));
+            const params = ['page='+page];
+            if (search) params.push('search='+encodeURIComponent(search));
             const d = await get(API+'/products/?'+params.join('&'));
             const totalPages = Math.ceil(d.count/20);
-            const topIds = (statsData && statsData.top_product_ids) || [];
-
-            if(!d.results.length) {
-                grid.innerHTML='<div class="mk-empty"><i class="bi bi-box-seam"></i><h4>Mahsulotlar topilmadi</h4><p>Boshqa kalit so\'z bilan qidirib ko\'ring</p></div>';
+            if (PREMIUM) renderFeature(d.results);
+            if (!d.results.length) {
+                grid.innerHTML = '<div class="mk-empty"><i class="bi bi-box-seam"></i><h4>Mahsulotlar topilmadi</h4><p>Boshqa kalit so‘z bilan qidirib ko‘ring</p></div>';
                 return;
             }
-
-            grid.innerHTML = d.results.map((p,i) => {
-                const outOfStock = p.stock <= 0;
-                const lowStock = p.stock > 0 && p.stock <= 3;
-                const isTrending = topIds.includes(p.id);
-                const stockBadge = outOfStock
-                    ? '<span class="mk-stock-badge out"><i class="bi bi-x-circle"></i> Tugagan</span><div class="mk-out-overlay"><div class="mk-out-text">Tugagan</div></div>'
-                    : lowStock
-                        ? '<span class="mk-stock-badge low">🔥 Faqat '+p.stock+' ta qoldi!</span>'
-                        : '<span class="mk-stock-badge">📦 '+p.stock+' ta</span>';
-                const trendingRibbon = isTrending
-                    ? '<div class="mk-trending-ribbon"><span class="mk-fire">🔥</span> TRENDING</div>'
-                    : '';
-                const socialProof = (p.likes_count > 0 || p.comments_count > 0)
-                    ? '<div class="mk-social-proof">'
-                        + (p.likes_count > 5 ? '<span class="mk-sp-hot">🔥 Ommabop</span>' : '')
-                        + '<span><i class="bi bi-heart-fill" style="color:'+(p.is_liked?'#ef4444':'#94a3b8')+'"></i> '+p.likes_count+' yoqtirgan</span>'
-                        + (p.comments_count > 0 ? '<span><i class="bi bi-chat-dots-fill"></i> '+p.comments_count+' izoh</span>' : '')
-                        + '</div>'
-                    : '';
-                const priceMarkup = p.has_discount
-                    ? `<div class="mk-price"><i class="bi bi-coin"></i><del>${formatNum(p.coin_price)}</del><strong class="mk-price-current">${formatNum(p.discounted_price)}</strong><span class="mk-price-discount">−${p.discount_percent}% Premium</span></div>`
-                    : `<div class="mk-price"><i class="bi bi-coin"></i> ${formatNum(p.coin_price)}</div>`;
-                return `<div class="mk-card" style="animation-delay:${i*70}ms">
-                    ${trendingRibbon}
-                    <div class="mk-card-img-wrap">
-                        <img class="mk-card-img" src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy">
-                        ${stockBadge}
-                    </div>
-                    <div class="mk-card-body">
-                        <h3 class="mk-card-title">${esc(p.name)}</h3>
-                        <p class="mk-card-desc">${esc((p.description||'').substring(0,100))}${p.description&&p.description.length>100?'...':''}</p>
-                        ${socialProof}
-                        <div class="mk-card-footer">
-                            ${priceMarkup}
-                            <div class="mk-card-stats">
-                                <span><i class="bi bi-heart${p.is_liked?'-fill':''}" style="color:${p.is_liked?'#ef4444':'inherit'}"></i> ${p.likes_count}</span>
-                                <span><i class="bi bi-chat-dots"></i> ${p.comments_count}</span>
-                            </div>
-                        </div>
-                        <div class="mk-card-actions">
-                            <button class="mk-like-btn ${p.is_liked?'liked':''}" onclick="toggleLike(${p.id},this)" title="Like">
-                                <i class="bi ${p.is_liked?'bi-heart-fill':'bi-heart'}"></i>
-                            </button>
-                            <a href="/market/${p.id}/" class="mk-buy-btn"><i class="bi bi-eye"></i> Batafsil</a>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-
-            if(totalPages > 1) {
-                let h='<div class="mk-pagination">';
-                if(page>1) { h+=`<a onclick="loadPage(${page-1})"><i class="bi bi-chevron-left"></i></a>`; }
-                else { h+='<span class="mk-pg-disabled"><i class="bi bi-chevron-left"></i></span>'; }
-                for(let n=Math.max(1,page-2);n<=Math.min(totalPages,page+2);n++) {
-                    h+=n===page?`<span class="mk-pg-active">${n}</span>`:`<a onclick="loadPage(${n})">${n}</a>`;
-                }
-                if(page<totalPages) { h+=`<a onclick="loadPage(${page+1})"><i class="bi bi-chevron-right"></i></a>`; }
-                else { h+='<span class="mk-pg-disabled"><i class="bi bi-chevron-right"></i></span>'; }
-                h+='</div>';
-                pag.innerHTML=h;
+            grid.innerHTML = d.results.map(cardHtml).join('');
+            if (PREMIUM) reveal(grid.querySelectorAll('.rv'));
+            if (totalPages > 1) {
+                let h = '<div class="mk-pagination">';
+                h += page > 1 ? '<a onclick="loadPage('+(page-1)+')"><i class="bi bi-chevron-left"></i></a>' : '<span class="mk-pg-disabled"><i class="bi bi-chevron-left"></i></span>';
+                for (let n = Math.max(1,page-2); n <= Math.min(totalPages,page+2); n++) h += n === page ? '<span class="mk-pg-active">'+n+'</span>' : '<a onclick="loadPage('+n+')">'+n+'</a>';
+                h += page < totalPages ? '<a onclick="loadPage('+(page+1)+')"><i class="bi bi-chevron-right"></i></a>' : '<span class="mk-pg-disabled"><i class="bi bi-chevron-right"></i></span>';
+                pag.innerHTML = h + '</div>';
             }
         } catch(e) {
-            grid.innerHTML='<div class="mk-empty"><i class="bi bi-exclamation-triangle"></i><h4>Xatolik yuz berdi</h4></div>';
+            grid.innerHTML = '<div class="mk-empty"><i class="bi bi-exclamation-triangle"></i><h4>Xatolik yuz berdi</h4></div>';
         }
     }
+    window.loadPage = function(p) { loadProducts(p); document.getElementById('mkGrid').scrollIntoView({behavior: REDUCED ? 'auto' : 'smooth', block: 'start'}); };
 
-    document.addEventListener('coin-payment-confirmed', () => { loadSummaryAndPlans(); loadProducts(page); });
-    window.loadPage = function(p) { loadProducts(p); window.scrollTo({top:0,behavior:'smooth'}); };
-
-    window.toggleLike = async function(id, btn) {
+    // Like (+ premiumda uchqunlar)
+    const grid = document.getElementById('mkGrid');
+    grid.addEventListener('click', async e => {
+        const btn = e.target.closest('.mkx-like');
+        if (!btn) return;
         try {
-            const d = await post(API+'/products/'+id+'/like/');
-            const icon = btn.querySelector('i');
-            if(d.liked) { btn.classList.add('liked'); icon.className='bi bi-heart-fill'; }
-            else { btn.classList.remove('liked'); icon.className='bi bi-heart'; }
-            const stats = btn.closest('.mk-card-body').querySelector('.mk-card-stats span:first-child');
-            if(stats) stats.innerHTML = `<i class="bi bi-heart${d.liked?'-fill':''}" style="color:${d.liked?'#ef4444':'inherit'}"></i> ${d.likes_count}`;
-            loadSummaryAndPlans();
-        } catch(e) { alert('Xatolik yuz berdi'); }
-    };
+            const d = await post(API+'/products/'+btn.dataset.id+'/like/');
+            btn.classList.toggle('liked', d.liked);
+            btn.setAttribute('aria-pressed', d.liked ? 'true' : 'false');
+            btn.querySelector('i').className = 'bi ' + (d.liked ? 'bi-heart-fill' : 'bi-heart');
+            const count = btn.closest('.mkx-card').querySelector('.mkx-likes');
+            count.classList.toggle('on', d.liked);
+            count.innerHTML = '<i class="bi bi-heart-fill"></i> ' + d.likes_count;
+            btn.classList.remove('pop'); void btn.offsetWidth; btn.classList.add('pop');
+            if (PREMIUM && d.liked && !REDUCED) for (let i = 0; i < 8; i++) {
+                const s = document.createElement('i'); s.className = 'spark'; btn.appendChild(s);
+                const a = i/8*Math.PI*2;
+                s.animate([{transform:'translate(-50%,-50%)',opacity:1},{transform:'translate('+(Math.cos(a)*22-2)+'px,'+(Math.sin(a)*22-2)+'px) scale(.3)',opacity:0}],
+                    {duration:550, easing:'cubic-bezier(.16,1,.3,1)'}).onfinish = () => s.remove();
+            }
+        } catch(err) { alert('Xatolik yuz berdi'); }
+    });
+    // Premium: kursor ortidan oltin nur
+    if (PREMIUM && !REDUCED) grid.addEventListener('pointermove', e => {
+        const c = e.target.closest('.mkx-card'); if (!c) return;
+        const r = c.getBoundingClientRect();
+        c.style.setProperty('--mx', (e.clientX-r.left)+'px'); c.style.setProperty('--my', (e.clientY-r.top)+'px');
+    });
 
     document.getElementById('mkSearch').addEventListener('input', function() {
         clearTimeout(searchTimer);
-        searchTimer = setTimeout(()=>loadProducts(1), 300);
+        searchTimer = setTimeout(() => loadProducts(1), 300);
     });
+    document.addEventListener('coin-payment-confirmed', () => { loadSummaryAndPlans(); loadProducts(page); });
 
-    // Init: load stats first so trending IDs are ready when products render
+    // Avval statistika — trend ID'lari mahsulotlar chizilishidan oldin tayyor bo'ladi.
     (async function init(){
         await Promise.all([loadStats(), loadSummaryAndPlans()]);
         loadProducts(1);

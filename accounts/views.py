@@ -2740,6 +2740,24 @@ def home_view(request):
     context['sale_promos'] = discounted_courses(exclude_ids=purchased_course_ids(user))
     context['coin_promos'] = promos()
 
+    # Premium reklamasi: premiumga — tanga 50% arzon, boshqalarga — premium taklifi.
+    from coin.topup_pricing import PREMIUM_DISCOUNT_PERCENT
+    from .models import CoinPricingSettings
+    # Misol paket: 10 000 tanga (narx 1 so'm bo'lsa ham farq ko'rinadi).
+    gross = 10000 * CoinPricingSettings.current().som_per_coin
+    context['premium_coin_offer'] = {
+        'percent': PREMIUM_DISCOUNT_PERCENT,
+        'coins': 10000,
+        'gross': gross,
+        'payable': (gross * (100 - PREMIUM_DISCOUNT_PERCENT) + 99) // 100,
+    }
+
+    # "Bilasizmi?" — har soatda va har kirishda yangi savol, javobini AI beradi.
+    from . import curiosity
+    context['curiosity_question'] = curiosity.pick_question(user)
+    curiosity.remember(request, context['curiosity_question'])
+    curiosity.refresh_if_stale()
+
     return render(request, 'accounts/home.html', context)
 
 
@@ -17226,7 +17244,7 @@ def admin_balance_topup(request, student_id):
             balance.amount += amount
             balance.save(update_fields=['amount', 'updated_at'])
 
-            BalanceTopUp.objects.create(
+            topup = BalanceTopUp.objects.create(
                 student=student,
                 amount=amount,
                 operation='add',
@@ -17234,6 +17252,9 @@ def admin_balance_topup(request, student_id):
                 note=note,
                 ip_address=ip[:45] if ip else None,
             )
+            # Premium o'quvchiga to'ldirilgan summaning 15% i bonus tanga.
+            from .premium_bonus import award_topup_bonus
+            bonus = award_topup_bonus(student, amount, source='admin', reference=f'topup:{topup.pk}')
 
             # Bloklangan bo'lsa → unblock + fee yechish + next_payment_date o'rnatish
             # Bloklanmagan lekin next_payment_date yo'q bo'lsa ham → birinchi aktivatsiya
@@ -17273,8 +17294,11 @@ def admin_balance_topup(request, student_id):
                 'amount': amount,
                 'amount_fmt': f"{amount:,}".replace(',', ' '),
                 'next_payment_date': next_date_fmt,
+                'premium_bonus_coins': bonus,
             })
 
+        if bonus:
+            messages.info(request, f"💎 Premium bonus: {student.full_name} ga {bonus:,} tanga qo'shildi.".replace(',', ' '))
         if auto_unblocked:
             messages.success(request, f"✅ {student.full_name} ga {amount:,} so'm qo'shildi va unblock bo'ldi!")
         else:

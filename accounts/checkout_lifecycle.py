@@ -57,6 +57,10 @@ def store_bill(order, result):
 
 def retire_checkout(order):
     """Retain the provider identity so a late payment can still be reconciled."""
+    from .payment_gateways import close_bill
+    if not close_bill(order):
+        order.refresh_from_db()
+        return False
     type(order).objects.filter(pk=order.pk, status__in=['pending', 'expired', 'failed', 'cancelled'],
                                paid_at__isnull=True, coin_transaction__isnull=True).update(
         status='expired', last_error='Eski havola o‘rniga yangi to‘lov havolasi tayyorlanmoqda.',

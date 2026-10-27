@@ -2732,10 +2732,16 @@ class TezCheckPaymentOrder(models.Model):
         (STATUS_CANCELLED, 'Bekor qilingan'), (STATUS_REFUNDED, 'Qaytarilgan'),
         (STATUS_REVIEW, 'Tekshiruv kerak'),
     ]
+    GATEWAY_TEZCHECK = 'tezcheck'
+    GATEWAY_INPAY = 'inpay'
+    GATEWAY_CHOICES = [(GATEWAY_TEZCHECK, 'Tezcheck'), (GATEWAY_INPAY, 'inPAY')]
     student = models.ForeignKey(
         'CustomUser', on_delete=models.PROTECT,
         related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
     )
+    gateway = models.CharField(max_length=16, choices=GATEWAY_CHOICES, default=GATEWAY_TEZCHECK, db_index=True,
+                               verbose_name="To'lov tizimi")
+    payment_method = models.CharField(max_length=20, blank=True, verbose_name="Tanlangan usul")
     purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi'), ('course', 'Kurs xaridi')])
     course = models.ForeignKey('Profession', null=True, blank=True, on_delete=models.SET_NULL, related_name='tezcheck_orders')
     coin_transaction = models.OneToOneField('coin.CoinTransaction', null=True, blank=True, on_delete=models.PROTECT, related_name='payment_order')
@@ -3709,3 +3715,19 @@ class StudentAttendance(models.Model):
             'sick': '#8b5cf6',
             'excused': '#3b82f6',
         }.get(self.status, '#6c757d')
+
+
+class CuriosityQuestion(models.Model):
+    """Bosh sahifadagi "Bilasizmi?" savoli — OpenAI to'plam qilib yaratadi (accounts/curiosity.py)."""
+    text = models.CharField(max_length=255, unique=True, verbose_name="Savol")
+    category = models.CharField(max_length=20, verbose_name="Mavzu")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Bilasizmi savoli"
+        verbose_name_plural = "Bilasizmi savollari"
+
+    def __str__(self):
+        return self.text

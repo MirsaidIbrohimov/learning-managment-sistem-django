@@ -1,0 +1,90 @@
+{# Bosh sahifa: premium tanga reklamasi + "Bilasizmi?" savoli (views: premium_coin_offer, curiosity_question) #}
+<style>
+@keyframes hfFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes hfWiggle { 0%, 86%, 100% { transform: rotate(0); } 89% { transform: rotate(-5deg); } 92% { transform: rotate(5deg); } 95% { transform: rotate(-3deg); } }
+@keyframes hfIn { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+
+.hf { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 18px; }
+.hf-ad { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; gap: 14px;
+  padding: 20px; border-radius: 22px; color: #fff; text-decoration: none; animation: hfIn .5s ease both;
+  background: linear-gradient(120deg, #1c1917, #78350f 45%, #d97706 80%, #fbbf24); background-size: 220% 220%; animation: hfIn .5s ease both, hfFlow 7s ease infinite; }
+.hf-ad.free { background: linear-gradient(120deg, #312e81, #6d28d9 50%, #db2777 90%); background-size: 220% 220%; }
+.hf-ad:hover { color: #fff; }
+.hf-ad::after { content: '✦ ✧ ✦'; position: absolute; right: -6px; top: -10px; font-size: 2.4rem; letter-spacing: .8rem; color: rgba(255, 255, 255, .14); transform: rotate(-12deg); pointer-events: none; }
+.hf .hf-tag { color: #fff; align-self: flex-start; padding: 4px 10px; border-radius: 999px; font-size: .7rem; font-weight: 800; letter-spacing: .08em; background: rgba(255, 255, 255, .18); }
+.hf .hf-ad h3 { color: #fff; margin: 6px 0 4px; font-size: 1.35rem; font-weight: 850; line-height: 1.2; }
+.hf .hf-ad p { color: #fff; margin: 0; opacity: .92; font-size: .9rem; }
+.hf .hf-ad p del { color: #fff; opacity: .7; }
+.hf .hf-ad p b { color: #fde68a; }
+.hf-cta { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 999px;
+  background: #fff; color: #78350f; font-weight: 800; font-size: .9rem; animation: hfWiggle 4s ease-in-out infinite; }
+.hf-ad.free .hf-cta { color: #5b21b6; }
+.hf-big { position: absolute; right: 16px; bottom: 6px; font-size: 3.6rem; font-weight: 900; opacity: .2; pointer-events: none; }
+
+.hf-q { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 14px; padding: 20px 22px; border-radius: 22px; animation: hfIn .5s ease .08s both;
+  background: var(--dash-glass, var(--bs-body-bg, #fff)); border: 1px solid var(--dash-glass-border, rgba(127, 127, 127, .18)); box-shadow: var(--dash-shadow-sm, 0 8px 24px -16px rgba(15, 23, 42, .25)); }
+.hf-q::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #4f46e5, #0ea5e9); }
+.hf-q-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.hf-lbl { display: inline-flex; align-items: center; gap: 8px; font-size: .72rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #4f46e5; }
+.hf-lbl i { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; font-size: .95rem; color: #4f46e5; background: rgba(79, 70, 229, .1); }
+.hf-topic { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; opacity: .8;
+  border: 1px solid rgba(127, 127, 127, .25); white-space: nowrap; }
+.hf-text { margin: 0; font-size: 1.08rem; font-weight: 650; line-height: 1.5; letter-spacing: -.005em; }
+.hf-q-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: auto; }
+.hf .hf-ask { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: .9rem;
+  color: #fff; background: #4f46e5; transition: background .2s, transform .2s, box-shadow .2s; }
+.hf .hf-ask:hover { color: #fff; background: #4338ca; transform: translateY(-1px); box-shadow: 0 10px 22px -12px rgba(79, 70, 229, .8); }
+.hf .hf-ask i { transition: transform .2s; }
+.hf .hf-ask:hover i { transform: translateX(3px); }
+.hf-note { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0; padding: 0; list-style: none; font-size: .74rem; opacity: .65; }
+.hf-note li { display: inline-flex; align-items: center; gap: 5px; }
+[data-bs-theme="dark"] .hf-lbl, [data-bs-theme="dark"] .hf-lbl i { color: #a5b4fc; }
+[data-bs-theme="dark"] .hf-lbl i { background: rgba(165, 180, 252, .12); }
+@media (prefers-reduced-motion: reduce) {
+  .hf-ad, .hf-q, .hf-cta { animation: none !important; }
+  .hf .hf-ask, .hf .hf-ask i { transition: none; }
+}
+</style>
+<section class="hf" aria-label="Takliflar va qiziqarli savol">
+  {% if user.is_premium %}
+  <a class="hf-ad" href="{% url 'coin:market_list' %}#coin-topup">
+    <span class="hf-big" aria-hidden="true">−{{ premium_coin_offer.percent }}%</span>
+    <div>
+      <span class="hf-tag"><i class="bi bi-gem"></i> FAQAT PREMIUM UCHUN</span>
+      <h3>Hoziroq coin oling — siz uchun {{ premium_coin_offer.percent }}% chegirma!</h3>
+      <p>{{ premium_coin_offer.coins|floatformat:"0g" }} tanga: <del>{{ premium_coin_offer.gross|floatformat:"0g" }} so‘m</del> → <b>{{ premium_coin_offer.payable|floatformat:"0g" }} so‘m</b></p>
+    </div>
+    <span class="hf-cta"><i class="bi bi-coin"></i> Coin olish</span>
+  </a>
+  {% else %}
+  <a class="hf-ad free" href="{% url 'coin:buy_premium_page' %}">
+    <span class="hf-big" aria-hidden="true">−{{ premium_coin_offer.percent }}%</span>
+    <div>
+      <span class="hf-tag"><i class="bi bi-gem"></i> PREMIUM TAKLIF</span>
+      <h3>Premium oling — coinlar {{ premium_coin_offer.percent }}% arzon!</h3>
+      <p>Premium a’zolar {{ premium_coin_offer.coins|floatformat:"0g" }} tangani <del>{{ premium_coin_offer.gross|floatformat:"0g" }}</del> emas, <b>{{ premium_coin_offer.payable|floatformat:"0g" }} so‘m</b>ga oladi.</p>
+    </div>
+    <span class="hf-cta"><i class="bi bi-stars"></i> Premium bo‘lish</span>
+  </a>
+  {% endif %}
+
+  {% if curiosity_question %}
+  <article class="hf-q" aria-labelledby="hf-q-text">
+    <div class="hf-q-head">
+      <span class="hf-lbl"><i class="bi bi-lightbulb" aria-hidden="true"></i> Bilasizmi?</span>
+      <span class="hf-topic"><i class="bi {{ curiosity_question.icon }}" aria-hidden="true"></i> {{ curiosity_question.label }}</span>
+    </div>
+    <p class="hf-text" id="hf-q-text">{{ curiosity_question.text }}</p>
+    <div class="hf-q-foot">
+      <a class="hf-ask" href="{% url 'ai_yordamchi:new_session' %}?q={{ curiosity_question.text|urlencode }}&amp;autosend=1">
+        Javobni bilish <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </a>
+      <ul class="hf-note">
+        <li><i class="bi bi-cpu" aria-hidden="true"></i> AI yordamchi javob beradi</li>
+        <li><i class="bi bi-coin" aria-hidden="true"></i> Tanga yechilmaydi</li>
+        <li><i class="bi bi-arrow-repeat" aria-hidden="true"></i> Har soatda yangi savol</li>
+      </ul>
+    </div>
+  </article>
+  {% endif %}
+</section>

@@ -83,6 +83,9 @@ def _record_payment(student, amount_som, source, transaction_id):
             added_by=None,
             note=f"Onlayn to'lov ({source}) | tx:{transaction_id}"[:500],
         )
+        from .premium_bonus import award_topup_bonus
+        award_topup_bonus(student, amount_som, source=source,
+                          reference=f'{source.lower()}:{transaction_id}')
 
         # 3. Oylik to'lovni balansdan yechib, akkauntni ochishga urinamiz.
         #    Balans yetsa fee yechiladi va unblock bo'ladi; yetmasa pul balansda

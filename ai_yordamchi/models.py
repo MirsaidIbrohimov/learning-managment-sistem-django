@@ -91,6 +91,27 @@ class ChatMessage(models.Model):
         return f"{self.role}: {self.content[:50]}"
 
 
+class AIDailyUsage(models.Model):
+    """Kunlik AI limiti hisoblagichi (Toshkent sanasi bo'yicha).
+
+    Xabarlardan mustaqil: suhbatni o'chirish, tarixni tozalash yoki qayta
+    login qilish ishlatilgan limitni qaytarmaydi.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_daily_usage')
+    date = models.DateField()
+    messages = models.PositiveIntegerField(default=0)
+    images = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'date'], name='ai_daily_usage_user_date')]
+        verbose_name = 'AI kunlik limit'
+        verbose_name_plural = 'AI kunlik limitlar'
+
+    def __str__(self):
+        return f"{self.user} — {self.date}: {self.messages} xabar, {self.images} rasm"
+
+
 class KnowledgeChunk(models.Model):
     """A chunk of course material (lesson text) + its embedding, for RAG.
 

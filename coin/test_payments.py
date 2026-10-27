@@ -106,7 +106,7 @@ class CoinPaymentTests(PaymentFixtures, TestCase):
         data = {'amount': '10 000', 'token': str(uuid.uuid4()), 'user_id': 9999, 'price': 1}
         result = {'bill_id': 'bill', 'bill_reference': 'ref',
                   'payment_url': 'https://tezcheck.uz/pay/test', 'available_until': None}
-        def active_bill(bill_id):
+        def active_bill(bill_id, gateway=None):
             order = Order.objects.get(bill_id=bill_id)
             return {'bill': {'id': bill_id, 'external_reference': order.external_reference, 'state': 'active', 'paid': False}}
         with patch('coin.payments.create_bill', return_value=result) as create, patch('coin.payments.fetch_bill', side_effect=active_bill):

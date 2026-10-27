@@ -60,9 +60,13 @@
 
 
     {% block extra_css %}{% endblock %}
+    {% if request.user.is_authenticated and request.user.is_premium %}
+    <link rel="stylesheet" href="{% static 'css/premium-motion.css' %}?v=20261027">
+    <script src="{% static 'js/premium-motion.js' %}?v=20261027" defer></script>
+    {% endif %}
 </head>
 
-<body>
+<body{% if request.user.is_authenticated and request.user.is_premium %} class="is-premium"{% endif %}>
 <a class="ds-skip-link" href="#main-content">Asosiy tarkibga o‘tish</a>
 <!-- 📡 Offline Overlay -->
 <div class="offline-overlay" id="offlineOverlay" role="alertdialog" aria-modal="true" aria-labelledby="offlineTitle" aria-describedby="offlineSubtitle">

@@ -444,6 +444,11 @@
                     <i class="bi bi-exclamation-triangle-fill"></i> API kalitlari yoki Webhook to'liq emas
                 </span>
             {% endif %}
+            {% for name, ready in gateway_status %}
+                <span class="tz-badge-pill {% if ready %}active{% else %}warning{% endif %}">
+                    <i class="bi {% if ready %}bi-check-circle-fill{% else %}bi-x-circle-fill{% endif %}"></i> {{ name }}: {% if ready %}ishlayapti{% else %}sozlanmagan{% endif %}
+                </span>
+            {% endfor %}
         </div>
     </div>
 
@@ -517,10 +522,16 @@
                         <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
+                <select name="gateway" class="tz-filter-select" onchange="this.form.submit()">
+                    <option value="">Barcha tizimlar</option>
+                    {% for value, label in gateway_choices %}
+                        <option value="{{ value }}" {% if gateway_filter == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
                 <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 fw-bold">
                     <i class="bi bi-funnel"></i> Saralash
                 </button>
-                {% if query or status_filter %}
+                {% if query or status_filter or gateway_filter %}
                     <a href="{% url 'admin_tezcheck_payments' %}" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3">
                         <i class="bi bi-x-circle"></i> Tozalash
                     </a>
@@ -645,7 +656,8 @@
 
                         <!-- Provayder -->
                         <td>
-                            <div class="fw-bold">{{ order.provider_code|default:'—' }}</div>
+                            <div class="fw-bold">{{ order.get_gateway_display }}{% if order.payment_method %} · {{ order.payment_method }}{% endif %}</div>
+                            {% if order.provider_code and order.provider_code != order.gateway %}<div class="small text-muted">{{ order.provider_code }}</div>{% endif %}
                             {% if order.payment_id %}
                                 <div class="tz-ref-code mt-1">{{ order.payment_id }}</div>
                             {% endif %}
@@ -700,12 +712,12 @@
             </div>
             <nav class="d-flex gap-2">
                 {% if page_obj.has_previous %}
-                    <a class="btn btn-sm btn-outline-secondary rounded-3" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.previous_page_number }}">
+                    <a class="btn btn-sm btn-outline-secondary rounded-3" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&gateway={{ gateway_filter|urlencode }}&page={{ page_obj.previous_page_number }}">
                         <i class="bi bi-chevron-left"></i> Oldingi
                     </a>
                 {% endif %}
                 {% if page_obj.has_next %}
-                    <a class="btn btn-sm btn-outline-secondary rounded-3" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&page={{ page_obj.next_page_number }}">
+                    <a class="btn btn-sm btn-outline-secondary rounded-3" href="?q={{ query|urlencode }}&status={{ status_filter|urlencode }}&gateway={{ gateway_filter|urlencode }}&page={{ page_obj.next_page_number }}">
                         Keyingi <i class="bi bi-chevron-right"></i>
                     </a>
                 {% endif %}

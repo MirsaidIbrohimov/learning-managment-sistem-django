@@ -1,0 +1,41 @@
+{% comment %}
+Premium a'zolar uchun Market mavzusi: qora-oltin palitra, oqib turuvchi
+gradient chegaralar va yaltiroq kartalar. _market_ui.html oxirida ulanadi.
+{% endcomment %}
+<style>
+:root {
+    --mkt-accent: #d97706;
+    --mkt-accent-2: #fbbf24;
+    --mkt-accent-soft: rgba(217, 119, 6, 0.12);
+    --mkt-gold: #f59e0b;
+}
+[data-bs-theme="dark"] {
+    --mkt-card: #17130c;
+    --mkt-bg-soft: #100d07;
+    --mkt-border: rgba(251, 191, 36, 0.16);
+    --mkt-accent: #fbbf24;
+    --mkt-accent-soft: rgba(251, 191, 36, 0.12);
+}
+@keyframes mkpFlow { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes mkpShine { 0% { transform: translateX(-120%) skewX(-20deg); } 60%, 100% { transform: translateX(260%) skewX(-20deg); } }
+@keyframes mkpFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+.mkt-hero { border-color: rgba(245, 158, 11, .35); box-shadow: 0 18px 50px -20px rgba(217, 119, 6, .45); }
+.mkt-hero::before { height: 5px; background: linear-gradient(90deg, #92400e, #fbbf24, #fde68a, #f59e0b, #92400e); background-size: 300% 100%; animation: mkpFlow 5s ease infinite; }
+.mkt-hero h1 i { color: #f59e0b; }
+.mkp-badge { display: inline-flex; align-items: center; gap: .45rem; margin-top: .6rem; padding: .4rem .85rem; border-radius: 999px;
+    font-size: .8rem; font-weight: 800; color: #451a03; background: linear-gradient(120deg, #fde68a, #f59e0b, #fde68a); background-size: 200% 100%;
+    animation: mkpFlow 4s ease infinite; box-shadow: 0 6px 18px -6px rgba(245, 158, 11, .7); }
+.mk-balance-ring-wrap { animation: mkpFloat 4s ease-in-out infinite; }
+.mk-balance-ring .fill { stroke: #f59e0b; }
+.mk-card { position: relative; overflow: hidden; }
+.mk-card::after { content: ''; position: absolute; top: 0; left: 0; width: 40%; height: 100%; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(253, 230, 138, .28), transparent); transform: translateX(-120%) skewX(-20deg); }
+.mk-card:hover::after { animation: mkpShine 1.1s ease; }
+.mk-card:hover { border-color: #f59e0b; box-shadow: 0 18px 40px -18px rgba(217, 119, 6, .55); }
+.ct-panel { border-color: rgba(245, 158, 11, .4) !important; }
+.ct-submit:not(.ct-balance-btn) { background: linear-gradient(120deg, #b45309, #f59e0b, #b45309) !important; background-size: 200% 100% !important; animation: mkpFlow 4s ease infinite; color: #fff !important; }
+@media (prefers-reduced-motion: reduce) {
+    .mkt-hero::before, .mkp-badge, .mk-balance-ring-wrap, .ct-submit, .mk-card:hover::after { animation: none !important; }
+}
+</style>

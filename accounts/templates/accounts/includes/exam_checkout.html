@@ -1,4 +1,4 @@
-<div style="padding:18px 0">
+{% load payment_tags %}<div style="padding:18px 0">
   <h3 style="margin-bottom:12px">Imtihonni qayta topshirish</h3>
   {% if approved_payment %}
     <p>To‘lov tasdiqlandi. Bitta qayta urinish ochildi.</p>
@@ -17,7 +17,8 @@
       <form method="post" action="{% url 'exam_checkout' exam_kind exam_pk %}" style="margin-top:18px">
         {% csrf_token %}
         <input type="hidden" name="checkout_token" value="{{ exam_checkout_token }}">
-        <button type="submit" class="submit-btn">Yangi to‘lov havolasini ochish</button>
+        {% payment_method_cards %}
+        <button type="submit" class="submit-btn">Onlayn to‘lash</button>
       </form>
       <p style="font-size:13px;opacity:.75;margin-top:10px">Oldingi to‘lov avval tekshiriladi. To‘lov o‘tgan bo‘lsa, qaytadan to‘lash talab qilinmaydi.</p>
     {% endif %}
