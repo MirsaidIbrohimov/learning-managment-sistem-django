@@ -1,25 +1,20 @@
-<!DOCTYPE html>
+{% extends base_template|default:'accounts/base.html' %}
 {% load static %}
-<html lang="uz">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="robots" content="noindex, nofollow">
-    <title>{{ bootstrap.quiz_title }} - Test | IT Creative Zomin LMS</title>
-    <meta name="theme-color" content="#050510">
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    <link rel="icon" href="{% static 'img/fav.ico' %}">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'quiz/css/bootstrap-icons.css' %}">
-    <link rel="stylesheet" href="{% static 'quiz/css/quiz_take.css' %}">
-    <link rel="stylesheet" href="{% static 'css/student_test_glass.css' %}">
-    <script>
-        document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
-    </script>
-</head>
-<body>
+{% block title %}{{ bootstrap.quiz_title }} - Test | IT Creative Zomin LMS{% endblock %}
+{% block meta_robots %}noindex, nofollow{% endblock %}
+{% block nav_title %}Test{% endblock %}
 
+{% block extra_css %}
+<meta name="csrf-token" content="{{ csrf_token }}">
+<link rel="stylesheet" href="{% static 'quiz/css/quiz_take.css' %}?v=shell1">
+<link rel="stylesheet" href="{% static 'css/student_test_glass.css' %}">
+<link rel="stylesheet" href="{% static 'quiz/css/quiz_shell.css' %}?v=1">
+{% include 'quiz/_quiz_shell_theme.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="qt-page">
     <div class="qt-bg-orbs" aria-hidden="true">
         <span class="qt-orb qt-orb-1"></span>
         <span class="qt-orb qt-orb-2"></span>
@@ -111,7 +106,7 @@
         </div>
     </div>
 
-    <main id="appRoot" class="qt-main">
+    <div id="appRoot" class="qt-main">
 
         <!-- ===================== INTRO SCREEN ===================== -->
         <section class="qt-screen qt-screen-active" id="screen-intro">
@@ -285,13 +280,16 @@
             </div>
         </section>
 
-    </main>
+    </div>
 
     <div class="quizui-toast-stack" id="quizToastStack"></div>
+</div>
+{% endblock %}
 
-    {{ bootstrap|json_script:"quiz-bootstrap" }}
-    {% if portal %}<script>window.QUIZ_API_ROOT = '{{ portal.quiz_api_root }}'; window.QUIZ_RETRY_URL = '{{ portal.retry_url }}';</script>{% endif %}
-    <script src="{% static 'quiz/js/api.js' %}?v=portal1"></script>
-    <script src="{% static 'quiz/js/quiz_take.js' %}?v=portal1"></script>
-</body>
-</html>
+{% block extra_js %}
+{{ bootstrap|json_script:"quiz-bootstrap" }}
+{% if portal %}<script>window.QUIZ_API_ROOT = '{{ portal.quiz_api_root }}'; window.QUIZ_RETRY_URL = '{{ portal.retry_url }}';</script>{% endif %}
+<script src="{% static 'quiz/js/quiz_shell.js' %}?v=1"></script>
+<script src="{% static 'quiz/js/api.js' %}?v=portal1"></script>
+<script src="{% static 'quiz/js/quiz_take.js' %}?v=portal1"></script>
+{% endblock %}
