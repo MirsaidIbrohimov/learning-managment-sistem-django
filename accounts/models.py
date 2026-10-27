@@ -3816,6 +3816,28 @@ class StudentAttendance(models.Model):
         }.get(self.status, '#6c757d')
 
 
+class StudentDailyVisit(models.Model):
+    """O'quvchi platformaga kirgan kun (har kunga bitta yozuv).
+
+    accounts/attendance_auto.record_visit() yozadi: login signali va
+    UpdateLastActivityMiddleware'ning kunlik bloki. Ota-ona panelidagi
+    davomat kalendari guruh davomati bo'lmagan kunlarni shundan oladi.
+    """
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_visits')
+    date = models.DateField(db_index=True)
+    first_seen = models.DateTimeField(default=timezone.now)
+    last_seen = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ['user', 'date']
+        ordering = ['-date']
+        verbose_name = "Platformaga kirgan kun"
+        verbose_name_plural = "Platformaga kirgan kunlar"
+
+    def __str__(self):
+        return f"{self.user} — {self.date}"
+
+
 class CuriosityQuestion(models.Model):
     """Bosh sahifadagi "Bilasizmi?" savoli — OpenAI to'plam qilib yaratadi (accounts/curiosity.py)."""
     text = models.CharField(max_length=255, unique=True, verbose_name="Savol")

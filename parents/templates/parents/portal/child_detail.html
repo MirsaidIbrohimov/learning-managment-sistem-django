@@ -109,8 +109,8 @@
         <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-calendar2-check-fill"></i></span><h3>Davomat (30 kun)</h3>
             <a class="more" href="{% url 'parent_attendance' %}">Kalendar <i class="bi bi-arrow-right"></i></a></div>
         <div class="pp-grid c3" style="gap:10px;">
-            <div class="cd-mini"><small>Keldi</small><b style="color:var(--pp-ok)">{{ attendance.present }}</b></div>
-            <div class="cd-mini"><small>Kechikdi</small><b style="color:var(--pp-warn)">{{ attendance.late }}</b></div>
+            <div class="cd-mini"><small>Saytga kirdi</small><b style="color:var(--pp-cy)">{{ attendance.active_days }} kun</b></div>
+            <div class="cd-mini"><small>Darsga keldi</small><b style="color:var(--pp-ok)">{{ attendance.present|add:attendance.late }}</b></div>
             <div class="cd-mini"><small>Kelmadi</small><b style="color:var(--pp-bad)">{{ attendance.absent }}</b></div>
         </div>
         <div style="margin-top:14px;">

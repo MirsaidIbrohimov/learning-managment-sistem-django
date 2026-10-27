@@ -381,6 +381,36 @@ class AutoAttendanceTests(BaseCase):
         a = StudentAttendance.objects.get(student=self.kid, date=today)
         self.assertEqual((a.status, a.note), ('present', AUTO_NOTE))
 
+    def test_visit_days_fill_calendar_without_group_marks(self):
+        from accounts.attendance_auto import record_visit
+        from accounts.models import StudentDailyVisit
+        lone = make_user('yolgiz')  # guruhga biriktirilmagan
+        now = timezone.now()
+        for d in (0, 1, 3):
+            record_visit(lone, now=now - timedelta(days=d))
+        record_visit(lone, now=now)  # o'sha kun ikkinchi marta — yangi yozuv emas
+        self.assertEqual(StudentDailyVisit.objects.filter(user=lone).count(), 3)
+        att = insights.attendance_summary(lone)
+        self.assertEqual((att['total'], att['active_days'], att['display_label'], att['display_rate']),
+                         (0, 3, 'Faol kunlar', 10))
+        cells = [c for row in insights.attendance_calendar(lone)['rows'] for c in row['cells']]
+        self.assertEqual(sum(1 for c in cells if c['status'] == 'visited'), 3)
+
+    def test_group_mark_wins_over_visit_in_calendar(self):
+        from accounts.attendance_auto import record_visit
+        today = timezone.localdate()
+        record_visit(self.kid)
+        StudentAttendance.objects.create(group=self.group, student=self.kid, date=today, status='late')
+        cells = {c['date']: c['status'] for row in insights.attendance_calendar(self.kid)['rows'] for c in row['cells']}
+        self.assertEqual(cells[today], 'late')
+        self.assertEqual(insights.attendance_summary(self.kid)['display_label'], 'Davomat')
+
+    def test_login_records_visit(self):
+        from accounts.models import StudentDailyVisit
+        self.kid.set_password('Parol-12345'); self.kid.save()
+        Client().post(reverse('login'), {'login_mode': 'username', 'username': 'aziz', 'password': 'Parol-12345'})
+        self.assertTrue(StudentDailyVisit.objects.filter(user=self.kid, date=timezone.localdate()).exists())
+
     def test_diagnostic_command(self):
         from io import StringIO
         from django.core.management import call_command

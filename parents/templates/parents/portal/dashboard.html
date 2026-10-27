@@ -28,7 +28,7 @@
         </div>
         <div class="pp-hero-stats">
             {% include 'parents/portal/partials/ring.html' with value=progress.percent size=112 label='Bajarildi' %}
-            <div class="pp-hero-stat"><b>{% if attendance.rate is not None %}<span data-count="{{ attendance.rate }}">0</span>%{% else %}—{% endif %}</b><small>Davomat (30 kun)</small></div>
+            <div class="pp-hero-stat"><b><span data-count="{{ attendance.display_rate }}">0</span>%</b><small>{{ attendance.display_label }} (30 kun)</small></div>
             <div class="pp-hero-stat"><b><span data-count="{{ tests.avg|dot }}">0</span>%</b><small>Test o‘rtachasi</small></div>
         </div>
     </div>
@@ -59,11 +59,11 @@
         <div class="lbl">Testlar o‘rtacha bali</div>
         <div class="sub">O‘tish ko‘rsatkichi: {{ tests.pass_rate }}%</div>
     </a>
-    <a href="{% url 'parent_attendance' %}" class="pp-card pp-kpi {% if attendance.rate is None %}tone-info{% else %}tone-{{ attendance.rate|tone }}{% endif %}" data-reveal>
+    <a href="{% url 'parent_attendance' %}" class="pp-card pp-kpi tone-{{ attendance.display_rate|tone }}" data-reveal>
         <div class="top"><span class="ic"><i class="bi bi-calendar2-check-fill"></i></span>{% if attendance.absent %}<span class="pp-badge bad">{{ attendance.absent }} ta kelmagan</span>{% endif %}</div>
-        <div class="num">{% if attendance.rate is not None %}<span data-count="{{ attendance.rate }}">0</span><small>%</small>{% else %}—{% endif %}</div>
-        <div class="lbl">Davomat (30 kun)</div>
-        <div class="sub">{{ attendance.present }} keldi · {{ attendance.late }} kechikdi · {{ attendance.total }} dars</div>
+        <div class="num"><span data-count="{{ attendance.display_rate }}">0</span><small>%</small></div>
+        <div class="lbl">{{ attendance.display_label }} (30 kun)</div>
+        <div class="sub">{{ attendance.active_days }} kun saytga kirdi{% if attendance.total %} · {{ attendance.present }}/{{ attendance.total }} darsga keldi{% endif %}</div>
     </a>
     <a href="{% url 'parent_homework' %}" class="pp-card pp-kpi tone-{{ homework.avg_grade|tone:10 }}" data-reveal>
         <div class="top"><span class="ic"><i class="bi bi-journal-check"></i></span>{% if homework.missed %}<span class="pp-badge bad">{{ homework.missed }} topshirilmagan</span>{% endif %}</div>

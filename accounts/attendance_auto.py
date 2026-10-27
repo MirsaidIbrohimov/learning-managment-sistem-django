@@ -44,6 +44,27 @@ def auto_mark_present(user, today=None):
     return created
 
 
+def record_visit(user, now=None):
+    """Bugungi "saytga kirdi" yozuvi (o'quvchilar uchun). Kunda bitta; last_seen yangilanadi."""
+    if getattr(user, 'role', None) != 'student':
+        return False
+    from accounts.models import StudentDailyVisit
+
+    now = now or timezone.now()
+    visit, created = StudentDailyVisit.objects.get_or_create(
+        user=user, date=timezone.localtime(now).date(), defaults={'first_seen': now, 'last_seen': now},
+    )
+    if not created:
+        StudentDailyVisit.objects.filter(pk=visit.pk).update(last_seen=now)
+    return created
+
+
+def on_daily_visit(user):
+    """Kunlik kirish: tashrifni yozish + guruh davomatiga avtomatik belgi."""
+    record_visit(user)
+    return auto_mark_present(user)
+
+
 def explain(user, today=None):
     """Nega bugun belgi qo'yildi/qo'yilmadi — inson o'qiy oladigan sabablar ro'yxati."""
     from accounts.models import StudentAttendance, StudyGroup
@@ -81,6 +102,6 @@ def explain(user, today=None):
 @receiver(user_logged_in, dispatch_uid='accounts.auto_attendance_on_login')
 def _mark_on_login(sender, request, user, **kwargs):
     try:
-        auto_mark_present(user)
+        on_daily_visit(user)
     except Exception:
         logger.exception("Avtomatik davomat (login) xatosi (user=%s)", getattr(user, 'pk', None))

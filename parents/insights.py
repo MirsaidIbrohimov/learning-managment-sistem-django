@@ -153,12 +153,28 @@ def speaking_summary(child):
 # ── Davomat va jadval ──
 
 def attendance_summary(child, days=30):
-    since = timezone.localdate() - timedelta(days=days)
+    """Guruh davomati + platformaga kirgan kunlar (oxirgi N kun).
+
+    display_rate/display_label: guruh davomati bo'lsa — "Davomat", bo'lmasa — "Faol kunlar"
+    (o'quvchi saytga kirgan kunlar ulushi). Shunda guruhsiz o'quvchida ham ko'rsatkich bo'sh qolmaydi.
+    """
+    from accounts.models import StudentDailyVisit
+    today = timezone.localdate()
+    since = today - timedelta(days=days)
     qs = StudentAttendance.objects.filter(student=child, date__gte=since)
     counts = dict(qs.values_list('status').annotate(n=Count('id')))
     total = sum(counts.values())
     attended = counts.get('present', 0) + counts.get('late', 0)
+    visits = StudentDailyVisit.objects.filter(user=child, date__gt=since, date__lte=today)
+    active_days = visits.count()
+    rate = round(attended / total * 100) if total else None
+    active_rate = round(active_days / days * 100)
     return {
+        'active_days': active_days,
+        'active_rate': active_rate,
+        'recent_visits': list(StudentDailyVisit.objects.filter(user=child).order_by('-date')[:12]),
+        'display_rate': rate if rate is not None else active_rate,
+        'display_label': 'Davomat' if rate is not None else 'Faol kunlar',
         'days': days,
         'total': total,
         'present': counts.get('present', 0),
@@ -166,7 +182,7 @@ def attendance_summary(child, days=30):
         'absent': counts.get('absent', 0),
         'sick': counts.get('sick', 0),
         'excused': counts.get('excused', 0),
-        'rate': round(attended / total * 100) if total else None,
+        'rate': rate,
         'recent': list(StudentAttendance.objects.filter(student=child)
                        .select_related('group').order_by('-date')[:12]),
     }
@@ -176,10 +192,12 @@ def attendance_calendar(child, weeks=6):
     """Oxirgi N hafta uchun kunlik davomat katakchalari (GitHub uslubida)."""
     today = timezone.localdate()
     start = today - timedelta(days=today.weekday() + 7 * (weeks - 1))
-    marks = {}
+    from accounts.models import StudentDailyVisit
+    marks = {d: 'visited' for d in StudentDailyVisit.objects.filter(
+        user=child, date__gte=start, date__lte=today).values_list('date', flat=True)}
+    rank = {'absent': 4, 'late': 3, 'sick': 2, 'excused': 1, 'present': 0, 'visited': -1}
     for a in StudentAttendance.objects.filter(student=child, date__gte=start, date__lte=today):
-        # Bir kunda bir nechta guruh bo'lsa, eng yomon holat ko'rsatiladi
-        rank = {'absent': 4, 'late': 3, 'sick': 2, 'excused': 1, 'present': 0}
+        # Guruh belgisi "saytga kirdi"dan ustun; bir kunda bir nechta guruh bo'lsa — eng yomoni
         prev = marks.get(a.date)
         if prev is None or rank[a.status] > rank[prev]:
             marks[a.date] = a.status

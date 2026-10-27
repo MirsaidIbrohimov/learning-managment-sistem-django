@@ -113,8 +113,8 @@ class UpdateLastActivityMiddleware:
                     pass
                 # ✅ Saytga kirgan kuni guruh davomatiga avtomatik "keldi"
                 try:
-                    from .attendance_auto import auto_mark_present
-                    auto_mark_present(request.user)
+                    from .attendance_auto import on_daily_visit
+                    on_daily_visit(request.user)
                 except Exception:
                     logger.exception("Avtomatik davomat xatosi (user=%s)", request.user.pk)
 
