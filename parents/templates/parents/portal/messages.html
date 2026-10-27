@@ -1,493 +1,194 @@
 {% extends 'parents/portal/base_parent.html' %}
+{% block title %}Xabarlar{% endblock %}
+{% block page_title %}Xabarlar{% endblock %}
 
-{% block title %}Xabarlar - Ota-ona paneli{% endblock %}
+{% block extra_css %}
+<style>
+    .ch { display: grid; grid-template-columns: 300px minmax(0, 1fr); height: calc(100vh - 120px); min-height: 520px; border-radius: 24px; overflow: hidden;
+        background: var(--pp-surface); border: 1px solid var(--pp-line); box-shadow: var(--pp-shadow); }
+
+    /* Suhbatlar ro'yxati */
+    .ch-list { border-right: 1px solid var(--pp-line); display: flex; flex-direction: column; min-height: 0; background: var(--pp-surface-2); }
+    [data-bs-theme="dark"] .ch-list { background: rgba(255,255,255,.02); }
+    .ch-list-h { padding: 18px 18px 10px; }
+    .ch-list-h h2 { margin: 0; font-size: 1.15rem; font-weight: 850; }
+    .ch-list-h p { margin: 2px 0 0; font-size: .78rem; color: var(--pp-text-3); }
+    .ch-convs { overflow-y: auto; padding: 6px 10px 12px; }
+    .ch-conv { display: flex; align-items: center; gap: 11px; padding: 11px; border-radius: 16px; margin-bottom: 4px; transition: background .2s, transform .3s var(--pp-spring); }
+    .ch-conv:hover { background: var(--pp-surface); transform: translateX(3px); }
+    .ch-conv.on { background: var(--pp-surface); box-shadow: var(--pp-shadow); }
+    .ch-conv .pp-ava { width: 46px; height: 46px; border-radius: 15px; font-size: .9rem; }
+    .ch-conv .t { min-width: 0; flex: 1; }
+    .ch-conv .t b { display: flex; justify-content: space-between; gap: 6px; font-size: .9rem; }
+    .ch-conv .t b small { font-weight: 600; font-size: .7rem; color: var(--pp-text-3); white-space: nowrap; }
+    .ch-conv .t span { display: block; font-size: .78rem; color: var(--pp-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+    .ch-conv .n { min-width: 20px; height: 20px; padding: 0 6px; border-radius: 99px; display: grid; place-items: center; font-size: .68rem; font-weight: 800; color: #fff; background: var(--pp-ok); animation: ppPop .5s var(--pp-spring); }
+    .ch-tip { margin: auto 12px 12px; padding: 12px; border-radius: 14px; font-size: .76rem; color: var(--pp-text-2); background: color-mix(in srgb, var(--pp-pri) 8%, transparent); }
+
+    /* Chat */
+    .ch-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .ch-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--pp-line); background: var(--pp-glass); backdrop-filter: blur(12px); }
+    .ch-head .pp-ava { width: 42px; height: 42px; border-radius: 14px; }
+    .ch-head b { display: block; font-size: .98rem; }
+    .ch-head small { color: var(--pp-text-3); font-size: .76rem; display: flex; align-items: center; gap: 6px; }
+    .ch-kids { display: none; gap: 6px; overflow-x: auto; padding: 10px 14px 0; scrollbar-width: none; }
+    .ch-kids a { flex-shrink: 0; padding: 6px 12px; border-radius: 99px; font-size: .8rem; font-weight: 700; border: 1px solid var(--pp-line); color: var(--pp-text-2); }
+    .ch-kids a.on { background: var(--pp-pri); border-color: var(--pp-pri); color: #fff; }
+
+    .ch-body { flex: 1; overflow-y: auto; padding: 18px clamp(12px, 3vw, 28px) 8px; scroll-behavior: smooth;
+        background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--pp-pri) 9%, transparent) 1px, transparent 0); background-size: 22px 22px; }
+    .ch-day { text-align: center; margin: 14px 0 10px; }
+    .ch-day span { display: inline-block; padding: 4px 12px; border-radius: 99px; font-size: .72rem; font-weight: 700; color: var(--pp-text-2); background: var(--pp-surface); border: 1px solid var(--pp-line); }
+    .ch-row { display: flex; gap: 8px; margin-bottom: 10px; animation: chIn .45s var(--pp-ease) both; }
+    @keyframes chIn { from { opacity: 0; transform: translateY(10px) scale(.98); } }
+    .ch-row.me { justify-content: flex-end; }
+    .ch-av { width: 32px; height: 32px; border-radius: 11px; flex-shrink: 0; display: grid; place-items: center; align-self: flex-end; color: #fff; font-size: .9rem;
+        background: linear-gradient(135deg, var(--pp-ok), #0d9488); }
+    .ch-bub { position: relative; max-width: min(560px, 78%); padding: 10px 14px 8px; border-radius: 18px; font-size: .92rem; line-height: 1.5; white-space: pre-line; word-wrap: break-word; }
+    .me .ch-bub { color: #fff; background: linear-gradient(135deg, var(--pp-pri), var(--pp-vio)); border-bottom-right-radius: 6px; box-shadow: 0 10px 22px -14px var(--pp-pri); }
+    .them .ch-bub { background: var(--pp-surface); border: 1px solid var(--pp-line); border-bottom-left-radius: 6px; box-shadow: var(--pp-shadow); }
+    .them.new .ch-bub { border-color: color-mix(in srgb, var(--pp-ok) 55%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pp-ok) 15%, transparent); }
+    .ch-topic { display: inline-block; font-size: .68rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; opacity: .8; margin-bottom: 2px; }
+    .ch-who { display: block; font-size: .72rem; font-weight: 800; color: var(--pp-ok); margin-bottom: 2px; }
+    .ch-meta { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 4px; font-size: .68rem; opacity: .75; white-space: nowrap; }
+    .ch-notice { display: flex; gap: 10px; max-width: 520px; margin: 10px auto; padding: 10px 14px; border-radius: 14px; font-size: .82rem;
+        background: color-mix(in srgb, var(--pp-info) 9%, var(--pp-surface)); border: 1px dashed color-mix(in srgb, var(--pp-info) 40%, transparent); color: var(--pp-text-2); }
+    .ch-notice i { color: var(--pp-info); font-size: 1rem; }
+    .ch-notice b { display: block; color: var(--pp-text); }
+    .ch-typing { display: flex; align-items: center; gap: 8px; color: var(--pp-text-3); font-size: .78rem; margin: 6px 0 4px 40px; }
+    .ch-empty { height: 100%; display: grid; place-content: center; text-align: center; padding: 20px; color: var(--pp-text-2); }
+    .ch-empty .art { width: 84px; height: 84px; margin: 0 auto 14px; border-radius: 26px; display: grid; place-items: center; font-size: 2.2rem; color: var(--pp-pri);
+        background: color-mix(in srgb, var(--pp-pri) 10%, transparent); animation: ppFloat 5s ease-in-out infinite; }
+    .ch-empty h4 { margin: 0 0 6px; font-weight: 850; }
+
+    /* Yozish maydoni */
+    .ch-compose { border-top: 1px solid var(--pp-line); padding: 10px 14px 14px; background: var(--pp-surface); }
+    .ch-topics { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+    .ch-topics label { flex-shrink: 0; cursor: pointer; }
+    .ch-topics input { position: absolute; opacity: 0; pointer-events: none; }
+    .ch-topics span { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; border-radius: 99px; font-size: .78rem; font-weight: 700;
+        border: 1.5px solid var(--pp-line); color: var(--pp-text-2); transition: all .25s var(--pp-spring); }
+    .ch-topics input:checked + span { background: color-mix(in srgb, var(--pp-pri) 12%, transparent); border-color: var(--pp-pri); color: var(--pp-pri); transform: translateY(-1px); }
+    .ch-input { display: flex; align-items: flex-end; gap: 10px; padding: 6px 6px 6px 16px; border-radius: 22px; border: 1.5px solid var(--pp-line); background: var(--pp-surface-2);
+        transition: border-color .25s, box-shadow .25s; }
+    .ch-input:focus-within { border-color: var(--pp-pri); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pp-pri) 13%, transparent); background: var(--pp-surface); }
+    .ch-input textarea { flex: 1; border: 0; outline: 0; background: transparent; color: var(--pp-text); font: 500 .95rem/1.45 var(--pp-font); resize: none;
+        min-height: 24px; max-height: 160px; padding: 9px 0; }
+    .ch-send { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; font-size: 1.1rem; color: #fff;
+        background: linear-gradient(135deg, var(--pp-pri), var(--pp-vio)); box-shadow: 0 10px 22px -10px var(--pp-pri); transition: transform .35s var(--pp-spring), opacity .2s; }
+    .ch-send:disabled { opacity: .45; cursor: default; box-shadow: none; }
+    .ch-send:not(:disabled):hover { transform: scale(1.08) rotate(-12deg); }
+    .ch-send.loading i { animation: ppSpin .8s linear infinite; }
+    .ch-hint { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: .7rem; color: var(--pp-text-3); padding: 0 6px; }
+
+    @media (max-width: 992px) {
+        .ch { grid-template-columns: 1fr; height: calc(100vh - 190px); border-radius: 20px; }
+        .ch-list { display: none; }
+        .ch-kids { display: flex; }
+    }
+</style>
+{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid px-0">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-1 fw-bold">
-                <i class="bi bi-chat-square-dots-fill me-2 text-primary"></i>Xabarlar
-            </h3>
-            <p class="text-muted mb-0">Mentorlar bilan aloqa</p>
+{% if not children %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+<div class="ch" data-reveal="scale">
+    <!-- Suhbatlar -->
+    <aside class="ch-list" aria-label="Suhbatlar">
+        <div class="ch-list-h"><h2>Xabarlar</h2><p>O‘quv markazi bilan farzandlaringiz haqida</p></div>
+        <div class="ch-convs">
+            {% for cv in convs %}
+            <a class="ch-conv {% if chat_child and cv.child.id == chat_child.id %}on{% endif %}" href="?child={{ cv.child.id }}#end">
+                {% include 'parents/portal/partials/avatar.html' with person=cv.child size='' %}
+                <span class="t">
+                    <b>{{ cv.child.full_name|default:cv.child.username }}{% if cv.last_at %}<small>{{ cv.last_at|date:"d.m" }}</small>{% endif %}</b>
+                    <span>{% if cv.last_text %}{{ cv.last_text|truncatechars:42 }}{% else %}Hali yozishmagansiz{% endif %}</span>
+                </span>
+                {% if cv.new %}<span class="n">{{ cv.new }}</span>{% elif cv.waiting %}<i class="bi bi-clock" style="color:var(--pp-warn)" title="Javob kutilmoqda"></i>{% endif %}
+            </a>
+            {% endfor %}
         </div>
-        <button class="btn-new-message" data-bs-toggle="modal" data-bs-target="#newMessageModal">
-            <i class="bi bi-plus-lg me-2"></i>Yangi xabar
-        </button>
-    </div>
+        <div class="ch-tip"><i class="bi bi-lightbulb"></i> Javob odatda 1 ish kuni ichida keladi. Shoshilinch holatda o‘quv markaziga qo‘ng‘iroq qiling.</div>
+    </aside>
 
-    <!-- Children Stats Cards -->
-    {% if children %}
-    <div class="row g-4 mb-4">
-        {% for child in children %}
-        <div class="col-lg-4 col-md-6">
-            <div class="child-info-card">
-                <div class="child-info-header">
-                    {% if child.photo %}
-                    <img src="{{ child.photo.url }}" class="child-info-avatar">
-                    {% else %}
-                    <div class="child-info-avatar-placeholder">
-                        {{ child.first_name.0|upper }}{{ child.last_name.0|upper }}
-                    </div>
-                    {% endif %}
-                    <div class="child-info-details">
-                        <h6 class="mb-0 fw-bold">{{ child.full_name }}</h6>
-                        <small class="text-muted">@{{ child.username }}</small>
-                    </div>
-                </div>
-                <div class="child-info-stats">
-                    <div class="child-stat">
-                        <i class="bi bi-coin text-warning"></i>
-                        <span class="child-stat-value">{{ child.coins }}</span>
-                        <span class="child-stat-label">Coin</span>
-                    </div>
-                    <div class="child-stat">
-                        <i class="bi bi-clock text-info"></i>
-                        <span class="child-stat-value small">
-                            {% if child.last_activity %}
-                            {{ child.last_activity|timesince|truncatewords:2 }}
-                            {% else %}
-                            -
-                            {% endif %}
-                        </span>
-                        <span class="child-stat-label">Faollik</span>
-                    </div>
-                    <div class="child-stat">
-                        {% if child.is_online %}
-                        <i class="bi bi-circle-fill text-success"></i>
-                        <span class="child-stat-value text-success small">Online</span>
-                        {% else %}
-                        <i class="bi bi-circle text-secondary"></i>
-                        <span class="child-stat-value text-secondary small">Offline</span>
-                        {% endif %}
-                        <span class="child-stat-label">Holat</span>
-                    </div>
-                </div>
+    <!-- Chat -->
+    <section class="ch-main">
+        <div class="ch-kids">
+            {% for cv in convs %}<a class="{% if chat_child and cv.child.id == chat_child.id %}on{% endif %}" href="?child={{ cv.child.id }}#end">{{ cv.child.first_name }}{% if cv.new %} · {{ cv.new }}{% endif %}</a>{% endfor %}
+        </div>
+        <div class="ch-head">
+            <span class="ch-av" style="width:42px;height:42px;border-radius:14px;align-self:center;"><i class="bi bi-mortarboard-fill"></i></span>
+            <div style="min-width:0;">
+                <b>O‘quv markazi · {{ chat_child.first_name }} haqida</b>
+                <small><span class="pp-online"></span> Ustoz va ma’muriyat javob beradi</small>
             </div>
         </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 
-    <!-- Messages List -->
-    <div class="card">
-        <div class="card-header d-flex align-items-center">
-            <i class="bi bi-envelope-fill me-2 text-primary"></i>
-            <h5 class="mb-0">Xabarlar tarixi</h5>
-        </div>
-        <div class="card-body p-0">
-            {% if messages %}
-            <div class="messages-list">
-                {% for msg in messages %}
-                <div class="message-item {% if msg.reply %}replied{% endif %}">
-                    <div class="message-header">
-                        <div class="message-info">
-                            <h6 class="message-subject">
-                                <i class="bi bi-envelope{% if msg.reply %}-open{% endif %}-fill me-2 text-primary"></i>
-                                {{ msg.subject }}
-                            </h6>
-                            <div class="message-meta">
-                                <span><i class="bi bi-person me-1"></i>{{ msg.child.full_name }}</span>
-                                <span class="meta-divider">•</span>
-                                <span><i class="bi bi-calendar me-1"></i>{{ msg.created_at|date:"d.m.Y H:i" }}</span>
-                            </div>
-                        </div>
-                        <div class="message-status">
-                            {% if msg.reply %}
-                            <span class="status-badge success">
-                                <i class="bi bi-check-circle-fill me-1"></i>Javob berilgan
-                            </span>
-                            {% else %}
-                            <span class="status-badge pending">
-                                <i class="bi bi-hourglass-split me-1"></i>Kutilmoqda
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <p class="message-text">{{ msg.message|truncatewords:30 }}</p>
-                    
-                    {% if msg.reply %}
-                    <div class="message-reply">
-                        <div class="reply-header">
-                            <span class="reply-label">
-                                <i class="bi bi-reply-fill me-1"></i>Mentor javobi
-                                {% if msg.replied_by %} - {{ msg.replied_by.full_name }}{% endif %}
-                            </span>
-                            {% if msg.replied_at %}
-                            <span class="reply-date">{{ msg.replied_at|date:"d.m.Y H:i" }}</span>
-                            {% endif %}
-                        </div>
-                        <p class="reply-text">{{ msg.reply }}</p>
-                    </div>
-                    {% endif %}
-                </div>
-                {% endfor %}
+        <div class="ch-body" id="chBody">
+            {% for e in events %}
+                {% if e.new_day %}<div class="ch-day"><span>{% with d=e.at|date:"Y-m-d" %}{% if d == today|date:"Y-m-d" %}Bugun{% elif d == yesterday|date:"Y-m-d" %}Kecha{% else %}{{ e.at|date:"d E" }}{% endif %}{% endwith %}</span></div>{% endif %}
+                {% if e.kind == 'notice' %}
+                <div class="ch-notice"><i class="bi bi-bell-fill"></i><span><b>{{ e.title }}</b>{{ e.text }}</span></div>
+                {% elif e.kind == 'me' %}
+                <div class="ch-row me"><div class="ch-bub"><span class="ch-topic">{{ e.topic|truncatechars:40 }}</span><br>{{ e.text }}
+                    <span class="ch-meta">{{ e.at|time:"H:i" }} <i class="bi {% if e.answered %}bi-check2-all{% else %}bi-check2{% endif %}"></i></span></div></div>
+                {% else %}
+                <div class="ch-row them {% if e.new %}new{% endif %}"><span class="ch-av"><i class="bi bi-mortarboard-fill"></i></span>
+                    <div class="ch-bub"><span class="ch-who">{{ e.by }}{% if e.new %} · yangi{% endif %}</span>{{ e.text }}<span class="ch-meta">{{ e.at|time:"H:i" }}</span></div></div>
+                {% endif %}
+            {% empty %}
+            <div class="ch-empty">
+                <div class="art"><i class="bi bi-chat-heart"></i></div>
+                <h4>Suhbatni boshlang</h4>
+                <p>{{ chat_child.first_name }}ning o‘qishi, davomati yoki to‘lovi bo‘yicha savolingizni yozing —<br>ustoz yoki ma’muriyat shu yerda javob beradi.</p>
             </div>
-            {% else %}
-            <!-- Empty State -->
-            <div class="empty-state py-5">
-                <i class="bi bi-chat-dots"></i>
-                <h5>Xabarlar yo'q</h5>
-                <p class="mb-4">Hozircha hech qanday xabar yo'q. Mentorga yangi xabar yuborishingiz mumkin.</p>
-                <button class="btn-new-message" data-bs-toggle="modal" data-bs-target="#newMessageModal">
-                    <i class="bi bi-plus-lg me-2"></i>Yangi xabar yuborish
-                </button>
-            </div>
-            {% endif %}
+            {% endfor %}
+            {% if waiting %}<div class="ch-typing"><span class="pp-typing" style="padding:8px 10px;"><i></i><i></i><i></i></span> Javob kutilmoqda…</div>{% endif %}
+            <div id="end"></div>
         </div>
-    </div>
+
+        <form class="ch-compose" method="post" id="chForm">
+            {% csrf_token %}
+            <input type="hidden" name="child_id" value="{{ chat_child.id }}">
+            {% if form_error %}<div class="pp-form-err" style="margin-bottom:8px;"><i class="bi bi-exclamation-circle-fill"></i>{{ form_error }}</div>{% endif %}
+            <div class="ch-topics" role="radiogroup" aria-label="Mavzu (ixtiyoriy)">
+                {% for t in topics %}<label><input type="radio" name="topic" value="{{ t }}" {% if draft_topic == t %}checked{% endif %}><span>{% if forloop.counter == 1 %}📚{% elif forloop.counter == 2 %}📅{% elif forloop.counter == 3 %}⭐{% elif forloop.counter == 4 %}💳{% else %}💬{% endif %} {{ t }}</span></label>{% endfor %}
+            </div>
+            <div class="ch-input">
+                <textarea name="message" id="chText" rows="1" maxlength="4000" placeholder="{{ chat_child.first_name }} haqida xabar yozing..." required>{{ draft|default:'' }}</textarea>
+                <button type="submit" class="ch-send" id="chSend" aria-label="Yuborish" disabled><i class="bi bi-send-fill"></i></button>
+            </div>
+            <div class="ch-hint"><span>Enter — yuborish · Shift+Enter — yangi qator</span><span id="chCount"></span></div>
+        </form>
+    </section>
 </div>
+{% endif %}
+{% endblock %}
 
-<!-- New Message Modal -->
-<div class="modal fade" id="newMessageModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content modal-modern">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-pencil-square me-2 text-primary"></i>Yangi xabar
-                </h5>
-                <button type="button" class="btn-close-modal" data-bs-dismiss="modal">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-            <form method="post">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="form-group-modern">
-                        <label for="child" class="form-label-modern">Farzandni tanlang</label>
-                        <select class="form-control-modern" id="child" name="child_id" required>
-                            <option value="">Farzandni tanlang...</option>
-                            {% for child in children %}
-                            <option value="{{ child.id }}">{{ child.full_name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group-modern">
-                        <label for="subject" class="form-label-modern">Mavzu</label>
-                        <input type="text" class="form-control-modern" id="subject" name="subject" 
-                               placeholder="Xabar mavzusini kiriting" required>
-                    </div>
-                    
-                    <div class="form-group-modern">
-                        <label for="message" class="form-label-modern">Xabar matni</label>
-                        <textarea class="form-control-modern" id="message" name="message" rows="5" 
-                                  placeholder="Xabaringizni yozing..." required></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Bekor qilish</button>
-                    <button type="submit" class="btn-submit">
-                        <i class="bi bi-send-fill me-2"></i>Yuborish
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<style>
-.btn-new-message {
-    display: inline-flex;
-    align-items: center;
-    padding: 12px 24px;
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.btn-new-message:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-}
-
-.child-info-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 20px;
-    transition: all 0.3s ease;
-}
-
-.child-info-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-}
-
-.child-info-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 20px;
-}
-
-.child-info-avatar {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    object-fit: cover;
-}
-
-.child-info-avatar-placeholder {
-    width: 56px;
-    height: 56px;
-    border-radius: 14px;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 1.2rem;
-}
-
-.child-info-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.child-stat {
-    text-align: center;
-    padding: 12px;
-    background: var(--hover-bg);
-    border-radius: 12px;
-}
-
-.child-stat i {
-    display: block;
-    margin-bottom: 4px;
-}
-
-.child-stat-value {
-    display: block;
-    font-weight: 700;
-    color: var(--text-color);
-}
-
-.child-stat-label {
-    display: block;
-    font-size: 0.7rem;
-    color: var(--text-muted);
-}
-
-.messages-list {
-    display: flex;
-    flex-direction: column;
-}
-
-.message-item {
-    padding: 24px;
-    border-bottom: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-}
-
-.message-item:last-child {
-    border-bottom: none;
-}
-
-.message-item:hover {
-    background: var(--hover-bg);
-}
-
-.message-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-    gap: 12px;
-}
-
-.message-subject {
-    font-weight: 600;
-    margin-bottom: 6px;
-    color: var(--text-color);
-}
-
-.message-meta {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-.meta-divider {
-    margin: 0 8px;
-}
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.status-badge.success {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-}
-
-.status-badge.pending {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-
-.message-text {
-    color: var(--text-muted);
-    margin-bottom: 0;
-    line-height: 1.6;
-}
-
-.message-reply {
-    margin-top: 16px;
-    padding: 16px 20px;
-    background: rgba(16, 185, 129, 0.08);
-    border-left: 4px solid #10b981;
-    border-radius: 0 12px 12px 0;
-}
-
-.reply-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.reply-label {
-    font-weight: 600;
-    color: #10b981;
-    font-size: 0.9rem;
-}
-
-.reply-date {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-
-.reply-text {
-    margin-bottom: 0;
-    color: var(--text-color);
-    line-height: 1.6;
-}
-
-/* Modal Styles */
-.modal-modern {
-    border: none;
-    border-radius: 20px;
-    overflow: hidden;
-    background: var(--card-bg);
-}
-
-.modal-modern .modal-header {
-    border-bottom: 1px solid var(--border-color);
-    padding: 24px;
-}
-
-.modal-modern .modal-title {
-    font-weight: 700;
-}
-
-.btn-close-modal {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    border: none;
-    background: var(--hover-bg);
-    color: var(--text-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.btn-close-modal:hover {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.modal-modern .modal-body {
-    padding: 24px;
-}
-
-.modal-modern .modal-footer {
-    border-top: 1px solid var(--border-color);
-    padding: 20px 24px;
-    gap: 12px;
-}
-
-.form-group-modern {
-    margin-bottom: 20px;
-}
-
-.form-label-modern {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-color);
-}
-
-.form-control-modern {
-    width: 100%;
-    padding: 14px 18px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    background: var(--bg-color);
-    color: var(--text-color);
-    font-size: 1rem;
-    transition: all 0.25s ease;
-}
-
-.form-control-modern:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-}
-
-.form-control-modern::placeholder {
-    color: var(--text-muted);
-}
-
-.btn-cancel {
-    padding: 12px 24px;
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    background: transparent;
-    color: var(--text-color);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.btn-cancel:hover {
-    background: var(--hover-bg);
-}
-
-.btn-submit {
-    display: inline-flex;
-    align-items: center;
-    padding: 12px 24px;
-    background: var(--gradient-primary);
-    color: white;
-    border: none;
-    border-radius: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.25s ease;
-}
-
-.btn-submit:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-}
-</style>
+{% block extra_js %}
+<script>
+(function () {
+    var body = document.getElementById('chBody'), text = document.getElementById('chText'), send = document.getElementById('chSend'), form = document.getElementById('chForm');
+    if (!body) return;
+    body.scrollTop = body.scrollHeight;  // eng oxirgi xabarga
+    function grow() {
+        text.style.height = 'auto';
+        text.style.height = Math.min(text.scrollHeight, 160) + 'px';
+        send.disabled = !text.value.trim();
+        var n = text.value.length;
+        document.getElementById('chCount').textContent = n > 3500 ? n + ' / 4000' : '';
+    }
+    text.addEventListener('input', grow);
+    text.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) {
+            e.preventDefault();
+            if (text.value.trim()) form.requestSubmit();
+        }
+    });
+    form.addEventListener('submit', function () { send.classList.add('loading'); send.disabled = true; });
+    grow();
+    {% if sent %}if (window.matchMedia('(min-width: 993px)').matches) text.focus();{% endif %}
+})();
+</script>
 {% endblock %}

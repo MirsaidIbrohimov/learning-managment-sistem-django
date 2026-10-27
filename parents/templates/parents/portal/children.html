@@ -1,224 +1,65 @@
 {% extends 'parents/portal/base_parent.html' %}
-
-{% block title %}Farzandlarim - Ota-ona paneli{% endblock %}
+{% load parent_tags %}
+{% block title %}Farzandlarim{% endblock %}
+{% block page_title %}Farzandlarim{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid px-0">
-    <!-- Page Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h3 class="mb-1 fw-bold">
-                <i class="bi bi-people-fill me-2 text-primary"></i>Farzandlarim
-            </h3>
-            <p class="text-muted mb-0">Farzandlaringiz haqida to'liq ma'lumot</p>
-        </div>
-        <span class="badge-soft-primary fs-6 px-3 py-2 rounded-pill">
-            <i class="bi bi-person-check me-1"></i>{{ children_data|length }} farzand
-        </span>
+<div class="pp-head">
+    <div>
+        <h1><span class="ic"><i class="bi bi-people-fill"></i></span>Farzandlarim</h1>
+        <p>Har bir farzandingizning o‘qishi, davomati va to‘lov holati bir qarashda.</p>
     </div>
-
-    {% if children_data|length == 0 %}
-    <div class="card">
-        <div class="card-body empty-state">
-            <i class="bi bi-people d-block"></i>
-            <h5>Farzandlar topilmadi</h5>
-            <p class="mb-0">Hozircha sizga bog'langan farzandlar yo'q.</p>
-        </div>
-    </div>
-    {% else %}
-
-    <!-- Children Cards Grid -->
-    <div class="row g-4">
-        {% for item in children_data %}
-        <div class="col-lg-6 col-xl-4">
-            <div class="card h-100 child-card">
-                <div class="card-body p-4">
-                    <!-- Avatar and Basic Info -->
-                    <div class="text-center mb-4">
-                        {% if item.child.photo %}
-                        <img src="{{ item.child.photo.url }}" alt="{{ item.child.full_name }}" 
-                             class="child-avatar mb-3">
-                        {% else %}
-                        <div class="child-avatar-placeholder mb-3 mx-auto">
-                            {{ item.child.first_name.0|upper }}{{ item.child.last_name.0|upper }}
-                        </div>
-                        {% endif %}
-                        
-                        <h4 class="mb-2 fw-bold">{{ item.child.full_name }}</h4>
-                        <p class="text-muted mb-3">
-                            <i class="bi bi-at"></i>{{ item.child.username }}
-                        </p>
-                        
-                        <div class="d-flex flex-wrap justify-content-center gap-2">
-                            {% for enrollment in item.enrollments %}
-                            <span class="badge-soft-info">
-                                <i class="bi bi-mortarboard me-1"></i>{{ enrollment.profession.name }}
-                            </span>
-                            {% endfor %}
-                        </div>
-                    </div>
-
-                    <!-- Overall Progress -->
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <span class="text-muted fw-medium">Umumiy progress</span>
-                            <span class="fw-bold {% if item.progress_percent >= 70 %}text-success{% elif item.progress_percent >= 40 %}text-warning{% else %}text-muted{% endif %}">
-                                {{ item.progress_percent }}%
-                            </span>
-                        </div>
-                        <div class="progress-bar-wrapper">
-                            <div class="progress-bar-fill {% if item.progress_percent >= 70 %}bg-success{% elif item.progress_percent >= 40 %}bg-warning{% else %}bg-secondary{% endif %}" 
-                                 style="width: {{ item.progress_percent }}%">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Last Activity -->
-                    <div class="activity-badge mb-4">
-                        <i class="bi bi-clock-history text-primary me-2 fs-5"></i>
-                        <div>
-                            <small class="text-muted d-block">So'nggi faollik</small>
-                            {% if item.last_activity %}
-                            <span class="fw-medium">{{ item.last_activity|timesince }} oldin</span>
-                            {% else %}
-                            <span class="text-muted">Ma'lumot yo'q</span>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <!-- Quick Stats -->
-                    <div class="row g-2 mb-4">
-                        <div class="col-4">
-                            <div class="mini-stat-card">
-                                <i class="bi bi-coin text-warning"></i>
-                                <div class="mini-stat-value">{{ item.child.coins|default:0 }}</div>
-                                <small class="text-muted">Tangalar</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="mini-stat-card">
-                                <i class="bi bi-check-circle-fill text-success"></i>
-                                <div class="mini-stat-value">{{ item.completed_lessons }}</div>
-                                <small class="text-muted">Darslar</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="mini-stat-card">
-                                <i class="bi bi-graph-up-arrow text-info"></i>
-                                <div class="mini-stat-value">{{ item.avg_test_score }}%</div>
-                                <small class="text-muted">O'rtacha</small>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Action Button -->
-                    <a href="{% url 'parent_child_detail' child_id=item.child.id %}" 
-                       class="btn-detail w-100">
-                        <i class="bi bi-eye-fill me-2"></i>Batafsil ko'rish
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
 </div>
 
-<style>
-.child-card {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+{% if not cards %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+<div class="pp-grid c2 keep1">
+    {% for k in cards %}
+    {% with c=k.child %}
+    <article class="pp-card" data-reveal>
+        <div style="display:flex;align-items:center;gap:14px;">
+            {% include 'parents/portal/partials/avatar.html' with person=c size='lg' %}
+            <div style="min-width:0;flex:1;">
+                <h3 style="margin:0;font-size:1.15rem;font-weight:850;">{{ c.full_name|default:c.username }}</h3>
+                <div class="pp-dim" style="font-size:.8rem;display:flex;align-items:center;gap:6px;margin-top:3px;">
+                    <span class="pp-online {% if not c.is_online %}off{% endif %}"></span>
+                    {% if c.is_online %}Hozir onlayn{% elif c.last_activity %}{{ c.last_activity|timesince }} oldin{% else %}Hali kirmagan{% endif %}
+                    · <i class="bi bi-coin"></i> {{ c.coins }}
+                </div>
+            </div>
+            {% include 'parents/portal/partials/ring.html' with value=k.progress.percent size=78 tone=k.progress.percent|tone %}
+        </div>
 
-.child-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-}
+        <div class="pp-grid c3" style="margin:18px 0;gap:10px;">
+            <div style="padding:12px;border-radius:14px;background:var(--pp-surface-2);">
+                <div class="pp-dim" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Testlar</div>
+                <b style="font-size:1.25rem;" class="tone-{{ k.tests.avg|tone }}"><span style="color:var(--tone)">{{ k.tests.avg }}%</span></b>
+                <div class="pp-dim" style="font-size:.72rem;">{{ k.tests.passed }}/{{ k.tests.taken }} o‘tdi</div>
+            </div>
+            <div style="padding:12px;border-radius:14px;background:var(--pp-surface-2);">
+                <div class="pp-dim" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Davomat</div>
+                <b style="font-size:1.25rem;">{% if k.attendance.rate is not None %}{{ k.attendance.rate }}%{% else %}—{% endif %}</b>
+                <div class="pp-dim" style="font-size:.72rem;">{{ k.attendance.absent }} ta qoldirgan</div>
+            </div>
+            <div style="padding:12px;border-radius:14px;background:var(--pp-surface-2);">
+                <div class="pp-dim" style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">To‘lov</div>
+                <div style="margin-top:4px;">{% include 'parents/portal/partials/payment_badge.html' with payment=k.payment %}</div>
+            </div>
+        </div>
 
-.child-avatar {
-    width: 100px;
-    height: 100px;
-    border-radius: 24px;
-    object-fit: cover;
-    border: 4px solid var(--border-color);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;">
+            {% for e in k.courses %}<span class="pp-badge vio"><i class="bi bi-mortarboard"></i>{{ e.profession.name }}</span>{% empty %}<span class="pp-dim" style="font-size:.82rem;">Kursga yozilmagan</span>{% endfor %}
+        </div>
 
-.child-avatar-placeholder {
-    width: 100px;
-    height: 100px;
-    border-radius: 24px;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: white;
-    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
-}
-
-.progress-bar-wrapper {
-    height: 8px;
-    background: var(--hover-bg);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-bar-fill {
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.6s ease;
-}
-
-.activity-badge {
-    display: flex;
-    align-items: center;
-    padding: 14px 16px;
-    background: var(--hover-bg);
-    border-radius: 12px;
-}
-
-.mini-stat-card {
-    text-align: center;
-    padding: 14px 8px;
-    border-radius: 12px;
-    background: var(--hover-bg);
-    transition: all 0.2s ease;
-}
-
-.mini-stat-card:hover {
-    transform: scale(1.05);
-}
-
-.mini-stat-card i {
-    font-size: 1.25rem;
-    margin-bottom: 4px;
-}
-
-.mini-stat-value {
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text-color);
-}
-
-.btn-detail {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 14px 20px;
-    border-radius: 12px;
-    background: var(--gradient-primary);
-    color: white;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border: none;
-}
-
-.btn-detail:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
-    color: white;
-}
-</style>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <a class="pp-btn pri sm" href="{% url 'parent_child_detail' c.id %}"><i class="bi bi-person-lines-fill"></i> To‘liq ma’lumot</a>
+            <a class="pp-btn sm" href="{% url 'parent_dashboard' %}?child_id={{ c.id }}"><i class="bi bi-grid-1x2"></i> Bosh sahifa</a>
+            <a class="pp-btn sm" href="{% url 'parent_attendance' %}?child_id={{ c.id }}"><i class="bi bi-calendar2-week"></i> Davomat</a>
+        </div>
+    </article>
+    {% endwith %}
+    {% endfor %}
+</div>
+{% endif %}
 {% endblock %}

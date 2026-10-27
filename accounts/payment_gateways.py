@@ -17,10 +17,10 @@ PAYMENT_METHODS = [
     ('click', 'Click', TEZCHECK, 'click.svg', ''),
     ('payme', 'Payme', TEZCHECK, 'payme.png', ''),
     ('paynet', 'Paynet', INPAY, 'paynet.svg', ''),
-    ('alif', 'Alif', INPAY, '', 'bi-bank'),
-    ('anorbank', 'AnorBank', INPAY, '', 'bi-bank2'),
-    ('visa_mc', 'Visa/MC', INPAY, '', 'bi-credit-card'),
-    ('plum', 'Plum', INPAY, '', 'bi-wallet2'),
+    ('alif', 'Alif', INPAY, 'alif.png', ''),
+    ('anorbank', 'AnorBank', INPAY, 'anorbank.png', ''),
+    ('visa_mc', 'Visa/MC', INPAY, 'visa.png', ''),
+    ('plum', 'Plum', INPAY, 'plum.png', ''),
 ]
 METHOD_GATEWAY = {code: gateway for code, _, gateway, _, _ in PAYMENT_METHODS}
 

@@ -8,16 +8,15 @@ from django.db.backends.signals import connection_created
 
 
 def _tune_sqlite(sender, connection, **kwargs):
-    """SQLite'ni WAL rejimiga o'tkazadi.
+    """SQLite sozlamalari.
 
-    Standart (DELETE) jurnalda yozuv paytida butun baza o'qish uchun ham
-    qulflanadi — fon AI vazifalari yozayotganda boshqa foydalanuvchilar
-    so'rovlari kutib qolardi. WAL'da o'quvchilar yozuvchini kutmaydi.
+    journal_mode bu yerda o'zgartirilmaydi — u config/__init__.py da (DELETE)
+    belgilanadi. Ikki joyda turli rejim (WAL/DELETE) qo'yilsa, har yangi
+    ulanish rejimni almashtirishga urinib "database is locked" beradi.
     """
     if connection.vendor != 'sqlite':
         return
     with connection.cursor() as cursor:
-        cursor.execute('PRAGMA journal_mode=WAL;')
         cursor.execute('PRAGMA synchronous=NORMAL;')
 
 # Management buyruqlarida (migrate va h.k.) auto-tuzatishni o'tkazib yuboramiz

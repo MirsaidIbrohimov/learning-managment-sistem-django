@@ -1,3 +1,4 @@
+import logging
 import threading
 import os
 from functools import lru_cache
@@ -10,6 +11,8 @@ from django.utils import timezone
 from django.db import models
 from datetime import timedelta
 from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message, StudentBalance
+
+logger = logging.getLogger(__name__)
 
 # PWA / Android TWA ommaviy fayllari (config/pwa.py): foydalanuvchi ma'lumotisiz,
 # statik fayl kabi. Yo'naltirilsa (profil, to'lov, texnik xizmat) brauzer manifest
@@ -108,6 +111,12 @@ class UpdateLastActivityMiddleware:
                     request.user.update_streak()
                 except Exception:
                     pass
+                # ✅ Saytga kirgan kuni guruh davomatiga avtomatik "keldi"
+                try:
+                    from .attendance_auto import auto_mark_present
+                    auto_mark_present(request.user)
+                except Exception:
+                    logger.exception("Avtomatik davomat xatosi (user=%s)", request.user.pk)
 
             last_saved = request.session.get('_last_activity_saved', 0)
 

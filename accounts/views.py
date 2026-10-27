@@ -14611,6 +14611,7 @@ def admin_give_book(request):
                 parent=parent,
                 child=student,
                 subject="📚 Farzandingiz kitob oldi",
+                sender_type='system',
                 message=f"Farzandingiz {student.full_name} '{book.title}' ({book.author}) kitobini ijaraga oldi.\n\nQaytarish sanasi: {return_date_str}\n\nIltimos, farzandingizga kitobni o'z vaqtida qaytarishni eslatib qo'ying!"
             )
         
@@ -14726,6 +14727,7 @@ def send_book_reminders():
                 parent=parent,
                 child=rental.student,
                 subject="⏰ Kitob qaytarish eslatmasi (3 kun qoldi)",
+                sender_type='system',
                 message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini ijaraga olgan. Qaytarish sanasi: {rental.return_date.strftime('%d.%m.%Y')}\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb farzandingizga aytib qo'ying!"
             )
         
@@ -14754,6 +14756,7 @@ def send_book_reminders():
                 parent=parent,
                 child=rental.student,
                 subject="🚨 Kitobni bugun qaytaring!",
+                sender_type='system',
                 message=f"Farzandingiz {rental.student.full_name} '{rental.book.title}' ({rental.book.author}) kitobini BUGUN qaytarishi kerak!\n\nIltimos, ushbu {rental.book.author} yozuvchining '{rental.book.title}' nomli kitobini kutubxonaga qaytaring deb aytib qo'ying!"
             )
         

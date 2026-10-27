@@ -61,30 +61,42 @@ def tezcheck_create_payment(request):
         )
         messages.error(request, "Onlayn to'lov faqat o'quvchilar uchun.")
         return redirect('home')
+    return start_monthly_checkout(
+        request, user, fail_url=reverse('payment_wall'), done_url=reverse('student_payments'),
+    )
+
+
+def start_monthly_checkout(request, user, *, fail_url, done_url, return_url=None):
+    """O'quvchining oylik to'lovi uchun hisob (bill) yaratadi yoki mavjudini qayta ishlatadi.
+
+    O'quvchining o'zi (tezcheck_create_payment) va ota-ona paneli (farzand uchun)
+    shu bitta yo'ldan foydalanadi. Chaqiruvchi transaction.atomic ichida bo'lishi shart.
+    fail_url — xato bo'lganda, done_url — to'lov allaqachon qabul qilingan bo'lsa.
+    """
     if StudentBalance.objects.filter(user=user, is_contract=True).exists():
         logger.info('Tezcheck checkout skipped: user_id=%s reason=contract', user.pk)
-        messages.info(request, "Siz shartnoma asosida to'laysiz. To'lov bo'yicha administratorga murojaat qiling.")
-        return redirect('payment_wall')
+        messages.info(request, "To'lov shartnoma asosida amalga oshiriladi. To'lov bo'yicha administratorga murojaat qiling.")
+        return redirect(fail_url)
 
     CustomUser.objects.select_for_update().get(pk=user.pk)
     period = _student_billing_period(user)
     if period is None:
         logger.info('Tezcheck checkout skipped: user_id=%s reason=current_period_paid', user.pk)
         messages.info(request, "Joriy oy to'lovi allaqachon qabul qilingan.")
-        return redirect('student_payments')
+        return redirect(done_url)
     month, year, amount = period
     try:
         method, gateway = selected_method(request)
     except TezCheckError as exc:
         messages.error(request, str(exc))
-        return redirect('payment_wall')
+        return redirect(fail_url)
     custom_amount_raw = request.POST.get('amount', '').replace(' ', '').replace(',', '')
     if custom_amount_raw.isdigit() and int(custom_amount_raw) >= 1000:
         amount = int(custom_amount_raw)
     amount_minor = int(Decimal(amount) * 100)
     if amount_minor <= 0:
         messages.error(request, "To'lov summasi noto'g'ri. Administratorga murojaat qiling.")
-        return redirect('payment_wall')
+        return redirect(fail_url)
     period_orders = TezCheckPaymentOrder.objects.filter(
         purpose='monthly',
         student=user, billing_month=month, billing_year=year,
@@ -95,10 +107,10 @@ def tezcheck_create_payment(request):
             user.pk, year, month,
         )
         messages.success(request, "Ushbu davr uchun to'lov qabul qilingan.")
-        return redirect('payment_wall')
+        return redirect(fail_url)
     if period_orders.filter(status=TezCheckPaymentOrder.STATUS_REVIEW).exists():
         messages.info(request, 'Oldingi to‘lov tekshiruvda. Qayta to‘lov qilmang; administratorga murojaat qiling.')
-        return redirect('payment_wall')
+        return redirect(fail_url)
     order = period_orders.filter(status=TezCheckPaymentOrder.STATUS_PENDING).first()
     if order:
         try:
@@ -117,7 +129,7 @@ def tezcheck_create_payment(request):
                         'provider_code': payment.get('provider_code'),
                     })
                     messages.info(request, 'Oldingi to‘lov holati yangilandi.')
-                    return redirect('student_payments')
+                    return redirect(done_url)
                 if bill.get('paid') is True or payment.get('state') == 'succeeded':
                     raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
             else:
@@ -126,7 +138,7 @@ def tezcheck_create_payment(request):
                     or checkout_expired(order, bill)):
                 if not retire_checkout(order):
                     messages.info(request, 'Oldingi to‘lov holati yangilandi. Qayta to‘lov talab qilinmaydi.')
-                    return redirect('student_payments')
+                    return redirect(done_url)
                 order = None
             elif order.payment_url and order.bill_id:
                 if method and order.payment_method != method:
@@ -136,7 +148,7 @@ def tezcheck_create_payment(request):
         except TezCheckError as exc:
             # A timeout is not proof of non-payment. Never charge again blindly.
             messages.error(request, str(exc))
-            return redirect('payment_wall')
+            return redirect(fail_url)
 
     # Yangi buyurtma yaratish
     if not order:
@@ -153,14 +165,14 @@ def tezcheck_create_payment(request):
         except IntegrityError:
             order = get_object_or_404(TezCheckPaymentOrder, external_reference=external_ref, student=user)
 
-    return_url = settings.TEZCHECK_RETURN_URL or request.build_absolute_uri(reverse('tezcheck_return'))
+    return_url = return_url or settings.TEZCHECK_RETURN_URL or request.build_absolute_uri(reverse('tezcheck_return'))
     try:
         for attempt in range(2):
             bill_data = create_bill(order=order, return_url=return_url)
             if store_bill(order, bill_data):
                 break
             if not retire_checkout(order):
-                return redirect('student_payments')
+                return redirect(done_url)
             if attempt == 1:
                 raise TezCheckError('Yangi to‘lov havolasini hozir ochib bo‘lmadi. Qayta urinib ko‘ring.')
             order = TezCheckPaymentOrder.objects.create(
@@ -176,7 +188,7 @@ def tezcheck_create_payment(request):
             user.pk, order.pk, exc,
         )
         messages.error(request, str(exc))
-        return redirect('payment_wall')
+        return redirect(fail_url)
     except Exception:
         logger.exception(
             'Tezcheck checkout yaratishda kutilmagan xato: user_id=%s order_id=%s',
@@ -188,7 +200,7 @@ def tezcheck_create_payment(request):
             request,
             "To'lov sahifasini ochib bo'lmadi. Xatolik qayd etildi; keyinroq qayta urinib ko'ring.",
         )
-        return redirect('payment_wall')
+        return redirect(fail_url)
     logger.info(
         'Tezcheck checkout created: user_id=%s order_id=%s billing_period=%s-%s',
         user.pk, order.pk, year, month,

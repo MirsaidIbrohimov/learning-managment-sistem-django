@@ -1,0 +1,97 @@
+{% extends 'accounts/admin/base_admin.html' %}
+
+{% block title %}Ota-onalar xabarlari - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+:root{--p-card:#fff;--p-text:#111;--p-muted:#6b7280;--p-border:rgba(0,0,0,.08);--p-primary:#6366f1;--p-success:#22c55e;--p-danger:#ef4444;--p-warning:#f59e0b;}
+[data-bs-theme="dark"]{--p-card:#1c1c1e;--p-text:#f5f5f7;--p-muted:#9ca3af;--p-border:rgba(255,255,255,.08);}
+.pm-page{max-width:980px;margin:0 auto;padding:1rem;color:var(--p-text);}
+.pm-head{display:flex;align-items:center;gap:.75rem;margin-bottom:1rem;flex-wrap:wrap;}
+.pm-back{width:40px;height:40px;border-radius:12px;border:1px solid var(--p-border);display:grid;place-items:center;color:inherit;text-decoration:none;}
+.pm-tabs{display:flex;gap:.4rem;flex-wrap:wrap;}
+.pm-tab{padding:.45rem .9rem;border-radius:10px;border:1px solid var(--p-border);text-decoration:none;color:var(--p-text);font-weight:600;font-size:.85rem;}
+.pm-tab.on{background:var(--p-primary);border-color:var(--p-primary);color:#fff;}
+.pm-tab .n{font-size:.72rem;padding:0 .45rem;border-radius:99px;background:rgba(0,0,0,.08);margin-left:.25rem;}
+.pm-tab.on .n{background:rgba(255,255,255,.25);}
+.pm-card{background:var(--p-card);border:1px solid var(--p-border);border-radius:16px;padding:1rem 1.15rem;margin-bottom:.8rem;}
+.pm-card.waiting{border-left:4px solid var(--p-warning);}
+.pm-meta{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;font-size:.8rem;color:var(--p-muted);}
+.pm-av{width:36px;height:36px;border-radius:50%;background:var(--p-primary);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.8rem;flex-shrink:0;}
+.pm-subject{font-weight:700;font-size:.98rem;margin:.6rem 0 .3rem;}
+.pm-body{white-space:pre-line;font-size:.9rem;line-height:1.5;}
+.pm-reply{margin-top:.75rem;padding:.75rem .9rem;border-radius:12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);font-size:.88rem;white-space:pre-line;}
+.pm-form textarea{width:100%;min-height:90px;margin-top:.75rem;padding:.65rem .8rem;border-radius:12px;border:1.5px solid var(--p-border);background:transparent;color:var(--p-text);font:inherit;font-size:.9rem;resize:vertical;}
+.pm-form textarea:focus{outline:none;border-color:var(--p-primary);}
+.pm-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border-radius:10px;border:none;background:var(--p-primary);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;margin-top:.5rem;}
+.pm-quick{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem;}
+.pm-quick button{font-size:.75rem;padding:.25rem .6rem;border-radius:99px;border:1px dashed var(--p-border);background:transparent;color:var(--p-muted);cursor:pointer;}
+.pm-quick button:hover{border-color:var(--p-primary);color:var(--p-primary);}
+.pm-search{display:flex;gap:.4rem;margin-left:auto;}
+.pm-search input{padding:.45rem .75rem;border-radius:10px;border:1px solid var(--p-border);background:var(--p-card);color:var(--p-text);font-size:.85rem;min-width:220px;}
+</style>
+{% endblock %}
+
+{% block admin_content %}
+<div class="pm-page">
+    <div class="pm-head">
+        <a class="pm-back" href="{% url 'parents:admin_parents' %}"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h4 style="margin:0;font-weight:800;">💬 Ota-onalar xabarlari</h4>
+            <small style="color:var(--p-muted);">Ota-ona panelidagi “Xabarlar” bo‘limidan yozilgan savollar. Javobingiz ota-onaga darhol ko‘rinadi.</small>
+        </div>
+    </div>
+
+    <div class="pm-head">
+        <div class="pm-tabs">
+            <a class="pm-tab {% if status == 'waiting' %}on{% endif %}" href="?status=waiting">Javob kutmoqda<span class="n">{{ waiting_count }}</span></a>
+            <a class="pm-tab {% if status == 'answered' %}on{% endif %}" href="?status=answered">Javob berilgan<span class="n">{{ answered_count }}</span></a>
+            <a class="pm-tab {% if status == 'all' %}on{% endif %}" href="?status=all">Barchasi<span class="n">{{ total_count }}</span></a>
+        </div>
+        <form class="pm-search" method="get">
+            <input type="hidden" name="status" value="{{ status }}">
+            <input type="text" name="q" value="{{ q }}" placeholder="Ota-ona, farzand yoki mavzu...">
+            <button class="pm-btn" style="margin:0;" type="submit"><i class="bi bi-search"></i></button>
+        </form>
+    </div>
+
+    {% for m in items %}
+    <div class="pm-card {% if not m.reply %}waiting{% endif %}">
+        <div class="pm-meta">
+            <span class="pm-av">{{ m.parent.get_initials }}</span>
+            <span><b style="color:var(--p-text);font-size:.9rem;">{{ m.parent.full_name }}</b><br><a href="tel:{{ m.parent.phone }}" style="color:var(--p-muted);">{{ m.parent.phone }}</a></span>
+            <span>· Farzand: <b style="color:var(--p-text);">{{ m.child.full_name|default:m.child.username }}</b></span>
+            <span style="margin-left:auto;">{{ m.created_at|date:"d.m.Y H:i" }}</span>
+            <a href="{% url 'parents:admin_parent_view' m.parent.pk %}" title="Ota-ona sahifasi" style="color:var(--p-primary);"><i class="bi bi-box-arrow-up-right"></i></a>
+        </div>
+        <div class="pm-subject">{{ m.subject }}</div>
+        <div class="pm-body">{{ m.message }}</div>
+        {% if m.reply %}
+        <div class="pm-reply"><b><i class="bi bi-reply-fill"></i> {{ m.replied_by.full_name|default:"Admin" }}</b> · {{ m.replied_at|date:"d.m.Y H:i" }}
+            {% if m.reply_seen_by_parent %}<span style="color:var(--p-success);font-weight:600;"> · ✓ ota-ona ko‘rdi</span>{% endif %}<br>{{ m.reply }}</div>
+        {% endif %}
+        <form method="post" class="pm-form" action="?{{ request.GET.urlencode }}">
+            {% csrf_token %}
+            <input type="hidden" name="message_id" value="{{ m.pk }}">
+            <textarea name="reply" required placeholder="{% if m.reply %}Javobni yangilash...{% else %}Javobingizni yozing...{% endif %}"></textarea>
+            <div class="pm-quick">
+                <button type="button" data-q="Assalomu alaykum! Xabaringiz uchun rahmat. Farzandingiz darslarda faol qatnashmoqda.">👍 Yaxshi o‘qiyapti</button>
+                <button type="button" data-q="Assalomu alaykum! Ma’lumot uchun rahmat, ustozga yetkazdik.">✅ Qabul qilindi</button>
+                <button type="button" data-q="Assalomu alaykum! Batafsil gaplashish uchun siz bilan qo‘ng‘iroq orqali bog‘lanamiz.">📞 Qo‘ng‘iroq qilamiz</button>
+            </div>
+            <button class="pm-btn" type="submit"><i class="bi bi-send-fill"></i> {% if m.reply %}Javobni yangilash{% else %}Javob yuborish{% endif %}</button>
+        </form>
+    </div>
+    {% empty %}
+    <div class="pm-card" style="text-align:center;padding:2.5rem 1rem;color:var(--p-muted);">
+        <i class="bi bi-inbox" style="font-size:2.2rem;display:block;margin-bottom:.5rem;"></i>
+        {% if status == 'waiting' %}Javob kutayotgan xabar yo‘q — barchasiga javob berilgan 🎉{% else %}Xabarlar topilmadi.{% endif %}
+    </div>
+    {% endfor %}
+</div>
+<script>
+document.querySelectorAll('.pm-quick button').forEach(function (b) {
+    b.addEventListener('click', function () { var t = b.closest('form').querySelector('textarea'); t.value = b.dataset.q; t.focus(); });
+});
+</script>
+{% endblock %}

@@ -1992,8 +1992,20 @@ class Parent(models.Model):
 
 
 class ParentMessage(models.Model):
-    """Ota-ona va mentor o'rtasidagi xabarlar"""
+    """Ota-ona va mentor o'rtasidagi xabarlar.
+
+    sender_type: 'parent' — ota-ona yozgan (admin javob beradi);
+                 'system' — tizim bildirishnomasi ota-onaga (kitob ijarasi va h.k.).
+    is_read — admin xabarni o'qiganmi; reply_seen_by_parent — ota-ona javobni ko'rganmi.
+    """
+    SENDER_CHOICES = (
+        ('parent', 'Ota-ona'),
+        ('system', 'Tizim bildirishnomasi'),
+    )
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='messages')
+    sender_type = models.CharField(max_length=10, choices=SENDER_CHOICES, default='parent', db_index=True,
+                                   verbose_name="Yuboruvchi")
+    reply_seen_by_parent = models.BooleanField(default=False, verbose_name="Javobni ota-ona ko'rgan")
     child = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='parent_messages')
     subject = models.CharField(max_length=200, verbose_name="Mavzu")
     message = models.TextField(verbose_name="Xabar")

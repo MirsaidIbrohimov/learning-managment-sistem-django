@@ -560,6 +560,7 @@ def parent_message_reply(request, pk):
     msg.replied_by = request.user
     msg.replied_at = timezone.now()
     msg.is_read = True
+    msg.reply_seen_by_parent = False  # ota-ona panelida "yangi javob" belgisi chiqsin
     msg.save()
     log_action(request, 'parents.message_reply', target=msg,
                description=f"Ota-ona xabariga javob: {msg.parent.full_name}")

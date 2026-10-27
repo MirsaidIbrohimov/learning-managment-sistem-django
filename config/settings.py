@@ -417,6 +417,10 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
         'OPTIONS': {
             'timeout': 30,
+            # Fon thread'lari va so'rovlar parallel yozganda "database is locked"
+            # bo'lmasligi uchun: yozish qulfi tranzaksiya boshida olinadi va
+            # band bo'lsa timeout bo'yicha kutiladi (darhol xato bermaydi).
+            'transaction_mode': 'IMMEDIATE',
         },
         'CONN_MAX_AGE': 600,
     }

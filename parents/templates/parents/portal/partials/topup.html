@@ -1,0 +1,126 @@
+{% load parent_tags payment_tags %}
+{# Balansni to'ldirish formasi + rag'bat paneli. Kontekst: selected_child, payment, presets, can_pay_online #}
+<style>
+    .pay-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .pay-preset { cursor: pointer; margin: 0; position: relative; }
+    .pay-preset input { position: absolute; opacity: 0; pointer-events: none; }
+    .pay-preset .face { position: relative; display: flex; flex-direction: column; gap: 2px; padding: 14px 12px; border-radius: 16px; border: 2px solid var(--pp-line);
+        background: var(--pp-surface-2); transition: transform .35s var(--pp-spring), border-color .2s, box-shadow .2s, background .2s; height: 100%; }
+    .pay-preset .face b { font-size: 1.15rem; font-weight: 850; }
+    .pay-preset .face span { font-size: .8rem; color: var(--pp-text-2); font-weight: 600; }
+    .pay-preset .face em { font-style: normal; font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--pp-ok); margin-top: 4px; }
+    .pay-preset:hover .face { transform: translateY(-3px); }
+    .pay-preset input:checked + .face { border-color: var(--pp-pri); background: color-mix(in srgb, var(--pp-pri) 9%, var(--pp-surface));
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--pp-pri) 14%, transparent); transform: translateY(-3px); }
+    .pay-preset input:checked + .face::after { content: '\F26E'; font-family: bootstrap-icons; position: absolute; top: 8px; right: 10px; color: var(--pp-pri); font-size: 1.1rem; animation: ppPop .4s var(--pp-spring); }
+    .pay-why { position: relative; overflow: hidden; border-radius: var(--pp-r); padding: 22px; color: #fff; background: linear-gradient(140deg, #059669, #0d9488 45%, #4338ca); box-shadow: 0 30px 60px -30px rgba(5, 150, 105, .6); }
+    .pay-why::before { content: ''; position: absolute; width: 280px; height: 280px; right: -90px; top: -110px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.22), transparent 65%); animation: ppFloat 8s ease-in-out infinite; }
+    .pay-quote { position: relative; min-height: 96px; }
+    .pay-quote > i { font-size: 2rem; opacity: .5; }
+    .pay-quote p { margin: 4px 0 0; font-size: 1.02rem; font-weight: 700; line-height: 1.45; transition: opacity .5s, transform .5s; }
+    .pay-quote p.out { opacity: 0; transform: translateY(8px); }
+    .pay-benefits { position: relative; display: grid; gap: 10px; margin-top: 16px; }
+    .pay-benefits > div { display: flex; gap: 12px; padding: 11px 12px; border-radius: 14px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18); font-size: .82rem; line-height: 1.4; }
+    .pay-benefits i { width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; background: rgba(255,255,255,.2); }
+    .pay-benefits b { display: block; font-size: .9rem; }
+    @media (max-width: 640px) { .pay-presets { grid-template-columns: 1fr 1fr; } }
+</style>
+<!-- ═════ Balansni to'ldirish ═════ -->
+<section id="tolash" class="pp-grid side pp-mb" style="scroll-margin-top:90px;" data-tour="pay">
+    <div class="pp-card" data-reveal>
+        <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-credit-card-2-front-fill"></i></span><h3>{{ selected_child.first_name }} balansini to‘ldirish</h3></div>
+        {% if payment.balance.is_contract %}
+            <p class="pp-muted" style="margin:0;">{{ selected_child.first_name }} shartnoma asosida o‘qiydi — to‘lov bo‘yicha o‘quv markazi bilan bog‘laning.</p>
+        {% elif not can_pay_online %}
+            <p class="pp-muted" style="margin:0;"><i class="bi bi-info-circle"></i> Onlayn to‘lov hozircha sozlanmoqda. To‘lovni o‘quv markazida amalga oshirishingiz mumkin.</p>
+        {% else %}
+        <form method="post" action="{% url 'parent_payment_checkout' %}" data-loading id="payForm">
+            {% csrf_token %}
+            <input type="hidden" name="child_id" value="{{ selected_child.id }}">
+            {% if presets %}
+            <div class="pay-presets">
+                {% for p in presets %}
+                <label class="pay-preset">
+                    <input type="radio" name="amount" value="{{ p.amount }}" {% if forloop.first %}checked{% endif %}>
+                    <span class="face">
+                        <b>{{ p.months }} oy</b>
+                        <span>{{ p.amount|money }} so‘m</span>
+                        {% if p.months == 3 %}<em>Ommabop</em>{% elif p.months == 6 %}<em>Xotirjam yarim yil</em>{% endif %}
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="pp-field" style="margin-top:12px;">
+                <label for="payCustom">Yoki o‘zingiz summa kiriting (so‘m)</label>
+                <input id="payCustom" class="pp-input" inputmode="numeric" placeholder="Masalan: 500 000" autocomplete="off">
+                <small class="pp-dim" id="payHint" style="font-size:.76rem;"></small>
+            </div>
+            {% payment_method_cards %}
+            <button type="submit" class="pp-btn pri block" style="height:52px;font-size:1rem;"><i class="bi bi-lock-fill"></i> <span id="payBtnText">To‘lash</span></button>
+            <p class="pp-dim" style="font-size:.76rem;margin:10px 0 0;text-align:center;"><i class="bi bi-shield-check" style="color:var(--pp-ok)"></i> To‘lov bank sahifasida xavfsiz amalga oshiriladi. Pul to‘g‘ridan-to‘g‘ri {{ selected_child.first_name }} hisobiga tushadi.</p>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="pay-why" data-reveal>
+        <div class="pay-quote">
+            <i class="bi bi-quote"></i>
+            <p data-quotes='["Bilim — farzandingizga qoldiradigan eng qimmatli meros. Bugungi har bir so‘m ertangi kasbga aylanadi.", "Siz to‘lagan har bir oy — farzandingiz yozgan yangi kod, o‘qigan yangi kitob, ochgan yangi imkoniyat.", "Farzandingiz ota-onasi uning kelajagiga ishonishini his qilsa, o‘qishga ishtiyoqi ikki barobar ortadi.", "Eng yaxshi investitsiya — farzandingizning bilimiga qilingan investitsiya. U hech qachon qadrsizlanmaydi."]'>Bilim — farzandingizga qoldiradigan eng qimmatli meros. Bugungi har bir so‘m ertangi kasbga aylanadi.</p>
+        </div>
+        <div class="pay-benefits">
+            <div><i class="bi bi-lightning-charge-fill"></i><span><b>Darslar to‘xtamaydi</b>To‘lov o‘z vaqtida bo‘lsa, {{ selected_child.first_name }} bir kun ham darsdan qolmaydi — hisob bloklanmaydi.</span></div>
+            <div><i class="bi bi-cup-hot-fill"></i><span><b>Xotirjamlik</b>Bir necha oyga oldindan to‘ldirsangiz, har oy eslab yurishingiz shart emas — oylik avtomatik yechiladi.</span></div>
+            <div><i class="bi bi-heart-fill"></i><span><b>Farzandga ishonch</b>Barqaror o‘qish — barqaror natija. Uzilishsiz o‘qigan bolalar kursni ancha yaxshi o‘zlashtiradi.</span></div>
+            <div><i class="bi bi-phone-fill"></i><span><b>Uydan turib, 1 daqiqada</b>Click, Payme yoki bank kartasi orqali — navbatsiz va qog‘ozsiz.</span></div>
+        </div>
+    </div>
+</section>
+<script>
+(function () {
+    /* Iqtiboslar almashib turadi */
+    var q = document.querySelector('.pay-quote p');
+    if (q) {
+        var list = JSON.parse(q.dataset.quotes), i = 0;
+        setInterval(function () {
+            if (document.documentElement.getAttribute('data-motion') === 'off') return;
+            q.classList.add('out');
+            setTimeout(function () { i = (i + 1) % list.length; q.textContent = list[i]; q.classList.remove('out'); }, 500);
+        }, 6500);
+    }
+    /* Summa: tayyor variant yoki o'z summasi; tugmada summa ko'rinadi */
+    var form = document.getElementById('payForm');
+    if (!form) return;
+    var custom = document.getElementById('payCustom'), btn = document.getElementById('payBtnText'), hint = document.getElementById('payHint');
+    var fee = {{ payment.fee|default:0|dot }};
+    var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' '); };
+    function current() {
+        var c = custom.value.replace(/\D/g, '');
+        if (c) return parseInt(c, 10);
+        var r = form.querySelector('input[name=amount]:checked');
+        return r ? parseInt(r.value, 10) : 0;
+    }
+    function update() {
+        var n = current();
+        btn.textContent = n ? fmt(n) + ' so‘m to‘lash' : 'To‘lash';
+        if (custom.value) {
+            hint.textContent = n < 1000 ? 'Kamida 1 000 so‘m' : (fee ? '≈ ' + (n / fee).toFixed(1).replace('.0', '') + ' oylik to‘lov' : '');
+        } else hint.textContent = '';
+    }
+    custom.addEventListener('input', function () {
+        var d = custom.value.replace(/\D/g, '').slice(0, 8);
+        custom.value = d ? fmt(d) : '';
+        form.querySelectorAll('input[name=amount]').forEach(function (r) { r.checked = false; });
+        update();
+    });
+    form.querySelectorAll('input[name=amount]').forEach(function (r) { r.addEventListener('change', function () { custom.value = ''; update(); }); });
+    form.addEventListener('submit', function (e) {
+        var c = custom.value.replace(/\D/g, '');
+        if (c) {
+            if (parseInt(c, 10) < 1000) { e.preventDefault(); custom.focus(); return; }
+            var h = document.createElement('input'); h.type = 'hidden'; h.name = 'amount'; h.value = c; form.appendChild(h);
+        }
+    });
+    update();
+})();
+</script>

@@ -1,421 +1,121 @@
 {% extends 'parents/portal/base_parent.html' %}
+{% load parent_tags %}
+{% block title %}Yutuqlar{% endblock %}
+{% block page_title %}Yutuqlar va sertifikatlar{% endblock %}
 
-{% block title %}Yutuqlar va sertifikatlar - {{ selected_child.get_full_name }} - Ota-ona paneli{% endblock %}
+{% block extra_css %}
+<style>
+    .rk { --tone: var(--pp-pri); padding: 16px; border-radius: 18px; border: 1px solid color-mix(in srgb, var(--tone) 25%, var(--pp-line));
+        background: linear-gradient(160deg, color-mix(in srgb, var(--tone) 9%, var(--pp-surface)), var(--pp-surface) 70%); transition: transform .4s var(--pp-spring); }
+    .rk:hover { transform: translateY(-3px); }
+    .rk-top { display: flex; align-items: center; gap: 10px; }
+    .rk-ic { width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center; color: #fff; background: var(--tone); }
+    .rk-lbl { font-size: .78rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: var(--pp-text-2); }
+    .rk-pos { display: flex; align-items: baseline; gap: 4px; margin-top: 12px; font-size: 2.3rem; font-weight: 900; letter-spacing: -.04em; line-height: 1; color: var(--tone); }
+    .rk-pos small { font-size: .95rem; font-weight: 700; color: var(--pp-text-3); letter-spacing: 0; }
+    .rk-medal { margin-left: auto; font-size: 1.8rem; animation: ppFloat 3s ease-in-out infinite; }
+    .rk-sub { font-size: .8rem; font-weight: 700; color: var(--pp-text-2); }
+    .rk-cmp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .rk-cmp span { font-size: .7rem; color: var(--pp-text-3); font-weight: 600; }
+    .rk-cmp b { display: block; font-size: .98rem; color: var(--pp-text); font-variant-numeric: tabular-nums; }
+</style>
+{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid px-0">
-    <!-- Page Header -->
-    <div class="d-flex align-items-center justify-content-between mb-4">
-        <div>
-            <h3 class="mb-1 fw-bold">
-                <i class="bi bi-trophy-fill me-2 text-warning"></i>Yutuqlar va sertifikatlar
-            </h3>
-            <p class="text-muted mb-0">
-                <i class="bi bi-person me-1"></i>{{ selected_child.get_full_name }}
-                </p>
-                </div>
-                <a href="{% url 'parent_dashboard' %}{% if selected_child %}?child_id={{ selected_child.id }}{% endif %}" class="btn-back">
-            <i class="bi bi-arrow-left"></i>
-        </a>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-warning h-100">
-                <div class="stat-icon-wrapper bg-warning-soft">
-                    <i class="bi bi-award-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.total_badges|default:0 }}</div>
-                <div class="stat-label">Jami nishonlar</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-success h-100">
-                <div class="stat-icon-wrapper bg-success-soft">
-                    <i class="bi bi-file-earmark-check-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.total_certificates|default:0 }}</div>
-                <div class="stat-label">Jami sertifikatlar</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-primary h-100">
-                <div class="stat-icon-wrapper bg-primary-soft">
-                    <i class="bi bi-coin"></i>
-                </div>
-                <div class="stat-number">{{ stats.coins_balance|default:0 }}</div>
-                <div class="stat-label">Coin balansi</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card h-100" style="border-top: 4px solid #ef4444;">
-                <div class="stat-icon-wrapper" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                    <i class="bi bi-fire"></i>
-                </div>
-                <div class="stat-number">{{ stats.streak_days|default:0 }}</div>
-                <div class="stat-label">Ketma-ket kunlar</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Ranking Section -->
-    <div class="card mb-4">
-        <div class="card-header d-flex align-items-center">
-            <i class="bi bi-bar-chart-line-fill me-2 text-primary"></i>
-            <h5 class="mb-0">Reyting</h5>
-        </div>
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-4 text-center mb-4 mb-md-0">
-                    <div class="ranking-badge">
-                        <span class="ranking-position">#{{ ranking.position|default:"-" }}</span>
-                    </div>
-                    <p class="mt-3 mb-0 text-muted">Umumiy o'rin</p>
-                </div>
-                <div class="col-md-8">
-                    <div class="row g-3 mb-4">
-                        <div class="col-6">
-                            <div class="ranking-stat-card">
-                                <div class="ranking-stat-icon bg-primary-soft">
-                                    <i class="bi bi-coin text-primary"></i>
-                                </div>
-                                <div>
-                                    <h4 class="mb-0 fw-bold text-primary">{{ ranking.total_coins|default:0 }}</h4>
-                                    <small class="text-muted">Jami yig'ilgan coinlar</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-6">
-                            <div class="ranking-stat-card">
-                                <div class="ranking-stat-icon bg-info-soft">
-                                    <i class="bi bi-people text-info"></i>
-                                </div>
-                                <div>
-                                    <h4 class="mb-0 fw-bold text-info">{{ ranking.average_coins|default:0 }}</h4>
-                                    <small class="text-muted">O'rtacha (barcha o'quvchilar)</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% if ranking.total_coins > ranking.average_coins %}
-                    <div class="ranking-message success">
-                        <i class="bi bi-emoji-smile-fill me-2"></i>
-                        Farzandingiz o'rtachadan <strong>{{ ranking.difference|default:0 }}</strong> coin yuqori!
-                    </div>
-                    {% elif ranking.total_coins < ranking.average_coins %}
-                    <div class="ranking-message info">
-                        <i class="bi bi-lightbulb-fill me-2"></i>
-                        O'rtachaga yetish uchun yana <strong>{{ ranking.difference|default:0 }}</strong> coin kerak
-                    </div>
-                    {% else %}
-                    <div class="ranking-message neutral">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Farzandingiz o'rtacha darajada
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Badges Section -->
-    <div class="card mb-4">
-        <div class="card-header d-flex align-items-center">
-            <i class="bi bi-award-fill me-2 text-warning"></i>
-            <h5 class="mb-0">Nishonlar (Badges)</h5>
-        </div>
-        <div class="card-body">
-            {% if badges %}
-            <div class="row g-4">
-                {% for badge in badges %}
-                <div class="col-xl-3 col-lg-4 col-md-6">
-                    <div class="badge-card">
-                        <div class="badge-icon-wrapper" style="background-color: {{ badge.color|default:'#f59e0b' }}20;">
-                            <i class="bi bi-{{ badge.icon|default:'star-fill' }}" style="color: {{ badge.color|default:'#f59e0b' }};"></i>
-                        </div>
-                        <h6 class="badge-title">{{ badge.title }}</h6>
-                        <p class="badge-desc">{{ badge.description }}</p>
-                        <span class="badge-date">
-                            <i class="bi bi-calendar-check me-1"></i>{{ badge.earned_date|date:"d.m.Y" }}
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <div class="empty-state py-4">
-                <i class="bi bi-award"></i>
-                <h5>Hozircha nishonlar yo'q</h5>
-                <p class="mb-0">Farzandingiz darslarni tugatib, topshiriqlarni bajargan sari nishonlar oladi</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Certificates Section -->
-    <div class="card">
-        <div class="card-header d-flex align-items-center">
-            <i class="bi bi-file-earmark-medical-fill me-2 text-success"></i>
-            <h5 class="mb-0">Sertifikatlar</h5>
-        </div>
-        <div class="card-body p-0">
-            {% if certificates %}
-            <div class="table-responsive">
-                <table class="table table-modern mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width: 50px;"></th>
-                            <th>Sertifikat nomi</th>
-                            <th>Kurs</th>
-                            <th>Berilgan sana</th>
-                            <th>Kim tomonidan</th>
-                            <th class="text-end">Amallar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cert in certificates %}
-                        <tr>
-                            <td>
-                                <span class="cert-icon">
-                                    <i class="bi bi-patch-check-fill"></i>
-                                </span>
-                            </td>
-                            <td>
-                                <strong>{{ cert.certificate_id }}</strong>
-                            </td>
-                            <td>{{ cert.profession.name }}</td>
-                            <td>
-                                <i class="bi bi-calendar3 me-1 text-primary"></i>
-                                {{ cert.valid_from|date:"d.m.Y" }}
-                            </td>
-                            <td>
-                                <i class="bi bi-person-badge me-1 text-muted"></i>
-                                {{ cert.issued_by.full_name|default:cert.issued_by }}
-                            </td>
-                            <td class="text-end">
-                                {% if cert.file %}
-                                <a href="{{ cert.file.url }}" target="_blank" class="btn-action primary me-2">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="{{ cert.file.url }}" download class="btn-action success">
-                                    <i class="bi bi-download"></i>
-                                </a>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="empty-state py-5">
-                <i class="bi bi-file-earmark-x"></i>
-                <h5>Hozircha sertifikatlar yo'q</h5>
-                <p class="mb-0">Farzandingiz kursni muvaffaqiyatli tugatgandan so'ng sertifikat oladi</p>
-            </div>
-            {% endif %}
-        </div>
+<div class="pp-head">
+    <div>
+        <h1><span class="ic"><i class="bi bi-trophy-fill"></i></span>Yutuqlar</h1>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — sertifikatlar, nishonlar va reytingdagi o‘rni.{% endif %}</p>
     </div>
 </div>
 
-<style>
-.btn-back {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-color);
-    text-decoration: none;
-    transition: all 0.25s ease;
-}
+{% if not selected_child %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+<section class="pp-grid c4 pp-mb">
+    <div class="pp-card pp-kpi tone-warn" data-reveal><div class="top"><span class="ic"><i class="bi bi-coin"></i></span></div>
+        <div class="num"><span data-count="{{ ranking.coins }}">0</span></div><div class="lbl">Coin balansi</div>
+        <div class="sub">Jami yig‘ilgan: {{ coins_earned }}</div></div>
+    <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-bar-chart-steps"></i></span>{% if ranking.above_avg %}<span class="pp-badge ok">o‘rtachadan yuqori</span>{% endif %}</div>
+        <div class="num"><span data-count="{{ ranking.position }}">0</span><small>-o‘rin</small></div><div class="lbl">Umumiy reyting ({{ ranking.total }} o‘quvchi)</div>
+        <div class="sub">O‘rtacha: {{ ranking.average }} coin</div></div>
+    <div class="pp-card pp-kpi tone-info" data-reveal><div class="top"><span class="ic"><i class="bi bi-patch-check-fill"></i></span></div>
+        <div class="num"><span data-count="{{ certificates|length }}">0</span></div><div class="lbl">Sertifikatlar</div></div>
+    <div class="pp-card pp-kpi tone-bad" data-reveal><div class="top"><span class="ic"><i class="bi bi-fire"></i></span></div>
+        <div class="num"><span data-count="{{ streak }}">0</span><small> kun</small></div><div class="lbl">Ketma-ket faol kunlar</div></div>
+</section>
 
-.btn-back:hover {
-    background: var(--gradient-primary);
-    color: white;
-    border-color: transparent;
-}
+<!-- Yo'nalishdagi o'rni -->
+<section class="pp-card pp-mb" data-reveal>
+    <div class="pp-card-h"><span class="ic tone-pri"><i class="bi bi-bar-chart-line-fill"></i></span><h3>O‘z yo‘nalishidagi o‘rni</h3>
+        <span class="more pp-dim" style="color:var(--pp-text-3);font-weight:600;">shu kursda o‘qiyotgan o‘quvchilar orasida</span></div>
+    {% for r in course_ranks %}
+    <div style="{% if not forloop.first %}margin-top:18px;padding-top:18px;border-top:1px dashed var(--pp-line);{% endif %}">
+        <b style="display:flex;align-items:center;gap:8px;font-size:1rem;margin-bottom:12px;"><i class="bi bi-mortarboard-fill" style="color:var(--pp-vio)"></i>{{ r.profession.name }}</b>
+        <div class="pp-grid c2 keep1">
+            {% with s=r.score %}
+            <div class="rk tone-{% if s %}{{ s.beat|tone }}{% else %}info{% endif %}">
+                <div class="rk-top"><span class="rk-ic"><i class="bi bi-star-fill"></i></span><span class="rk-lbl">Ball bo‘yicha</span></div>
+                {% if s %}
+                <div class="rk-pos"><span data-count="{{ s.position }}">0</span><small>-o‘rin / {{ s.total }}</small>{% if s.position <= 3 %}<span class="rk-medal">{% if s.position == 1 %}🥇{% elif s.position == 2 %}🥈{% else %}🥉{% endif %}</span>{% endif %}</div>
+                <div class="pp-bar" style="margin:10px 0 6px;"><i data-w="{{ s.beat }}"></i></div>
+                <div class="rk-sub">{% if s.total > 1 %}{{ s.beat }}% o‘quvchidan oldinda{% else %}Kursda hozircha yagona{% endif %}</div>
+                <div class="rk-cmp"><span>Farzandingiz<b>{{ s.value }}</b></span><span>Kurs o‘rtachasi<b>{{ s.average }}</b></span><span>Eng yuqori<b>{{ s.top }}</b></span></div>
+                {% else %}
+                <p class="pp-muted" style="margin:6px 0 0;font-size:.86rem;">Hali baholangan test yoki vazifa yo‘q — o‘rin hisoblanmadi.</p>
+                {% endif %}
+            </div>
+            {% endwith %}
+            {% with s=r.coins %}
+            <div class="rk tone-{{ s.beat|tone }}">
+                <div class="rk-top"><span class="rk-ic"><i class="bi bi-coin"></i></span><span class="rk-lbl">Coin bo‘yicha</span></div>
+                <div class="rk-pos"><span data-count="{{ s.position }}">0</span><small>-o‘rin / {{ s.total }}</small>{% if s.position <= 3 and s.value %}<span class="rk-medal">{% if s.position == 1 %}🥇{% elif s.position == 2 %}🥈{% else %}🥉{% endif %}</span>{% endif %}</div>
+                <div class="pp-bar" style="margin:10px 0 6px;"><i data-w="{{ s.beat }}"></i></div>
+                <div class="rk-sub">{% if s.total > 1 %}{{ s.beat }}% o‘quvchidan oldinda{% else %}Kursda hozircha yagona{% endif %}</div>
+                <div class="rk-cmp"><span>Farzandingiz<b>{{ s.value }}</b></span><span>Kurs o‘rtachasi<b>{{ s.average }}</b></span><span>Eng yuqori<b>{{ s.top }}</b></span></div>
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+    {% empty %}
+    <p class="pp-muted" style="margin:0;">Farzandingiz hali kursga yozilmagan.</p>
+    {% endfor %}
+    <p class="pp-dim" style="font-size:.76rem;margin:14px 0 0;"><i class="bi bi-info-circle"></i> Ball — kursdagi testlar o‘rtachasi va vazifa bahosi (×10) ning o‘rtachasi. Boshqa o‘quvchilarning ismi ko‘rsatilmaydi.</p>
+</section>
 
-.ranking-badge {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    box-shadow: 0 10px 30px rgba(245, 158, 11, 0.3);
-}
+<section class="pp-card pp-mb" data-reveal>
+    <div class="pp-card-h"><span class="ic tone-warn"><i class="bi bi-award-fill"></i></span><h3>Nishonlar</h3>
+        <span class="pp-badge" style="margin-left:auto;">{{ earned_count }}/{{ badges|length }}</span></div>
+    <div class="pp-grid c4" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr));">
+        {% for b in badges %}
+        <div class="pp-badge-card {% if not b.earned %}locked{% endif %}" style="--c:{{ b.color }}" data-reveal="scale">
+            <div class="pp-medal"><i class="bi bi-{% if b.earned %}{{ b.icon }}{% else %}lock-fill{% endif %}"></i></div>
+            <b>{{ b.title }}</b>
+            <small>{{ b.description }}</small>
+            {% if b.earned and b.earned != True %}<div class="pp-dim" style="font-size:.7rem;margin-top:4px;">{{ b.earned|date:"d.m.Y" }}</div>{% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</section>
 
-.ranking-position {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: white;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.ranking-stat-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 20px;
-    background: var(--hover-bg);
-    border-radius: 16px;
-}
-
-.ranking-stat-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-}
-
-.ranking-message {
-    padding: 16px 20px;
-    border-radius: 12px;
-    font-weight: 500;
-}
-
-.ranking-message.success {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-    border-left: 4px solid #10b981;
-}
-
-.ranking-message.info {
-    background: rgba(14, 165, 233, 0.1);
-    color: #0ea5e9;
-    border-left: 4px solid #0ea5e9;
-}
-
-.ranking-message.neutral {
-    background: var(--hover-bg);
-    color: var(--text-muted);
-    border-left: 4px solid var(--text-muted);
-}
-
-.badge-card {
-    text-align: center;
-    padding: 24px;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    transition: all 0.3s ease;
-    height: 100%;
-}
-
-.badge-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-}
-
-.badge-icon-wrapper {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    font-size: 2.5rem;
-}
-
-.badge-title {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--text-color);
-}
-
-.badge-desc {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-}
-
-.badge-date {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    background: var(--hover-bg);
-    padding: 6px 12px;
-    border-radius: 20px;
-}
-
-.table-modern {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table-modern thead th {
-    background: var(--hover-bg);
-    border: none;
-    padding: 16px 20px;
-    font-weight: 600;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-}
-
-.table-modern tbody td {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
-}
-
-.table-modern tbody tr:hover {
-    background: var(--hover-bg);
-}
-
-.cert-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    background: rgba(16, 185, 129, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #10b981;
-    font-size: 1.1rem;
-}
-
-.btn-action {
-    width: 36px;
-    height: 36px;
-    border-radius: 10px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    transition: all 0.25s ease;
-}
-
-.btn-action.primary {
-    background: rgba(99, 102, 241, 0.1);
-    color: #6366f1;
-}
-
-.btn-action.primary:hover {
-    background: #6366f1;
-    color: white;
-}
-
-.btn-action.success {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-}
-
-.btn-action.success:hover {
-    background: #10b981;
-    color: white;
-}
-</style>
+<section class="pp-card flat" data-reveal>
+    <div class="pp-card-h"><span class="ic tone-info"><i class="bi bi-patch-check-fill"></i></span><h3>Sertifikatlar</h3></div>
+    <div class="pp-table-wrap"><table class="pp-table">
+        <thead><tr><th>Kurs</th><th>Seriya</th><th>Berilgan</th><th>Amal qiladi</th><th>Holat</th><th></th></tr></thead>
+        <tbody>
+        {% for cert in certificates %}
+        <tr>
+            <td><b>{{ cert.profession.name }}</b></td>
+            <td class="pp-mono">{{ cert.certificate_id }}</td>
+            <td>{{ cert.valid_from|date:"d.m.Y" }}</td>
+            <td>{{ cert.valid_until|date:"d.m.Y"|default:"Muddatsiz" }}</td>
+            <td><span class="pp-badge {% if cert.status == 'active' %}ok{% elif cert.status == 'expired' %}warn{% elif cert.status == 'frozen' %}info{% else %}bad{% endif %}">{{ cert.get_status_display }}</span></td>
+            <td style="text-align:right;"><a class="pp-btn sm" href="{% url 'verify_certificate' %}?id={{ cert.certificate_id }}" target="_blank" rel="noopener"><i class="bi bi-shield-check"></i> Tekshirish</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="pp-empty" style="padding:24px;"><div class="art"><i class="bi bi-patch-question"></i></div><p>Hali sertifikat olinmagan. Kursni yakuniy test bilan tugatganda beriladi.</p></div></td></tr>
+        {% endfor %}
+        </tbody></table></div>
+</section>
+{% endif %}
 {% endblock %}

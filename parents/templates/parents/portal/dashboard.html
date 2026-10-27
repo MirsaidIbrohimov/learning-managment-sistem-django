@@ -1,256 +1,207 @@
 {% extends 'parents/portal/base_parent.html' %}
-
-{% block title %}Bosh sahifa - Ota-ona paneli{% endblock %}
+{% load parent_tags %}
+{% block title %}Bosh sahifa{% endblock %}
+{% block page_title %}Bosh sahifa{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid px-0">
-    
-    {% if not selected_child %}
-    <!-- No children message -->
-    <div class="card">
-        <div class="card-body empty-state">
-            <i class="bi bi-people d-block"></i>
-            <h5>Farzandlar topilmadi</h5>
-            <p class="mb-0">Sizga hali farzand biriktirilmagan. Admin bilan bog'laning.</p>
+{% if not selected_child %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+{% with c=selected_child %}
+
+<!-- ═════ Farzand kartasi ═════ -->
+<section class="pp-hero pp-mb" data-tour="hero">
+    <div class="pp-hero-row">
+        {% include 'parents/portal/partials/avatar.html' with person=c size='xl' %}
+        <div style="min-width:0;flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem;font-weight:700;opacity:.85;">
+                <span class="pp-online {% if not c.is_online %}off{% endif %}" style="{% if not c.is_online %}background:rgba(255,255,255,.5);{% endif %}"></span>
+                {% if c.is_online %}Hozir platformada{% elif c.last_activity %}Oxirgi faollik: {{ c.last_activity|timesince }} oldin{% else %}Hali platformaga kirmagan{% endif %}
+            </div>
+            <h2>{{ c.full_name|default:c.username }}</h2>
+            <div class="pp-hero-meta">
+                <span class="pp-chip"><i class="bi bi-person"></i>@{{ c.username }}</span>
+                <span class="pp-chip"><i class="bi bi-coin"></i><span data-count="{{ c.coins }}">{{ c.coins }}</span> coin</span>
+                {% if c.streak_days %}<span class="pp-chip"><i class="bi bi-fire"></i>{{ c.streak_days }} kun ketma-ket</span>{% endif %}
+                {% if certificates_count %}<span class="pp-chip"><i class="bi bi-patch-check"></i>{{ certificates_count }} sertifikat</span>{% endif %}
+            </div>
+        </div>
+        <div class="pp-hero-stats">
+            {% include 'parents/portal/partials/ring.html' with value=progress.percent size=112 label='Bajarildi' %}
+            <div class="pp-hero-stat"><b>{% if attendance.rate is not None %}<span data-count="{{ attendance.rate }}">0</span>%{% else %}—{% endif %}</b><small>Davomat (30 kun)</small></div>
+            <div class="pp-hero-stat"><b><span data-count="{{ tests.avg|dot }}">0</span>%</b><small>Test o‘rtachasi</small></div>
         </div>
     </div>
-    {% else %}
+</section>
 
-    <!-- Child Selector (if multiple children) -->
-    {% if children|length > 1 %}
-    <div class="mb-4">
-        <div class="card p-3">
-            <div class="d-flex align-items-center flex-wrap gap-3">
-                <span class="text-muted fw-medium">
-                    <i class="bi bi-people-fill me-2"></i>Farzandni tanlang:
-                </span>
-                <div class="child-selector">
-                    {% for c in children %}
-                    <a href="?child_id={{ c.id }}" 
-                       class="child-btn {% if c.id == selected_child.id %}active{% endif %}">
-                        {{ c.full_name }}
-                    </a>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+<!-- ═════ Ogohlantirishlar ═════ -->
+<section class="pp-alerts pp-mb" data-tour="alerts">
+    {% for a in alerts %}
+    {% if a.url %}<a href="{% url a.url %}" class="pp-alert {{ a.level }}" data-reveal="left">{% else %}<div class="pp-alert {{ a.level }}" data-reveal="left">{% endif %}
+        <i class="bi {{ a.icon }}"></i><span>{{ a.text }}</span>{% if a.url %}<i class="bi bi-arrow-right go"></i>{% endif %}
+    {% if a.url %}</a>{% else %}</div>{% endif %}
+    {% empty %}
+    <div class="pp-alert success" data-reveal="left"><i class="bi bi-emoji-smile"></i><span>Hammasi joyida — e’tibor talab qiladigan holat yo‘q.</span></div>
+    {% endfor %}
+</section>
 
-    <!-- Header Section - Child Info -->
-    <div class="mb-4">
-        <div class="card hero-card border-0">
-            <div class="card-body p-4">
-                <div class="row align-items-center g-4">
-                    <div class="col-auto">
-                        {% if selected_child.photo %}
-                        <img src="{{ selected_child.photo.url }}" alt="{{ selected_child.full_name }}" 
-                             class="hero-avatar">
-                        {% else %}
-                        <div class="hero-avatar-placeholder">
-                            {{ selected_child.first_name.0|upper }}{{ selected_child.last_name.0|upper }}
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="col">
-                        <h2 class="text-white mb-2 fw-bold">{{ selected_child.full_name }}</h2>
-                        <div class="d-flex flex-wrap gap-3 mb-3">
-                            <span class="text-white-50">
-                                <i class="bi bi-person me-1"></i>@{{ selected_child.username }}
-                            </span>
-                            {% if selected_child.phone %}
-                            <span class="text-white-50">
-                                <i class="bi bi-telephone me-1"></i>{{ selected_child.phone }}
-                            </span>
-                            {% endif %}
-                        </div>
-                        <div class="d-flex flex-wrap gap-2">
-                            <span class="badge bg-white bg-opacity-25 text-white px-3 py-2 rounded-pill">
-                                <i class="bi bi-coin me-1"></i>{{ selected_child.coins }} coin
-                            </span>
-                            {% if selected_child.is_online %}
-                            <span class="status-online">
-                                Online
-                            </span>
-                            {% else %}
-                            <span class="status-offline">
-                                <i class="bi bi-clock me-1"></i>
-                                {% if selected_child.last_activity %}
-                                {{ selected_child.last_activity|timesince }} oldin
-                                {% else %}
-                                Offline
-                                {% endif %}
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- ═════ Asosiy ko'rsatkichlar ═════ -->
+<section class="pp-grid c4 pp-mb" data-tour="kpis">
+    <a href="{% url 'parent_lessons' %}" class="pp-card pp-kpi tone-pri" data-reveal>
+        <div class="top"><span class="ic"><i class="bi bi-play-circle-fill"></i></span><span class="pp-badge">{{ progress.percent }}%</span></div>
+        <div class="num"><span data-count="{{ progress.videos_watched }}">0</span><small>/{{ progress.videos_total }}</small></div>
+        <div class="lbl">Ko‘rilgan video darslar</div>
+        <div class="pp-bar sm" style="margin-top:12px;"><i data-w="{{ progress.videos_watched|pct:progress.videos_total }}"></i></div>
+    </a>
+    <a href="{% url 'parent_tests' %}" class="pp-card pp-kpi tone-{{ tests.avg|tone }}" data-reveal>
+        <div class="top"><span class="ic"><i class="bi bi-ui-checks-grid"></i></span><span class="pp-badge {{ tests.avg|tone }}">{{ tests.passed }}/{{ tests.taken }} o‘tdi</span></div>
+        <div class="num"><span data-count="{{ tests.avg|dot }}">0</span><small>%</small></div>
+        <div class="lbl">Testlar o‘rtacha bali</div>
+        <div class="sub">O‘tish ko‘rsatkichi: {{ tests.pass_rate }}%</div>
+    </a>
+    <a href="{% url 'parent_attendance' %}" class="pp-card pp-kpi {% if attendance.rate is None %}tone-info{% else %}tone-{{ attendance.rate|tone }}{% endif %}" data-reveal>
+        <div class="top"><span class="ic"><i class="bi bi-calendar2-check-fill"></i></span>{% if attendance.absent %}<span class="pp-badge bad">{{ attendance.absent }} ta kelmagan</span>{% endif %}</div>
+        <div class="num">{% if attendance.rate is not None %}<span data-count="{{ attendance.rate }}">0</span><small>%</small>{% else %}—{% endif %}</div>
+        <div class="lbl">Davomat (30 kun)</div>
+        <div class="sub">{{ attendance.present }} keldi · {{ attendance.late }} kechikdi · {{ attendance.total }} dars</div>
+    </a>
+    <a href="{% url 'parent_homework' %}" class="pp-card pp-kpi tone-{{ homework.avg_grade|tone:10 }}" data-reveal>
+        <div class="top"><span class="ic"><i class="bi bi-journal-check"></i></span>{% if homework.missed %}<span class="pp-badge bad">{{ homework.missed }} topshirilmagan</span>{% endif %}</div>
+        <div class="num"><span data-count="{{ homework.avg_grade|dot }}">0</span><small>/10</small></div>
+        <div class="lbl">Vazifalar o‘rtacha bahosi</div>
+        <div class="sub">{{ homework.submitted }}/{{ progress.hw_total }} topshirildi{% if homework.pending %} · {{ homework.pending }} tekshirilmoqda{% endif %}</div>
+    </a>
+</section>
 
-    <!-- Quick Stats Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-success h-100">
-                <div class="stat-icon-wrapper bg-success-soft">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.completed_lessons|default:0 }}</div>
-                <div class="stat-label">Tugatilgan darslar</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-warning h-100">
-                <div class="stat-icon-wrapper bg-warning-soft">
-                    <i class="bi bi-hourglass-split"></i>
-                </div>
-                <div class="stat-number">{{ stats.remaining_lessons|default:0 }}</div>
-                <div class="stat-label">Qolgan darslar</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-primary h-100">
-                <div class="stat-icon-wrapper bg-primary-soft">
-                    <i class="bi bi-file-earmark-check-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.homework_submitted|default:0 }}</div>
-                <div class="stat-label">Topshirilgan vazifalar</div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="stat-card stat-info h-100">
-                <div class="stat-icon-wrapper bg-info-soft">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <div class="stat-number">{{ stats.avg_test_score|default:0 }}%</div>
-                <div class="stat-label">O'rtacha test bali</div>
-            </div>
-        </div>
-    </div>
+{% include 'parents/portal/partials/topup.html' %}
 
-    <div class="row g-4">
-        <!-- Recent Activity -->
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header d-flex align-items-center">
-                    <i class="bi bi-activity me-2 text-primary"></i>
-                    <h5 class="mb-0">So'nggi faollik</h5>
+<section class="pp-grid side">
+    <div class="pp-stack">
+        <!-- Haftalik faollik -->
+        <div class="pp-card" data-reveal data-tour="week">
+            <div class="pp-card-h"><span class="ic"><i class="bi bi-activity"></i></span><h3>Oxirgi 7 kunlik faollik</h3>
+                <span class="more pp-dim" style="color:var(--pp-text-3)">video · vazifa · test</span></div>
+            <div class="pp-week">
+                {% for d in weekly %}
+                <div class="col {% if d.is_today %}today{% endif %}" title="{{ d.date|date:'d.m.Y' }}: {{ d.count }} ta faollik">
+                    <b>{{ d.count }}</b><i data-h="{% if d.count %}{{ d.pct }}{% else %}3{% endif %}"></i><span>{{ d.label }}</span>
                 </div>
-                <div class="card-body">
-                    {% if recent_activities %}
-                        {% for activity in recent_activities %}
-                        <div class="activity-item">
-                            <div class="activity-icon {% if activity.type == 'video' %}bg-primary-soft{% elif activity.type == 'homework' %}bg-success-soft{% elif activity.type == 'test' %}bg-info-soft{% else %}bg-secondary{% endif %}">
-                                {% if activity.type == 'video' %}
-                                <i class="bi bi-play-fill"></i>
-                                {% elif activity.type == 'homework' %}
-                                <i class="bi bi-check2"></i>
-                                {% elif activity.type == 'test' %}
-                                <i class="bi bi-list-check"></i>
-                                {% else %}
-                                <i class="bi bi-dot"></i>
-                                {% endif %}
-                            </div>
-                            <div class="activity-content flex-grow-1">
-                                <h6>{{ activity.title }}</h6>
-                                <p class="mb-1">{{ activity.description }}</p>
-                                <span class="activity-time">
-                                    <i class="bi bi-clock me-1"></i>{{ activity.date|timesince }} oldin
-                                </span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="empty-state py-4">
-                        <i class="bi bi-inbox"></i>
-                        <p class="mb-0">Hozircha faollik yo'q</p>
-                    </div>
-                    {% endif %}
-                </div>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Upcoming Deadlines -->
-        <div class="col-lg-6">
-            <div class="card h-100">
-                <div class="card-header d-flex align-items-center">
-                    <i class="bi bi-calendar-event me-2 text-warning"></i>
-                    <h5 class="mb-0">Yaqinlashayotgan muddatlar</h5>
+        <!-- Kurslar -->
+        <div class="pp-card" data-reveal>
+            <div class="pp-card-h"><span class="ic tone-vio"><i class="bi bi-mortarboard-fill"></i></span><h3>Kurslar bo‘yicha o‘zlashtirish</h3>
+                <a class="more" href="{% url 'parent_lessons' %}">Batafsil <i class="bi bi-arrow-right"></i></a></div>
+            {% for k in courses %}
+            <div style="padding:10px 0;{% if not forloop.last %}border-bottom:1px dashed var(--pp-line);{% endif %}">
+                <div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:8px;">
+                    <b style="font-size:.92rem;">{{ k.profession.name }}</b>
+                    <span class="pp-badge {{ k.progress.percent|tone }}">{{ k.progress.percent }}%</span>
                 </div>
-                <div class="card-body">
-                    {% if upcoming_deadlines %}
-                        {% for deadline in upcoming_deadlines %}
-                        <div class="deadline-item {% if deadline.days_left <= 1 %}urgent{% elif deadline.days_left <= 3 %}warning{% endif %}">
-                            <div class="activity-icon {% if deadline.days_left <= 1 %}bg-danger{% elif deadline.days_left <= 3 %}bg-warning{% else %}bg-info{% endif %} text-white">
-                                <i class="bi bi-file-text"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <h6 class="mb-1 fw-semibold">{{ deadline.title }}</h6>
-                                <small class="text-muted">
-                                    <i class="bi bi-clock me-1"></i>{{ deadline.due_date|date:"d.m.Y H:i" }}
-                                </small>
-                            </div>
-                            <div>
-                                {% if deadline.days_left <= 1 %}
-                                <span class="badge-soft-danger">Bugun!</span>
-                                {% elif deadline.days_left <= 3 %}
-                                <span class="badge-soft-warning">{{ deadline.days_left }} kun</span>
-                                {% else %}
-                                <span class="badge-soft-info">{{ deadline.days_left }} kun</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% else %}
-                    <div class="empty-state py-4">
-                        <i class="bi bi-calendar-check"></i>
-                        <p class="mb-0">Yaqinlashayotgan muddatlar yo'q</p>
-                    </div>
-                    {% endif %}
+                <div class="pp-bar"><i data-w="{{ k.progress.percent }}"></i></div>
+                <div class="pp-dim" style="font-size:.75rem;margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;">
+                    <span><i class="bi bi-play-circle"></i> {{ k.progress.videos_watched }}/{{ k.progress.videos_total }} video</span>
+                    <span><i class="bi bi-ui-checks"></i> {{ k.progress.tests_taken }}/{{ k.progress.tests_total }} test</span>
+                    <span><i class="bi bi-journal"></i> {{ k.progress.hw_done }}/{{ k.progress.hw_total }} vazifa</span>
                 </div>
             </div>
+            {% empty %}
+            <div class="pp-empty" style="padding:20px;"><p>Farzandingiz hali kursga yozilmagan.</p></div>
+            {% endfor %}
+        </div>
+
+        <!-- So'nggi faollik -->
+        <div class="pp-card" data-reveal>
+            <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-clock-history"></i></span><h3>So‘nggi faollik</h3>
+                <a class="more" href="{% url 'parent_child_detail' c.id %}">Hammasi <i class="bi bi-arrow-right"></i></a></div>
+            {% if activity %}
+            <div class="pp-timeline">
+                {% for a in activity %}
+                <div class="pp-tl" style="--tone:{% if a.type == 'video' %}var(--pp-pri){% elif a.type == 'homework' %}var(--pp-ok){% else %}var(--pp-cy){% endif %}">
+                    <b>{{ a.title }}</b>
+                    <p><i class="bi {{ a.icon }}"></i> {{ a.text }}</p>
+                    <small>{{ a.date|timesince }} oldin</small>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="pp-empty" style="padding:20px;"><p>Hozircha faollik yo‘q.</p></div>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Quick Links -->
-    <div class="mt-4">
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-lightning-fill me-2 text-warning"></i>
-                <h5 class="mb-0">Tezkor havolalar</h5>
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'parent_lessons' %}?child_id={{ selected_child.id }}" class="quick-link-btn link-primary w-100 h-100">
-                            <i class="bi bi-play-circle-fill"></i>
-                            <span>Darslar</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'parent_homework' %}?child_id={{ selected_child.id }}" class="quick-link-btn link-success w-100 h-100">
-                            <i class="bi bi-journal-check"></i>
-                            <span>Vazifalar</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'parent_tests' %}?child_id={{ selected_child.id }}" class="quick-link-btn link-info w-100 h-100">
-                            <i class="bi bi-ui-checks"></i>
-                            <span>Testlar</span>
-                        </a>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <a href="{% url 'parent_messages' %}" class="quick-link-btn link-warning w-100 h-100">
-                            <i class="bi bi-chat-square-dots-fill"></i>
-                            <span>Xabar yuborish</span>
-                        </a>
-                    </div>
+    <div class="pp-stack">
+        <!-- Keyingi dars -->
+        <a href="{% url 'parent_attendance' %}" class="pp-card hover" data-reveal>
+            <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-alarm"></i></span><h3>Keyingi dars</h3>
+                {% if schedule.next.is_now %}<span class="pp-live" style="margin-left:auto;">HOZIR DARSDA</span>{% endif %}</div>
+            {% if schedule.next %}
+            <div class="pp-next">
+                <div class="clock"><b>{{ schedule.next.start|time:"H:i" }}</b><small>{% if schedule.next.is_today %}Bugun{% else %}{{ schedule.next.weekday|slice:":3" }}{% endif %}</small></div>
+                <div style="min-width:0;">
+                    <b style="display:block;">{{ schedule.next.group.profession.name }}</b>
+                    <span class="pp-muted" style="font-size:.82rem;">{{ schedule.next.weekday }} · {{ schedule.next.group.time_range }}{% if schedule.next.group.room %} · {{ schedule.next.group.room }}{% endif %}</span>
+                    {% if schedule.next.group.teacher %}<div class="pp-dim" style="font-size:.78rem;margin-top:3px;"><i class="bi bi-person-badge"></i> {{ schedule.next.group.teacher.full_name }}</div>{% endif %}
                 </div>
             </div>
+            {% else %}
+            <p class="pp-muted" style="margin:0;font-size:.88rem;">Farzandingiz hali hech qaysi guruh jadvaliga biriktirilmagan.</p>
+            {% endif %}
+        </a>
+
+        <!-- To'lov -->
+        <a href="#tolash" class="pp-card hover" data-reveal>
+            <div class="pp-card-h"><span class="ic tone-{% if payment.state == 'overdue' or payment.state == 'blocked' %}bad{% elif payment.state == 'soon' %}warn{% else %}ok{% endif %}"><i class="bi bi-wallet2"></i></span><h3>To‘lov holati</h3>
+                <span style="margin-left:auto;">{% include 'parents/portal/partials/payment_badge.html' %}</span></div>
+            {% if payment.balance and not payment.balance.is_contract %}
+            <div style="display:flex;align-items:baseline;gap:6px;"><b style="font-size:1.6rem;font-weight:850;letter-spacing:-.02em;" data-count="{{ payment.balance.amount|dot }}">0</b><span class="pp-muted">so‘m balans</span></div>
+            {% elif payment.balance.is_contract %}
+            <b>Shartnoma: {{ payment.balance.contract_name|default:"faol" }}</b>
+            {% endif %}
+            <div class="pp-muted" style="font-size:.84rem;margin-top:6px;">
+                {% if payment.next_date %}Keyingi to‘lov: <b style="color:var(--pp-text)">{{ payment.next_date|date:"d.m.Y" }}</b>{% if payment.days_left is not None %} ({% if payment.days_left >= 0 %}{{ payment.days_left }} kun qoldi{% else %}{{ payment.days_left|absval }} kun o‘tdi{% endif %}){% endif %}{% else %}To‘lov sanasi belgilanmagan{% endif %}
+                {% if payment.fee %}<br>Oylik to‘lov: {{ payment.fee|money }} so‘m{% endif %}
+            </div>
+            {% if payment.state != 'contract' %}
+            <span class="pp-btn pri sm" style="margin-top:14px;"><i class="bi bi-credit-card-2-front"></i> Balansni to‘ldirish</span>
+            <div class="pp-dim" style="font-size:.74rem;margin-top:8px;">💡 O‘z vaqtidagi to‘lov — {{ selected_child.first_name }} uchun uzluksiz o‘qish.</div>
+            {% endif %}
+        </a>
+
+        <!-- Yaqin muddatlar -->
+        <div class="pp-card" data-reveal>
+            <div class="pp-card-h"><span class="ic tone-warn"><i class="bi bi-hourglass-split"></i></span><h3>Yaqin muddatlar</h3>
+                <a class="more" href="{% url 'parent_homework' %}">Vazifalar <i class="bi bi-arrow-right"></i></a></div>
+            <div class="pp-list">
+                {% for d in deadlines %}
+                <div class="pp-li">
+                    <span class="ic tone-{% if d.level == 'danger' %}bad{% elif d.level == 'warning' %}warn{% else %}info{% endif %}"><i class="bi bi-journal-text"></i></span>
+                    <span class="t"><b>{{ d.title }}</b><small>{{ d.due|date:"d.m.Y H:i" }}</small></span>
+                    <span class="pp-badge {% if d.level == 'danger' %}bad{% elif d.level == 'warning' %}warn{% else %}info{% endif %}">{% if d.hours_left < 24 %}{{ d.hours_left }} soat{% else %}{{ d.days_left }} kun{% endif %}</span>
+                </div>
+                {% empty %}
+                <p class="pp-muted" style="margin:0;font-size:.88rem;"><i class="bi bi-check2-circle" style="color:var(--pp-ok)"></i> Keyingi 7 kunda topshirilmagan vazifa yo‘q.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Qo'shimcha -->
+        <div class="pp-grid c2" data-reveal>
+            <a href="{% url 'parent_tests' %}" class="pp-card pp-kpi tone-vio hover" style="padding:16px;">
+                <span class="ic" style="margin-bottom:10px;"><i class="bi bi-mic-fill"></i></span>
+                <div class="num" style="font-size:1.4rem;">{{ speaking.count }}</div>
+                <div class="lbl">Speaking{% if speaking.graded %} · {{ speaking.avg_grade }} ball{% endif %}</div>
+            </a>
+            <a href="{% url 'parent_messages' %}" class="pp-card pp-kpi tone-pri hover" style="padding:16px;">
+                <span class="ic" style="margin-bottom:10px;"><i class="bi bi-chat-heart-fill"></i></span>
+                <div class="num" style="font-size:1.4rem;">{{ unread_replies }}</div>
+                <div class="lbl">Yangi javob</div>
+            </a>
         </div>
     </div>
-
-    {% endif %}
-</div>
+</section>
+{% endwith %}
+{% endif %}
 {% endblock %}
