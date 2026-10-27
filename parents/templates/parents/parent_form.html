@@ -1,142 +1,198 @@
 {% extends 'accounts/admin/base_admin.html' %}
 
-{% block title %}{% if parent %}Ota-ona tahrirlash{% else %}Ota-ona qo'shish{% endif %} - Admin Panel{% endblock %}
+{% block title %}{{ title }} - Admin Panel{% endblock %}
 
 {% block admin_content %}
-<a href="{% url 'parents:admin_parents' %}" class="btn btn-outline-secondary rounded-pill mb-4">
-    <i class="bi bi-arrow-left me-1"></i>Orqaga
-</a>
+<style>
+.pf-wrap{max-width:1100px;margin:0 auto;padding:1rem;}
+.pf-head{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;}
+.pf-back{width:40px;height:40px;border-radius:12px;border:1px solid var(--border-color,#e5e7eb);display:grid;place-items:center;color:inherit;text-decoration:none;}
+.pf-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:1.25rem;align-items:start;}
+.pf-card{background:var(--card-bg,#fff);border:1px solid var(--border-color,#e5e7eb);border-radius:20px;padding:1.4rem;}
+.pf-card h5{font-weight:800;font-size:1rem;margin:0 0 1rem;display:flex;align-items:center;gap:.5rem;}
+.pf-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;}
+.pf-f{margin-bottom:1rem;}
+.pf-f label{display:block;font-size:.78rem;font-weight:700;color:var(--bs-secondary-color,#6b7280);margin-bottom:.35rem;}
+.pf-in{width:100%;height:46px;padding:0 .9rem;border-radius:13px;border:1.5px solid var(--border-color,#e5e7eb);background:transparent;color:inherit;font-size:.95rem;font-weight:600;outline:none;transition:border-color .2s,box-shadow .2s;}
+.pf-in:focus{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,.14);}
+.pf-phone{display:flex;align-items:stretch;border:1.5px solid var(--border-color,#e5e7eb);border-radius:13px;overflow:hidden;transition:border-color .2s,box-shadow .2s;}
+.pf-phone:focus-within{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,.14);}
+.pf-phone span{display:flex;align-items:center;gap:.4rem;padding:0 .8rem;font-weight:800;background:rgba(99,102,241,.08);color:#6366f1;white-space:nowrap;}
+.pf-phone input{flex:1;border:0;height:44px;padding:0 .8rem;background:transparent;color:inherit;font-size:1rem;font-weight:700;letter-spacing:.04em;outline:none;min-width:0;}
+.pf-hint{font-size:.74rem;color:var(--bs-secondary-color,#6b7280);margin-top:.3rem;}
+.pf-hint.err{color:#ef4444;}.pf-hint.ok{color:#10b981;}
+.pf-pass{display:flex;gap:.4rem;}
+.pf-pass .pf-in{font-family:ui-monospace,Consolas,monospace;}
+.pf-sbtn{flex-shrink:0;height:46px;padding:0 .8rem;border-radius:13px;border:1.5px solid var(--border-color,#e5e7eb);background:transparent;color:inherit;font-weight:700;font-size:.8rem;cursor:pointer;white-space:nowrap;}
+.pf-sbtn:hover{border-color:#6366f1;color:#6366f1;}
+.pf-chips{display:flex;flex-wrap:wrap;gap:.4rem;min-height:38px;padding:.4rem;border-radius:13px;border:1.5px dashed var(--border-color,#e5e7eb);margin-bottom:.75rem;}
+.pf-chip{display:inline-flex;align-items:center;gap:.35rem;padding:.3rem .4rem .3rem .65rem;border-radius:999px;background:#6366f1;color:#fff;font-size:.8rem;font-weight:700;animation:pfPop .3s cubic-bezier(.34,1.56,.64,1);}
+.pf-chip button{border:0;background:rgba(255,255,255,.25);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:.7rem;}
+.pf-chips .empty{color:var(--bs-secondary-color,#9ca3af);font-size:.82rem;padding:.3rem .4rem;}
+@keyframes pfPop{from{transform:scale(.5);opacity:0}}
+.pf-list{max-height:380px;overflow-y:auto;border:1px solid var(--border-color,#e5e7eb);border-radius:14px;}
+.pf-st{display:flex;align-items:center;gap:.7rem;padding:.6rem .8rem;border-bottom:1px solid var(--border-color,#e5e7eb);cursor:pointer;transition:background .15s;}
+.pf-st:last-child{border-bottom:0;}
+.pf-st:hover{background:rgba(99,102,241,.05);}
+.pf-st input{width:18px;height:18px;accent-color:#6366f1;flex-shrink:0;}
+.pf-st .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-weight:800;font-size:.75rem;color:#fff;background:linear-gradient(135deg,#6366f1,#8b5cf6);}
+.pf-st b{display:block;font-size:.88rem;}
+.pf-st small{color:var(--bs-secondary-color,#6b7280);font-size:.74rem;}
+.pf-st .tag{margin-left:auto;font-size:.68rem;font-weight:700;padding:.15rem .5rem;border-radius:99px;background:rgba(245,158,11,.12);color:#b45309;white-space:nowrap;}
+.pf-st.on{background:rgba(99,102,241,.08);}
+.pf-save{display:flex;gap:.5rem;margin-top:1rem;}
+.pf-save button{flex:1;height:48px;border:0;border-radius:14px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-weight:800;font-size:.95rem;cursor:pointer;box-shadow:0 12px 26px -12px #6366f1;}
+.pf-save a{height:48px;padding:0 1.1rem;display:grid;place-items:center;border-radius:14px;border:1px solid var(--border-color,#e5e7eb);color:inherit;text-decoration:none;font-weight:700;}
+@media(max-width:900px){.pf-grid{grid-template-columns:1fr;}.pf-row{grid-template-columns:1fr;}}
+</style>
 
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-{% if parent %}pencil-square{% else %}person-plus{% endif %} me-2"></i>
-                {% if parent %}Ota-ona tahrirlash{% else %}Yangi ota-ona qo'shish{% endif %}
-            </div>
-            <div class="card-body p-4">
-                <form method="POST">
-                    {% csrf_token %}
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Ism <span class="text-danger">*</span></label>
-                            <input type="text" name="first_name" class="form-control"
-                                   value="{% if parent %}{{ parent.first_name }}{% endif %}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Familiya <span class="text-danger">*</span></label>
-                            <input type="text" name="last_name" class="form-control"
-                                   value="{% if parent %}{{ parent.last_name }}{% endif %}" required>
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Telefon <span class="text-danger">*</span></label>
-                            <input type="text" name="phone" class="form-control"
-                                   value="{% if parent %}{{ parent.phone }}{% endif %}" placeholder="+998901234567" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Email</label>
-                            <input type="email" name="email" class="form-control"
-                                   value="{% if parent %}{{ parent.email|default:'' }}{% endif %}" placeholder="email@example.com">
-                        </div>
-                    </div>
-
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Login (username) <span class="text-danger">*</span></label>
-                            <input type="text" name="username" class="form-control"
-                                   value="{% if parent %}{{ parent.username }}{% endif %}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">
-                                Parol {% if not parent %}<span class="text-danger">*</span>{% endif %}
-                            </label>
-                            <input type="password" name="password" class="form-control"
-                                   {% if not parent %}required{% endif %}
-                                   placeholder="{% if parent %}Yangi parol (bo'sh qoldiring){% else %}Parol kiriting{% endif %}">
-                            {% if parent %}
-                            <small class="text-muted">O'zgartirmoqchi bo'lmasangiz bo'sh qoldiring</small>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    <div class="mb-4">
-                        <label class="form-label">Farzandlar</label>
-                        <select name="children" class="form-select" multiple size="8">
-                            {% for child in children %}
-                            <option value="{{ child.id }}"
-                                    {% if child.id in selected_children %}selected{% endif %}>
-                                {{ child.get_full_name|default:child.username }}
-                                {% if child.profession %} - {{ child.profession.name }}{% endif %}
-                            </option>
-                            {% empty %}
-                            <option disabled>O'quvchilar mavjud emas</option>
-                            {% endfor %}
-                        </select>
-                        <small class="text-muted">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Bir nechta tanlash uchun Ctrl (yoki Cmd) tugmasini bosib turing
-                        </small>
-                    </div>
-
-                    <hr>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-check-lg me-1"></i>Saqlash
-                        </button>
-                        <a href="{% url 'parents:admin_parents' %}" class="btn btn-outline-secondary">
-                            Bekor qilish
-                        </a>
-                    </div>
-                </form>
-            </div>
+<div class="pf-wrap">
+    <div class="pf-head">
+        <a class="pf-back" href="{% url 'parents:admin_parents' %}"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h4 style="margin:0;font-weight:800;">{% if parent %}✏️ {{ parent.full_name }}{% else %}👨‍👩‍👧 Yangi ota-ona{% endif %}</h4>
+            <small style="color:var(--bs-secondary-color,#6b7280);">3 qadam: ma’lumot → kirish → farzand. Login va parolni bo‘sh qoldirsangiz, tizim o‘zi tayyorlaydi.</small>
         </div>
     </div>
 
-    <div class="col-lg-4">
-        {% if parent %}
-        <div class="card text-center p-4">
-            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold mx-auto mb-3"
-                 style="width:100px;height:100px;font-size:2rem;">
-                {{ parent.first_name.0|upper }}{{ parent.last_name.0|upper }}
-            </div>
-            <h5 class="fw-bold mb-1">{{ parent.full_name }}</h5>
-            <p class="text-muted mb-2">@{{ parent.username }}</p>
-            <span class="badge {% if parent.is_active %}bg-success{% else %}bg-danger{% endif %}">
-                {% if parent.is_active %}Faol{% else %}Nofaol{% endif %}
-            </span>
+    <form method="post" id="pfForm" autocomplete="off">
+        {% csrf_token %}
+        <div class="pf-grid">
+            <div>
+                <div class="pf-card" style="margin-bottom:1.25rem;">
+                    <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">1</span> Ota-ona ma’lumotlari</h5>
+                    <div class="pf-row">
+                        <div class="pf-f"><label for="pf-first">Ism *</label><input id="pf-first" class="pf-in" name="first_name" value="{{ form.first_name }}" required maxlength="100" placeholder="Rustam"></div>
+                        <div class="pf-f"><label for="pf-last">Familiya *</label><input id="pf-last" class="pf-in" name="last_name" value="{{ form.last_name }}" required maxlength="100" placeholder="Karimov"></div>
+                    </div>
+                    <div class="pf-f">
+                        <label for="pf-phone">Telefon raqam *</label>
+                        <div class="pf-phone"><span>🇺🇿 +998</span><input id="pf-phone" name="phone" inputmode="numeric" value="{{ form.phone }}" placeholder="90 123 45 67" required autocomplete="off"></div>
+                        <div class="pf-hint" id="pfPhoneHint">Faqat O‘zbekiston raqami — 9 ta raqam.</div>
+                    </div>
+                    <div class="pf-f" style="margin-bottom:0;"><label for="pf-email">Email (ixtiyoriy)</label><input id="pf-email" class="pf-in" type="email" name="email" value="{{ form.email }}" placeholder="email@example.com"></div>
+                </div>
 
-            {% if parent.children.count > 0 %}
-            <hr>
-            <h6 class="text-muted mb-2">Farzandlari ({{ parent.children.count }})</h6>
-            <ul class="list-unstyled text-start">
-                {% for child in parent.children.all %}
-                <li class="mb-1">
-                    <i class="bi bi-person me-1"></i>{{ child.get_full_name|default:child.username }}
-                </li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </div>
-        {% endif %}
+                <div class="pf-card">
+                    <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">2</span> Kirish ma’lumotlari</h5>
+                    <div class="pf-f">
+                        <label for="pf-user">Login</label>
+                        <input id="pf-user" class="pf-in" name="username" value="{{ form.username }}" maxlength="150" placeholder="Bo‘sh qoldirsangiz — telefon raqami">
+                        <div class="pf-hint">Bo‘sh bo‘lsa, telefon raqami login bo‘ladi (masalan <b>901234567</b>) — eslab qolish oson.</div>
+                    </div>
+                    <div class="pf-f" style="margin-bottom:0;">
+                        <label for="pf-pass">Parol {% if parent %}(o‘zgartirish uchun){% endif %}</label>
+                        <div class="pf-pass">
+                            <input id="pf-pass" class="pf-in" type="text" name="password" placeholder="{% if parent %}Bo‘sh — eski parol qoladi{% else %}Bo‘sh — avtomatik yaratiladi{% endif %}">
+                            <button type="button" class="pf-sbtn" id="pfGen" data-suggest="{{ suggested_password }}"><i class="bi bi-magic"></i> Yaratish</button>
+                        </div>
+                        <div class="pf-hint" id="pfPassHint">Kamida 10 belgi. “Yaratish” tugmasi eslab qolish oson parol beradi.</div>
+                    </div>
+                </div>
+            </div>
 
-        <div class="card {% if parent %}mt-3{% endif %}">
-            <div class="card-header">
-                <i class="bi bi-info-circle me-2"></i>Yordam
-            </div>
-            <div class="card-body">
-                <ul class="text-muted small ps-3 mb-0">
-                    <li class="mb-2">Ota-ona o'z farzandlarining o'qish jarayonini kuzatib boradi</li>
-                    <li class="mb-2">Bir nechta farzand tanlash mumkin</li>
-                    <li class="mb-2">Telefon raqami orqali bog'lanish mumkin</li>
-                    <li>Login va parol orqali tizimga kiradi</li>
-                </ul>
+            <div class="pf-card">
+                <h5><span style="width:26px;height:26px;border-radius:8px;background:#6366f1;color:#fff;display:grid;place-items:center;font-size:.8rem;">3</span> Farzandlarni biriktirish
+                    <span id="pfCount" style="margin-left:auto;font-size:.75rem;padding:.15rem .55rem;border-radius:99px;background:rgba(99,102,241,.1);color:#6366f1;">0</span></h5>
+                <div class="pf-chips" id="pfChips"><span class="empty">Hali farzand tanlanmagan — quyidan qidiring 👇</span></div>
+                <input class="pf-in" id="pfSearch" placeholder="🔍 Ism, telefon yoki kurs bo‘yicha qidiring..." style="margin-bottom:.6rem;">
+                <div class="pf-list" id="pfList">
+                    {% for s in students %}
+                    <label class="pf-st" data-search="{{ s.first_name|lower }} {{ s.last_name|lower }} {{ s.username|lower }} {{ s.phone|default:'' }}{% for e in s.enrollments.all %} {{ e.profession.name|lower }}{% endfor %}">
+                        <input type="checkbox" name="children" value="{{ s.id }}" data-name="{{ s.full_name|default:s.username }}" {% if s.id in selected_children %}checked{% endif %}>
+                        <span class="av">{{ s.first_name|slice:":1"|upper }}{{ s.last_name|slice:":1"|upper }}</span>
+                        <span style="min-width:0;"><b>{{ s.full_name|default:s.username }}</b>
+                            <small>@{{ s.username }}{% if s.phone %} · {{ s.phone }}{% endif %}{% for e in s.enrollments.all %}{% if forloop.first %} · {% endif %}{{ e.profession.name }}{% if not forloop.last %}, {% endif %}{% endfor %}</small></span>
+                        {% with ps=s.parents.all %}{% if ps %}<span class="tag" title="{% for p in ps %}{{ p.full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}">{{ ps|length }} ota-ona bor</span>{% endif %}{% endwith %}
+                    </label>
+                    {% empty %}
+                    <p style="padding:1rem;margin:0;color:#9ca3af;">O‘quvchilar mavjud emas.</p>
+                    {% endfor %}
+                    <p id="pfNone" style="display:none;padding:1rem;margin:0;color:#9ca3af;text-align:center;">Hech kim topilmadi.</p>
+                </div>
+                <div class="pf-save">
+                    <button type="submit"><i class="bi bi-check-lg"></i> {% if parent %}Saqlash{% else %}Ota-onani qo‘shish{% endif %}</button>
+                    <a href="{% url 'parents:admin_parents' %}">Bekor</a>
+                </div>
             </div>
         </div>
-    </div>
+    </form>
 </div>
+
+<script>
+(function () {
+    /* Telefon: faqat raqam, "90 123 45 67" ko'rinishida */
+    var phone = document.getElementById('pf-phone'), hint = document.getElementById('pfPhoneHint');
+    function fmt(v) {
+        var d = v.replace(/\D/g, '');
+        if (d.length > 9 && d.indexOf('998') === 0) d = d.slice(3);
+        d = d.slice(0, 9);
+        var p = [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean);
+        return { text: p.join(' '), digits: d };
+    }
+    function checkPhone() {
+        var r = fmt(phone.value);
+        phone.value = r.text;
+        if (!r.digits) { hint.className = 'pf-hint'; hint.textContent = 'Faqat O‘zbekiston raqami — 9 ta raqam.'; return true; }
+        var ok = r.digits.length === 9 && r.digits[0] !== '0';
+        hint.className = 'pf-hint ' + (ok ? 'ok' : 'err');
+        hint.textContent = ok ? '✓ +998 ' + r.text : 'Yana ' + (9 - r.digits.length) + ' ta raqam kiriting';
+        if (r.digits.length === 9 && r.digits[0] === '0') hint.textContent = 'Raqam 0 bilan boshlanmaydi (masalan 90, 91, 93, 99...)';
+        return ok;
+    }
+    phone.addEventListener('input', checkPhone); checkPhone();
+
+    /* Parol yaratish */
+    var pass = document.getElementById('pf-pass'), gen = document.getElementById('pfGen');
+    var A = ['Bahor','Quyosh','Osmon','Daryo','Lola','Yulduz','Bulut','Tog','Bog','Nur'], B = ['Kitob','Qalam','Maktab','Dars','Bilim','Ilm','Daftar','Sinf','Ustoz','Zakovat'];
+    var first = true;
+    gen.addEventListener('click', function () {
+        if (first && gen.dataset.suggest) { pass.value = gen.dataset.suggest; first = false; }
+        else {
+            var r = new Uint32Array(3); crypto.getRandomValues(r);
+            pass.value = A[r[0] % A.length] + '-' + (1000 + r[1] % 9000) + '-' + B[r[2] % B.length];
+        }
+        pass.dispatchEvent(new Event('input'));
+        pass.animate && pass.animate([{ transform: 'scale(.97)' }, { transform: 'none' }], { duration: 250 });
+    });
+    var ph = document.getElementById('pfPassHint');
+    pass.addEventListener('input', function () {
+        var n = pass.value.length;
+        if (!n) { ph.className = 'pf-hint'; ph.textContent = 'Kamida 10 belgi. “Yaratish” tugmasi eslab qolish oson parol beradi.'; return; }
+        ph.className = 'pf-hint ' + (n >= 10 ? 'ok' : 'err');
+        ph.textContent = n >= 10 ? '✓ Parol saqlangandan keyin bir marta ko‘rsatiladi — ota-onaga bering.' : 'Yana ' + (10 - n) + ' ta belgi kerak';
+    });
+
+    /* Farzandlar: qidiruv + chiplar */
+    var list = document.getElementById('pfList'), chips = document.getElementById('pfChips'), count = document.getElementById('pfCount');
+    var boxes = Array.prototype.slice.call(list.querySelectorAll('input[type=checkbox]'));
+    function render() {
+        var on = boxes.filter(function (b) { return b.checked; });
+        count.textContent = on.length;
+        chips.innerHTML = on.length ? '' : '<span class="empty">Hali farzand tanlanmagan — quyidan qidiring 👇</span>';
+        on.forEach(function (b) {
+            b.closest('.pf-st').classList.add('on');
+            var c = document.createElement('span'); c.className = 'pf-chip'; c.textContent = b.dataset.name;
+            var x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Olib tashlash'); x.innerHTML = '<i class="bi bi-x-lg"></i>';
+            x.addEventListener('click', function () { b.checked = false; b.closest('.pf-st').classList.remove('on'); render(); });
+            c.appendChild(x); chips.appendChild(c);
+        });
+        boxes.filter(function (b) { return !b.checked; }).forEach(function (b) { b.closest('.pf-st').classList.remove('on'); });
+    }
+    boxes.forEach(function (b) { b.addEventListener('change', render); });
+    render();
+    document.getElementById('pfSearch').addEventListener('input', function () {
+        var q = this.value.trim().toLowerCase().replace(/\s+/g, ' '), shown = 0;
+        list.querySelectorAll('.pf-st').forEach(function (row) {
+            var ok = !q || row.dataset.search.indexOf(q) > -1 || row.dataset.search.replace(/\s/g, '').indexOf(q.replace(/\s/g, '')) > -1;
+            row.style.display = ok ? '' : 'none'; if (ok) shown++;
+        });
+        document.getElementById('pfNone').style.display = shown ? 'none' : 'block';
+    });
+
+    document.getElementById('pfForm').addEventListener('submit', function (e) {
+        if (!checkPhone()) { e.preventDefault(); phone.focus(); }
+    });
+})();
+</script>
 {% endblock %}

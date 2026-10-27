@@ -417,6 +417,10 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
         'OPTIONS': {
             'timeout': 30,
+            # Fon thread'lari va so'rovlar parallel yozganda "database is locked"
+            # bo'lmasligi uchun: yozish qulfi tranzaksiya boshida olinadi va
+            # band bo'lsa timeout bo'yicha kutiladi (darhol xato bermaydi).
+            'transaction_mode': 'IMMEDIATE',
         },
         'CONN_MAX_AGE': 600,
     }
@@ -753,6 +757,15 @@ TEZCHECK_SIGN_REQUESTS = os.getenv('TEZCHECK_SIGN_REQUESTS', 'true').strip().low
 TEZCHECK_LATE_GRACE_DAYS = max(0, int(os.getenv('TEZCHECK_LATE_GRACE_DAYS', '5')))
 TEZCHECK_COIN_MIN_SOM = os.getenv('TEZCHECK_COIN_MIN_SOM', '')
 TEZCHECK_COIN_MAX_SOM = os.getenv('TEZCHECK_COIN_MAX_SOM', '')
+
+# inPAY API v2: Karta, Paynet, Alif, AnorBank, Visa/MC va Plum tugmalari shu
+# kassaga yo'naltiriladi (Click/Payme — Tezcheck). Kalit faqat serverda turadi.
+INPAY_API_BASE_URL = os.getenv('INPAY_API_BASE_URL', 'https://inpay.uz/api/v2').strip().rstrip('/')
+INPAY_SECRET_KEY = os.getenv('INPAY_SECRET_KEY', '').strip()
+# whsec_… — `python manage.py inpay_webhook_secret` bilan olinadi.
+INPAY_WEBHOOK_SECRET = os.getenv('INPAY_WEBHOOK_SECRET', '').strip()
+# Bo'sh bo'lsa, return_url domenidan /inpay/webhook/ manzili hosil qilinadi.
+INPAY_WEBHOOK_URL = os.getenv('INPAY_WEBHOOK_URL', '').strip()
 
 # ══════════════════════════════════════════════════════════════════
 # ADMIN PANEL YO'LI

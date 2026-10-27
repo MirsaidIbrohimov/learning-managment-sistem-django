@@ -1,346 +1,60 @@
-{% extends 'accounts/base.html' %}
-{% load static %}
+{% extends 'parents/portal/auth_base.html' %}
+{% block title %}Ota-ona sifatida kirish{% endblock %}
 
-{% block title %}Ota-ona tizimiga kirish | IT Creative Zomin{% endblock %}
+{% block card %}
+<h2 data-in>Xush kelibsiz 👋</h2>
+<p class="sub" data-in>Farzandingizning o‘qishini kuzatish uchun kiring.</p>
 
-{% block extra_css %}
-<style>
-:root {
-    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --gradient-bg: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-.login-page {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-}
-
-
-
-.auth-card {
-    width: 100%;
-    max-width: 440px;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 48px 40px;
-    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.3);
-    position: relative;
-    z-index: 2;
-    animation: slideUp 0.6s ease-out;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-[data-bs-theme="dark"] .auth-card {
-    background: rgba(30, 41, 59, 0.95);
-    color: #f1f5f9;
-}
-
-.auth-logo {
-    width: 80px;
-    height: 80px;
-    border-radius: 20px;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2.2rem;
-    color: white;
-    margin: 0 auto 24px;
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-    animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4); }
-    50% { box-shadow: 0 15px 40px rgba(99, 102, 241, 0.6); }
-}
-
-.auth-title {
-    font-weight: 700;
-    font-size: 1.5rem;
-    margin-bottom: 8px;
-    color: #1e293b;
-}
-
-[data-bs-theme="dark"] .auth-title {
-    color: #f1f5f9;
-}
-
-.auth-subtitle {
-    color: #64748b;
-    font-size: 0.95rem;
-    margin-bottom: 32px;
-}
-
-.alert-modern {
-    background: rgba(239, 68, 68, 0.1);
-    border: none;
-    border-left: 4px solid #ef4444;
-    border-radius: 12px;
-    padding: 14px 18px;
-    color: #ef4444;
-    font-weight: 500;
-    margin-bottom: 24px;
-}
-
-.form-group-modern {
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.input-icon {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 1.1rem;
-    z-index: 3;
-    transition: color 0.3s ease;
-}
-
-.form-control-modern {
-    width: 100%;
-    padding: 18px 18px 18px 52px;
-    border: 2px solid #e2e8f0;
-    border-radius: 14px;
-    font-size: 1rem;
-    background: #f8fafc;
-    color: #1e293b;
-    transition: all 0.3s ease;
-}
-
-.form-control-modern:focus {
-    outline: none;
-    border-color: #6366f1;
-    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-    background: white;
-}
-
-.form-control-modern:focus + .form-label-modern,
-.form-control-modern:not(:placeholder-shown) + .form-label-modern {
-    top: -8px;
-    left: 14px;
-    font-size: 0.75rem;
-    background: white;
-    padding: 0 6px;
-    color: #6366f1;
-}
-
-.form-control-modern:focus ~ .input-icon {
-    color: #6366f1;
-}
-
-[data-bs-theme="dark"] .form-control-modern {
-    background: #0f172a;
-    border-color: #334155;
-    color: #f1f5f9;
-}
-
-[data-bs-theme="dark"] .form-control-modern:focus {
-    background: #1e293b;
-}
-
-.form-label-modern {
-    position: absolute;
-    left: 52px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    background: transparent;
-}
-
-.show-pass {
-    position: absolute;
-    right: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    border: none;
-    background: transparent;
-    color: #94a3b8;
-    padding: 8px;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    z-index: 3;
-}
-
-.show-pass:hover {
-    color: #6366f1;
-}
-
-.btn-login {
-    width: 100%;
-    padding: 18px;
-    background: var(--gradient-primary);
-    border: none;
-    border-radius: 14px;
-    color: white;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 8px;
-}
-
-.btn-login:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
-}
-
-.btn-login:active {
-    transform: translateY(0);
-}
-
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    color: #64748b;
-    text-decoration: none;
-    font-size: 0.9rem;
-    margin-top: 28px;
-    transition: color 0.3s ease;
-}
-
-.back-link:hover {
-    color: #6366f1;
-}
-
-@media (max-width: 480px) {
-    .auth-card {
-        padding: 36px 24px;
-    }
-    
-    .auth-logo {
-        width: 70px;
-        height: 70px;
-        font-size: 1.8rem;
-    }
-    
-    .auth-title {
-        font-size: 1.3rem;
-    }
-}
-</style>
-{% endblock %}
-
-{% block content %}
-<div class="login-page">
-    <div class="auth-card">
-        <!-- Header -->
-        <div class="text-center">
-            <div class="auth-logo">
-                <i class="bi bi-people-fill"></i>
-            </div>
-            <h1 class="auth-title">Ota-ona tizimiga kirish</h1>
-            <p class="auth-subtitle">Farzandingiz ta'limini nazorat qiling</p>
-        </div>
-
-        <!-- Error Message -->
-        {% if error %}
-        <div class="alert-modern">
-            <i class="bi bi-exclamation-circle-fill me-2"></i>{{ error }}
-        </div>
-        {% endif %}
-
-        <!-- Form -->
-        <form method="POST" novalidate>
-            {% csrf_token %}
-
-            <!-- Username -->
-            <div class="form-group-modern">
-                <span class="input-icon">
-                    <i class="bi bi-person-fill"></i>
-                </span>
-                <input type="text" 
-                       name="username" 
-                       id="username" 
-                       class="form-control-modern" 
-                       placeholder=" "
-                       required 
-                       autofocus>
-                <label for="username" class="form-label-modern">Login</label>
-            </div>
-
-            <!-- Password -->
-            <div class="form-group-modern">
-                <span class="input-icon">
-                    <i class="bi bi-lock-fill"></i>
-                </span>
-                <input type="password" 
-                       name="password" 
-                       id="password" 
-                       class="form-control-modern" 
-                       placeholder=" "
-                       required>
-                <label for="password" class="form-label-modern">Parol</label>
-                <button type="button" class="show-pass" onclick="togglePass()">
-                    <i id="eyeIcon" class="bi bi-eye-fill"></i>
-                </button>
-            </div>
-
-            <button type="submit" class="btn-login">
-                <i class="bi bi-box-arrow-in-right"></i>
-                Kirish
-            </button>
-        </form>
-
-        <!-- Back Link -->
-        <div class="text-center">
-            <a href="" class="back-link mb-2 d-block">
-                <i class="bi bi-key"></i>
-                Parolni unutdingizmi?
-            </a>
-            <a href="{% url 'login' %}" class="back-link">
-                <i class="bi bi-arrow-left"></i>
-                Asosiy login sahifaga qaytish
-            </a>
-        </div>
-    </div>
+<div class="tabs" data-tabs="#panes" role="tablist" data-in>
+  <span class="pill"></span>
+  <button type="button" role="tab" class="{% if login_mode != 'phone' %}on{% endif %}" data-pane="paneUser"><i class="bi bi-person"></i>Login</button>
+  <button type="button" role="tab" class="{% if login_mode == 'phone' %}on{% endif %}" data-pane="panePhone"><i class="bi bi-phone"></i>Telefon</button>
 </div>
 
-<script>
-function togglePass() {
-    const input = document.getElementById("password");
-    const icon = document.getElementById("eyeIcon");
-    if (input.type === "password") {
-        input.type = "text";
-        icon.className = "bi bi-eye-slash-fill";
-    } else {
-        input.type = "password";
-        icon.className = "bi bi-eye-fill";
-    }
-}
-</script>
+<div class="panes" id="panes" data-in>
+  <div id="paneUser" class="pane {% if login_mode != 'phone' %}on{% endif %}" role="tabpanel">
+    <form method="POST" data-loading>
+      {% csrf_token %}
+      <input type="hidden" name="login_mode" value="username">
+      <div class="fx{% if error and login_mode != 'phone' %} bad{% endif %}"><input type="text" name="username" id="pUser" placeholder="Login" autocomplete="username" required value="{% if login_mode != 'phone' %}{{ username|default:'' }}{% endif %}"><label for="pUser">Login</label><i class="bi bi-person"></i></div>
+      <div class="fx{% if error and login_mode != 'phone' %} bad{% endif %}"><input type="password" name="password" id="pPass" placeholder="Parol" autocomplete="current-password" required><label for="pPass">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni ko‘rsatish"><i class="bi bi-eye"></i></button></div>
+      <div class="caps"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</div>
+      <div class="opts"><span></span><a class="link" href="{% url 'parent_password_reset_request' %}">Parolni unutdingizmi?</a></div>
+      <button type="submit" class="btn btn-main" data-mag><i class="bi bi-box-arrow-in-right"></i> Kirish</button>
+    </form>
+  </div>
+
+  <div id="panePhone" class="pane {% if login_mode == 'phone' %}on{% endif %}" role="tabpanel">
+    <form method="POST" data-loading>
+      {% csrf_token %}
+      <input type="hidden" name="login_mode" value="phone">
+      <div class="fx pre{% if error and login_mode == 'phone' %} bad{% endif %}"><span class="pre-tag">+998</span><input type="tel" name="phone" id="pPhone" data-uz-phone placeholder="90 123 45 67" maxlength="12" inputmode="numeric" autocomplete="tel" required value="{{ phone_local|default:'' }}"><label for="pPhone">Telefon raqam</label><i class="bi bi-phone"></i></div>
+      <div class="fx{% if error and login_mode == 'phone' %} bad{% endif %}"><input type="password" name="password" id="pPass2" placeholder="Parol" autocomplete="current-password" required><label for="pPass2">Parol</label><i class="bi bi-lock"></i><button type="button" class="eye" aria-label="Parolni ko‘rsatish"><i class="bi bi-eye"></i></button></div>
+      <div class="caps"><i class="bi bi-capslock-fill"></i> Caps Lock yoniq</div>
+      <p class="hint">O‘quv markaziga bergan telefon raqamingiz va parolingiz bilan kiring.</p>
+      <button type="submit" class="btn btn-main" data-mag><i class="bi bi-box-arrow-in-right"></i> Kirish</button>
+    </form>
+  </div>
+</div>
+
+<div class="foot" data-in>
+  <span>Login yoki parol yo‘qmi? <a class="link" href="{% url 'parent_password_reset_request' %}">Parolni tiklash →</a></span>
+  <a class="link" href="{% url 'login' %}" style="color:var(--muted);font-weight:500"><i class="bi bi-mortarboard"></i> O‘quvchi sifatida kirish</a>
+</div>
+{% endblock %}
+
+{% block stage %}
+<div class="chip glass c1"><i class="bi bi-graph-up-arrow"></i><span><b>Baholar va natijalar</b><small>Test, vazifa, speaking</small></span></div>
+<div class="chip glass c2"><i class="bi bi-calendar2-check"></i><span><b>Davomat va jadval</b><small>Keldi-ketdi har kuni</small></span></div>
+<div class="chip glass c3"><i class="bi bi-wallet2"></i><span><b>To‘lov bir bosishda</b><small>Click, Payme, karta</small></span></div>
+<div class="stage-copy">
+  <div class="eyebrow">Ota-onalar uchun panel</div>
+  <h1><span class="split">Farzandingiz o‘qishi</span><br><span class="split grad">kaftingizda.</span></h1>
+  <p>Darslar, davomat, reyting va to‘lovlar — barchasi bir joyda.</p>
+</div>
+{% endblock %}
+
+{% block toasts %}
+{% if error %}A.toast("{{ error|escapejs }}", "error");{% endif %}
+{% if messages %}{% for m in messages %}A.toast("{{ m|escapejs }}", "{{ m.tags }}");{% endfor %}{% endif %}
 {% endblock %}

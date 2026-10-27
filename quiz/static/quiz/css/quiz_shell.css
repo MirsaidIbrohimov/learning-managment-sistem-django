@@ -1,0 +1,38 @@
+/* ==========================================================================
+   Quiz take page rendered inside the student shell (accounts/base.html or
+   kurslarim/base.html). quiz_take.css was written for a standalone page, so
+   this file only reconciles it with the shell's navbar:
+   - exam overlays must sit above the sticky navbar / side rail / mobile dock
+     (those use z-index 1030-1040);
+   - the sticky exam header (timer) must stop below the navbar, not under it;
+   - the mobile exam bottom bar must clear the mobile dock.
+   --qt-nav-offset is kept in sync with the navbar by quiz_shell.js.
+   ========================================================================== */
+
+.qt-page { --qt-nav-offset: 0px; }
+
+.qt-page .qt-main { min-height: 0; }
+
+.qt-page .qt-watermark        { z-index: 2040; }
+.qt-page .qt-modal-backdrop   { z-index: 2050; }
+.qt-page .qt-fs-gate          { z-index: 2060; }
+.qt-page .quizui-toast-stack  { z-index: 2070; }
+
+.qt-page .qt-exam-header {
+    top: var(--qt-nav-offset);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+    transition: top .4s cubic-bezier(.2, .8, .2, 1);
+}
+.qt-page .qt-question-card { scroll-margin-top: calc(var(--qt-nav-offset) + 90px); }
+
+/* accounts/base.html shows a floating bottom dock below 992px. */
+@media (max-width: 991.98px) {
+    body:has(.nr-dock) .qt-page .qt-exam-bottombar {
+        bottom: calc(86px + env(safe-area-inset-bottom));
+        left: 10px; right: 10px;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+    }
+    body:has(.nr-dock) .qt-page .qt-questions { padding-bottom: 170px; }
+    body:has(.nr-dock) .qt-page .quizui-toast-stack { bottom: calc(96px + env(safe-area-inset-bottom)); }
+}

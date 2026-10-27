@@ -1,3 +1,4 @@
+import logging
 import threading
 import os
 from functools import lru_cache
@@ -10,6 +11,8 @@ from django.utils import timezone
 from django.db import models
 from datetime import timedelta
 from .models import CustomUser, PaymentStatus, BlockedSection, MaintenanceMode, Message, StudentBalance
+
+logger = logging.getLogger(__name__)
 
 # PWA / Android TWA ommaviy fayllari (config/pwa.py): foydalanuvchi ma'lumotisiz,
 # statik fayl kabi. Yo'naltirilsa (profil, to'lov, texnik xizmat) brauzer manifest
@@ -108,6 +111,12 @@ class UpdateLastActivityMiddleware:
                     request.user.update_streak()
                 except Exception:
                     pass
+                # ✅ Saytga kirgan kuni guruh davomatiga avtomatik "keldi"
+                try:
+                    from .attendance_auto import on_daily_visit
+                    on_daily_visit(request.user)
+                except Exception:
+                    logger.exception("Avtomatik davomat xatosi (user=%s)", request.user.pk)
 
             last_saved = request.session.get('_last_activity_saved', 0)
 
@@ -595,8 +604,8 @@ class SecurityHeadersMiddleware:
             "frame-ancestors 'none'",
             "base-uri 'self'",
             # form-action redirect manziliga ham qo'llanadi: /tezcheck/create-payment/
-            # POST'dan keyin tezcheck.uz to'lov sahifasiga redirect bo'ladi.
-            "form-action 'self' https://itc-academy.uz https://*.itc-academy.uz http://itc-academy.uz http://*.itc-academy.uz https://tezcheck.uz https://*.tezcheck.uz https://checkout.uz https://*.checkout.uz",
+            # POST'dan keyin tezcheck.uz yoki inpay.uz to'lov sahifasiga redirect bo'ladi.
+            "form-action 'self' https://itc-academy.uz https://*.itc-academy.uz http://itc-academy.uz http://*.itc-academy.uz https://tezcheck.uz https://*.tezcheck.uz https://checkout.uz https://*.checkout.uz https://inpay.uz https://*.inpay.uz",
         ]
         response['Content-Security-Policy'] = '; '.join(csp_directives)
         

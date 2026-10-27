@@ -1,0 +1,5 @@
+{# Progress halqasi: value (0-100), size (px), label, tone (ok/warn/bad/pri/...) #}
+<div class="pp-ring tone-{{ tone|default:'pri' }}" data-ring="{{ value }}" style="--size:{{ size|default:120 }}px">
+    <svg viewBox="0 0 36 36" aria-hidden="true"><circle class="bg" cx="18" cy="18" r="15.9155" pathLength="100"/><circle class="fg" cx="18" cy="18" r="15.9155" pathLength="100"/></svg>
+    <div class="val"><b><span data-count="{{ value }}">0</span>%</b>{% if label %}<small>{{ label }}</small>{% endif %}</div>
+</div>

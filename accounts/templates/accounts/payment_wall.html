@@ -1,4 +1,4 @@
-{% load custom_filters static %}
+{% load custom_filters static payment_tags %}
 <!DOCTYPE html>
 <html lang="uz" data-bs-theme="light">
 <head>
@@ -829,26 +829,14 @@ body {
                             {% endif %}
                         </div>
 
+                        {% payment_method_cards %}
+
                         <!-- To'lash tugmasi -->
                         <button type="submit" class="pw-pay-btn enabled" id="tz-submit-btn">
                             <i class="bi bi-credit-card-fill"></i>
                             <span id="btn-pay-text">Online to'lash</span>
                         </button>
 
-                        <div class="pw-payment-methods" aria-label="Onlayn to'lov usullari">
-                            <div class="pw-payment-methods-title">Qulay usulda onlayn to'lang</div>
-                            <div class="pw-payment-methods-list">
-                                <span class="pw-payment-method" title="Click"><img class="pw-method-logo wide" src="{% static 'img/payments/click.svg' %}" alt="Click"></span>
-                                <span class="pw-payment-method" title="Payme"><img class="pw-method-logo square" src="{% static 'img/payments/payme.png' %}" alt="Payme"> Payme</span>
-                                <span class="pw-payment-method" title="Uzum Pay"><img class="pw-method-logo square" src="{% static 'img/payments/uzum.svg' %}" alt=""> Uzum Pay</span>
-                                <span class="pw-payment-method" title="Paynet"><img class="pw-method-logo wide" src="{% static 'img/payments/paynet.svg' %}" alt="Paynet"></span>
-                                <span class="pw-payment-method" title="HUMO"><img class="pw-method-logo" src="{% static 'img/payments/humo.png' %}" alt="HUMO"></span>
-                                <span class="pw-payment-method" title="Uzcard"><img class="pw-method-logo square" src="{% static 'img/payments/uzcard.png' %}" alt=""> Uzcard</span>
-                            </div>
-                            <div class="pw-payment-methods-note">
-                                To'lovni Click, Payme, Uzum Pay yoki Paynet orqali, shuningdek HUMO va Uzcard kartalari bilan amalga oshiring.
-                            </div>
-                        </div>
                     </form>
                     {% endif %}
 
@@ -887,6 +875,7 @@ body {
                     <form method="post" action="{% url 'tezcheck_create_payment' %}">
                         {% csrf_token %}
                         <input type="hidden" name="amount" value="{{ order.amount_som }}">
+                        {% if order.payment_method %}<input type="hidden" name="payment_method" value="{{ order.payment_method }}">{% endif %}
                         <button type="submit" class="btn btn-sm btn-outline-primary">{% if order.status == 'pending' %}Tekshirish va to‘lash{% else %}Yangi havola olish{% endif %}</button>
                     </form>
                     {% endif %}
@@ -922,7 +911,7 @@ body {
     <!-- Info box -->
     <div class="pw-info-box" style="margin-top:1.5rem;">
         <i class="bi bi-info-circle-fill"></i>
-        <strong>Qanday to'lash mumkin?</strong> — Online to'lovni Click, Payme, Uzum Pay, Paynet orqali yoki HUMO va Uzcard kartalari bilan amalga oshiring. Zarur bo'lsa, admin/yordamchi adminga murojaat qilib balansni ham to'ldirishingiz mumkin.
+        <strong>Qanday to'lash mumkin?</strong> — Online to'lovni Click, Payme, Paynet, Alif, AnorBank, Plum ilovalari yoki Uzcard, Humo, Visa/Mastercard kartalari bilan amalga oshiring. Zarur bo'lsa, admin/yordamchi adminga murojaat qilib balansni ham to'ldirishingiz mumkin.
         To'lov tasdiqlangach, holat va hisobingiz avtomatik yangilanadi.
         Savollar uchun: <strong>ID #{% if request.user.student_id %}{{ request.user.student_id }}{% else %}—{% endif %}</strong>
     </div>

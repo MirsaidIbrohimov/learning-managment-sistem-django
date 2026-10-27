@@ -1992,8 +1992,20 @@ class Parent(models.Model):
 
 
 class ParentMessage(models.Model):
-    """Ota-ona va mentor o'rtasidagi xabarlar"""
+    """Ota-ona va mentor o'rtasidagi xabarlar.
+
+    sender_type: 'parent' — ota-ona yozgan (admin javob beradi);
+                 'system' — tizim bildirishnomasi ota-onaga (kitob ijarasi va h.k.).
+    is_read — admin xabarni o'qiganmi; reply_seen_by_parent — ota-ona javobni ko'rganmi.
+    """
+    SENDER_CHOICES = (
+        ('parent', 'Ota-ona'),
+        ('system', 'Tizim bildirishnomasi'),
+    )
     parent = models.ForeignKey(Parent, on_delete=models.CASCADE, related_name='messages')
+    sender_type = models.CharField(max_length=10, choices=SENDER_CHOICES, default='parent', db_index=True,
+                                   verbose_name="Yuboruvchi")
+    reply_seen_by_parent = models.BooleanField(default=False, verbose_name="Javobni ota-ona ko'rgan")
     child = models.ForeignKey('CustomUser', on_delete=models.CASCADE, related_name='parent_messages')
     subject = models.CharField(max_length=200, verbose_name="Mavzu")
     message = models.TextField(verbose_name="Xabar")
@@ -2732,10 +2744,16 @@ class TezCheckPaymentOrder(models.Model):
         (STATUS_CANCELLED, 'Bekor qilingan'), (STATUS_REFUNDED, 'Qaytarilgan'),
         (STATUS_REVIEW, 'Tekshiruv kerak'),
     ]
+    GATEWAY_TEZCHECK = 'tezcheck'
+    GATEWAY_INPAY = 'inpay'
+    GATEWAY_CHOICES = [(GATEWAY_TEZCHECK, 'Tezcheck'), (GATEWAY_INPAY, 'inPAY')]
     student = models.ForeignKey(
         'CustomUser', on_delete=models.PROTECT,
         related_name='tezcheck_payment_orders', verbose_name="O'quvchi",
     )
+    gateway = models.CharField(max_length=16, choices=GATEWAY_CHOICES, default=GATEWAY_TEZCHECK, db_index=True,
+                               verbose_name="To'lov tizimi")
+    payment_method = models.CharField(max_length=20, blank=True, verbose_name="Tanlangan usul")
     purpose = models.CharField(max_length=20, default='monthly', choices=[('monthly', 'Oylik'), ('exam', 'Imtihon'), ('coins', 'Tanga xaridi'), ('course', 'Kurs xaridi')])
     course = models.ForeignKey('Profession', null=True, blank=True, on_delete=models.SET_NULL, related_name='tezcheck_orders')
     coin_transaction = models.OneToOneField('coin.CoinTransaction', null=True, blank=True, on_delete=models.PROTECT, related_name='payment_order')
@@ -3449,6 +3467,88 @@ class HomeworkReminder(models.Model):
         return f"Reminder #{self.submission_id} (level {self.teacher_level})"
 
 
+class CertificateDesign(models.Model):
+    """Admin yuklagan sertifikat dizayni (fon rasmi + matn joylashuvi).
+
+    Kursga `CertificateSettings.design` orqali biriktiriladi. Biriktirilmagan
+    kurs standart dizayndan (static/certificates/cert_template.png) foydalanadi.
+
+    Koordinatalar — rasm o'lchamiga nisbatan FOIZDA (0–100), matn markazi
+    va tayanch chizig'i shu nuqtaga tushadi. Shrift o'lchami — A4 albom
+    kengligidagi sahifa uchun punktda (standart dizayn bilan bir xil birlik).
+    """
+    FONT_CHOICES = (
+        ('script', "Yozma (CertScript)"),
+        ('bold', "Qalin (CertBold)"),
+    )
+    # Matn maydonlari: kalit -> (nom, standart x%, y%, o'lcham, shrift)
+    FIELDS = (
+        ('name',   "O'quvchi ismi", 49.6, 49.8, 44, 'script'),
+        ('course', "Kurs nomi",     50.0, 62.6, 17, 'bold'),
+        ('series', "Seriya raqami", 86.7, 80.0, 13, 'bold'),
+        ('date',   "Berilgan sana", 86.7, 86.5, 13, 'bold'),
+    )
+
+    name = models.CharField(max_length=120, verbose_name="Dizayn nomi")
+    background = models.ImageField(
+        upload_to='certificate_designs/', verbose_name="Fon rasmi",
+        help_text="PNG/JPG, albom (gorizontal) format. Tavsiya: 2400×1697 px.",
+    )
+    text_color = models.CharField(max_length=7, default='#141720', verbose_name="Matn rangi")
+    course_format = models.CharField(
+        max_length=120, default='<< {course} >> COURSE', verbose_name="Kurs qatori formati",
+        help_text="{course} — kurs nomi (katta harflarda) bilan almashtiriladi.",
+    )
+
+    name_x = models.FloatField(default=49.6)
+    name_y = models.FloatField(default=49.8)
+    name_size = models.PositiveSmallIntegerField(default=44)
+    name_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='script')
+
+    course_x = models.FloatField(default=50.0)
+    course_y = models.FloatField(default=62.6)
+    course_size = models.PositiveSmallIntegerField(default=17)
+    course_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='bold')
+    show_course = models.BooleanField(default=True)
+
+    series_x = models.FloatField(default=86.7)
+    series_y = models.FloatField(default=80.0)
+    series_size = models.PositiveSmallIntegerField(default=13)
+    series_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='bold')
+    show_series = models.BooleanField(default=True)
+
+    date_x = models.FloatField(default=86.7)
+    date_y = models.FloatField(default=86.5)
+    date_size = models.PositiveSmallIntegerField(default=13)
+    date_font = models.CharField(max_length=10, choices=FONT_CHOICES, default='bold')
+    show_date = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Sertifikat dizayni"
+        verbose_name_plural = "Sertifikat dizaynlari"
+
+    def __str__(self):
+        return self.name
+
+    def field_layout(self):
+        """PDF chizish uchun: [{key, x, y, size, font, visible}, ...]"""
+        out = []
+        for key, *_ in self.FIELDS:
+            out.append({
+                'key': key,
+                'x': getattr(self, f'{key}_x'),
+                'y': getattr(self, f'{key}_y'),
+                'size': getattr(self, f'{key}_size'),
+                'font': getattr(self, f'{key}_font'),
+                'visible': getattr(self, f'show_{key}', True),
+            })
+        return out
+
+
 class CertificateSettings(models.Model):
     """Har bir kurs uchun sertifikat seriyasi va amal qilish muddati sozlamalari.
 
@@ -3474,6 +3574,11 @@ class CertificateSettings(models.Model):
     )
     next_number = models.PositiveIntegerField(
         default=1, verbose_name="Keyingi tartib raqami"
+    )
+    design = models.ForeignKey(
+        CertificateDesign, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='course_settings', verbose_name="Sertifikat dizayni",
+        help_text="Bo'sh bo'lsa standart dizayn ishlatiladi.",
     )
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -3709,3 +3814,41 @@ class StudentAttendance(models.Model):
             'sick': '#8b5cf6',
             'excused': '#3b82f6',
         }.get(self.status, '#6c757d')
+
+
+class StudentDailyVisit(models.Model):
+    """O'quvchi platformaga kirgan kun (har kunga bitta yozuv).
+
+    accounts/attendance_auto.record_visit() yozadi: login signali va
+    UpdateLastActivityMiddleware'ning kunlik bloki. Ota-ona panelidagi
+    davomat kalendari guruh davomati bo'lmagan kunlarni shundan oladi.
+    """
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='daily_visits')
+    date = models.DateField(db_index=True)
+    first_seen = models.DateTimeField(default=timezone.now)
+    last_seen = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        unique_together = ['user', 'date']
+        ordering = ['-date']
+        verbose_name = "Platformaga kirgan kun"
+        verbose_name_plural = "Platformaga kirgan kunlar"
+
+    def __str__(self):
+        return f"{self.user} — {self.date}"
+
+
+class CuriosityQuestion(models.Model):
+    """Bosh sahifadagi "Bilasizmi?" savoli — OpenAI to'plam qilib yaratadi (accounts/curiosity.py)."""
+    text = models.CharField(max_length=255, unique=True, verbose_name="Savol")
+    category = models.CharField(max_length=20, verbose_name="Mavzu")
+    is_active = models.BooleanField(default=True, verbose_name="Faol")
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Bilasizmi savoli"
+        verbose_name_plural = "Bilasizmi savollari"
+
+    def __str__(self):
+        return self.text

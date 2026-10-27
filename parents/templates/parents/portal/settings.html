@@ -1,0 +1,70 @@
+{% extends 'parents/portal/base_parent.html' %}
+{% block title %}Sozlamalar{% endblock %}
+{% block page_title %}Sozlamalar{% endblock %}
+
+{% block extra_css %}
+<style>
+    .st-choice { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .st-opt { border: 2px solid var(--pp-line); border-radius: 18px; padding: 12px; cursor: pointer; background: var(--pp-surface); text-align: left;
+        color: var(--pp-text); font: 700 .9rem var(--pp-font); transition: border-color .25s, transform .35s var(--pp-spring); }
+    .st-opt:hover { transform: translateY(-3px); }
+    .st-opt.on { border-color: var(--pp-pri); box-shadow: 0 0 0 4px color-mix(in srgb, var(--pp-pri) 15%, transparent); }
+    .st-prev { height: 76px; border-radius: 12px; margin-bottom: 10px; display: flex; gap: 6px; padding: 8px; }
+    .st-prev i { border-radius: 6px; flex: 1; }
+    .st-switch { position: relative; width: 52px; height: 30px; flex-shrink: 0; }
+    .st-switch input { opacity: 0; width: 0; height: 0; }
+    .st-switch span { position: absolute; inset: 0; border-radius: 99px; background: var(--pp-surface-2); border: 1px solid var(--pp-line); cursor: pointer; transition: background .3s; }
+    .st-switch span::after { content: ''; position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,.25); transition: transform .4s var(--pp-spring); }
+    .st-switch input:checked + span { background: var(--pp-pri); }
+    .st-switch input:checked + span::after { transform: translateX(22px); }
+</style>
+{% endblock %}
+
+{% block parent_content %}
+<div class="pp-head">
+    <div>
+        <h1><span class="ic"><i class="bi bi-sliders"></i></span>Sozlamalar</h1>
+        <p>Panel ko‘rinishi shu qurilmada saqlanadi.</p>
+    </div>
+</div>
+
+<section class="pp-grid c2 keep1">
+    <div class="pp-card" data-reveal>
+        <div class="pp-card-h"><span class="ic"><i class="bi bi-palette"></i></span><h3>Mavzu</h3></div>
+        <div class="st-choice">
+            <button type="button" class="st-opt" data-theme-choice="light" onclick="ppSetTheme('light')">
+                <div class="st-prev" style="background:#f4f5fb;"><i style="background:#312e81;flex:.4"></i><i style="background:#fff"></i></div>
+                <i class="bi bi-sun-fill" style="color:#f59e0b"></i> Yorug‘
+            </button>
+            <button type="button" class="st-opt" data-theme-choice="dark" onclick="ppSetTheme('dark')">
+                <div class="st-prev" style="background:#0a0c16;"><i style="background:#141838;flex:.4"></i><i style="background:#121526"></i></div>
+                <i class="bi bi-moon-stars-fill" style="color:#818cf8"></i> Qorong‘i
+            </button>
+        </div>
+    </div>
+    <div class="pp-card" data-reveal>
+        <div class="pp-card-h"><span class="ic tone-vio"><i class="bi bi-magic"></i></span><h3>Animatsiyalar</h3></div>
+        <label style="display:flex;align-items:center;gap:14px;cursor:pointer;">
+            <span style="flex:1;"><b style="display:block;">Harakatli effektlar</b><span class="pp-muted" style="font-size:.84rem;">O‘chirilsa, sahifalar animatsiyasiz va tezroq ochiladi (eski qurilmalar uchun qulay).</span></span>
+            <span class="st-switch"><input type="checkbox" id="motionToggle"><span></span></span>
+        </label>
+        <hr style="border:0;border-top:1px dashed var(--pp-line);margin:18px 0;">
+        <a class="pp-li" href="{% url 'parent_change_password' %}" style="padding:4px 0;"><span class="ic tone-warn"><i class="bi bi-key"></i></span><span class="t"><b>Parolni o‘zgartirish</b><small>Hisob xavfsizligi</small></span><i class="bi bi-chevron-right pp-dim"></i></a>
+        <a class="pp-li" href="{% url 'parent_logout' %}" style="padding:4px 0;"><span class="ic tone-bad"><i class="bi bi-box-arrow-right"></i></span><span class="t"><b>Chiqish</b><small>Shu qurilmadan chiqish</small></span><i class="bi bi-chevron-right pp-dim"></i></a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    var t = document.getElementById('motionToggle'), root = document.documentElement;
+    t.checked = root.getAttribute('data-motion') !== 'off';
+    t.addEventListener('change', function () {
+        try { localStorage.setItem('pp-motion', t.checked ? 'on' : 'off'); } catch (e) {}
+        if (t.checked) root.removeAttribute('data-motion'); else root.setAttribute('data-motion', 'off');
+    });
+})();
+</script>
+{% endblock %}

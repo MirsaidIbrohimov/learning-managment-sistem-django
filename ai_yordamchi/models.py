@@ -15,7 +15,7 @@ class ChatFolder(models.Model):
         verbose_name_plural = "Papkalar"
 
     def __str__(self):
-        return f"{self.user_id} · {self.name}"
+        return f"{self.user_id} - {self.name}"
 
 
 class ChatSession(models.Model):
@@ -91,6 +91,28 @@ class ChatMessage(models.Model):
         return f"{self.role}: {self.content[:50]}"
 
 
+class AIDailyUsage(models.Model):
+    """Kunlik AI limiti hisoblagichi (Toshkent sanasi bo'yicha).
+
+    Xabarlardan mustaqil: suhbatni o'chirish, tarixni tozalash yoki qayta
+    login qilish ishlatilgan limitni qaytarmaydi.
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_daily_usage')
+    date = models.DateField()
+    messages = models.PositiveIntegerField(default=0)
+    images = models.PositiveIntegerField(default=0)
+    generated_images = models.PositiveIntegerField(default=0, verbose_name="Chizilgan rasmlar")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['user', 'date'], name='ai_daily_usage_user_date')]
+        verbose_name = 'AI kunlik limit'
+        verbose_name_plural = 'AI kunlik limitlar'
+
+    def __str__(self):
+        return f"{self.user} - {self.date}: {self.messages} xabar, {self.images} rasm"
+
+
 class KnowledgeChunk(models.Model):
     """A chunk of course material (lesson text) + its embedding, for RAG.
 
@@ -110,4 +132,30 @@ class KnowledgeChunk(models.Model):
         verbose_name_plural = "Bilim bazasi"
 
     def __str__(self):
-        return f"{self.source_type}#{self.source_id} · {self.title[:40]}"
+        return f"{self.source_type}#{self.source_id} - {self.title[:40]}"
+
+
+class AIJob(models.Model):
+    """Fonda bajarilayotgan AI so'rovi natijasi (ai_yordamchi/jobs.py).
+
+    Natija bazada saqlanadi: kutish so'rovlari boshqa Passenger jarayoniga
+    tushsa ham javobni ola oladi.
+    """
+    STATUS_CHOICES = (('pending', 'Kutilmoqda'), ('done', 'Tayyor'))
+
+    id = models.UUIDField(primary_key=True, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_jobs')
+    path = models.CharField(max_length=300, blank=True, default='')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    response_status = models.PositiveSmallIntegerField(default=200)
+    content_type = models.CharField(max_length=100, blank=True, default='')
+    body = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'AI fon vazifasi'
+        verbose_name_plural = 'AI fon vazifalari'
+
+    def __str__(self):
+        return f"{self.path} [{self.status}]"

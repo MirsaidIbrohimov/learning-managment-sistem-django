@@ -134,7 +134,7 @@ def lesson_detail(request, lesson_pk):
             'quiz_api_root': reverse('kurslarim:quiz_api_root'),
             'retry_url': reverse('kurslarim:quiz_retry', args=[lesson.pk]),
         })
-        return QuizTakeView.as_view()(request, pk=lesson.quiz.pk, portal=portal)
+        return QuizTakeView.as_view()(request, pk=lesson.quiz.pk, portal=portal, base_template=BASE_TEMPLATE)
 
     words = lesson.dictionary.words.all()
     search = request.GET.get('q', '').strip()

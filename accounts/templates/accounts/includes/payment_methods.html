@@ -1,0 +1,34 @@
+{% load static %}
+{% if payment_methods %}
+<fieldset class="pmp">
+  <legend class="pmp-title">To‘lov usulini tanlang</legend>
+  <div class="pmp-list">
+    {% for m in payment_methods %}
+    <label class="pmp-item" title="{{ m.label }}">
+      <input type="radio" name="payment_method" value="{{ m.code }}" required>
+      <span class="pmp-face">
+        {% if m.logo %}<img src="{% static 'img/payments/'|add:m.logo %}" alt="" class="pmp-logo">{% else %}<i class="bi {{ m.icon }}" aria-hidden="true"></i>{% endif %}
+        <span class="pmp-label">{{ m.label }}</span>
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+</fieldset>
+<style>
+.pmp { border: 0; margin: 0 0 .85rem; padding: 0; min-width: 0; }
+.pmp-title { float: none; width: auto; margin: 0 0 .55rem; padding: 0; font-size: .75rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .75; }
+.pmp-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .5rem; }
+.pmp-item { position: relative; margin: 0; cursor: pointer; }
+.pmp-item input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.pmp-face { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem; height: 64px; padding: .4rem; border-radius: 12px; background: #fff; color: #14142b; border: 2px solid rgba(15, 23, 42, .1); box-shadow: 0 2px 8px -4px rgba(15, 23, 42, .25); transition: border-color .15s ease, box-shadow .15s ease, transform .15s ease; }
+.pmp-face .bi { font-size: 1.3rem; line-height: 1; color: #4f46e5; }
+.pmp-logo { display: block; height: 22px; max-width: 100%; width: auto; object-fit: contain; }
+.pmp-label { font-size: .74rem; font-weight: 800; line-height: 1; white-space: nowrap; }
+.pmp-item:hover .pmp-face { transform: translateY(-1px); }
+.pmp-item input:checked + .pmp-face { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .3); }
+.pmp-item input:focus-visible + .pmp-face { outline: 2px solid #6366f1; outline-offset: 2px; }
+@media (max-width: 420px) { .pmp-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+{% else %}
+<p class="pmp-off" role="status">Onlayn to‘lov hozircha sozlanmoqda. Administratorga murojaat qiling.</p>
+{% endif %}

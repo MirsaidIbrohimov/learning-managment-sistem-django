@@ -624,6 +624,7 @@ document.getElementById('topupForm').addEventListener('submit', async function(e
             }
             closeTopup();
             showToast('success', `✅ ${data.student_name} ga +${data.amount_fmt} so'm qo'shildi` + (data.auto_unblocked ? ' va unblock bo\'ldi!' : '.'));
+            if (data.premium_bonus_coins) showToast('success', `💎 Premium bonus: +${data.premium_bonus_coins.toLocaleString('ru-RU')} tanga`);
         } else {
             showToast('error', data.error || 'Xatolik yuz berdi');
         }

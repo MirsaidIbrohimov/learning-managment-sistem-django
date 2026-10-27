@@ -5,7 +5,7 @@ from .models import (
     CustomUser, Profession, CourseEnrollment, Lesson, VideoLesson, VideoProgress,
     Homework, HomeworkSubmission, Test, TestQuestion, TestAnswer, TestResult,
     Certificate, Message, PaymentStatus, LoginAttempt, FinalTestPayment,
-    StudyGroup
+    StudyGroup, CuriosityQuestion
 )
 from teacher.models import TeacherSalary, TeacherAttendance
 
@@ -351,6 +351,14 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ['message_type', 'is_read', 'created_at']
     search_fields = ['title', 'content', 'recipient__username']
     date_hierarchy = 'created_at'
+
+
+@admin.register(CuriosityQuestion)
+class CuriosityQuestionAdmin(admin.ModelAdmin):
+    list_display = ['text', 'category', 'is_active', 'created_at']
+    list_filter = ['category', 'is_active']
+    search_fields = ['text']
+    list_editable = ['is_active']
 
 
 @admin.register(PaymentStatus)

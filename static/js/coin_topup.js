@@ -88,7 +88,7 @@
   radios.forEach(r => r.addEventListener('change', () => { custom.value = ''; update(); }));
   custom.addEventListener('input', () => { radios.forEach(r => r.checked = false); update(); });
   custom.addEventListener('blur', () => { if (Number.isSafeInteger(amount) && amount > 0) custom.value = fmt(amount); });
-  const icons = {celebration:'🎁', navruz:'🌷', newyear:'🎄', eid:'☪', simple:'✦'};
+  const icons = {celebration:'🎁', navruz:'🌷', newyear:'🎄', eid:'☪', simple:'✦', premium:'💎'};
   // Muddatli aksiya: qolgan vaqt; tugaganda narx serverdan qayta olinadi.
   const pad = n => String(n).padStart(2, '0');
   let expiredRefresh = false;
@@ -112,9 +112,9 @@
       const art = document.createElement('div'); art.className = 'cp-art'; art.setAttribute('aria-hidden','true');
       const icon = document.createElement('span'); icon.textContent = icons[discount.theme] || icons.celebration; art.append(icon);
       const copy = document.createElement('div'); copy.className = 'cp-copy';
-      const label = document.createElement('span'); label.className = 'cp-label'; label.textContent = discount.theme === 'simple' ? 'MAXSUS TAKLIF' : 'BAYRAM TAKLIFI';
+      const label = document.createElement('span'); label.className = 'cp-label'; label.textContent = discount.theme === 'premium' ? 'PREMIUM TAKLIF' : discount.theme === 'simple' ? 'MAXSUS TAKLIF' : 'BAYRAM TAKLIFI';
       const name = document.createElement('h3'); name.textContent = discount.name;
-      const threshold = document.createElement('p'); threshold.textContent = discount.discount_type === 'package' ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' so‘m' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
+      const threshold = document.createElement('p'); threshold.textContent = discount.theme === 'premium' ? 'Siz uchun barcha tanga xaridlari yarim narxda' : discount.discount_type === 'package' ? fmt(discount.min_coins) + ' tanga atigi ' + fmt(discount.value) + ' so‘m' : 'Kamida ' + fmt(discount.min_coins) + ' tanga xaridida';
       copy.append(label, name, threshold);
       if (discount.ends_at) { const left = document.createElement('small'); left.className = 'cp-ends'; left.dataset.endsAt = discount.ends_at; copy.append(left); }
       const value = document.createElement('div'); value.className = 'cp-value';

@@ -1,4 +1,4 @@
-"""One-time course purchase: Tezcheck checkout or the student's leftover money balance."""
+"""One-time course purchase: online (Tezcheck/inPAY) checkout or the student's leftover money balance."""
 import uuid
 
 from django.contrib import messages
@@ -15,7 +15,8 @@ from .models import (
     CourseEnrollment, CourseEnrollmentRequest, CourseUnenrollRequest, CustomUser, Message,
     Profession, TezCheckPaymentOrder,
 )
-from .tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
+from .tezcheck import TezCheckError, TezCheckBillUnavailable
+from .payment_gateways import create_bill, fetch_bill, selected_method
 from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 from .course_pricing import course_price
 
@@ -90,6 +91,11 @@ def create_course_checkout(request, pk):
     sale = course_price(profession)
     if price_changed(request, sale):
         return redirect(page)
+    try:
+        method, gateway = selected_method(request)
+    except TezCheckError as exc:
+        messages.error(request, str(exc))
+        return redirect(page)
     amount_minor = sale.price * 100
     orders = TezCheckPaymentOrder.objects.filter(student=request.user, purpose='course', course=profession)
     if orders.filter(status='review').exists():
@@ -99,7 +105,7 @@ def create_course_checkout(request, pk):
     try:
         if order and order.bill_id:
             try:
-                result = fetch_bill(order.bill_id)
+                result = fetch_bill(order.bill_id, gateway=order.gateway)
                 bill, payment = validate_bill(order, result)
             except TezCheckBillUnavailable:
                 if not retire_checkout(order):
@@ -113,12 +119,16 @@ def create_course_checkout(request, pk):
             if order and (bill.get('paid') is True or payment.get('state') == 'succeeded'):
                 raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
             if order and (checkout_expired(order, bill) or order.amount_minor != amount_minor
+                          or order.gateway != gateway
                           or (reference and reference != order.external_reference
                               and not order.external_reference.startswith(reference + '-R'))):
                 if not retire_checkout(order):
                     return redirect(page)
                 order = None
             elif order and order.payment_url:
+                if method and order.payment_method != method:
+                    order.payment_method = method
+                    order.save(update_fields=['payment_method', 'updated_at'])
                 return redirect(order.payment_url)
         for attempt in range(2):
             if order is None:
@@ -132,7 +142,8 @@ def create_course_checkout(request, pk):
                 order, _ = TezCheckPaymentOrder.objects.get_or_create(
                     external_reference=candidate,
                     defaults=dict(student=request.user, purpose='course', course=profession,
-                                  billing_month=today.month, billing_year=today.year, amount_minor=amount_minor),
+                                  billing_month=today.month, billing_year=today.year, amount_minor=amount_minor,
+                                  gateway=gateway, payment_method=method),
                 )
                 if order.status != 'pending':
                     order = None
@@ -257,7 +268,7 @@ def apply_course_payment(order, data):
     enroll_paid_student(order.student, order.course)
     Message.objects.create(
         recipient=order.student, message_type='payment', title='Kurs sotib olindi',
-        content=f"Tezcheck orqali to‘lov qabul qilindi. Siz '{order.course.name}' kursiga yozildingiz.",
+        content=f"{order.get_gateway_display()} orqali to‘lov qabul qilindi. Siz '{order.course.name}' kursiga yozildingiz.",
     )
     try:
         from telegram_bot.utils import notify_admins
@@ -265,7 +276,7 @@ def apply_course_payment(order, data):
             f"💳 <b>Kurs sotib olindi!</b>\n\n"
             f"👤 {order.student.first_name} {order.student.last_name}\n"
             f"📖 {order.course.name}\n"
-            f"💰 {order.amount_som:,} so'm (Tezcheck)"
+            f"💰 {order.amount_som:,} so'm ({order.get_gateway_display()})"
         )
     except Exception:
         pass

@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 import base64
 import json
 import re
+from .jobs import ai_offload
 
 from .models import ChatSession, ChatMessage, ChatFolder
 from coin.models import CoinTransaction, ActivityLog
@@ -22,6 +23,9 @@ from coin.models import CoinTransaction, ActivityLog
 # ============================================================
 DAILY_MSG_LIMIT = {'premium': 120, 'regular': 60}
 DAILY_IMG_LIMIT = {'premium': 5, 'regular': 3}
+# AI rasm chizish — faqat Premium a'zolar uchun, kuniga shuncha ta.
+DAILY_GEN_LIMIT = 3
+IMAGE_GEN_PROMPT_MAX = 1000
 
 OPENAI_MODEL = "gpt-4o-mini"
 OPENAI_MAX_TOKENS = 4096
@@ -122,16 +126,9 @@ USLUB: Sodda, do'stona, boshlovchilar uchun tushunarli, qisqa va aniq."""
 #  USAGE / LIMITS
 # ============================================================
 def get_daily_usage(user):
-    """Return today's (message_count, image_count) for a user."""
-    today_start = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    today_msgs = ChatMessage.objects.filter(
-        session__user=user,
-        role='user',
-        created_at__gte=today_start,
-    )
-    msg_count = today_msgs.count()
-    img_count = today_msgs.exclude(image='').exclude(image__isnull=True).count()
-    return msg_count, img_count
+    """Bugungi (xabar, rasm) soni — Toshkent sanasi bo'yicha, o'chirilgan suhbatlar ham hisobda."""
+    from .usage import get_usage
+    return get_usage(user)
 
 
 def get_user_limits(user):
@@ -141,6 +138,10 @@ def get_user_limits(user):
     msg_limit = DAILY_MSG_LIMIT[tier]
     img_limit = DAILY_IMG_LIMIT[tier]
     msg_used, img_used = get_daily_usage(user)
+    from accounts.premium_bonus import is_active_premium
+    from .usage import get_generated_count
+    can_generate = is_active_premium(user)
+    gen_used = get_generated_count(user)
     return {
         'is_premium': is_prem,
         'msg_limit': msg_limit,
@@ -149,6 +150,10 @@ def get_user_limits(user):
         'img_used': img_used,
         'msg_left': max(0, msg_limit - msg_used),
         'img_left': max(0, img_limit - img_used),
+        'can_generate': can_generate,
+        'gen_limit': DAILY_GEN_LIMIT,
+        'gen_used': gen_used,
+        'gen_left': max(0, DAILY_GEN_LIMIT - gen_used) if can_generate else 0,
     }
 
 
@@ -353,7 +358,11 @@ def new_session(request):
     q = request.GET.get('q', '').strip()
     if q:
         url = reverse('ai_yordamchi:chat_session', args=[session.pk])
-        return redirect(f"{url}?{urlencode({'prefill': q[:1500]})}")
+        params = {'prefill': q[:1500]}
+        # Bosh sahifadagi "Bilasizmi?" tugmasi savolni darhol yuboradi.
+        if request.GET.get('autosend') == '1':
+            params['autosend'] = '1'
+        return redirect(f"{url}?{urlencode(params)}")
     return redirect('ai_yordamchi:chat_session', pk=session.pk)
 
 
@@ -367,6 +376,7 @@ def chat_session(request, pk):
         'user_coins': request.user.coins,
         'limits': get_user_limits(request.user),
         'prefill': request.GET.get('prefill', ''),
+        'autosend': request.GET.get('autosend') == '1',
     })
 
 
@@ -405,7 +415,11 @@ def send_message(request, pk):
             return fail(problem)
 
     is_premium = getattr(request.user, 'is_premium', False)
-    if not is_premium and request.user.coins < 1:
+    from accounts import curiosity
+    curiosity_free = curiosity.is_free_question(request, content) and not image and not file
+    # Bosh sahifadagi qiziqarli savolga javob tangasiz (kunlik limit baribir hisoblanadi).
+    charge = not is_premium and not curiosity_free
+    if charge and request.user.coins < 1:
         return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
 
     limits = get_user_limits(request.user)
@@ -429,11 +443,18 @@ def send_message(request, pk):
         else:
             uploaded_file = file
 
-    coin_cost = 0 if is_premium else 1
+    coin_cost = 1 if charge else 0
+    from .usage import reserve
     with transaction.atomic():
-        if not is_premium:
+        # Limit atomar band qilinadi: parallel so'rovlar ham kunlik chegaradan oshmaydi.
+        if not reserve(request.user, limits['msg_limit'], limits['img_limit'], with_image=bool(has_image)):
+            cap = limits['img_limit'] if has_image else limits['msg_limit']
+            kind = 'rasm' if has_image else 'xabar'
+            return fail(f"Kunlik {kind} limitingiz tugadi ({cap}/{cap}). Ertaga qayta urinib ko'ring.")
+        if charge:
             locked_user = request.user.__class__.objects.select_for_update().get(pk=request.user.pk)
             if locked_user.coins < 1:
+                transaction.set_rollback(True)  # band qilingan limit ham qaytariladi
                 return fail("Sizda yetarli coin yo'q. AI bilan suhbatlashish uchun 1 coin kerak.")
             locked_user.coins -= 1
             locked_user.save(update_fields=['coins'])
@@ -443,7 +464,7 @@ def send_message(request, pk):
             )
             request.user.coins = locked_user.coins
 
-        user_message = ChatMessage.objects.create(
+        user_message = ChatMessage(
             session=session,
             role='user',
             content=content,
@@ -452,13 +473,18 @@ def send_message(request, pk):
             file_name=uploaded_file_name,
             coins_spent=coin_cost,
         )
+        user_message._usage_reserved = True  # limit yuqorida band qilindi
+        user_message.save()
 
     ActivityLog.objects.create(
         user=request.user,
         action_type='earn_coins',
-        description="AI yordamchi bilan suhbatlashdi" + ("" if is_premium else " (-1 coin)"),
+        description="AI yordamchi bilan suhbatlashdi" + (" (-1 coin)" if charge else ""),
         ip_address=get_client_ip(request),
     )
+
+    if curiosity_free:
+        curiosity.consume(request)
 
     if session.messages.count() == 1 and content:
         session.title = content[:50] + ('...' if len(content) > 50 else '')
@@ -476,7 +502,96 @@ def send_message(request, pk):
     return redirect('ai_yordamchi:chat_session', pk=pk)
 
 
+def _generate_image_bytes(prompt):
+    """OpenAI orqali rasm chizadi va PNG baytlarini qaytaradi (xatoda istisno)."""
+    from openai import OpenAI
+    import urllib.request
+
+    model = getattr(settings, 'AI_IMAGE_MODEL', '') or 'gpt-image-2'
+    client = OpenAI(api_key=settings.OPENAI_API_KEY.strip(), timeout=180)
+    params = {'model': model, 'prompt': prompt, 'size': '1024x1024', 'n': 1}
+    if model.startswith('dall-e'):
+        params['response_format'] = 'b64_json'
+    result = client.images.generate(**params)
+    item = result.data[0]
+    if getattr(item, 'b64_json', None):
+        return base64.b64decode(item.b64_json)
+    with urllib.request.urlopen(item.url, timeout=60) as resp:  # zaxira: URL qaytgan bo'lsa
+        return resp.read()
+
+
 @login_required
+@require_POST
+@ai_offload
+def generate_image(request, pk):
+    """Premium a'zo uchun matn tavsifidan rasm chizadi (kuniga DAILY_GEN_LIMIT ta)."""
+    import uuid
+    from django.core.files.base import ContentFile
+    from accounts.premium_bonus import is_active_premium
+    from accounts.security import safe_error
+    from .usage import reserve_generation, release_generation
+
+    session = get_object_or_404(ChatSession, pk=pk, user=request.user)
+    if not is_active_premium(request.user):
+        return JsonResponse({'error': "Rasm chizish faqat Premium a'zolar uchun.",
+                             'premium_required': True}, status=403)
+
+    prompt = request.POST.get('prompt', '').strip()
+    if not prompt:
+        return JsonResponse({'error': "Qanday rasm chizish kerakligini yozing."}, status=400)
+    if len(prompt) > IMAGE_GEN_PROMPT_MAX:
+        return JsonResponse({'error': f"Tavsif juda uzun (maksimum {IMAGE_GEN_PROMPT_MAX} belgi)."}, status=400)
+    if not (getattr(settings, 'OPENAI_API_KEY', '') or '').strip():
+        return JsonResponse({'error': _service_unavailable_text()}, status=503)
+
+    # O'rin API chaqiruvidan oldin band qilinadi — parallel so'rovlar limitdan oshmaydi.
+    if not reserve_generation(request.user, DAILY_GEN_LIMIT):
+        return JsonResponse({'error': f"Bugungi rasm chizish limitingiz tugadi "
+                                      f"({DAILY_GEN_LIMIT}/{DAILY_GEN_LIMIT}). Ertaga qayta urinib ko'ring."},
+                            status=429)
+    try:
+        image_bytes = _generate_image_bytes(prompt)
+    except Exception as e:
+        release_generation(request.user)
+        code = getattr(e, 'code', '') or ''
+        if code in ('content_policy_violation', 'moderation_blocked'):
+            msg = "Bu tavsif bo'yicha rasm chizib bo'lmaydi (xavfsizlik qoidalari). Boshqacha yozib ko'ring."
+        else:
+            msg = safe_error(e, 'ai_generate_image', "Rasm chizishda xatolik yuz berdi. Keyinroq qayta urinib ko'ring.")
+        return JsonResponse({'error': msg}, status=502)
+
+    with transaction.atomic():
+        user_message = ChatMessage(session=session, role='user', content=f"🎨 {prompt}")
+        user_message._usage_reserved = True  # xabar limitiga emas, rasm chizish limitiga yoziladi
+        user_message.save()
+        reply = ChatMessage(session=session, role='assistant', content=f"🎨 Rasm tayyor: *{prompt[:200]}*")
+        reply.image.save(f"ai_{uuid.uuid4().hex[:16]}.png", ContentFile(image_bytes), save=False)
+        reply.save()
+
+    if session.messages.count() == 2:
+        session.title = f"🎨 {prompt[:46]}" + ('...' if len(prompt) > 46 else '')
+        session.save(update_fields=['title', 'updated_at'])
+
+    ActivityLog.objects.create(
+        user=request.user,
+        action_type='earn_coins',
+        description="AI yordamchi bilan rasm chizdi",
+        ip_address=get_client_ip(request),
+    )
+    limits = get_user_limits(request.user)
+    return JsonResponse({
+        'success': True,
+        'message_id': reply.pk,
+        'content': reply.content,
+        'image_url': reply.image.url,
+        'time': timezone.localtime(reply.created_at).strftime('%H:%M'),
+        'gen_left': limits['gen_left'],
+        'gen_limit': limits['gen_limit'],
+    })
+
+
+@login_required
+@ai_offload
 def stream_response(request, pk):
     """Stream the AI reply for the latest unanswered user message via SSE.
 

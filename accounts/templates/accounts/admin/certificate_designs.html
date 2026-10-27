@@ -1,0 +1,91 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}Sertifikat dizaynlari - Admin Panel{% endblock %}
+
+{% block admin_content %}
+<style>
+    .cd-page { max-width: 1200px; margin: 0 auto; padding: 1.5rem 1rem; }
+    .cd-head { display:flex; align-items:center; gap:12px; margin-bottom:1.5rem; flex-wrap:wrap; }
+    .cd-back { width:40px; height:40px; border-radius:12px; border:1px solid var(--border-color,#e5e7eb); display:flex; align-items:center; justify-content:center; color:inherit; text-decoration:none; }
+    .cd-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:1.1rem; }
+    .cd-card { background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); border-radius:18px; overflow:hidden; display:flex; flex-direction:column;
+        transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s; }
+    .cd-card:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -20px rgba(0,0,0,.35); }
+    .cd-thumb { aspect-ratio: 2400/1697; background:#f3f4f6 center/cover no-repeat; position:relative; }
+    .cd-thumb .tag { position:absolute; top:10px; left:10px; font-size:.7rem; font-weight:800; padding:.25rem .6rem; border-radius:999px; background:rgba(0,0,0,.6); color:#fff; }
+    .cd-body { padding:1rem 1.1rem 1.1rem; flex:1; display:flex; flex-direction:column; gap:.6rem; }
+    .cd-name { font-weight:800; }
+    .cd-courses { display:flex; flex-wrap:wrap; gap:4px; font-size:.72rem; }
+    .cd-courses span { background:rgba(99,102,241,.1); color:#6366f1; padding:.2rem .55rem; border-radius:999px; font-weight:700; }
+    .cd-muted { font-size:.78rem; color:var(--bs-secondary-color,#6c757d); }
+    .cd-actions { display:flex; gap:.4rem; margin-top:auto; }
+    .cd-actions a, .cd-actions button { flex:1; font-size:.8rem; font-weight:700; border-radius:10px; padding:.45rem; }
+    .cd-new { border:2px dashed var(--border-color,#d1d5db); border-radius:18px; padding:1.3rem; background:var(--card-bg,#fff); }
+</style>
+
+<div class="cd-page">
+    <div class="cd-head">
+        <a href="{% url 'admin_certificates' %}" class="cd-back"><i class="bi bi-arrow-left"></i></a>
+        <div>
+            <h4 style="font-weight:800;margin:0;">🎨 Sertifikat dizaynlari</h4>
+            <small class="cd-muted">Har bir kurs uchun alohida ko'rinish. Dizayn biriktirilmagan kurs — standart dizaynda beriladi.</small>
+        </div>
+    </div>
+
+    <div class="cd-grid">
+        <!-- Yangi dizayn -->
+        <form class="cd-new" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="font-weight:800;margin-bottom:.8rem;"><i class="bi bi-plus-circle" style="color:#6366f1;"></i> Yangi dizayn</div>
+            <div class="mb-2">
+                <label class="form-label fw-bold" style="font-size:.8rem;">Nomi</label>
+                <input type="text" name="name" class="form-control form-control-sm" maxlength="120" placeholder="Masalan: Python kursi — ko'k" required>
+            </div>
+            <div class="mb-2">
+                <label class="form-label fw-bold" style="font-size:.8rem;">Fon rasmi (PNG/JPG/WEBP, ≤10 MB)</label>
+                <input type="file" name="background" accept=".png,.jpg,.jpeg,.webp" class="form-control form-control-sm" required>
+                <small class="cd-muted">Matnsiz, albom formatdagi bo'sh shablon. Tavsiya: 2400×1697 px.</small>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm w-100" style="border-radius:10px;font-weight:800;">
+                <i class="bi bi-upload"></i> Yuklash va tahrirlash
+            </button>
+        </form>
+
+        <!-- Standart -->
+        <div class="cd-card">
+            <div class="cd-thumb" style="background-image:url('{% static 'certificates/cert_template.png' %}')"><span class="tag">STANDART</span></div>
+            <div class="cd-body">
+                <div class="cd-name">Standart dizayn</div>
+                <div class="cd-muted">Dizayn tanlanmagan barcha kurslar shu ko'rinishda sertifikat oladi.</div>
+            </div>
+        </div>
+
+        {% for d in designs %}
+        <div class="cd-card">
+            <div class="cd-thumb" style="background-image:url('{{ d.background.url }}')"></div>
+            <div class="cd-body">
+                <div class="cd-name">{{ d.name }}</div>
+                <div class="cd-courses">
+                    {% for s in d.course_settings.all %}<span>{{ s.profession.name }}</span>{% empty %}<em class="cd-muted">Hech bir kursga biriktirilmagan</em>{% endfor %}
+                </div>
+                <div class="cd-actions">
+                    <a href="{% url 'admin_certificate_design_edit' d.pk %}" class="btn btn-primary"><i class="bi bi-pencil"></i> Tahrirlash</a>
+                    <a href="{% url 'admin_certificate_design_preview' d.pk %}" target="_blank" class="btn btn-outline-secondary"><i class="bi bi-eye"></i> Namuna</a>
+                    <form method="post" action="{% url 'admin_certificate_design_delete' d.pk %}" style="display:contents;"
+                          onsubmit="return confirm('Dizaynni o\'chirmoqchimisiz? Biriktirilgan kurslar standart dizaynga qaytadi.')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger" style="flex:0 0 42px;"><i class="bi bi-trash"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <p class="cd-muted" style="margin-top:1.4rem;">
+        <i class="bi bi-info-circle"></i>
+        Dizaynni kursga biriktirish: <a href="{% url 'admin_certificates' %}">Sertifikatlar → Sozlamalar</a> jadvalidagi "Dizayn" ustuni.
+    </p>
+</div>
+{% endblock %}

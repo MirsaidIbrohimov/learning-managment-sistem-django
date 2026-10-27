@@ -55,10 +55,90 @@ def _fit_font_size(text, font_name, size, max_width_px, scale):
     return size
 
 
+def get_certificate_design(profession):
+    """Kursga biriktirilgan dizayn yoki None (standart dizayn)."""
+    from accounts.models import CertificateSettings
+    try:
+        cfg = profession.certificate_settings
+    except CertificateSettings.DoesNotExist:
+        return None
+    return cfg.design
+
+
+def _hex_to_rgb(value):
+    value = (value or '').lstrip('#')
+    try:
+        return tuple(int(value[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    except ValueError:
+        return (0.08, 0.09, 0.12)
+
+
+def render_design_pdf(design, name, course, series, date_str, title=''):
+    """Admin dizayni asosida PDF yaratadi (bytes).
+
+    Sahifa kengligi A4 albom kengligiga teng, balandligi — fon rasmi
+    nisbatida. Shuning uchun shrift o'lchamlari standart dizayn bilan bir xil.
+    """
+    from reportlab.lib.pagesizes import landscape, A4
+    from reportlab.lib.utils import ImageReader
+    from reportlab.pdfgen import canvas
+
+    _register_fonts()
+
+    with design.background.open('rb') as fh:
+        img = ImageReader(io.BytesIO(fh.read()))
+    img_w, img_h = img.getSize()
+    page_w = landscape(A4)[0]
+    page_h = page_w * img_h / img_w
+
+    texts = {
+        'name': name,
+        'course': design.course_format.replace('{course}', course.upper()),
+        'series': series,
+        'date': date_str,
+    }
+    font_names = {'script': 'CertScript', 'bold': 'CertBold'}
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=(page_w, page_h))
+    if title:
+        c.setTitle(title)
+    c.drawImage(img, 0, 0, width=page_w, height=page_h)
+    c.setFillColorRGB(*_hex_to_rgb(design.text_color))
+
+    for f in design.field_layout():
+        text = texts.get(f['key']) or ''
+        if not f['visible'] or not text:
+            continue
+        font = font_names.get(f['font'], 'CertBold')
+        # Ism standart dizayndagidek ~62% kenglikka, qolganlari 90% ga sig'sin
+        max_w = page_w * (0.62 if f['key'] == 'name' else 0.9)
+        size = _fit_font_size(text, font, f['size'], max_w, 1)
+        c.setFont(font, size)
+        c.drawCentredString(page_w * f['x'] / 100.0, page_h * (1 - f['y'] / 100.0), text)
+
+    c.save()
+    return buf.getvalue()
+
+
 def generate_certificate_pdf(certificate):
-    """Sertifikat PDF faylini yaratadi (bytes qaytaradi)."""
+    """Sertifikat PDF faylini yaratadi (bytes qaytaradi).
+
+    Kursga dizayn biriktirilgan bo'lsa — o'sha dizayn, aks holda standart.
+    """
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import landscape, A4
+
+    design = get_certificate_design(certificate.profession)
+    if design is not None and design.background:
+        return render_design_pdf(
+            design,
+            name=certificate.recipient_display,
+            course=certificate.profession.name,
+            series=certificate.certificate_id,
+            date_str=certificate.valid_from.strftime('%d.%m.%Y') if certificate.valid_from else '',
+            title=f"Sertifikat {certificate.certificate_id}",
+        )
 
     _register_fonts()
 

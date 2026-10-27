@@ -1,422 +1,66 @@
 {% extends 'parents/portal/base_parent.html' %}
-
-{% block title %}Darslar holati - {{ child.get_full_name }}{% endblock %}
+{% load parent_tags %}
+{% block title %}Darslar{% endblock %}
+{% block page_title %}Darslar holati{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid px-0">
-    <!-- Page Header -->
-    <div class="mb-4">
-        <h3 class="mb-1 fw-bold">
-            <i class="bi bi-play-circle-fill me-2 text-primary"></i>Darslar holati
-        </h3>
-        <p class="text-muted mb-0">{{ child.get_full_name }} - darslar bo'yicha progress</p>
-    </div>
-
-    <div class="row g-4">
-        <!-- Main Content -->
-        <div class="col-lg-8">
-            <!-- Course Progress Header -->
-            <div class="card mb-4">
-                <div class="card-body p-4">
-                    <div class="d-flex align-items-start justify-content-between mb-4">
-                        <div>
-                            <h4 class="mb-2 fw-bold">
-                                <i class="bi bi-mortarboard-fill me-2 text-primary"></i>{{ profession.name }}
-                            </h4>
-                            <p class="text-muted mb-0">{{ profession.description|default:"Kurs tavsifi" }}</p>
-                        </div>
-                        <div class="progress-circle-sm">
-                            <span>{{ lesson_progress.progress_percent|floatformat:0 }}%</span>
-                        </div>
-                    </div>
-                    
-                    <div class="row g-3 mb-4">
-                        <div class="col-4">
-                            <div class="text-center p-3 rounded-3" style="background: var(--hover-bg);">
-                                <h4 class="mb-1 text-primary fw-bold">{{ lesson_progress.total_lessons }}</h4>
-                                <small class="text-muted">Jami darslar</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-center p-3 rounded-3" style="background: rgba(16, 185, 129, 0.1);">
-                                <h4 class="mb-1 text-success fw-bold">{{ lesson_progress.completed_lessons }}</h4>
-                                <small class="text-muted">Tugatilgan</small>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="text-center p-3 rounded-3" style="background: rgba(245, 158, 11, 0.1);">
-                                <h4 class="mb-1 text-warning fw-bold">{{ lesson_progress.remaining_lessons }}</h4>
-                                <small class="text-muted">Qolgan</small>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="progress-wrapper">
-                        <div class="progress-fill bg-success" style="width: {{ lesson_progress.progress_percent|floatformat:0 }}%"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Sections Accordion -->
-            <div class="card">
-                <div class="card-header d-flex align-items-center">
-                    <i class="bi bi-collection-fill me-2 text-primary"></i>
-                    <h5 class="mb-0">Bo'limlar va darslar</h5>
-                </div>
-                <div class="card-body p-0">
-                    {% if sections %}
-                    <div class="accordion accordion-flush" id="sectionsAccordion">
-                        {% for section in sections %}
-                        <div class="accordion-item section-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button {% if not forloop.first %}collapsed{% endif %} section-btn" 
-                                        type="button" data-bs-toggle="collapse" 
-                                        data-bs-target="#section{{ section.id }}" 
-                                        aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
-                                    <div class="d-flex align-items-center justify-content-between w-100 me-3">
-                                        <span class="d-flex align-items-center">
-                                            <i class="bi bi-folder2-open me-2 text-primary"></i>
-                                            <span class="fw-semibold">{{ section.name }}</span>
-                                        </span>
-                                        <span class="section-progress">
-                                            {{ section.completed_count|default:0 }}/{{ section.lessons_count|default:0 }}
-                                        </span>
-                                    </div>
-                                </button>
-                            </h2>
-                            <div id="section{{ section.id }}" 
-                                 class="accordion-collapse collapse {% if forloop.first %}show{% endif %}"
-                                 data-bs-parent="#sectionsAccordion">
-                                <div class="accordion-body p-0">
-                                    <ul class="lesson-list">
-                                        {% for lesson in section.lessons_list %}
-                                        <li class="lesson-item {% if lesson.is_completed %}completed{% endif %}">
-                                            <div class="lesson-status">
-                                                {% if lesson.is_completed %}
-                                                <span class="status-icon success">
-                                                    <i class="bi bi-check-lg"></i>
-                                                </span>
-                                                {% else %}
-                                                <span class="status-icon pending">
-                                                    <i class="bi bi-circle"></i>
-                                                </span>
-                                                {% endif %}
-                                            </div>
-                                            <div class="lesson-info flex-grow-1">
-                                                <p class="mb-1 fw-medium">{{ lesson.title }}</p>
-                                                {% if lesson.is_completed and lesson.completed_at %}
-                                                <small class="text-muted">
-                                                    <i class="bi bi-calendar-check me-1"></i>
-                                                    {{ lesson.completed_at|date:"d.m.Y H:i" }}
-                                                </small>
-                                                {% endif %}
-                                            </div>
-                                            <div class="lesson-type">
-                                                {% if lesson.lesson_type == 'video' %}
-                                                <span class="badge-soft-primary">
-                                                    <i class="bi bi-play-fill me-1"></i>Video
-                                                </span>
-                                                {% elif lesson.lesson_type == 'homework' %}
-                                                <span class="badge-soft-warning">
-                                                    <i class="bi bi-file-text me-1"></i>Vazifa
-                                                </span>
-                                                {% elif lesson.lesson_type == 'test' %}
-                                                <span class="badge-soft-info">
-                                                    <i class="bi bi-list-check me-1"></i>Test
-                                                </span>
-                                                {% else %}
-                                                <span class="badge-soft-secondary">
-                                                    <i class="bi bi-book me-1"></i>Dars
-                                                </span>
-                                                {% endif %}
-                                            </div>
-                                        </li>
-                                        {% empty %}
-                                        <li class="empty-state py-4">
-                                            <i class="bi bi-inbox"></i>
-                                            <p class="mb-0">Bu bo'limda darslar yo'q</p>
-                                        </li>
-                                        {% endfor %}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% else %}
-                    <div class="empty-state py-5">
-                        <i class="bi bi-folder-x"></i>
-                        <h5>Bo'limlar topilmadi</h5>
-                        <p class="mb-0">Hozircha bo'limlar mavjud emas</p>
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Statistics Sidebar -->
-        <div class="col-lg-4">
-            <div class="card sticky-top" style="top: 94px;">
-                <div class="card-header d-flex align-items-center">
-                    <i class="bi bi-bar-chart-fill me-2 text-primary"></i>
-                    <h5 class="mb-0">Statistika</h5>
-                </div>
-                <div class="card-body">
-                    <div class="stat-list">
-                        <div class="stat-list-item">
-                            <div class="stat-list-icon bg-primary-soft">
-                                <i class="bi bi-play-fill text-primary"></i>
-                            </div>
-                            <span>Ko'rilgan video darslar</span>
-                            <span class="stat-list-value">{{ lesson_progress.videos_watched|default:0 }}</span>
-                        </div>
-                        <div class="stat-list-item">
-                            <div class="stat-list-icon bg-success-soft">
-                                <i class="bi bi-check2 text-success"></i>
-                            </div>
-                            <span>Topshirilgan vazifalar</span>
-                            <span class="stat-list-value text-success">{{ lesson_progress.homework_submitted|default:0 }}</span>
-                        </div>
-                        <div class="stat-list-item">
-                            <div class="stat-list-icon bg-info-soft">
-                                <i class="bi bi-list-check text-info"></i>
-                            </div>
-                            <span>Topshirilgan testlar</span>
-                            <span class="stat-list-value text-info">{{ lesson_progress.tests_passed|default:0 }}</span>
-                        </div>
-                    </div>
-
-                    <hr class="my-4">
-
-                    <div class="text-center mb-4">
-                        <p class="text-muted mb-2">So'nggi dars ko'rilgan sana</p>
-                        {% if lesson_progress.last_lesson_date %}
-                        <h5 class="mb-1 fw-bold">
-                            <i class="bi bi-calendar3 me-2 text-primary"></i>
-                            {{ lesson_progress.last_lesson_date|date:"d.m.Y" }}
-                        </h5>
-                        <small class="text-muted">
-                            {{ lesson_progress.last_lesson_date|time:"H:i" }}
-                        </small>
-                        {% else %}
-                        <p class="text-muted mb-0">
-                            <i class="bi bi-dash-circle me-1"></i>Ma'lumot yo'q
-                        </p>
-                        {% endif %}
-                    </div>
-
-                    <hr class="my-4">
-
-                    <!-- Progress Circle -->
-                    <div class="text-center">
-                        <div class="progress-circle-lg mx-auto">
-                            <svg viewBox="0 0 120 120">
-                                <circle class="progress-bg" cx="60" cy="60" r="50"/>
-                                <circle class="progress-fill-circle" cx="60" cy="60" r="50"
-                                        stroke-dasharray="{% widthratio lesson_progress.progress_percent 100 314 %} 314"/>
-                            </svg>
-                            <div class="progress-text">
-                                <span class="progress-value">{{ lesson_progress.progress_percent|floatformat:0 }}%</span>
-                                <span class="progress-label">Bajarildi</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="pp-head">
+    <div>
+        <h1><span class="ic"><i class="bi bi-collection-play-fill"></i></span>Darslar holati</h1>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — har bir bo‘lim va dars bo‘yicha bajarilish holati.{% endif %}</p>
     </div>
 </div>
 
-<style>
-.progress-circle-sm {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: var(--gradient-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-weight: 700;
-    font-size: 0.9rem;
-    flex-shrink: 0;
-}
-
-.progress-wrapper {
-    height: 12px;
-    background: var(--hover-bg);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    border-radius: 10px;
-    transition: width 0.8s ease;
-}
-
-.section-item {
-    border: none;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.section-item:last-child {
-    border-bottom: none;
-}
-
-.section-btn {
-    padding: 20px 24px;
-    background: transparent;
-    font-size: 1rem;
-}
-
-.section-btn:not(.collapsed) {
-    background: var(--hover-bg);
-}
-
-.section-btn:focus {
-    box-shadow: none;
-}
-
-.section-progress {
-    padding: 6px 14px;
-    background: var(--gradient-primary);
-    color: white;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.lesson-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.lesson-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 24px;
-    border-bottom: 1px solid var(--border-color);
-    transition: all 0.2s ease;
-}
-
-.lesson-item:last-child {
-    border-bottom: none;
-}
-
-.lesson-item:hover {
-    background: var(--hover-bg);
-}
-
-.lesson-item.completed {
-    background: rgba(16, 185, 129, 0.05);
-}
-
-.status-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.status-icon.success {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-}
-
-.status-icon.pending {
-    background: var(--hover-bg);
-    color: var(--text-muted);
-}
-
-.badge-soft-secondary {
-    background: rgba(100, 116, 139, 0.1);
-    color: #64748b;
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.75rem;
-}
-
-.stat-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.stat-list-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: var(--hover-bg);
-    border-radius: 12px;
-}
-
-.stat-list-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-}
-
-.stat-list-value {
-    margin-left: auto;
-    font-weight: 700;
-    font-size: 1.1rem;
-}
-
-.progress-circle-lg {
-    width: 140px;
-    height: 140px;
-    position: relative;
-}
-
-.progress-circle-lg svg {
-    transform: rotate(-90deg);
-    width: 100%;
-    height: 100%;
-}
-
-.progress-bg {
-    fill: none;
-    stroke: var(--hover-bg);
-    stroke-width: 10;
-}
-
-.progress-fill-circle {
-    fill: none;
-    stroke: #10b981;
-    stroke-width: 10;
-    stroke-linecap: round;
-    transition: stroke-dasharray 0.8s ease;
-}
-
-.progress-text {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
-}
-
-.progress-value {
-    display: block;
-    font-size: 1.75rem;
-    font-weight: 700;
-    color: var(--text-color);
-}
-
-.progress-label {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-}
-</style>
+{% if not selected_child %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+{% for k in courses %}
+<section class="pp-card flat pp-mb" data-reveal>
+    <div style="display:flex;align-items:center;gap:18px;padding:20px;flex-wrap:wrap;border-bottom:1px solid var(--pp-line);">
+        {% include 'parents/portal/partials/ring.html' with value=k.percent size=86 tone=k.percent|tone %}
+        <div style="flex:1;min-width:200px;">
+            <h3 style="margin:0;font-size:1.2rem;font-weight:850;">{{ k.profession.name }}</h3>
+            <p class="pp-muted" style="margin:4px 0 0;font-size:.86rem;">{{ k.done }} / {{ k.total }} dars bajarildi · {{ k.sections|length }} bo‘lim</p>
+        </div>
+        <div class="pp-legend">
+            <span><i style="background:var(--pp-pri)"></i>Video</span><span><i style="background:var(--pp-cy)"></i>Test</span>
+            <span><i style="background:var(--pp-ok)"></i>Vazifa</span><span><i style="background:var(--pp-vio)"></i>Speaking</span>
+        </div>
+    </div>
+    {% for s in k.sections %}
+    <div class="pp-acc {% if forloop.first %}open{% endif %}" data-acc>
+        <button type="button" aria-expanded="{% if forloop.first %}true{% else %}false{% endif %}">
+            <span class="pp-badge {% if s.percent == 100 %}ok{% elif s.percent %}info{% else %}mute{% endif %}" style="min-width:52px;justify-content:center;">{{ s.done }}/{{ s.total }}</span>
+            <span style="flex:1;min-width:0;">{{ s.section.title }}</span>
+            <span class="mini"><span class="pp-bar sm {{ s.percent|tone }} tone-{{ s.percent|tone }}"><i data-w="{{ s.percent }}"></i></span></span>
+            <i class="bi bi-chevron-down chev"></i>
+        </button>
+        <div class="body"><div>
+            {% for it in s.items %}
+            <div class="pp-lesson {% if it.done %}done{% endif %}">
+                <span class="st">{% if it.done %}<i class="bi bi-check-lg"></i>{% else %}{{ forloop.counter }}{% endif %}</span>
+                <span class="nm">{{ it.lesson.title }}</span>
+                {% if it.lesson.lesson_type == 'video' %}<span class="pp-badge"><i class="bi bi-play-fill"></i>Video</span>
+                {% elif it.lesson.lesson_type == 'test' %}<span class="pp-badge info"><i class="bi bi-ui-checks"></i>Test</span>
+                {% elif it.lesson.lesson_type == 'homework' %}<span class="pp-badge ok"><i class="bi bi-journal"></i>Vazifa</span>
+                {% else %}<span class="pp-badge vio"><i class="bi bi-mic"></i>Speaking</span>{% endif %}
+                <span class="pp-dim" style="font-size:.78rem;min-width:120px;text-align:right;">{{ it.detail }}</span>
+            </div>
+            {% empty %}
+            <p class="pp-muted" style="padding:10px 24px;margin:0;font-size:.86rem;">Bu bo‘limda kuzatiladigan dars yo‘q.</p>
+            {% endfor %}
+        </div></div>
+    </div>
+    {% empty %}
+    <p class="pp-muted" style="padding:18px 20px;margin:0;">Bu kursda hali bo‘limlar yo‘q.</p>
+    {% endfor %}
+</section>
+{% empty %}
+<div class="pp-card pp-empty" data-reveal="scale">
+    <div class="art"><i class="bi bi-mortarboard"></i></div>
+    <h4>Kurslar topilmadi</h4>
+    <p>{{ selected_child.first_name }} hali hech qaysi kursga yozilmagan.</p>
+</div>
+{% endfor %}
+{% endif %}
 {% endblock %}

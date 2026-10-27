@@ -4,432 +4,66 @@
 {% block title %}{{ session.title }} - AI Yordamchi{% endblock %}
 
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/ai-motion.css' %}?v=20261027b">
+<script src="{% static 'js/ai-motion.js' %}?v=20261027c" defer></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 <style>
-/* ============================================================
-   AI YORDAMCHI — CHAT (clean / minimal)
-   ============================================================ */
-:root {
-    --cw-bg: #ffffff;
-    --cw-surface: #f7f7f8;
-    --cw-surface-2: #ececef;
-    --cw-border: #e6e6ea;
-    --cw-text: #14141a;
-    --cw-text-2: #6a6a76;
-    --cw-text-3: #9a9aa4;
-    --cw-user-bubble: #f1f1f4;
-    --cw-accent: #4f46e5;
-    --cw-accent-soft: rgba(79,70,229,.10);
-    --cw-danger: #dc2626;
-    --cw-send-bg: #16161c;
-    --cw-send-fg: #ffffff;
-    --cw-online: #16a34a;
-    --cw-radius: 20px;
-    --cw-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-    --cw-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
-}
-[data-bs-theme="dark"] {
-    --cw-bg: #191a1e;
-    --cw-surface: #232429;
-    --cw-surface-2: #2c2d33;
-    --cw-border: rgba(255,255,255,.09);
-    --cw-text: #ececf1;
-    --cw-text-2: #a1a1ad;
-    --cw-text-3: #70707b;
-    --cw-user-bubble: #2b2c33;
-    --cw-accent: #818cf8;
-    --cw-accent-soft: rgba(129,140,248,.14);
-    --cw-send-bg: #ffffff;
-    --cw-send-fg: #16161c;
-    --cw-online: #22c55e;
-}
-
-body { background: var(--cw-bg) !important; font-family: var(--cw-font) !important; -webkit-font-smoothing: antialiased; }
-
-/* ===== FULL-SCREEN CHAT: take over the whole viewport on this page only ===== */
+/* To'liq ekranli suhbat: faqat shu sahifada sayt navbar/footer yashiriladi. */
 #mainNavbar, .site-footer, #announcementBar { display: none !important; }
 html, body { overflow: hidden !important; }
 body { padding: 0 !important; }
-.main-container { margin: 0 !important; padding: 0 !important; }
-
-@keyframes cwRise { from { opacity:0; transform: translateY(8px) } to { opacity:1; transform: none } }
-@keyframes cwBlink { 0%,100% { opacity:1 } 50% { opacity:0 } }
-@keyframes cwDot { 0%,80%,100% { transform: scale(.6); opacity:.4 } 40% { transform: scale(1); opacity:1 } }
-
-/* ===== LAYOUT ===== */
-.cw {
-    position: fixed;
-    top: 0; right: 0; bottom: 0; left: 0;   /* fill viewport, self-center via max-width + auto margins */
-    max-width: 820px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;            /* JS refines this for the mobile keyboard */
-    background: var(--cw-bg);
-    z-index: 1040;             /* above page chrome, but below Bootstrap modals (1050+) */
-    overflow: hidden;
+/* Keep fixed chat positioning relative to the viewport, including Premium. */
+.cw-draw-locked { position: relative; text-decoration: none; opacity: .7; }
+.cw-draw-locked .cw-lock { position: absolute; right: 2px; bottom: 2px; font-size: 9px; }
+#drawBtn.on { background: var(--a-soft); color: var(--a); }
+.cw-box.draw .cw-box-in { box-shadow: 0 0 0 2px var(--a, #8b5cf6); }
+.cw-draw-hint { display: none; align-items: center; gap: 8px; font-size: 13px; margin-bottom: 8px; padding: 6px 10px; border-radius: 10px; background: var(--a-soft, rgba(139,92,246,.12)); color: var(--a, #8b5cf6); }
+.cw-draw-hint.active { display: flex; }
+.cw-draw-hint button { margin-left: auto; border: 0; background: none; color: inherit; cursor: pointer; }
+.cw-gen-img { max-width: min(420px, 100%); max-height: none; }
+.cw-gen-dl { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; text-decoration: none; }
+#main-content.main-container {
+    width: 100%;
+    max-width: none;
+    margin: 0 !important;
+    padding: 0 !important;
+    animation: none !important;
+    transform: none !important;
 }
-
-/* ===== HEADER ===== */
-.cw-head {
-    display: flex; align-items: center; gap: 9px;
-    padding: 7px 12px;
-    padding-top: max(7px, env(safe-area-inset-top));
-    border-bottom: 1px solid var(--cw-border);
-    background: var(--cw-bg);
-    position: sticky; top: 0; z-index: 20;
-}
-.cw-back {
-    width: 36px; height: 36px; border-radius: 10px; flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    color: var(--cw-text-2); text-decoration: none;
-    transition: background .15s, color .15s;
-}
-.cw-back:hover { background: var(--cw-surface); color: var(--cw-text); }
-.cw-back i { font-size: 1.2rem; }
-
-.cw-head-id { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; }
-.cw-avatar {
-    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--cw-text); color: var(--cw-bg); font-size: .85rem;
-    position: relative;
-}
-.cw-avatar::after {
-    content: ''; position: absolute; right: -1px; bottom: -1px;
-    width: 9px; height: 9px; border-radius: 50%;
-    background: var(--cw-online); border: 2px solid var(--cw-bg);
-}
-.cw-head-titles { min-width: 0; }
-.cw-title {
-    font-size: .92rem; font-weight: 600; color: var(--cw-text); margin: 0;
-    line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.cw-sub { font-size: .72rem; color: var(--cw-text-2); }
-
-.cw-head-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.cw-coin {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 5px 10px; border-radius: 50px;
-    background: var(--cw-surface); border: 1px solid var(--cw-border);
-    font-size: .78rem; font-weight: 600; color: var(--cw-text-2);
-}
-.cw-coin i { color: #eab308; font-size: .85rem; }
-.cw-iconbtn {
-    width: 36px; height: 36px; border-radius: 10px;
-    border: 1px solid var(--cw-border); background: var(--cw-bg);
-    color: var(--cw-text-2); cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    transition: all .15s; font-size: .95rem;
-}
-.cw-iconbtn:hover { background: var(--cw-surface); color: var(--cw-danger); border-color: var(--cw-border); }
-
-/* ===== META (limits) ===== */
-.cw-meta {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    flex-wrap: wrap; padding: 3px 12px;
-    font-size: .7rem; color: var(--cw-text-3);
-    border-bottom: 1px solid var(--cw-border);
-}
-.cw-meta .sep { width: 3px; height: 3px; border-radius: 50%; background: var(--cw-text-3); opacity: .5; }
-.cw-meta b { font-weight: 600; color: var(--cw-text-2); }
-.cw-meta .warn { color: #d97706; }
-.cw-meta .danger { color: var(--cw-danger); }
-.cw-meta .prem { color: var(--cw-accent); font-weight: 700; }
-
-/* ===== MESSAGES ===== */
-.cw-msgs {
-    flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain;
-    padding: 16px 14px 24px; scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-.cw-msgs::-webkit-scrollbar { width: 7px; }
-.cw-msgs::-webkit-scrollbar-thumb { background: var(--cw-surface-2); border-radius: 50px; }
-
-.cw-row { display: flex; gap: 10px; margin-bottom: 18px; animation: cwRise .25s ease both; }
-.cw-row.user { flex-direction: row-reverse; }
-
-.cw-row-avatar {
-    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; margin-top: 2px;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: .72rem; font-weight: 600;
-}
-.cw-row.assistant .cw-row-avatar { background: var(--cw-text); color: var(--cw-bg); }
-.cw-row.user .cw-row-avatar { background: var(--cw-accent-soft); color: var(--cw-accent); }
-
-.cw-body { min-width: 0; max-width: calc(100% - 38px); }
-.cw-row.user .cw-body { display: flex; flex-direction: column; align-items: flex-end; }
-
-/* user bubble */
-.cw-bubble {
-    background: var(--cw-user-bubble); color: var(--cw-text);
-    padding: 10px 14px; border-radius: 18px 18px 4px 18px;
-    font-size: .92rem; line-height: 1.5; white-space: pre-wrap;
-    word-wrap: break-word; overflow-wrap: break-word; max-width: 100%;
-}
-/* assistant text (no bubble, minimal) */
-.cw-assistant-text { color: var(--cw-text); font-size: .93rem; line-height: 1.6; }
-
-.cw-time { font-size: .66rem; color: var(--cw-text-3); margin-top: 5px; padding: 0 2px; }
-.cw-time .coin { color: #ca8a04; }
-
-/* attachments */
-.cw-img {
-    max-width: 260px; max-height: 280px; border-radius: 12px;
-    margin-top: 8px; cursor: pointer; display: block; border: 1px solid var(--cw-border);
-}
-.cw-file {
-    display: inline-flex; align-items: center; gap: 10px; margin-top: 8px;
-    background: var(--cw-surface); border: 1px solid var(--cw-border);
-    border-radius: 12px; padding: 9px 13px; text-decoration: none;
-    color: var(--cw-text); max-width: 280px; transition: background .15s;
-}
-.cw-file:hover { background: var(--cw-surface-2); color: var(--cw-text); }
-.cw-file-ic {
-    width: 34px; height: 34px; border-radius: 9px; flex-shrink: 0;
-    background: var(--cw-bg); border: 1px solid var(--cw-border);
-    display: inline-flex; align-items: center; justify-content: center;
-    color: var(--cw-accent); font-size: 1.05rem;
-}
-.cw-file-nm { font-size: .82rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cw-file-ex { font-size: .66rem; color: var(--cw-text-3); text-transform: uppercase; letter-spacing: .4px; }
-
-/* typing dots */
-.cw-dots { display: inline-flex; gap: 4px; align-items: center; height: 20px; }
-.cw-dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--cw-text-3); animation: cwDot 1.2s infinite ease-in-out; }
-.cw-dots span:nth-child(1){animation-delay:-.24s} .cw-dots span:nth-child(2){animation-delay:-.12s}
-
-/* streaming cursor */
-.cw-cursor { display: inline-block; width: 7px; height: 1.05em; margin-left: 1px; vertical-align: -2px; background: var(--cw-accent); border-radius: 1px; animation: cwBlink 1s step-end infinite; }
-
-/* ===== MARKDOWN ===== */
-.markdown-body { color: var(--cw-text); font-size: .93rem; line-height: 1.6; }
-.markdown-body > *:first-child { margin-top: 0; }
-.markdown-body > *:last-child { margin-bottom: 0; }
-.markdown-body p { margin: 0 0 .7rem; }
-.markdown-body h1,.markdown-body h2,.markdown-body h3,.markdown-body h4 { margin: 1.1rem 0 .5rem; font-weight: 700; line-height: 1.3; letter-spacing: -.01em; }
-.markdown-body h1 { font-size: 1.3rem; } .markdown-body h2 { font-size: 1.15rem; }
-.markdown-body h3 { font-size: 1.02rem; } .markdown-body h4 { font-size: .95rem; }
-.markdown-body ul,.markdown-body ol { margin: .5rem 0; padding-left: 1.4rem; }
-.markdown-body li { margin: .28rem 0; }
-.markdown-body strong { font-weight: 700; }
-.markdown-body a { color: var(--cw-accent); text-decoration: none; border-bottom: 1px solid transparent; }
-.markdown-body a:hover { border-bottom-color: currentColor; }
-.markdown-body blockquote { border-left: 3px solid var(--cw-border); margin: .8rem 0; padding: .3rem .9rem; color: var(--cw-text-2); }
-.markdown-body hr { border: none; border-top: 1px solid var(--cw-border); margin: 1rem 0; }
-.markdown-body table { width: 100%; border-collapse: collapse; margin: .8rem 0; font-size: .85rem; border: 1px solid var(--cw-border); border-radius: 8px; overflow: hidden; }
-.markdown-body th,.markdown-body td { padding: .5rem .7rem; border-bottom: 1px solid var(--cw-border); text-align: left; }
-.markdown-body th { background: var(--cw-surface); font-weight: 600; }
-.markdown-body tr:last-child td { border-bottom: none; }
-.markdown-body p code,.markdown-body li code,.markdown-body td code {
-    background: var(--cw-surface); padding: 1px 6px; border-radius: 5px;
-    font-family: var(--cw-mono); font-size: .82em; color: var(--cw-accent);
-    border: 1px solid var(--cw-border);
-}
-
-/* code blocks */
-.code-block-wrapper { margin: .8rem 0; border-radius: 12px; overflow: hidden; background: #0d1117; border: 1px solid rgba(255,255,255,.08); }
-.code-header { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; background: #010409; border-bottom: 1px solid rgba(255,255,255,.06); }
-.code-lang { font-size: .66rem; color: #8b949e; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; font-family: var(--cw-mono); }
-.copy-btn { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); color: #c9d1d9; font-size: .68rem; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 7px; transition: all .15s; font-family: var(--cw-font); font-weight: 600; }
-.copy-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
-.copy-btn.copied { color: #4ade80; border-color: rgba(74,222,128,.35); }
-.markdown-body pre { margin: 0; padding: 13px 14px; overflow-x: auto; background: transparent !important; }
-.markdown-body pre code { font-family: var(--cw-mono); font-size: .8rem; line-height: 1.55; color: #c9d1d9; background: transparent !important; }
-.markdown-body pre::-webkit-scrollbar { height: 6px; }
-.markdown-body pre::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 50px; }
-
-/* ===== EMPTY STATE ===== */
-.cw-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center; padding: 2rem 1.5rem; }
-.cw-empty-ic { width: 60px; height: 60px; border-radius: 18px; background: var(--cw-text); color: var(--cw-bg); display: flex; align-items: center; justify-content: center; font-size: 1.7rem; margin-bottom: 1.1rem; }
-.cw-empty h4 { font-size: 1.2rem; font-weight: 700; color: var(--cw-text); margin: 0 0 .4rem; letter-spacing: -.01em; }
-.cw-empty p { color: var(--cw-text-2); font-size: .9rem; max-width: 330px; line-height: 1.5; margin: 0 0 1.4rem; }
-.cw-sugs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 420px; }
-.cw-sug {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--cw-bg); border: 1px solid var(--cw-border);
-    padding: 8px 14px; border-radius: 50px; font-size: .84rem; font-weight: 500;
-    color: var(--cw-text); cursor: pointer; transition: all .15s;
-}
-.cw-sug:hover { border-color: var(--cw-accent); color: var(--cw-accent); background: var(--cw-accent-soft); }
-.cw-sug i { color: var(--cw-text-3); font-size: .9rem; }
-.cw-sug:hover i { color: var(--cw-accent); }
-
-/* ===== INPUT ===== */
-.cw-input-area {
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--cw-border);
-    background: var(--cw-bg); position: sticky; bottom: 0; z-index: 20;
-}
-.cw-input-wrap { max-width: 760px; margin: 0 auto; }
-.cw-form { display: flex; align-items: flex-end; gap: 8px; }
-.cw-input-box {
-    flex: 1; min-width: 0;
-    background: var(--cw-surface); border: 1.5px solid var(--cw-border);
-    border-radius: 24px; padding: 4px 6px 4px 8px;
-    display: flex; align-items: flex-end; gap: 4px;
-    transition: border-color .15s, box-shadow .15s;
-}
-.cw-input-box:focus-within { border-color: var(--cw-accent); box-shadow: 0 0 0 3px var(--cw-accent-soft); }
-.cw-attach {
-    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-    display: inline-flex; align-items: center; justify-content: center;
-    color: var(--cw-text-2); cursor: pointer; position: relative; transition: all .15s;
-}
-.cw-attach:hover { background: var(--cw-surface-2); color: var(--cw-accent); }
-.cw-attach input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.cw-textarea {
-    flex: 1; border: none; background: transparent; color: var(--cw-text);
-    font-family: var(--cw-font); font-size: .93rem; line-height: 1.45;
-    resize: none; min-height: 24px; max-height: 150px; padding: 8px 4px; outline: none;
-}
-.cw-textarea::placeholder { color: var(--cw-text-3); }
-.cw-send {
-    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0; border: none;
-    background: var(--cw-send-bg); color: var(--cw-send-fg); cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center;
-    font-size: 1.05rem; transition: transform .12s, opacity .15s;
-}
-.cw-send:hover:not(:disabled) { transform: scale(1.06); }
-.cw-send:disabled { opacity: .4; cursor: not-allowed; }
-.cw-send .cw-dots span { background: var(--cw-send-fg); }
-
-/* attachment preview chips */
-.cw-previews { max-width: 760px; margin: 0 auto 6px; display: flex; flex-wrap: wrap; gap: 8px; }
-.cw-chip {
-    display: none; align-items: center; gap: 8px;
-    background: var(--cw-surface); border: 1px solid var(--cw-border);
-    border-radius: 10px; padding: 5px 6px 5px 10px; font-size: .8rem; color: var(--cw-text);
-}
-.cw-chip.active { display: inline-flex; }
-.cw-chip img { width: 30px; height: 30px; border-radius: 6px; object-fit: cover; }
-.cw-chip .nm { max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500; }
-.cw-chip .rm { background: none; border: none; color: var(--cw-danger); cursor: pointer; padding: 2px; font-size: 1rem; line-height: 1; display: inline-flex; }
-
-.cw-nocoin {
-    max-width: 760px; margin: 0 auto; text-align: center;
-    background: var(--cw-surface); border: 1px solid var(--cw-border);
-    border-radius: 14px; padding: 12px; font-size: .86rem; font-weight: 500; color: var(--cw-text-2);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.cw-nocoin i { color: #d97706; }
-.cw-retry {
-    margin-top: 8px; display: inline-flex; align-items: center; gap: 6px;
-    background: var(--cw-surface); border: 1px solid var(--cw-border); color: var(--cw-text);
-    padding: 6px 14px; border-radius: 50px; font-size: .82rem; font-weight: 600; cursor: pointer; transition: all .15s;
-}
-.cw-retry:hover { border-color: var(--cw-accent); color: var(--cw-accent); }
-
-/* ===== MODAL ===== */
-.cw-modal.modal { z-index: 1300; }   /* keep the clear-history dialog above the full-screen chat */
-.modal-backdrop { z-index: 1290; }
-.cw-modal .modal-content { background: var(--cw-bg); border: 1px solid var(--cw-border); border-radius: 18px; overflow: hidden; }
-.cw-modal .modal-body { padding: 24px 22px 14px; text-align: center; }
-.cw-modal-ic { width: 48px; height: 48px; border-radius: 50%; background: rgba(220,38,38,.1); color: var(--cw-danger); display: flex; align-items: center; justify-content: center; margin: 0 auto 12px; font-size: 1.2rem; }
-.cw-modal h6 { color: var(--cw-text); font-weight: 700; margin-bottom: 5px; }
-.cw-modal p { color: var(--cw-text-2); font-size: .85rem; line-height: 1.5; margin: 0; }
-.cw-modal .modal-footer { border-top: 1px solid var(--cw-border); padding: 0; display: flex; }
-.cw-modal .modal-footer > * { flex: 1; }
-.cw-modal-btn { width: 100%; padding: 13px; border: none; background: transparent; font-size: .92rem; font-weight: 600; cursor: pointer; font-family: var(--cw-font); color: var(--cw-text); transition: background .12s; }
-.cw-modal-btn:hover { background: var(--cw-surface); }
-.cw-modal-btn.cancel { color: var(--cw-text-2); }
-.cw-modal-btn.danger { color: var(--cw-danger); }
-.cw-modal .modal-footer > *:first-child .cw-modal-btn { border-right: 1px solid var(--cw-border); }
-
-/* ===== MESSAGE TOOLS (rating / read-aloud) ===== */
-.cw-msg-tools { display: flex; align-items: center; gap: 2px; margin-top: 6px; opacity: .75; transition: opacity .15s; }
-.cw-row.assistant:hover .cw-msg-tools { opacity: 1; }
-.cw-tool {
-    width: 30px; height: 30px; border-radius: 8px; border: none; background: transparent;
-    color: var(--cw-text-3); cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-    font-size: .9rem; transition: background .15s, color .15s;
-}
-.cw-tool:hover { background: var(--cw-surface-2); color: var(--cw-text); }
-.cw-tool.up.on { color: #16a34a; }
-.cw-tool.down.on { color: var(--cw-danger); }
-.cw-tool.tts.speaking { color: var(--cw-accent); }
-
-/* ===== IN-CHAT SEARCH ===== */
-.cw-search {
-    display: none; align-items: center; gap: 6px; padding: 7px 12px;
-    border-bottom: 1px solid var(--cw-border); background: var(--cw-surface);
-}
-.cw-search.open { display: flex; }
-.cw-search > i { color: var(--cw-text-3); font-size: .9rem; }
-.cw-search input { flex: 1; min-width: 0; border: none; background: transparent; color: var(--cw-text); font-family: var(--cw-font); font-size: .9rem; outline: none; }
-.cw-search-count { font-size: .74rem; color: var(--cw-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.cw-search-nav { width: 28px; height: 28px; border-radius: 7px; border: none; background: transparent; color: var(--cw-text-2); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; font-size: .82rem; }
-.cw-search-nav:hover { background: var(--cw-surface-2); color: var(--cw-text); }
-.cw-row.cw-dim { opacity: .35; }
-.cw-row.cw-hit-active .cw-bubble,
-.cw-row.cw-hit-active .cw-assistant-text { box-shadow: 0 0 0 2px var(--cw-accent); border-radius: 12px; }
-
-/* ===== MIC (voice input) ===== */
-.cw-attach.listening { color: var(--cw-danger); background: rgba(220,38,38,.1); }
-@keyframes cwPulseMic { 0%,100% { transform: scale(1) } 50% { transform: scale(1.15) } }
-.cw-attach.listening i { animation: cwPulseMic 1s ease-in-out infinite; }
-
-/* ===== IMAGE QUICK ACTIONS ===== */
-.cw-img-quick { display: none; flex-wrap: wrap; gap: 6px; max-width: 760px; margin: 0 auto 6px; }
-.cw-img-quick.active { display: flex; }
-.cw-img-quick span { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; background: var(--cw-surface); border: 1px solid var(--cw-border); color: var(--cw-text-2); padding: 5px 11px; border-radius: 50px; font-size: .78rem; font-weight: 600; transition: all .15s; }
-.cw-img-quick span:hover { border-color: var(--cw-accent); color: var(--cw-accent); }
-.cw-img-quick span i { font-size: .82rem; }
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 768px) {
-    .cw-msgs { padding: 14px 10px 20px; }
-    .cw-row { margin-bottom: 15px; }
-    .cw-body { max-width: calc(100% - 36px); }
-    .cw-bubble, .cw-assistant-text, .markdown-body { font-size: .9rem; }
-    .cw-input-area { padding: 8px 10px calc(8px + env(safe-area-inset-bottom)); }
-    .cw-img { max-width: 220px; }
-}
-@media (max-width: 460px) {
-    .cw-coin { display: none; }
-    .cw-title { font-size: .88rem; }
-    .cw-body { max-width: calc(100% - 34px); }
-    .cw-empty h4 { font-size: 1.08rem; }
-}
-@media (prefers-reduced-motion: reduce) { * { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="cw">
+<div class="cw ai-motion {% if request.user.is_premium %}ai-premium{% else %}ai-regular{% endif %}">
     {# ===== HEADER ===== #}
-    <div class="cw-head">
-        <a href="{% url 'ai_yordamchi:chat_home' %}" class="cw-back" title="Orqaga"><i class="bi bi-chevron-left"></i></a>
-        <div class="cw-head-id">
-            <span class="cw-avatar"><i class="bi bi-stars"></i></span>
-            <div class="cw-head-titles">
-                <h1 class="cw-title">{{ session.title|truncatechars:32 }}</h1>
-                <div class="cw-sub">Creative AI · Onlayn</div>
-            </div>
+    <header class="cw-head">
+        <a href="{% url 'ai_yordamchi:chat_home' %}" class="am-icon" title="Orqaga"><i class="bi bi-chevron-left"></i></a>
+        <div class="am-orb" id="headOrb"><i class="bi bi-stars"></i></div>
+        <div class="cw-head-titles">
+            <h1 class="cw-title">{{ session.title|truncatechars:40 }}</h1>
+            <div class="cw-sub" id="cwSub"><span class="dot"></span> Creative AI · Onlayn</div>
         </div>
-        <div class="cw-head-actions">
-            <span class="cw-coin" title="Sizdagi coin"><i class="bi bi-coin"></i> <span id="coinCount">{{ user_coins }}</span></span>
-            <button type="button" class="cw-iconbtn" id="searchToggle" title="Suhbatdan qidirish"><i class="bi bi-search"></i></button>
-            <button type="button" class="cw-iconbtn" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tarixni tozalash"><i class="bi bi-trash3"></i></button>
-        </div>
-    </div>
+        <span class="cw-coin" id="coinPill" title="Sizdagi coin"><i class="bi bi-coin"></i> <span id="coinCount">{{ user_coins }}</span></span>
+        <button type="button" class="am-icon" id="searchToggle" title="Suhbatdan qidirish"><i class="bi bi-search"></i></button>
+        <button type="button" class="am-icon" data-bs-toggle="modal" data-bs-target="#clearModal" title="Tarixni tozalash"><i class="bi bi-trash3"></i></button>
+    </header>
 
     {# ===== IN-CHAT SEARCH ===== #}
     <div class="cw-search" id="cwSearch">
         <i class="bi bi-search"></i>
         <input type="text" id="cwSearchInput" placeholder="Suhbatdan qidirish…" autocomplete="off">
         <span class="cw-search-count" id="cwSearchCount"></span>
-        <button type="button" class="cw-search-nav" id="cwSearchPrev" title="Oldingi"><i class="bi bi-chevron-up"></i></button>
-        <button type="button" class="cw-search-nav" id="cwSearchNext" title="Keyingi"><i class="bi bi-chevron-down"></i></button>
-        <button type="button" class="cw-search-nav" id="cwSearchClose" title="Yopish"><i class="bi bi-x-lg"></i></button>
+        <button type="button" class="am-icon" id="cwSearchPrev" title="Oldingi"><i class="bi bi-chevron-up"></i></button>
+        <button type="button" class="am-icon" id="cwSearchNext" title="Keyingi"><i class="bi bi-chevron-down"></i></button>
+        <button type="button" class="am-icon" id="cwSearchClose" title="Yopish"><i class="bi bi-x-lg"></i></button>
     </div>
 
     {# ===== LIMITS ===== #}
     <div class="cw-meta">
-        {% if limits.is_premium %}<span class="prem">PREMIUM</span><span class="sep"></span>{% endif %}
-        <span class="{% if limits.msg_left <= 5 %}danger{% elif limits.msg_left <= 15 %}warn{% endif %}"><b>{{ limits.msg_left }}</b>/{{ limits.msg_limit }} xabar</span>
-        <span class="sep"></span>
+        {% if limits.is_premium %}<span class="prem"><i class="bi bi-gem"></i> PREMIUM</span>{% endif %}
+        <span class="{% if limits.msg_left <= 5 %}danger{% elif limits.msg_left <= 15 %}warn{% endif %}"><b id="msgLeft">{{ limits.msg_left }}</b>/{{ limits.msg_limit }} xabar</span>
         <span class="{% if limits.img_left <= 1 %}danger{% endif %}"><b>{{ limits.img_left }}</b>/{{ limits.img_limit }} rasm</span>
+        {% if limits.can_generate %}<span class="{% if limits.gen_left <= 0 %}danger{% endif %}"><i class="bi bi-palette"></i> <b id="genLeft">{{ limits.gen_left }}</b>/{{ limits.gen_limit }} chizish</span>{% endif %}
     </div>
 
     {# ===== MESSAGES ===== #}
@@ -437,16 +71,19 @@ body { padding: 0 !important; }
         {% if chat_messages %}
             {% for msg in chat_messages %}
             <div class="cw-row {{ msg.role }}">
-                <div class="cw-row-avatar">{% if msg.role == 'user' %}{{ user.first_name.0|upper }}{% else %}<i class="bi bi-stars"></i>{% endif %}</div>
+                {% if msg.role == 'assistant' %}<div class="am-orb"><i class="bi bi-stars"></i></div>{% endif %}
                 <div class="cw-body">
                     {% if msg.role == 'assistant' %}
-                        {# Kontent `json_script` orqali beriladi: `|safe` bo'lganda AI javobidagi
-                           `</script>` matni script tegini yopib, XSS ochib yuborar edi. #}
+                        {% comment %}Kontent `json_script` orqali beriladi: `|safe` bo'lganda AI javobidagi
+                           `</script>` matni script tegini yopib, XSS ochib yuborar edi.{% endcomment %}
                         {% with mid=forloop.counter|stringformat:"s" %}{% with src_id="src-"|add:mid %}
                         <div class="cw-assistant-text"><div class="markdown-body" id="md-{{ mid }}"></div></div>
                         {{ msg.content|json_script:src_id }}
                         {% endwith %}{% endwith %}
+                        {% if msg.image %}<a href="{{ msg.image.url }}" target="_blank" rel="noopener"><img src="{{ msg.image.url }}" alt="AI chizgan rasm" class="cw-img cw-gen-img"></a>
+                        <a href="{{ msg.image.url }}" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab olish</a>{% endif %}
                         <div class="cw-msg-tools" data-mid="{{ msg.pk }}">
+                            <button type="button" class="cw-tool copy" title="Nusxa olish" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>
                             <button type="button" class="cw-tool tts" title="Ovozda o'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>
                             <button type="button" class="cw-tool up{% if msg.rating == 1 %} on{% endif %}" title="Foydali" onclick="cwRate(this,1)"><i class="bi bi-hand-thumbs-up{% if msg.rating == 1 %}-fill{% endif %}"></i></button>
                             <button type="button" class="cw-tool down{% if msg.rating == -1 %} on{% endif %}" title="Foydasiz" onclick="cwRate(this,-1)"><i class="bi bi-hand-thumbs-down{% if msg.rating == -1 %}-fill{% endif %}"></i></button>
@@ -467,14 +104,14 @@ body { padding: 0 !important; }
             {% endfor %}
         {% else %}
             <div class="cw-empty" id="emptyState">
-                <div class="cw-empty-ic"><i class="bi bi-stars"></i></div>
-                <h4>Creative AI bilan salomlashing</h4>
-                <p>Dasturlash, matematika va boshqa mavzularda savol bering. Rasm va fayl yuborishingiz ham mumkin.</p>
+                <div class="am-orb am-rv"><i class="bi bi-stars"></i></div>
+                <h4 class="am-rv">Creative AI bilan salomlashing</h4>
+                <p class="am-rv">Savol bering, rasm yoki fayl yuboring — bosqichma-bosqich tushuntirib beraman.</p>
                 <div class="cw-sugs">
-                    <span class="cw-sug" onclick="cwSet('Python asoslarini tushuntiring')"><i class="bi bi-code-slash"></i> Python</span>
-                    <span class="cw-sug" onclick="cwSet('Django framework nima?')"><i class="bi bi-globe"></i> Django</span>
-                    <span class="cw-sug" onclick="cwSet('HTML va CSS asoslari')"><i class="bi bi-palette"></i> HTML/CSS</span>
-                    <span class="cw-sug" onclick="cwSet('JavaScript asoslari')"><i class="bi bi-braces"></i> JavaScript</span>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Python asoslarini tushuntiring')"><i class="bi bi-code-slash"></i><div><b>Python asoslari</b><span>O'zgaruvchi va sikllarni tushuntiring</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Kvadrat tenglamani bosqichma-bosqich yechib bering')"><i class="bi bi-calculator"></i><div><b>Masala yechish</b><span>Kvadrat tenglamani yechib bering</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('Kodimdagi xatoni topib tuzating:\n')"><i class="bi bi-bug"></i><div><b>Xatoni topish</b><span>Kodimdagi xatoni tuzating</span></div></button>
+                    <button type="button" class="cw-sug am-rv" onclick="cwSet('HTML bo\'yicha 5 ta test savoli tuzib bering')"><i class="bi bi-journal-check"></i><div><b>Test tuzish</b><span>HTML bo'yicha 5 ta test</span></div></button>
                 </div>
             </div>
         {% endif %}
@@ -482,7 +119,8 @@ body { padding: 0 !important; }
 
     {# ===== INPUT ===== #}
     <div class="cw-input-area">
-        {% if user_coins < 1 and not limits.is_premium %}
+        <button type="button" class="cw-fab" id="cwFab" title="Pastga"><i class="bi bi-arrow-down"></i></button>
+        {% if user_coins < 1 and not limits.is_premium and not autosend %}
         <div class="cw-nocoin"><i class="bi bi-exclamation-triangle-fill"></i> Coin yetarli emas. Kamida 1 coin kerak.</div>
         {% else %}
         <div class="cw-previews">
@@ -494,45 +132,50 @@ body { padding: 0 !important; }
             <span onclick="cwSet('Bu rasmni batafsil tushuntiring')"><i class="bi bi-chat-text"></i> Tushuntiring</span>
             <span onclick="cwSet('Rasmdagi kodni yozib bering va xatolarini tuzating')"><i class="bi bi-code-slash"></i> Kod</span>
         </div>
-        <div class="cw-input-wrap">
-            <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="cw-form" id="chatForm">
-                {% csrf_token %}
-                <div class="cw-input-box">
-                    <label class="cw-attach" title="Rasm">
+        <div class="cw-draw-hint" id="drawHint"><i class="bi bi-palette"></i> Rasm chizish rejimi — chizmoqchi bo'lgan rasmingizni tasvirlab yozing <button type="button" onclick="cwToggleDraw(false)"><i class="bi bi-x"></i></button></div>
+        <form action="{% url 'ai_yordamchi:send_message' pk=session.pk %}" method="post" enctype="multipart/form-data" class="cw-box" id="chatForm"{% if autosend and prefill %} data-autosend="1"{% endif %}>
+            {% csrf_token %}
+            <div class="cw-box-in">
+                <textarea name="content" class="cw-textarea" id="chatInput" placeholder="Xabar yozing…" rows="1">{{ prefill }}</textarea>
+                <div class="cw-box-row">
+                    <label class="am-icon" title="Rasm">
                         <i class="bi bi-image"></i>
                         <input type="file" name="image" accept="image/*" id="imageInput" onchange="cwPreviewImage(this)">
                     </label>
-                    <label class="cw-attach" title="Fayl">
+                    <label class="am-icon" title="Fayl">
                         <i class="bi bi-paperclip"></i>
                         <input type="file" name="file" id="fileInput" onchange="cwPreviewFile(this)">
                     </label>
-                    <button type="button" class="cw-attach" id="micBtn" title="Ovozli kiritish"><i class="bi bi-mic"></i></button>
-                    <textarea name="content" class="cw-textarea" id="chatInput" placeholder="Xabar yozing…" rows="1">{{ prefill }}</textarea>
+                    {% if limits.can_generate %}
+                    <button type="button" class="am-icon" id="drawBtn" title="Rasm chizish (Premium · kuniga {{ limits.gen_limit }} ta)"><i class="bi bi-palette"></i></button>
+                    {% else %}
+                    <a href="{% url 'coin:buy_premium' %}" class="am-icon cw-draw-locked" title="Rasm chizish — faqat Premium uchun"><i class="bi bi-palette"></i><i class="bi bi-lock-fill cw-lock"></i></a>
+                    {% endif %}
+                    <button type="button" class="am-icon" id="micBtn" title="Ovozli kiritish"><i class="bi bi-mic"></i></button>
+                    <span class="hint">Enter — yuborish · Shift+Enter — yangi qator</span>
+                    <button type="submit" class="cw-send" id="sendBtn" title="Yuborish"><i class="bi bi-arrow-up"></i></button>
                 </div>
-                <button type="submit" class="cw-send" id="sendBtn" title="Yuborish"><i class="bi bi-arrow-up"></i></button>
-            </form>
-        </div>
+            </div>
+        </form>
         {% endif %}
     </div>
 </div>
 
 {# Clear Modal #}
-<div class="modal fade cw-modal" id="clearModal" tabindex="-1">
+<div class="modal fade am-modal cw-modal" id="clearModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content">
-            <div class="modal-body">
-                <div class="cw-modal-ic"><i class="bi bi-trash3"></i></div>
+            <div class="modal-body am-confirm">
+                <div class="ic"><i class="bi bi-trash3"></i></div>
                 <h6>Tarixni tozalash</h6>
                 <p>Barcha xabarlar o'chiriladi. Bu amalni qaytarib bo'lmaydi.</p>
             </div>
             <div class="modal-footer">
-                <div><button type="button" class="cw-modal-btn cancel" data-bs-dismiss="modal">Bekor qilish</button></div>
-                <div>
-                    <form action="{% url 'ai_yordamchi:clear_history' pk=session.pk %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit" class="cw-modal-btn danger">O'chirish</button>
-                    </form>
-                </div>
+                <button type="button" class="am-mbtn ghost" data-bs-dismiss="modal">Bekor qilish</button>
+                <form action="{% url 'ai_yordamchi:clear_history' pk=session.pk %}" method="post" style="margin:0">
+                    {% csrf_token %}
+                    <button type="submit" class="am-mbtn danger">O'chirish</button>
+                </form>
             </div>
         </div>
     </div>
@@ -707,12 +350,11 @@ function cwHideEmpty() { var e = document.getElementById('emptyState'); if (e) e
 
 function cwAddUserRow(text, imgUrl, fileName) {
     cwHideEmpty();
-    var initials = '{{ user.first_name.0|upper }}';
     var extra = '';
     if (imgUrl) extra += '<img src="' + imgUrl + '" class="cw-img" onclick="window.open(this.src,\'_blank\')">';
     if (fileName) extra += '<div class="cw-file"><span class="cw-file-ic"><i class="bi bi-paperclip"></i></span><span class="cw-file-nm">' + cwEscape(fileName) + '</span></div>';
     var bubble = text ? '<div class="cw-bubble">' + cwEscape(text) + '</div>' : '';
-    var html = '<div class="cw-row user"><div class="cw-row-avatar">' + initials + '</div>'
+    var html = '<div class="cw-row user">'
         + '<div class="cw-body">' + bubble + extra + '<div class="cw-time">' + cwNow() + '</div></div></div>';
     messagesEl.insertAdjacentHTML('beforeend', html);
     cwScroll();
@@ -721,23 +363,45 @@ function cwAddUserRow(text, imgUrl, fileName) {
 /* Creates an assistant row and returns its markdown element */
 function cwAddAssistantRow() {
     var id = 'stream-' + Date.now();
-    var html = '<div class="cw-row assistant"><div class="cw-row-avatar"><i class="bi bi-stars"></i></div>'
+    var html = '<div class="cw-row assistant"><div class="am-orb thinking"><i class="bi bi-stars"></i></div>'
         + '<div class="cw-body"><div class="cw-assistant-text"><div class="markdown-body" id="' + id + '">'
-        + '<div class="cw-dots"><span></span><span></span><span></span></div></div></div></div></div>';
+        + '<div class="cw-think"><span class="shim">O‘ylayapman</span><span class="cw-dots"><span></span><span></span><span></span></span></div>'
+        + '</div></div></div></div>';
     messagesEl.insertAdjacentHTML('beforeend', html);
     cwScroll();
     return document.getElementById(id);
 }
 
+/* Javob kutilayotganda: tugma aylanadi, kiritish maydoni chegarasi jonlanadi, sarlavhada "Yozmoqda". */
 function cwSetBusy(busy) {
     isBusy = busy;
     if (sendBtn) {
         sendBtn.disabled = busy;
+        sendBtn.classList.toggle('busy', busy);
         sendBtn.innerHTML = busy
-            ? '<div class="cw-dots"><span></span><span></span><span></span></div>'
+            ? '<span class="cw-dots"><span></span><span></span><span></span></span>'
             : '<i class="bi bi-arrow-up"></i>';
     }
+    if (form) form.classList.toggle('busy', busy);
     if (textarea) textarea.readOnly = busy;
+    var orb = document.getElementById('headOrb');
+    if (orb) orb.classList.toggle('thinking', busy);
+    var sub = document.getElementById('cwSub');
+    if (sub) sub.innerHTML = busy
+        ? '<span class="typing">Yozmoqda</span><span class="cw-dots"><span></span><span></span><span></span></span>'
+        : '<span class="dot"></span> Creative AI · Onlayn';
+}
+
+function cwStopThinking(mdEl) {
+    var row = mdEl && mdEl.closest('.cw-row');
+    var orb = row && row.querySelector('.am-orb');
+    if (orb) orb.classList.remove('thinking');
+}
+
+function cwBumpCoin() {
+    var pill = document.getElementById('coinPill');
+    if (!pill) return;
+    pill.classList.remove('bump'); void pill.offsetWidth; pill.classList.add('bump');
 }
 
 function cwResetInput() {
@@ -759,7 +423,8 @@ function cwStreamRender(mdEl, raw) {
 }
 
 function cwToolsHtml(mid) {
-    return '<div class="cw-msg-tools" data-mid="' + mid + '">'
+    return '<div class="cw-msg-tools am-new" data-mid="' + mid + '">'
+        + '<button type="button" class="cw-tool copy" title="Nusxa olish" onclick="cwCopyAnswer(this)"><i class="bi bi-copy"></i></button>'
         + '<button type="button" class="cw-tool tts" title="Ovozda o\'qish" onclick="cwSpeak(this)"><i class="bi bi-volume-up"></i></button>'
         + '<button type="button" class="cw-tool up" title="Foydali" onclick="cwRate(this,1)"><i class="bi bi-hand-thumbs-up"></i></button>'
         + '<button type="button" class="cw-tool down" title="Foydasiz" onclick="cwRate(this,-1)"><i class="bi bi-hand-thumbs-down"></i></button>'
@@ -767,6 +432,7 @@ function cwToolsHtml(mid) {
 }
 
 function cwFinalize(mdEl, content, msgId) {
+    cwStopThinking(mdEl);
     var html = cwRenderMarkdown(content);
     if (html === null) { mdEl.textContent = content; } else { mdEl.innerHTML = html; cwEnhance(mdEl); }
     var body = mdEl.closest('.cw-body');
@@ -779,6 +445,7 @@ function cwFinalize(mdEl, content, msgId) {
 }
 
 function cwStreamError(mdEl, raw, onRetry) {
+    cwStopThinking(mdEl);
     var base = raw ? (cwRenderMarkdown(raw) || cwEscape(raw)) : '<p>⚠️ Javob olishda xatolik yuz berdi.</p>';
     mdEl.innerHTML = base + '<button class="cw-retry" type="button"><i class="bi bi-arrow-clockwise"></i> Qayta urinish</button>';
     var btn = mdEl.querySelector('.cw-retry');
@@ -811,7 +478,7 @@ async function cwStream(mdEl) {
                 var data;
                 try { data = JSON.parse(frame.slice(5).trim()); } catch (e) { continue; }
                 if (data.type === 'delta' && data.text) {
-                    if (!got) { got = true; mdEl.innerHTML = ''; }
+                    if (!got) { got = true; mdEl.innerHTML = ''; cwStopThinking(mdEl); }
                     raw += data.text;
                     cwStreamRender(mdEl, raw);
                 } else if (data.type === 'done') {
@@ -827,9 +494,67 @@ async function cwStream(mdEl) {
     }
 }
 
+/* ============================================================
+   Rasm chizish (faqat Premium)
+   ============================================================ */
+var drawMode = false;
+var drawBtn = document.getElementById('drawBtn');
+
+function cwToggleDraw(on) {
+    if (!drawBtn) return;
+    drawMode = (on === undefined) ? !drawMode : on;
+    drawBtn.classList.toggle('on', drawMode);
+    if (form) form.classList.toggle('draw', drawMode);
+    var hint = document.getElementById('drawHint');
+    if (hint) hint.classList.toggle('active', drawMode);
+    if (textarea) {
+        textarea.placeholder = drawMode ? 'Masalan: kosmosda gitara chalayotgan mushuk, multfilm uslubida…' : 'Xabar yozing…';
+        textarea.focus();
+    }
+}
+if (drawBtn) drawBtn.addEventListener('click', function () { cwToggleDraw(); });
+
+async function cwDraw(prompt) {
+    stickBottom = true;
+    cwSetBusy(true);
+    cwAddUserRow('🎨 ' + prompt, '', '');
+    if (textarea) { textarea.value = ''; textarea.style.height = 'auto'; }
+    var mdEl = cwAddAssistantRow();
+    var shim = mdEl.querySelector('.shim');
+    if (shim) shim.textContent = 'Rasm chizyapman';
+    try {
+        var body = new URLSearchParams({ prompt: prompt, csrfmiddlewaretoken: cwCsrf() });
+        var resp = await fetch("{% url 'ai_yordamchi:generate_image' pk=session.pk %}", {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        });
+        var data = await resp.json();
+        cwStopThinking(mdEl);
+        if (data.error) {
+            mdEl.innerHTML = '<p>⚠️ ' + cwEscape(data.error) + '</p>';
+            return;
+        }
+        cwFinalize(mdEl, data.content, data.message_id);
+        var url = cwEscape(data.image_url);
+        mdEl.closest('.cw-assistant-text').insertAdjacentHTML('afterend',
+            '<a href="' + url + '" target="_blank" rel="noopener"><img src="' + url + '" alt="AI chizgan rasm" class="cw-img cw-gen-img"></a>'
+            + '<a href="' + url + '" download class="cw-gen-dl"><i class="bi bi-download"></i> Yuklab olish</a>');
+        var left = document.getElementById('genLeft');
+        if (left && data.gen_left != null) left.textContent = data.gen_left;
+        if (data.gen_left === 0) cwToggleDraw(false);
+    } catch (e) {
+        cwStopThinking(mdEl);
+        mdEl.innerHTML = '<p>⚠️ Rasm chizishda xatolik yuz berdi. Qayta urinib ko‘ring.</p>';
+    } finally {
+        cwSetBusy(false);
+    }
+}
+
 async function cwSend() {
     if (isBusy || !textarea) return;
     var text = textarea.value.trim();
+    if (drawMode) { if (text) cwDraw(text); return; }
     var imageInput = document.getElementById('imageInput');
     var fileInput = document.getElementById('fileInput');
     var hasImage = imageInput && imageInput.files.length;
@@ -853,12 +578,13 @@ async function cwSend() {
         var data = await resp.json();
         if (data.error) {
             var errEl = cwAddAssistantRow();
+            cwStopThinking(errEl);
             errEl.innerHTML = '<p>⚠️ ' + cwEscape(data.error) + '</p>';
             cwSetBusy(false);
             return;
         }
         var coinEl = document.getElementById('coinCount');
-        if (coinEl && data.coins != null) coinEl.textContent = data.coins;
+        if (coinEl && data.coins != null && String(data.coins) !== coinEl.textContent) { coinEl.textContent = data.coins; cwBumpCoin(); }
         var mdEl = cwAddAssistantRow();
         await cwStream(mdEl);
     } catch (e) {
@@ -875,6 +601,12 @@ if (textarea && form) {
         this.style.height = Math.min(this.scrollHeight, 150) + 'px';
     });
     form.addEventListener('submit', function (e) { e.preventDefault(); cwSend(); });
+    // Bosh sahifadagi "Bilasizmi?" savoli: sahifa ochilishi bilan yuboriladi.
+    if (form.dataset.autosend === '1' && textarea.value.trim()) {
+        delete form.dataset.autosend;
+        if (window.history && history.replaceState) history.replaceState(null, '', location.pathname);
+        setTimeout(cwSend, 300);
+    }
     textarea.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); cwSend(); }
     });
@@ -934,6 +666,19 @@ function cwPreviewFile(input) {
 function cwRemoveFile() {
     var i = document.getElementById('fileInput'); if (i) i.value = '';
     var c = document.getElementById('fileChip'); if (c) c.classList.remove('active');
+}
+
+/* Javob matnini nusxalash */
+function cwCopyAnswer(btn) {
+    var body = btn.closest('.cw-body');
+    var md = body && body.querySelector('.markdown-body');
+    var text = md ? (md.innerText || md.textContent || '').trim() : '';
+    if (!text || !navigator.clipboard) return;
+    navigator.clipboard.writeText(text).then(function () {
+        var i = btn.querySelector('i');
+        btn.classList.add('on'); if (i) i.className = 'bi bi-check2';
+        setTimeout(function () { btn.classList.remove('on'); if (i) i.className = 'bi bi-copy'; }, 1600);
+    }).catch(function () {});
 }
 
 /* ============================================================

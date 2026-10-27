@@ -1,19 +1,26 @@
-{% load static %}
+{% load static payment_tags %}
 <link rel="stylesheet" href="{% static 'css/coin_topup.css' %}?v=20261020-2">
-<link rel="stylesheet" href="{% static 'css/coin_discounts.css' %}?v=20261020-2">
+<link rel="stylesheet" href="{% static 'css/coin_discounts.css' %}?v=20261027-premium">
 <section id="coin-topup" class="ct-panel" aria-labelledby="ct-title">
   <div class="ct-heading">
+    {% if request.user.is_premium %}
+    <div><span class="ct-eyebrow"><i class="bi bi-gem" aria-hidden="true"></i> Premium · Tanga sotib olish</span>
+      <h2 id="ct-title">Ko‘proq tanga oling —<br><em class="mkx-gold">yarim narxda to‘lang.</em></h2>
+      <p>Premium a’zo sifatida tanga siz uchun 50% arzon. Chegirma to‘lovda avtomatik qo‘llanadi.</p>
+    </div>
+    {% else %}
     <div><span class="ct-eyebrow"><i class="bi bi-coin" aria-hidden="true"></i> LMS Market · Tanga sotib olish</span>
       <h2 id="ct-title">Istagan mahsulotingizga bir qadam yaqinlashing</h2>
       <p>Balansingizni to‘ldiring va Marketdagi mahsulotlarni tangalar bilan xarid qiling.</p>
     </div>
+    {% endif %}
     <div class="ct-wallet"><i class="bi bi-wallet2" aria-hidden="true"></i><span>Joriy balans<strong><span id="ct-balance" data-value="{{ request.user.coins }}">{{ request.user.coins }}</span> tanga</strong></span></div>
   </div>
   <div class="ct-rate"><i class="bi bi-coin" aria-hidden="true"></i><div><small>JORIY TANGA NARXI</small><strong id="ct-rate-label">1 tanga = {{ coin_pricing.rate }} so‘m</strong></div><span id="ct-rate-status">Amaldagi narx</span></div>
   <div id="ct-offers-section" {% if not coin_pricing.discounts %}hidden{% endif %}>
     <div class="ct-offers-heading"><h3><i class="bi bi-stars"></i> Siz uchun maxsus aksiyalar</h3><span>Eng foydalisi avtomatik qo‘llanadi</span></div>
     <div id="ct-offers" class="ct-offers">
-    {% for discount in coin_pricing.discounts %}<article class="cp-offer" data-theme="{{ discount.theme }}"><div class="cp-art" aria-hidden="true">✦<span>{% if discount.theme == 'navruz' %}🌷{% elif discount.theme == 'newyear' %}🎄{% elif discount.theme == 'eid' %}☪{% elif discount.theme == 'simple' %}✦{% else %}🎁{% endif %}</span>✧</div><div class="cp-copy"><span class="cp-label">BAYRAM TAKLIFI</span><h3>{{ discount.name }}</h3><p>{% if discount.discount_type == 'package' %}<span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga atigi <span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> so‘m{% else %}Kamida <span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga xaridida{% endif %}</p>{% if discount.ends_at %}<small class="cp-ends" data-ends-at="{{ discount.ends_at }}"></small>{% endif %}</div><div class="cp-value"><strong>{% if discount.discount_type == 'package' %}<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> so‘m{% else %}−<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span>{% if discount.discount_type == 'percentage' %}%{% else %} so‘m{% endif %}{% endif %}</strong></div></article>{% endfor %}
+    {% for discount in coin_pricing.discounts %}<article class="cp-offer" data-theme="{{ discount.theme }}"><div class="cp-art" aria-hidden="true">✦<span>{% if discount.theme == 'premium' %}💎{% elif discount.theme == 'navruz' %}🌷{% elif discount.theme == 'newyear' %}🎄{% elif discount.theme == 'eid' %}☪{% elif discount.theme == 'simple' %}✦{% else %}🎁{% endif %}</span>✧</div><div class="cp-copy"><span class="cp-label">{% if discount.theme == 'premium' %}PREMIUM TAKLIF{% elif discount.theme == 'simple' %}MAXSUS TAKLIF{% else %}BAYRAM TAKLIFI{% endif %}</span><h3>{{ discount.name }}</h3><p>{% if discount.theme == 'premium' %}Siz uchun barcha tanga xaridlari yarim narxda{% elif discount.discount_type == 'package' %}<span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga atigi <span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> so‘m{% else %}Kamida <span data-ct-number="{{ discount.min_coins }}">{{ discount.min_coins }}</span> tanga xaridida{% endif %}</p>{% if discount.ends_at %}<small class="cp-ends" data-ends-at="{{ discount.ends_at }}"></small>{% endif %}</div><div class="cp-value"><strong>{% if discount.discount_type == 'package' %}<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span> so‘m{% else %}−<span data-ct-number="{{ discount.value }}">{{ discount.value }}</span>{% if discount.discount_type == 'percentage' %}%{% else %} so‘m{% endif %}{% endif %}</strong></div></article>{% endfor %}
     </div>
   </div>
   {{ coin_pricing|json_script:'ct-pricing' }}
@@ -34,7 +41,7 @@
     <div class="ct-breakdown"><span>Asl narx <b id="ct-gross">{{ coin_packages.0.gross }} so‘m</b></span><span id="ct-savings-row" hidden>Tejaysiz <b id="ct-savings">—</b></span></div>
     <p id="ct-discount" class="ct-hint" aria-live="polite"></p>
     <p id="ct-error" class="ct-error" role="alert"></p>
-    {% if not coin_checkout_ready %}<p class="ct-hint">Tanga to‘lovi hozircha sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
+    {% if coin_checkout_ready %}{% payment_method_picker %}{% else %}<p class="ct-hint">Tanga to‘lovi hozircha sozlanmoqda. Administratorga murojaat qiling.</p>{% endif %}
     <button type="submit" id="ct-submit" class="ct-submit" {% if not coin_checkout_ready %}disabled{% endif %}><i class="bi bi-credit-card" aria-hidden="true"></i> Onlayn to‘lash</button>
     {% if money_balance %}
     <div class="ct-or">yoki</div>
@@ -69,4 +76,4 @@
 .ct-balance-btn { width:100%; background:linear-gradient(135deg,#10b981,#059669) !important; }
 .ct-balance-btn:disabled { opacity:.55; cursor:not-allowed; }
 </style>
-<script src="{% static 'js/coin_topup.js' %}?v=20261025-sale" defer></script>
+<script src="{% static 'js/coin_topup.js' %}?v=20261027-premium" defer></script>

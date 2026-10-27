@@ -5,11 +5,26 @@ from django.utils import timezone
 from accounts.models import CoinPricingSettings, CoinPurchaseDiscount
 
 
-def pricing_data():
+# Premium a'zolar tanga narxining yarmini to'laydi (1 tanga 2 so'm bo'lsa — 1 so'm).
+PREMIUM_DISCOUNT_PERCENT = 50
+
+
+def premium_discount():
+    return {'id': 'premium', 'name': 'Premium', 'theme': 'premium', 'discount_type': 'percentage',
+            'value': PREMIUM_DISCOUNT_PERCENT, 'min_coins': 0, 'ends_at': None}
+
+
+def pricing_data(user=None):
+    """Joriy tarif; premium foydalanuvchiga 50% chegirma ham qo'shiladi.
+
+    Quote eng arzon chegirmani tanlaydi, shuning uchun premium bayram
+    aksiyalari bilan qo'shilib ketmaydi. Ma'lumot imzolangan tokenga kiradi:
+    premium muddati sahifa ochilgandan keyin tugasa, checkout narxni qayta so'raydi.
+    """
     discounts = CoinPurchaseDiscount.objects.filter(is_active=True).filter(
         Q(valid_until__isnull=True) | Q(valid_until__gt=timezone.now()),
     ).order_by('pk')
-    return {
+    data = {
         'rate': CoinPricingSettings.current().som_per_coin,
         'discounts': [
             {'id': d.pk, 'name': d.name, 'theme': d.theme, 'discount_type': d.discount_type,
@@ -19,6 +34,9 @@ def pricing_data():
             for d in discounts
         ],
     }
+    if getattr(user, 'is_premium', False):
+        data['discounts'].append(premium_discount())
+    return data
 
 
 def pricing_token(data):

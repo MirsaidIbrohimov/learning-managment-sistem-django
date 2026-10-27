@@ -1,5 +1,5 @@
 {% extends 'accounts/base.html' %}
-{% load static %}
+{% load static payment_tags %}
 
 {% block title %}Kursni sotib olish - {{ profession.name }}{% endblock %}
 
@@ -120,6 +120,7 @@
                     {% csrf_token %}
                     <input type="hidden" name="checkout_token" value="{{ course_checkout_token }}">
                     <input type="hidden" name="expected_price" value="{{ sale.price }}">
+                    {% payment_method_cards %}
                     <button type="submit" class="kp-btn kp-btn-primary kp-btn-block cc-pay {% if balance_enough %}cc-online-secondary{% endif %}">
                         <i class="bi bi-credit-card-2-front-fill"></i>Online to'lash
                     </button>

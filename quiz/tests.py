@@ -1080,6 +1080,29 @@ class QuizTakePageTests(TestCase):
         self.assertEqual(bootstrap['quiz_id'], self.quiz.id)
         self.assertEqual(bootstrap['question_count'], 1)
 
+    def test_page_renders_inside_student_shell_with_navbar(self):
+        self._login(self.student)
+        page = self.client.get(self.url).content.decode()
+        self.assertIn('id="mainNavbar"', page)
+        self.assertIn('id="quiz-bootstrap"', page)
+        self.assertIn('name="csrf-token"', page)
+
+    def test_retry_payment_page_renders_inside_student_shell_with_navbar(self):
+        self.quiz.settings.retry_payment_required = True
+        self.quiz.settings.save(update_fields=['retry_payment_required'])
+        Attempt.objects.create(
+            quiz=self.quiz, student=self.student, attempt_number=1,
+            question_ids=list(self.quiz.quiz_questions.values_list('question_id', flat=True)),
+            expires_at=timezone.now() + timedelta(minutes=10),
+            status=Attempt.Status.SUBMITTED,
+        )
+        self._login(self.student)
+        resp = self.client.get(f'/quiz/quizzes/{self.quiz.id}/retry-payment/')
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        page = resp.content.decode()
+        self.assertIn('id="mainNavbar"', page)
+        self.assertIn('class="rp-page"', page)
+
     def test_teacher_is_forbidden(self):
         teacher = make_user('teacher', 'teacher_take_page')
         self._login(teacher)

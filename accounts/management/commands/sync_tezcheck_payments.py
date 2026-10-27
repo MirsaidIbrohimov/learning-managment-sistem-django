@@ -6,29 +6,37 @@ from django.db import transaction
 from django.utils import timezone
 
 from accounts.models import TezCheckPaymentOrder
-from accounts.tezcheck import TezCheckError, fetch_bill
+from accounts import inpay
+from accounts.payment_gateways import fetch_bill
+from accounts.tezcheck import TezCheckError
 from accounts.tezcheck_views import _apply_successful_payment
 
 
 class Command(BaseCommand):
-    help = 'Kutilayotgan Tezcheck to‘lovlarini API bilan solishtiradi.'
+    help = 'Kutilayotgan Tezcheck va inPAY to‘lovlarini API bilan solishtiradi.'
 
     def handle(self, *args, **options):
-        if not settings.TEZCHECK_API_TOKEN or not settings.TEZCHECK_CASH_DESK_CODE:
-            self.stderr.write(self.style.ERROR('TEZCHECK_API_TOKEN va TEZCHECK_CASH_DESK_CODE sozlanmagan.'))
+        gateways = []
+        if settings.TEZCHECK_API_TOKEN and settings.TEZCHECK_CASH_DESK_CODE:
+            gateways.append(TezCheckPaymentOrder.GATEWAY_TEZCHECK)
+        if inpay.configured():
+            gateways.append(TezCheckPaymentOrder.GATEWAY_INPAY)
+        if not gateways:
+            self.stderr.write(self.style.ERROR('Tezcheck ham, inPAY ham sozlanmagan.'))
             return
 
         cutoff = timezone.now() - timedelta(minutes=5)
         orders = TezCheckPaymentOrder.objects.filter(
             status=TezCheckPaymentOrder.STATUS_PENDING,
             bill_id__gt='',
+            gateway__in=gateways,
             created_at__lte=cutoff,
         ).order_by('created_at')[:100]
         checked = confirmed = expired = errors = 0
         for order in orders:
             checked += 1
             try:
-                response_data = fetch_bill(order.bill_id)
+                response_data = fetch_bill(order.bill_id, gateway=order.gateway)
             except TezCheckError as exc:
                 errors += 1
                 TezCheckPaymentOrder.objects.filter(pk=order.pk).update(last_error=str(exc)[:500])
@@ -50,7 +58,7 @@ class Command(BaseCommand):
                     continue
                 if bill.get('external_reference') != locked.external_reference:
                     locked.status = TezCheckPaymentOrder.STATUS_REVIEW
-                    locked.last_error = 'Tezcheck bill tashqi raqami LMS buyurtmasiga mos emas.'
+                    locked.last_error = 'To‘lov tizimidagi tashqi raqam LMS buyurtmasiga mos emas.'
                     locked.save(update_fields=['status', 'last_error', 'updated_at'])
                     errors += 1
                 elif bill.get('paid') is True and payment.get('state') == 'succeeded':
@@ -67,9 +75,10 @@ class Command(BaseCommand):
                         confirmed += 1
                     else:
                         errors += 1
-                elif bill.get('state') in ('expired', 'revoked', 'exhausted'):
-                    locked.status = TezCheckPaymentOrder.STATUS_EXPIRED
-                    locked.last_error = f"TezCheck bill holati: {bill.get('state')}"
+                elif bill.get('state') in ('expired', 'revoked', 'exhausted', 'canceled'):
+                    locked.status = (TezCheckPaymentOrder.STATUS_CANCELLED if bill.get('state') == 'canceled'
+                                     else TezCheckPaymentOrder.STATUS_EXPIRED)
+                    locked.last_error = f"{locked.get_gateway_display()} holati: {bill.get('state')}"
                     locked.save(update_fields=['status', 'last_error', 'updated_at'])
                     expired += 1
 

@@ -4,6 +4,20 @@ import threading
 import time
 
 from django.apps import AppConfig
+from django.db.backends.signals import connection_created
+
+
+def _tune_sqlite(sender, connection, **kwargs):
+    """SQLite sozlamalari.
+
+    journal_mode bu yerda o'zgartirilmaydi — u config/__init__.py da (DELETE)
+    belgilanadi. Ikki joyda turli rejim (WAL/DELETE) qo'yilsa, har yangi
+    ulanish rejimni almashtirishga urinib "database is locked" beradi.
+    """
+    if connection.vendor != 'sqlite':
+        return
+    with connection.cursor() as cursor:
+        cursor.execute('PRAGMA synchronous=NORMAL;')
 
 # Management buyruqlarida (migrate va h.k.) auto-tuzatishni o'tkazib yuboramiz
 _FIX_SKIP = {'migrate', 'makemigrations', 'collectstatic', 'createsuperuser',
@@ -16,7 +30,9 @@ class AccountsConfig(AppConfig):
 
     def ready(self):
         from django.conf import settings
+        connection_created.connect(_tune_sqlite, dispatch_uid='accounts-sqlite-wal')
         from . import email_signals  # noqa: F401 — register transactional email hooks
+        from . import attendance_auto  # noqa: F401 — login bo'lganda avtomatik davomat
         if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
             return
         if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') != 'true' and '--noreload' not in sys.argv:

@@ -1,4 +1,4 @@
-"""Coin checkout using the existing Tezcheck merchant integration."""
+"""Coin checkout through the online gateways (Click/Payme → Tezcheck, others → inPAY)."""
 import re
 import uuid
 import json
@@ -16,7 +16,8 @@ from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.cache import never_cache
 
 from accounts.models import CustomUser, TezCheckPaymentOrder as Order
-from accounts.tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
+from accounts.tezcheck import TezCheckError, TezCheckBillUnavailable
+from accounts.payment_gateways import any_gateway_ready, create_bill, fetch_bill, selected_method
 from accounts.checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 from .models import CoinTransaction
 from .topup_pricing import package_amounts, pricing_data, pricing_token, quote
@@ -35,14 +36,13 @@ def payment_limits():
 
 
 def checkout_ready():
-    return bool(payment_limits() and settings.TEZCHECK_API_TOKEN
-                and settings.TEZCHECK_CASH_DESK_CODE and settings.TEZCHECK_WEBHOOK_SECRET)
+    return bool(payment_limits() and any_gateway_ready())
 
 
 def market_context(user):
     from accounts.balance_spend import spendable_balance
     limits = payment_limits()
-    pricing = pricing_data()
+    pricing = pricing_data(user)
     return {
         'money_balance': spendable_balance(user),
         'coin_packages': [quote(amount, pricing) for amount in package_amounts(pricing)],
@@ -60,7 +60,7 @@ def market_context(user):
 @require_GET
 def coin_pricing(request):
     """Refresh an already open market from the same tariff used by checkout."""
-    data = pricing_data()
+    data = pricing_data(request.user)
     return JsonResponse({
         'pricing': data, 'pricing_token': pricing_token(data),
         'packages': [quote(coins, data) for coins in package_amounts(data)],
@@ -113,7 +113,7 @@ def apply_coin_payment(order, data):
     CustomUser.objects.filter(pk=locked.student_id).update(coins=F('coins') + coins)
     locked.coin_transaction = CoinTransaction.objects.create(
         user_id=locked.student_id, amount=coins, action='add',
-        reason=f'Tezchek orqali tanga xaridi ({locked.external_reference})',
+        reason=f'{locked.get_gateway_display()} orqali tanga xaridi ({locked.external_reference})',
     )
     locked.status = 'paid'
     locked.payment_id = payment_id
@@ -166,7 +166,7 @@ def buy_coins_with_balance(request):
     amount = int(raw.replace(' ', ''))
     if not 1000 <= amount <= 2147483647:
         return JsonResponse({'error': 'Eng kam xarid — 1 000 tanga.'}, status=400)
-    pricing = pricing_data()
+    pricing = pricing_data(request.user)
     try:
         if signing.loads(request.POST.get('pricing_token', ''), salt='coin-pricing') != pricing:
             raise signing.BadSignature
@@ -215,13 +215,17 @@ def _create_coin_checkout(request):
         token = str(uuid.UUID(request.POST.get('token', '')))
     except (ValueError, TypeError, AttributeError):
         return JsonResponse({'error': 'Sahifani yangilang va qayta urinib ko‘ring.'}, status=400)
+    try:
+        method, gateway = selected_method(request)
+    except TezCheckError as exc:
+        return JsonResponse({'error': str(exc)}, status=400)
     reference = f'COIN-{request.user.pk}-{token}'
     root_reference = reference
     CustomUser.objects.select_for_update().get(pk=request.user.pk)
     chain = Order.objects.filter(student=request.user, purpose='coins').filter(
         Q(external_reference=reference) | Q(external_reference__startswith=reference + '-R'))
     existing = chain.order_by('-created_at', '-pk').first()
-    pricing = pricing_data()
+    pricing = pricing_data(request.user)
     purchase = quote(amount, pricing)
     snapshot = dict(purchase, rate=pricing['rate'])
     if existing:
@@ -236,7 +240,7 @@ def _create_coin_checkout(request):
         if existing.bill_id:
             state = {}
             try:
-                state = fetch_bill(existing.bill_id)
+                state = fetch_bill(existing.bill_id, gateway=existing.gateway)
                 bill, payment = validate_bill(existing, state)
                 reconcile_coin_order(existing, state)
             except TezCheckBillUnavailable:
@@ -249,8 +253,12 @@ def _create_coin_checkout(request):
                 return JsonResponse({'error': 'Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang.'}, status=409)
         else:
             bill = {}
-        if existing.status != 'pending' or checkout_expired(existing, bill):
-            if not retire_checkout(existing):
+        if existing.status != 'pending' or existing.gateway != gateway or checkout_expired(existing, bill):
+            try:
+                retired = retire_checkout(existing)
+            except TezCheckError as exc:
+                return JsonResponse({'error': str(exc)}, status=502)
+            if not retired:
                 return JsonResponse({'error': 'Oldingi to‘lov holati yangilandi. Market sahifasini yangilang.'}, status=409)
             reference = root_reference + '-R' + str(chain.count())
             existing = None
@@ -274,7 +282,8 @@ def _create_coin_checkout(request):
         external_reference=reference,
         defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': payable * 100,
                   'coin_quantity': amount, 'coin_pricing_snapshot': snapshot,
-                  'billing_month': today.month, 'billing_year': today.year},
+                  'billing_month': today.month, 'billing_year': today.year,
+                  'gateway': gateway, 'payment_method': method},
     )
     if (order.coin_quantity if order.coin_quantity is not None else order.amount_som) != amount:
         return JsonResponse({'error': 'Miqdor o‘zgardi. Sahifani yangilang.'}, status=409)
@@ -296,7 +305,8 @@ def _create_coin_checkout(request):
                 external_reference=f'COIN-{request.user.pk}-{token}-R{chain.count()}',
                 defaults={'student': request.user, 'purpose': 'coins', 'amount_minor': payable * 100,
                           'coin_quantity': amount, 'coin_pricing_snapshot': order.coin_pricing_snapshot,
-                          'billing_month': today.month, 'billing_year': today.year},
+                          'billing_month': today.month, 'billing_year': today.year,
+                          'gateway': gateway, 'payment_method': method},
             )
     except TezCheckError as exc:
         return JsonResponse({'error': str(exc)}, status=502)

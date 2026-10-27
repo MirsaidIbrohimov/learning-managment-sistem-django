@@ -13,6 +13,9 @@ from accounts.models import (
 from .models import TeacherCertificate, TeacherSalary
 from coin.models import ActivityLog
 from accounts.views import send_course_notification
+from django.core.cache import cache
+from ai_yordamchi import jobs as ai_jobs
+from ai_yordamchi.jobs import ai_offload
 
 
 def teacher_required(view_func):
@@ -1027,6 +1030,80 @@ def teacher_homeworks(request):
     return render(request, 'teacher/homeworks.html', context)
 
 
+def _run_teacher_ai_grade(submission_pk, grader_pk):
+    """Ustoz "AI bilan baholash" tugmasi — fon oqimida (ai_yordamchi.jobs.submit) ishlaydi."""
+    from accounts.views import (
+        _read_submission_content, _get_ai_grade,
+        _check_ai_generated, _check_similarity_with_others
+    )
+    try:
+        submission = HomeworkSubmission.objects.select_related(
+            'homework__lesson', 'student').filter(pk=submission_pk).first()
+        if not submission:
+            return
+        student_answer = _read_submission_content(submission)
+        if not student_answer:
+            return
+
+        hw = submission.homework
+        
+        # 1. AI plagiat tekshiruvi
+        ai_check = _check_ai_generated(
+            hw.description, student_answer,
+            student=submission.student,
+            current_submission_pk=submission.pk
+        )
+        ai_warning = ""
+        # Ustoz uchun ham ehtiyotkor: faqat 85%+ ishonchda ogohlantirish ko'rsatiladi
+        # (past ishonchli belgilar ko'p false-positive beradi va ustozni chalg'itadi).
+        if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 85:
+            ai_warning = (
+                f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
+                f"(ishonch: {ai_check['confidence']}%).\n"
+                f"📋 Sabab: {ai_check['reason']}"
+            )
+
+        # 2. O'xshashlik tekshirish — faqat 90%+ o'xshashlikda ustozga ogohlantirish
+        similarity_result = _check_similarity_with_others(hw, submission, student_answer)
+        if similarity_result and similarity_result['is_plagiat'] and similarity_result['similarity'] >= 90:
+            ai_warning += (
+                f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
+                f"{similarity_result['similarity']}% o'xshash.\n"
+                f"📋 {similarity_result['reason']}"
+            )
+        
+        # 3. Baholash
+        ai_result = _get_ai_grade(hw.description, student_answer)
+        if not ai_result:
+            return
+        
+        submission.grade = ai_result['grade']
+        feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+        if ai_warning:
+            feedback_text += ai_warning
+        submission.feedback = feedback_text
+        submission.ai_feedback = feedback_text
+        submission.status = ai_result['status']
+        submission.graded_by_id = grader_pk
+        submission.graded_at = timezone.now()
+        submission.save()
+        
+        # AI baholashda coin berish (faqat birinchi baholashda: revision_count == 0)
+        if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
+            coin_amount = submission.calculate_coin_reward()
+            submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+            submission.coin_awarded = True
+            submission.coins_earned = coin_amount
+            submission.save(update_fields=['coin_awarded', 'coins_earned'])
+            ActivityLog.objects.create(
+                user=submission.student,
+                action_type='homework_graded',
+                description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
+            )
+    finally:
+        cache.delete(f'ai-grade-hw:{submission_pk}')
+
+
 @teacher_required
 def teacher_grade_homework(request, pk):
     professions = request.user.teaching_professions.all()
@@ -1043,76 +1120,14 @@ def teacher_grade_homework(request, pk):
             if _teacher_ai_blocked(request.user):
                 messages.error(request, AI_BLOCKED_MESSAGE)
                 return redirect('teacher:grade_homework', pk=pk)
-            from accounts.views import (
-                _read_submission_content, _get_ai_grade,
-                _check_ai_generated, _check_similarity_with_others
-            )
-            student_answer = _read_submission_content(submission)
-            if not student_answer:
+            from accounts.views import _read_submission_content
+            if not _read_submission_content(submission):
                 messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
                 return redirect('teacher:grade_homework', pk=pk)
-            
-            hw = submission.homework
-            
-            # 1. AI plagiat tekshiruvi
-            ai_check = _check_ai_generated(
-                hw.description, student_answer,
-                student=submission.student,
-                current_submission_pk=submission.pk
-            )
-            ai_warning = ""
-            # Ustoz uchun ham ehtiyotkor: faqat 85%+ ishonchda ogohlantirish ko'rsatiladi
-            # (past ishonchli belgilar ko'p false-positive beradi va ustozni chalg'itadi).
-            if ai_check and ai_check['is_ai'] and ai_check['confidence'] >= 85:
-                ai_warning = (
-                    f"\n\n🔍 AI tekshiruvi: Javobda suniy intellekt belgilari aniqlandi "
-                    f"(ishonch: {ai_check['confidence']}%).\n"
-                    f"📋 Sabab: {ai_check['reason']}"
-                )
-
-            # 2. O'xshashlik tekshirish — faqat 90%+ o'xshashlikda ustozga ogohlantirish
-            similarity_result = _check_similarity_with_others(hw, submission, student_answer)
-            if similarity_result and similarity_result['is_plagiat'] and similarity_result['similarity'] >= 90:
-                ai_warning += (
-                    f"\n\n🔄 O'xshashlik: {similarity_result['similar_to']} bilan "
-                    f"{similarity_result['similarity']}% o'xshash.\n"
-                    f"📋 {similarity_result['reason']}"
-                )
-            
-            # 3. Baholash
-            ai_result = _get_ai_grade(hw.description, student_answer)
-            if not ai_result:
-                messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi. Qayta urinib ko'ring.")
-                return redirect('teacher:grade_homework', pk=pk)
-            
-            submission.grade = ai_result['grade']
-            feedback_text = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-            if ai_warning:
-                feedback_text += ai_warning
-            submission.feedback = feedback_text
-            submission.ai_feedback = feedback_text
-            submission.status = ai_result['status']
-            submission.graded_by = request.user
-            submission.graded_at = timezone.now()
-            submission.save()
-            
-            # AI baholashda coin berish (faqat birinchi baholashda: revision_count == 0)
-            if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
-                coin_amount = submission.calculate_coin_reward()
-                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
-                submission.coin_awarded = True
-                submission.coins_earned = coin_amount
-                submission.save(update_fields=['coin_awarded', 'coins_earned'])
-                ActivityLog.objects.create(
-                    user=submission.student,
-                    action_type='homework_graded',
-                    description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
-                )
-            
-            if ai_warning:
-                messages.warning(request, f"AI baholadi: {submission.grade} ball. ⚠️ Shubhali belgilar aniqlandi — tekshirib ko'ring.")
-            else:
-                messages.success(request, f"AI baholadi: {submission.grade} ball ({submission.get_status_display()})")
+            # AI tekshiruvi (3 ta so'rov) so'rov ichida emas, fonda bajariladi.
+            if cache.add(f'ai-grade-hw:{submission.pk}', 1, 600):
+                ai_jobs.submit(_run_teacher_ai_grade, submission.pk, request.user.pk)
+            messages.info(request, "🤖 AI tekshiruvi boshlandi. Natija 1 daqiqa ichida chiqadi — sahifani yangilang.")
             return redirect('teacher:homeworks')
         
         grade = request.POST.get('grade')
@@ -1471,6 +1486,7 @@ def teacher_import_questions(request, pk):
 
 
 @teacher_required
+@ai_offload
 def teacher_generate_ai_test(request, pk):
     """AI orqali test savollari yaratish"""
     if _teacher_ai_blocked(request.user):
@@ -1680,42 +1696,9 @@ def teacher_grade_speaking(request, pk):
             if _teacher_ai_blocked(request.user):
                 messages.error(request, AI_BLOCKED_MESSAGE)
                 return redirect('teacher:grade_speaking', pk=pk)
-            ai_result = _ai_grade_speaking(submission)
-            if not ai_result:
-                messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi.")
-                return redirect('teacher:grade_speaking', pk=pk)
-            
-            submission.grade = ai_result['grade']
-            submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-            submission.ai_feedback = ai_result['feedback']
-            submission.pronunciation_score = ai_result.get('pronunciation', 0)
-            submission.fluency_score = ai_result.get('fluency', 0)
-            submission.grammar_score = ai_result.get('grammar', 0)
-            submission.vocabulary_score = ai_result.get('vocabulary', 0)
-            submission.status = ai_result['status']
-            submission.graded_by = request.user
-            submission.graded_at = timezone.now()
-            submission.save()
-            
-            # Coin berish
-            if ai_result['status'] == 'graded' and not submission.coin_awarded:
-                coin_amount = 10
-                if ai_result['grade'] >= 9:
-                    coin_amount += 5
-                elif ai_result['grade'] >= 8:
-                    coin_amount += 3
-                if submission.student.is_premium:
-                    coin_amount *= 2
-                submission.student.add_coins(coin_amount, f"Speaking vazifa baholandi: {submission.speaking_task.lesson.title}")
-                submission.coin_awarded = True
-                submission.save(update_fields=['coin_awarded'])
-                ActivityLog.objects.create(
-                    user=submission.student,
-                    action_type='homework_graded',
-                    description=f"Speaking AI baholadi: {submission.speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                )
-            
-            messages.success(request, f"AI baholadi: {submission.grade} ball")
+            if cache.add(f'ai-grade-speaking:{submission.pk}', 1, 600):
+                ai_jobs.submit(apply_ai_speaking_grade, submission.pk, request.user.pk)
+            messages.info(request, "🤖 AI baholash boshlandi. Natija 1 daqiqa ichida chiqadi — sahifani yangilang.")
             return redirect('teacher:speaking_tasks')
         
         grade = request.POST.get('grade')
@@ -1923,6 +1906,54 @@ def _ai_grade_speaking(submission):
     except Exception as e:
         print(f"AI speaking grade error: {e}")
         return None
+
+
+def apply_ai_speaking_grade(submission_pk, grader_pk=None):
+    """Speaking vazifani AI bilan baholab natijani saqlaydi.
+
+    Audio transkripsiya + baholash 20–60 soniya oladi, shuning uchun fon
+    oqimida (ai_yordamchi.jobs.submit) chaqiriladi.
+    """
+    try:
+        submission = SpeakingSubmission.objects.select_related(
+            'speaking_task__lesson', 'student').filter(pk=submission_pk).first()
+        if not submission:
+            return
+        ai_result = _ai_grade_speaking(submission)
+        if not ai_result:
+            return
+
+        submission.grade = ai_result['grade']
+        submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+        submission.ai_feedback = ai_result['feedback']
+        submission.pronunciation_score = ai_result.get('pronunciation', 0)
+        submission.fluency_score = ai_result.get('fluency', 0)
+        submission.grammar_score = ai_result.get('grammar', 0)
+        submission.vocabulary_score = ai_result.get('vocabulary', 0)
+        submission.status = ai_result['status']
+        if grader_pk:
+            submission.graded_by_id = grader_pk
+        submission.graded_at = timezone.now()
+        submission.save()
+
+        if ai_result['status'] == 'graded' and not submission.coin_awarded:
+            coin_amount = 10
+            if ai_result['grade'] >= 9:
+                coin_amount += 5
+            elif ai_result['grade'] >= 8:
+                coin_amount += 3
+            if submission.student.is_premium:
+                coin_amount *= 2
+            submission.student.add_coins(coin_amount, f"Speaking vazifa baholandi: {submission.speaking_task.lesson.title}")
+            submission.coin_awarded = True
+            submission.save(update_fields=['coin_awarded'])
+            ActivityLog.objects.create(
+                user=submission.student,
+                action_type='homework_graded',
+                description=f"Speaking AI baholadi: {submission.speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
+            )
+    finally:
+        cache.delete(f'ai-grade-speaking:{submission_pk}')
 
 
 def _transcribe_audio(file_field):

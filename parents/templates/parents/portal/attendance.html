@@ -1,0 +1,133 @@
+{% extends 'parents/portal/base_parent.html' %}
+{% load parent_tags %}
+{% block title %}Davomat va jadval{% endblock %}
+{% block page_title %}Davomat va dars jadvali{% endblock %}
+
+{% block parent_content %}
+<div class="pp-head">
+    <div>
+        <h1><span class="ic"><i class="bi bi-calendar2-week-fill"></i></span>Davomat va jadval</h1>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — darslarga qatnashishi va haftalik dars jadvali.{% endif %}</p>
+    </div>
+</div>
+
+{% if not selected_child %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+<!-- Ko'rsatkichlar -->
+<section class="pp-grid side pp-mb">
+    <div class="pp-card" data-reveal>
+        <div style="display:flex;align-items:center;gap:22px;flex-wrap:wrap;">
+            {% include 'parents/portal/partials/ring.html' with value=attendance.display_rate size=130 label=attendance.display_label tone=attendance.display_rate|tone %}
+            <div style="flex:1;min-width:220px;">
+                <h3 style="margin:0 0 4px;font-size:1.1rem;font-weight:850;">Oxirgi {{ attendance.days }} kun</h3>
+                <p class="pp-muted" style="margin:0 0 14px;font-size:.86rem;">
+                    <b style="color:var(--pp-text)">{{ attendance.active_days }} kun</b> platformaga kirib o‘qigan.
+                    {% if attendance.total %}Guruhda {{ attendance.total }} ta dars belgilangan — dars kuni saytga kirsa, LMS avtomatik “keldi” qo‘yadi; o‘qituvchi belgisi ustun turadi.
+                    {% else %}Guruh darslari belgilanmagan — ko‘rsatkich saytga kirgan kunlar bo‘yicha hisoblandi.{% endif %}
+                </p>
+                <div class="pp-grid c3" style="gap:8px;">
+                    <div class="tone-cy" style="padding:10px;border-radius:13px;background:color-mix(in srgb,var(--tone) 10%,transparent);"><b style="font-size:1.3rem;color:var(--tone)" data-count="{{ attendance.active_days }}">0</b><div class="pp-dim" style="font-size:.74rem;font-weight:700;">Saytga kirdi</div></div>
+                    <div class="tone-ok" style="padding:10px;border-radius:13px;background:color-mix(in srgb,var(--tone) 10%,transparent);"><b style="font-size:1.3rem;color:var(--tone)" data-count="{{ attendance.present }}">0</b><div class="pp-dim" style="font-size:.74rem;font-weight:700;">Keldi</div></div>
+                    <div class="tone-bad" style="padding:10px;border-radius:13px;background:color-mix(in srgb,var(--tone) 10%,transparent);"><b style="font-size:1.3rem;color:var(--tone)" data-count="{{ attendance.absent }}">0</b><div class="pp-dim" style="font-size:.74rem;font-weight:700;">Kelmadi</div></div>
+                </div>
+                <div class="pp-dim" style="font-size:.78rem;margin-top:8px;">Kechikdi: {{ attendance.late }} · Kasal: {{ attendance.sick }} · Sababli: {{ attendance.excused }}</div>
+            </div>
+        </div>
+    </div>
+    <a href="#jadval" class="pp-card hover" data-reveal>
+        <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-alarm"></i></span><h3>Keyingi dars</h3>
+            {% if schedule.next.is_now %}<span class="pp-live" style="margin-left:auto;">HOZIR DARSDA</span>{% endif %}</div>
+        {% if schedule.next %}
+        <div class="pp-next">
+            <div class="clock"><b>{{ schedule.next.start|time:"H:i" }}</b><small>{% if schedule.next.is_today %}Bugun{% else %}{{ schedule.next.weekday|slice:":3" }}{% endif %}</small></div>
+            <div>
+                <b style="display:block;">{{ schedule.next.group.profession.name }}</b>
+                <span class="pp-muted" style="font-size:.84rem;">{{ schedule.next.weekday }}, {{ schedule.next.start|date:"d.m" }} · {{ schedule.next.group.time_range }}</span>
+                <div class="pp-dim" style="font-size:.78rem;margin-top:3px;">{% if schedule.next.group.room %}<i class="bi bi-geo-alt"></i> {{ schedule.next.group.room }} {% endif %}{% if schedule.next.group.teacher %}· <i class="bi bi-person-badge"></i> {{ schedule.next.group.teacher.full_name }}{% endif %}</div>
+            </div>
+        </div>
+        {% else %}<p class="pp-muted" style="margin:0;">Guruh jadvaliga biriktirilmagan.</p>{% endif %}
+    </a>
+</section>
+
+<!-- Kalendar -->
+<section class="pp-card pp-mb" data-reveal>
+    <div class="pp-card-h"><span class="ic tone-ok"><i class="bi bi-grid-3x3-gap-fill"></i></span><h3>Davomat kalendari</h3>
+        <span class="more pp-dim" style="color:var(--pp-text-3)">{{ calendar.start|date:"d.m" }} — {{ calendar.end|date:"d.m.Y" }}</span></div>
+    <div style="max-width:560px;">
+        <div class="pp-cal" style="--weeks:{{ calendar.weeks }}">
+            {% for row in calendar.rows %}
+            <span class="lbl">{{ row.label }}</span>
+            {% for cell in row.cells %}
+            <span class="cell {% if cell.future %}future{% elif cell.status %}{{ cell.status }}{% endif %}{% if cell.today %} today{% endif %}{% if cell.visited_at and cell.status != 'visited' %} v{% endif %}" style="--i:{{ cell.i }}"
+                  title="{{ cell.date|date:'d.m.Y' }}{% if cell.status == 'visited' %} — saytga kirdi{% elif cell.status == 'present' %} — darsga keldi{% elif cell.status == 'late' %} — kechikdi{% elif cell.status == 'absent' %} — kelmadi{% elif cell.status == 'sick' %} — kasal{% elif cell.status == 'excused' %} — sababli{% endif %}{% if cell.visited_at %} · saytga kirdi {{ cell.visited_at|time:'H:i' }}{% endif %}"></span>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+    <div class="pp-legend" style="margin-top:14px;">
+        <span><i style="background:var(--pp-cy)"></i>Saytga kirdi</span><span><i style="background:var(--pp-ok)"></i>Darsga keldi</span><span><i style="background:var(--pp-warn)"></i>Kechikdi</span>
+        <span><i style="background:var(--pp-bad)"></i>Kelmadi</span><span><i style="background:var(--pp-vio)"></i>Kasal</span>
+        <span><i style="background:var(--pp-info)"></i>Sababli</span>
+        <span><i style="background:var(--pp-ok);box-shadow:inset 0 0 0 2px var(--pp-cy);"></i>Belgi + saytga kirdi (havorang hoshiya)</span><span><i style="background:var(--pp-surface-2);border:1px solid var(--pp-line)"></i>Dars yo‘q</span>
+    </div>
+</section>
+
+<!-- Haftalik jadval -->
+<section id="jadval" class="pp-card pp-mb" data-reveal style="scroll-margin-top:90px;">
+    <div class="pp-card-h"><span class="ic tone-vio"><i class="bi bi-calendar-week"></i></span><h3>Haftalik dars jadvali</h3></div>
+    {% if schedule.groups %}
+    <div class="pp-sched">
+        {% for d in schedule.week %}
+        <div class="day {% if d.is_today %}today{% endif %}">
+            <h4>{{ d.name }}{% if d.is_today %}<span>bugun</span>{% endif %}</h4>
+            {% for g in d.items %}
+            <div class="pp-slot" style="--c:{{ g.color|default:'#6366f1' }}">
+                <b>{{ g.profession.name }}</b>
+                <span>{{ g.time_range }}{% if g.room %} · {{ g.room }}{% endif %}</span>
+            </div>
+            {% empty %}<span class="pp-dim" style="font-size:.76rem;">Dars yo‘q</span>{% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+    <div style="margin-top:16px;">
+        {% for g in schedule.groups %}
+        <div class="pp-li"><span class="ic" style="--tone:{{ g.color|default:'#6366f1' }}"><i class="bi bi-people-fill"></i></span>
+            <span class="t"><b>{{ g.name }} — {{ g.profession.name }}</b><small>{{ g.days_full_display }} · {{ g.time_range }}{% if g.room %} · {{ g.room }}{% endif %}{% if g.teacher %} · Ustoz: {{ g.teacher.full_name }}{% endif %}</small></span></div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="pp-empty" style="padding:20px;"><div class="art"><i class="bi bi-calendar-x"></i></div><p>Farzandingiz hali guruh jadvaliga biriktirilmagan.</p></div>
+    {% endif %}
+</section>
+
+<!-- Oxirgi belgilar -->
+<section class="pp-card flat" data-reveal>
+    <div class="pp-card-h"><span class="ic"><i class="bi bi-list-check"></i></span><h3>Oxirgi belgilangan darslar</h3></div>
+    <div class="pp-table-wrap"><table class="pp-table">
+        <thead><tr><th>Sana</th><th>Guruh</th><th>O‘qituvchi belgisi</th><th>Saytga kirgan</th><th>Izoh</th></tr></thead>
+        <tbody>
+        {% for a in attendance.recent %}
+        <tr><td><b>{{ a.date|date:"d.m.Y" }}</b><span class="sub">{{ a.date|date:"l" }}</span></td>
+            <td>{{ a.group.name }}</td>
+            <td><span class="pp-badge" style="--tone:{{ a.status_color }}"><i class="bi {{ a.status_icon }}"></i>{{ a.get_status_display }}</span></td>
+            <td>{% if a.visited_at %}<span class="pp-badge" style="--tone:var(--pp-cy)"><i class="bi bi-box-arrow-in-right"></i>{{ a.visited_at|time:"H:i" }}</span>{% else %}<span class="pp-dim">—</span>{% endif %}</td>
+            <td class="pp-muted">{{ a.note|default:"—" }}</td></tr>
+        {% empty %}<tr><td colspan="5" class="pp-muted">Guruh darslari hali belgilanmagan.</td></tr>{% endfor %}
+        </tbody></table></div>
+</section>
+
+<section class="pp-card flat" data-reveal style="margin-top:16px;">
+    <div class="pp-card-h"><span class="ic tone-cy"><i class="bi bi-box-arrow-in-right"></i></span><h3>Platformaga kirgan kunlar</h3></div>
+    <div class="pp-table-wrap"><table class="pp-table">
+        <thead><tr><th>Sana</th><th>Birinchi kirish</th><th>Oxirgi faollik</th></tr></thead>
+        <tbody>
+        {% for v in attendance.recent_visits %}
+        <tr><td><b>{{ v.date|date:"d.m.Y" }}</b><span class="sub">{{ v.date|date:"l" }}</span></td>
+            <td class="pp-mono">{{ v.first_seen|time:"H:i" }}</td><td class="pp-mono">{{ v.last_seen|time:"H:i" }}</td></tr>
+        {% empty %}<tr><td colspan="3" class="pp-muted">Hali ma’lumot yo‘q.</td></tr>{% endfor %}
+        </tbody></table></div>
+</section>
+{% endif %}
+{% endblock %}

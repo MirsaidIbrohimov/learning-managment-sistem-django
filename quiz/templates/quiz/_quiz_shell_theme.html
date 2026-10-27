@@ -1,0 +1,11 @@
+<script>
+/* Student shells (accounts/base.html, kurslarim/base.html) store the theme in
+   data-bs-theme; the quiz/glass stylesheets key off data-theme. Mirror it,
+   including live toggles from the navbar. */
+(function () {
+    var d = document.documentElement;
+    function sync() { d.setAttribute('data-theme', d.getAttribute('data-bs-theme') === 'dark' ? 'dark' : 'light'); }
+    sync();
+    new MutationObserver(sync).observe(d, { attributes: true, attributeFilter: ['data-bs-theme'] });
+})();
+</script>

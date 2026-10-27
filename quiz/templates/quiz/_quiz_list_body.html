@@ -52,12 +52,15 @@
 
     <div class="qz-filterbar">
         <div class="qz-pills" id="quizStatusPills">
-            <button class="qz-pill active" data-status="">Barchasi</button>
-            <button class="qz-pill" data-status="published">Chop etilgan</button>
-            <button class="qz-pill" data-status="draft">Qoralama</button>
-            <button class="qz-pill" data-status="archived">Arxiv</button>
+            <button type="button" class="qz-pill active" data-status="">Barchasi</button>
+            <button type="button" class="qz-pill" data-status="published">Chop etilgan</button>
+            <button type="button" class="qz-pill" data-status="draft">Qoralama</button>
+            <button type="button" class="qz-pill" data-status="archived">Arxiv</button>
         </div>
-        <input type="search" id="quizSearch" class="form-control flex-grow-1" placeholder="Test nomi bo'yicha qidiruv..." style="min-width:220px;">
+        <select id="quizProfessionFilter" class="form-select" style="max-width:240px;">
+            <option value="">Barcha kurslar</option>
+        </select>
+        <input type="search" id="quizSearch" class="form-control flex-grow-1" placeholder="Test, dars yoki kurs nomi bo'yicha qidiruv..." style="min-width:220px;" autocomplete="off">
     </div>
 
     <div class="qz-surface">
@@ -66,15 +69,16 @@
                 <thead>
                     <tr>
                         <th>Test nomi</th>
-                        <th>Dars</th>
+                        <th>Kurs / Dars</th>
                         <th>Savollar</th>
                         <th>Vaqt</th>
+                        <th>Topshirgan</th>
                         <th>Holat</th>
-                        <th style="width:160px;text-align:right;">Amallar</th>
+                        <th style="width:220px;text-align:right;">Amallar</th>
                     </tr>
                 </thead>
                 <tbody id="quizTableBody">
-                    <tr><td colspan="6" class="text-center text-muted py-4">Yuklanmoqda...</td></tr>
+                    <tr><td colspan="7" class="text-center text-muted py-4">Yuklanmoqda...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -90,16 +94,23 @@
 
 <template id="quizRowTemplate">
     <tr>
-        <td><a class="qz-row-title quiz-edit-link"></a></td>
-        <td class="quiz-lesson-cell text-muted small"></td>
+        <td>
+            <a class="qz-row-title quiz-edit-link"></a>
+            <div class="text-muted small quiz-created-cell"></div>
+        </td>
+        <td class="quiz-lesson-cell small"></td>
         <td class="quiz-questions-cell"></td>
         <td class="quiz-time-cell text-muted small"></td>
+        <td class="quiz-attempts-cell"></td>
         <td><span class="qz-badge quiz-status-cell"></span></td>
         <td class="text-end">
             <div class="qz-row-actions">
-                <button class="qz-icon-btn publish quiz-publish-btn" title="Chop etish"><i class="bi bi-cloud-upload"></i></button>
-                <button class="qz-icon-btn archive quiz-archive-btn" title="Arxivlash"><i class="bi bi-archive"></i></button>
-                <button class="qz-icon-btn restore quiz-restore-btn" title="Qoralamaga qaytarish"><i class="bi bi-arrow-counterclockwise"></i></button>
+                <a class="qz-icon-btn edit quiz-edit-btn" title="Tahrirlash"><i class="bi bi-pencil"></i></a>
+                <a class="qz-icon-btn quiz-results-btn" title="Natijalar"><i class="bi bi-bar-chart"></i></a>
+                <button type="button" class="qz-icon-btn publish quiz-publish-btn" title="Chop etish"><i class="bi bi-cloud-upload"></i></button>
+                <button type="button" class="qz-icon-btn archive quiz-archive-btn" title="Arxivlash"><i class="bi bi-archive"></i></button>
+                <button type="button" class="qz-icon-btn restore quiz-restore-btn" title="Qoralamaga qaytarish"><i class="bi bi-arrow-counterclockwise"></i></button>
+                <button type="button" class="qz-icon-btn delete quiz-delete-btn" title="O'chirish"><i class="bi bi-trash"></i></button>
             </div>
         </td>
     </tr>

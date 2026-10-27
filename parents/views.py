@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
@@ -42,108 +43,153 @@ def admin_parents(request):
         'parents': parents,
         'search_query': search_query,
         'status_filter': status_filter,
+        'unanswered_count': ParentMessage.objects.filter(sender_type='parent', reply__isnull=True).count(),
+        'password_requests_count': ParentPasswordResetRequest.objects.filter(status='pending').count(),
     }
     return render(request, 'parents/parents.html', context)
+
+
+@login_required
+def admin_parent_messages(request):
+    """Ota-onalardan kelgan xabarlar qutisi: ko'rish va javob yozish."""
+    if not request.user.is_admin:
+        return redirect('home')
+
+    if request.method == 'POST':
+        msg = get_object_or_404(ParentMessage, pk=request.POST.get('message_id'), sender_type='parent')
+        reply = request.POST.get('reply', '').strip()
+        if not reply:
+            messages.error(request, "Javob matnini yozing.")
+        else:
+            msg.reply = reply[:5000]
+            msg.replied_by = request.user
+            msg.replied_at = timezone.now()
+            msg.is_read = True
+            msg.reply_seen_by_parent = False
+            msg.save(update_fields=['reply', 'replied_by', 'replied_at', 'is_read', 'reply_seen_by_parent'])
+            messages.success(request, f"{msg.parent.full_name} ga javob yuborildi.")
+        return redirect(f"{request.path}?{request.GET.urlencode()}" if request.GET else request.path)
+
+    qs = ParentMessage.objects.filter(sender_type='parent').select_related('parent', 'child', 'replied_by')
+    status = request.GET.get('status', 'waiting')
+    if status == 'waiting':
+        qs = qs.filter(reply__isnull=True)
+    elif status == 'answered':
+        qs = qs.filter(reply__isnull=False)
+    q = request.GET.get('q', '').strip()
+    if q:
+        qs = qs.filter(
+            Q(parent__first_name__icontains=q) | Q(parent__last_name__icontains=q) | Q(parent__phone__icontains=q)
+            | Q(child__first_name__icontains=q) | Q(child__last_name__icontains=q) | Q(subject__icontains=q)
+        )
+    qs = qs.order_by('-created_at')[:200]
+    items = list(qs)
+    # Ochilgan xabarlar admin tomonidan o'qilgan deb belgilanadi
+    ParentMessage.objects.filter(id__in=[m.id for m in items if not m.is_read]).update(is_read=True)
+
+    all_parent = ParentMessage.objects.filter(sender_type='parent')
+    return render(request, 'parents/parent_messages.html', {
+        'items': items,
+        'status': status,
+        'q': q,
+        'waiting_count': all_parent.filter(reply__isnull=True).count(),
+        'answered_count': all_parent.filter(reply__isnull=False).count(),
+        'total_count': all_parent.count(),
+    })
+
+
+WORDS_A = ['Bahor', 'Quyosh', 'Osmon', 'Daryo', 'Lola', 'Yulduz', 'Bulut', 'Tog', 'Bog', 'Nur']
+WORDS_B = ['Kitob', 'Qalam', 'Maktab', 'Dars', 'Bilim', 'Ilm', 'Daftar', 'Sinf', 'Ustoz', 'Zakovat']
+
+
+def generate_parent_password():
+    """Eslab qolish oson, lekin parol siyosatidan o'tadigan parol: Bahor-4827-Kitob."""
+    import secrets
+    return f"{secrets.choice(WORDS_A)}-{secrets.randbelow(9000) + 1000}-{secrets.choice(WORDS_B)}"
+
+
+def _parent_form(request, parent=None):
+    """Qo'shish va tahrirlash uchun umumiy forma (bitta joyda tekshiriladi)."""
+    from .phone import UZ_PHONE_ERROR, local_part, normalize_uz_phone
+
+    students = CustomUser.objects.filter(role='student').order_by('first_name', 'last_name')         .prefetch_related('enrollments__profession', 'parents')
+    form = {
+        'first_name': parent.first_name if parent else '',
+        'last_name': parent.last_name if parent else '',
+        'phone': local_part(parent.phone) if parent else '',
+        'email': (parent.email or '') if parent else '',
+        'username': parent.username if parent else '',
+    }
+    selected = list(parent.children.values_list('id', flat=True)) if parent else []
+
+    if request.method == 'POST':
+        form = {k: request.POST.get(k, '').strip() for k in form}
+        password = request.POST.get('password', '').strip()
+        selected = [int(i) for i in request.POST.getlist('children') if i.isdigit()]
+        phone = normalize_uz_phone(form['phone'])
+        username = form['username'] or (phone[4:] if phone else '')
+        others = Parent.objects.exclude(pk=parent.pk) if parent else Parent.objects.all()
+
+        generated = False
+        if not parent and not password:
+            password, generated = generate_parent_password(), True
+
+        error = None
+        if not form['first_name'] or not form['last_name']:
+            error = "Ism va familiyani kiriting."
+        elif phone is None:
+            error = UZ_PHONE_ERROR
+        elif others.filter(phone=phone).exists():
+            error = "Bu telefon raqam boshqa ota-onaga biriktirilgan."
+        elif not username:
+            error = "Login kiriting."
+        elif others.filter(username=username).exists():
+            error = f"“{username}” logini band. Boshqa login kiriting."
+        elif password:
+            error = validate_parent_password(password) or None
+
+        if error:
+            messages.error(request, error)
+        else:
+            is_new = parent is None
+            parent = parent or Parent()
+            parent.first_name, parent.last_name = form['first_name'], form['last_name']
+            parent.phone, parent.email, parent.username = phone, form['email'] or None, username
+            if password:
+                parent.password = make_password(password)
+            parent.save()
+            parent.children.set(CustomUser.objects.filter(id__in=selected, role='student'))
+            if password:
+                # Parol cookie/flash orqali emas, shu javobning o'zida bir marta ko'rsatiladi
+                return render(request, 'parents/parent_credentials.html', {
+                    'parent': parent, 'password': password, 'is_new': is_new,
+                    'login_url': request.build_absolute_uri(reverse('parent_login')),
+                })
+            messages.success(request, "✅ Ota-ona ma'lumotlari saqlandi.")
+            return redirect('parents:admin_parent_view', pk=parent.pk)
+
+    return render(request, 'parents/parent_form.html', {
+        'parent': parent if parent and parent.pk else None,
+        'form': form,
+        'students': students,
+        'selected_children': selected,
+        'title': "Ota-onani tahrirlash" if parent else "Ota-ona qo'shish",
+        'suggested_password': generate_parent_password(),
+    })
 
 
 @login_required
 def admin_parent_add(request):
     if not request.user.is_admin:
         return redirect('home')
-
-    students = CustomUser.objects.filter(role='student').order_by('first_name')
-
-    if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        phone = request.POST.get('phone', '').strip()
-        email = request.POST.get('email', '').strip() or None
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        children_ids = request.POST.getlist('children')
-
-        # Ilgari hech qanday parol siyosati yo'q edi — admin "123" ham
-        # qo'ya olardi, keyin ota-ona uni deyarli hech qachon o'zgartirmasdi.
-        policy_error = validate_parent_password(password)
-
-        if Parent.objects.filter(username=username).exists():
-            messages.error(request, "Bu username allaqachon mavjud!")
-        elif Parent.objects.filter(phone=phone).exists():
-            messages.error(request, "Bu telefon raqam allaqachon mavjud!")
-        elif policy_error:
-            messages.error(request, policy_error)
-        else:
-            parent = Parent.objects.create(
-                first_name=first_name,
-                last_name=last_name,
-                phone=phone,
-                email=email,
-                username=username,
-                password=make_password(password)
-            )
-            if children_ids:
-                parent.children.set(children_ids)
-
-            messages.success(request, "Ota-ona muvaffaqiyatli qo'shildi!")
-            return redirect('parents:admin_parents')
-
-    context = {
-        'children': students,
-        'selected_children': [],
-        'title': "Ota-ona qo'shish",
-    }
-    return render(request, 'parents/parent_form.html', context)
+    return _parent_form(request)
 
 
 @login_required
 def admin_parent_edit(request, pk):
     if not request.user.is_admin:
         return redirect('home')
-
-    parent = get_object_or_404(Parent, pk=pk)
-    students = CustomUser.objects.filter(role='student').order_by('first_name')
-
-    if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        last_name = request.POST.get('last_name', '').strip()
-        phone = request.POST.get('phone', '').strip()
-        email = request.POST.get('email', '').strip() or None
-        username = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
-        children_ids = request.POST.getlist('children')
-
-        # Bo'sh parol = "o'zgartirmang", shuning uchun faqat berilganda tekshiriladi.
-        policy_error = validate_parent_password(password) if password else ''
-
-        if Parent.objects.filter(username=username).exclude(pk=pk).exists():
-            messages.error(request, "Bu username allaqachon mavjud!")
-        elif Parent.objects.filter(phone=phone).exclude(pk=pk).exists():
-            messages.error(request, "Bu telefon raqam allaqachon mavjud!")
-        elif policy_error:
-            messages.error(request, policy_error)
-        else:
-            parent.first_name = first_name
-            parent.last_name = last_name
-            parent.phone = phone
-            parent.email = email
-            parent.username = username
-
-            if password:
-                parent.password = make_password(password)
-
-            parent.save()
-            parent.children.set(children_ids)
-
-            messages.success(request, "Ota-ona muvaffaqiyatli tahrirlandi!")
-            return redirect('parents:admin_parents')
-
-    context = {
-        'parent': parent,
-        'children': students,
-        'selected_children': list(parent.children.values_list('id', flat=True)),
-        'title': "Ota-onani tahrirlash",
-    }
-    return render(request, 'parents/parent_form.html', context)
+    return _parent_form(request, get_object_or_404(Parent, pk=pk))
 
 
 @login_required

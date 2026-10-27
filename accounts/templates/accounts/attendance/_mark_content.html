@@ -445,6 +445,8 @@
             <div class="am-student-info">
                 <div class="am-student-name">{{ row.student.first_name }} {{ row.student.last_name }}</div>
                 <div class="am-student-meta">
+                    {% if row.visited_at %}<span style="color:#0891b2;font-weight:700;" title="Shu kuni platformaga kirgan"><i class="bi bi-box-arrow-in-right"></i> Saytga kirdi {{ row.visited_at|time:"H:i" }}{% if row.auto_marked %} · avtomatik{% endif %}</span>
+                    {% elif selected_date == today %}<span style="color:#9ca3af;"><i class="bi bi-wifi-off"></i> Bugun saytga kirmagan</span>{% endif %}
                     {% if row.student.phone %}
                     <span><i class="bi bi-telephone"></i> {{ row.student.phone }}</span>
                     {% endif %}

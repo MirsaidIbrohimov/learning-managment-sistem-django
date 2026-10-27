@@ -1,0 +1,237 @@
+{% extends 'accounts/admin/base_admin.html' %}
+{% load static %}
+
+{% block title %}{{ design.name }} — Sertifikat dizayni{% endblock %}
+
+{% block admin_content %}
+<style>
+    @font-face { font-family: 'CertScript'; src: url('{% static "fonts/CertScript.ttf" %}'); }
+    @font-face { font-family: 'CertBold'; src: url('{% static "fonts/CertBold.ttf" %}'); }
+
+    .de-page { max-width: 1320px; margin: 0 auto; padding: 1.5rem 1rem; }
+    .de-head { display:flex; align-items:center; gap:12px; margin-bottom:1.2rem; flex-wrap:wrap; }
+    .de-back { width:40px; height:40px; border-radius:12px; border:1px solid var(--border-color,#e5e7eb); display:flex; align-items:center; justify-content:center; color:inherit; text-decoration:none; }
+    .de-muted { font-size:.78rem; color:var(--bs-secondary-color,#6c757d); }
+    .de-layout { display:grid; grid-template-columns: minmax(0,1fr) 340px; gap:1.2rem; align-items:start; }
+    .de-card { background:var(--card-bg,#fff); border:1px solid var(--border-color,#e5e7eb); border-radius:18px; padding:1rem; }
+
+    /* Sahna — fon rasmi nisbatida; shrift o'lchami konteyner kengligiga bog'liq (PDF bilan bir xil) */
+    .de-stage { position:relative; container-type:inline-size; border-radius:10px; overflow:hidden; user-select:none; touch-action:none;
+        box-shadow: 0 20px 50px -25px rgba(0,0,0,.45); }
+    .de-stage img { display:block; width:100%; height:auto; pointer-events:none; }
+    .de-guide { position:absolute; top:0; bottom:0; left:50%; width:0; border-left:1px dashed #ec4899; opacity:0; transition:opacity .15s; pointer-events:none; }
+    .de-guide.on { opacity:1; }
+    .de-txt { position:absolute; white-space:nowrap; line-height:1; cursor:grab; padding:0 .1em;
+        transform: translate(-50%, calc(-100% + .22em));
+        font-size: calc(var(--s) * 100cqw / 841.89);
+        outline: 1px dashed transparent; outline-offset: 3px; border-radius:3px; transition: outline-color .15s; }
+    .de-txt:hover { outline-color: rgba(99,102,241,.6); }
+    .de-txt.sel { outline: 2px solid #6366f1; }
+    .de-txt.dragging { cursor:grabbing; }
+    .de-txt.hidden { opacity:.25; }
+    .de-txt[data-font="script"] { font-family:'CertScript', cursive; }
+    .de-txt[data-font="bold"] { font-family:'CertBold', sans-serif; }
+    .de-txt .pin { position:absolute; left:50%; bottom:.22em; width:6px; height:6px; margin-left:-3px; margin-bottom:-3px; border-radius:50%; background:#6366f1; opacity:0; }
+    .de-txt.sel .pin { opacity:1; }
+
+    .de-field { border:1px solid var(--border-color,#e5e7eb); border-radius:14px; padding:.7rem .8rem; margin-bottom:.6rem; cursor:pointer; transition: border-color .2s, background .2s; }
+    .de-field.sel { border-color:#6366f1; background:rgba(99,102,241,.06); }
+    .de-field-head { display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:.85rem; }
+    .de-field-head small { font-family: monospace; font-weight:600; color:var(--bs-secondary-color,#6c757d); }
+    .de-row { display:flex; gap:.5rem; align-items:center; margin-top:.5rem; }
+    .de-row label { font-size:.72rem; font-weight:700; min-width:52px; color:var(--bs-secondary-color,#6c757d); }
+    .de-row input[type=range] { flex:1; }
+    .de-row input[type=number] { width:64px; }
+    @media (max-width: 1100px) { .de-layout { grid-template-columns: 1fr; } }
+</style>
+
+<div class="de-page">
+    <div class="de-head">
+        <a href="{% url 'admin_certificate_designs' %}" class="de-back"><i class="bi bi-arrow-left"></i></a>
+        <div style="flex:1;">
+            <h4 style="font-weight:800;margin:0;">🎨 {{ design.name }}</h4>
+            <small class="de-muted">
+                Matnni sichqoncha bilan sudrang. Tanlangan matnni klaviatura strelkalari bilan aniq suring (Shift — tezroq).
+                {% if courses %}Biriktirilgan: {% for c in courses %}<b>{{ c.name }}</b>{% if not forloop.last %}, {% endif %}{% endfor %}{% else %}Hali hech bir kursga biriktirilmagan.{% endif %}
+            </small>
+        </div>
+        <a href="{% url 'admin_certificate_design_preview' design.pk %}" target="_blank" class="btn btn-outline-secondary btn-sm" style="border-radius:10px;font-weight:700;">
+            <i class="bi bi-file-earmark-pdf"></i> Namuna PDF (saqlangan)
+        </a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="deForm">
+        {% csrf_token %}
+        <div class="de-layout">
+            <div class="de-card">
+                <div class="de-stage" id="stage" style="color:{{ design.text_color }};">
+                    <img src="{{ design.background.url }}" alt="Fon" id="bgImg">
+                    <div class="de-guide" id="guide"></div>
+                    {% for f in fields %}
+                    <div class="de-txt{% if not f.visible %} hidden{% endif %}" data-key="{{ f.key }}" data-font="{{ f.font }}" tabindex="0"
+                         style="left:{{ f.x|stringformat:'.2f' }}%;top:{{ f.y|stringformat:'.2f' }}%;--s:{{ f.size }};"><span class="t"></span><i class="pin"></i></div>
+                    {% endfor %}
+                </div>
+                <p class="de-muted" style="margin:.7rem 0 0;"><i class="bi bi-info-circle"></i>
+                    Ko'rinish taxminiy. Aniq natijani saqlagandan keyin "Namuna PDF" orqali tekshiring.</p>
+            </div>
+
+            <div>
+                <div class="de-card" style="margin-bottom:1rem;">
+                    <div class="mb-2">
+                        <label class="form-label fw-bold" style="font-size:.78rem;">Dizayn nomi</label>
+                        <input type="text" name="name" value="{{ design.name }}" maxlength="120" class="form-control form-control-sm" required>
+                    </div>
+                    <div class="de-row" style="margin-top:0;">
+                        <label>Rang</label>
+                        <input type="color" name="text_color" id="color" value="{{ design.text_color }}" class="form-control form-control-color form-control-sm">
+                    </div>
+                    <div class="mb-2 mt-2">
+                        <label class="form-label fw-bold" style="font-size:.78rem;">Kurs qatori formati</label>
+                        <input type="text" name="course_format" id="courseFmt" value="{{ design.course_format }}" maxlength="120" class="form-control form-control-sm">
+                        <small class="de-muted"><code>{course}</code> — kurs nomi bilan almashtiriladi</small>
+                    </div>
+                    <div>
+                        <label class="form-label fw-bold" style="font-size:.78rem;">Fon rasmini almashtirish</label>
+                        <input type="file" name="background" id="bgInput" accept=".png,.jpg,.jpeg,.webp" class="form-control form-control-sm">
+                    </div>
+                </div>
+
+                {% for f in fields %}
+                <div class="de-field" data-key="{{ f.key }}">
+                    <div class="de-field-head">
+                        <span>{{ f.label }}</span>
+                        <small class="pos"></small>
+                    </div>
+                    <input type="hidden" name="{{ f.key }}_x" value="{{ f.x|stringformat:'.2f' }}">
+                    <input type="hidden" name="{{ f.key }}_y" value="{{ f.y|stringformat:'.2f' }}">
+                    <div class="de-row">
+                        <label>O'lcham</label>
+                        <input type="range" min="6" max="120" value="{{ f.size }}" data-size>
+                        <input type="number" name="{{ f.key }}_size" min="6" max="120" value="{{ f.size }}" class="form-control form-control-sm" data-size>
+                    </div>
+                    <div class="de-row">
+                        <label>Shrift</label>
+                        <select name="{{ f.key }}_font" class="form-select form-select-sm" data-font>
+                            {% for val, lbl in font_choices %}<option value="{{ val }}" {% if f.font == val %}selected{% endif %}>{{ lbl }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    {% if f.key != 'name' %}
+                    <div class="de-row">
+                        <label>Ko'rinadi</label>
+                        <input type="checkbox" name="show_{{ f.key }}" value="1" {% if f.visible %}checked{% endif %} class="form-check-input" data-show>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="de-card">
+                    {% if courses %}
+                    <label style="font-size:.8rem;display:flex;gap:6px;align-items:flex-start;margin-bottom:.7rem;">
+                        <input type="checkbox" name="regenerate" value="1" class="form-check-input" style="margin-top:2px;">
+                        <span>Shu dizayndagi kurslarning <b>berilgan sertifikatlarini</b> ham qayta yaratish</span>
+                    </label>
+                    {% endif %}
+                    <button type="submit" class="btn btn-primary w-100" style="border-radius:12px;font-weight:800;">
+                        <i class="bi bi-check-lg"></i> Saqlash
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+(function () {
+    var stage = document.getElementById('stage'), guide = document.getElementById('guide');
+    var sample = {
+        name: 'Aliyev Jasur',
+        course: '{{ sample_course|upper|escapejs }}',
+        series: 'ZMT-PY-26001',
+        date: '{% now "d.m.Y" %}'
+    };
+    var fmt = document.getElementById('courseFmt');
+    var txt = {}, panel = {};
+    stage.querySelectorAll('.de-txt').forEach(function (el) { txt[el.dataset.key] = el; });
+    document.querySelectorAll('.de-field').forEach(function (el) { panel[el.dataset.key] = el; });
+
+    function renderText() {
+        txt.name.querySelector('.t').textContent = sample.name;
+        txt.course.querySelector('.t').textContent = (fmt.value || '{course}').split('{course}').join(sample.course);
+        txt.series.querySelector('.t').textContent = sample.series;
+        txt.date.querySelector('.t').textContent = sample.date;
+    }
+    function setPos(key, x, y) {
+        x = Math.max(0, Math.min(100, x)); y = Math.max(0, Math.min(100, y));
+        txt[key].style.left = x + '%'; txt[key].style.top = y + '%';
+        panel[key].querySelector('[name="' + key + '_x"]').value = x.toFixed(2);
+        panel[key].querySelector('[name="' + key + '_y"]').value = y.toFixed(2);
+        panel[key].querySelector('.pos').textContent = x.toFixed(1) + '% · ' + y.toFixed(1) + '%';
+    }
+    function select(key) {
+        Object.keys(txt).forEach(function (k) {
+            txt[k].classList.toggle('sel', k === key);
+            panel[k].classList.toggle('sel', k === key);
+        });
+    }
+
+    Object.keys(txt).forEach(function (key) {
+        var el = txt[key], p = panel[key];
+        setPos(key, parseFloat(p.querySelector('[name="' + key + '_x"]').value), parseFloat(p.querySelector('[name="' + key + '_y"]').value));
+
+        /* Sudrash */
+        el.addEventListener('pointerdown', function (e) {
+            e.preventDefault(); select(key); el.focus();
+            el.setPointerCapture(e.pointerId); el.classList.add('dragging');
+            var r = stage.getBoundingClientRect();
+            var ox = e.clientX - (r.left + r.width * parseFloat(el.style.left) / 100);
+            var oy = e.clientY - (r.top + r.height * parseFloat(el.style.top) / 100);
+            function move(ev) {
+                var x = (ev.clientX - ox - r.left) / r.width * 100;
+                var y = (ev.clientY - oy - r.top) / r.height * 100;
+                var snap = Math.abs(x - 50) < 0.8;   // markazga yopishish
+                guide.classList.toggle('on', snap);
+                setPos(key, snap ? 50 : x, y);
+            }
+            function up() {
+                el.classList.remove('dragging'); guide.classList.remove('on');
+                el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up);
+            }
+            el.addEventListener('pointermove', move); el.addEventListener('pointerup', up);
+        });
+
+        /* Klaviatura bilan aniq surish */
+        el.addEventListener('keydown', function (e) {
+            var d = e.shiftKey ? 1 : 0.1, x = parseFloat(el.style.left), y = parseFloat(el.style.top);
+            var map = { ArrowLeft: [-d, 0], ArrowRight: [d, 0], ArrowUp: [0, -d], ArrowDown: [0, d] };
+            if (!map[e.key]) return;
+            e.preventDefault(); setPos(key, x + map[e.key][0], y + map[e.key][1]);
+        });
+        el.addEventListener('focus', function () { select(key); });
+        p.addEventListener('click', function () { select(key); });
+
+        /* O'lcham: slider va raqam bir-biriga bog'langan */
+        var sizes = p.querySelectorAll('[data-size]');
+        sizes.forEach(function (inp) {
+            inp.addEventListener('input', function () {
+                sizes.forEach(function (o) { if (o !== inp) o.value = inp.value; });
+                el.style.setProperty('--s', inp.value);
+            });
+        });
+        p.querySelector('[data-font]').addEventListener('change', function () { el.dataset.font = this.value; });
+        var show = p.querySelector('[data-show]');
+        if (show) show.addEventListener('change', function () { el.classList.toggle('hidden', !show.checked); });
+    });
+
+    document.getElementById('color').addEventListener('input', function () { stage.style.color = this.value; });
+    fmt.addEventListener('input', renderText);
+    /* Yangi fon tanlansa — darhol ko'rsatish (saqlanmaguncha faqat oldindan ko'rish) */
+    document.getElementById('bgInput').addEventListener('change', function () {
+        if (this.files && this.files[0]) document.getElementById('bgImg').src = URL.createObjectURL(this.files[0]);
+    });
+
+    renderText();
+    select('name');
+})();
+</script>
+{% endblock %}

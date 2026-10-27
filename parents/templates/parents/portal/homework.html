@@ -1,221 +1,69 @@
 {% extends 'parents/portal/base_parent.html' %}
-
-{% block title %}Uyga vazifalar - Ota-ona paneli{% endblock %}
+{% load parent_tags %}
+{% block title %}Vazifalar{% endblock %}
+{% block page_title %}Uyga vazifalar{% endblock %}
 
 {% block parent_content %}
-<div class="container-fluid px-0">
-    <!-- Child Selector -->
-    {% if children|length > 1 %}
-    <div class="card mb-4 p-3">
-        <div class="d-flex align-items-center flex-wrap gap-3">
-            <span class="text-muted fw-medium">
-                <i class="bi bi-people-fill me-2"></i>Farzand:
-            </span>
-            <div class="child-selector">
-                {% for c in children %}
-                <a href="?child_id={{ c.id }}" 
-                   class="child-btn {% if c.id == selected_child.id %}active{% endif %}">
-                    {{ c.full_name }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
-
-    <!-- Page Header -->
-    <div class="mb-4">
-        <h3 class="mb-1 fw-bold">
-            <i class="bi bi-journal-check me-2 text-primary"></i>Uyga vazifalar
-        </h3>
-        <p class="text-muted mb-0">{% if selected_child %}{{ selected_child.full_name }}{% endif %} - uyga vazifalar holati</p>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md">
-            <div class="stat-card stat-primary h-100">
-                <div class="stat-icon-wrapper bg-primary-soft">
-                    <i class="bi bi-list-task"></i>
-                </div>
-                <div class="stat-number">{{ stats.total|default:0 }}</div>
-                <div class="stat-label">Jami vazifalar</div>
-            </div>
-        </div>
-        <div class="col-6 col-md">
-            <div class="stat-card stat-success h-100">
-                <div class="stat-icon-wrapper bg-success-soft">
-                    <i class="bi bi-check-circle-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.submitted|default:0 }}</div>
-                <div class="stat-label">Topshirilgan</div>
-            </div>
-        </div>
-        <div class="col-6 col-md">
-            <div class="stat-card stat-info h-100">
-                <div class="stat-icon-wrapper bg-info-soft">
-                    <i class="bi bi-star-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.graded|default:0 }}</div>
-                <div class="stat-label">Baholangan</div>
-            </div>
-        </div>
-        <div class="col-6 col-md">
-            <div class="stat-card stat-warning h-100">
-                <div class="stat-icon-wrapper bg-warning-soft">
-                    <i class="bi bi-graph-up-arrow"></i>
-                </div>
-                <div class="stat-number">{{ stats.avg_grade|default:"-"|floatformat:1 }}</div>
-                <div class="stat-label">O'rtacha baho</div>
-            </div>
-        </div>
-        <div class="col-6 col-md">
-            <div class="stat-card h-100" style="border-top: 4px solid #ef4444;">
-                <div class="stat-icon-wrapper" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
-                    <i class="bi bi-exclamation-triangle-fill"></i>
-                </div>
-                <div class="stat-number">{{ stats.late|default:0 }}</div>
-                <div class="stat-label">Kechikkan</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter Tabs -->
-    <div class="card">
-        <div class="card-header p-0 border-0">
-            <ul class="nav nav-tabs homework-tabs" id="homeworkTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" 
-                            type="button" role="tab" aria-controls="all" aria-selected="true">
-                        <i class="bi bi-list-ul me-2"></i>Barchasi
-                        <span class="tab-badge">{{ stats.total|default:0 }}</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="submitted-tab" data-bs-toggle="tab" data-bs-target="#submitted" 
-                            type="button" role="tab" aria-controls="submitted" aria-selected="false">
-                        <i class="bi bi-check-circle me-2"></i>Topshirilgan
-                        <span class="tab-badge success">{{ stats.submitted|default:0 }}</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="pending-tab" data-bs-toggle="tab" data-bs-target="#pending" 
-                            type="button" role="tab" aria-controls="pending" aria-selected="false">
-                        <i class="bi bi-clock me-2"></i>Topshirilmagan
-                        <span class="tab-badge warning">{{ stats.pending|default:0 }}</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="late-tab" data-bs-toggle="tab" data-bs-target="#late" 
-                            type="button" role="tab" aria-controls="late" aria-selected="false">
-                        <i class="bi bi-exclamation-triangle me-2"></i>Kechikkan
-                        <span class="tab-badge danger">{{ stats.late|default:0 }}</span>
-                    </button>
-                </li>
-            </ul>
-        </div>
-        <div class="card-body p-0">
-            <div class="tab-content" id="homeworkTabsContent">
-                <!-- All Homework Tab -->
-                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
-                    {% include 'parents/portal/partials/homework_table.html' with homework_list=homeworks filter='all' %}
-                </div>
-                <!-- Submitted Tab -->
-                <div class="tab-pane fade" id="submitted" role="tabpanel" aria-labelledby="submitted-tab">
-                    {% include 'parents/portal/partials/homework_table.html' with homework_list=homeworks filter='submitted' %}
-                </div>
-                <!-- Pending Tab -->
-                <div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
-                    {% include 'parents/portal/partials/homework_table.html' with homework_list=homeworks filter='pending' %}
-                </div>
-                <!-- Late Tab -->
-                <div class="tab-pane fade" id="late" role="tabpanel" aria-labelledby="late-tab">
-                    {% include 'parents/portal/partials/homework_table.html' with homework_list=homeworks filter='late' %}
-                </div>
-            </div>
-        </div>
+<div class="pp-head">
+    <div>
+        <h1><span class="ic"><i class="bi bi-journal-check"></i></span>Uyga vazifalar</h1>
+        <p>{% if selected_child %}{{ selected_child.full_name }} — topshirilgan, baholangan va qolib ketgan vazifalar.{% endif %}</p>
     </div>
 </div>
 
-<style>
-.homework-tabs {
-    padding: 16px 24px 0;
-    border-bottom: 1px solid var(--border-color);
-    gap: 8px;
-}
+{% if not selected_child %}
+    {% include 'parents/portal/partials/no_child.html' %}
+{% else %}
+<section class="pp-grid c4 pp-mb">
+    <div class="pp-card pp-kpi tone-pri" data-reveal><div class="top"><span class="ic"><i class="bi bi-list-task"></i></span></div>
+        <div class="num"><span data-count="{{ counts.submitted }}">0</span><small>/{{ counts.all }}</small></div><div class="lbl">Topshirilgan</div>
+        <div class="pp-bar sm" style="margin-top:12px;"><i data-w="{{ counts.submitted|pct:counts.all }}"></i></div></div>
+    <div class="pp-card pp-kpi tone-{{ summary.avg_grade|tone:10 }}" data-reveal><div class="top"><span class="ic"><i class="bi bi-star-fill"></i></span></div>
+        <div class="num"><span data-count="{{ summary.avg_grade|dot }}">0</span><small>/10</small></div><div class="lbl">O‘rtacha baho</div>
+        <div class="sub">{{ summary.graded }} ta baholangan</div></div>
+    <div class="pp-card pp-kpi tone-info" data-reveal><div class="top"><span class="ic"><i class="bi bi-hourglass-split"></i></span></div>
+        <div class="num"><span data-count="{{ summary.pending }}">0</span></div><div class="lbl">Tekshirilmoqda</div>
+        <div class="sub">{{ summary.revision }} ta qayta ishlash kerak</div></div>
+    <div class="pp-card pp-kpi tone-bad" data-reveal><div class="top"><span class="ic"><i class="bi bi-exclamation-octagon-fill"></i></span></div>
+        <div class="num"><span data-count="{{ summary.missed }}">0</span></div><div class="lbl">Muddatida topshirilmagan</div>
+        <div class="sub">{{ summary.late }} ta kech topshirilgan</div></div>
+</section>
 
-.homework-tabs .nav-link {
-    display: flex;
-    align-items: center;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 12px 12px 0 0;
-    background: transparent;
-    color: var(--text-muted);
-    font-weight: 500;
-    transition: all 0.25s ease;
-}
-
-.homework-tabs .nav-link:hover {
-    background: var(--hover-bg);
-    color: var(--text-color);
-}
-
-.homework-tabs .nav-link.active {
-    background: var(--gradient-primary);
-    color: white;
-}
-
-.tab-badge {
-    margin-left: 8px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.homework-tabs .nav-link.active .tab-badge {
-    background: rgba(255, 255, 255, 0.25);
-}
-
-.tab-badge.success {
-    background: rgba(16, 185, 129, 0.15);
-    color: #10b981;
-}
-
-.tab-badge.warning {
-    background: rgba(245, 158, 11, 0.15);
-    color: #f59e0b;
-}
-
-.tab-badge.danger {
-    background: rgba(239, 68, 68, 0.15);
-    color: #ef4444;
-}
-
-.homework-tabs .nav-link.active .tab-badge.success,
-.homework-tabs .nav-link.active .tab-badge.warning,
-.homework-tabs .nav-link.active .tab-badge.danger {
-    background: rgba(255, 255, 255, 0.25);
-    color: white;
-}
-
-.feedback-text {
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.feedback-full {
-    white-space: pre-wrap;
-    word-break: break-word;
-}
-
-.stat-icon-wrapper.bg-warning-soft {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-</style>
+<section class="pp-card flat" data-reveal>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:16px 18px;border-bottom:1px solid var(--pp-line);">
+        <h3 style="margin:0;font-size:1rem;font-weight:800;">Vazifalar ro‘yxati</h3>
+        <div class="pp-seg" data-seg="hwTable" role="group" aria-label="Filtr">
+            <button type="button" data-filter="all" class="on">Barchasi <span class="n">{{ counts.all }}</span></button>
+            <button type="button" data-filter="submitted">Topshirilgan <span class="n">{{ counts.submitted }}</span></button>
+            <button type="button" data-filter="todo">Kutilmoqda <span class="n">{{ counts.todo }}</span></button>
+            <button type="button" data-filter="missed">Muammoli <span class="n">{{ counts.missed }}</span></button>
+        </div>
+    </div>
+    <div class="pp-table-wrap" id="hwTable">
+        <table class="pp-table">
+            <thead><tr><th>Vazifa</th><th>Muddat</th><th>Holat</th><th style="text-align:right;">Baho</th></tr></thead>
+            <tbody>
+            {% for r in rows %}
+            <tr data-state="{% if r.submission %}submitted {% endif %}{% if r.state == 'todo' %}todo{% endif %}{% if r.state == 'missed' or r.state == 'late' %}missed{% endif %}">
+                <td><b>{{ r.homework.lesson.title }}</b><span class="sub">{{ r.homework.lesson.profession.name }}</span>
+                    {% if r.submission.feedback %}<span class="sub" style="color:var(--pp-text-2);max-width:420px;white-space:normal;"><i class="bi bi-chat-quote"></i> {{ r.submission.feedback|truncatechars:140 }}</span>{% endif %}</td>
+                <td>{% if r.homework.due_date %}<span style="{% if r.state == 'missed' %}color:var(--pp-bad);font-weight:700;{% endif %}">{{ r.homework.due_date|date:"d.m.Y" }}</span><span class="sub">{{ r.homework.due_date|date:"H:i" }}</span>{% else %}<span class="pp-dim">—</span>{% endif %}</td>
+                <td>
+                    {% if r.state == 'missed' %}<span class="pp-badge bad"><i class="bi bi-x-circle"></i>Topshirilmagan</span>
+                    {% elif r.state == 'todo' %}<span class="pp-badge warn"><i class="bi bi-hourglass"></i>Kutilmoqda</span>
+                    {% elif r.submission.status == 'graded' %}<span class="pp-badge ok"><i class="bi bi-check2-circle"></i>Baholangan</span>
+                    {% elif r.submission.status == 'accepted' %}<span class="pp-badge ok"><i class="bi bi-check2"></i>Qabul qilindi</span>
+                    {% elif r.submission.status == 'revision' %}<span class="pp-badge warn"><i class="bi bi-arrow-repeat"></i>Qayta ishlash</span>
+                    {% else %}<span class="pp-badge info"><i class="bi bi-eye"></i>Tekshirilmoqda</span>{% endif %}
+                    {% if r.submission.is_late %}<span class="sub" style="color:var(--pp-warn)"><i class="bi bi-clock-history"></i> Kech topshirilgan</span>{% endif %}
+                </td>
+                <td style="text-align:right;">{% if r.submission.grade is not None %}<span class="pp-badge {{ r.submission.grade|tone:10 }}" style="font-size:.85rem;">{{ r.submission.grade }}/10</span>{% else %}<span class="pp-dim">—</span>{% endif %}</td>
+            </tr>
+            {% endfor %}
+            <tr data-filter-empty class="{% if rows %}pp-hide{% endif %}"><td colspan="4"><div class="pp-empty" style="padding:24px;"><div class="art"><i class="bi bi-inbox"></i></div><p>Bu bo‘limda vazifa yo‘q.</p></div></td></tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endif %}
 {% endblock %}

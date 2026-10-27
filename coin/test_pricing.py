@@ -42,7 +42,7 @@ class CoinPricingTests(TestCase):
         data.setdefault('token', str(uuid.uuid4()))
         result = {'bill_id': 'bill', 'bill_reference': 'ref',
                   'payment_url': 'https://tezcheck.uz/pay/test', 'available_until': None}
-        def active_bill(bill_id):
+        def active_bill(bill_id, gateway=None):
             order = TezCheckPaymentOrder.objects.filter(bill_id=bill_id).order_by('-pk').first()
             return {'bill': {'id': bill_id, 'external_reference': order.external_reference, 'state': 'active', 'paid': False}}
         with patch('coin.payments.create_bill', return_value=result), patch('coin.payments.fetch_bill', side_effect=active_bill):

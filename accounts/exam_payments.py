@@ -1,4 +1,4 @@
-"""Tezcheck checkout for one exam retry; never touches monthly balances."""
+"""Online (Tezcheck/inPAY) checkout for one exam retry; never touches monthly balances."""
 import uuid
 from decimal import Decimal
 
@@ -13,7 +13,8 @@ from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST, require_GET
 
 from .models import CourseEnrollment, CustomUser, FinalTestPayment, Message, Test, TestResult, TezCheckPaymentOrder
-from .tezcheck import TezCheckError, TezCheckBillUnavailable, create_bill, fetch_bill
+from .tezcheck import TezCheckError, TezCheckBillUnavailable
+from .payment_gateways import create_bill, fetch_bill, selected_method
 from .checkout_lifecycle import checkout_expired, validate_bill, store_bill, retire_checkout
 
 
@@ -79,6 +80,11 @@ def create_exam_checkout(request, kind, pk):
     if model.objects.filter(student=request.user, status__in=['approved', 'pending'], **target).exists():
         messages.info(request, 'Mavjud to‘lov holatini tekshiring. Yangi to‘lov talab qilinmaydi.')
         return redirect(page)
+    try:
+        method, gateway = selected_method(request)
+    except TezCheckError as exc:
+        messages.error(request, str(exc))
+        return redirect(page)
     amount_minor = int(amount * 100)
     if amount_minor <= 0:
         messages.error(request, 'Imtihon to‘lov summasi sozlanmagan.')
@@ -91,7 +97,7 @@ def create_exam_checkout(request, kind, pk):
     try:
         if order and order.bill_id:
             try:
-                result = fetch_bill(order.bill_id)
+                result = fetch_bill(order.bill_id, gateway=order.gateway)
                 bill, payment = validate_bill(order, result)
             except TezCheckBillUnavailable:
                 if not retire_checkout(order):
@@ -105,12 +111,16 @@ def create_exam_checkout(request, kind, pk):
             if order and (bill.get('paid') is True or payment.get('state') == 'succeeded'):
                 raise TezCheckError('Oldingi to‘lov tasdig‘i kutilmoqda. Qayta to‘lov qilmang; birozdan so‘ng tekshiring.')
             if order and (checkout_expired(order, bill) or order.amount_minor != amount_minor
+                          or order.gateway != gateway
                           or (reference and reference != order.external_reference
                               and not order.external_reference.startswith(reference + '-R'))):
                 if not retire_checkout(order):
                     return redirect(page)
                 order = None
             elif order and order.payment_url:
+                if method and order.payment_method != method:
+                    order.payment_method = method
+                    order.save(update_fields=['payment_method', 'updated_at'])
                 return redirect(order.payment_url)
         for attempt in range(2):
             if order is None:
@@ -124,7 +134,8 @@ def create_exam_checkout(request, kind, pk):
                 order, _ = TezCheckPaymentOrder.objects.get_or_create(
                     external_reference=candidate,
                     defaults=dict(student=request.user, purpose='exam', **order_target,
-                                  billing_month=today.month, billing_year=today.year, amount_minor=amount_minor),
+                                  billing_month=today.month, billing_year=today.year, amount_minor=amount_minor,
+                                  gateway=gateway, payment_method=method),
                 )
                 if order.status != 'pending':
                     order = None
@@ -182,14 +193,14 @@ def apply_exam_payment(order, data):
     order.paid_at = timezone.now()
     order.last_error = ''
     order.save()
-    Message.objects.create(recipient=order.student, message_type='payment', title='Imtihon to‘lovi tasdiqlandi', content='Tezcheck orqali to‘lov qabul qilindi. Imtihonni bir marta qayta topshirishingiz mumkin.')
+    Message.objects.create(recipient=order.student, message_type='payment', title='Imtihon to‘lovi tasdiqlandi', content=f'{order.get_gateway_display()} orqali to‘lov qabul qilindi. Imtihonni bir marta qayta topshirishingiz mumkin.')
 
 
 def refund_exam_payment(order, data, *, partial=False):
     grant = order.quiz_payment if order.exam_quiz_id else order.final_payment
     if grant:
         grant.status = 'rejected'
-        grant.reject_reason = 'Tezcheck orqali to‘lov qaytarilgan.'
+        grant.reject_reason = f'{order.get_gateway_display()} orqali to‘lov qaytarilgan.'
         grant.save(update_fields=['status', 'reject_reason'])
     order.status = 'review' if partial or not grant else 'refunded'
     order.last_error = 'Imtihon to‘lovi qaytarildi.' if grant and not partial else 'Ishlatilgan yoki qisman qaytarilgan imtihon to‘lovi: administrator tekshiruvi kerak.'
