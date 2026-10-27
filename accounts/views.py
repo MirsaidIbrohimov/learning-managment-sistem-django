@@ -40,6 +40,8 @@ from .security import (
 from coin.models import ActivityLog, CoinTransaction
 from blog.models import Post
 from quiz.models import Attempt, Quiz, QuizSettings
+from ai_yordamchi import jobs as ai_jobs
+from ai_yordamchi.jobs import ai_offload
 
 from django.core.management import call_command
 from django.core.cache import cache
@@ -134,6 +136,7 @@ def _generate_ai_article(lesson_title, profession_name):
         return None
 
 
+@ai_offload
 def generate_ai_homework(request):
     """Bo'lim nomiga qarab AI orqali uyga vazifa yaratish"""
     if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
@@ -258,6 +261,7 @@ def generate_ai_homework(request):
         )
 
 
+@ai_offload
 def generate_ai_test(request):
     """AI orqali test savollari yaratish"""
     if not (request.user.is_authenticated and (request.user.is_admin or request.user.is_teacher)):
@@ -421,6 +425,7 @@ def generate_ai_test(request):
 
 
 @login_required
+@ai_offload
 def generate_ai_article_view(request, pk):
     """AJAX: AI maqola yaratish yoki qayta yaratish"""
     if not (request.user.is_admin or request.user.is_teacher):
@@ -4384,46 +4389,10 @@ def submit_speaking(request, pk):
     
     # AI avtomatik tekshiruv
     if speaking_task.ai_check and speaking_task.lesson.profession.ai_check_enabled:
-        try:
-            from teacher.views import _ai_grade_speaking
-            ai_result = _ai_grade_speaking(submission)
-            if ai_result:
-                submission.grade = ai_result['grade']
-                submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-                submission.ai_feedback = ai_result['feedback']
-                submission.pronunciation_score = ai_result.get('pronunciation', 0)
-                submission.fluency_score = ai_result.get('fluency', 0)
-                submission.grammar_score = ai_result.get('grammar', 0)
-                submission.vocabulary_score = ai_result.get('vocabulary', 0)
-                submission.status = ai_result['status']
-                submission.graded_at = timezone.now()
-                submission.save()
-                
-                if ai_result['status'] == 'graded' and not submission.coin_awarded:
-                    coin_amount = 10
-                    if ai_result['grade'] >= 9:
-                        coin_amount += 5
-                    elif ai_result['grade'] >= 8:
-                        coin_amount += 3
-                    if request.user.is_premium:
-                        coin_amount *= 2
-                    request.user.add_coins(coin_amount, f"Speaking vazifa baholandi: {speaking_task.lesson.title}")
-                    submission.coin_awarded = True
-                    submission.save(update_fields=['coin_awarded'])
-                    ActivityLog.objects.create(
-                        user=request.user, action_type='homework_graded',
-                        description=f"Speaking AI baholadi: {speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                    )
-                
-                messages.success(request, f"Speaking vazifa topshirildi va AI baholadi: {ai_result['grade']} ball!")
-                return redirect('lesson_view', pk=speaking_task.lesson.pk)
-            else:
-                messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
-        except Exception as e:
-            import traceback
-            print(f"Speaking AI tekshiruv xatolik: {e}")
-            traceback.print_exc()
-            messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
+        # Audio transkripsiya + baholash 20–60 soniya oladi — fonda bajariladi.
+        from teacher.views import apply_ai_speaking_grade
+        ai_jobs.submit(apply_ai_speaking_grade, submission.pk)
+        messages.success(request, "Speaking vazifa topshirildi! 🤖 AI uni bir necha daqiqada tekshiradi — natijani shu sahifada ko'rasiz.")
     else:
         messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
     
@@ -5208,6 +5177,9 @@ def _normalize_code(text):
     return '\n'.join(cleaned)
 
 
+SIMILARITY_MAX_CHARS = 6000
+
+
 def _calculate_similarity(text1, text2):
     """Ikki matnni solishtirish — SequenceMatcher + token-based"""
     from difflib import SequenceMatcher
@@ -5229,8 +5201,9 @@ def _calculate_similarity(text1, text2):
     if min_lines < 5:
         return 0
 
-    # 1. SequenceMatcher — umumiy o'xshashlik
-    seq_ratio = SequenceMatcher(None, norm1, norm2).ratio() * 100
+    # 1. SequenceMatcher — umumiy o'xshashlik. Algoritm kvadratik: katta fayllarda
+    # soniyalab CPU ni band qilib (GIL), shu jarayondagi boshqa so'rovlarni sekinlatardi.
+    seq_ratio = SequenceMatcher(None, norm1[:SIMILARITY_MAX_CHARS], norm2[:SIMILARITY_MAX_CHARS]).ratio() * 100
 
     # 2. Qator-bo'yicha taqqoslash — NOYOB qatorlar (print("salom") kabi umumiy qatorlarni filtrlash)
     common_patterns = {
@@ -6822,46 +6795,10 @@ def student_submit_speaking(request, token):
     )
 
     if speaking_task.ai_check and speaking_task.lesson.profession.ai_check_enabled:
-        try:
-            from teacher.views import _ai_grade_speaking
-            ai_result = _ai_grade_speaking(submission)
-            if ai_result:
-                submission.grade = ai_result['grade']
-                submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-                submission.ai_feedback = ai_result['feedback']
-                submission.pronunciation_score = ai_result.get('pronunciation', 0)
-                submission.fluency_score = ai_result.get('fluency', 0)
-                submission.grammar_score = ai_result.get('grammar', 0)
-                submission.vocabulary_score = ai_result.get('vocabulary', 0)
-                submission.status = ai_result['status']
-                submission.graded_at = timezone.now()
-                submission.save()
-
-                if ai_result['status'] == 'graded' and not submission.coin_awarded:
-                    coin_amount = 10
-                    if ai_result['grade'] >= 9:
-                        coin_amount += 5
-                    elif ai_result['grade'] >= 8:
-                        coin_amount += 3
-                    if request.user.is_premium:
-                        coin_amount *= 2
-                    request.user.add_coins(coin_amount, f"Speaking vazifa baholandi: {speaking_task.lesson.title}")
-                    submission.coin_awarded = True
-                    submission.save(update_fields=['coin_awarded'])
-                    ActivityLog.objects.create(
-                        user=request.user, action_type='homework_graded',
-                        description=f"Speaking AI baholadi: {speaking_task.lesson.title} - Baho: {ai_result['grade']}, +{coin_amount} coin"
-                    )
-
-                messages.success(request, f"Speaking vazifa topshirildi va AI baholadi: {ai_result['grade']} ball!")
-                return redirect('student_lesson_view', token=token_obj.token)
-            else:
-                messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
-        except Exception as e:
-            import traceback
-            print(f"Speaking AI tekshiruv xatolik: {e}")
-            traceback.print_exc()
-            messages.warning(request, "Speaking vazifa topshirildi, lekin AI tekshirishda xatolik yuz berdi. Ustoz tekshiradi.")
+        # Audio transkripsiya + baholash 20–60 soniya oladi — fonda bajariladi.
+        from teacher.views import apply_ai_speaking_grade
+        ai_jobs.submit(apply_ai_speaking_grade, submission.pk)
+        messages.success(request, "Speaking vazifa topshirildi! 🤖 AI uni bir necha daqiqada tekshiradi — natijani shu sahifada ko'rasiz.")
     else:
         messages.success(request, "Speaking vazifa muvaffaqiyatli topshirildi!")
 
@@ -9519,6 +9456,51 @@ def homework_submissions(request):
     })
 
 
+def _run_admin_ai_grade(submission_pk, grader_pk):
+    """Admin "AI bilan baholash" tugmasi — fon oqimida (ai_yordamchi.jobs.submit) ishlaydi."""
+    try:
+        submission = HomeworkSubmission.objects.select_related(
+            'homework__lesson', 'student').filter(pk=submission_pk).first()
+        if not submission:
+            return
+        student_answer = _read_submission_content(submission)
+        ai_result = _get_ai_grade(submission.homework.description, student_answer) if student_answer else None
+        if not ai_result:
+            return
+
+        submission.grade = ai_result['grade']
+        submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
+        submission.status = ai_result['status']
+        submission.graded_by_id = grader_pk
+        submission.graded_at = timezone.now()
+        submission.save()
+
+        if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
+            coin_amount = submission.calculate_coin_reward()
+            submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
+            submission.coin_awarded = True
+            submission.coins_earned = coin_amount
+            submission.save(update_fields=['coin_awarded', 'coins_earned'])
+            ActivityLog.objects.create(
+                user=submission.student,
+                action_type='homework_graded',
+                description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
+            )
+
+        if ai_result['status'] == 'graded':
+            _notify_ai_graded(submission, ai_result)
+        else:
+            Message.objects.create(
+                title="Vazifani qayta ishlang",
+                content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
+                message_type='warning',
+                recipient=submission.student
+            )
+            _notify_ai_revision(submission, ai_result)
+    finally:
+        cache.delete(f'ai-grade-hw:{submission_pk}')
+
+
 @login_required
 def grade_homework(request, pk):
     if not (request.user.is_admin or request.user.is_teacher):
@@ -9661,50 +9643,15 @@ def grade_homework(request, pk):
         
         # AI bilan baholash
         elif action == 'ai_grade':
-            student_answer = _read_submission_content(submission)
-            if not student_answer:
+            if not _read_submission_content(submission):
                 messages.error(request, "AI bu fayl formatini tekshira olmaydi (faqat matn va kod fayllari).")
                 return redirect('grade_homework', pk=pk)
-            
-            ai_result = _get_ai_grade(submission.homework.description, student_answer)
-            if not ai_result:
-                messages.error(request, "AI bilan bog'lanishda xatolik yuz berdi. Qayta urinib ko'ring.")
-                return redirect('grade_homework', pk=pk)
-            
-            submission.grade = ai_result['grade']
-            submission.feedback = f"🤖 AI xulosasi:\n{ai_result['feedback']}"
-            submission.status = ai_result['status']
-            submission.graded_by = request.user
-            submission.graded_at = timezone.now()
-            submission.save()
-            
-            if ai_result['status'] == 'graded' and not submission.coin_awarded and submission.revision_count == 0:
-                coin_amount = submission.calculate_coin_reward()
-                submission.student.add_coins(coin_amount, f"Vazifa baholandi: {submission.homework.lesson.title}")
-                submission.coin_awarded = True
-                submission.coins_earned = coin_amount
-                submission.save(update_fields=['coin_awarded', 'coins_earned'])
-                ActivityLog.objects.create(
-                    user=submission.student,
-                    action_type='homework_graded',
-                    description=f"Vazifa AI baholadi: {submission.homework.lesson.title} - Baho: {submission.grade}, +{coin_amount} coin"
-                )
+            # AI javobi 10–30 soniya kutiladi — so'rov ichida emas, fonda bajariladi.
+            if cache.add(f'ai-grade-hw:{submission.pk}', 1, 600):
+                ai_jobs.submit(_run_admin_ai_grade, submission.pk, request.user.pk)
+            messages.info(request, "🤖 AI tekshiruvi boshlandi. Natija 1 daqiqa ichida chiqadi — sahifani yangilang.")
+            return redirect('homework_submissions')
 
-            if ai_result['status'] == 'graded':
-                _notify_ai_graded(submission, ai_result)
-                messages.success(request, f"AI baholadi: {submission.grade} ball!")
-                return redirect('homework_submissions')
-            else:
-                Message.objects.create(
-                    title="Vazifani qayta ishlang",
-                    content=f"'{submission.homework.lesson.title}' vazifangizni qayta ishlashingiz kerak.\n\nAI izohi: {ai_result['feedback']}",
-                    message_type='warning',
-                    recipient=submission.student
-                )
-                _notify_ai_revision(submission, ai_result)
-                messages.warning(request, f"AI xulosasi: qayta ishlash kerak ({submission.grade} ball)")
-                return redirect('grade_homework', pk=pk)
-        
         # Baholash
         elif action == 'grade':
             grade = request.POST.get('grade')
@@ -9761,6 +9708,7 @@ def grade_homework(request, pk):
 
 
 @login_required
+@ai_offload
 def bulk_ai_grade(request):
     """Kurs bo'yicha barcha kutilayotgan vazifalarni AI bilan ommaviy baholash"""
     if not (request.user.is_admin or request.user.is_teacher):
@@ -17862,6 +17810,7 @@ def admin_direct_chats(request):
 
 
 @login_required
+@ai_offload
 def admin_direct_chats_ai(request):
     """AI Chat Tahlilchi — admin savoliga chatlar bazasidan javob (AJAX, POST).
 
@@ -17909,6 +17858,7 @@ def admin_direct_chats_ai(request):
 
 
 @login_required
+@ai_offload
 def admin_users_ai(request):
     """AI Foydalanuvchi Boshqaruvchisi — foydalanuvchilar bazasiga savol va
     buyruqlar (bloklash, blokdan chiqarish, ismlarni tuzatish...) uchun

@@ -4,6 +4,21 @@ import threading
 import time
 
 from django.apps import AppConfig
+from django.db.backends.signals import connection_created
+
+
+def _tune_sqlite(sender, connection, **kwargs):
+    """SQLite'ni WAL rejimiga o'tkazadi.
+
+    Standart (DELETE) jurnalda yozuv paytida butun baza o'qish uchun ham
+    qulflanadi — fon AI vazifalari yozayotganda boshqa foydalanuvchilar
+    so'rovlari kutib qolardi. WAL'da o'quvchilar yozuvchini kutmaydi.
+    """
+    if connection.vendor != 'sqlite':
+        return
+    with connection.cursor() as cursor:
+        cursor.execute('PRAGMA journal_mode=WAL;')
+        cursor.execute('PRAGMA synchronous=NORMAL;')
 
 # Management buyruqlarida (migrate va h.k.) auto-tuzatishni o'tkazib yuboramiz
 _FIX_SKIP = {'migrate', 'makemigrations', 'collectstatic', 'createsuperuser',
@@ -16,6 +31,7 @@ class AccountsConfig(AppConfig):
 
     def ready(self):
         from django.conf import settings
+        connection_created.connect(_tune_sqlite, dispatch_uid='accounts-sqlite-wal')
         from . import email_signals  # noqa: F401 — register transactional email hooks
         if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
             return

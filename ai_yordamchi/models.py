@@ -133,3 +133,29 @@ class KnowledgeChunk(models.Model):
 
     def __str__(self):
         return f"{self.source_type}#{self.source_id} - {self.title[:40]}"
+
+
+class AIJob(models.Model):
+    """Fonda bajarilayotgan AI so'rovi natijasi (ai_yordamchi/jobs.py).
+
+    Natija bazada saqlanadi: kutish so'rovlari boshqa Passenger jarayoniga
+    tushsa ham javobni ola oladi.
+    """
+    STATUS_CHOICES = (('pending', 'Kutilmoqda'), ('done', 'Tayyor'))
+
+    id = models.UUIDField(primary_key=True, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='ai_jobs')
+    path = models.CharField(max_length=300, blank=True, default='')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    response_status = models.PositiveSmallIntegerField(default=200)
+    content_type = models.CharField(max_length=100, blank=True, default='')
+    body = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'AI fon vazifasi'
+        verbose_name_plural = 'AI fon vazifalari'
+
+    def __str__(self):
+        return f"{self.path} [{self.status}]"

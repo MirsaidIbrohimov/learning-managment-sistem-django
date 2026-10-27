@@ -231,3 +231,79 @@ class AiImageGenerationTests(TestCase):
         page = self.client.get(url)
         self.assertNotContains(page, 'id="drawBtn"')
         self.assertContains(page, f'href="{reverse("coin:buy_premium")}" class="am-icon cw-draw-locked"')
+
+    def test_async_request_is_offloaded_and_result_polled(self):
+        with self.fake(return_value=self.PNG):
+            response = self.client.post(reverse('ai_yordamchi:generate_image', args=[self.session.pk]),
+                                        {'prompt': 'Tog'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest',
+                                        HTTP_X_AI_ASYNC='1')
+        self.assertEqual(response.status_code, 202)
+        result = self.client.get(response['X-AI-Job'])
+        self.assertEqual(result.status_code, 200)
+        self.assertTrue(result.json()['success'])
+        self.assertEqual(result.json()['gen_left'], 2)
+
+
+class AiJobTests(TestCase):
+    """ai_yordamchi.jobs: AI view fonda bajariladi, natija job_status orqali olinadi."""
+
+    def setUp(self):
+        self.user = CustomUser.objects.create_user(
+            username='ai-job-user', password='test-password', phone='+998900000204', role='admin')
+        self.client.force_login(self.user)
+        UserSession.objects.create(user=self.user, session_key=self.client.session.session_key,
+                                   expires_at=timezone.now() + timedelta(hours=1))
+        self.session = ChatSession.objects.create(user=self.user)
+
+    def stream(self, **headers):
+        return self.client.get(reverse('ai_yordamchi:stream_response', args=[self.session.pk]), **headers)
+
+    def test_without_header_view_runs_inline(self):
+        response = self.stream()
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('X-AI-Job', response)
+
+    def test_streaming_view_result_is_stored(self):
+        response = self.stream(HTTP_X_AI_ASYNC='1')
+        self.assertEqual(response.status_code, 202)
+        result = self.client.get(response['X-AI-Job'])
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result['Content-Type'], 'text/event-stream')
+        self.assertIn('"type": "done"', result.content.decode())
+
+    def test_other_user_cannot_read_job(self):
+        job_url = self.stream(HTTP_X_AI_ASYNC='1')['X-AI-Job']
+        other = CustomUser.objects.create_user(
+            username='ai-job-other', password='test-password', phone='+998900000205', role='admin')
+        self.client.force_login(other)
+        UserSession.objects.create(user=other, session_key=self.client.session.session_key,
+                                   expires_at=timezone.now() + timedelta(hours=1))
+        self.assertEqual(self.client.get(job_url).status_code, 404)
+
+    def test_pending_and_stale_jobs(self):
+        import uuid
+        from .models import AIJob
+        job = AIJob.objects.create(id=uuid.uuid4(), user=self.user)
+        url = reverse('ai_yordamchi:job_status', args=[job.pk])
+        self.assertEqual(self.client.get(url).status_code, 202)
+        AIJob.objects.filter(pk=job.pk).update(created_at=timezone.now() - timedelta(hours=1))
+        self.assertEqual(self.client.get(url).status_code, 504)
+
+    def test_admin_ai_grade_runs_in_background(self):
+        from unittest.mock import patch
+        from accounts.models import Homework, HomeworkSubmission, Lesson, Profession
+        student = CustomUser.objects.create_user(
+            username='ai-job-student', password='test-password', phone='+998900000206', role='student')
+        profession = Profession.objects.create(name='Python')
+        lesson = Lesson.objects.create(profession=profession, title='Sikllar', order=1)
+        homework = Homework.objects.create(lesson=lesson, description='for sikli yozing')
+        submission = HomeworkSubmission.objects.create(
+            homework=homework, student=student, submission_type='text', text_content='for i in range(3): print(i)')
+        grade = {'grade': 9, 'status': 'graded', 'feedback': 'Yaxshi'}
+        with patch('accounts.views._get_ai_grade', return_value=grade) as ai, \
+                patch('accounts.views._notify_ai_graded'):
+            response = self.client.post(reverse('grade_homework', args=[submission.pk]), {'action': 'ai_grade'})
+        self.assertEqual(response.status_code, 302)
+        ai.assert_called_once()
+        submission.refresh_from_db()
+        self.assertEqual((submission.grade, submission.status, submission.graded_by_id), (9, 'graded', self.user.pk))

@@ -1,6 +1,7 @@
 import os
 import random
 from datetime import timedelta
+from ai_yordamchi.jobs import ai_offload
 
 from django.db import models as db_models, transaction
 from django.shortcuts import get_object_or_404
@@ -482,6 +483,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
     # before anything touches the DB. See quiz/ai_generator.py docstring.
 
     @action(detail=False, methods=['post'], url_path='ai-preview')
+    @ai_offload
     def ai_preview(self, request):
         """Generate questions via AI but DO NOT save anything. Returns the
         same shape the import preview returns so the UI can reuse one
@@ -517,6 +519,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
         return Response({'errors': [], 'questions': questions})
 
     @action(detail=False, methods=['post'], url_path='ai-preview-transcript')
+    @ai_offload
     def ai_preview_transcript(self, request):
         """Generate questions from the video transcripts of a section AND all
         previous sections of the same course. No DB writes -- returns the same

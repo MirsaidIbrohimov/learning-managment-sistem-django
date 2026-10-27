@@ -13,6 +13,7 @@ from urllib.parse import urlencode
 import base64
 import json
 import re
+from .jobs import ai_offload
 
 from .models import ChatSession, ChatMessage, ChatFolder
 from coin.models import CoinTransaction, ActivityLog
@@ -521,6 +522,7 @@ def _generate_image_bytes(prompt):
 
 @login_required
 @require_POST
+@ai_offload
 def generate_image(request, pk):
     """Premium a'zo uchun matn tavsifidan rasm chizadi (kuniga DAILY_GEN_LIMIT ta)."""
     import uuid
@@ -589,6 +591,7 @@ def generate_image(request, pk):
 
 
 @login_required
+@ai_offload
 def stream_response(request, pk):
     """Stream the AI reply for the latest unanswered user message via SSE.
 

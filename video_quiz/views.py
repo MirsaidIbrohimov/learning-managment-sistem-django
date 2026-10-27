@@ -19,6 +19,7 @@ API (JSON):
 
 Xavfsizlik: ustoz faqat o'z kurslaridagi videolarni boshqaradi; admin hammasini.
 """
+from ai_yordamchi.jobs import ai_offload
 import json
 
 from django.contrib.auth.decorators import login_required
@@ -464,6 +465,7 @@ def _check_ai_access(request, video):
 
 @login_required
 @require_POST
+@ai_offload
 def api_quiz_ai_generate(request, video_id):
     """Video transkriptidan AI orqali savollar tuzadi — PREVIEW rejimi.
 

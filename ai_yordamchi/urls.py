@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import jobs, views
 
 app_name = 'ai_yordamchi'
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('session/<int:pk>/rename/', views.rename_session, name='rename_session'),
     path('session/<int:pk>/pin/', views.toggle_pin, name='toggle_pin'),
     path('session/<int:pk>/move/', views.move_session, name='move_session'),
+    path('jobs/<uuid:job_id>/', jobs.job_status, name='job_status'),
     path('message/<int:pk>/rate/', views.rate_message, name='rate_message'),
 
     # Folders
