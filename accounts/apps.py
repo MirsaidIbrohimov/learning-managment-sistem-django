@@ -32,6 +32,7 @@ class AccountsConfig(AppConfig):
         from django.conf import settings
         connection_created.connect(_tune_sqlite, dispatch_uid='accounts-sqlite-wal')
         from . import email_signals  # noqa: F401 — register transactional email hooks
+        from . import attendance_auto  # noqa: F401 — login bo'lganda avtomatik davomat
         if _FIX_SKIP.intersection(sys.argv) or (os.path.basename(sys.argv[0]) == 'manage.py' and 'runserver' not in sys.argv):
             return
         if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') != 'true' and '--noreload' not in sys.argv:

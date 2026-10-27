@@ -364,6 +364,33 @@ class AutoAttendanceTests(BaseCase):
         self.kid.is_blocked = True
         self.assertEqual(auto_mark_present(self.kid, today=self.today + timedelta(days=7)), 0)
 
+    def _lesson_today(self):
+        today = timezone.localdate()
+        if today.isoweekday() == 7:
+            self.skipTest("Yakshanba — dars kuni emas")
+        self.group.set_days_list([today.isoweekday()]); self.group.save()
+        return today
+
+    def test_login_marks_even_if_session_flag_already_set(self):
+        """Bugun avval kirgan (bayroq qo'yilgan) brauzerda qayta login ham belgilaydi."""
+        today = self._lesson_today()
+        self.kid.set_password('Parol-12345'); self.kid.save()
+        c = Client()
+        s = c.session; s['_streak_checked_date'] = today.isoformat(); s.save()
+        c.post(reverse('login'), {'login_mode': 'username', 'username': 'aziz', 'password': 'Parol-12345'})
+        a = StudentAttendance.objects.get(student=self.kid, date=today)
+        self.assertEqual((a.status, a.note), ('present', AUTO_NOTE))
+
+    def test_diagnostic_command(self):
+        from io import StringIO
+        from django.core.management import call_command
+        self._lesson_today()
+        out = StringIO()
+        call_command('check_auto_attendance', 'aziz', '--mark', stdout=out)
+        text = out.getvalue()
+        self.assertIn('G [faol]', text)
+        self.assertIn("1 ta yangi belgi", text)
+
     def test_middleware_marks_on_site_visit(self):
         today = timezone.localdate()
         self.kid.is_profile_completed = True
